@@ -3,6 +3,7 @@ import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { CustomerListPage } from '@/pages/customer/CustomerListPage'
 import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
+import { DashboardPage } from '@/pages/DashboardPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -15,20 +16,40 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        index: true,
-        element: <Navigate to="/customers" replace />,
-      },
-      {
-        path: 'customers',
         element: <MainLayout />,
         children: [
           {
             index: true,
-            element: <CustomerListPage />,
+            element: <Navigate to="/dashboard" replace />,
           },
           {
-            path: ':id',
-            element: <CustomerDetailPage />,
+            path: 'dashboard',
+            element: <DashboardPage />,
+          },
+          {
+            path: 'customers',
+            children: [
+              {
+                index: true,
+                element: <CustomerListPage />,
+              },
+              {
+                path: ':id',
+                element: <CustomerDetailPage />,
+              },
+            ],
+          },
+          {
+            path: 'contracts',
+            element: <div>合同管理页面开发中...</div>,
+          },
+          {
+            path: 'products',
+            element: <div>产品管理页面开发中...</div>,
+          },
+          {
+            path: 'system',
+            element: <div>系统管理页面开发中...</div>,
           },
         ],
       },
