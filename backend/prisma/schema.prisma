@@ -335,3 +335,35 @@ model LogDetail {
   @@index([logId])
   @@map("log_details")
 }
+
+// ==================== 系统配置 ====================
+
+model CommonPhrase {
+  id         String   @id @default(cuid())
+  userId     String?  // null表示系统常用语
+  content    String   // 常用语内容
+  category   String?  // 分类: GREETING, FOLLOW_UP, CLOSING, OTHER
+  useCount   Int      @default(0) // 使用次数
+  isSystem   Boolean  @default(false) // 是否系统预置
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([category])
+  @@map("common_phrases")
+}
+
+model PaymentAccount {
+  id         String   @id @default(cuid())
+  name       String   // 账户名称
+  accountNo  String   // 账号
+  bank       String?  // 开户行
+  type       String   // 类型: 1:银行转账 2:微信 3:支付宝 4:现金
+  isDefault  Boolean  @default(false) // 是否默认账户
+  status     Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("payment_accounts")
+}
+
