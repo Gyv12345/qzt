@@ -3,6 +3,8 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { CreateProductFlowDto } from './dto/create-product-flow.dto';
+import { UpdateProductFlowDto } from './dto/update-product-flow.dto';
 
 @Injectable()
 export class ProductService {
@@ -97,5 +99,92 @@ export class ProductService {
     });
 
     return { message: 'Product deleted successfully' };
+  }
+
+  // ==================== 产品流程管理 ====================
+
+  async createFlow(createFlowDto: CreateProductFlowDto) {
+    // 验证产品是否存在
+    const product = await this.prisma.product.findUnique({
+      where: { id: createFlowDto.productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product #${createFlowDto.productId} not found`);
+    }
+
+    return this.prisma.productFlow.create({
+      data: createFlowDto,
+    });
+  }
+
+  async findFlows(productId?: string) {
+    const where = productId ? { productId } : {};
+
+    return this.prisma.productFlow.findMany({
+      where,
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findFlow(id: string) {
+    const flow = await this.prisma.productFlow.findUnique({
+      where: { id },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    });
+
+    if (!flow) {
+      throw new NotFoundException(`ProductFlow #${id} not found`);
+    }
+
+    return flow;
+  }
+
+  async updateFlow(id: string, updateFlowDto: UpdateProductFlowDto) {
+    const flow = await this.prisma.productFlow.findUnique({
+      where: { id },
+    });
+
+    if (!flow) {
+      throw new NotFoundException(`ProductFlow #${id} not found`);
+    }
+
+    return this.prisma.productFlow.update({
+      where: { id },
+      data: updateFlowDto,
+    });
+  }
+
+  async removeFlow(id: string) {
+    const flow = await this.prisma.productFlow.findUnique({
+      where: { id },
+    });
+
+    if (!flow) {
+      throw new NotFoundException(`ProductFlow #${id} not found`);
+    }
+
+    await this.prisma.productFlow.delete({
+      where: { id },
+    });
+
+    return { message: 'ProductFlow deleted successfully' };
   }
 }
