@@ -162,7 +162,8 @@ model Product {
   name           String
   code           String   @unique
   description    String?
-  price          Float
+  price          Float    // 基础价格
+  pricingType    String   @default("FIXED") // FIXED:固定价格 TIER_AMOUNT:按金额阶梯 TIER_COUNT:按次数计费 ZERO_DECLARATION:零申报
   invoiceLimit   Float    @default(0) // 开票额度(月)
   invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
   overLimitPrice Float    @default(0) // 超额单价
@@ -170,10 +171,49 @@ model Product {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  contracts Contract[]
-  flows     ProductFlow[]
+  contracts    Contract[]
+  flows        ProductFlow[]
+  pricingRules PricingRule[]
 
   @@map("products")
+}
+
+// ==================== 阶梯定价规则 ====================
+
+model PricingRule {
+  id             String   @id @default(cuid())
+  productId      String
+  name           String   // 规则名称
+  ruleType       String   // AMOUNT_TIER:按金额阶梯 COUNT_TIER:按次数 ZERO_DECLARATION:零申报
+  effectiveDate  DateTime @default(now()) // 生效日期
+  expiryDate     DateTime? // 失效日期
+  status         Int      @default(1) // 1:启用 0:禁用
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tiers   PricingTier[]
+
+  @@index([productId])
+  @@map("pricing_rules")
+}
+
+model PricingTier {
+  id              String   @id @default(cuid())
+  pricingRuleId   String
+  minThreshold    Float    // 最小阈值
+  maxThreshold    Float?   // 最大阈值(null表示无上限)
+  price           Float    // 该阶梯的价格
+  additionalPrice Float?   // 超出基础价格的加价部分
+  description     String?  // 描述
+  order           Int      // 排序
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  pricingRule PricingRule @relation(fields: [pricingRuleId], references: [id], onDelete: Cascade)
+
+  @@index([pricingRuleId])
+  @@map("pricing_tiers")
 }
 
 // ==================== 产品流程 ====================
@@ -254,10 +294,28 @@ model Invoice {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer            Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  priceChangeRecords  InvoicePriceChange[]
 
   @@index([customerId, month])
   @@map("invoices")
+}
+
+// ==================== 发票价格变更记录 ====================
+
+model InvoicePriceChange {
+  id           String   @id @default(cuid())
+  invoiceId    String
+  oldPrice     Float    // 原价格
+  newPrice     Float    // 新价格
+  changeReason String?  // 变更原因
+  changedBy    String?  // 操作人ID
+  createdAt    DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_price_changes")
 }
 
 // ==================== 服务团队 ====================

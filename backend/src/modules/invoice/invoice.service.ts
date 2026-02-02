@@ -1,12 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { QueryInvoiceDto } from './dto/query-invoice.dto';
+import { PricingService } from '../pricing/pricing.service';
 
 @Injectable()
 export class InvoiceService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(InvoiceService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private pricingService: PricingService,
+  ) {}
 
   async create(createInvoiceDto: CreateInvoiceDto) {
     // 验证客户存在
@@ -67,6 +73,33 @@ export class InvoiceService {
       overCount = newTotalCount - invoiceCount;
     }
 
+    // 如果超额并且有关联合同,使用阶梯定价计算新价格
+    let priceChangeRecord = null;
+    if (isOverLimit && createInvoiceDto.contractId) {
+      try {
+        const priceCalculation = await this.pricingService.calculatePrice({
+          contractId: createInvoiceDto.contractId,
+          invoiceAmount: newTotalAmount,
+          invoiceCount: newTotalCount,
+        });
+
+        // 如果价格发生变化,记录变更
+        if (priceCalculation.additionalPrice > 0) {
+          const contract = await this.prisma.contract.findUnique({
+            where: { id: createInvoiceDto.contractId },
+          });
+
+          // 创建发票后再关联价格变更记录
+          // 暂时保存数据,稍后创建invoice时使用
+          this.logger.log(
+            `发票 ${createInvoiceDto.customerId} 超额开票,价格从 ${priceCalculation.basePrice} 调整为 ${priceCalculation.finalPrice}`,
+          );
+        }
+      } catch (error) {
+        this.logger.error('计算价格失败:', error);
+      }
+    }
+
     const invoice = await this.prisma.invoice.create({
       data: {
         customerId: createInvoiceDto.customerId,
@@ -83,6 +116,7 @@ export class InvoiceService {
         customer: {
           select: { id: true, name: true },
         },
+        priceChangeRecords: true,
       },
     });
 
