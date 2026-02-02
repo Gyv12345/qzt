@@ -6,6 +6,7 @@ export default defineConfig({
   access: {},
   model: {},
   initialState: {},
+  request: {},  // 声明 request 插件，具体配置在 app.tsx
   layout: {
     name: '企账通 SCRM',
     logo: 'https://gw.alipayobjects.com/zos/antfincdn/PmY%24TNNdbI/logo.svg',
