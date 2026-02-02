@@ -23,6 +23,7 @@ export class StatisticsService {
       monthlyContractAmount,
       monthlyInvoiceAmount,
       recentActivities,
+      unreadNotifications,
     ] = await Promise.all([
       // 总客户数
       this.prisma.customer.count(),
@@ -78,6 +79,13 @@ export class StatisticsService {
 
       // 最近活动(最近10条)
       this.getRecentActivities(10),
+
+      // 未读通知数
+      this.prisma.notification.count({
+        where: {
+          isRead: false,
+        },
+      }),
     ]);
 
     return {
@@ -94,275 +102,342 @@ export class StatisticsService {
         invoiceAmount: monthlyInvoiceAmount._sum.amount || 0,
       },
       recentActivities,
+      unreadNotifications,
     };
   }
 
   /**
-   * 获取业绩统计
+   * 获取客户增长趋势
    */
-  async getPerformanceStats(year?: number) {
-    const targetYear = year || new Date().getFullYear();
+  async getCustomerGrowthTrend(months = 12) {
+    const trends = [];
 
-    // 按月统计合同金额
-    const monthlyContracts = await this.prisma.$queryRaw`
-      SELECT
-        STRFTIME('%m', createdAt) as month,
-        COUNT(*) as count,
-        SUM(amount) as amount
-      FROM Contract
-      WHERE STRFTIME('%Y', createdAt) = ${String(targetYear)}
-      GROUP BY STRFTIME('%m', createdAt)
-      ORDER BY month
-    ` as Array<{ month: string; count: bigint; amount: bigint }>;
+    for (let i = months - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const startOfMonth = new Date(year, month, 1);
+      const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
 
-    // 按月统计收款金额
-    const monthlyPayments = await this.prisma.$queryRaw`
-      SELECT
-        STRFTIME('%m', paymentDate) as month,
-        COUNT(*) as count,
-        SUM(amount) as amount
-      FROM Payment
-      WHERE STRFTIME('%Y', paymentDate) = ${String(targetYear)}
-      GROUP BY STRFTIME('%m', paymentDate)
-      ORDER BY month
-    ` as Array<{ month: string; count: bigint; amount: bigint }>;
-
-    return {
-      contracts: monthlyContracts.map((item) => ({
-        month: parseInt(item.month),
-        count: Number(item.count),
-        amount: Number(item.amount),
-      })),
-      payments: monthlyPayments.map((item) => ({
-        month: parseInt(item.month),
-        count: Number(item.count),
-        amount: Number(item.amount),
-      })),
-    };
-  }
-
-  /**
-   * 获取客户分析数据
-   */
-  async getCustomerAnalysis() {
-    // 按行业统计客户
-    const customersByIndustry = await this.prisma.customer.groupBy({
-      by: ['industry'],
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: 'desc' as const,
-        },
-      },
-    } as any);
-
-    // 按状态统计客户
-    const customersByStatus = await this.prisma.customer.groupBy({
-      by: ['status'],
-      _count: {
-        id: true,
-      },
-    });
-
-    // 客户跟进统计
-    const followUpStats = await this.prisma.followRecord.groupBy({
-      by: ['type'],
-      _count: {
-        id: true,
-      },
-    });
-
-    return {
-      byIndustry: customersByIndustry.map((item) => ({
-        industry: item.industry || '未分类',
-        count: item._count.id,
-      })),
-      byStatus: customersByStatus.map((item) => ({
-        status: item.status,
-        count: item._count.id,
-      })),
-      followUpTypes: followUpStats.map((item) => ({
-        type: item.type,
-        count: item._count.id,
-      })),
-    };
-  }
-
-  /**
-   * 获取收款统计
-   */
-  async getPaymentStats(month?: string) {
-    const targetMonth = month || new Date().toISOString().slice(0, 7);
-
-    // 当月收款统计
-    const monthlyStats = await this.prisma.payment.aggregate({
-      where: {
-        payTime: {
-          gte: new Date(targetMonth + '-01'),
-          lt: new Date(targetMonth + '-31'),
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    // 按收款方式统计
-    const byMethod = await this.prisma.payment.groupBy({
-      by: ['method'],
-      where: {
-        paymentDate: {
-          gte: new Date(targetMonth + '-01'),
-          lt: new Date(targetMonth + '-31'),
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    // 待收款金额
-    const pendingPayments = await this.prisma.contract.aggregate({
-      where: {
-        status: {
-          in: [1, 2], // 待收款、部分收款
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    return {
-      monthly: {
-        totalAmount: monthlyStats._sum.amount || 0,
-        totalCount: monthlyStats._count.id,
-      },
-      byMethod: byMethod.map((item) => ({
-        method: item.method,
-        amount: item._sum.amount || 0,
-        count: item._count.id,
-      })),
-      pending: {
-        amount: pendingPayments._sum.amount || 0,
-        count: pendingPayments._count.id,
-      },
-    };
-  }
-
-  /**
-   * 获取开票统计
-   */
-  async getInvoiceStats(month?: string) {
-    const targetMonth = month || new Date().toISOString().slice(0, 7);
-
-    // 当月开票统计
-    const monthlyStats = await this.prisma.invoice.aggregate({
-      where: {
-        month: targetMonth,
-      },
-      _sum: {
-        amount: true,
-        count: true,
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    // 超额统计
-    const overLimitInvoices = await this.prisma.invoice.findMany({
-      where: {
-        month: targetMonth,
-        OR: [
-          {
-            overLimitCount: {
-              gt: 0,
+      const [newCustomers, totalCustomers] = await Promise.all([
+        // 当月新增客户
+        this.prisma.customer.count({
+          where: {
+            createdAt: {
+              gte: startOfMonth,
+              lte: endOfMonth,
             },
           },
-          {
-            overLimitAmount: {
-              gt: 0,
-            },
-          },
-        ],
-      },
-    });
-
-    const totalOverLimitCount = overLimitInvoices.reduce(
-      (sum, inv) => sum + (inv.overLimitCount || 0),
-      0,
-    );
-    const totalOverLimitAmount = overLimitInvoices.reduce(
-      (sum, inv) => sum + (inv.overLimitAmount || 0),
-      0,
-    );
-
-    // 按客户统计
-    const topCustomers = await this.prisma.invoice.groupBy({
-      by: ['customerId'],
-      where: {
-        month: targetMonth,
-      },
-      _sum: {
-        amount: true,
-        count: true,
-      },
-      orderBy: {
-        _sum: {
-          amount: 'desc',
-        },
-      },
-      take: 10,
-    });
-
-    return {
-      monthly: {
-        totalAmount: monthlyStats._sum.amount || 0,
-        totalCount: monthlyStats._count.id,
-        totalInvoices: monthlyStats._sum.count || 0,
-      },
-      overLimit: {
-        count: totalOverLimitCount,
-        amount: totalOverLimitAmount,
-        invoiceCount: overLimitInvoices.length,
-      },
-      topCustomers: await Promise.all(
-        topCustomers.map(async (item) => {
-          const customer = await this.prisma.customer.findUnique({
-            where: { id: item.customerId },
-            select: { name: true },
-          });
-          return {
-            customerId: item.customerId,
-            customerName: customer?.name || '未知',
-            amount: item._sum.amount || 0,
-            count: item._sum.count || 0,
-          };
         }),
-      ),
+        // 月末总客户数
+        this.prisma.customer.count({
+          where: {
+            createdAt: {
+              lte: endOfMonth,
+            },
+          },
+        }),
+      ]);
+
+      trends.push({
+        month: `${year}-${String(month + 1).padStart(2, '0')}`,
+        newCustomers,
+        totalCustomers,
+      });
+    }
+
+    return trends;
+  }
+
+  /**
+   * 获取合同续约率统计
+   */
+  async getContractRenewalStats(months = 12) {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
+
+    // 查询期间到期的合同
+    const expiringContracts = await this.prisma.contract.findMany({
+      where: {
+        serviceEnd: {
+          gte: startDate,
+          lte: now,
+        },
+      },
+      select: {
+        id: true,
+        serviceEnd: true,
+        customer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    // 统计续约情况
+    let renewedCount = 0;
+    let notRenewedCount = 0;
+
+    for (const contract of expiringContracts) {
+      // 检查是否有新合同(续约)
+      const renewedContract = await this.prisma.contract.findFirst({
+        where: {
+          customerId: contract.customer.id,
+          serviceStart: {
+            gt: contract.serviceEnd,
+          },
+        },
+      });
+
+      if (renewedContract) {
+        renewedCount++;
+      } else {
+        notRenewedCount++;
+      }
+    }
+
+    const total = renewedCount + notRenewedCount;
+    const renewalRate = total > 0 ? (renewedCount / total) * 100 : 0;
+
+    return {
+      total: expiringContracts.length,
+      renewed: renewedCount,
+      notRenewed: notRenewedCount,
+      renewalRate: parseFloat(renewalRate.toFixed(2)),
     };
+  }
+
+  /**
+   * 获取开票金额分析
+   */
+  async getInvoiceAnalysis(months = 12) {
+    const trends = [];
+
+    for (let i = months - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+      // 查询当月开票数据
+      const invoices = await this.prisma.invoice.findMany({
+        where: {
+          month: monthKey,
+        },
+        select: {
+          amount: true,
+          isOverLimit: true,
+        },
+      });
+
+      const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
+      const overLimitAmount = invoices
+        .filter((inv) => inv.isOverLimit)
+        .reduce((sum, inv) => sum + inv.amount, 0);
+      const overLimitCount = invoices.filter((inv) => inv.isOverLimit).length;
+
+      trends.push({
+        month: monthKey,
+        totalAmount,
+        overLimitAmount,
+        overLimitCount,
+        normalAmount: totalAmount - overLimitAmount,
+      });
+    }
+
+    return trends;
+  }
+
+  /**
+   * 获取销售业绩排行
+   */
+  async getSalesPerformance(startDate?: Date, endDate?: Date) {
+    // 默认查询最近12个月
+    if (!startDate) {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 12);
+    }
+    if (!endDate) {
+      endDate = new Date();
+    }
+
+    // 查询所有有跟进人的客户
+    const customers = await this.prisma.customer.findMany({
+      where: {
+        followUserId: {
+          not: null,
+        },
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        followUserId: true,
+        customerLevel: true,
+      },
+    });
+
+    // 按销售分组统计
+    const salesMap = new Map();
+
+    for (const customer of customers) {
+      const userId = customer.followUserId!;
+
+      if (!salesMap.has(userId)) {
+        salesMap.set(userId, {
+          userId,
+          totalCustomers: 0,
+          potentialCustomers: 0,
+          intentionCustomers: 0,
+          formalCustomers: 0,
+          vipCustomers: 0,
+        });
+      }
+
+      const stats = salesMap.get(userId);
+      stats.totalCustomers++;
+
+      switch (customer.customerLevel) {
+        case 0: // 潜在
+          stats.potentialCustomers++;
+          break;
+        case 1: // 意向
+          stats.intentionCustomers++;
+          break;
+        case 2: // 正式
+          stats.formalCustomers++;
+          break;
+        case 3: // VIP
+          stats.vipCustomers++;
+          break;
+      }
+    }
+
+    // 查询用户信息并排序
+    const userIds = Array.from(salesMap.keys());
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    const performance = [];
+
+    for (const [userId, stats] of salesMap.entries()) {
+      const user = users.find((u) => u.id === userId);
+      if (user) {
+        performance.push({
+          ...stats,
+          userName: user.name,
+          conversionRate:
+            stats.totalCustomers > 0
+              ? parseFloat(
+                  (
+                    ((stats.formalCustomers + stats.vipCustomers) /
+                      stats.totalCustomers) *
+                    100
+                  ).toFixed(2),
+                )
+              : 0,
+        });
+      }
+    }
+
+    // 按正式客户数排序
+    return performance.sort(
+      (a, b) => b.formalCustomers + b.vipCustomers - (a.formalCustomers + a.vipCustomers),
+    );
+  }
+
+  /**
+   * 获取产品销售统计
+   */
+  async getProductSalesStats(startDate?: Date, endDate?: Date) {
+    if (!startDate) {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 12);
+    }
+    if (!endDate) {
+      endDate = new Date();
+    }
+
+    const products = await this.prisma.product.findMany({
+      include: {
+        _count: {
+          select: {
+            contracts: {
+              where: {
+                createdAt: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 查询每个产品的合同金额
+    const stats = [];
+
+    for (const product of products) {
+      const contracts = await this.prisma.contract.findMany({
+        where: {
+          productId: product.id,
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        select: {
+          amount: true,
+        },
+      });
+
+      const totalAmount = contracts.reduce((sum, c) => sum + c.amount, 0);
+
+      stats.push({
+        productId: product.id,
+        productName: product.name,
+        productCode: product.code,
+        contractCount: product._count.contracts,
+        totalAmount,
+        avgAmount:
+          product._count.contracts > 0
+            ? totalAmount / product._count.contracts
+            : 0,
+      });
+    }
+
+    // 按合同数排序
+    return stats.sort((a, b) => b.contractCount - a.contractCount);
   }
 
   /**
    * 获取最近活动记录
    */
-  private async getRecentActivities(limit: number = 10) {
-    // 获取最近的客户创建记录
+  private async getRecentActivities(limit = 10) {
+    // 这里简化处理,实际可以从多个表中获取
+    const activities = [];
+
+    // 最近添加的客户
     const recentCustomers = await this.prisma.customer.findMany({
-      take: Math.ceil(limit / 3),
-      orderBy: { createdAt: 'desc' },
+      take: Math.floor(limit / 3),
+      orderBy: {
+        createdAt: 'desc',
+      },
       select: {
         id: true,
         name: true,
@@ -370,67 +445,138 @@ export class StatisticsService {
       },
     });
 
-    // 获取最近的合同创建记录
-    const recentContracts = await this.prisma.contract.findMany({
-      take: Math.ceil(limit / 3),
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        code: true,
-        amount: true,
-        createdAt: true,
-        customer: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    // 获取最近的开票记录
-    const recentInvoices = await this.prisma.invoice.findMany({
-      take: Math.ceil(limit / 3),
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        amount: true,
-        count: true,
-        month: true,
-        createdAt: true,
-        customer: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    // 合并并按时间排序
-    const activities = [
+    activities.push(
       ...recentCustomers.map((c) => ({
         type: 'customer',
-        id: c.id,
-        title: `新增客户: ${c.name}`,
-        time: c.createdAt,
+        message: `新增客户: ${c.name}`,
+        createdAt: c.createdAt,
       })),
+    );
+
+    // 最近创建的合同
+    const recentContracts = await this.prisma.contract.findMany({
+      take: Math.floor(limit / 3),
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        customer: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    activities.push(
       ...recentContracts.map((c) => ({
         type: 'contract',
-        id: c.id,
-        title: `创建合同: ${c.code} - ${c.customer.name}`,
-        subtitle: `¥${c.amount.toLocaleString()}`,
-        time: c.createdAt,
+        message: `创建合同: ${c.customer.name}`,
+        createdAt: c.createdAt,
       })),
-      ...recentInvoices.map((i) => ({
-        type: 'invoice',
-        id: i.id,
-        title: `开票记录: ${i.customer.name}`,
-        subtitle: `${i.month} ¥${i.amount.toLocaleString()} (${i.count}张)`,
-        time: i.createdAt,
-      })),
-    ]
-      .sort((a, b) => b.time.getTime() - a.time.getTime())
-      .slice(0, limit);
+    );
 
-    return activities;
+    // 最近的跟进记录
+    const recentFollows = await this.prisma.followRecord.findMany({
+      take: Math.floor(limit / 3),
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        customer: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    activities.push(
+      ...recentFollows.map((f) => ({
+        type: 'follow',
+        message: `跟进客户: ${f.customer.name}`,
+        createdAt: f.createdAt,
+      })),
+    );
+
+    // 按时间排序并限制数量
+    return activities
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
+  }
+
+  /**
+   * 导出数据
+   */
+  async exportData(type: string, filters?: any) {
+    let data: any[] = [];
+    let filename = '';
+
+    switch (type) {
+      case 'customers':
+        data = await this.prisma.customer.findMany({
+          where: filters,
+          include: {
+            followUser: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+        filename = `customers_${Date.now()}.json`;
+        break;
+
+      case 'contracts':
+        data = await this.prisma.contract.findMany({
+          where: filters,
+          include: {
+            customer: {
+              select: {
+                name: true,
+              },
+            },
+            product: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+        filename = `contracts_${Date.now()}.json`;
+        break;
+
+      case 'invoices':
+        data = await this.prisma.invoice.findMany({
+          where: filters,
+          include: {
+            customer: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            month: 'desc',
+          },
+        });
+        filename = `invoices_${Date.now()}.json`;
+        break;
+
+      default:
+        throw new Error(`不支持的导出类型: ${type}`);
+    }
+
+    return {
+      filename,
+      data,
+      count: data.length,
+    };
   }
 }
