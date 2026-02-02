@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useUiStore } from '@/stores/uiStore';
 import {
   LayoutDashboard,
@@ -41,7 +41,6 @@ const menuItems = [
 ];
 
 export function Sidebar() {
-  const location = useLocation();
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
 
   return (

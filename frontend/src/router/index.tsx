@@ -1,10 +1,9 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { MainLayout } from '@/layouts/MainLayout';
-import { LoginPage } from '@/pages/LoginPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { CustomerListPage } from '@/pages/CustomerListPage';
-import { CustomerDetailPage } from '@/pages/CustomerDetailPage';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { MainLayout } from '@/layouts/MainLayout'
+import { LoginPage } from '@/pages/LoginPage'
+import { CustomerListPage } from '@/pages/customer/CustomerListPage'
+import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 export const router = createBrowserRouter([
   {
@@ -13,32 +12,26 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: (
-      <ProtectedRoute>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute />,
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
-      },
-      {
-        path: 'dashboard',
-        element: <DashboardPage />,
+        element: <Navigate to="/customers" replace />,
       },
       {
         path: 'customers',
-        element: <CustomerListPage />,
-      },
-      {
-        path: 'customers/:id',
-        element: <CustomerDetailPage />,
+        element: <MainLayout />,
+        children: [
+          {
+            index: true,
+            element: <CustomerListPage />,
+          },
+          {
+            path: ':id',
+            element: <CustomerDetailPage />,
+          },
+        ],
       },
     ],
   },
-  {
-    path: '*',
-    element: <Navigate to="/dashboard" replace />,
-  },
-]);
+])
