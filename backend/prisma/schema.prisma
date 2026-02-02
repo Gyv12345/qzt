@@ -105,14 +105,33 @@ model Customer {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  contracts     Contract[]
-  followRecords FollowRecord[]
-  invoices      Invoice[]
-  serviceTeams  ServiceTeam[]
+  contracts           Contract[]
+  followRecords       FollowRecord[]
+  invoices            Invoice[]
+  serviceTeams        ServiceTeam[]
+  assignmentHistories CustomerAssignmentHistory[]
 
   @@index([followUserId])
   @@index([customerLevel])
+  @@index([status])
   @@map("customers")
+}
+
+model CustomerAssignmentHistory {
+  id                  String   @id @default(cuid())
+  customerId          String
+  previousFollowUserId String?
+  newFollowUserId     String
+  assignedBy          String // 操作人ID
+  reason              String?
+  createdAt           DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([newFollowUserId])
+  @@index([assignedBy])
+  @@map("customer_assignment_histories")
 }
 
 // ==================== 跟进记录 ====================

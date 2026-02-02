@@ -153,10 +153,10 @@ export class StatisticsService {
       },
       orderBy: {
         _count: {
-          id: 'desc',
+          id: 'desc' as const,
         },
       },
-    });
+    } as any);
 
     // 按状态统计客户
     const customersByStatus = await this.prisma.customer.groupBy({
@@ -199,7 +199,7 @@ export class StatisticsService {
     // 当月收款统计
     const monthlyStats = await this.prisma.payment.aggregate({
       where: {
-        paymentDate: {
+        payTime: {
           gte: new Date(targetMonth + '-01'),
           lt: new Date(targetMonth + '-31'),
         },
