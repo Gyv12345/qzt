@@ -8,9 +8,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin-left: 200px;
-    width: calc(100% - 200px);
-    transition: all 0.2s;
+    margin-left: 240px;
+    width: calc(100% - 240px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.collapsed {
       margin-left: 80px;
@@ -20,7 +20,7 @@
     .content {
       flex: 1;
       padding: 24px;
-      background: #f0f2f5;
+      background: #F8FAFC;
       min-height: calc(100vh - 64px);
       overflow-y: auto;
     }
