@@ -1,4 +1,5 @@
 import { defineConfig } from '@umijs/max';
+import themeConfig from './src/theme/themeConfig';
 
 export default defineConfig({
   antd: {},
@@ -6,36 +7,54 @@ export default defineConfig({
   model: {},
   initialState: {},
   request: {},
-  layout: false,
-  port: 3456,
+  layout: false, // 禁用内置布局，使用自定义布局
   routes: [
-    {
-      path: '/',
-      redirect: '/login',
-    },
     {
       path: '/login',
       component: '@/pages/login',
     },
     {
       path: '/',
-      component: '@/layouts/index',
-      wrapper: '@/wrappers/auth',
+      component: '@/layouts/BasicLayout',
       routes: [
-        { path: '/dashboard', component: '@/pages/dashboard' },
+        {
+          path: '/',
+          redirect: '/customer',
+        },
         {
           path: '/customer',
           component: '@/pages/customer',
-          access: 'canViewCustomer',
+        },
+        {
+          path: '/customer/:id',
+          component: '@/pages/customer/detail',
+        },
+        {
+          path: '/dashboard',
+          component: '@/pages/dashboard',
+        },
+        {
+          path: '/contract',
+          component: '@/pages/placeholder',
+        },
+        {
+          path: '/product',
+          component: '@/pages/placeholder',
+        },
+        {
+          path: '/system',
+          component: '@/pages/placeholder',
+        },
+        {
+          path: '/profile',
+          component: '@/pages/placeholder',
         },
       ],
     },
   ],
   npmClient: 'pnpm',
   mfsu: {},
-  theme: {
-    'primary-color': '#1890ff',
-  },
+  theme: themeConfig,
   proxy: {
     '/api': {
       target: 'http://localhost:7890',
