@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Building2,
   Receipt,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +24,11 @@ const menuItems = [
     path: '/customers',
     icon: Users,
     label: '客户',
+  },
+  {
+    path: '/follow-records',
+    icon: MessageSquare,
+    label: '跟进',
   },
   {
     path: '/contracts',

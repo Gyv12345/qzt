@@ -117,7 +117,9 @@ export interface QueryCustomersParams {
 export interface FollowRecord {
   id: string;
   customerId: string;
+  customerName?: string;
   userId: string;
+  userName?: string;
   type: FollowType;
   content: string;
   nextTime?: string;
