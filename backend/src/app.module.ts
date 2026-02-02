@@ -129,6 +129,7 @@ const envSchema = Joi.object({
     SystemModule,
     PricingModule,
     AutomationModule,
+    PermissionModule,
   ],
   controllers: [HealthController],
   providers: [],
