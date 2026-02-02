@@ -4,13 +4,14 @@ export interface JwtPayload {
 }
 
 export interface UserInfo {
-  id: string;
+  userId: string;
   username: string;
   name: string;
   email?: string;
   phone?: string;
   avatar?: string;
   status: number;
+  isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
   roles: Array<{

@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CustomerModule } from './modules/customer/customer.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -105,6 +106,7 @@ const envSchema = Joi.object({
     ]),
     PrismaModule,
     AuthModule,
+    CustomerModule,
   ],
   controllers: [HealthController],
   providers: [],

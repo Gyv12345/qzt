@@ -38,13 +38,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const { password: _, ...result } = user;
 
     return {
-      id: result.id,
+      userId: result.id,
       username: result.username,
       name: result.name,
       email: result.email,
       phone: result.phone,
       avatar: result.avatar,
       status: result.status,
+      isAdmin: result.roles.some(ur => ur.role.code === 'ADMIN'),
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
       roles: result.roles.map((ur) => ({
