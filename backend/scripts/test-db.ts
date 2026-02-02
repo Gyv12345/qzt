@@ -28,7 +28,6 @@ async function main() {
       password: 'hashed_password_here',
       name: 'Test Admin',
       email: 'test@qzt.com',
-      tenantId: 'default',
       status: 1,
     },
   });
