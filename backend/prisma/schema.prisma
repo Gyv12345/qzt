@@ -24,22 +24,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  roles          UserRole[]
-  followRecords  FollowRecord[]
-  serviceTeams   ServiceTeam[]
+  roles         UserRole[]
+  followRecords FollowRecord[]
+  serviceTeams  ServiceTeam[]
 
   @@index([tenantId])
   @@map("users")
 }
 
 model Role {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  code        String     @unique
+  code        String   @unique
   description String?
-  status      Int        @default(1)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  status      Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   users       UserRole[]
   permissions RolePermission[]
@@ -53,36 +53,36 @@ model UserRole {
   roleId    String
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roleId])
   @@map("user_roles")
 }
 
 model Permission {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  code        String           @unique
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique
   description String?
-  type        String           // menu:菜单按钮 button:操作按钮 data:数据权限
-  status      Int              @default(1)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  type        String // menu:菜单按钮 button:操作按钮 data:数据权限
+  status      Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  roles       RolePermission[]
+  roles RolePermission[]
 
   @@map("permissions")
 }
 
 model RolePermission {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   roleId       String
   permissionId String
-  createdAt    DateTime   @default(now())
+  createdAt    DateTime @default(now())
 
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
   @@map("role_permissions")
@@ -91,22 +91,22 @@ model RolePermission {
 // ==================== 客户模块 ====================
 
 model Customer {
-  id            String    @id @default(cuid())
-  name          String    // 客户名称
-  contactName   String    // 联系人
-  contactPhone   String    // 联系电话
-  contactEmail   String?   // 联系邮箱
-  companyName   String?   // 公司名称
-  address       String?   // 地址
-  customerLevel Int       @default(0) // 0:潜在 1:意向 2:正式 3:VIP
-  sourceChannel Int?      // 来源渠道
-  followUserId  String?   // 跟进人ID
-  tags          String?   // 标签(JSON数组)
-  remark        String?   // 备注
+  id            String   @id @default(cuid())
+  name          String // 客户名称
+  contactName   String // 联系人
+  contactPhone  String // 联系电话
+  contactEmail  String? // 联系邮箱
+  companyName   String? // 公司名称
+  address       String? // 地址
+  customerLevel Int      @default(0) // 0:潜在 1:意向 2:正式 3:VIP
+  sourceChannel Int? // 来源渠道
+  followUserId  String? // 跟进人ID
+  tags          String? // 标签(JSON数组)
+  remark        String? // 备注
   tenantId      String
-  status        Int       @default(1)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  status        Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   contracts     Contract[]
   followRecords FollowRecord[]
@@ -121,19 +121,19 @@ model Customer {
 // ==================== 跟进记录 ====================
 
 model FollowRecord {
-  id          String    @id @default(cuid())
-  customerId  String
-  userId      String
-  type        Int       // 跟进类型: 1:电话 2:微信 3:上门 4:邮件 5:其他
-  content     String    // 跟进内容
-  nextTime    DateTime? // 下次跟进时间
-  images      String?   // 图片(JSON数组)
-  tenantId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  customerId String
+  userId     String
+  type       Int // 跟进类型: 1:电话 2:微信 3:上门 4:邮件 5:其他
+  content    String // 跟进内容
+  nextTime   DateTime? // 下次跟进时间
+  images     String? // 图片(JSON数组)
+  tenantId   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  user        User?     @relation(fields: [userId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id])
 
   @@index([tenantId, customerId])
   @@index([tenantId, userId])
@@ -143,21 +143,21 @@ model FollowRecord {
 // ==================== 产品模块 ====================
 
 model Product {
-  id              String    @id @default(cuid())
-  name            String
-  code            String    @unique
-  description     String?
-  price           Float
-  invoiceLimit    Float     @default(0) // 开票额度(月)
-  invoiceCount    Int       @default(0) // 套餐包含开票张数(月)
-  overLimitPrice  Float     @default(0) // 超额单价
-  status          Int       @default(1)
-  tenantId        String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  code           String   @unique
+  description    String?
+  price          Float
+  invoiceLimit   Float    @default(0) // 开票额度(月)
+  invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
+  overLimitPrice Float    @default(0) // 超额单价
+  status         Int      @default(1)
+  tenantId       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  contracts       Contract[]
-  flows           ProductFlow[]
+  contracts Contract[]
+  flows     ProductFlow[]
 
   @@index([tenantId])
   @@map("products")
@@ -166,17 +166,17 @@ model Product {
 // ==================== 产品流程 ====================
 
 model ProductFlow {
-  id          String   @id @default(cuid())
-  productId   String
-  name        String   // 流程名称
-  type        String   // NODE:节点流程 CYCLE:周期流程
-  config      String   // 流程配置(JSON)
-  enabled     Boolean  @default(true)
-  tenantId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  productId String
+  name      String // 流程名称
+  type      String // NODE:节点流程 CYCLE:周期流程
+  config    String // 流程配置(JSON)
+  enabled   Boolean  @default(true)
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@map("product_flows")
@@ -185,23 +185,23 @@ model ProductFlow {
 // ==================== 合同模块 ====================
 
 model Contract {
-  id              String    @id @default(cuid())
-  contractNo      String    @unique
-  customerId      String
-  productId       String
-  amount          Float
-  paidAmount      Float     @default(0)
-  status          Int       @default(0) // 0:待收款 1:部分收款 2:已收全
-  serviceStart    DateTime
-  serviceEnd      DateTime
-  remark          String?
-  tenantId        String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id           String   @id @default(cuid())
+  contractNo   String   @unique
+  customerId   String
+  productId    String
+  amount       Float
+  paidAmount   Float    @default(0)
+  status       Int      @default(0) // 0:待收款 1:部分收款 2:已收全
+  serviceStart DateTime
+  serviceEnd   DateTime
+  remark       String?
+  tenantId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  customer        Customer  @relation(fields: [customerId], references: [id])
-  product         Product   @relation(fields: [productId], references: [id])
-  payments        Payment[]
+  customer Customer  @relation(fields: [customerId], references: [id])
+  product  Product   @relation(fields: [productId], references: [id])
+  payments Payment[]
 
   @@index([tenantId, customerId])
   @@index([tenantId, status])
@@ -211,19 +211,19 @@ model Contract {
 // ==================== 收款模块 ====================
 
 model Payment {
-  id          String    @id @default(cuid())
-  contractId  String
-  amount      Float
-  method      String    // 收款方式: 1:银行转账 2:微信 3:支付宝 4:现金
-  voucherUrl  String?   // 凭证URL
-  payTime     DateTime? // 付款时间
-  status      Int       @default(0) // 0:待确认 1:已确认
-  remark      String?
-  tenantId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  contractId String
+  amount     Float
+  method     String // 收款方式: 1:银行转账 2:微信 3:支付宝 4:现金
+  voucherUrl String? // 凭证URL
+  payTime    DateTime? // 付款时间
+  status     Int       @default(0) // 0:待确认 1:已确认
+  remark     String?
+  tenantId   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  contract    Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, contractId])
   @@map("payments")
@@ -232,21 +232,21 @@ model Payment {
 // ==================== 开票记录 ====================
 
 model Invoice {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   customerId  String
-  contractId  String?   // 关联合同(可选)
+  contractId  String? // 关联合同(可选)
   amount      Float
-  count       Int       // 开票张数
-  month       String    // 开票月份(YYYY-MM)
-  isOverLimit Boolean   @default(false) // 是否超额
+  count       Int // 开票张数
+  month       String // 开票月份(YYYY-MM)
+  isOverLimit Boolean  @default(false) // 是否超额
   overAmount  Float? // 超额金额
-  overCount   Int       @default(0) // 超额张数
+  overCount   Int      @default(0) // 超额张数
   remark      String?
   tenantId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, customerId, month])
   @@map("invoices")
@@ -255,15 +255,15 @@ model Invoice {
 // ==================== 服务团队 ====================
 
 model ServiceTeam {
-  id          String   @id @default(cuid())
-  customerId  String
-  userId      String
-  roleCode    String   // 角色代码: SALE,FINANCE,OUTWORK
-  tenantId    String
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  customerId String
+  userId     String
+  roleCode   String // 角色代码: SALE,FINANCE,OUTWORK
+  tenantId   String
+  createdAt  DateTime @default(now())
 
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  user        User?    @relation(fields: [userId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id])
 
   @@unique([customerId, userId, roleCode])
   @@index([tenantId])
@@ -274,32 +274,32 @@ model ServiceTeam {
 // ==================== 自动化规则引擎 ====================
 
 model Trigger {
-  id          String      @id @default(cuid())
-  name        String
-  code        String      @unique
-  type        String      // DATA_ADD, DATA_UPDATE, TIME_CONDITION, SCHEDULED
-  entityType  String      // CUSTOMER, CONTRACT, etc.
-  enabled     Boolean     @default(true)
-  conditions  Condition[]
-  workflows   Workflow[]
-  tenantId    String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id         String      @id @default(cuid())
+  name       String
+  code       String      @unique
+  type       String // DATA_ADD, DATA_UPDATE, TIME_CONDITION, SCHEDULED
+  entityType String // CUSTOMER, CONTRACT, etc.
+  enabled    Boolean     @default(true)
+  conditions Condition[]
+  workflows  Workflow[]
+  tenantId   String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@index([tenantId, entityType])
   @@map("triggers")
 }
 
 model Condition {
-  id          String      @id @default(cuid())
-  triggerId   String
-  field       String      // 字段名
-  operator    String      // =, !=, >, <, >=, <=, IN, LIKE, BETWEEN
-  value       String      // 比较值(JSON)
-  logic       String      @default("AND") // AND, OR
-  parentId    String?     // 父条件ID(支持树形结构)
-  tenantId    String
-  trigger     Trigger     @relation(fields: [triggerId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  triggerId String
+  field     String // 字段名
+  operator  String // =, !=, >, <, >=, <=, IN, LIKE, BETWEEN
+  value     String // 比较值(JSON)
+  logic     String  @default("AND") // AND, OR
+  parentId  String? // 父条件ID(支持树形结构)
+  tenantId  String
+  trigger   Trigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
   @@index([tenantId])
@@ -307,14 +307,14 @@ model Condition {
 }
 
 model Workflow {
-  id          String      @id @default(cuid())
-  triggerId   String
-  actionType  String      // RECORD_ADD, RECORD_UPDATE, MESSAGE, CUSTOM
-  config      String      // 动作配置(JSON)
-  order       Int         // 执行顺序
-  enabled     Boolean     @default(true)
-  tenantId    String
-  trigger     Trigger     @relation(fields: [triggerId], references: [id], onDelete: Cascade)
+  id         String  @id @default(cuid())
+  triggerId  String
+  actionType String // RECORD_ADD, RECORD_UPDATE, MESSAGE, CUSTOM
+  config     String // 动作配置(JSON)
+  order      Int // 执行顺序
+  enabled    Boolean @default(true)
+  tenantId   String
+  trigger    Trigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
   @@index([tenantId])
@@ -322,17 +322,17 @@ model Workflow {
 }
 
 model Log {
-  id          String      @id @default(cuid())
-  triggerId   String
-  entityType  String?
-  entityId    String?
-  status      String      // SUCCESS, FAILED, PARTIAL
-  duration    Int?        // 执行时长(ms)
-  error       String?
-  tenantId    String
-  createdAt   DateTime    @default(now())
+  id         String   @id @default(cuid())
+  triggerId  String
+  entityType String?
+  entityId   String?
+  status     String // SUCCESS, FAILED, PARTIAL
+  duration   Int? // 执行时长(ms)
+  error      String?
+  tenantId   String
+  createdAt  DateTime @default(now())
 
-  details     LogDetail[]
+  details LogDetail[]
 
   @@index([triggerId, createdAt])
   @@index([tenantId])
@@ -340,18 +340,18 @@ model Log {
 }
 
 model LogDetail {
-  id          String   @id @default(cuid())
-  logId       String
-  workflowId  String
-  actionType  String
-  config      String
-  status      String
-  result      String?
-  error       String?
-  tenantId    String
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  logId      String
+  workflowId String
+  actionType String
+  config     String
+  status     String
+  result     String?
+  error      String?
+  tenantId   String
+  createdAt  DateTime @default(now())
 
-  log         Log      @relation(fields: [logId], references: [id], onDelete: Cascade)
+  log Log @relation(fields: [logId], references: [id], onDelete: Cascade)
 
   @@index([logId])
   @@index([tenantId])
