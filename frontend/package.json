@@ -6,7 +6,7 @@
     "start": "umi dev",
     "dev": "cross-env FRONTEND_PORT=7890 umi dev",
     "build": "UMI_ENV=production umi build",
-    "postinstall": "umi setup",
+    "setup": "umi setup",
     "prettier": "prettier --write \"**/*.{js,jsx,tsx,ts,less,md,json}\"",
     "test": "umi-test",
     "test:coverage": "umi-test --coverage",
