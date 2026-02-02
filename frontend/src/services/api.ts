@@ -7,6 +7,7 @@
  */
 import type {
   CreateCustomerDto,
+  CreateFollowRecordDto,
   CustomerControllerFindAllParams,
   LoginDto,
   RegisterDto,
@@ -145,7 +146,45 @@ const customerControllerAssign = (
       );
     }
   
-return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssign}};
+/**
+ * @summary 创建跟进记录
+ */
+const followRecordControllerCreate = (
+    createFollowRecordDto: CreateFollowRecordDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createFollowRecordDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取客户的跟进记录列表
+ */
+const followRecordControllerFindByCustomer = (
+    customerId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records/customer/${customerId}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 删除跟进记录
+ */
+const followRecordControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssign,followRecordControllerCreate,followRecordControllerFindByCustomer,followRecordControllerRemove}};
 export type HealthControllerCheckResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['healthControllerCheck']>>>
 export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerLogin']>>>
 export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerRegister']>>>
@@ -156,3 +195,6 @@ export type CustomerControllerFindOneResult = NonNullable<Awaited<ReturnType<Ret
 export type CustomerControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerUpdate']>>>
 export type CustomerControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerRemove']>>>
 export type CustomerControllerAssignResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerAssign']>>>
+export type FollowRecordControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerCreate']>>>
+export type FollowRecordControllerFindByCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerFindByCustomer']>>>
+export type FollowRecordControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerRemove']>>>

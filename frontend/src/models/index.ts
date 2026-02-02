@@ -7,6 +7,7 @@
  */
 
 export * from './createCustomerDto';
+export * from './createFollowRecordDto';
 export * from './customerControllerFindAllParams';
 export * from './loginDto';
 export * from './registerDto';

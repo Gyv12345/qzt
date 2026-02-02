@@ -167,12 +167,49 @@ export interface Product {
   id: string;
   name: string;
   code: string;
-  price: number;
-  unit: string;
   description?: string;
+  price: number;
+  invoiceLimit: number;
+  invoiceCount: number;
+  overLimitPrice: number;
   status: number;
   createdAt: string;
   updatedAt: string;
+  flows?: ProductFlow[];
+}
+
+// 产品流程类型
+export interface ProductFlow {
+  id: string;
+  productId: string;
+  name: string;
+  type: 'NODE' | 'CYCLE';
+  config: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 创建产品请求类型
+export interface CreateProductRequest {
+  name: string;
+  code: string;
+  description?: string;
+  price: number;
+  invoiceLimit: number;
+  invoiceCount: number;
+  overLimitPrice: number;
+}
+
+// 更新产品请求类型
+export interface UpdateProductRequest extends Partial<CreateProductRequest> {}
+
+// 查询产品参数类型
+export interface QueryProductsParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: number;
 }
 
 // 发票类型
