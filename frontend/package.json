@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "QZT Frontend - Umi + Ant Design Pro",
   "scripts": {
-    "start": "umi dev",
-    "dev": "cross-env FRONTEND_PORT=7890 umi dev",
+    "start": "max dev",
+    "dev": "cross-env FRONTEND_PORT=7890 max dev",
     "build": "UMI_ENV=production umi build",
     "setup": "umi setup",
     "prettier": "prettier --write \"**/*.{js,jsx,tsx,ts,less,md,json}\"",

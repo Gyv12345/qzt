@@ -7,6 +7,7 @@ export default defineConfig({
   initialState: {},
   request: {},
   layout: false,
+  port: 3456,
   routes: [
     {
       path: '/',
@@ -30,30 +31,16 @@ export default defineConfig({
       ],
     },
   ],
-  npmClient: 'npm',
-  webpack: {},
-  devtool: 'cheap-module-source-map',
-  distTimings: true,
+  npmClient: 'pnpm',
   mfsu: {},
-  nodeModulesTransform: {},
-  extraBabelPlugins: [],
-  terserOptions: {},
   theme: {
     'primary-color': '#1890ff',
   },
   proxy: {
     '/api': {
-      target: 'http://localhost:3456',
+      target: 'http://localhost:7890',
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
     },
   },
-  openAPI: [
-    {
-      requestLibPath: "import { request } from '@umijs/max'",
-      schemaPath: 'http://localhost:3456/api-docs-json',
-      projectName: 'qzt',
-    },
-  ],
-  port: 7890,
 });

@@ -26,7 +26,7 @@ async function bootstrap() {
 
   // 启用CORS - 安全配置
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:7890',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3456',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -43,7 +43,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
-  const port = process.env.BACKEND_PORT || 3456;
+  const port = process.env.BACKEND_PORT || 7890;
   await app.listen(port);
 
   console.log(`
