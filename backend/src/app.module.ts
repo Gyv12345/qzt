@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import * as Joi from 'joi';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './common/prisma/prisma.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -103,6 +104,7 @@ const envSchema = Joi.object({
       },
     ]),
     PrismaModule,
+    AuthModule,
   ],
   controllers: [HealthController],
   providers: [],
