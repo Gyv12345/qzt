@@ -5,6 +5,8 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { CreateProductFlowDto } from './dto/create-product-flow.dto';
+import { UpdateProductFlowDto } from './dto/update-product-flow.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -41,5 +43,37 @@ export class ProductController {
   @ApiOperation({ summary: '删除产品' })
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
+  }
+
+  // ==================== 产品流程管理 ====================
+
+  @Post('flows')
+  @ApiOperation({ summary: '创建产品流程' })
+  createFlow(@Body() createFlowDto: CreateProductFlowDto) {
+    return this.productService.createFlow(createFlowDto);
+  }
+
+  @Get('flows')
+  @ApiOperation({ summary: '获取产品流程列表' })
+  findFlows(@Query('productId') productId?: string) {
+    return this.productService.findFlows(productId);
+  }
+
+  @Get('flows/:id')
+  @ApiOperation({ summary: '获取产品流程详情' })
+  findFlow(@Param('id') id: string) {
+    return this.productService.findFlow(id);
+  }
+
+  @Patch('flows/:id')
+  @ApiOperation({ summary: '更新产品流程' })
+  updateFlow(@Param('id') id: string, @Body() updateFlowDto: UpdateProductFlowDto) {
+    return this.productService.updateFlow(id, updateFlowDto);
+  }
+
+  @Delete('flows/:id')
+  @ApiOperation({ summary: '删除产品流程' })
+  removeFlow(@Param('id') id: string) {
+    return this.productService.removeFlow(id);
   }
 }
