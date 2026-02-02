@@ -1,7 +1,7 @@
 import React from 'react';
-import { Layout, Dropdown, Avatar, Space } from 'antd';
+import { Layout, Dropdown, Avatar, Space, Breadcrumb } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { history } from '@umijs/max';
+import { history, useLocation } from '@umijs/max';
 
 const { Header: AntHeader } = Layout;
 
@@ -10,6 +10,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ isMobile }) => {
+  const location = useLocation();
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     history.push('/login');
@@ -30,6 +32,18 @@ const Header: React.FC<HeaderProps> = ({ isMobile }) => {
     },
   ];
 
+  // 获取页面标题
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/') return '首页';
+    if (path === '/customer') return '客户管理';
+    if (path.startsWith('/customer/')) return '客户详情';
+    if (path === '/contract') return '合同管理';
+    if (path === '/product') return '产品管理';
+    if (path === '/system') return '系统设置';
+    return '企账通';
+  };
+
   return (
     <AntHeader
       style={{
@@ -44,13 +58,13 @@ const Header: React.FC<HeaderProps> = ({ isMobile }) => {
         left: isMobile ? 0 : undefined,
         right: isMobile ? 0 : undefined,
         zIndex: 999,
-        width: isMobile ? '100vw' : 'auto',
+        width: isMobile ? '100vw' : '100%',
         height: 64,
         lineHeight: '64px',
       }}
     >
       <div style={{ fontSize: 18, fontWeight: 'bold' }}>
-        {isMobile ? '企账通' : ''}
+        {isMobile ? '企账通' : getPageTitle()}
       </div>
 
       <Dropdown menu={{ items: menuItems }} placement="bottomRight">
