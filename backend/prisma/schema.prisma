@@ -413,6 +413,54 @@ model LogDetail {
   @@map("log_details")
 }
 
+// ==================== 自动化任务系统 ====================
+
+model AutomationRule {
+  id          String   @id @default(cuid())
+  name        String   // 规则名称
+  type        String   // CONTRACT_EXPIRY:合同到期 NEW_CUSTOMER_FOLLOW:新客户跟进 MONTHLY_TASK:月度待办 CUSTOMER_ACTIVATION:客户激活
+  enabled     Boolean  @default(true)
+  config      String   // 配置(JSON)
+  cronExpression String? // Cron表达式
+  lastExecutedAt DateTime? // 最后执行时间
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks AutomationTask[]
+
+  @@map("automation_rules")
+}
+
+model AutomationTask {
+  id         String   @id @default(cuid())
+  ruleId     String
+  status     String   // PENDING:待执行 SUCCESS:成功 FAILED:失败
+  result     String?  // 执行结果(JSON)
+  error      String?  // 错误信息
+  executedAt DateTime @default(now())
+  duration   Int?     // 执行时长(ms)
+
+  rule AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@index([status])
+  @@map("automation_tasks")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // 接收用户ID
+  type      String   // 类型: CONTRACT_EXPIRY, FOLLOW_UP, TASK, etc.
+  title     String   // 标题
+  content   String   // 内容
+  link      String?  // 跳转链接
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
 // ==================== 系统配置 ====================
 
 model CommonPhrase {
