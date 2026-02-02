@@ -24,9 +24,13 @@ export class PaymentService {
 
     const payment = await this.prisma.payment.create({
       data: {
-        ...createPaymentDto,
+        contractId: createPaymentDto.contractId,
+        amount: createPaymentDto.amount,
+        method: createPaymentDto.method.toString(),
+        voucherUrl: createPaymentDto.voucherUrl,
         payTime: createPaymentDto.payTime ? new Date(createPaymentDto.payTime) : null,
         status: 0, // 0:待确认
+        remark: createPaymentDto.remark,
       },
       include: {
         contract: {
