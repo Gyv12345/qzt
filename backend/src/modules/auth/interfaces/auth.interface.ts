@@ -1,7 +1,6 @@
 export interface JwtPayload {
   sub: string;
   username: string;
-  tenantId: string;
 }
 
 export interface UserInfo {
@@ -11,7 +10,6 @@ export interface UserInfo {
   email?: string;
   phone?: string;
   avatar?: string;
-  tenantId: string;
   status: number;
   createdAt: Date;
   updatedAt: Date;
@@ -29,7 +27,6 @@ export interface SafeUser {
   email?: string;
   phone?: string;
   avatar?: string;
-  tenantId: string;
   status: number;
   createdAt: Date;
   updatedAt: Date;

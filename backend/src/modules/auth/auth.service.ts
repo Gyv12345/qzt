@@ -49,7 +49,6 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
-      tenantId: user.tenantId,
     };
 
     return {
@@ -88,7 +87,6 @@ export class AuthService {
         name: registerDto.name,
         email: registerDto.email,
         phone: registerDto.phone,
-        tenantId: registerDto.tenantId || 'default',
       },
       include: { roles: { include: { role: true } } },
     });

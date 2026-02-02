@@ -33,9 +33,4 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   phone?: string;
-
-  @ApiProperty({ description: '租户ID', required: false })
-  @IsString()
-  @IsOptional()
-  tenantId?: string;
 }
