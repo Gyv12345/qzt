@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 interface ProductTableProps {
   products: any[]
@@ -26,6 +27,7 @@ export function ProductTable({
   onPageChange,
   onEdit,
 }: ProductTableProps) {
+  const navigate = useNavigate()
   return (
     <div className="space-y-4">
       <Table>
@@ -46,7 +48,12 @@ export function ProductTable({
             <TableRow key={product.id}>
               <TableCell className="font-medium">
                 <div>
-                  <div>{product.name}</div>
+                  <div
+                    className="cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => navigate(`/products/${product.id}`)}
+                  >
+                    {product.name}
+                  </div>
                   {product.description && (
                     <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
                       {product.description}
@@ -65,9 +72,18 @@ export function ProductTable({
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => onEdit(product)}>
-                  编辑
-                </Button>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/products/${product.id}`)}
+                  >
+                    查看
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(product)}>
+                    编辑
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
