@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Form, Input, Card, message } from 'antd';
+import { Button, Form, Input, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import styles from './index.less';
@@ -42,43 +42,98 @@ const Login: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <Card className={styles.loginCard} title="企账通SCRM系统">
-        <Form onFinish={onFinish} autoComplete="off">
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: '请输入用户名' }]}
-          >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="用户名"
-              size="large"
-            />
-          </Form.Item>
+      <div className={styles.leftSection}>
+        <div className={styles.brandSection}>
+          <div className={styles.logo}>
+            <div className={styles.logoIcon}>Q</div>
+            <span className={styles.logoText}>企账通 SCRM</span>
+          </div>
+          <div className={styles.brandContent}>
+            <h1 className={styles.brandTitle}>
+              智能客户关系管理系统
+            </h1>
+            <p className={styles.brandSubtitle}>
+              为企业打造的高效客户管理平台
+            </p>
+            <div className={styles.features}>
+              <div className={styles.featureItem}>
+                <div className={styles.featureIcon}>📊</div>
+                <div className={styles.featureText}>数据分析</div>
+              </div>
+              <div className={styles.featureItem}>
+                <div className={styles.featureIcon}>👥</div>
+                <div className={styles.featureText}>客户管理</div>
+              </div>
+              <div className={styles.featureItem}>
+                <div className={styles.featureIcon}>🎯</div>
+                <div className={styles.featureText}>精准营销</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={styles.copyright}>
+          © 2026 企账通 SCRM. All rights reserved.
+        </div>
+      </div>
 
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: '请输入密码' }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="密码"
-              size="large"
-            />
-          </Form.Item>
+      <div className={styles.rightSection}>
+        <div className={styles.formContainer}>
+          <div className={styles.formHeader}>
+            <h2 className={styles.formTitle}>登录系统</h2>
+            <p className={styles.formSubtitle}>欢迎回来,请登录您的账户</p>
+          </div>
 
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
-              size="large"
+          <Form
+            onFinish={onFinish}
+            autoComplete="off"
+            layout="vertical"
+            requiredMark={false}
+          >
+            <Form.Item
+              label="用户名"
+              name="username"
+              rules={[{ required: true, message: '请输入用户名' }]}
             >
-              登录
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="请输入用户名"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="密码"
+              name="password"
+              rules={[{ required: true, message: '请输入密码' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="请输入密码"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                size="large"
+                className={styles.submitButton}
+              >
+                登录
+              </Button>
+            </Form.Item>
+          </Form>
+
+          <div className={styles.formFooter}>
+            <p className={styles.hintText}>
+              忘记密码? <a href="#">联系管理员</a>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
