@@ -4,6 +4,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { CustomerListPage } from '@/pages/customer/CustomerListPage'
 import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
 import { ProductListPage, ProductDetailPage } from '@/pages/product'
+import { ContractListPage } from '@/pages/contract'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
@@ -42,7 +43,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'contracts',
-            element: <div>合同管理页面开发中...</div>,
+            element: <ContractListPage />,
           },
           {
             path: 'products',
