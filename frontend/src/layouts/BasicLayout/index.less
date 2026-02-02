@@ -1,0 +1,33 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-left: 200px;
+    transition: margin-left 0.2s;
+
+    .content {
+      flex: 1;
+      padding: 24px;
+      background: #f0f2f5;
+      overflow: auto;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .layout {
+    .main {
+      margin-left: 0;
+
+      .content {
+        padding: 16px;
+        padding-top: 72px; // 为固定头部留空间
+        margin-bottom: 50px; // 为底部Tab导航留空间
+      }
+    }
+  }
+}
