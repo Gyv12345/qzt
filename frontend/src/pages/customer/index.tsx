@@ -60,49 +60,14 @@ const CustomerList: React.FC = () => {
         3: { text: 'VIP', status: 'Error' },
       },
       render: (_, record) => {
-        const levelConfig = {
-          0: {
-            text: '潜在',
-            bgColor: '#F1F5F9',
-            textColor: '#64748B',
-            borderColor: '#E2E8F0',
-          },
-          1: {
-            text: '意向',
-            bgColor: '#DBEAFE',
-            textColor: '#0369A1',
-            borderColor: '#BFDBFE',
-          },
-          2: {
-            text: '正式',
-            bgColor: '#D1FAE5',
-            textColor: '#059669',
-            borderColor: '#A7F3D0',
-          },
-          3: {
-            text: 'VIP',
-            bgColor: '#FEF3C7',
-            textColor: '#D97706',
-            borderColor: '#FDE68A',
-          },
+        const levelMap = {
+          0: { text: '潜在', color: 'default' },
+          1: { text: '意向', color: 'blue' },
+          2: { text: '正式', color: 'green' },
+          3: { text: 'VIP', color: 'gold' },
         };
-        const config = levelConfig[record.customerLevel] || levelConfig[0];
-        return (
-          <Tag
-            style={{
-              margin: 0,
-              padding: '4px 12px',
-              borderRadius: 6,
-              fontSize: 13,
-              fontWeight: 500,
-              backgroundColor: config.bgColor,
-              color: config.textColor,
-              border: `1px solid ${config.borderColor}`,
-            }}
-          >
-            {config.text}
-          </Tag>
-        );
+        const level = levelMap[record.customerLevel] || levelMap[0];
+        return <Tag color={level.color}>{level.text}</Tag>;
       },
     },
     {
@@ -145,39 +110,19 @@ const CustomerList: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 0, margin: 0 }}>
+    <PageContainer>
       <ProTable<any>
-        headerTitle={
-          <span style={{ fontSize: 16, fontWeight: 600, color: '#020617' }}>
-            客户列表
-          </span>
-        }
+        headerTitle="客户列表"
         actionRef={actionRef}
         rowKey="id"
         search={{
           labelWidth: 80,
-          style: {
-            background: '#FFFFFF',
-            borderRadius: 12,
-            padding: '16px 24px',
-            marginBottom: 16,
-          },
         }}
         toolBarRender={() => [
           <Button
             type="primary"
             key="primary"
-            size="large"
-            onClick={() => {
-              setCurrentCustomer(null);
-              setModalVisible(true);
-            }}
-            style={{
-              borderRadius: 8,
-              height: 40,
-              fontWeight: 500,
-              boxShadow: '0 1px 2px rgba(3, 105, 161, 0.2)',
-            }}
+            onClick={() => { setCurrentCustomer(null); setModalVisible(true); }}
           >
             <PlusOutlined /> 新建客户
           </Button>,
@@ -198,39 +143,15 @@ const CustomerList: React.FC = () => {
         columns={columns}
         rowSelection={{}}
         scroll={{ x: 1200 }}
-        options={{
-          density: false,
-          fullScreen: false,
-          reload: true,
-          setting: true,
-        }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
-        }}
-        style={{
-          background: '#FFFFFF',
-          borderRadius: 12,
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-        }}
       />
 
       <CustomerModal
         visible={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setCurrentCustomer(null);
-        }}
-        onSuccess={() => {
-          setModalVisible(false);
-          setCurrentCustomer(null);
-          actionRef.current?.reload();
-        }}
+        onCancel={() => { setModalVisible(false); setCurrentCustomer(null); }}
+        onSuccess={() => { setModalVisible(false); setCurrentCustomer(null); actionRef.current?.reload(); }}
         currentCustomer={currentCustomer}
       />
-    </div>
+    </PageContainer>
   );
 };
 
