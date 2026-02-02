@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,11 @@ const menuItems = [
     path: '/contracts',
     icon: FileText,
     label: '合同',
+  },
+  {
+    path: '/invoices',
+    icon: Receipt,
+    label: '开票',
   },
   {
     path: '/products',

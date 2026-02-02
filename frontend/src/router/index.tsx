@@ -5,6 +5,7 @@ import { CustomerListPage } from '@/pages/customer/CustomerListPage'
 import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
 import { ProductListPage, ProductDetailPage } from '@/pages/product'
 import { ContractListPage, ContractDetailPage } from '@/pages/contract'
+import { InvoiceListPage } from '@/pages/invoice/InvoiceListPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
@@ -66,6 +67,10 @@ export const router = createBrowserRouter([
                 element: <ProductDetailPage />,
               },
             ],
+          },
+          {
+            path: 'invoices',
+            element: <InvoiceListPage />,
           },
           {
             path: 'system',
