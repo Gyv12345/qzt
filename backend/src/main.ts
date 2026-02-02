@@ -2,17 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { validateEnv } from './config/env.validation';
 import { getDatabaseUrl } from './config/database.config';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  // 验证环境变量
-  validateEnv();
 
   // 设置DATABASE_URL for Prisma
   process.env.DATABASE_URL = getDatabaseUrl();
 
   const app = await NestFactory.create(AppModule);
+
+  // 全局异常过滤器
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // 全局验证管道
   app.useGlobalPipes(
@@ -23,8 +24,13 @@ async function bootstrap() {
     }),
   );
 
-  // 启用CORS
-  app.enableCors();
+  // 启用CORS - 安全配置
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:7890',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Swagger API文档
   const config = new DocumentBuilder()
