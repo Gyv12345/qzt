@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getProducts, deleteProduct, type Product } from '@/services/product'
+import { getProducts, deleteProduct, createProduct, updateProduct, type Product, type CreateProductDto } from '@/services/product'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -64,14 +64,19 @@ export const ProductListPage = () => {
     },
   })
 
-  // 创建/更新产品
-  const saveMutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (editingProduct) {
-        return { ...data, id: editingProduct.id }
-      }
-      return data
+  // 创建产品
+  const createMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setDialogOpen(false)
+      resetForm()
     },
+  })
+
+  // 更新产品
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => updateProduct(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
       setDialogOpen(false)
@@ -120,9 +125,38 @@ export const ProductListPage = () => {
   }
 
   const handleSubmit = () => {
-    // TODO: 实现创建/更新逻辑
-    console.log('保存产品:', formData)
-    saveMutation.mutate(formData)
+    // 验证必填字段
+    if (!formData.name.trim()) {
+      alert('请输入产品名称')
+      return
+    }
+    if (!formData.code.trim()) {
+      alert('请输入产品代码')
+      return
+    }
+    if (!formData.price || Number(formData.price) < 0) {
+      alert('请输入有效的价格')
+      return
+    }
+
+    // 构建产品数据
+    const productData: CreateProductDto = {
+      name: formData.name,
+      code: formData.code,
+      description: formData.description || undefined,
+      price: Number(formData.price),
+      invoiceLimit: formData.invoiceLimit ? Number(formData.invoiceLimit) : 0,
+      invoiceCount: formData.invoiceCount ? Number(formData.invoiceCount) : 0,
+      overLimitPrice: formData.overLimitPrice ? Number(formData.overLimitPrice) : 0,
+      status: formData.status,
+    }
+
+    // 根据是否编辑选择调用
+    if (editingProduct) {
+      updateMutation.mutate({ id: editingProduct.id, data: productData })
+    } else {
+      createMutation.mutate(productData)
+    }
   }
 
   const getStatusTag = (status: number) => {
@@ -363,8 +397,8 @@ export const ProductListPage = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? '保存中...' : '保存'}
+            <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+              {createMutation.isPending || updateMutation.isPending ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>
         </DialogContent>
