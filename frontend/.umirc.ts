@@ -8,13 +8,15 @@ export default defineConfig({
   initialState: {},
   request: {},
   layout: {
-    name: '企账通',
-    logo: false,
+    name: '企账通 SCRM',
+    logo: 'https://gw.alipayobjects.com/zos/antfincdn/PmY%24TNNdbI/logo.svg',
     locale: false,
     siderWidth: 240,
     theme: {
       'primary-color': '#1677FF',
     },
+    // 内容区域的宽度
+    contentWidth: 'Fluid',
   },
   routes: [
     {

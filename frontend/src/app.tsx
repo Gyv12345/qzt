@@ -5,9 +5,18 @@ export async function getInitialState() {
   const token = localStorage.getItem('token');
   const userInfo = localStorage.getItem('userInfo');
 
+  // 如果没有用户信息，设置默认用户
+  const defaultUser = {
+    name: '管理员',
+    avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
+    userid: '00000001',
+    email: 'admin@qzt.com',
+  };
+
   return {
     token,
-    userInfo: userInfo ? JSON.parse(userInfo) : undefined,
+    userInfo: userInfo ? JSON.parse(userInfo) : defaultUser,
+    name: userInfo ? JSON.parse(userInfo).name : defaultUser.name,
   };
 }
 
