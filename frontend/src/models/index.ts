@@ -6,9 +6,22 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from './contractControllerFindAllParams';
+export * from './createContractDto';
 export * from './createCustomerDto';
 export * from './createFollowRecordDto';
+export * from './createInvoiceDto';
+export * from './createPaymentDto';
+export * from './createProductDto';
 export * from './customerControllerFindAllParams';
+export * from './invoiceControllerFindAllParams';
+export * from './invoiceControllerGetCustomerSummaryParams';
 export * from './loginDto';
+export * from './paymentControllerFindAllParams';
+export * from './productControllerFindAllParams';
 export * from './registerDto';
+export * from './updateContractDto';
 export * from './updateCustomerDto';
+export * from './updateInvoiceDto';
+export * from './updatePaymentDto';
+export * from './updateProductDto';
