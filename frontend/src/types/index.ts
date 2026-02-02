@@ -150,15 +150,44 @@ export interface Contract {
   productId: string;
   contractNo: string;
   amount: number;
-  startDate: string;
-  endDate: string;
-  status: number;
+  paidAmount: number;
+  status: number; // 0:待收款 1:部分收款 2:已收全
+  serviceStart: string;
+  serviceEnd: string;
+  remark?: string;
   createdAt: string;
   updatedAt: string;
-  customer?: Customer;
+  customer?: {
+    id: string;
+    name: string;
+  };
   product?: {
     id: string;
     name: string;
+    price: number;
+  };
+}
+
+// 收款记录类型
+export interface Payment {
+  id: string;
+  contractId: string;
+  amount: number;
+  method: number; // 1:银行转账 2:微信 3:支付宝 4:现金
+  voucherUrl?: string;
+  payTime?: string;
+  status: number; // 0:待确认 1:已确认
+  remark?: string;
+  createdAt: string;
+  updatedAt: string;
+  contract?: {
+    id: string;
+    contractNo: string;
+    amount: number;
+    customer?: {
+      id: string;
+      name: string;
+    };
   };
 }
 
