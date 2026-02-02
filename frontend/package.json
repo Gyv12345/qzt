@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "npx cross-env PORT=3456 vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:api": "orval"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.3",
