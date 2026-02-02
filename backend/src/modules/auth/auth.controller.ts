@@ -5,6 +5,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { UserInfo } from './interfaces/auth.interface';
 
 @ApiTags('认证')
 @Controller('auth')
@@ -27,7 +28,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '获取当前用户信息' })
-  async getUserInfo(@CurrentUser() user: any) {
-    return this.authService.getUserInfo(user.id);
+  async getUserInfo(@CurrentUser() user: UserInfo) {
+    // JWT Strategy已经加载了完整信息,直接返回
+    return user;
   }
 }

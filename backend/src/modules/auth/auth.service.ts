@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { SafeUser } from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<SafeUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { username },
       include: { roles: { include: { role: true } } },
@@ -90,6 +91,20 @@ export class AuthService {
       },
       include: { roles: { include: { role: true } } },
     });
+
+    // 分配默认角色(查找USER角色)
+    const defaultRole = await this.prisma.role.findFirst({
+      where: { code: 'USER' }
+    });
+
+    if (defaultRole) {
+      await this.prisma.userRole.create({
+        data: {
+          userId: user.id,
+          roleId: defaultRole.id
+        }
+      });
+    }
 
     const { password: _, ...result } = user;
     return result;
