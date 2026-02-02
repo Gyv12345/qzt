@@ -16,6 +16,10 @@
     "cross-env": "^10.1.0"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-select": "^2.2.6",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "react": "^19.2.4",
