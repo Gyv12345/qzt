@@ -11,6 +11,7 @@ import { ProductModule } from './modules/product/product.module';
 import { ContractModule } from './modules/contract/contract.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
+import { StatisticsModule } from './modules/statistics/statistics.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -117,6 +118,7 @@ const envSchema = Joi.object({
     ContractModule,
     PaymentModule,
     InvoiceModule,
+    StatisticsModule,
   ],
   controllers: [HealthController],
   providers: [],
