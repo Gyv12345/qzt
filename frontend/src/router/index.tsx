@@ -8,6 +8,7 @@ import { ContractListPage, ContractDetailPage } from '@/pages/contract'
 import { InvoiceListPage } from '@/pages/invoice/InvoiceListPage'
 import { FollowRecordListPage } from '@/pages/follow-record'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { StatisticsPage } from '@/pages/statistics'
 import { SystemPage } from '@/pages/system'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
           {
             path: 'follow-records',
             element: <FollowRecordListPage />,
+          },
+          {
+            path: 'statistics',
+            element: <StatisticsPage />,
           },
           {
             path: 'system',

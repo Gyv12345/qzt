@@ -11,6 +11,7 @@ import {
   Building2,
   Receipt,
   MessageSquare,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,11 @@ const menuItems = [
     path: '/follow-records',
     icon: MessageSquare,
     label: '跟进',
+  },
+  {
+    path: '/statistics',
+    icon: BarChart3,
+    label: '统计',
   },
   {
     path: '/contracts',
