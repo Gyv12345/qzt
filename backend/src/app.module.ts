@@ -7,6 +7,7 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { FollowRecordModule } from './modules/follow-record/follow-record.module';
+import { ProductModule } from './modules/product/product.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -109,6 +110,7 @@ const envSchema = Joi.object({
     AuthModule,
     CustomerModule,
     FollowRecordModule,
+    ProductModule,
   ],
   controllers: [HealthController],
   providers: [],
