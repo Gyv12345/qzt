@@ -1,14 +1,20 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { Product } from '@/types'
+import { useNavigate } from 'react-router-dom'
 
 interface ProductCardProps {
   product: Product
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate()
+
   return (
-    <Card className="p-4">
+    <Card
+      className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => navigate(`/products/${product.id}`)}
+    >
       <div className="flex justify-between items-start mb-3">
         <h3 className="font-semibold text-lg">{product.name}</h3>
         <Badge variant={product.status === 1 ? 'default' : 'secondary'}>
