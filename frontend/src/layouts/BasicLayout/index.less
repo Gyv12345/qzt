@@ -9,11 +9,16 @@
     margin-left: 200px;
     transition: margin-left 0.2s;
 
+    &.collapsed {
+      margin-left: 80px;
+    }
+
     .content {
       flex: 1;
       padding: 24px;
       background: #f0f2f5;
-      overflow: auto;
+      min-height: calc(100vh - 64px);
+      overflow-y: auto;
     }
   }
 }
@@ -22,11 +27,13 @@
   .layout {
     .main {
       margin-left: 0;
+      width: 100%;
 
       .content {
         padding: 16px;
-        padding-top: 72px; // 为固定头部留空间
-        margin-bottom: 50px; // 为底部Tab导航留空间
+        padding-top: 72px; // 为移动端固定头部留空间
+        padding-bottom: 60px; // 为底部Tab导航留空间
+        min-height: 100vh;
       }
     }
   }

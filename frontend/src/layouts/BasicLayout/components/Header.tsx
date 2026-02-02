@@ -39,12 +39,14 @@ const Header: React.FC<HeaderProps> = ({ isMobile }) => {
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottom: '1px solid #f0f0f0',
-        position: isMobile ? 'fixed' : 'sticky',
-        top: 0,
+        position: isMobile ? 'fixed' : 'relative',
+        top: isMobile ? 0 : undefined,
         left: isMobile ? 0 : undefined,
         right: isMobile ? 0 : undefined,
         zIndex: 999,
-        width: isMobile ? '100%' : undefined,
+        width: isMobile ? '100vw' : 'auto',
+        height: 64,
+        lineHeight: '64px',
       }}
     >
       <div style={{ fontSize: 18, fontWeight: 'bold' }}>

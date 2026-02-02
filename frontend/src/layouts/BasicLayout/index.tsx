@@ -26,7 +26,7 @@ const BasicLayout: React.FC = () => {
       {/* PC端侧边栏 */}
       {!isMobile && <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />}
 
-      <div className={styles.main} style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 200) }}>
+      <div className={`${styles.main} ${collapsed ? styles.collapsed : ''}`}>
         <Header isMobile={isMobile} />
         <div className={styles.content}>
           <Outlet />
