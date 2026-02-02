@@ -3,6 +3,7 @@ import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { CustomerListPage } from '@/pages/customer/CustomerListPage'
 import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
+import { ProductListPage } from '@/pages/product'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
@@ -45,7 +46,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'products',
-            element: <div>产品管理页面开发中...</div>,
+            element: <ProductListPage />,
           },
           {
             path: 'system',
