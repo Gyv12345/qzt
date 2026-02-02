@@ -68,9 +68,43 @@ model Permission {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roles RolePermission[]
+  roles      RolePermission[]
+  menuPermissions MenuPermission[]
 
   @@map("permissions")
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  path      String   @unique // 路由路径
+  name      String   // 菜单名称
+  icon      String?  // 图标
+  parentId  String?  // 父级菜单ID
+  sort      Int      @default(0) // 排序
+  enabled   Boolean  @default(true) // 是否启用
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Menu?             @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children Menu[]           @relation("MenuHierarchy")
+  permissions MenuPermission[]
+
+  @@index([parentId])
+  @@map("menus")
+}
+
+model MenuPermission {
+  id           String   @id @default(cuid())
+  menuId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  menu       Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([menuId, permissionId])
+  @@index([menuId])
+  @@map("menu_permissions")
 }
 
 model RolePermission {
