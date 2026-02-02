@@ -7,9 +7,9 @@
     "frontend"
   ],
   "scripts": {
-    "backend": "cd backend && npm run start:dev",
-    "frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+    "backend": "cd backend && pnpm run start:dev",
+    "frontend": "cd frontend && pnpm run dev",
+    "dev": "./start-dev.sh"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
