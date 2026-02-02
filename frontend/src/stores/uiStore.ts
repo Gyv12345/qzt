@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface UiState {
   // 侧边栏状态
@@ -40,7 +40,8 @@ export const useUiStore = create<UiState>()(
       },
     }),
     {
-      name: 'ui-storage', // localStorage key
+      name: 'ui-storage',
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
       }),
