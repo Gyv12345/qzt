@@ -17,6 +17,8 @@ export default defineConfig({
     },
     // 内容区域的宽度
     contentWidth: 'Fluid',
+    // 隐藏侧边栏底部的用户信息
+    hideUserinfo: true,
   },
   routes: [
     {
