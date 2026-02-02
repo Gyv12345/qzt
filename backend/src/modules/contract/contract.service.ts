@@ -37,7 +37,7 @@ export class ContractService {
     const { page = 1, pageSize = 10, keyword, customerId, productId, status } = query;
     const skip = (page - 1) * pageSize;
 
-    let where: any = {};
+    const where: any = {};
 
     if (keyword) {
       where.OR = [

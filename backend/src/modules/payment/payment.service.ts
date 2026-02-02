@@ -50,7 +50,7 @@ export class PaymentService {
     const { page = 1, pageSize = 10, contractId, status } = query;
     const skip = (page - 1) * pageSize;
 
-    let where: any = {};
+    const where: any = {};
 
     if (contractId) {
       where.contractId = contractId;
