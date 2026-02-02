@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@/types';
 import { login as loginApi, logout as logoutApi } from '@/services/auth';
 
@@ -29,10 +29,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await loginApi({ username, password });
-          const { access_token, user } = response.data;
-
-          // 保存 token 到 localStorage
-          localStorage.setItem('token', access_token);
+          const { access_token, user } = response.data || response;
 
           set({
             user,
@@ -52,8 +49,6 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Logout failed:', error);
         } finally {
-          // 清除本地状态
-          localStorage.removeItem('token');
           set({
             user: null,
             token: null,
@@ -68,15 +63,9 @@ export const useAuthStore = create<AuthState>()(
 
       setToken: (token: string | null) => {
         set({ token, isAuthenticated: !!token });
-        if (token) {
-          localStorage.setItem('token', token);
-        } else {
-          localStorage.removeItem('token');
-        }
       },
 
       clearAuth: () => {
-        localStorage.removeItem('token');
         set({
           user: null,
           token: null,
@@ -85,7 +74,8 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-storage', // localStorage key
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
         token: state.token,
