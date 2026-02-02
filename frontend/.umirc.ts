@@ -6,7 +6,6 @@ export default defineConfig({
   access: {},
   model: {},
   initialState: {},
-  request: {},
   layout: {
     name: '企账通 SCRM',
     logo: 'https://gw.alipayobjects.com/zos/antfincdn/PmY%24TNNdbI/logo.svg',
