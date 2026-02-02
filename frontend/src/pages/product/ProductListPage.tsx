@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Plus, Search, Edit, Trash2, Package } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 export const ProductListPage = () => {
   const queryClient = useQueryClient()

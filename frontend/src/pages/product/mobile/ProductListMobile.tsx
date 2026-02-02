@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getProducts, type Product } from '@/services/product'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,9 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Search, Plus, Package } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 export const ProductListMobile = () => {
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined)
   const [page, setPage] = useState(1)
@@ -35,7 +35,12 @@ export const ProductListMobile = () => {
       })
       return data
     },
-    onSuccess: (data) => {
+  })
+
+  // 处理查询成功的数据
+  useEffect(() => {
+    const data = queryClient.getQueryData(['products', page, searchTerm, statusFilter]) as any
+    if (data) {
       const newProducts = data.data || []
 
       if (page === 1) {
@@ -46,8 +51,8 @@ export const ProductListMobile = () => {
 
       setHasMore(newProducts.length >= pageSize)
       isLoadingMore.current = false
-    },
-  })
+    }
+  }, [page, searchTerm, statusFilter, queryClient])
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
