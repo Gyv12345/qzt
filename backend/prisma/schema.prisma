@@ -24,7 +24,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  roles     UserRole[]
+  roles          UserRole[]
+  followRecords  FollowRecord[]
+  serviceTeams   ServiceTeam[]
 
   @@index([tenantId])
   @@map("users")
@@ -131,6 +133,7 @@ model FollowRecord {
   updatedAt   DateTime  @updatedAt
 
   customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id])
 
   @@index([tenantId, customerId])
   @@index([tenantId, userId])
@@ -260,9 +263,11 @@ model ServiceTeam {
   createdAt   DateTime @default(now())
 
   customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
 
   @@unique([customerId, userId, roleCode])
   @@index([tenantId])
+  @@index([tenantId, userId])
   @@map("service_teams")
 }
 
@@ -293,9 +298,11 @@ model Condition {
   value       String      // 比较值(JSON)
   logic       String      @default("AND") // AND, OR
   parentId    String?     // 父条件ID(支持树形结构)
+  tenantId    String
   trigger     Trigger     @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
+  @@index([tenantId])
   @@map("conditions")
 }
 
@@ -306,9 +313,11 @@ model Workflow {
   config      String      // 动作配置(JSON)
   order       Int         // 执行顺序
   enabled     Boolean     @default(true)
+  tenantId    String
   trigger     Trigger     @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
+  @@index([tenantId])
   @@map("workflows")
 }
 
@@ -320,11 +329,13 @@ model Log {
   status      String      // SUCCESS, FAILED, PARTIAL
   duration    Int?        // 执行时长(ms)
   error       String?
+  tenantId    String
   createdAt   DateTime    @default(now())
 
   details     LogDetail[]
 
   @@index([triggerId, createdAt])
+  @@index([tenantId])
   @@map("logs")
 }
 
@@ -337,10 +348,12 @@ model LogDetail {
   status      String
   result      String?
   error       String?
+  tenantId    String
   createdAt   DateTime @default(now())
 
   log         Log      @relation(fields: [logId], references: [id], onDelete: Cascade)
 
   @@index([logId])
+  @@index([tenantId])
   @@map("log_details")
 }

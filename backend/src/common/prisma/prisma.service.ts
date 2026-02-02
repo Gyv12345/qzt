@@ -11,6 +11,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
+    // 启用SQLite外键约束
+    await this.$executeRawUnsafe('PRAGMA foreign_keys = ON');
     console.log('✅ Database connected successfully');
   }
 
