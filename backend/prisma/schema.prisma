@@ -20,7 +20,6 @@ model User {
   phone     String?
   avatar    String?
   status    Int      @default(1) // 1:启用 0:禁用
-  tenantId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,7 +27,6 @@ model User {
   followRecords FollowRecord[]
   serviceTeams  ServiceTeam[]
 
-  @@index([tenantId])
   @@map("users")
 }
 
@@ -103,7 +101,6 @@ model Customer {
   followUserId  String? // 跟进人ID
   tags          String? // 标签(JSON数组)
   remark        String? // 备注
-  tenantId      String
   status        Int      @default(1)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -113,8 +110,8 @@ model Customer {
   invoices      Invoice[]
   serviceTeams  ServiceTeam[]
 
-  @@index([tenantId, followUserId])
-  @@index([tenantId, customerLevel])
+  @@index([followUserId])
+  @@index([customerLevel])
   @@map("customers")
 }
 
@@ -128,15 +125,14 @@ model FollowRecord {
   content    String // 跟进内容
   nextTime   DateTime? // 下次跟进时间
   images     String? // 图片(JSON数组)
-  tenantId   String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   user     User?    @relation(fields: [userId], references: [id])
 
-  @@index([tenantId, customerId])
-  @@index([tenantId, userId])
+  @@index([customerId])
+  @@index([userId])
   @@map("follow_records")
 }
 
@@ -152,14 +148,12 @@ model Product {
   invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
   overLimitPrice Float    @default(0) // 超额单价
   status         Int      @default(1)
-  tenantId       String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   contracts Contract[]
   flows     ProductFlow[]
 
-  @@index([tenantId])
   @@map("products")
 }
 
@@ -172,13 +166,11 @@ model ProductFlow {
   type      String // NODE:节点流程 CYCLE:周期流程
   config    String // 流程配置(JSON)
   enabled   Boolean  @default(true)
-  tenantId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId])
   @@map("product_flows")
 }
 
@@ -195,7 +187,6 @@ model Contract {
   serviceStart DateTime
   serviceEnd   DateTime
   remark       String?
-  tenantId     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -203,8 +194,8 @@ model Contract {
   product  Product   @relation(fields: [productId], references: [id])
   payments Payment[]
 
-  @@index([tenantId, customerId])
-  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([status])
   @@map("contracts")
 }
 
@@ -219,13 +210,12 @@ model Payment {
   payTime    DateTime? // 付款时间
   status     Int       @default(0) // 0:待确认 1:已确认
   remark     String?
-  tenantId   String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId, contractId])
+  @@index([contractId])
   @@map("payments")
 }
 
@@ -242,13 +232,12 @@ model Invoice {
   overAmount  Float? // 超额金额
   overCount   Int      @default(0) // 超额张数
   remark      String?
-  tenantId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId, customerId, month])
+  @@index([customerId, month])
   @@map("invoices")
 }
 
@@ -259,15 +248,13 @@ model ServiceTeam {
   customerId String
   userId     String
   roleCode   String // 角色代码: SALE,FINANCE,OUTWORK
-  tenantId   String
   createdAt  DateTime @default(now())
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   user     User?    @relation(fields: [userId], references: [id])
 
   @@unique([customerId, userId, roleCode])
-  @@index([tenantId])
-  @@index([tenantId, userId])
+  @@index([userId])
   @@map("service_teams")
 }
 
@@ -282,11 +269,10 @@ model Trigger {
   enabled    Boolean     @default(true)
   conditions Condition[]
   workflows  Workflow[]
-  tenantId   String
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
-  @@index([tenantId, entityType])
+  @@index([entityType])
   @@map("triggers")
 }
 
@@ -298,11 +284,9 @@ model Condition {
   value     String // 比较值(JSON)
   logic     String  @default("AND") // AND, OR
   parentId  String? // 父条件ID(支持树形结构)
-  tenantId  String
   trigger   Trigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
-  @@index([tenantId])
   @@map("conditions")
 }
 
@@ -313,11 +297,9 @@ model Workflow {
   config     String // 动作配置(JSON)
   order      Int // 执行顺序
   enabled    Boolean @default(true)
-  tenantId   String
   trigger    Trigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
-  @@index([tenantId])
   @@map("workflows")
 }
 
@@ -329,13 +311,11 @@ model Log {
   status     String // SUCCESS, FAILED, PARTIAL
   duration   Int? // 执行时长(ms)
   error      String?
-  tenantId   String
   createdAt  DateTime @default(now())
 
   details LogDetail[]
 
   @@index([triggerId, createdAt])
-  @@index([tenantId])
   @@map("logs")
 }
 
@@ -348,12 +328,10 @@ model LogDetail {
   status     String
   result     String?
   error      String?
-  tenantId   String
   createdAt  DateTime @default(now())
 
   log Log @relation(fields: [logId], references: [id], onDelete: Cascade)
 
   @@index([logId])
-  @@index([tenantId])
   @@map("log_details")
 }
