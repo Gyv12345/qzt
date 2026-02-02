@@ -16,6 +16,7 @@ import { ServiceTeamModule } from './modules/service-team/service-team.module';
 import { RuleEngineModule } from './modules/rule-engine/rule-engine.module';
 import { SystemModule } from './modules/system/system.module';
 import { PricingModule } from './modules/pricing/pricing.module';
+import { AutomationModule } from './modules/automation/automation.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -127,6 +128,7 @@ const envSchema = Joi.object({
     RuleEngineModule,
     SystemModule,
     PricingModule,
+    AutomationModule,
   ],
   controllers: [HealthController],
   providers: [],
