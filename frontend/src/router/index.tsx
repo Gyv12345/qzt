@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
-import { CustomerListPage } from '@/pages/customer/CustomerListPage'
+import { CustomerList } from '@/pages/customer/CustomerList'
 import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -31,7 +31,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <CustomerListPage />,
+                element: <CustomerList />,
               },
               {
                 path: ':id',
