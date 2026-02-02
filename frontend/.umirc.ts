@@ -7,49 +7,59 @@ export default defineConfig({
   model: {},
   initialState: {},
   request: {},
-  layout: false, // 禁用内置布局，使用自定义布局
+  layout: {
+    name: '企账通',
+    logo: false,
+    locale: false,
+    siderWidth: 240,
+    theme: {
+      'primary-color': '#1677FF',
+    },
+  },
   routes: [
     {
       path: '/login',
       component: '@/pages/login',
+      layout: false,
     },
     {
       path: '/',
-      component: '@/layouts/BasicLayout',
-      routes: [
-        {
-          path: '/',
-          redirect: '/customer',
-        },
-        {
-          path: '/customer',
-          component: '@/pages/customer',
-        },
-        {
-          path: '/customer/:id',
-          component: '@/pages/customer/detail',
-        },
-        {
-          path: '/dashboard',
-          component: '@/pages/dashboard',
-        },
-        {
-          path: '/contract',
-          component: '@/pages/placeholder',
-        },
-        {
-          path: '/product',
-          component: '@/pages/placeholder',
-        },
-        {
-          path: '/system',
-          component: '@/pages/placeholder',
-        },
-        {
-          path: '/profile',
-          component: '@/pages/placeholder',
-        },
-      ],
+      redirect: '/customer',
+    },
+    {
+      name: '客户管理',
+      icon: 'UserOutlined',
+      path: '/customer',
+      component: '@/pages/customer',
+    },
+    {
+      path: '/customer/:id',
+      component: '@/pages/customer/detail',
+      hideInMenu: true,
+    },
+    {
+      name: '仪表盘',
+      icon: 'DashboardOutlined',
+      path: '/dashboard',
+      component: '@/pages/dashboard',
+    },
+    {
+      name: '合同管理',
+      icon: 'FileTextOutlined',
+      path: '/contract',
+      component: '@/pages/placeholder',
+    },
+    {
+      name: '产品管理',
+      icon: 'AppstoreOutlined',
+      path: '/product',
+      component: '@/pages/placeholder',
+    },
+    {
+      name: '系统设置',
+      icon: 'SettingOutlined',
+      path: '/system',
+      component: '@/pages/placeholder',
     },
   ],
   npmClient: 'pnpm',

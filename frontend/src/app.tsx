@@ -13,12 +13,16 @@ export async function getInitialState() {
 
 export const request: RequestConfig = {
   timeout: 10000,
+  // 开发环境添加 API 前缀
+  prefix: '/api',
   errorConfig: {
     adaptor: (resData) => {
+      // 后端成功响应没有 code 字段，直接返回数据
+      // 错误响应会有 message 字段
       return {
-        success: resData.code === 200,
+        success: true,
         errorMessage: resData.message,
-        data: resData.data,
+        data: resData,
       };
     },
   },

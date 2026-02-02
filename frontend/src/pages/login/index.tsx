@@ -19,21 +19,29 @@ const Login: React.FC = () => {
         body: JSON.stringify(values),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.access_token) {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('userInfo', JSON.stringify(data.user));
 
-        const initialState = await getInitialState();
-        setInitialState(initialState);
+        // 更新初始状态
+        setInitialState({
+          token: data.access_token,
+          userInfo: data.user,
+        });
 
         message.success('登录成功');
-        history.push('/dashboard');
+        history.push('/customer');
       } else {
         message.error(data.message || '登录失败');
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Login error:', error);
       message.error('登录失败,请检查网络连接');
     } finally {
       setLoading(false);
