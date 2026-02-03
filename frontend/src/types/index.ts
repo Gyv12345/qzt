@@ -117,7 +117,9 @@ export interface QueryCustomersParams {
 export interface FollowRecord {
   id: string;
   customerId: string;
+  customerName?: string;
   userId: string;
+  userName?: string;
   type: FollowType;
   content: string;
   nextTime?: string;
@@ -150,15 +152,44 @@ export interface Contract {
   productId: string;
   contractNo: string;
   amount: number;
-  startDate: string;
-  endDate: string;
-  status: number;
+  paidAmount: number;
+  status: number; // 0:待收款 1:部分收款 2:已收全
+  serviceStart: string;
+  serviceEnd: string;
+  remark?: string;
   createdAt: string;
   updatedAt: string;
-  customer?: Customer;
+  customer?: {
+    id: string;
+    name: string;
+  };
   product?: {
     id: string;
     name: string;
+    price: number;
+  };
+}
+
+// 收款记录类型
+export interface Payment {
+  id: string;
+  contractId: string;
+  amount: number;
+  method: number; // 1:银行转账 2:微信 3:支付宝 4:现金
+  voucherUrl?: string;
+  payTime?: string;
+  status: number; // 0:待确认 1:已确认
+  remark?: string;
+  createdAt: string;
+  updatedAt: string;
+  contract?: {
+    id: string;
+    contractNo: string;
+    amount: number;
+    customer?: {
+      id: string;
+      name: string;
+    };
   };
 }
 
@@ -167,12 +198,49 @@ export interface Product {
   id: string;
   name: string;
   code: string;
-  price: number;
-  unit: string;
   description?: string;
+  price: number;
+  invoiceLimit: number;
+  invoiceCount: number;
+  overLimitPrice: number;
   status: number;
   createdAt: string;
   updatedAt: string;
+  flows?: ProductFlow[];
+}
+
+// 产品流程类型
+export interface ProductFlow {
+  id: string;
+  productId: string;
+  name: string;
+  type: 'NODE' | 'CYCLE';
+  config: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 创建产品请求类型
+export interface CreateProductRequest {
+  name: string;
+  code: string;
+  description?: string;
+  price: number;
+  invoiceLimit: number;
+  invoiceCount: number;
+  overLimitPrice: number;
+}
+
+// 更新产品请求类型
+export interface UpdateProductRequest extends Partial<CreateProductRequest> {}
+
+// 查询产品参数类型
+export interface QueryProductsParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: number;
 }
 
 // 发票类型

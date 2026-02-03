@@ -8,6 +8,15 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { FollowRecordModule } from './modules/follow-record/follow-record.module';
 import { ProductModule } from './modules/product/product.module';
+import { ContractModule } from './modules/contract/contract.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
+import { StatisticsModule } from './modules/statistics/statistics.module';
+import { ServiceTeamModule } from './modules/service-team/service-team.module';
+import { RuleEngineModule } from './modules/rule-engine/rule-engine.module';
+import { SystemModule } from './modules/system/system.module';
+import { PricingModule } from './modules/pricing/pricing.module';
+import { AutomationModule } from './modules/automation/automation.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -86,7 +95,7 @@ const envSchema = Joi.object({
 
   // 前端URL (用于CORS)
   FRONTEND_URL: Joi.string()
-    .default('http://localhost:3456'),
+    .default('http://localhost:7890'),
 }).unknown(true);
 
 @Module({
@@ -111,6 +120,16 @@ const envSchema = Joi.object({
     CustomerModule,
     FollowRecordModule,
     ProductModule,
+    ContractModule,
+    PaymentModule,
+    InvoiceModule,
+    StatisticsModule,
+    ServiceTeamModule,
+    RuleEngineModule,
+    SystemModule,
+    PricingModule,
+    AutomationModule,
+    PermissionModule,
   ],
   controllers: [HealthController],
   providers: [],

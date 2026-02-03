@@ -16,6 +16,7 @@ import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { QueryCustomerDto } from './dto/query-customer.dto';
+import { AssignDto, BatchAssignDto } from './dto/batch-assign.dto';
 
 @ApiTags('customers')
 @Controller('customers')
@@ -33,7 +34,6 @@ export class CustomerController {
     return this.customerService.create(
       createCustomerDto,
       req.user.userId,
-      req.user.isAdmin,
     );
   }
 
@@ -91,15 +91,64 @@ export class CustomerController {
     );
   }
 
-  @Post('assign')
-  @ApiOperation({ summary: '分配客户' })
-  assign(
-    @Body() body: { customerId: string; followUserId: string },
+  @Patch(':id/assign')
+  @ApiOperation({ summary: '分配单个客户' })
+  assignOne(
+    @Param('id') id: string,
+    @Body() assignDto: AssignDto,
     @Request() req,
   ) {
-    return this.customerService.assign(
-      body.customerId,
-      body.followUserId,
+    return this.customerService.assignOne(
+      id,
+      assignDto.newFollowUserId,
+      assignDto.reason,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Patch('batch-assign')
+  @ApiOperation({ summary: '批量分配客户' })
+  batchAssign(
+    @Body() batchAssignDto: BatchAssignDto,
+    @Request() req,
+  ) {
+    return this.customerService.batchAssign(
+      batchAssignDto.customerIds,
+      batchAssignDto.newFollowUserId,
+      batchAssignDto.reason,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Get(':id/assignment-history')
+  @ApiOperation({ summary: '查询客户分配历史' })
+  getAssignmentHistory(
+    @Param('id') id: string,
+    @Query() query: { page?: number; pageSize?: number },
+    @Request() req,
+  ) {
+    return this.customerService.getAssignmentHistory(
+      id,
+      query.page || 1,
+      query.pageSize || 20,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Get(':id/follow-records')
+  @ApiOperation({ summary: '查询客户跟进记录' })
+  getFollowRecords(
+    @Param('id') id: string,
+    @Query() query: { page?: number; pageSize?: number },
+    @Request() req,
+  ) {
+    return this.customerService.getFollowRecords(
+      id,
+      query.page || 1,
+      query.pageSize || 20,
       req.user.userId,
       req.user.isAdmin,
     );

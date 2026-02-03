@@ -1,10 +1,15 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
-import { CustomerList } from '@/pages/customer/CustomerList'
-import { CustomerDetail } from '@/pages/customer/CustomerDetail'
-import { ProductList } from '@/pages/product/ProductList'
+import { CustomerListPage } from '@/pages/customer/CustomerListPage'
+import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
+import { ProductListPage, ProductDetailPage } from '@/pages/product'
+import { ContractListPage, ContractDetailPage } from '@/pages/contract'
+import { InvoiceListPage } from '@/pages/invoice/InvoiceListPage'
+import { FollowRecordListPage } from '@/pages/follow-record'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { StatisticsPage } from '@/pages/statistics'
+import { SystemPage } from '@/pages/system'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -32,25 +37,55 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <CustomerList />,
+                element: <CustomerListPage />,
               },
               {
                 path: ':id',
-                element: <CustomerDetail />,
+                element: <CustomerDetailPage />,
               },
             ],
           },
           {
             path: 'contracts',
-            element: <div>合同管理页面开发中...</div>,
+            children: [
+              {
+                index: true,
+                element: <ContractListPage />,
+              },
+              {
+                path: ':id',
+                element: <ContractDetailPage />,
+              },
+            ],
           },
           {
             path: 'products',
-            element: <ProductList />,
+            children: [
+              {
+                index: true,
+                element: <ProductListPage />,
+              },
+              {
+                path: ':id',
+                element: <ProductDetailPage />,
+              },
+            ],
+          },
+          {
+            path: 'invoices',
+            element: <InvoiceListPage />,
+          },
+          {
+            path: 'follow-records',
+            element: <FollowRecordListPage />,
+          },
+          {
+            path: 'statistics',
+            element: <StatisticsPage />,
           },
           {
             path: 'system',
-            element: <div>系统管理页面开发中...</div>,
+            element: <SystemPage />,
           },
         ],
       },

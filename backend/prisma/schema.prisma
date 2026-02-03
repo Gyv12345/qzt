@@ -68,9 +68,43 @@ model Permission {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roles RolePermission[]
+  roles      RolePermission[]
+  menuPermissions MenuPermission[]
 
   @@map("permissions")
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  path      String   @unique // 路由路径
+  name      String   // 菜单名称
+  icon      String?  // 图标
+  parentId  String?  // 父级菜单ID
+  sort      Int      @default(0) // 排序
+  enabled   Boolean  @default(true) // 是否启用
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Menu?             @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children Menu[]           @relation("MenuHierarchy")
+  permissions MenuPermission[]
+
+  @@index([parentId])
+  @@map("menus")
+}
+
+model MenuPermission {
+  id           String   @id @default(cuid())
+  menuId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  menu       Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([menuId, permissionId])
+  @@index([menuId])
+  @@map("menu_permissions")
 }
 
 model RolePermission {
@@ -105,14 +139,33 @@ model Customer {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  contracts     Contract[]
-  followRecords FollowRecord[]
-  invoices      Invoice[]
-  serviceTeams  ServiceTeam[]
+  contracts           Contract[]
+  followRecords       FollowRecord[]
+  invoices            Invoice[]
+  serviceTeams        ServiceTeam[]
+  assignmentHistories CustomerAssignmentHistory[]
 
   @@index([followUserId])
   @@index([customerLevel])
+  @@index([status])
   @@map("customers")
+}
+
+model CustomerAssignmentHistory {
+  id                  String   @id @default(cuid())
+  customerId          String
+  previousFollowUserId String?
+  newFollowUserId     String
+  assignedBy          String // 操作人ID
+  reason              String?
+  createdAt           DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([newFollowUserId])
+  @@index([assignedBy])
+  @@map("customer_assignment_histories")
 }
 
 // ==================== 跟进记录 ====================
@@ -143,7 +196,8 @@ model Product {
   name           String
   code           String   @unique
   description    String?
-  price          Float
+  price          Float    // 基础价格
+  pricingType    String   @default("FIXED") // FIXED:固定价格 TIER_AMOUNT:按金额阶梯 TIER_COUNT:按次数计费 ZERO_DECLARATION:零申报
   invoiceLimit   Float    @default(0) // 开票额度(月)
   invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
   overLimitPrice Float    @default(0) // 超额单价
@@ -151,10 +205,49 @@ model Product {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  contracts Contract[]
-  flows     ProductFlow[]
+  contracts    Contract[]
+  flows        ProductFlow[]
+  pricingRules PricingRule[]
 
   @@map("products")
+}
+
+// ==================== 阶梯定价规则 ====================
+
+model PricingRule {
+  id             String   @id @default(cuid())
+  productId      String
+  name           String   // 规则名称
+  ruleType       String   // AMOUNT_TIER:按金额阶梯 COUNT_TIER:按次数 ZERO_DECLARATION:零申报
+  effectiveDate  DateTime @default(now()) // 生效日期
+  expiryDate     DateTime? // 失效日期
+  status         Int      @default(1) // 1:启用 0:禁用
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tiers   PricingTier[]
+
+  @@index([productId])
+  @@map("pricing_rules")
+}
+
+model PricingTier {
+  id              String   @id @default(cuid())
+  pricingRuleId   String
+  minThreshold    Float    // 最小阈值
+  maxThreshold    Float?   // 最大阈值(null表示无上限)
+  price           Float    // 该阶梯的价格
+  additionalPrice Float?   // 超出基础价格的加价部分
+  description     String?  // 描述
+  order           Int      // 排序
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  pricingRule PricingRule @relation(fields: [pricingRuleId], references: [id], onDelete: Cascade)
+
+  @@index([pricingRuleId])
+  @@map("pricing_tiers")
 }
 
 // ==================== 产品流程 ====================
@@ -235,10 +328,28 @@ model Invoice {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer            Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  priceChangeRecords  InvoicePriceChange[]
 
   @@index([customerId, month])
   @@map("invoices")
+}
+
+// ==================== 发票价格变更记录 ====================
+
+model InvoicePriceChange {
+  id           String   @id @default(cuid())
+  invoiceId    String
+  oldPrice     Float    // 原价格
+  newPrice     Float    // 新价格
+  changeReason String?  // 变更原因
+  changedBy    String?  // 操作人ID
+  createdAt    DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_price_changes")
 }
 
 // ==================== 服务团队 ====================
@@ -335,3 +446,83 @@ model LogDetail {
   @@index([logId])
   @@map("log_details")
 }
+
+// ==================== 自动化任务系统 ====================
+
+model AutomationRule {
+  id          String   @id @default(cuid())
+  name        String   // 规则名称
+  type        String   // CONTRACT_EXPIRY:合同到期 NEW_CUSTOMER_FOLLOW:新客户跟进 MONTHLY_TASK:月度待办 CUSTOMER_ACTIVATION:客户激活
+  enabled     Boolean  @default(true)
+  config      String   // 配置(JSON)
+  cronExpression String? // Cron表达式
+  lastExecutedAt DateTime? // 最后执行时间
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks AutomationTask[]
+
+  @@map("automation_rules")
+}
+
+model AutomationTask {
+  id         String   @id @default(cuid())
+  ruleId     String
+  status     String   // PENDING:待执行 SUCCESS:成功 FAILED:失败
+  result     String?  // 执行结果(JSON)
+  error      String?  // 错误信息
+  executedAt DateTime @default(now())
+  duration   Int?     // 执行时长(ms)
+
+  rule AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@index([status])
+  @@map("automation_tasks")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // 接收用户ID
+  type      String   // 类型: CONTRACT_EXPIRY, FOLLOW_UP, TASK, etc.
+  title     String   // 标题
+  content   String   // 内容
+  link      String?  // 跳转链接
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ==================== 系统配置 ====================
+
+model CommonPhrase {
+  id         String   @id @default(cuid())
+  userId     String?  // null表示系统常用语
+  content    String   // 常用语内容
+  category   String?  // 分类: GREETING, FOLLOW_UP, CLOSING, OTHER
+  useCount   Int      @default(0) // 使用次数
+  isSystem   Boolean  @default(false) // 是否系统预置
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([category])
+  @@map("common_phrases")
+}
+
+model PaymentAccount {
+  id         String   @id @default(cuid())
+  name       String   // 账户名称
+  accountNo  String   // 账号
+  bank       String?  // 开户行
+  type       String   // 类型: 1:银行转账 2:微信 3:支付宝 4:现金
+  isDefault  Boolean  @default(false) // 是否默认账户
+  status     Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("payment_accounts")
+}
+
