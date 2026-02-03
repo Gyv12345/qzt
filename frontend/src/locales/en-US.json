@@ -1,0 +1,16 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "noData": "No Data",
+    "operation": "Operation",
+    "status": "Status",
+    "actions": "Actions"
+  }
+}
