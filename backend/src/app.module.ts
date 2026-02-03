@@ -5,6 +5,8 @@ import * as Joi from 'joi';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ContactModule } from './modules/contact/contact.module';
+import { CustomerContactModule } from './modules/customer-contact/customer-contact.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { FollowRecordModule } from './modules/follow-record/follow-record.module';
 import { ProductModule } from './modules/product/product.module';
@@ -118,6 +120,8 @@ const envSchema = Joi.object({
     ]),
     PrismaModule,
     AuthModule,
+    ContactModule,
+    CustomerContactModule,
     CustomerModule,
     FollowRecordModule,
     ProductModule,
