@@ -1,57 +1,54 @@
+import { Table } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from 'lucide-react'
-import type { Table } from '@tanstack/react-table'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
+  total?: number
 }
 
 export function DataTablePagination<TData>({
   table,
+  total,
 }: DataTablePaginationProps<TData>) {
+  const pageSizeOptions = [10, 20, 30, 50, 100]
+
   return (
     <div className="flex items-center justify-between px-2">
-      <div className="flex-1 text-sm text-gray-600 dark:text-gray-400">
-        {table.getFilteredSelectedRowModel().rows.length > 0 && (
-          <span>
-            已选择 {table.getFilteredSelectedRowModel().rows.length} 行
-          </span>
-        )}
-        {table.getFilteredSelectedRowModel().rows.length === 0 && (
-          <span>
-            共 {table.getFilteredRowModel().rows.length} 条数据
-          </span>
-        )}
+      <div className="flex-1 text-sm text-muted-foreground">
+        共 {total ?? table.getFilteredRowModel().rows.length} 条记录
       </div>
-
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium text-gray-900 dark:text-white">每页行数</p>
-          <select
-            value={table.getState().pagination.pageSize}
-            onChange={(e) => {
-              table.setPageSize(Number(e.target.value))
+          <p className="text-sm font-medium">每页行数</p>
+          <Select
+            value={`${table.getState().pagination.pageSize}`}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value))
             }}
-            className="h-8 w-[70px] rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {[10, 20, 30, 40, 50].map((pageSize) => (
-              <option key={pageSize} value={pageSize}>
-                {pageSize}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue placeholder={table.getState().pagination.pageSize} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {pageSizeOptions.map((pageSize) => (
+                <SelectItem key={pageSize} value={`${pageSize}`}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium text-gray-900 dark:text-white">
-          第 {table.getState().pagination.pageIndex + 1} 页，共{' '}
+        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          第 {table.getState().pagination.pageIndex + 1} /{' '}
           {table.getPageCount()} 页
         </div>
-
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -59,8 +56,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">首页</span>
-            <ChevronsLeft className="h-4 w-4" />
+            {'<<'}
           </Button>
           <Button
             variant="outline"
@@ -68,8 +64,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">上一页</span>
-            <ChevronLeft className="h-4 w-4" />
+            {'<'}
           </Button>
           <Button
             variant="outline"
@@ -77,8 +72,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">下一页</span>
-            <ChevronRight className="h-4 w-4" />
+            {'>'}
           </Button>
           <Button
             variant="outline"
@@ -86,8 +80,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">末页</span>
-            <ChevronsRight className="h-4 w-4" />
+            {'>>'}
           </Button>
         </div>
       </div>
