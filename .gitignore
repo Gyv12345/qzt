@@ -38,12 +38,6 @@ lerna-debug.log*
 coverage/
 .nyc_output/
 
-# Prisma
-backend/prisma/migrations/**/migration.sql
-backend/dev.db
-backend/dev.db-journal
-dev.db
-dev.db-journal
 
 # Temporary
 *.tmp
