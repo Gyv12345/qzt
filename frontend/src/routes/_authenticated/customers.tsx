@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
 import { DataTable } from '@/components/data-table/data-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { customerSearchSchema } from '@/features/customer/schemas/customer-schema'
+import { CustomerDrawer } from '@/features/customer/components/customer-drawer'
 import type { Customer } from '@/features/customer/types'
 
 export const Route = createFileRoute('/_authenticated/customers')({
@@ -82,8 +84,9 @@ const columns: ColumnDef<Customer>[] = [
 
 function CustomerListPage() {
   const search = Route.useSearch()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | undefined>()
 
-  // TODO: 使用 Query 获取数据
   const mockData: Customer[] = [
     {
       id: '1',
@@ -96,11 +99,21 @@ function CustomerListPage() {
     },
   ]
 
+  const handleCreate = () => {
+    setEditingId(undefined)
+    setDrawerOpen(true)
+  }
+
+  const handleEdit = (id: string) => {
+    setEditingId(id)
+    setDrawerOpen(true)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">客户管理</h1>
-        <Button>新增客户</Button>
+        <Button onClick={handleCreate}>新增客户</Button>
       </div>
 
       <DataTable
@@ -108,6 +121,12 @@ function CustomerListPage() {
         data={mockData}
         total={1}
         pageSize={search.pageSize}
+      />
+
+      <CustomerDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        customerId={editingId}
       />
     </div>
   )
