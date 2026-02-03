@@ -3,6 +3,7 @@ import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { CustomerListPage } from '@/pages/customer/CustomerListPage'
 import { CustomerDetailPage } from '@/pages/customer/CustomerDetailPage'
+import { ContactListPage, ContactDetailPage } from '@/pages/contact'
 import { ProductListPage, ProductDetailPage } from '@/pages/product'
 import { ContractListPage, ContractDetailPage } from '@/pages/contract'
 import { InvoiceListPage } from '@/pages/invoice/InvoiceListPage'
@@ -42,6 +43,19 @@ export const router = createBrowserRouter([
               {
                 path: ':id',
                 element: <CustomerDetailPage />,
+              },
+            ],
+          },
+          {
+            path: 'contacts',
+            children: [
+              {
+                index: true,
+                element: <ContactListPage />,
+              },
+              {
+                path: ':id',
+                element: <ContactDetailPage />,
               },
             ],
           },

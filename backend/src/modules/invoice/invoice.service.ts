@@ -166,7 +166,7 @@ export class InvoiceService {
       where: { id },
       include: {
         customer: {
-          select: { id: true, name: true, contactPhone: true },
+          select: { id: true, name: true },
         },
       },
     });
