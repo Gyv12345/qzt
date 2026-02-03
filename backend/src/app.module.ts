@@ -20,6 +20,11 @@ import { SystemModule } from './modules/system/system.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { AutomationModule } from './modules/automation/automation.module';
 import { PermissionModule } from './modules/permission/permission.module';
+import { UsersModule } from './modules/users/users.module';
+import { DepartmentModule } from './modules/department/department.module';
+import { LogsModule } from './modules/logs/logs.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { OssModule } from './modules/oss/oss.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -135,6 +140,11 @@ const envSchema = Joi.object({
     PricingModule,
     AutomationModule,
     PermissionModule,
+    UsersModule,
+    DepartmentModule,
+    LogsModule,
+    WebhooksModule,
+    OssModule,
   ],
   controllers: [HealthController],
   providers: [],

@@ -11,23 +11,43 @@ datasource db {
 
 // ==================== 用户和权限 ====================
 
-model User {
+model Department {
   id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
   name      String
-  email     String?  @unique
-  phone     String?
-  avatar    String?
-  status    Int      @default(1) // 1:启用 0:禁用
+  parentId  String?
+  sort      Int      @default(0)
+  status    Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  parent   Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children Department[] @relation("DepartmentHierarchy")
+  users    User[]
+
+  @@index([parentId])
+  @@map("departments")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  password     String
+  name         String
+  email        String?  @unique
+  phone        String?
+  avatar       String?
+  departmentId String?
+  status       Int      @default(1) // 1:启用 0:禁用
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   roles         UserRole[]
   followRecords FollowRecord[]
   serviceTeams  ServiceTeam[]
-  customers     Customer[]  @relation("CustomerFollowUser")
+  customers     Customer[]      @relation("CustomerFollowUser")
+  department    Department?     @relation(fields: [departmentId], references: [id])
 
+  @@index([departmentId])
   @@map("users")
 }
 
@@ -593,5 +613,94 @@ model PaymentAccount {
   updatedAt  DateTime @updatedAt
 
   @@map("payment_accounts")
+}
+
+// ==================== 日志管理 ====================
+
+model OperationLog {
+  id         String   @id @default(cuid())
+  userId     String
+  username   String
+  action     String   // 操作类型: CREATE, UPDATE, DELETE, EXPORT, etc.
+  resource   String   // 资源类型: User, Customer, Contract, etc.
+  resourceId String?  // 资源ID
+  ip         String?
+  userAgent  String?
+  detail     String?  // 详细信息(JSON)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("operation_logs")
+}
+
+model SystemLog {
+  id         String   @id @default(cuid())
+  level      String   // INFO, WARN, ERROR, DEBUG
+  module     String   // 模块名
+  message    String   // 日志消息
+  stacktrace String?  // 堆栈信息
+  detail     String?  // 详细信息(JSON)
+  createdAt  DateTime @default(now())
+
+  @@index([level])
+  @@index([module])
+  @@index([createdAt])
+  @@map("system_logs")
+}
+
+// ==================== Webhook 消息管理 ====================
+
+model WebhookConfig {
+  id         String   @id @default(cuid())
+  name       String   // 配置名称
+  platform   String   // 平台: wecom(企业微信), feishu(飞书), dingtalk(钉钉)
+  webhookUrl String   // Webhook URL
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  messages   WebhookMessage[]
+
+  @@index([platform])
+  @@map("webhook_configs")
+}
+
+model WebhookMessage {
+  id          String   @id @default(cuid())
+  configId    String
+  platform    String   // 平台
+  messageType String   // 消息类型: text, markdown, card
+  content     String   // 消息内容(JSON)
+  status      String   // success, failed
+  response    String?  // 响应内容
+  error       String?  // 错误信息
+  sentAt      DateTime @default(now())
+
+  config WebhookConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
+  @@index([status])
+  @@index([sentAt])
+  @@map("webhook_messages")
+}
+
+// ==================== OSS 文件管理 ====================
+
+model OssFile {
+  id          String   @id @default(cuid())
+  fileName    String   // 原始文件名
+  fileUrl     String   // 文件URL
+  fileSize    Int      // 文件大小(字节)
+  fileType    String   // 文件类型: image, document, video, other
+  mimeType    String   // MIME类型
+  uploaderId  String?  // 上传者ID
+  createdAt   DateTime @default(now())
+
+  @@index([uploaderId])
+  @@index([fileType])
+  @@index([createdAt])
+  @@map("oss_files")
 }
 

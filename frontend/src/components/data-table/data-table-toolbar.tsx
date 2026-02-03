@@ -1,4 +1,4 @@
-import { Table } from '@tanstack/react-table'
+import { type Table } from '@tanstack/react-table'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,7 +31,7 @@ export function DataTableToolbar<TData>({
             title="客户等级"
             options={[
               { label: 'VIP', value: 'VIP' },
-              { label: '普通', value: 'NORMAL' },
+              { label: '普通', value: '普通' },
             ]}
           />
         )}

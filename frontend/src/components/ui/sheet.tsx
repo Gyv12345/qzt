@@ -30,3 +30,17 @@ export function Sheet({ open, onOpenChange, children, side = 'right' }: SheetPro
 export function SheetContent({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={cn('h-full', className)}>{children}</div>
 }
+
+export function SheetHeader({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <div className={cn('flex flex-col space-y-2 text-center sm:text-left', className)}>{children}</div>
+}
+
+export function SheetTitle({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <h2 className={cn('text-lg font-semibold text-foreground', className)}>{children}</h2>
+  )
+}
+
+export function SheetDescription({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <p className={cn('text-sm text-muted-foreground', className)}>{children}</p>
+}

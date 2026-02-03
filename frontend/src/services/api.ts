@@ -18,6 +18,7 @@ import type {
   CreateContactDto,
   CreateContractDto,
   CreateCustomerDto,
+  CreateDepartmentDto,
   CreateFollowRecordDto,
   CreateInvoiceDto,
   CreatePaymentDto,
@@ -28,6 +29,7 @@ import type {
   CreateRoleDto,
   CreateServiceTeamDto,
   CreateTriggerDto,
+  CreateUserDto,
   CustomerControllerFindAllParams,
   FollowRecordControllerFindAllParams,
   InvoiceControllerFindAllParams,
@@ -41,6 +43,7 @@ import type {
   ProductControllerFindAllParams,
   ProductControllerFindFlowsParams,
   RegisterDto,
+  ResetPasswordDto,
   RuleEngineControllerFindEnabledTriggersParams,
   RuleEngineControllerFindTriggersParams,
   RuleEngineControllerGetLogsParams,
@@ -60,6 +63,7 @@ import type {
   UpdateContactRoleDto,
   UpdateContractDto,
   UpdateCustomerDto,
+  UpdateDepartmentDto,
   UpdateFollowRecordDto,
   UpdateInvoiceDto,
   UpdatePaymentDto,
@@ -68,7 +72,9 @@ import type {
   UpdateProductFlowDto,
   UpdateRoleDto,
   UpdateServiceTeamDto,
-  UpdateTriggerDto
+  UpdateTriggerDto,
+  UpdateUserDto,
+  UsersControllerFindAllParams
 } from '../models';
 
 import { customInstance } from './mutator';
@@ -1709,7 +1715,165 @@ const permissionControllerInitializeSuperAdmin = (
       );
     }
   
-return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,contactControllerCreate,contactControllerFindAll,contactControllerFindOne,contactControllerUpdate,contactControllerRemove,contactControllerFindByPhone,contactControllerLinkCompany,contactControllerUnlinkCompany,customerContactControllerAddContact,customerContactControllerGetCustomerContacts,customerContactControllerLinkContact,customerContactControllerUpdateContactRole,customerContactControllerUnlinkContact,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssignOne,customerControllerBatchAssign,customerControllerGetAssignmentHistory,customerControllerGetFollowRecords,followRecordControllerFindAll,followRecordControllerCreate,followRecordControllerFindOne,followRecordControllerUpdate,followRecordControllerRemove,productControllerCreate,productControllerFindAll,productControllerFindOne,productControllerUpdate,productControllerRemove,productControllerCreateFlow,productControllerFindFlows,productControllerFindFlow,productControllerUpdateFlow,productControllerRemoveFlow,contractControllerCreate,contractControllerFindAll,contractControllerFindOne,contractControllerUpdate,contractControllerRemove,contractControllerUpdatePaymentStatus,paymentControllerCreate,paymentControllerFindAll,paymentControllerGetContractPayments,paymentControllerFindOne,paymentControllerUpdate,paymentControllerRemove,paymentControllerConfirmPayment,invoiceControllerCreate,invoiceControllerFindAll,invoiceControllerGetCustomerSummary,invoiceControllerFindOne,invoiceControllerUpdate,invoiceControllerRemove,pricingControllerCreateRule,pricingControllerFindAllRules,pricingControllerFindOneRule,pricingControllerUpdateRule,pricingControllerRemoveRule,pricingControllerFindByProduct,pricingControllerCalculatePrice,statisticsControllerGetDashboardStats,statisticsControllerGetCustomerGrowthTrend,statisticsControllerGetContractRenewalStats,statisticsControllerGetInvoiceAnalysis,statisticsControllerGetSalesPerformance,statisticsControllerGetProductSalesStats,statisticsControllerExportData,serviceTeamControllerCreate,serviceTeamControllerFindAll,serviceTeamControllerGetCustomerTeamGrouped,serviceTeamControllerFindOne,serviceTeamControllerUpdate,serviceTeamControllerRemove,ruleEngineControllerCreateTrigger,ruleEngineControllerFindTriggers,ruleEngineControllerFindEnabledTriggers,ruleEngineControllerFindOneTrigger,ruleEngineControllerUpdateTrigger,ruleEngineControllerRemoveTrigger,ruleEngineControllerToggleTrigger,ruleEngineControllerExecuteRule,ruleEngineControllerGetLogs,systemControllerFindCommonPhrases,systemControllerCreateCommonPhrase,systemControllerUpdateCommonPhrase,systemControllerRemoveCommonPhrase,systemControllerSearchCommonPhrases,systemControllerIncrementPhraseUsage,systemControllerFindPaymentAccounts,systemControllerCreatePaymentAccount,systemControllerFindDefaultPaymentAccount,systemControllerUpdatePaymentAccount,systemControllerRemovePaymentAccount,systemControllerSetDefaultPaymentAccount,automationControllerCreateRule,automationControllerFindAllRules,automationControllerFindOneRule,automationControllerUpdateRule,automationControllerRemoveRule,automationControllerToggleEnabled,automationControllerTriggerRule,automationControllerGetTaskHistory,automationControllerGetNotifications,automationControllerMarkNotificationAsRead,automationControllerMarkAllNotificationsAsRead,permissionControllerSyncMenus,permissionControllerGetMenuTree,permissionControllerUpdateMenu,permissionControllerCreatePermission,permissionControllerFindAllPermissions,permissionControllerCreateRole,permissionControllerFindAllRoles,permissionControllerFindOneRole,permissionControllerUpdateRole,permissionControllerRemoveRole,permissionControllerAssignPermissionsToRole,permissionControllerGetUserPermissions,permissionControllerAssignRolesToUser,permissionControllerInitializeSuperAdmin}};
+/**
+ * @summary 创建用户
+ */
+const usersControllerCreate = (
+    createUserDto: CreateUserDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/users`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createUserDto
+    },
+      );
+    }
+  
+/**
+ * @summary 分页查询用户列表
+ */
+const usersControllerFindAll = (
+    params?: UsersControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/users`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取用户详情
+ */
+const usersControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/users/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新用户
+ */
+const usersControllerUpdate = (
+    id: string,
+    updateUserDto: UpdateUserDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/users/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUserDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除用户
+ */
+const usersControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/users/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 重置用户密码
+ */
+const usersControllerResetPassword = (
+    id: string,
+    resetPasswordDto: ResetPasswordDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/users/${id}/reset-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: resetPasswordDto
+    },
+      );
+    }
+  
+/**
+ * @summary 创建部门
+ */
+const departmentControllerCreate = (
+    createDepartmentDto: CreateDepartmentDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/departments`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createDepartmentDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取部门树形结构
+ */
+const departmentControllerFindTree = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/departments`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 获取部门详情
+ */
+const departmentControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/departments/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新部门
+ */
+const departmentControllerUpdate = (
+    id: string,
+    updateDepartmentDto: UpdateDepartmentDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/departments/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateDepartmentDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除部门
+ */
+const departmentControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/departments/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 获取部门下的用户列表
+ */
+const departmentControllerFindUsers = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/departments/${id}/users`, method: 'GET'
+    },
+      );
+    }
+  
+return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,contactControllerCreate,contactControllerFindAll,contactControllerFindOne,contactControllerUpdate,contactControllerRemove,contactControllerFindByPhone,contactControllerLinkCompany,contactControllerUnlinkCompany,customerContactControllerAddContact,customerContactControllerGetCustomerContacts,customerContactControllerLinkContact,customerContactControllerUpdateContactRole,customerContactControllerUnlinkContact,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssignOne,customerControllerBatchAssign,customerControllerGetAssignmentHistory,customerControllerGetFollowRecords,followRecordControllerFindAll,followRecordControllerCreate,followRecordControllerFindOne,followRecordControllerUpdate,followRecordControllerRemove,productControllerCreate,productControllerFindAll,productControllerFindOne,productControllerUpdate,productControllerRemove,productControllerCreateFlow,productControllerFindFlows,productControllerFindFlow,productControllerUpdateFlow,productControllerRemoveFlow,contractControllerCreate,contractControllerFindAll,contractControllerFindOne,contractControllerUpdate,contractControllerRemove,contractControllerUpdatePaymentStatus,paymentControllerCreate,paymentControllerFindAll,paymentControllerGetContractPayments,paymentControllerFindOne,paymentControllerUpdate,paymentControllerRemove,paymentControllerConfirmPayment,invoiceControllerCreate,invoiceControllerFindAll,invoiceControllerGetCustomerSummary,invoiceControllerFindOne,invoiceControllerUpdate,invoiceControllerRemove,pricingControllerCreateRule,pricingControllerFindAllRules,pricingControllerFindOneRule,pricingControllerUpdateRule,pricingControllerRemoveRule,pricingControllerFindByProduct,pricingControllerCalculatePrice,statisticsControllerGetDashboardStats,statisticsControllerGetCustomerGrowthTrend,statisticsControllerGetContractRenewalStats,statisticsControllerGetInvoiceAnalysis,statisticsControllerGetSalesPerformance,statisticsControllerGetProductSalesStats,statisticsControllerExportData,serviceTeamControllerCreate,serviceTeamControllerFindAll,serviceTeamControllerGetCustomerTeamGrouped,serviceTeamControllerFindOne,serviceTeamControllerUpdate,serviceTeamControllerRemove,ruleEngineControllerCreateTrigger,ruleEngineControllerFindTriggers,ruleEngineControllerFindEnabledTriggers,ruleEngineControllerFindOneTrigger,ruleEngineControllerUpdateTrigger,ruleEngineControllerRemoveTrigger,ruleEngineControllerToggleTrigger,ruleEngineControllerExecuteRule,ruleEngineControllerGetLogs,systemControllerFindCommonPhrases,systemControllerCreateCommonPhrase,systemControllerUpdateCommonPhrase,systemControllerRemoveCommonPhrase,systemControllerSearchCommonPhrases,systemControllerIncrementPhraseUsage,systemControllerFindPaymentAccounts,systemControllerCreatePaymentAccount,systemControllerFindDefaultPaymentAccount,systemControllerUpdatePaymentAccount,systemControllerRemovePaymentAccount,systemControllerSetDefaultPaymentAccount,automationControllerCreateRule,automationControllerFindAllRules,automationControllerFindOneRule,automationControllerUpdateRule,automationControllerRemoveRule,automationControllerToggleEnabled,automationControllerTriggerRule,automationControllerGetTaskHistory,automationControllerGetNotifications,automationControllerMarkNotificationAsRead,automationControllerMarkAllNotificationsAsRead,permissionControllerSyncMenus,permissionControllerGetMenuTree,permissionControllerUpdateMenu,permissionControllerCreatePermission,permissionControllerFindAllPermissions,permissionControllerCreateRole,permissionControllerFindAllRoles,permissionControllerFindOneRole,permissionControllerUpdateRole,permissionControllerRemoveRole,permissionControllerAssignPermissionsToRole,permissionControllerGetUserPermissions,permissionControllerAssignRolesToUser,permissionControllerInitializeSuperAdmin,usersControllerCreate,usersControllerFindAll,usersControllerFindOne,usersControllerUpdate,usersControllerRemove,usersControllerResetPassword,departmentControllerCreate,departmentControllerFindTree,departmentControllerFindOne,departmentControllerUpdate,departmentControllerRemove,departmentControllerFindUsers}};
 export type HealthControllerCheckResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['healthControllerCheck']>>>
 export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerLogin']>>>
 export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerRegister']>>>
@@ -1836,3 +2000,15 @@ export type PermissionControllerAssignPermissionsToRoleResult = NonNullable<Awai
 export type PermissionControllerGetUserPermissionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerGetUserPermissions']>>>
 export type PermissionControllerAssignRolesToUserResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerAssignRolesToUser']>>>
 export type PermissionControllerInitializeSuperAdminResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerInitializeSuperAdmin']>>>
+export type UsersControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['usersControllerCreate']>>>
+export type UsersControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['usersControllerFindAll']>>>
+export type UsersControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['usersControllerFindOne']>>>
+export type UsersControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['usersControllerUpdate']>>>
+export type UsersControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['usersControllerRemove']>>>
+export type UsersControllerResetPasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['usersControllerResetPassword']>>>
+export type DepartmentControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['departmentControllerCreate']>>>
+export type DepartmentControllerFindTreeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['departmentControllerFindTree']>>>
+export type DepartmentControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['departmentControllerFindOne']>>>
+export type DepartmentControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['departmentControllerUpdate']>>>
+export type DepartmentControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['departmentControllerRemove']>>>
+export type DepartmentControllerFindUsersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['departmentControllerFindUsers']>>>

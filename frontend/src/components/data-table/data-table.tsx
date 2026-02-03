@@ -1,18 +1,31 @@
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type ColumnDef,
 } from '@tanstack/react-table'
 import { useState } from 'react'
 import { DataTableToolbar } from './data-table-toolbar'
 import { DataTablePagination } from './data-table-pagination'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+// 直接定义类型，避免从 @tanstack/react-table 导入
+type SortingState = Array<{
+  id: string
+  desc: boolean
+}>
+
+type ColumnFiltersState = Array<{
+  id: string
+  value: unknown
+}>
+
+type PaginationState = {
+  pageIndex: number
+  pageSize: number
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

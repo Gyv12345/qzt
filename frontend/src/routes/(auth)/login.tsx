@@ -19,9 +19,12 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const Route = createFileRoute('/(auth)/login')({
-  beforeLoad: ({ context }) => {
+  beforeLoad: () => {
+    // ✅ 直接从 authStore 读取认证状态
+    const authState = useAuthStore.getState()
+
     // 如果已认证，重定向到 dashboard
-    if (context.isAuthenticated) {
+    if (authState.isAuthenticated) {
       throw redirect({
         to: '/dashboard',
       })
