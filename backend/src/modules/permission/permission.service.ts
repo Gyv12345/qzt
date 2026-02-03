@@ -62,13 +62,12 @@ export class PermissionService {
         enabled: true,
       },
       include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
+        permissions: true,
       },
-      orderBy: ['sort', 'createdAt'],
+      orderBy: {
+        sort: 'asc',
+        createdAt: 'desc',
+      },
     });
 
     // 构建树形结构
@@ -77,7 +76,7 @@ export class PermissionService {
         .filter((menu) => menu.parentId === parentId)
         .map((menu) => ({
           ...menu,
-          permissions: menu.permissions.map((mp) => mp.permission),
+          permissions: menu.permissions,
           children: buildTree(menu.id),
         }));
     };
@@ -130,20 +129,12 @@ export class PermissionService {
         ...roleData,
         ...(permissionIds && {
           permissions: {
-            create: permissionIds.map((permissionId) => ({
-              permission: {
-                connect: { id: permissionId },
-              },
-            })),
+            connect: permissionIds.map((id) => ({ id })),
           },
         }),
       },
       include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
+        permissions: true,
       },
     });
   }
@@ -154,16 +145,7 @@ export class PermissionService {
   async findAllRoles() {
     return this.prisma.role.findMany({
       include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
-        _count: {
-          select: {
-            users: true,
-          },
-        },
+        permissions: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -178,11 +160,7 @@ export class PermissionService {
     return this.prisma.role.findUnique({
       where: { id },
       include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
+        permissions: true,
       },
     });
   }
@@ -193,10 +171,15 @@ export class PermissionService {
   async updateRole(id: string, updateRoleDto: UpdateRoleDto) {
     const { permissionIds, ...roleData } = updateRoleDto;
 
-    // 如果更新权限,先删除旧的权限关联
+    // 如果更新权限,先断开旧的权限关联
     if (permissionIds !== undefined) {
-      await this.prisma.rolePermission.deleteMany({
-        where: { roleId: id },
+      await this.prisma.role.update({
+        where: { id },
+        data: {
+          permissions: {
+            set: [],
+          },
+        },
       });
     }
 
@@ -206,20 +189,12 @@ export class PermissionService {
         ...roleData,
         ...(permissionIds && {
           permissions: {
-            create: permissionIds.map((permissionId) => ({
-              permission: {
-                connect: { id: permissionId },
-              },
-            })),
+            connect: permissionIds.map((permissionId) => ({ id: permissionId })),
           },
         }),
       },
       include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
+        permissions: true,
       },
     });
   }
@@ -244,11 +219,7 @@ export class PermissionService {
           include: {
             role: {
               include: {
-                permissions: {
-                  include: {
-                    permission: true,
-                  },
-                },
+                permissions: true,
               },
             },
           },
@@ -264,8 +235,8 @@ export class PermissionService {
     const permissions = new Set<string>();
 
     for (const userRole of user.roles) {
-      for (const rolePermission of userRole.role.permissions) {
-        permissions.add(rolePermission.permission.code);
+      for (const permission of userRole.role.permissions) {
+        permissions.add(permission.code);
       }
     }
 
@@ -282,12 +253,10 @@ export class PermissionService {
     });
 
     // 创建新的权限关联
-    await this.prisma.role.create({
+    await this.prisma.role.update({
+      where: { id: roleId },
       data: {
-        id: roleId,
-      },
-      include: {
-        permissions: {
+        rolePermissions: {
           create: permissionIds.map((permissionId) => ({
             permission: {
               connect: { id: permissionId },
@@ -357,7 +326,7 @@ export class PermissionService {
         code: 'SUPER_ADMIN',
         description: '系统内置超级管理员,拥有所有权限',
         status: 1,
-        permissions: {
+        rolePermissions: {
           create: permissions.map((p) => ({
             permission: {
               connect: { id: p.id },

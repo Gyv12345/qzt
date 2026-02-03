@@ -118,11 +118,7 @@ export class AuthService {
           include: {
             role: {
               include: {
-                permissions: {
-                  include: {
-                    permission: true,
-                  },
-                },
+                permissions: true,
               },
             },
           },

@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionService } from './permission.service';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { PermissionType } from './dto/create-permission.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 
@@ -50,7 +51,7 @@ export class PermissionController {
   @Get('permissions')
   @ApiOperation({ summary: '查询所有权限' })
   findAllPermissions(@Query('type') type?: string) {
-    return this.permissionService.findAllPermissions(type);
+    return this.permissionService.findAllPermissions(type as PermissionType);
   }
 
   @Post('roles')

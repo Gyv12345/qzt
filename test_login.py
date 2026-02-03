@@ -2,12 +2,12 @@ from playwright.sync_api import sync_playwright
 import time
 import sys
 
-def test_login(port=7890):
+def test_login(port=3456):
     """测试登录页面功能"""
     print(f"🚀 开始测试，目标端口: {port}")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(channel="chrome", headless=True)
         page = browser.new_page()
 
         try:
@@ -82,5 +82,5 @@ def test_login(port=7890):
             print("\n✓ 测试完成")
 
 if __name__ == '__main__':
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 7890
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 3456
     test_login(port)
