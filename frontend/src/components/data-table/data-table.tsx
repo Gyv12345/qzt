@@ -1,100 +1,104 @@
-import { useState } from 'react'
 import {
+  ColumnDef,
+  ColumnFiltersState,
+  PaginationState,
+  SortingState,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnDef,
-  type SortingState,
-  type ColumnFiltersState,
-  type PaginationState,
 } from '@tanstack/react-table'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DataTablePagination } from './data-table-pagination'
+import { useState } from 'react'
 import { DataTableToolbar } from './data-table-toolbar'
+import { DataTablePagination } from './data-table-pagination'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-interface DataTableProps<TData> {
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  columns: ColumnDef<TData>[]
+  total?: number
   pageSize?: number
-  searchKey?: string
+  enablePagination?: boolean
+  enableSorting?: boolean
+  enableFiltering?: boolean
+  enableRowSelection?: boolean
 }
 
-export function DataTable<TData>({
-  data,
+export function DataTable<TData, TValue>({
   columns,
+  data,
+  total,
   pageSize = 10,
-  searchKey,
-}: DataTableProps<TData>) {
+  enablePagination = true,
+  enableSorting = true,
+  enableFiltering = true,
+  enableRowSelection = false,
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize,
   })
+  const [rowSelection, setRowSelection] = useState({})
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
+    getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
+    getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       pagination,
+      rowSelection,
+    },
+    initialState: {
+      pagination: {
+        pageSize,
+      },
     },
   })
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} searchKey={searchKey} />
-
-      <div className="rounded-md border dark:border-gray-700">
+      <DataTableToolbar table={table} />
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : header.column.columnDef.header?.toString()}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-gray-500 dark:text-gray-400"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   暂无数据
                 </TableCell>
               </TableRow>
@@ -102,8 +106,7 @@ export function DataTable<TData>({
           </TableBody>
         </Table>
       </div>
-
-      <DataTablePagination table={table} />
+      {enablePagination && <DataTablePagination table={table} total={total} />}
     </div>
   )
 }
