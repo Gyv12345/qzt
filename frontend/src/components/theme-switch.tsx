@@ -1,78 +1,36 @@
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useEffect, useState } from 'react'
-
-type Theme = 'light' | 'dark'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useTheme } from '@/components/theme-provider'
 
 export function ThemeSwitch() {
-  const [theme, setTheme] = useState<Theme>('light')
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    const stored = localStorage.getItem('theme') as Theme | null
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const initialTheme = stored || (prefersDark ? 'dark' : 'light')
-    setTheme(initialTheme)
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark')
-  }, [])
-
-  const toggleTheme = () => {
-    const newTheme: Theme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
-  }
-
-  // 避免服务端渲染不匹配
-  if (!mounted) {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-9 w-9 p-0"
-        disabled
-      >
-        <Sun className="h-4 w-4" />
-      </Button>
-    )
-  }
+  const { setTheme, theme } = useTheme()
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggleTheme}
-      className="h-9 w-9 p-0"
-      aria-label={theme === 'light' ? '切换到暗色模式' : '切换到亮色模式'}
-      title={theme === 'light' ? '切换到暗色模式' : '切换到亮色模式'}
-    >
-      {theme === 'light' ? (
-        <Moon className="h-4 w-4 transition-all" />
-      ) : (
-        <Sun className="h-4 w-4 transition-all" />
-      )}
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">切换主题</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme('light')}>
+          浅色
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
+          深色
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
+          系统
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
-}
-
-// 主题提供者 Hook
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>('light')
-
-  useEffect(() => {
-    const stored = localStorage.getItem('theme') as Theme | null
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const initialTheme = stored || (prefersDark ? 'dark' : 'light')
-    setTheme(initialTheme)
-  }, [])
-
-  const toggleTheme = () => {
-    const newTheme: Theme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
-  }
-
-  return { theme, toggleTheme }
 }
