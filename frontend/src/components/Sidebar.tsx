@@ -12,6 +12,7 @@ import {
   Receipt,
   MessageSquare,
   BarChart3,
+  AddressBook,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,8 +24,13 @@ const menuItems = [
   },
   {
     path: '/customers',
-    icon: Users,
-    label: '客户',
+    icon: Building2,
+    label: '公司',
+  },
+  {
+    path: '/contacts',
+    icon: AddressBook,
+    label: '联系人',
   },
   {
     path: '/follow-records',

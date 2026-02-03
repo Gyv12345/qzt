@@ -90,7 +90,7 @@ export class ContractService {
       where: { id },
       include: {
         customer: {
-          select: { id: true, name: true, contactPhone: true },
+          select: { id: true, name: true },
         },
         product: {
           select: { id: true, name: true, price: true, description: true },

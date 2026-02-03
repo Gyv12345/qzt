@@ -98,7 +98,7 @@ export class PaymentService {
         contract: {
           include: {
             customer: {
-              select: { id: true, name: true, contactPhone: true },
+              select: { id: true, name: true },
             },
             product: {
               select: { id: true, name: true },

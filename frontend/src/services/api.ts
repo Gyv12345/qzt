@@ -6,25 +6,37 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  AddContactDto,
   AssignDto,
+  AutomationControllerGetNotificationsParams,
+  AutomationControllerGetTaskHistoryParams,
   BatchAssignDto,
   CalculatePriceDto,
+  ContactControllerFindAllParams,
   ContractControllerFindAllParams,
+  CreateAutomationRuleDto,
+  CreateContactDto,
   CreateContractDto,
   CreateCustomerDto,
   CreateFollowRecordDto,
   CreateInvoiceDto,
   CreatePaymentDto,
+  CreatePermissionDto,
   CreatePricingRuleDto,
   CreateProductDto,
   CreateProductFlowDto,
+  CreateRoleDto,
   CreateServiceTeamDto,
   CreateTriggerDto,
   CustomerControllerFindAllParams,
+  FollowRecordControllerFindAllParams,
   InvoiceControllerFindAllParams,
   InvoiceControllerGetCustomerSummaryParams,
+  LinkCompanyDto,
+  LinkContactDto,
   LoginDto,
   PaymentControllerFindAllParams,
+  PermissionControllerFindAllPermissionsParams,
   PricingControllerFindAllRulesParams,
   ProductControllerFindAllParams,
   ProductControllerFindFlowsParams,
@@ -33,13 +45,19 @@ import type {
   RuleEngineControllerFindTriggersParams,
   RuleEngineControllerGetLogsParams,
   ServiceTeamControllerFindAllParams,
-  StatisticsControllerGetInvoiceStatsParams,
-  StatisticsControllerGetPaymentStatsParams,
-  StatisticsControllerGetPerformanceStatsParams,
+  StatisticsControllerExportDataParams,
+  StatisticsControllerGetContractRenewalStatsParams,
+  StatisticsControllerGetCustomerGrowthTrendParams,
+  StatisticsControllerGetInvoiceAnalysisParams,
+  StatisticsControllerGetProductSalesStatsParams,
+  StatisticsControllerGetSalesPerformanceParams,
   SystemControllerFindCommonPhrasesParams,
   SystemControllerFindPaymentAccountsParams,
   SystemControllerSearchCommonPhrasesParams,
   SystemControllerSetDefaultPaymentAccountParams,
+  UpdateAutomationRuleDto,
+  UpdateContactDto,
+  UpdateContactRoleDto,
   UpdateContractDto,
   UpdateCustomerDto,
   UpdateFollowRecordDto,
@@ -48,6 +66,7 @@ import type {
   UpdatePricingRuleDto,
   UpdateProductDto,
   UpdateProductFlowDto,
+  UpdateRoleDto,
   UpdateServiceTeamDto,
   UpdateTriggerDto
 } from '../models';
@@ -102,6 +121,183 @@ const authControllerGetUserInfo = (
  ) => {
       return customInstance<void>(
       {url: `/auth/me`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 创建联系人
+ */
+const contactControllerCreate = (
+    createContactDto: CreateContactDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createContactDto
+    },
+      );
+    }
+  
+/**
+ * @summary 查询联系人列表
+ */
+const contactControllerFindAll = (
+    params?: ContactControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取联系人详情
+ */
+const contactControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新联系人
+ */
+const contactControllerUpdate = (
+    id: string,
+    updateContactDto: UpdateContactDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateContactDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除联系人
+ */
+const contactControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 通过手机号查找联系人
+ */
+const contactControllerFindByPhone = (
+    phone: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts/phone/${phone}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 关联公司
+ */
+const contactControllerLinkCompany = (
+    id: string,
+    linkCompanyDto: LinkCompanyDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts/${id}/companies`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: linkCompanyDto
+    },
+      );
+    }
+  
+/**
+ * @summary 取消关联公司
+ */
+const contactControllerUnlinkCompany = (
+    id: string,
+    customerId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contacts/${id}/companies/${customerId}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 为公司添加联系人（不存在则创建）
+ */
+const customerContactControllerAddContact = (
+    customerId: string,
+    addContactDto: AddContactDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/customers/${customerId}/contacts`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: addContactDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取公司的所有联系人
+ */
+const customerContactControllerGetCustomerContacts = (
+    customerId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/customers/${customerId}/contacts`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 关联已有联系人
+ */
+const customerContactControllerLinkContact = (
+    customerId: string,
+    linkContactDto: LinkContactDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/customers/${customerId}/contacts/link`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: linkContactDto
+    },
+      );
+    }
+  
+/**
+ * @summary 更新联系人角色
+ */
+const customerContactControllerUpdateContactRole = (
+    customerId: string,
+    contactId: string,
+    updateContactRoleDto: UpdateContactRoleDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/customers/${customerId}/contacts/${contactId}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateContactRoleDto
+    },
+      );
+    }
+  
+/**
+ * @summary 取消关联（标记为离职）
+ */
+const customerContactControllerUnlinkContact = (
+    customerId: string,
+    contactId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/customers/${customerId}/contacts/${contactId}`, method: 'DELETE'
     },
       );
     }
@@ -221,6 +417,19 @@ const customerControllerGetFollowRecords = (
  ) => {
       return customInstance<void>(
       {url: `/customers/${id}/follow-records`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 查询跟进记录列表
+ */
+const followRecordControllerFindAll = (
+    params: FollowRecordControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records`, method: 'GET',
+        params
     },
       );
     }
@@ -751,7 +960,7 @@ const pricingControllerCalculatePrice = (
     }
   
 /**
- * @summary 获取首页仪表板统计数据
+ * @summary 获取首页仪表板数据
  */
 const statisticsControllerGetDashboardStats = (
     
@@ -763,51 +972,78 @@ const statisticsControllerGetDashboardStats = (
     }
   
 /**
- * @summary 获取业绩统计数据
+ * @summary 获取客户增长趋势
  */
-const statisticsControllerGetPerformanceStats = (
-    params?: StatisticsControllerGetPerformanceStatsParams,
+const statisticsControllerGetCustomerGrowthTrend = (
+    params?: StatisticsControllerGetCustomerGrowthTrendParams,
  ) => {
       return customInstance<void>(
-      {url: `/statistics/performance`, method: 'GET',
+      {url: `/statistics/customer-growth`, method: 'GET',
         params
     },
       );
     }
   
 /**
- * @summary 获取客户分析数据
+ * @summary 获取合同续约率统计
  */
-const statisticsControllerGetCustomerAnalysis = (
-    
+const statisticsControllerGetContractRenewalStats = (
+    params?: StatisticsControllerGetContractRenewalStatsParams,
  ) => {
       return customInstance<void>(
-      {url: `/statistics/customers`, method: 'GET'
-    },
-      );
-    }
-  
-/**
- * @summary 获取收款统计数据
- */
-const statisticsControllerGetPaymentStats = (
-    params?: StatisticsControllerGetPaymentStatsParams,
- ) => {
-      return customInstance<void>(
-      {url: `/statistics/payments`, method: 'GET',
+      {url: `/statistics/contract-renewal`, method: 'GET',
         params
     },
       );
     }
   
 /**
- * @summary 获取开票统计数据
+ * @summary 获取开票金额分析
  */
-const statisticsControllerGetInvoiceStats = (
-    params?: StatisticsControllerGetInvoiceStatsParams,
+const statisticsControllerGetInvoiceAnalysis = (
+    params?: StatisticsControllerGetInvoiceAnalysisParams,
  ) => {
       return customInstance<void>(
-      {url: `/statistics/invoices`, method: 'GET',
+      {url: `/statistics/invoice-analysis`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取销售业绩排行
+ */
+const statisticsControllerGetSalesPerformance = (
+    params?: StatisticsControllerGetSalesPerformanceParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/statistics/sales-performance`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取产品销售统计
+ */
+const statisticsControllerGetProductSalesStats = (
+    params?: StatisticsControllerGetProductSalesStatsParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/statistics/product-sales`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 导出数据
+ */
+const statisticsControllerExportData = (
+    params: StatisticsControllerExportDataParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/statistics/export`, method: 'GET',
         params
     },
       );
@@ -1156,11 +1392,341 @@ const systemControllerSetDefaultPaymentAccount = (
       );
     }
   
-return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssignOne,customerControllerBatchAssign,customerControllerGetAssignmentHistory,customerControllerGetFollowRecords,followRecordControllerCreate,followRecordControllerFindOne,followRecordControllerUpdate,followRecordControllerRemove,productControllerCreate,productControllerFindAll,productControllerFindOne,productControllerUpdate,productControllerRemove,productControllerCreateFlow,productControllerFindFlows,productControllerFindFlow,productControllerUpdateFlow,productControllerRemoveFlow,contractControllerCreate,contractControllerFindAll,contractControllerFindOne,contractControllerUpdate,contractControllerRemove,contractControllerUpdatePaymentStatus,paymentControllerCreate,paymentControllerFindAll,paymentControllerGetContractPayments,paymentControllerFindOne,paymentControllerUpdate,paymentControllerRemove,paymentControllerConfirmPayment,invoiceControllerCreate,invoiceControllerFindAll,invoiceControllerGetCustomerSummary,invoiceControllerFindOne,invoiceControllerUpdate,invoiceControllerRemove,pricingControllerCreateRule,pricingControllerFindAllRules,pricingControllerFindOneRule,pricingControllerUpdateRule,pricingControllerRemoveRule,pricingControllerFindByProduct,pricingControllerCalculatePrice,statisticsControllerGetDashboardStats,statisticsControllerGetPerformanceStats,statisticsControllerGetCustomerAnalysis,statisticsControllerGetPaymentStats,statisticsControllerGetInvoiceStats,serviceTeamControllerCreate,serviceTeamControllerFindAll,serviceTeamControllerGetCustomerTeamGrouped,serviceTeamControllerFindOne,serviceTeamControllerUpdate,serviceTeamControllerRemove,ruleEngineControllerCreateTrigger,ruleEngineControllerFindTriggers,ruleEngineControllerFindEnabledTriggers,ruleEngineControllerFindOneTrigger,ruleEngineControllerUpdateTrigger,ruleEngineControllerRemoveTrigger,ruleEngineControllerToggleTrigger,ruleEngineControllerExecuteRule,ruleEngineControllerGetLogs,systemControllerFindCommonPhrases,systemControllerCreateCommonPhrase,systemControllerUpdateCommonPhrase,systemControllerRemoveCommonPhrase,systemControllerSearchCommonPhrases,systemControllerIncrementPhraseUsage,systemControllerFindPaymentAccounts,systemControllerCreatePaymentAccount,systemControllerFindDefaultPaymentAccount,systemControllerUpdatePaymentAccount,systemControllerRemovePaymentAccount,systemControllerSetDefaultPaymentAccount}};
+/**
+ * @summary 创建自动化规则
+ */
+const automationControllerCreateRule = (
+    createAutomationRuleDto: CreateAutomationRuleDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createAutomationRuleDto
+    },
+      );
+    }
+  
+/**
+ * @summary 查询所有自动化规则
+ */
+const automationControllerFindAllRules = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 查询单个规则
+ */
+const automationControllerFindOneRule = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新规则
+ */
+const automationControllerUpdateRule = (
+    id: string,
+    updateAutomationRuleDto: UpdateAutomationRuleDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateAutomationRuleDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除规则
+ */
+const automationControllerRemoveRule = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 启用/禁用规则
+ */
+const automationControllerToggleEnabled = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules/${id}/toggle`, method: 'PATCH'
+    },
+      );
+    }
+  
+/**
+ * @summary 手动触发规则
+ */
+const automationControllerTriggerRule = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/rules/${id}/trigger`, method: 'POST'
+    },
+      );
+    }
+  
+/**
+ * @summary 查询任务执行历史
+ */
+const automationControllerGetTaskHistory = (
+    params: AutomationControllerGetTaskHistoryParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/tasks/history`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 查询当前用户通知
+ */
+const automationControllerGetNotifications = (
+    params: AutomationControllerGetNotificationsParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/notifications`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 标记通知为已读
+ */
+const automationControllerMarkNotificationAsRead = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/notifications/${id}/read`, method: 'PATCH'
+    },
+      );
+    }
+  
+/**
+ * @summary 标记所有通知为已读
+ */
+const automationControllerMarkAllNotificationsAsRead = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/automation/notifications/read-all`, method: 'PATCH'
+    },
+      );
+    }
+  
+/**
+ * @summary 同步前端路由到菜单
+ */
+const permissionControllerSyncMenus = (
+    permissionControllerSyncMenusBody: string[],
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/sync-menus`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: permissionControllerSyncMenusBody
+    },
+      );
+    }
+  
+/**
+ * @summary 获取菜单树
+ */
+const permissionControllerGetMenuTree = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/menus`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新菜单
+ */
+const permissionControllerUpdateMenu = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/menus/${id}`, method: 'PUT'
+    },
+      );
+    }
+  
+/**
+ * @summary 创建权限
+ */
+const permissionControllerCreatePermission = (
+    createPermissionDto: CreatePermissionDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/permissions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPermissionDto
+    },
+      );
+    }
+  
+/**
+ * @summary 查询所有权限
+ */
+const permissionControllerFindAllPermissions = (
+    params: PermissionControllerFindAllPermissionsParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/permissions`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 创建角色
+ */
+const permissionControllerCreateRole = (
+    createRoleDto: CreateRoleDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/roles`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRoleDto
+    },
+      );
+    }
+  
+/**
+ * @summary 查询所有角色
+ */
+const permissionControllerFindAllRoles = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/roles`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 查询单个角色
+ */
+const permissionControllerFindOneRole = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/roles/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新角色
+ */
+const permissionControllerUpdateRole = (
+    id: string,
+    updateRoleDto: UpdateRoleDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/roles/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateRoleDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除角色
+ */
+const permissionControllerRemoveRole = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/roles/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 为角色分配权限
+ */
+const permissionControllerAssignPermissionsToRole = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/roles/${id}/permissions`, method: 'PUT'
+    },
+      );
+    }
+  
+/**
+ * @summary 获取用户的所有权限
+ */
+const permissionControllerGetUserPermissions = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/users/${id}/permissions`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 为用户分配角色
+ */
+const permissionControllerAssignRolesToUser = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/users/${id}/roles`, method: 'PUT'
+    },
+      );
+    }
+  
+/**
+ * @summary 初始化超级管理员
+ */
+const permissionControllerInitializeSuperAdmin = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/permissions/initialize-super-admin`, method: 'POST'
+    },
+      );
+    }
+  
+return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,contactControllerCreate,contactControllerFindAll,contactControllerFindOne,contactControllerUpdate,contactControllerRemove,contactControllerFindByPhone,contactControllerLinkCompany,contactControllerUnlinkCompany,customerContactControllerAddContact,customerContactControllerGetCustomerContacts,customerContactControllerLinkContact,customerContactControllerUpdateContactRole,customerContactControllerUnlinkContact,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssignOne,customerControllerBatchAssign,customerControllerGetAssignmentHistory,customerControllerGetFollowRecords,followRecordControllerFindAll,followRecordControllerCreate,followRecordControllerFindOne,followRecordControllerUpdate,followRecordControllerRemove,productControllerCreate,productControllerFindAll,productControllerFindOne,productControllerUpdate,productControllerRemove,productControllerCreateFlow,productControllerFindFlows,productControllerFindFlow,productControllerUpdateFlow,productControllerRemoveFlow,contractControllerCreate,contractControllerFindAll,contractControllerFindOne,contractControllerUpdate,contractControllerRemove,contractControllerUpdatePaymentStatus,paymentControllerCreate,paymentControllerFindAll,paymentControllerGetContractPayments,paymentControllerFindOne,paymentControllerUpdate,paymentControllerRemove,paymentControllerConfirmPayment,invoiceControllerCreate,invoiceControllerFindAll,invoiceControllerGetCustomerSummary,invoiceControllerFindOne,invoiceControllerUpdate,invoiceControllerRemove,pricingControllerCreateRule,pricingControllerFindAllRules,pricingControllerFindOneRule,pricingControllerUpdateRule,pricingControllerRemoveRule,pricingControllerFindByProduct,pricingControllerCalculatePrice,statisticsControllerGetDashboardStats,statisticsControllerGetCustomerGrowthTrend,statisticsControllerGetContractRenewalStats,statisticsControllerGetInvoiceAnalysis,statisticsControllerGetSalesPerformance,statisticsControllerGetProductSalesStats,statisticsControllerExportData,serviceTeamControllerCreate,serviceTeamControllerFindAll,serviceTeamControllerGetCustomerTeamGrouped,serviceTeamControllerFindOne,serviceTeamControllerUpdate,serviceTeamControllerRemove,ruleEngineControllerCreateTrigger,ruleEngineControllerFindTriggers,ruleEngineControllerFindEnabledTriggers,ruleEngineControllerFindOneTrigger,ruleEngineControllerUpdateTrigger,ruleEngineControllerRemoveTrigger,ruleEngineControllerToggleTrigger,ruleEngineControllerExecuteRule,ruleEngineControllerGetLogs,systemControllerFindCommonPhrases,systemControllerCreateCommonPhrase,systemControllerUpdateCommonPhrase,systemControllerRemoveCommonPhrase,systemControllerSearchCommonPhrases,systemControllerIncrementPhraseUsage,systemControllerFindPaymentAccounts,systemControllerCreatePaymentAccount,systemControllerFindDefaultPaymentAccount,systemControllerUpdatePaymentAccount,systemControllerRemovePaymentAccount,systemControllerSetDefaultPaymentAccount,automationControllerCreateRule,automationControllerFindAllRules,automationControllerFindOneRule,automationControllerUpdateRule,automationControllerRemoveRule,automationControllerToggleEnabled,automationControllerTriggerRule,automationControllerGetTaskHistory,automationControllerGetNotifications,automationControllerMarkNotificationAsRead,automationControllerMarkAllNotificationsAsRead,permissionControllerSyncMenus,permissionControllerGetMenuTree,permissionControllerUpdateMenu,permissionControllerCreatePermission,permissionControllerFindAllPermissions,permissionControllerCreateRole,permissionControllerFindAllRoles,permissionControllerFindOneRole,permissionControllerUpdateRole,permissionControllerRemoveRole,permissionControllerAssignPermissionsToRole,permissionControllerGetUserPermissions,permissionControllerAssignRolesToUser,permissionControllerInitializeSuperAdmin}};
 export type HealthControllerCheckResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['healthControllerCheck']>>>
 export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerLogin']>>>
 export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerRegister']>>>
 export type AuthControllerGetUserInfoResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerGetUserInfo']>>>
+export type ContactControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerCreate']>>>
+export type ContactControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerFindAll']>>>
+export type ContactControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerFindOne']>>>
+export type ContactControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerUpdate']>>>
+export type ContactControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerRemove']>>>
+export type ContactControllerFindByPhoneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerFindByPhone']>>>
+export type ContactControllerLinkCompanyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerLinkCompany']>>>
+export type ContactControllerUnlinkCompanyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contactControllerUnlinkCompany']>>>
+export type CustomerContactControllerAddContactResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerContactControllerAddContact']>>>
+export type CustomerContactControllerGetCustomerContactsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerContactControllerGetCustomerContacts']>>>
+export type CustomerContactControllerLinkContactResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerContactControllerLinkContact']>>>
+export type CustomerContactControllerUpdateContactRoleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerContactControllerUpdateContactRole']>>>
+export type CustomerContactControllerUnlinkContactResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerContactControllerUnlinkContact']>>>
 export type CustomerControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerCreate']>>>
 export type CustomerControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerFindAll']>>>
 export type CustomerControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerFindOne']>>>
@@ -1170,6 +1736,7 @@ export type CustomerControllerAssignOneResult = NonNullable<Awaited<ReturnType<R
 export type CustomerControllerBatchAssignResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerBatchAssign']>>>
 export type CustomerControllerGetAssignmentHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerGetAssignmentHistory']>>>
 export type CustomerControllerGetFollowRecordsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerGetFollowRecords']>>>
+export type FollowRecordControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerFindAll']>>>
 export type FollowRecordControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerCreate']>>>
 export type FollowRecordControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerFindOne']>>>
 export type FollowRecordControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerUpdate']>>>
@@ -1211,10 +1778,12 @@ export type PricingControllerRemoveRuleResult = NonNullable<Awaited<ReturnType<R
 export type PricingControllerFindByProductResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['pricingControllerFindByProduct']>>>
 export type PricingControllerCalculatePriceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['pricingControllerCalculatePrice']>>>
 export type StatisticsControllerGetDashboardStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetDashboardStats']>>>
-export type StatisticsControllerGetPerformanceStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetPerformanceStats']>>>
-export type StatisticsControllerGetCustomerAnalysisResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetCustomerAnalysis']>>>
-export type StatisticsControllerGetPaymentStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetPaymentStats']>>>
-export type StatisticsControllerGetInvoiceStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetInvoiceStats']>>>
+export type StatisticsControllerGetCustomerGrowthTrendResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetCustomerGrowthTrend']>>>
+export type StatisticsControllerGetContractRenewalStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetContractRenewalStats']>>>
+export type StatisticsControllerGetInvoiceAnalysisResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetInvoiceAnalysis']>>>
+export type StatisticsControllerGetSalesPerformanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetSalesPerformance']>>>
+export type StatisticsControllerGetProductSalesStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerGetProductSalesStats']>>>
+export type StatisticsControllerExportDataResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['statisticsControllerExportData']>>>
 export type ServiceTeamControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['serviceTeamControllerCreate']>>>
 export type ServiceTeamControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['serviceTeamControllerFindAll']>>>
 export type ServiceTeamControllerGetCustomerTeamGroupedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['serviceTeamControllerGetCustomerTeamGrouped']>>>
@@ -1242,3 +1811,28 @@ export type SystemControllerFindDefaultPaymentAccountResult = NonNullable<Awaite
 export type SystemControllerUpdatePaymentAccountResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['systemControllerUpdatePaymentAccount']>>>
 export type SystemControllerRemovePaymentAccountResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['systemControllerRemovePaymentAccount']>>>
 export type SystemControllerSetDefaultPaymentAccountResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['systemControllerSetDefaultPaymentAccount']>>>
+export type AutomationControllerCreateRuleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerCreateRule']>>>
+export type AutomationControllerFindAllRulesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerFindAllRules']>>>
+export type AutomationControllerFindOneRuleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerFindOneRule']>>>
+export type AutomationControllerUpdateRuleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerUpdateRule']>>>
+export type AutomationControllerRemoveRuleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerRemoveRule']>>>
+export type AutomationControllerToggleEnabledResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerToggleEnabled']>>>
+export type AutomationControllerTriggerRuleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerTriggerRule']>>>
+export type AutomationControllerGetTaskHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerGetTaskHistory']>>>
+export type AutomationControllerGetNotificationsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerGetNotifications']>>>
+export type AutomationControllerMarkNotificationAsReadResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerMarkNotificationAsRead']>>>
+export type AutomationControllerMarkAllNotificationsAsReadResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['automationControllerMarkAllNotificationsAsRead']>>>
+export type PermissionControllerSyncMenusResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerSyncMenus']>>>
+export type PermissionControllerGetMenuTreeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerGetMenuTree']>>>
+export type PermissionControllerUpdateMenuResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerUpdateMenu']>>>
+export type PermissionControllerCreatePermissionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerCreatePermission']>>>
+export type PermissionControllerFindAllPermissionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerFindAllPermissions']>>>
+export type PermissionControllerCreateRoleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerCreateRole']>>>
+export type PermissionControllerFindAllRolesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerFindAllRoles']>>>
+export type PermissionControllerFindOneRoleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerFindOneRole']>>>
+export type PermissionControllerUpdateRoleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerUpdateRole']>>>
+export type PermissionControllerRemoveRoleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerRemoveRole']>>>
+export type PermissionControllerAssignPermissionsToRoleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerAssignPermissionsToRole']>>>
+export type PermissionControllerGetUserPermissionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerGetUserPermissions']>>>
+export type PermissionControllerAssignRolesToUserResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerAssignRolesToUser']>>>
+export type PermissionControllerInitializeSuperAdminResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['permissionControllerInitializeSuperAdmin']>>>
