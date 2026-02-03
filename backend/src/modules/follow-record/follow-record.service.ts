@@ -8,6 +8,47 @@ export class FollowRecordService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * 查询跟进记录列表
+   */
+  async findAll(customerId?: string, page: number = 1, pageSize: number = 10) {
+    const skip = (page - 1) * pageSize;
+    const where: any = {};
+
+    if (customerId) {
+      where.customerId = customerId;
+    }
+
+    const [records, total] = await Promise.all([
+      this.prisma.followRecord.findMany({
+        where,
+        skip,
+        take: pageSize,
+        include: {
+          customer: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.followRecord.count({ where }),
+    ]);
+
+    return {
+      records,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  /**
    * 创建跟进记录
    */
   async create(createFollowRecordDto: CreateFollowRecordDto, userId: string) {

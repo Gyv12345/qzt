@@ -64,10 +64,10 @@ export class PermissionService {
       include: {
         permissions: true,
       },
-      orderBy: {
-        sort: 'asc',
-        createdAt: 'desc',
-      },
+      orderBy: [
+        { sort: 'asc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     // 构建树形结构

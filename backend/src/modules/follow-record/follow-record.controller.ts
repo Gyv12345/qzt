@@ -8,6 +8,9 @@ import {
   UseGuards,
   Request,
   Param,
+  Query,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,6 +24,16 @@ import { UpdateFollowRecordDto } from './dto/update-follow-record.dto';
 @ApiBearerAuth()
 export class FollowRecordController {
   constructor(private readonly followRecordService: FollowRecordService) {}
+
+  @Get()
+  @ApiOperation({ summary: '查询跟进记录列表' })
+  findAll(
+    @Query('customerId') customerId?: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize?: number,
+  ) {
+    return this.followRecordService.findAll(customerId, page, pageSize);
+  }
 
   @Post()
   @ApiOperation({ summary: '创建跟进记录' })
