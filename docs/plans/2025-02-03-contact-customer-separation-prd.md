@@ -346,7 +346,110 @@ Contact（已有） ──签约──▶ Customer.contractDate = today
 
 ---
 
-## 七、关键决策记录
+## 七、数据迁移策略
+
+### 7.1 迁移范围
+
+旧 Customer 表需要迁移的字段：
+
+| 旧字段 | 目标位置 | 说明 |
+|--------|----------|------|
+| `contactName` | → `Contact.name` | 联系人姓名 |
+| `contactPhone` | → `Contact.phone` | 联系电话 |
+| `contactEmail` | → `Contact.email` | 联系邮箱 |
+| `companyName` 或 `name` | → `Customer.name` | 公司名称 |
+| `address` | → `Customer.address` | 保持不变 |
+| `customerLevel` | → `Customer.customerLevel` | 保持不变 |
+
+### 7.2 迁移步骤
+
+```bash
+# 1. 备份现有数据库
+cp dev.db dev.db.backup
+
+# 2. 执行迁移脚本
+cd backend
+ts-node scripts/migrate-customer-to-contact.ts migrate
+
+# 3. 验证迁移结果
+sqlite3 dev.db "SELECT COUNT(*) FROM contacts;"
+sqlite3 dev.db "SELECT COUNT(*) FROM customer_contacts;"
+```
+
+### 7.3 回滚方案
+
+```bash
+# 回滚迁移（删除新增的数据，但 Customer 旧字段数据无法恢复）
+ts-node scripts/migrate-customer-to-contact.ts rollback
+
+# 完整恢复需要从备份文件
+cp dev.db.backup dev.db
+```
+
+**⚠️ 重要：回滚只能恢复到新结构，要完全回到旧状态需要从备份恢复数据库文件。**
+
+### 7.4 迁移验证清单
+
+- [ ] Contact 表数量 = 原 Customer 表数量
+- [ ] CustomerContact 表数量 = 原 Customer 表数量
+- [ ] 每个 Customer 至少有一个关联的 Contact
+- [ ] Contact.phone 无重复
+- [ ] 原 Customer 的时间戳被保留
+
+---
+
+## 八、业务逻辑说明
+
+### 8.1 Contact 与 Customer 的创建时机
+
+**场景 1：只有联系人信息**
+```
+用户添加：张三 138xxxx → 创建 Contact，不创建 Customer
+```
+
+**场景 2：联系人与公司同时创建**
+```
+用户添加：张三 + XX科技
+→ 创建 Contact
+→ 创建 Customer（level=0，线索公司）
+→ 创建 CustomerContact 关联
+```
+
+**场景 3：已有联系人，添加公司**
+```
+用户操作：选择已有张三，关联 A公司
+→ 直接创建 CustomerContact 关联
+```
+
+### 8.2 Customer.customerLevel 的含义
+
+| 等级 | 名称 | 说明 | 创建时机 |
+|------|------|------|----------|
+| 0 | 线索公司 | 有初步意向，未深入沟通 | 添加公司时可创建 |
+| 1 | 意向客户 | 有合作意向，正在跟进 | 跟进中可晋升 |
+| 2 | 正式客户 | 已签约付款 | 签约后自动晋升 |
+| 3 | VIP客户 | 长期合作，金额较大 | 手动设置 |
+
+**关键点：**
+- `level=0` 的 Customer 可以独立于 Contact 创建（比如知道有个公司，但还没联系人）
+- Contact 和 Customer 的创建是解耦的，可以分步创建
+
+### 8.3 FollowRecord.contactId 可选性
+
+**设计决策：** `contactId` 保持可选
+
+**原因：**
+1. 有些跟进是针对"公司"层面的，不针对具体联系人（比如：查看了公司公开信息）
+2. 用户可能忘记选择具体联系人
+3. 历史数据迁移时可能无法匹配到具体联系人
+
+**最佳实践：**
+- 前端引导用户尽量选择联系人
+- 如果未选择，在 API 返回时提示"未指定联系人"
+
+---
+
+## 九、关键决策记录
 
 | 决策 | 理由 |
 |------|------|
@@ -355,3 +458,34 @@ Contact（已有） ──签约──▶ Customer.contractDate = today
 | CustomerContact 使用独立关联表 | 支持多对多，且可存储在特定公司的角色信息 |
 | FollowRecord 同时关联 Customer 和 Contact | 跟进可以针对公司，也可以针对具体联系人 |
 | isPrimary/isDecision 放在关联表 | 同一人在不同公司角色不同 |
+| Customer.level 可为 0（线索） | 支持先记录公司信息，后续再添加联系人的场景 |
+
+---
+
+## 十、实施进度更新
+
+### Phase 1: 数据模型
+- [x] 更新 schema.prisma
+- [x] 新增 Contact 模型
+- [x] 新增 CustomerContact 模型
+- [x] 调整 FollowRecord 模型
+
+### Phase 2: 后端开发
+- [x] Contact 模块（CRUD + 关联公司）
+- [x] CustomerContact 模块
+- [x] Customer DTO 更新
+- [x] CustomerService 搜索逻辑修复
+- [ ] 数据迁移脚本执行
+- [ ] FollowRecord 模块调整
+- [ ] 生成 API 文档
+
+### Phase 3: 前端开发
+- [ ] 联系人列表/详情页
+- [ ] 公司列表/详情页
+- [ ] 新增联系人弹窗（支持多公司关联）
+- [ ] 前端 API 重新生成
+
+### Phase 4: 测试
+- [ ] 单元测试
+- [ ] 集成测试
+- [ ] UI 测试
