@@ -61,13 +61,25 @@ export class CustomerService {
       where.followUserId = userId;
     }
 
-    // 关键词搜索
+    // 关键词搜索（搜索公司名称、简称，以及关联的联系人）
     if (keyword) {
       where.OR = [
         { name: { contains: keyword } },
-        { contactName: { contains: keyword } },
-        { contactPhone: { contains: keyword } },
-        { companyName: { contains: keyword } },
+        { shortName: { contains: keyword } },
+        { code: { contains: keyword } },
+        // 通过关联的联系人搜索
+        {
+          contacts: {
+            some: {
+              contact: {
+                OR: [
+                  { name: { contains: keyword } },
+                  { phone: { contains: keyword } },
+                ],
+              },
+            },
+          },
+        },
       ];
     }
 
@@ -92,6 +104,21 @@ export class CustomerService {
       orderBy: {
         [sortField]: sortOrder,
       },
+      include: {
+        contacts: {
+          where: { status: 1 }, // 只返回在职的联系人
+          include: {
+            contact: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // 查询跟进人信息
@@ -108,10 +135,29 @@ export class CustomerService {
     const userMap = new Map(users.map(u => [u.id, u]));
 
     // 组装数据
-    const result = data.map(customer => ({
-      ...customer,
-      followUser: customer.followUserId ? userMap.get(customer.followUserId) : null,
-    }));
+    const result = data.map(customer => {
+      // 提取联系人信息
+      const contacts = customer.contacts.map(cc => ({
+        id: cc.contactId,
+        ...cc.contact,
+        isPrimary: cc.isPrimary,
+        isDecision: cc.isDecision,
+      }));
+
+      // 找出主要联系人
+      const primaryContact = contacts.find(c => c.isPrimary);
+
+      return {
+        ...customer,
+        followUser: customer.followUserId ? userMap.get(customer.followUserId) : null,
+        contacts,
+        primaryContact,
+        // 兼容旧字段，主要联系人的信息
+        contactName: primaryContact?.name || (contacts.length > 0 ? contacts[0].name : null),
+        contactPhone: primaryContact?.phone || (contacts.length > 0 ? contacts[0].phone : null),
+        contactEmail: primaryContact?.email || (contacts.length > 0 ? contacts[0].email : null),
+      };
+    });
 
     return {
       data: result,
@@ -128,6 +174,18 @@ export class CustomerService {
   async findOne(id: string, userId: string, isAdmin: boolean) {
     const customer = await this.prisma.customer.findUnique({
       where: { id },
+      include: {
+        contacts: {
+          include: {
+            contact: true,
+          },
+          orderBy: [
+            { status: 'desc' },
+            { isPrimary: 'desc' },
+            { createdAt: 'asc' },
+          ],
+        },
+      },
     });
 
     if (!customer) {
@@ -152,9 +210,29 @@ export class CustomerService {
       });
     }
 
+    // 组装联系人信息
+    const contacts = customer.contacts.map(cc => ({
+      id: cc.contactId,
+      ...cc.contact,
+      isPrimary: cc.isPrimary,
+      isDecision: cc.isDecision,
+      department: cc.department,
+      position: cc.position,
+      relation: cc.relation,
+      status: cc.status,
+      linkedAt: cc.createdAt,
+    }));
+
+    const primaryContact = contacts.find(c => c.isPrimary && c.status === 1);
+
     return {
       ...customer,
       followUser,
+      contacts,
+      // 兼容旧字段
+      contactName: primaryContact?.name || (contacts.length > 0 ? contacts[0].name : null),
+      contactPhone: primaryContact?.phone || (contacts.length > 0 ? contacts[0].phone : null),
+      contactEmail: primaryContact?.email || (contacts.length > 0 ? contacts[0].email : null),
     };
   }
 
