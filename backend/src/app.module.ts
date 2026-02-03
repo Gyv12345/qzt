@@ -25,6 +25,8 @@ import { DepartmentModule } from './modules/department/department.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OssModule } from './modules/oss/oss.module';
+import { SocialMediaModule } from './modules/social-media/social-media.module';
+import { PaymentOrderModule } from './modules/payment-order/payment-order.module';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -145,6 +147,8 @@ const envSchema = Joi.object({
     LogsModule,
     WebhooksModule,
     OssModule,
+    SocialMediaModule,
+    PaymentOrderModule,
   ],
   controllers: [HealthController],
   providers: [],
