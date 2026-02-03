@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { useQuery } from '@tanstack/react-query'
-import { request } from '@umijs/max'
+import { getScrmApi } from '@/services'
 import { AlertTriangle, TrendingUp, FileText, DollarSign } from 'lucide-react'
 
 interface InvoiceStatsCardProps {
@@ -14,10 +14,8 @@ export function InvoiceStatsCard({ customerId, month }: InvoiceStatsCardProps) {
     queryKey: ['invoice-summary', customerId, month],
     queryFn: async () => {
       if (!customerId) return null
-      const params = new URLSearchParams()
-      if (month) params.append('month', month)
-      const url = `/invoices/customer/${customerId}/summary${params.toString() ? `?${params.toString()}` : ''}`
-      return request<any>(url)
+      const api = getScrmApi()
+      return await api.invoiceControllerGetCustomerSummary(customerId, { month })
     },
     enabled: !!customerId,
   })

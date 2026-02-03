@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getProducts, type Product } from '@/services/product'
+import { getScrmApi } from '@/services'
+import type { Product } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -24,24 +25,23 @@ export const ProductListMobile = () => {
   const pageSize = 20
 
   // 获取产品列表
-  const { isLoading, error } = useQuery({
+  const { isLoading, error, data: response } = useQuery({
     queryKey: ['products', page, searchTerm, statusFilter],
     queryFn: async () => {
-      const data = await getProducts({
+      const api = getScrmApi()
+      return await api.productControllerFindAll({
         page: page - 1,
         pageSize,
         keyword: searchTerm || undefined,
         status: statusFilter,
       })
-      return data
     },
   })
 
   // 处理查询成功的数据
   useEffect(() => {
-    const data = queryClient.getQueryData(['products', page, searchTerm, statusFilter]) as any
-    if (data) {
-      const newProducts = data.data || []
+    if (response) {
+      const newProducts = response.data || []
 
       if (page === 1) {
         setAllProducts(newProducts)
@@ -52,7 +52,7 @@ export const ProductListMobile = () => {
       setHasMore(newProducts.length >= pageSize)
       isLoadingMore.current = false
     }
-  }, [page, searchTerm, statusFilter, queryClient])
+  }, [response, page, searchTerm, statusFilter])
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)

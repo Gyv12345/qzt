@@ -50,3 +50,11 @@ export function useDeleteContract() {
     },
   })
 }
+
+export function useContractPayments(contractId: string) {
+  return useQuery({
+    queryKey: ['contract-payments', contractId],
+    queryFn: () => getScrmApi().paymentControllerGetContractPayments({ contractId }),
+    enabled: !!contractId,
+  })
+}

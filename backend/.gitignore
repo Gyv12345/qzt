@@ -41,6 +41,7 @@ prisma/migrations/**/migration.sql
 dev.db
 dev.db-journal
 
+
 # Temporary
 *.tmp
 .temp/

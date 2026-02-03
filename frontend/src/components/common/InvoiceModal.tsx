@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { request } from '@umijs/max'
+import { getScrmApi } from '@/services'
 import { useCustomers, useContracts } from '@/services'
 import { AlertTriangle } from 'lucide-react'
 
@@ -74,11 +74,8 @@ export default function InvoiceModal({
 
     try {
       // 获取客户开票汇总来验证是否超额
-      const params = new URLSearchParams()
-      params.append('month', formData.month)
-      const summary = await request<any>(
-        `/invoices/customer/${formData.customerId}/summary?${params.toString()}`
-      )
+      const api = getScrmApi()
+      const summary = await api.invoiceControllerGetCustomerSummary(formData.customerId, { month: formData.month })
 
       const remainingCount = summary.invoiceCount - summary.totalCount
       const overLimitCount = Math.max(0, formData.count - remainingCount)
@@ -120,16 +117,11 @@ export default function InvoiceModal({
         payload.remark = formData.remark
       }
 
+      const api = getScrmApi()
       if (currentInvoice) {
-        await request(`/invoices/${currentInvoice.id}`, {
-          method: 'PATCH',
-          data: payload,
-        })
+        await api.invoiceControllerUpdate(currentInvoice.id, payload)
       } else {
-        await request('/invoices', {
-          method: 'POST',
-          data: payload,
-        })
+        await api.invoiceControllerCreate(payload)
       }
 
       onSuccess()

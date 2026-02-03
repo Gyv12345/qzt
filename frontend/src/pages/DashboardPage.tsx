@@ -9,6 +9,23 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { data: stats, isLoading, error } = useDashboardStats();
 
+  // 安全的日期格式化函数
+  const formatTime = (time: string | Date) => {
+    try {
+      const date = typeof time === 'string' ? new Date(time) : time;
+      // 验证日期是否有效
+      if (isNaN(date.getTime())) {
+        return '未知时间';
+      }
+      return formatDistanceToNow(date, {
+        addSuffix: true,
+        locale: zhCN,
+      });
+    } catch {
+      return '未知时间';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -187,10 +204,7 @@ export function DashboardPage() {
                     <p className="text-xs text-gray-600 mt-1">{activity.subtitle}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    {formatDistanceToNow(new Date(activity.time), {
-                      addSuffix: true,
-                      locale: zhCN,
-                    })}
+                    {formatTime(activity.time)}
                   </p>
                 </div>
               </div>

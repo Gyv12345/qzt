@@ -47,7 +47,7 @@ export const ContactListPage = () => {
     queryFn: async () => {
       const api = getScrmApi()
       const response = await api.contactControllerFindAll({
-        page: page - 1,
+        page,
         pageSize,
         keyword: searchTerm || undefined,
       })
