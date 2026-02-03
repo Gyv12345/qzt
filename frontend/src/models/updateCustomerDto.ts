@@ -7,24 +7,30 @@
  */
 
 export interface UpdateCustomerDto {
-  /** 客户名称 */
-  name?: string;
-  /** 联系人姓名 */
-  contactName?: string;
-  /** 联系电话 */
-  contactPhone?: string;
-  /** 联系邮箱 */
-  contactEmail?: string;
   /** 公司名称 */
-  companyName?: string;
-  /** 地址 */
+  name?: string;
+  /** 公司简称 */
+  shortName?: string;
+  /** 公司编码 */
+  code?: string;
+  /** 行业 */
+  industry?: string;
+  /** 公司规模 */
+  scale?: string;
+  /** 公司地址 */
   address?: string;
-  /** 客户等级: 0:潜在 1:意向 2:正式 3:VIP */
+  /** 公司网站 */
+  website?: string;
+  /** 客户等级: 0:线索公司 1:意向客户 2:正式客户 3:VIP客户 */
   customerLevel?: number;
   /** 来源渠道 */
-  sourceChannel?: number;
+  sourceChannel?: string;
   /** 跟进人ID */
   followUserId?: string;
+  /** 首次联系时间 */
+  firstContactDate?: string;
+  /** 签约时间 */
+  contractDate?: string;
   /** 标签(JSON数组) */
   tags?: string;
   /** 备注 */

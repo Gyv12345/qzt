@@ -51,7 +51,7 @@ async function migrate() {
     }
 
     // 2. 检查旧 Customer 表结构（看是否包含 contactName 字段）
-    const sampleCustomer = await prisma.customer.findFirst() as OldCustomer | null;
+    const sampleCustomer = await prisma.customer.findFirst() as any;
     if (!sampleCustomer) {
       console.log('✅ Customer 表为空，无需迁移');
       return;
@@ -64,7 +64,7 @@ async function migrate() {
     }
 
     // 3. 获取所有旧客户数据
-    const oldCustomers = await prisma.customer.findMany() as OldCustomer[];
+    const oldCustomers = await prisma.customer.findMany() as any[];
     console.log(`📊 找到 ${oldCustomers.length} 条旧客户数据`);
 
     let successCount = 0;
