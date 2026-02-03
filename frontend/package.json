@@ -7,7 +7,7 @@
     "dev": "npx cross-env PORT=3456 vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "generate:api": "orval",
+    "generate:api": "orval --config orval.config.ts",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css,md}\""
   },
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-progress": "^1.1.8",
     "@tanstack/react-query": "^5.90.20",
     "axios": "^1.13.4",
     "class-variance-authority": "^0.7.1",

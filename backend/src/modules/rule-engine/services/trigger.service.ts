@@ -68,14 +68,54 @@ export class TriggerService {
       throw new NotFoundException(`Trigger #${id} not found`);
     }
 
-    return this.prisma.trigger.update({
+    const { conditions, ...triggerData } = updateDto;
+
+    // 更新触发器基本信息
+    const updated = await this.prisma.trigger.update({
       where: { id },
-      data: updateDto,
+      data: triggerData,
       include: {
         conditions: true,
         workflows: true,
       },
     });
+
+    // 如果更新了条件，需要先删除旧条件，再创建新条件
+    if (conditions !== undefined) {
+      // 删除旧条件
+      await this.prisma.condition.deleteMany({
+        where: { triggerId: id },
+      });
+
+      // 创建新条件
+      if (conditions.length > 0) {
+        await this.prisma.trigger.update({
+          where: { id },
+          data: {
+            conditions: {
+              create: conditions.map((cond: any) => ({
+                field: cond.field,
+                operator: cond.operator,
+                value: cond.value,
+                logic: cond.logic || 'AND',
+                parentId: cond.parentId || null,
+              })),
+            },
+          },
+        });
+      }
+
+      // 重新获取更新后的触发器
+      return this.prisma.trigger.findUnique({
+        where: { id },
+        include: {
+          conditions: true,
+          workflows: true,
+        },
+      });
+    }
+
+    return updated;
   }
 
   async remove(id: string) {

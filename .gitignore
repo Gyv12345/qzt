@@ -49,6 +49,3 @@ dev.db-journal
 *.tmp
 .temp/
 
-# Claude
-.agents/
-.claude/

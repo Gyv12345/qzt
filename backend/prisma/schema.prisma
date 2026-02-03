@@ -26,6 +26,7 @@ model User {
   roles         UserRole[]
   followRecords FollowRecord[]
   serviceTeams  ServiceTeam[]
+  customers     Customer[]  @relation("CustomerFollowUser")
 
   @@map("users")
 }
@@ -40,7 +41,8 @@ model Role {
   updatedAt   DateTime @updatedAt
 
   users       UserRole[]
-  permissions RolePermission[]
+  permissions    Permission[]      @relation("RolePermissions")
+  rolePermissions RolePermission[]
 
   @@map("roles")
 }
@@ -68,7 +70,9 @@ model Permission {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roles      RolePermission[]
+  roles          Role[]           @relation("RolePermissions")
+  menus          Menu[]           @relation("MenuPermissions")
+  rolePermissions RolePermission[]
   menuPermissions MenuPermission[]
 
   @@map("permissions")
@@ -85,9 +89,10 @@ model Menu {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parent   Menu?             @relation("MenuHierarchy", fields: [parentId], references: [id])
-  children Menu[]           @relation("MenuHierarchy")
-  permissions MenuPermission[]
+  parent         Menu?             @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children       Menu[]            @relation("MenuHierarchy")
+  permissions    Permission[]      @relation("MenuPermissions")
+  menuPermissions MenuPermission[]
 
   @@index([parentId])
   @@map("menus")
@@ -144,6 +149,7 @@ model Customer {
   invoices            Invoice[]
   serviceTeams        ServiceTeam[]
   assignmentHistories CustomerAssignmentHistory[]
+  followUser          User?      @relation("CustomerFollowUser", fields: [followUserId], references: [id])
 
   @@index([followUserId])
   @@index([customerLevel])
@@ -395,6 +401,8 @@ model Condition {
   value     String // 比较值(JSON)
   logic     String  @default("AND") // AND, OR
   parentId  String? // 父条件ID(支持树形结构)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   trigger   Trigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
@@ -454,7 +462,7 @@ model AutomationRule {
   name        String   // 规则名称
   type        String   // CONTRACT_EXPIRY:合同到期 NEW_CUSTOMER_FOLLOW:新客户跟进 MONTHLY_TASK:月度待办 CUSTOMER_ACTIVATION:客户激活
   enabled     Boolean  @default(true)
-  config      String   // 配置(JSON)
+  config      String?  // 配置(JSON) - 可选
   cronExpression String? // Cron表达式
   lastExecutedAt DateTime? // 最后执行时间
   createdAt   DateTime @default(now())
