@@ -698,9 +698,169 @@ model OssFile {
   uploaderId  String?  // 上传者ID
   createdAt   DateTime @default(now())
 
+  videoPosts  SocialMediaPost[] @relation("SocialMediaPostVideo")
+  coverPosts  SocialMediaPost[] @relation("SocialMediaPostCover")
+
   @@index([uploaderId])
   @@index([fileType])
   @@index([createdAt])
   @@map("oss_files")
+}
+
+// ==================== 新媒体管理 ====================
+
+// 新媒体账号配置
+model SocialMediaAccount {
+  id          String   @id @default(cuid())
+  platform    String   // douyin, xiaohongshu, wechat
+  accountName String   // 账号名称
+  accountId   String?  // 平台账号ID
+  appId       String?  // 应用ID
+  appSecret   String?  // 应用密钥(加密存储)
+  accessToken String?  // 访问令牌(加密存储)
+  refreshToken String? // 刷新令牌(加密存储)
+  openId      String?  // 开放ID
+  unionId     String?  // 联合ID(主要用于微信)
+  expiresAt   DateTime? // 令牌过期时间
+  status      Int      @default(1) // 1:启用 0:禁用
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts       SocialMediaPost[]
+
+  @@index([platform])
+  @@index([status])
+  @@map("social_media_accounts")
+}
+
+// 新媒体内容
+model SocialMediaPost {
+  id           String   @id @default(cuid())
+  accountId    String   // 关联账号ID
+  title        String   // 标题
+  content      String?  // 文案内容
+  videoFile    OssFile? @relation("SocialMediaPostVideo", fields: [videoFileId], references: [id], onDelete: SetNull)
+  videoFileId  String?  // 视频文件ID(关联oss_files)
+  coverFile    OssFile? @relation("SocialMediaPostCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+  coverFileId  String?  // 封面图文件ID(关联oss_files)
+  videoUrl     String?  // 视频URL
+  coverUrl     String?  // 封面图URL
+  topics       String?  // 话题标签(JSON数组)
+  location     String?  // 位置信息
+  visibility   String   @default("public") // public, friends, private
+  scheduledAt  DateTime? // 定时发布时间
+  status       String   @default("draft") // draft:草稿, scheduled:定时中, publishing:发布中, published:已发布, failed:失败
+  publishData  String?  // 各平台发布数据(JSON)
+  error        String?  // 错误信息
+  publishedAt  DateTime? // 实际发布时间
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  account      SocialMediaAccount @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([createdAt])
+  @@map("social_media_posts")
+}
+
+// 新媒体发布记录（支持多平台同时发布）
+model SocialMediaPublishLog {
+  id         String   @id @default(cuid())
+  postId     String   // 关联内容ID
+  platform   String   // 目标平台: douyin, xiaohongshu, wechat
+  accountId  String   // 使用的账号ID
+  status     String   @default("pending") // pending:待发布, publishing:发布中, success:成功, failed:失败
+  postIdOnPlatform String? // 平台返回的内容ID
+  postUrl    String?  // 平台内容链接
+  error      String?  // 错误信息
+  retryCount Int      @default(0) // 重试次数
+  publishedAt DateTime? // 发布时间
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([postId])
+  @@index([platform])
+  @@index([status])
+  @@map("social_media_publish_logs")
+}
+
+// ==================== 支付订单 ====================
+
+// 支付订单（独立于收款记录，用于在线支付）
+model PaymentOrder {
+  id              String   @id @default(cuid())
+  contractId      String?  // 关联合同ID（可选）
+  orderNo         String   @unique // 订单号
+  amount          Float    // 支付金额
+  paymentMethod   String   // 支付方式: wechat, alipay, bank
+  paymentChannel  String?  // 支付渠道: wechat_pay, alipay_sign, bank_transfer
+  status          String   @default("pending") // pending:待支付, paid:已支付, cancelled:已取消, refunded:已退款, expired:已过期
+  qrCodeUrl       String?  // 二维码URL
+  qrCodeData      String?  // 二维码数据（用于生成）
+  transactionId   String?  // 第三方交易ID
+  prepayId        String?  // 预支付ID（微信）
+  outTradeNo      String?  // 商户订单号
+  paidAt          DateTime? // 支付时间
+  expiredAt       DateTime? // 过期时间
+  clientIp        String?  // 客户端IP
+  returnUrl       String?  // 支付完成跳转URL
+  notifyUrl       String?  // 异步通知URL
+  body            String?  // 订单描述
+  attach          String?  // 附加数据
+  error           String?  // 错误信息
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 关联收款记录（支付成功后创建）
+  paymentId       String?
+
+  @@index([contractId])
+  @@index([orderNo])
+  @@index([status])
+  @@index([transactionId])
+  @@index([createdAt])
+  @@map("payment_orders")
+}
+
+// 支付配置（扩展PaymentAccount）
+model PaymentConfig {
+  id              String   @id @default(cuid())
+  paymentMethod   String   // 支付方式: wechat, alipay
+  paymentChannel  String   // 支付渠道
+  appId           String?  // 应用ID
+  appSecret       String?  // 应用密钥(加密存储)
+  merchantId      String?  // 商户ID
+  apiKey          String?  // API密钥(加密存储)
+  certPath        String?  // 证书路径
+  notifyUrl       String?  // 默认回调地址
+  returnUrl       String?  // 默认返回地址
+  sandbox         Boolean  @default(false) // 是否沙箱环境
+  status          Int      @default(1) // 1:启用 0:禁用
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([paymentMethod])
+  @@index([status])
+  @@map("payment_configs")
+}
+
+// 支付回调日志
+model PaymentCallbackLog {
+  id          String   @id @default(cuid())
+  orderId     String   // 支付订单ID
+  paymentMethod String // 支付方式
+  status      String   // success, failed, pending
+  rawData     String   // 原始回调数据(JSON)
+  responseData String? // 响应数据
+  error       String?  // 错误信息
+  ip          String?  // 回调来源IP
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([paymentMethod])
+  @@index([createdAt])
+  @@map("payment_callback_logs")
 }
 

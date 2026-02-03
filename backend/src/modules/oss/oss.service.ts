@@ -13,13 +13,23 @@ export class OssService {
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    // 初始化 OSS 客户端
-    this.ossClient = new OSS({
-      region: this.configService.get('OSS_REGION'),
-      accessKeyId: this.configService.get('OSS_ACCESS_KEY_ID'),
-      accessKeySecret: this.configService.get('OSS_ACCESS_KEY_SECRET'),
-      bucket: this.configService.get('OSS_BUCKET'),
-    });
+    // 初始化 OSS 客户端（如果配置了）
+    const region = this.configService.get('OSS_REGION');
+    const accessKeyId = this.configService.get('OSS_ACCESS_KEY_ID');
+    const accessKeySecret = this.configService.get('OSS_ACCESS_KEY_SECRET');
+    const bucket = this.configService.get('OSS_BUCKET');
+
+    if (region && accessKeyId && accessKeySecret && bucket) {
+      this.ossClient = new OSS({
+        region,
+        accessKeyId,
+        accessKeySecret,
+        bucket,
+      });
+      this.logger.log('OSS 客户端初始化成功');
+    } else {
+      this.logger.warn('OSS 配置不完整，OSS 功能将不可用');
+    }
   }
 
   /**
@@ -27,6 +37,10 @@ export class OssService {
    */
   async uploadFile(uploadFileDto: UploadFileDto, uploaderId?: string) {
     const { fileName, fileContent, fileType = 'other', mimeType } = uploadFileDto;
+
+    if (!this.ossClient) {
+      throw new BadRequestException('OSS 服务未配置，无法上传文件');
+    }
 
     try {
       // 将 Base64 转换为 Buffer
@@ -117,13 +131,7 @@ export class OssService {
         fileType: true,
         mimeType: true,
         createdAt: true,
-        uploader: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-          },
-        },
+        uploaderId: true,
       },
     });
 
@@ -142,15 +150,6 @@ export class OssService {
   async findOne(id: string) {
     const file = await this.prisma.ossFile.findUnique({
       where: { id },
-      include: {
-        uploader: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-          },
-        },
-      },
     });
 
     if (!file) {
