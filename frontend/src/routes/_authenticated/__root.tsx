@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, Outlet } from '@tanstack/react-router'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { Header } from '@/components/layout/header'
+import { CommandMenu } from '@/components/command-menu/command-menu'
 
 export const Route = createFileRoute('/_authenticated/__root')({
   beforeLoad: ({ context, location }) => {
@@ -17,16 +18,19 @@ export const Route = createFileRoute('/_authenticated/__root')({
 
 function AuthenticatedLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar />
+    <>
+      <CommandMenu />
+      <div className="flex h-screen overflow-hidden bg-background">
+        <AppSidebar />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header />
 
-        <main className="flex-1 overflow-auto p-6">
-          <Outlet />
-        </main>
+          <main className="flex-1 overflow-auto p-6">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
