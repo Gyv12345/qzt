@@ -21,9 +21,11 @@ export class CommonPhraseService {
       where.userId = null;
     }
 
+    // SQLite 需要特殊处理 NULL 值查询
+    // Prisma 会自动转换 userId: null 为 IS NULL 查询
     return this.prisma.commonPhrase.findMany({
       where,
-      orderBy: { useCount: 'desc', createdAt: 'desc' },
+      orderBy: [{ useCount: 'desc' }, { createdAt: 'desc' }],
     });
   }
 
