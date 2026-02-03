@@ -11,7 +11,7 @@ export class CustomerService {
   /**
    * 创建客户
    */
-  async create(createCustomerDto: CreateCustomerDto, userId: string, isAdmin: boolean) {
+  async create(createCustomerDto: CreateCustomerDto, userId: string) {
     // 验证跟进人是否存在
     if (createCustomerDto.followUserId) {
       const followUser = await this.prisma.user.findUnique({
@@ -54,7 +54,7 @@ export class CustomerService {
     } = query;
 
     // 构建查询条件
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     // 非管理员只能看到自己负责的客户
     if (!isAdmin) {
@@ -222,21 +222,27 @@ export class CustomerService {
   }
 
   /**
-   * 分配客户
+   * 分配单个客户
    */
-  async assign(id: string, newFollowUserId: string, userId: string, isAdmin: boolean) {
+  async assignOne(
+    customerId: string,
+    newFollowUserId: string,
+    reason: string,
+    operatorId: string,
+    isAdmin: boolean,
+  ) {
     // 检查客户是否存在
     const customer = await this.prisma.customer.findUnique({
-      where: { id },
+      where: { id: customerId },
     });
 
     if (!customer) {
       throw new NotFoundException('客户不存在');
     }
 
-    // 数据权限验证 - 只有管理员或当前负责人可以分配
-    if (!isAdmin && customer.followUserId !== userId) {
-      throw new ForbiddenException('无权分配此客户');
+    // 数据权限验证 - 只有管理员可以分配
+    if (!isAdmin) {
+      throw new ForbiddenException('只有管理员可以分配客户');
     }
 
     // 验证跟进人是否存在
@@ -248,14 +254,244 @@ export class CustomerService {
       throw new NotFoundException('跟进人不存在');
     }
 
-    // 分配客户
-    const updated = await this.prisma.customer.update({
-      where: { id },
+    // 使用事务:更新客户并记录分配历史
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 记录分配历史
+      await tx.customerAssignmentHistory.create({
+        data: {
+          customerId,
+          previousFollowUserId: customer.followUserId,
+          newFollowUserId,
+          assignedBy: operatorId,
+          reason,
+        },
+      });
+
+      // 更新客户
+      const updated = await tx.customer.update({
+        where: { id: customerId },
+        data: {
+          followUserId: newFollowUserId,
+        },
+      });
+
+      return updated;
+    });
+
+    return result;
+  }
+
+  /**
+   * 批量分配客户
+   */
+  async batchAssign(
+    customerIds: string[],
+    newFollowUserId: string,
+    reason: string,
+    operatorId: string,
+    isAdmin: boolean,
+  ) {
+    // 权限验证 - 只有管理员可以批量分配
+    if (!isAdmin) {
+      throw new ForbiddenException('只有管理员可以批量分配客户');
+    }
+
+    // 验证跟进人是否存在
+    const followUser = await this.prisma.user.findUnique({
+      where: { id: newFollowUserId },
+    });
+
+    if (!followUser) {
+      throw new NotFoundException('跟进人不存在');
+    }
+
+    // 查询所有客户
+    const customers = await this.prisma.customer.findMany({
+      where: {
+        id: { in: customerIds },
+      },
+    });
+
+    if (customers.length === 0) {
+      throw new NotFoundException('未找到任何客户');
+    }
+
+    // 使用事务批量更新
+    const results = await this.prisma.$transaction(
+      customers.map((customer) =>
+        this.prisma.customerAssignmentHistory.create({
+          data: {
+            customerId: customer.id,
+            previousFollowUserId: customer.followUserId,
+            newFollowUserId,
+            assignedBy: operatorId,
+            reason,
+          },
+        }),
+      ),
+    );
+
+    // 批量更新客户
+    await this.prisma.customer.updateMany({
+      where: {
+        id: { in: customerIds },
+      },
       data: {
         followUserId: newFollowUserId,
       },
     });
 
-    return updated;
+    return {
+      success: true,
+      message: `成功分配 ${results.length} 个客户`,
+      count: results.length,
+    };
+  }
+
+  /**
+   * 查询客户分配历史
+   */
+  async getAssignmentHistory(
+    customerId: string,
+    page: number,
+    pageSize: number,
+    userId: string,
+    isAdmin: boolean,
+  ) {
+    // 检查客户是否存在
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('客户不存在');
+    }
+
+    // 数据权限验证
+    if (!isAdmin && customer.followUserId !== userId) {
+      throw new ForbiddenException('无权访问此客户');
+    }
+
+    // 计算总数
+    const total = await this.prisma.customerAssignmentHistory.count({
+      where: { customerId },
+    });
+
+    // 查询分配历史
+    const histories = await this.prisma.customerAssignmentHistory.findMany({
+      where: { customerId },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // 查询用户信息
+    const userIds = Array.from(
+      new Set([
+        ...histories.map((h) => h.previousFollowUserId).filter(Boolean),
+        ...histories.map((h) => h.newFollowUserId),
+        ...histories.map((h) => h.assignedBy),
+      ]),
+    );
+
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+      },
+    });
+
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    // 组装数据
+    const result = histories.map((history) => ({
+      ...history,
+      previousFollowUser: history.previousFollowUserId
+        ? userMap.get(history.previousFollowUserId)
+        : null,
+      newFollowUser: userMap.get(history.newFollowUserId),
+      assignedByUser: userMap.get(history.assignedBy),
+    }));
+
+    return {
+      data: result,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  /**
+   * 查询客户跟进记录
+   */
+  async getFollowRecords(
+    customerId: string,
+    page: number,
+    pageSize: number,
+    userId: string,
+    isAdmin: boolean,
+  ) {
+    // 检查客户是否存在
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('客户不存在');
+    }
+
+    // 数据权限验证
+    if (!isAdmin && customer.followUserId !== userId) {
+      throw new ForbiddenException('无权访问此客户');
+    }
+
+    // 计算总数
+    const total = await this.prisma.followRecord.count({
+      where: { customerId },
+    });
+
+    // 查询跟进记录
+    const records = await this.prisma.followRecord.findMany({
+      where: { customerId },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // 查询用户信息
+    const userIds = Array.from(new Set(records.map((r) => r.userId)));
+
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatar: true,
+      },
+    });
+
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    // 组装数据
+    const result = records.map((record) => ({
+      ...record,
+      user: userMap.get(record.userId),
+    }));
+
+    return {
+      data: result,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 }

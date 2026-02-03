@@ -1,13 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, Min, MaxLength } from 'class-validator';
 
 export class CreateProductDto {
-  @ApiProperty({ description: '产品名称', example: '企账通基础版' })
+  @ApiProperty({ description: '产品名称', example: '财税基础套餐' })
   @IsString()
+  @MaxLength(100)
   name: string;
 
-  @ApiProperty({ description: '产品代码', example: 'QZT-BASIC' })
+  @ApiProperty({ description: '产品代码', example: 'FIN_BASE_001' })
   @IsString()
+  @MaxLength(50)
   code: string;
 
   @ApiProperty({ description: '产品描述', required: false })
@@ -15,31 +17,23 @@ export class CreateProductDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ description: '产品价格', example: 9800 })
+  @ApiProperty({ description: '价格', example: 5000 })
   @IsNumber()
   @Min(0)
   price: number;
 
-  @ApiProperty({ description: '开票额度(月)', example: 50, default: 0 })
-  @IsOptional()
+  @ApiProperty({ description: '开票额度(月)', example: 10 })
   @IsNumber()
   @Min(0)
-  invoiceLimit?: number;
+  invoiceLimit: number;
 
-  @ApiProperty({ description: '套餐包含开票张数(月)', example: 100, default: 0 })
-  @IsOptional()
+  @ApiProperty({ description: '套餐包含开票张数(月)', example: 50 })
   @IsNumber()
   @Min(0)
-  invoiceCount?: number;
+  invoiceCount: number;
 
-  @ApiProperty({ description: '超额单价', example: 2, default: 0 })
-  @IsOptional()
+  @ApiProperty({ description: '超额单价', example: 20 })
   @IsNumber()
   @Min(0)
-  overLimitPrice?: number;
-
-  @ApiProperty({ description: '状态', example: 1, default: 1 })
-  @IsOptional()
-  @IsNumber()
-  status?: number;
+  overLimitPrice: number;
 }

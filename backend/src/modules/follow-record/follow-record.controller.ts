@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Delete,
   UseGuards,
@@ -12,6 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FollowRecordService } from './follow-record.service';
 import { CreateFollowRecordDto } from './dto/create-follow-record.dto';
+import { UpdateFollowRecordDto } from './dto/update-follow-record.dto';
 
 @ApiTags('follow-records')
 @Controller('follow-records')
@@ -29,20 +31,33 @@ export class FollowRecordController {
     return this.followRecordService.create(
       createFollowRecordDto,
       req.user.userId,
+    );
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: '获取跟进记录详情' })
+  findOne(
+    @Param('id') id: string,
+    @Request() req,
+  ) {
+    return this.followRecordService.findOne(
+      id,
+      req.user.userId,
       req.user.isAdmin,
     );
   }
 
-  @Get('customer/:customerId')
-  @ApiOperation({ summary: '获取客户的跟进记录列表' })
-  findByCustomer(
-    @Param('customerId') customerId: string,
+  @Patch(':id')
+  @ApiOperation({ summary: '更新跟进记录' })
+  update(
+    @Param('id') id: string,
+    @Body() updateFollowRecordDto: UpdateFollowRecordDto,
     @Request() req,
   ) {
-    return this.followRecordService.findByCustomer(
-      customerId,
+    return this.followRecordService.update(
+      id,
+      updateFollowRecordDto,
       req.user.userId,
-      req.user.isAdmin,
     );
   }
 
@@ -55,7 +70,6 @@ export class FollowRecordController {
     return this.followRecordService.remove(
       id,
       req.user.userId,
-      req.user.isAdmin,
     );
   }
 }

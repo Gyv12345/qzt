@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, IsEmail, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsEmail, MinLength, MaxLength, Matches } from 'class-validator';
 
 export class CreateCustomerDto {
   @ApiProperty({ description: '客户名称', example: 'XX科技' })
@@ -16,8 +16,7 @@ export class CreateCustomerDto {
 
   @ApiProperty({ description: '联系电话', example: '13800138000' })
   @IsString()
-  @MinLength(11)
-  @MaxLength(11)
+  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
   contactPhone: string;
 
   @ApiProperty({ description: '联系邮箱', required: false })

@@ -6,11 +6,25 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  ContractControllerFindAllParams,
+  CreateContractDto,
   CreateCustomerDto,
+  CreateFollowRecordDto,
+  CreateInvoiceDto,
+  CreatePaymentDto,
+  CreateProductDto,
   CustomerControllerFindAllParams,
+  InvoiceControllerFindAllParams,
+  InvoiceControllerGetCustomerSummaryParams,
   LoginDto,
+  PaymentControllerFindAllParams,
+  ProductControllerFindAllParams,
   RegisterDto,
-  UpdateCustomerDto
+  UpdateContractDto,
+  UpdateCustomerDto,
+  UpdateInvoiceDto,
+  UpdatePaymentDto,
+  UpdateProductDto
 } from '../models';
 
 import { customInstance } from './mutator';
@@ -145,7 +159,359 @@ const customerControllerAssign = (
       );
     }
   
-return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssign}};
+/**
+ * @summary 创建跟进记录
+ */
+const followRecordControllerCreate = (
+    createFollowRecordDto: CreateFollowRecordDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createFollowRecordDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取客户的跟进记录列表
+ */
+const followRecordControllerFindByCustomer = (
+    customerId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records/customer/${customerId}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 删除跟进记录
+ */
+const followRecordControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/follow-records/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 创建产品
+ */
+const productControllerCreate = (
+    createProductDto: CreateProductDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/products`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createProductDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取产品列表
+ */
+const productControllerFindAll = (
+    params?: ProductControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/products`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取产品详情
+ */
+const productControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/products/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新产品
+ */
+const productControllerUpdate = (
+    id: string,
+    updateProductDto: UpdateProductDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/products/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateProductDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除产品
+ */
+const productControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/products/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 创建合同
+ */
+const contractControllerCreate = (
+    createContractDto: CreateContractDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/contracts`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createContractDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取合同列表
+ */
+const contractControllerFindAll = (
+    params?: ContractControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/contracts`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取合同详情
+ */
+const contractControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contracts/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新合同
+ */
+const contractControllerUpdate = (
+    id: string,
+    updateContractDto: UpdateContractDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/contracts/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateContractDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除合同
+ */
+const contractControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contracts/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新合同收款状态
+ */
+const contractControllerUpdatePaymentStatus = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/contracts/${id}/update-payment-status`, method: 'POST'
+    },
+      );
+    }
+  
+/**
+ * @summary 创建收款记录
+ */
+const paymentControllerCreate = (
+    createPaymentDto: CreatePaymentDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPaymentDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取收款记录列表
+ */
+const paymentControllerFindAll = (
+    params?: PaymentControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取合同的收款记录
+ */
+const paymentControllerGetContractPayments = (
+    contractId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments/contract/${contractId}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 获取收款记录详情
+ */
+const paymentControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新收款记录
+ */
+const paymentControllerUpdate = (
+    id: string,
+    updatePaymentDto: UpdatePaymentDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updatePaymentDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除收款记录
+ */
+const paymentControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+/**
+ * @summary 确认收款
+ */
+const paymentControllerConfirmPayment = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/payments/${id}/confirm`, method: 'POST'
+    },
+      );
+    }
+  
+/**
+ * @summary 创建开票记录
+ */
+const invoiceControllerCreate = (
+    createInvoiceDto: CreateInvoiceDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/invoices`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createInvoiceDto
+    },
+      );
+    }
+  
+/**
+ * @summary 获取开票记录列表
+ */
+const invoiceControllerFindAll = (
+    params?: InvoiceControllerFindAllParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/invoices`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取客户开票汇总
+ */
+const invoiceControllerGetCustomerSummary = (
+    customerId: string,
+    params: InvoiceControllerGetCustomerSummaryParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/invoices/customer/${customerId}/summary`, method: 'GET',
+        params
+    },
+      );
+    }
+  
+/**
+ * @summary 获取开票记录详情
+ */
+const invoiceControllerFindOne = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/invoices/${id}`, method: 'GET'
+    },
+      );
+    }
+  
+/**
+ * @summary 更新开票记录
+ */
+const invoiceControllerUpdate = (
+    id: string,
+    updateInvoiceDto: UpdateInvoiceDto,
+ ) => {
+      return customInstance<void>(
+      {url: `/invoices/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateInvoiceDto
+    },
+      );
+    }
+  
+/**
+ * @summary 删除开票记录
+ */
+const invoiceControllerRemove = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/invoices/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+return {healthControllerCheck,authControllerLogin,authControllerRegister,authControllerGetUserInfo,customerControllerCreate,customerControllerFindAll,customerControllerFindOne,customerControllerUpdate,customerControllerRemove,customerControllerAssign,followRecordControllerCreate,followRecordControllerFindByCustomer,followRecordControllerRemove,productControllerCreate,productControllerFindAll,productControllerFindOne,productControllerUpdate,productControllerRemove,contractControllerCreate,contractControllerFindAll,contractControllerFindOne,contractControllerUpdate,contractControllerRemove,contractControllerUpdatePaymentStatus,paymentControllerCreate,paymentControllerFindAll,paymentControllerGetContractPayments,paymentControllerFindOne,paymentControllerUpdate,paymentControllerRemove,paymentControllerConfirmPayment,invoiceControllerCreate,invoiceControllerFindAll,invoiceControllerGetCustomerSummary,invoiceControllerFindOne,invoiceControllerUpdate,invoiceControllerRemove}};
 export type HealthControllerCheckResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['healthControllerCheck']>>>
 export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerLogin']>>>
 export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['authControllerRegister']>>>
@@ -156,3 +522,30 @@ export type CustomerControllerFindOneResult = NonNullable<Awaited<ReturnType<Ret
 export type CustomerControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerUpdate']>>>
 export type CustomerControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerRemove']>>>
 export type CustomerControllerAssignResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['customerControllerAssign']>>>
+export type FollowRecordControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerCreate']>>>
+export type FollowRecordControllerFindByCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerFindByCustomer']>>>
+export type FollowRecordControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['followRecordControllerRemove']>>>
+export type ProductControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['productControllerCreate']>>>
+export type ProductControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['productControllerFindAll']>>>
+export type ProductControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['productControllerFindOne']>>>
+export type ProductControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['productControllerUpdate']>>>
+export type ProductControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['productControllerRemove']>>>
+export type ContractControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contractControllerCreate']>>>
+export type ContractControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contractControllerFindAll']>>>
+export type ContractControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contractControllerFindOne']>>>
+export type ContractControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contractControllerUpdate']>>>
+export type ContractControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contractControllerRemove']>>>
+export type ContractControllerUpdatePaymentStatusResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['contractControllerUpdatePaymentStatus']>>>
+export type PaymentControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerCreate']>>>
+export type PaymentControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerFindAll']>>>
+export type PaymentControllerGetContractPaymentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerGetContractPayments']>>>
+export type PaymentControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerFindOne']>>>
+export type PaymentControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerUpdate']>>>
+export type PaymentControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerRemove']>>>
+export type PaymentControllerConfirmPaymentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['paymentControllerConfirmPayment']>>>
+export type InvoiceControllerCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['invoiceControllerCreate']>>>
+export type InvoiceControllerFindAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['invoiceControllerFindAll']>>>
+export type InvoiceControllerGetCustomerSummaryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['invoiceControllerGetCustomerSummary']>>>
+export type InvoiceControllerFindOneResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['invoiceControllerFindOne']>>>
+export type InvoiceControllerUpdateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['invoiceControllerUpdate']>>>
+export type InvoiceControllerRemoveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getScrmApi>['invoiceControllerRemove']>>>
