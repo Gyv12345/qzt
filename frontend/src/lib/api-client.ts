@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiResponse } from '@/types';
+import { QueryClient } from '@tanstack/react-query';
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
@@ -89,3 +90,14 @@ export const request = {
     return apiClient.delete(url);
   },
 };
+
+// 创建 QueryClient
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 分钟
+    },
+  },
+});
