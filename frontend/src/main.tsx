@@ -6,10 +6,12 @@ import { useAuthStore } from './stores/authStore'
 import './index.css'
 
 // Import the Generated Route Tree
-import { routeTree } from './routeTree.gen'
+import { routeTree } from './routes/routeTree.gen'
 
-// Create the Router
-const router = createRouter({ routeTree })
+// 创建 router（不需要 context）
+const router = createRouter({
+  routeTree,
+})
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {

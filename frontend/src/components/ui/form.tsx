@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useFormContext, Controller } from 'react-hook-form'
+import { useFormContext, Controller, FormProvider } from 'react-hook-form'
 import { cn } from '@/lib/utils'
 
 const Form = React.forwardRef<HTMLFormElement, React.FormHTMLAttributes<HTMLFormElement>>(
@@ -94,4 +94,5 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
+  FormProvider,
 }

@@ -5,7 +5,14 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), TanStackRouterVite()],
+  plugins: [
+    react(),
+    TanStackRouterVite({
+      routesDirectory: './src/routes',
+      generatedRouteTree: './src/routes/routeTree.gen.ts',
+      routeFileIgnorePattern: 'routeTree.gen.ts',
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -13,6 +20,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-dom/client'],
+    exclude: ['@tanstack/react-table'], // 排除预构建，使用源码
+    force: true, // 强制重新预构建依赖
   },
   server: {
     port: 3456,
@@ -22,5 +31,12 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    hmr: {
+      overlay: true, // 显示错误覆盖层
+    },
+  },
+  build: {
+    // 开发环境下不使用缓存
+    sourcemap: true,
   },
 })

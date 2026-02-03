@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { FormProvider } from '@/components/ui/form'
 import { FormFieldWrapper } from '@/components/form/form-field'
 import { customerSchema, type CustomerFormData } from '../schemas/customer-schema'
 
@@ -63,11 +64,12 @@ export function CustomerDrawer({
         </SheetHeader>
 
         <div className="flex-1 overflow-auto py-4">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormFieldWrapper
-              name="name"
-              label="公司名称 *"
-            >
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormFieldWrapper
+                name="name"
+                label="公司名称 *"
+              >
               {({ field }) => (
                 <Input placeholder="请输入公司名称" {...field} />
               )}
@@ -147,7 +149,8 @@ export function CustomerDrawer({
                 保存
               </Button>
             </div>
-          </form>
+            </form>
+          </FormProvider>
         </div>
       </SheetContent>
     </Sheet>

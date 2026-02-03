@@ -7,25 +7,16 @@ import { Toaster } from 'sonner'
 import i18n from '@/lib/i18n'
 import { queryClient } from '@/lib/api-client'
 import LoadingBar from 'react-top-loading-bar'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
+import { useAuthStore } from '@/stores/authStore'
 
-interface RouterContext {
-  isAuthenticated: boolean
-  user: User | null
-}
-
-interface User {
-  id: string
-  username: string
-  email: string
-  role: string
-}
-
-export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: ({ context, location }) => {
-    // 根路径重定向到 dashboard
+export const Route = createRootRouteWithContext()({
+  beforeLoad: ({ location }) => {
+    // ✅ 只在根路径进行重定向检查
     if (location.pathname === '/') {
-      if (context.isAuthenticated) {
+      const authState = useAuthStore.getState()
+
+      if (authState.isAuthenticated) {
         throw redirect({
           to: '/dashboard',
         })
@@ -62,13 +53,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootComponent() {
-  const loadingBarRef = useRef<any>(null)
   const [progress, setProgress] = useState(0)
-
-  // 监听路由变化，显示加载条
-  useState(() => {
-    // TODO: 集成路由导航事件
-  })
 
   return (
     <QueryClientProvider client={queryClient}>
