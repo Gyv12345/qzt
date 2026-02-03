@@ -74,7 +74,7 @@ export class InvoiceService {
     }
 
     // 如果超额并且有关联合同,使用阶梯定价计算新价格
-    let priceChangeRecord = null;
+    const priceChangeRecord = null;
     if (isOverLimit && createInvoiceDto.contractId) {
       try {
         const priceCalculation = await this.pricingService.calculatePrice({
