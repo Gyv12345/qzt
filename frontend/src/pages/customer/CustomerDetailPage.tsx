@@ -5,13 +5,9 @@ import { useServiceTeamGrouped } from '@/services'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Phone, Mail, Building, Calendar, Users, UserPlus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, Building, Calendar, Users, Trash2 } from 'lucide-react'
 import { FollowRecordTimeline } from '@/components/FollowRecordTimeline'
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { useUsers } from '@/services'
-import { useCreateServiceTeam, useDeleteServiceTeam } from '@/services'
+import { useDeleteServiceTeam } from '@/services'
 
 const ROLE_LABELS = {
   SALE: '业务',
@@ -28,9 +24,6 @@ const ROLE_COLORS = {
 export const CustomerDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const [activeTab, setActiveTab] = useState<'info' | 'team'>('info')
-  const [addTeamModalOpen, setAddTeamModalOpen] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<'SALE' | 'FINANCE' | 'OUTWORK'>('SALE')
-  const [selectedUserId, setSelectedUserId] = useState('')
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['customer', id],
@@ -43,29 +36,10 @@ export const CustomerDetailPage = () => {
   })
 
   const { data: teamGrouped, refetch: refetchTeam } = useServiceTeamGrouped(id!)
-  const { data: users } = useUsers({ pageSize: 1000 })
 
-  const createTeamMutation = useCreateServiceTeam()
   const deleteTeamMutation = useDeleteServiceTeam()
 
   const customer = data?.data
-
-  const handleAddTeamMember = async () => {
-    if (!selectedUserId) return
-
-    try {
-      await createTeamMutation.mutateAsync({
-        customerId: id,
-        userId: selectedUserId,
-        roleCode: selectedRole,
-      })
-      setAddTeamModalOpen(false)
-      setSelectedUserId('')
-      refetchTeam()
-    } catch (error) {
-      console.error('添加团队成员失败', error)
-    }
-  }
 
   const handleRemoveTeamMember = async (memberId: string) => {
     if (!confirm('确定要删除这个团队成员吗?')) return
@@ -244,15 +218,9 @@ export const CustomerDetailPage = () => {
 
       {activeTab === 'team' && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold">服务团队</h2>
-              <p className="text-sm text-gray-500 mt-1">管理该客户的服务团队成员</p>
-            </div>
-            <Button onClick={() => setAddTeamModalOpen(true)} className="gap-2">
-              <UserPlus className="w-4 h-4" />
-              添加成员
-            </Button>
+          <div>
+            <h2 className="text-xl font-bold">服务团队</h2>
+            <p className="text-sm text-gray-500 mt-1">该客户的服务团队成员</p>
           </div>
 
           {/* 按角色分组的团队成员 */}
@@ -306,56 +274,6 @@ export const CustomerDetailPage = () => {
           ))}
         </div>
       )}
-
-      {/* 添加团队成员弹窗 */}
-      <Dialog open={addTeamModalOpen} onOpenChange={setAddTeamModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>添加服务团队成员</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="role">角色</Label>
-              <select
-                id="role"
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as any)}
-                className="w-full border rounded px-3 py-2 mt-1"
-              >
-                <option value="SALE">业务</option>
-                <option value="FINANCE">财务</option>
-                <option value="OUTWORK">外勤</option>
-              </select>
-            </div>
-
-            <div>
-              <Label htmlFor="user">成员</Label>
-              <select
-                id="user"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="w-full border rounded px-3 py-2 mt-1"
-              >
-                <option value="">请选择成员</option>
-                {users?.data?.map((user: any) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.username})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setAddTeamModalOpen(false)}>
-                取消
-              </Button>
-              <Button onClick={handleAddTeamMember} disabled={!selectedUserId}>
-                添加
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

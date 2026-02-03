@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { router } from './router'
+import { useAuthStore } from './stores/authStore'
 import './index.css'
 
 // 创建 QueryClient 实例
@@ -16,10 +17,23 @@ const queryClient = new QueryClient({
   },
 })
 
+// 认证初始化组件
+function AuthInitializer({ children }: { children: React.ReactNode }) {
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  return <>{children}</>;
+}
+
 ReactDOM.createRoot(document.getElementById('app')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthInitializer>
+        <RouterProvider router={router} />
+      </AuthInitializer>
     </QueryClientProvider>
   </React.StrictMode>,
 )
