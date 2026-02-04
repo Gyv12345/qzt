@@ -95,6 +95,38 @@ export class PermissionService {
   }
 
   /**
+   * 获取单个菜单详情
+   */
+  async findOneMenu(id: string) {
+    return this.prisma.menu.findUnique({
+      where: { id },
+      include: {
+        permissions: true,
+        parent: true,
+        children: true,
+      },
+    });
+  }
+
+  /**
+   * 删除菜单
+   */
+  async removeMenu(id: string) {
+    // 检查是否有子菜单
+    const childrenCount = await this.prisma.menu.count({
+      where: { parentId: id },
+    });
+
+    if (childrenCount > 0) {
+      throw new Error('该菜单下有子菜单，无法删除');
+    }
+
+    return this.prisma.menu.delete({
+      where: { id },
+    });
+  }
+
+  /**
    * 创建权限
    */
   async createPermission(createPermissionDto: CreatePermissionDto) {
@@ -119,14 +151,58 @@ export class PermissionService {
   }
 
   /**
+   * 获取单个权限详情
+   */
+  async findOnePermission(id: string) {
+    return this.prisma.permission.findUnique({
+      where: { id },
+      include: {
+        roles: true,
+        menus: true,
+      },
+    });
+  }
+
+  /**
+   * 更新权限
+   */
+  async updatePermission(id: string, updatePermissionDto: CreatePermissionDto) {
+    return this.prisma.permission.update({
+      where: { id },
+      data: updatePermissionDto,
+    });
+  }
+
+  /**
+   * 删除权限
+   */
+  async removePermission(id: string) {
+    // 检查是否有角色使用此权限
+    const roleCount = await this.prisma.rolePermission.count({
+      where: { permissionId: id },
+    });
+
+    if (roleCount > 0) {
+      throw new Error('该权限正在被角色使用，无法删除');
+    }
+
+    return this.prisma.permission.delete({
+      where: { id },
+    });
+  }
+
+  /**
    * 创建角色
    */
   async createRole(createRoleDto: CreateRoleDto) {
-    const { permissionIds, ...roleData } = createRoleDto;
+    const { permissionIds, dataScopeDeptIds, ...roleData } = createRoleDto;
 
     return this.prisma.role.create({
       data: {
         ...roleData,
+        type: roleData.type || 'system',
+        dataScope: roleData.dataScope || 'all',
+        dataScopeDeptIds: dataScopeDeptIds || null,
         ...(permissionIds && {
           permissions: {
             connect: permissionIds.map((id) => ({ id })),
@@ -169,7 +245,7 @@ export class PermissionService {
    * 更新角色
    */
   async updateRole(id: string, updateRoleDto: UpdateRoleDto) {
-    const { permissionIds, ...roleData } = updateRoleDto;
+    const { permissionIds, dataScopeDeptIds, ...roleData } = updateRoleDto;
 
     // 如果更新权限,先断开旧的权限关联
     if (permissionIds !== undefined) {
@@ -187,6 +263,7 @@ export class PermissionService {
       where: { id },
       data: {
         ...roleData,
+        ...(dataScopeDeptIds !== undefined && { dataScopeDeptIds }),
         ...(permissionIds && {
           permissions: {
             connect: permissionIds.map((permissionId) => ({ id: permissionId })),
@@ -209,7 +286,7 @@ export class PermissionService {
   }
 
   /**
-   * 获取用户的所有权限
+   * 获取用户的所有权限（包含角色信息）
    */
   async getUserPermissions(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -224,15 +301,29 @@ export class PermissionService {
             },
           },
         },
+        department: true,
       },
     });
 
     if (!user) {
-      return [];
+      return {
+        permissions: [],
+        roles: [],
+        departmentId: user?.departmentId || null,
+      };
     }
 
     // 收集所有权限代码
     const permissions = new Set<string>();
+
+    const roles = user.roles.map(userRole => ({
+      id: userRole.role.id,
+      name: userRole.role.name,
+      code: userRole.role.code,
+      type: userRole.role.type,
+      dataScope: userRole.role.dataScope,
+      dataScopeDeptIds: userRole.role.dataScopeDeptIds,
+    }));
 
     for (const userRole of user.roles) {
       for (const permission of userRole.role.permissions) {
@@ -240,7 +331,11 @@ export class PermissionService {
       }
     }
 
-    return Array.from(permissions);
+    return {
+      permissions: Array.from(permissions),
+      roles,
+      departmentId: user.departmentId,
+    };
   }
 
   /**

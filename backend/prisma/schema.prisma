@@ -56,6 +56,9 @@ model Role {
   name        String
   code        String   @unique
   description String?
+  type        String   @default("system") // 角色类型: system(系统角色), team(团队角色)
+  dataScope   String   @default("all") // 数据权限范围: all(全部), department(本部门), department_and_sub(本部门及下级), custom(自定义), self(仅本人)
+  dataScopeDeptIds String? // 数据权限-自定义部门ID列表(JSON数组)
   status      Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -288,15 +291,37 @@ model Product {
   invoiceLimit   Float    @default(0) // 开票额度(月)
   invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
   overLimitPrice Float    @default(0) // 超额单价
+  serviceRoleId  String?  // 服务负责人角色ID（哪个角色负责此产品的运维）
+  packageId      String?  // 所属套餐ID
   status         Int      @default(1)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  contracts    Contract[]
-  flows        ProductFlow[]
-  pricingRules PricingRule[]
+  contracts      Contract[]
+  flows          ProductFlow[]
+  pricingRules   PricingRule[]
+  package        ProductPackage?  @relation("PackageProducts", fields: [packageId], references: [id])
+  packageItems   ProductPackage[] @relation("PackageItems")
 
   @@map("products")
+}
+
+// 产品套餐
+model ProductPackage {
+  id          String   @id @default(cuid())
+  name        String   // 套餐名称
+  code        String   @unique // 套餐编码
+  description String?  // 套餐描述
+  discount    Float    @default(0) // 套餐折扣（0-1）
+  duration    Int?     // 套餐时长（月）
+  status      Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products    Product[] @relation("PackageItems")
+  packageItems Product[] @relation("PackageProducts")
+
+  @@map("product_packages")
 }
 
 // ==================== 阶梯定价规则 ====================
@@ -343,24 +368,86 @@ model ProductFlow {
   id        String   @id @default(cuid())
   productId String
   name      String // 流程名称
-  type      String // NODE:节点流程 CYCLE:周期流程
+  type      String // NODE:一次性节点流程 CYCLE:周期性流程
   config    String // 流程配置(JSON)
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  nodes     ProductFlowNode[]
 
   @@map("product_flows")
 }
 
+// 产品流程节点
+model ProductFlowNode {
+  id          String   @id @default(cuid())
+  flowId      String   // 流程ID
+  name        String   // 节点名称
+  type        String   // 节点类型: TASK(任务), NOTIFY(通知), APPROVE(审批)
+  roleId      String?  // 负责人角色ID
+  order       Int      // 执行顺序
+  config      String?  // 节点配置(JSON)
+  notifyConfig String? // 通知配置(JSON): 发送给谁、通知内容等
+  cycleConfig String? // 周期配置(JSON): 仅周期性节点使用，包含cron表达式
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  flow        ProductFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  executions  ProductFlowExecution[]
+
+  @@index([flowId])
+  @@map("product_flow_nodes")
+}
+
+// 产品流程执行记录
+model ProductFlowExecution {
+  id          String   @id @default(cuid())
+  nodeId      String   // 节点ID
+  contractId  String?  // 关联合同ID（可选）
+  customerId  String?  // 关联客户ID
+  status      String   // 状态: PENDING(待执行), RUNNING(执行中), SUCCESS(成功), FAILED(失败), SKIPPED(跳过)
+  result      String?  // 执行结果(JSON)
+  error       String?  // 错误信息
+  executedAt  DateTime? // 实际执行时间
+  completedAt DateTime? // 完成时间
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  node        ProductFlowNode @relation(fields: [nodeId], references: [id])
+
+  @@index([nodeId])
+  @@index([contractId])
+  @@index([status])
+  @@map("product_flow_executions")
+}
+
 // ==================== 合同模块 ====================
+
+model ContractTemplate {
+  id          String   @id @default(cuid())
+  name        String   // 模板名称
+  code        String   @unique // 模板编码
+  content     String   // 合同内容（支持变量占位符）
+  variables   String?  // 变量定义(JSON数组)
+  description String?  // 模板说明
+  status      Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contracts   Contract[]
+
+  @@map("contract_templates")
+}
 
 model Contract {
   id           String   @id @default(cuid())
   contractNo   String   @unique
   customerId   String
   productId    String
+  templateId   String? // 合同模板ID
   amount       Float
   paidAmount   Float    @default(0)
   status       Int      @default(0) // 0:待收款 1:部分收款 2:已收全
@@ -370,9 +457,10 @@ model Contract {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  customer Customer  @relation(fields: [customerId], references: [id])
-  product  Product   @relation(fields: [productId], references: [id])
-  payments Payment[]
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  product         Product   @relation(fields: [productId], references: [id])
+  template        ContractTemplate? @relation(fields: [templateId], references: [id])
+  payments        Payment[]
 
   @@index([customerId])
   @@index([status])
@@ -585,6 +673,20 @@ model Notification {
 }
 
 // ==================== 系统配置 ====================
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique // 配置键
+  value       String   // 配置值(JSON字符串)
+  category    String   // 配置分类: basic, email, sms, wechat, etc.
+  description String?  // 配置说明
+  isPublic    Boolean  @default(false) // 是否公开（前端可访问）
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // 最后更新人ID
+
+  @@index([category])
+  @@map("system_configs")
+}
 
 model CommonPhrase {
   id         String   @id @default(cuid())

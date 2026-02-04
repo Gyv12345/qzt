@@ -45,13 +45,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       phone: result.phone,
       avatar: result.avatar,
       status: result.status,
-      isAdmin: result.roles.some(ur => ur.role.code === 'ADMIN'),
+      isAdmin: result.roles.some(ur => ur.role.code === 'SUPER_ADMIN'),
+      departmentId: result.departmentId,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
       roles: result.roles.map((ur) => ({
         id: ur.role.id,
         name: ur.role.name,
         code: ur.role.code,
+        type: ur.role.type,
+        dataScope: ur.role.dataScope,
+        dataScopeDeptIds: ur.role.dataScopeDeptIds,
       })),
     };
   }

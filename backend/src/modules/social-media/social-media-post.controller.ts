@@ -123,4 +123,38 @@ export class SocialMediaPostController {
       message: '批量发布完成',
     };
   }
+
+  @Get(':id/publish-logs')
+  @ApiOperation({ summary: '查询内容发布日志' })
+  async getPublishLogs(
+    @Param('id') id: string,
+    @Query() query: { page?: number; pageSize?: number },
+  ) {
+    const result = await this.postService.getPublishLogs(id, query);
+    return {
+      success: true,
+      data: result.data,
+      total: result.total,
+      page: query.page || 1,
+      pageSize: query.pageSize || 20,
+    };
+  }
+
+  @Get('publish-logs')
+  @ApiOperation({ summary: '查询所有发布日志' })
+  async getAllPublishLogs(@Query() query: {
+    page?: number;
+    pageSize?: number;
+    platform?: string;
+    status?: string;
+  }) {
+    const result = await this.postService.getAllPublishLogs(query);
+    return {
+      success: true,
+      data: result.data,
+      total: result.total,
+      page: query.page || 1,
+      pageSize: query.pageSize || 20,
+    };
+  }
 }

@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ContractService } from './contract.service';
 import { ContractController } from './contract.controller';
+import { ContractTemplateService } from './contract-template.service';
+import { ContractTemplateController } from './contract-template.controller';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [ContractController],
-  providers: [ContractService],
-  exports: [ContractService],
+  controllers: [ContractController, ContractTemplateController],
+  providers: [ContractService, ContractTemplateService],
+  exports: [ContractService, ContractTemplateService],
 })
 export class ContractModule {}
