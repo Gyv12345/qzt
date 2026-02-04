@@ -1,14 +1,15 @@
 {
-  "id": "b1b3c26f-e9f2-4042-91ad-966f83a1dcef",
-  "status": "running",
-  "startedAt": "2026-02-03T13:36:32.639Z",
-  "updatedAt": "2026-02-03T13:36:32.639Z",
+  "id": "7c4c4ec7-c7a5-41cb-95b9-fe7036c276d6",
+  "status": "completed",
+  "startedAt": "2026-02-04T04:08:14.002Z",
+  "updatedAt": "2026-02-04T04:08:21.709Z",
   "agentPlugin": "claude",
-  "trackerPlugin": "json",
-  "prdPath": "/Users/shichenyang/WebstormProjects/qzt/tasks/prd-rbac.json",
+  "trackerPlugin": "beads",
+  "epicId": "ralph-tui-epic-001",
   "currentIteration": 0,
   "maxIterations": 0,
   "totalTasks": 0,
   "tasksCompleted": 0,
-  "cwd": "/Users/shichenyang/WebstormProjects/qzt"
+  "cwd": "/Users/shichenyang/WebstormProjects/qzt",
+  "endedAt": "2026-02-04T04:08:21.709Z"
 }
