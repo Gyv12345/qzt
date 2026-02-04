@@ -19,4 +19,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    port: 3456,
+    proxy: {
+      // /api 前缀的请求代理到后端，并去掉 /api 前缀
+      '/api': {
+        target: 'http://localhost:7890',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })
