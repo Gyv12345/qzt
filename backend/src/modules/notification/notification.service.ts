@@ -102,10 +102,10 @@ export class NotificationService {
     link?: string;
   }) {
     return this.sendWebhook(webhookUrl, {
-      title,
-      content,
-      link,
-      type: 'link',
+      title: data.title,
+      content: data.content,
+      link: data.link,
+      metadata: { type: 'link' },
     });
   }
 
@@ -118,10 +118,10 @@ export class NotificationService {
     link?: string;
   }) {
     return this.sendWebhook(webhookUrl, {
-      title,
-      content,
-      link,
-      type: 'link',
+      title: data.title,
+      content: data.content,
+      link: data.link,
+      metadata: { type: 'link' },
     });
   }
 
@@ -134,10 +134,10 @@ export class NotificationService {
     link?: string;
   }) {
     return this.sendWebhook(webhookUrl, {
-      title,
-      content,
-      link,
-      type: 'link',
+      title: data.title,
+      content: data.content,
+      link: data.link,
+      metadata: { type: 'link' },
     });
   }
 
@@ -220,8 +220,8 @@ export class NotificationService {
   }) {
     const { userIds, channels = ['in-app'], ...rest } = data;
 
-    const results = {
-      inApp: [],
+    const results: any = {
+      inApp: null,
       wechat: null,
       dingtalk: null,
       feishu: null,
@@ -233,14 +233,17 @@ export class NotificationService {
         userIds,
         ...rest,
       });
-      results.inApp = inAppNotifications;
+      results.inApp = { count: inAppNotifications.count };
     }
 
     // 2. 如果配置了Webhook通知，发送Webhook
+    const webhookChannels = channels.filter(c => c !== 'in-app');
     const webhookConfigs = await this.prisma.webhookConfig.findMany({
       where: {
         enabled: true,
-        platform: channels.filter(c => c !== 'in-app') as string[],
+        platform: {
+          in: webhookChannels,
+        },
       },
     });
 
