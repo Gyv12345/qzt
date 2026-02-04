@@ -45,3 +45,4 @@ dev.db-journal
 # Temporary
 *.tmp
 .temp/
+.env.temp
