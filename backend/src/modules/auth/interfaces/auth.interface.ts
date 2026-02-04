@@ -12,12 +12,16 @@ export interface UserInfo {
   avatar?: string;
   status: number;
   isAdmin: boolean;
+  departmentId?: string;
   createdAt: Date;
   updatedAt: Date;
   roles: Array<{
     id: string;
     name: string;
     code: string;
+    type: string;
+    dataScope: string;
+    dataScopeDeptIds?: string | null;
   }>;
 }
 

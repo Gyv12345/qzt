@@ -385,4 +385,70 @@ export class SocialMediaPostService implements ISocialMediaPostService {
 
     return results;
   }
+
+  /**
+   * 查询内容的发布日志
+   */
+  async getPublishLogs(
+    postId: string,
+    query: { page?: number; pageSize?: number },
+  ) {
+    const page = query.page || 1;
+    const pageSize = query.pageSize || 20;
+    const skip = (page - 1) * pageSize;
+
+    const [logs, total] = await Promise.all([
+      this.prisma.socialMediaPublishLog.findMany({
+        where: { postId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      this.prisma.socialMediaPublishLog.count({
+        where: { postId },
+      }),
+    ]);
+
+    return {
+      data: logs,
+      total,
+    };
+  }
+
+  /**
+   * 查询所有发布日志
+   */
+  async getAllPublishLogs(query: {
+    page?: number;
+    pageSize?: number;
+    platform?: string;
+    status?: string;
+  }) {
+    const page = query.page || 1;
+    const pageSize = query.pageSize || 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+    if (query.platform) {
+      where.platform = query.platform;
+    }
+    if (query.status) {
+      where.status = query.status;
+    }
+
+    const [logs, total] = await Promise.all([
+      this.prisma.socialMediaPublishLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      this.prisma.socialMediaPublishLog.count({ where }),
+    ]);
+
+    return {
+      data: logs,
+      total,
+    };
+  }
 }

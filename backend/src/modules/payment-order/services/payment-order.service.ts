@@ -453,4 +453,70 @@ export class PaymentOrderService implements IPaymentOrderService {
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `${prefix}${timestamp}${random}`;
   }
+
+  /**
+   * 查询支付订单的回调日志
+   */
+  async getCallbackLogs(
+    orderId: string,
+    query: { page?: number; pageSize?: number },
+  ) {
+    const page = query.page || 1;
+    const pageSize = query.pageSize || 20;
+    const skip = (page - 1) * pageSize;
+
+    const [logs, total] = await Promise.all([
+      this.prisma.paymentCallbackLog.findMany({
+        where: { orderId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      this.prisma.paymentCallbackLog.count({
+        where: { orderId },
+      }),
+    ]);
+
+    return {
+      data: logs,
+      total,
+    };
+  }
+
+  /**
+   * 查询所有支付回调日志
+   */
+  async getAllCallbackLogs(query: {
+    page?: number;
+    pageSize?: number;
+    paymentMethod?: string;
+    status?: string;
+  }) {
+    const page = query.page || 1;
+    const pageSize = query.pageSize || 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+    if (query.paymentMethod) {
+      where.paymentMethod = query.paymentMethod;
+    }
+    if (query.status) {
+      where.status = query.status;
+    }
+
+    const [logs, total] = await Promise.all([
+      this.prisma.paymentCallbackLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      this.prisma.paymentCallbackLog.count({ where }),
+    ]);
+
+    return {
+      data: logs,
+      total,
+    };
+  }
 }

@@ -36,10 +36,22 @@ export class PermissionController {
     return this.permissionService.getMenuTree();
   }
 
+  @Get('menus/:id')
+  @ApiOperation({ summary: '获取菜单详情' })
+  findOneMenu(@Param('id') id: string) {
+    return this.permissionService.findOneMenu(id);
+  }
+
   @Put('menus/:id')
   @ApiOperation({ summary: '更新菜单' })
   updateMenu(@Param('id') id: string, @Body() data: any) {
     return this.permissionService.updateMenu(id, data);
+  }
+
+  @Delete('menus/:id')
+  @ApiOperation({ summary: '删除菜单' })
+  removeMenu(@Param('id') id: string) {
+    return this.permissionService.removeMenu(id);
   }
 
   @Post('permissions')
@@ -52,6 +64,27 @@ export class PermissionController {
   @ApiOperation({ summary: '查询所有权限' })
   findAllPermissions(@Query('type') type?: string) {
     return this.permissionService.findAllPermissions(type as PermissionType);
+  }
+
+  @Get('permissions/:id')
+  @ApiOperation({ summary: '获取权限详情' })
+  findOnePermission(@Param('id') id: string) {
+    return this.permissionService.findOnePermission(id);
+  }
+
+  @Put('permissions/:id')
+  @ApiOperation({ summary: '更新权限' })
+  updatePermission(
+    @Param('id') id: string,
+    @Body() updatePermissionDto: CreatePermissionDto,
+  ) {
+    return this.permissionService.updatePermission(id, updatePermissionDto);
+  }
+
+  @Delete('permissions/:id')
+  @ApiOperation({ summary: '删除权限' })
+  removePermission(@Param('id') id: string) {
+    return this.permissionService.removePermission(id);
   }
 
   @Post('roles')

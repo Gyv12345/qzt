@@ -1,0 +1,14 @@
+{
+  "id": "b1b3c26f-e9f2-4042-91ad-966f83a1dcef",
+  "status": "running",
+  "startedAt": "2026-02-03T13:36:32.639Z",
+  "updatedAt": "2026-02-03T13:36:32.639Z",
+  "agentPlugin": "claude",
+  "trackerPlugin": "json",
+  "prdPath": "/Users/shichenyang/WebstormProjects/qzt/tasks/prd-rbac.json",
+  "currentIteration": 0,
+  "maxIterations": 0,
+  "totalTasks": 0,
+  "tasksCompleted": 0,
+  "cwd": "/Users/shichenyang/WebstormProjects/qzt"
+}

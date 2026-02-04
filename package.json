@@ -12,6 +12,7 @@
     "dev": "./start-dev.sh"
   },
   "devDependencies": {
+    "@types/node-cron": "^3.0.11",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "axios": "^1.13.4",
@@ -26,6 +27,7 @@
     "prettier": "^3.8.1"
   },
   "dependencies": {
+    "@nestjs/schedule": "^6.1.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
