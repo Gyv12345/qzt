@@ -1,17 +1,23 @@
-import { Module, Global } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SchedulerService } from './scheduler.service';
 import { PrismaModule } from '@/common/prisma/prisma.module';
 import { AutomationModule } from '../automation/automation.module';
+import { Reflector } from '@nestjs/core';
 
-@Global()
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     PrismaModule,
     AutomationModule,
   ],
-  providers: [SchedulerService],
+  providers: [
+    SchedulerService,
+    {
+      provide: 'Reflector',
+      useClass: Reflector,
+    },
+  ],
   exports: [SchedulerService],
 })
 export class SchedulerModule {}

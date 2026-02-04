@@ -270,10 +270,210 @@ cat frontend/src/models/customerControllerFindAllParams.ts
 
 ---
 
+## 模块导入和启动问题
+
+### 问题: 后端模块依赖注入错误
+
+**症状**:
+```
+Nest can't resolve dependencies of the SchedulerMetadataAccessor (?).
+Please make sure that the argument Reflector at index [0] is available in the ScheduleModule context.
+
+Nest can't resolve dependencies of the BullExplorer (?, DiscoveryService, BullMetadataAccessor, MetadataScanner).
+Please make sure that the argument ModuleRef at index [0] is available in the BullModule context.
+```
+
+**原因**: NestJS 模块（`@nestjs/schedule`、`@nestjs/bull`）需要特定的提供者（`Reflector`、`ModuleRef`），但未正确配置。
+
+**决策流程**（重要）:
+遇到此类问题时，**必须先询问用户**，而不是直接注释掉模块：
+
+1. **识别问题**：确定是哪个模块的依赖注入问题
+2. **询问用户**：
+   ```
+   检测到 [模块名] 存在依赖注入问题。
+   这是一个可选的功能模块。
+
+   请选择解决方案：
+   1. 暂时禁用该模块（注释掉），让系统先运行起来
+   2. 修复该模块的依赖注入问题
+
+   如果选择修复，我需要查询 NestJS 最佳实践来正确配置该模块。
+   ```
+
+3. **根据用户选择执行**：
+   - 选择 1：注释掉模块导入
+   - 选择 2：查询最佳实践并修复，记录解决方案到本文档
+
+**如果选择修复**：
+
+#### ScheduleModule 依赖注入问题
+
+**问题**：`@nestjs/schedule` 的 `SchedulerMetadataAccessor` 需要 `Reflector`
+
+**正确修复方法**：
+
+```typescript
+// 方法 1: 在 AppModule 中提供 Reflector
+import { Reflector } from '@nestjs/core';
+
+@Module({
+  providers: [Reflector],
+  // ...
+})
+export class AppModule {}
+
+// 方法 2: 在 SchedulerModule 中导入提供 Reflector 的模块
+@Module({
+  imports: [
+    ScheduleModule.forRoot(),
+    // 其他需要 Reflector 的模块
+  ],
+})
+export class SchedulerModule {}
+```
+
+**注意**：`ScheduleModule.forRoot()` 应该只在根模块（`AppModule`）中调用一次，不要在子模块中重复调用。
+
+#### BullModule 依赖注入问题
+
+**问题**：`@nestjs/bull` 的 `BullExplorer` 需要 `ModuleRef`
+
+**正确修复方法**：
+
+```typescript
+// BullModule.forRoot() 应该在 AppModule 中调用
+import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bull';
+
+@Module({
+  imports: [
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+    // 其他模块
+  ],
+})
+export class AppModule {}
+
+// 在子模块中只注册队列
+@Module({
+  imports: [
+    BullModule.registerQueue({
+      name: 'queue-name',
+    }),
+  ],
+})
+export class FeatureModule {}
+```
+
+**重要**：
+- `BullModule.forRoot()` 只在根模块调用一次
+- 子模块使用 `BullModule.registerQueue()` 注册队列
+- `ModuleRef` 由 NestJS 自动提供，不需要手动添加
+
+---
+
+### 问题: i18n 翻译文件路径错误
+
+**症状**:
+```
+I18nError: i18n path (/Users/shichenyang/WebstormProjects/qzt/backend/dist/src/i18n/) cannot be found
+```
+
+**原因**: 编译后的文件在 `dist/` 目录，但 i18n 翻译文件在 `src/i18n/`，路径配置错误
+
+**解决方案**:
+
+```typescript
+// backend/src/app.module.ts
+I18nModule.forRoot({
+  fallbackLanguage: 'zh',
+  loaderOptions: {
+    // ❌ 错误 - 指向 dist/src/i18n/
+    path: path.join(__dirname, '/i18n/'),
+
+    // ✅ 正确 - 指向 src/i18n/
+    path: path.join(__dirname, '../../src/i18n/'),
+    watch: true,
+  },
+  resolvers: [AcceptLanguageResolver],
+}),
+```
+
+**说明**：
+- `__dirname` 在编译后指向 `dist/src/app.module.js` 所在目录
+- 使用 `../../src/i18n/` 回到项目根目录下的 `src/i18n/`
+- 或者将 i18n 文件复制到 dist 目录（不推荐）
+
+---
+
+### 问题: 前端 API 导入名称不匹配
+
+**症状**:
+```
+The requested module '/src/services/api/auth.ts' does not provide an export named 'get'
+```
+
+**原因**: Orval 生成的导出名称与 `index.ts` 中的导入名称不匹配
+
+**示例**:
+```typescript
+// Orval 生成的 auth.ts 导出
+export const getAuth = () => { ... }
+
+// 但 index.ts 期望导入
+import { get } from './auth'  // ❌ 错误 - 没有 get 导出
+```
+
+**解决方案**:
+
+**方法 1: 修改 index.ts 导入**（推荐）
+```typescript
+// frontend/src/services/api/index.ts
+import { getAuth as getAuthApi } from './auth'  // ✅ 使用实际导出的名称
+```
+
+**方法 2: 配置 Orval 使用特定导出名**
+```typescript
+// frontend/orval.config.ts
+export default defineConfig({
+  qzt: {
+    output: {
+      mode: 'tags',
+      target: 'src/services/api/index.ts',
+      override: {
+        // 为特定标签指定导出名称
+        tags: {
+          auth: {
+            output: './auth.ts',
+            get: 'get',  // 强制使用 get 作为导出名
+          },
+        },
+      },
+    },
+  },
+})
+```
+
+**预防措施**:
+每次运行 `pnpm run generate:api` 后，检查生成的文件导出名称是否与 `index.ts` 中的导入匹配。
+
+**注意**：这个问题通常是临时性的，Orval 每次生成可能略有不同。如果再次出现，检查：
+1. `frontend/src/services/api/*.ts` 的实际导出名称
+2. `frontend/src/services/api/index.ts` 的导入语句
+3. 确保两者匹配
+
+---
+
 ## 快速修复检查清单
 
 遇到问题时，按顺序检查：
 
+- [ ] 使用 `./start-dev.sh` 启动服务（不是手动 `pnpm run start:dev`）
 - [ ] 后端服务运行在 7890 端口
 - [ ] 前端服务运行在 3456 端口
 - [ ] 已运行 `pnpm run generate:api`
@@ -283,3 +483,4 @@ cat frontend/src/models/customerControllerFindAllParams.ts
 - [ ] 使用 ES6 `import` 而非 `require()`
 - [ ] 路由路径没有末尾斜杠
 - [ ] 浏览器控制台无错误
+- [ ] 后端模块依赖注入问题已询问用户解决方案

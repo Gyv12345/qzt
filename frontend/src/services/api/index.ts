@@ -4,7 +4,7 @@
  */
 
 // 首先导入所有函数到当前作用域
-import { get as getAuthApi } from './认证'
+import { getAuth as getAuthApi } from './auth'
 import { getCustomers } from './customers'
 import { getUsers } from './users'
 import { getContacts } from './contacts'
@@ -25,18 +25,13 @@ import { getLogs } from './logs'
 import { getWebhook } from './webhook'
 import { getRules } from './rules'
 import { getCustomerContacts } from './customer-contacts'
-
-// 中文模块
-import { get as getProductPackagesApi } from './产品套餐'
-import { get as getProductFlowsApi } from './产品流程'
-import { get as getContractTemplatesApi } from './合同模板'
-import { get as getPaymentCallbackApi } from './支付回调'
-import { get as getPaymentOrdersApi } from './支付订单'
-import { get as getPaymentConfigsApi } from './支付配置'
-import { get as getSocialMediaContentApi } from './新媒体管理-内容'
-import { get as getSocialMediaAccountsApi } from './新媒体管理-账号'
-import { get as getSystemSettingsApi } from './系统设置'
-import { get as getNotificationsApi } from './通知管理'
+import { get as getProductPackagesApi } from './product-packages'
+import { get as getProductFlowsApi } from './product-flows'
+import { get as getContractTemplatesApi } from './contract-templates'
+import { get as getSocialMediaContentApi } from './social-media-posts'
+import { get as getSocialMediaAccountsApi } from './social-media-accounts'
+import { get as getSystemSettingsApi } from './system-config'
+import { get as getNotificationsApi } from './notifications'
 
 // 重新导出所有模块
 export { getAuthApi }
@@ -63,9 +58,6 @@ export { getCustomerContacts }
 export { getProductPackagesApi }
 export { getProductFlowsApi }
 export { getContractTemplatesApi }
-export { getPaymentCallbackApi }
-export { getPaymentOrdersApi }
-export { getPaymentConfigsApi }
 export { getSocialMediaContentApi }
 export { getSocialMediaAccountsApi }
 export { getSystemSettingsApi }
