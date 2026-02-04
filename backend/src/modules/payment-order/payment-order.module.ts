@@ -3,6 +3,7 @@ import { PaymentOrderController } from './controllers/payment-order.controller';
 import { PaymentConfigController } from './controllers/payment-config.controller';
 import { PaymentWebhookController } from './controllers/webhook.controller';
 import { CertificateController } from './controllers/certificate.controller';
+import { PaymentTestController } from './controllers/test.controller';
 import { PaymentOrderService } from './services/payment-order.service';
 import { PaymentConfigService } from './services/payment-config.service';
 import { CertificateService } from './services/certificate.service';
@@ -18,6 +19,7 @@ import { PrismaService } from '@/common/prisma/prisma.service';
     PaymentConfigController,
     PaymentWebhookController,
     CertificateController,
+    PaymentTestController,
   ],
   providers: [
     PaymentOrderService,
