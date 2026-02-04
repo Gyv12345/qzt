@@ -41,6 +41,9 @@ coverage/
 # Git Worktrees
 .worktrees/
 
+# Payment Certificates
+certificates/
+
 
 # Temporary
 *.tmp
