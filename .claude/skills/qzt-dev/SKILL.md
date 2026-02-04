@@ -311,6 +311,9 @@ pnpm run format         # 代码格式化
 | 404 错误 | 检查是否有 `/api` 前缀（不应该有） |
 | 类型错误 | 运行 `pnpm run generate:api` |
 | Bull 模块依赖错误 | 迁移到 BullMQ + node-cron（见下方） |
+| **Context Hook 报错** | **确保组件用 Provider 包裹，参考 Tasks 模块** |
+| **API 响应 undefined** | **不访问 `.data`，拦截器已自动提取** |
+| **环境变量未加载** | **使用 `forRootAsync` + `useFactory` + `ConfigService`** |
 
 ## 📖 技术栈概览
 
@@ -343,7 +346,14 @@ pnpm run format         # 代码格式化
 7. ✅ **遵循 Prisma 最佳实践**，优化查询
 8. ✅ **遇到问题查阅参考文档**
 9. ✅ **遇到模块启动失败时，先询问用户再决定解决方案**
+10. ✅ **使用 ConfigService 读取环境变量**，不要直接用 `process.env`
+11. ✅ **Hook 返回 API 调用结果即可**，不要访问 `response.data`
 
 ---
+
+## 📚 会话记录
+
+详细的开发会话总结请查看：
+- **[2025-02-04 会话总结](./references/session-2025-02-04.md)** - API 导入错误修复、Redis 配置、系统设置模块新增
 
 **遇到具体问题时，优先查阅相应的参考文档获取详细指导和示例。**
