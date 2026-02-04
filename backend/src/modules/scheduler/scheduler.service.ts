@@ -375,7 +375,7 @@ export class SchedulerService {
     const lastExecution = await this.prisma.automationTask.findFirst({
       where: {
         ruleId: rule.id,
-        createdAt: {
+        executedAt: {
           gte: new Date(now.getFullYear(), now.getMonth(), 1),
         },
       },
