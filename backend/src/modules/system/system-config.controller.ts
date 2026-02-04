@@ -17,7 +17,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SystemConfigService } from './system-config.service';
 
-@ApiTags('系统设置')
+@ApiTags('system-config')
 @Controller('system/config')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

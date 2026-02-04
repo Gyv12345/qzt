@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { I18nService } from 'nestjs-i18n';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@/common/prisma/prisma.service';
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { SafeUser } from './interfaces/auth.interface';
 
@@ -13,6 +13,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private i18n: I18nService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<SafeUser | null> {
@@ -39,11 +40,11 @@ export class AuthService {
     const user = await this.validateUser(loginDto.username, loginDto.password);
 
     if (!user) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException(this.i18n.t('auth.INVALID_CREDENTIALS'));
     }
 
     if (user.status !== 1) {
-      throw new UnauthorizedException('账号已被禁用');
+      throw new UnauthorizedException(this.i18n.t('auth.ACCOUNT_DISABLED'));
     }
 
     const payload = {
@@ -69,47 +70,6 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username: registerDto.username },
-    });
-
-    if (existingUser) {
-      throw new UnauthorizedException('用户名已存在');
-    }
-
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
-    const user = await this.prisma.user.create({
-      data: {
-        username: registerDto.username,
-        password: hashedPassword,
-        name: registerDto.name,
-        email: registerDto.email,
-        phone: registerDto.phone,
-      },
-      include: { roles: { include: { role: true } } },
-    });
-
-    // 分配默认角色(查找USER角色)
-    const defaultRole = await this.prisma.role.findFirst({
-      where: { code: 'USER' }
-    });
-
-    if (defaultRole) {
-      await this.prisma.userRole.create({
-        data: {
-          userId: user.id,
-          roleId: defaultRole.id
-        }
-      });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...result } = user;
-    return result;
-  }
-
   async getUserInfo(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -127,7 +87,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('用户不存在');
+      throw new UnauthorizedException(this.i18n.t('auth.USER_NOT_FOUND'));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

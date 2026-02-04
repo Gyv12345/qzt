@@ -16,13 +16,20 @@ const axiosInstance: AxiosInstance = axios.create({
   },
 })
 
-// 请求拦截器：自动注入 token
+// 请求拦截器：自动注入 token 和语言设置
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getToken()
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // 添加 Accept-Language 请求头
+    if (config.headers) {
+      const language = localStorage.getItem('i18nextLng') || 'zh'
+      config.headers['Accept-Language'] = language
+    }
+
     return config
   },
   (error) => {

@@ -16,7 +16,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { NotificationService } from './notification.service';
 
-@ApiTags('通知管理')
+@ApiTags('notifications')
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

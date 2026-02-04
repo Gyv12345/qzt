@@ -1,0 +1,36 @@
+{
+  "common": {
+    "success": "操作成功",
+    "error": "操作失败",
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "search": "搜索",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "submit": "提交",
+    "reset": "重置"
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出",
+    "username": "用户名",
+    "password": "密码",
+    "invalidCredentials": "用户名或密码错误",
+    "accountDisabled": "账号已被禁用",
+    "loginSuccess": "登录成功"
+  },
+  "customer": {
+    "title": "客户管理",
+    "name": "客户名称",
+    "code": "客户编码",
+    "level": "客户级别",
+    "industry": "行业",
+    "createSuccess": "客户创建成功",
+    "updateSuccess": "客户更新成功",
+    "deleteSuccess": "客户删除成功"
+  }
+}

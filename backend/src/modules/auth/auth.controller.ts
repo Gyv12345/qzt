@@ -2,13 +2,12 @@ import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { UserInfo } from './interfaces/auth.interface';
 
-@ApiTags('认证')
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -18,12 +17,6 @@ export class AuthController {
   @ApiResponse({ status: 201, type: LoginResponseDto })
   async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     return this.authService.login(loginDto);
-  }
-
-  @Post('register')
-  @ApiOperation({ summary: '用户注册' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
   }
 
   @Get('me')
