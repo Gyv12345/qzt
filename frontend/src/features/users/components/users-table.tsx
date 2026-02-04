@@ -22,28 +22,20 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { roles } from '../data/data'
-import { type User } from '../data/schema'
-import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
+import { useUsers } from '../hooks/use-users'
+import type { User } from '../types/user'
 
 type DataTableProps = {
-  data: User[]
   search: Record<string, unknown>
   navigate: NavigateFn
 }
 
-export function UsersTable({ data, search, navigate }: DataTableProps) {
-  // Local UI-only states
+export function UsersTable({ search, navigate }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
 
-  // Local state management for table (uncomment to use local-only state, not synced with URL)
-  // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
-  // const [pagination, onPaginationChange] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-
-  // Synced with URL states (keys/defaults mirror users route search schema)
   const {
     columnFilters,
     onColumnFiltersChange,
@@ -56,24 +48,38 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      // username per-column text filter
       { columnId: 'username', searchKey: 'username', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'role', searchKey: 'role', type: 'array' },
     ],
   })
 
-  // eslint-disable-next-line react-hooks/incompatible-library
+  // 构建查询参数
+  const queryParams = {
+    page: pagination.pageIndex + 1,
+    pageSize: pagination.pageSize,
+    username: columnFilters.find((f) => f.id === 'username')?.value as string,
+  }
+
+  const { data, isLoading, error } = useUsers(queryParams)
+
+  const users = data?.items || []
+  const total = data?.total || 0
+
   const table = useReactTable({
-    data,
+    data: users,
     columns,
     state: {
       sorting,
-      pagination,
+      pagination: {
+        ...pagination,
+        pageSize: pagination.pageSize,
+        pageIndex: pagination.pageIndex,
+      },
       rowSelection,
       columnFilters,
       columnVisibility,
     },
+    pageCount: Math.ceil(total / pagination.pageSize),
     enableRowSelection: true,
     onPaginationChange,
     onColumnFiltersChange,
@@ -86,38 +92,51 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: true,
   })
 
   useEffect(() => {
-    ensurePageInRange(table.getPageCount())
-  }, [table, ensurePageInRange])
+    const pageCount = Math.ceil(total / pagination.pageSize)
+    if (pagination.pageIndex >= pageCount && pageCount > 0) {
+      onPaginationChange({ ...pagination, pageIndex: pageCount - 1 })
+    }
+  }, [total, pagination, onPaginationChange])
+
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center py-32'>
+        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className='flex flex-col items-center justify-center py-32'>
+        <p className='text-muted-foreground'>加载用户数据失败</p>
+      </div>
+    )
+  }
 
   return (
     <div
       className={cn(
-        'max-sm:has-[div[role="toolbar"]]:mb-16', // Add margin bottom to the table on mobile when the toolbar is visible
+        'max-sm:has-[div[role="toolbar"]]:mb-16',
         'flex flex-1 flex-col gap-4'
       )}
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter users...'
+        searchPlaceholder='搜索用户名...'
         searchKey='username'
         filters={[
           {
             columnId: 'status',
-            title: 'Status',
+            title: '状态',
             options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
+              { label: '启用', value: '1' },
+              { label: '禁用', value: '0' },
             ],
-          },
-          {
-            columnId: 'role',
-            title: 'Role',
-            options: roles.map((role) => ({ ...role })),
           },
         ]}
       />
@@ -180,7 +199,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  No results.
+                  暂无数据
                 </TableCell>
               </TableRow>
             )}
@@ -188,7 +207,6 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
-      <DataTableBulkActions table={table} />
     </div>
   )
 }

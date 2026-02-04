@@ -8,11 +8,11 @@ import {
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
 import { ThemeProvider } from './context/theme-provider'
+import { AuthProvider } from './contexts/auth-context'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 // Styles
@@ -52,20 +52,18 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast.error('Session expired!')
-          useAuthStore.getState().auth.reset()
-          const redirect = `${router.history.location.href}`
-          router.navigate({ to: '/sign-in', search: { redirect } })
+          toast.error('登录已过期!')
+          // AuthContext 会通过 unauthorized 事件处理
+          window.dispatchEvent(new CustomEvent('unauthorized'))
         }
         if (error.response?.status === 500) {
-          toast.error('Internal Server Error!')
-          // Only navigate to error page in production to avoid disrupting HMR in development
+          toast.error('服务器错误!')
           if (import.meta.env.PROD) {
             router.navigate({ to: '/500' })
           }
         }
         if (error.response?.status === 403) {
-          // router.navigate("/forbidden", { replace: true });
+          toast.error('没有权限访问此页面')
         }
       }
     },
@@ -94,13 +92,15 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <FontProvider>
-            <DirectionProvider>
-              <RouterProvider router={router} />
-            </DirectionProvider>
-          </FontProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <FontProvider>
+              <DirectionProvider>
+                <RouterProvider router={router} />
+              </DirectionProvider>
+            </FontProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </StrictMode>
   )

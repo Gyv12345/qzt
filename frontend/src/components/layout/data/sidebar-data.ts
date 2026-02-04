@@ -21,139 +21,100 @@ import {
   AudioWaveform,
   Command,
   GalleryVerticalEnd,
+  Building,
 } from 'lucide-react'
-import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
   user: {
-    name: 'satnaing',
-    email: 'satnaingdev@gmail.com',
+    name: 'Admin',
+    email: 'admin@example.com',
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [
     {
-      name: 'Shadcn Admin',
+      name: '企账通 SCRM',
       logo: Command,
-      plan: 'Vite + ShadcnUI',
-    },
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
+      plan: '企业版',
     },
   ],
   navGroups: [
     {
-      title: 'General',
+      title: '业务',
       items: [
         {
-          title: 'Dashboard',
+          title: '工作台',
           url: '/',
           icon: LayoutDashboard,
         },
         {
-          title: 'Tasks',
-          url: '/tasks',
-          icon: ListTodo,
+          title: '客户管理',
+          url: '/customers',
+          icon: Building,
         },
         {
-          title: 'Apps',
-          url: '/apps',
-          icon: Package,
-        },
-        {
-          title: 'Chats',
-          url: '/chats',
-          badge: '3',
-          icon: MessagesSquare,
-        },
-        {
-          title: 'Users',
+          title: '用户管理',
           url: '/users',
           icon: Users,
         },
         {
-          title: 'Secured by Clerk',
-          icon: ClerkLogo,
-          items: [
-            {
-              title: 'Sign In',
-              url: '/clerk/sign-in',
-            },
-            {
-              title: 'Sign Up',
-              url: '/clerk/sign-up',
-            },
-            {
-              title: 'User Management',
-              url: '/clerk/user-management',
-            },
-          ],
+          title: '任务',
+          url: '/tasks',
+          icon: ListTodo,
+        },
+        {
+          title: '应用',
+          url: '/apps',
+          icon: Package,
+        },
+        {
+          title: '聊天',
+          url: '/chats',
+          badge: '3',
+          icon: MessagesSquare,
         },
       ],
     },
     {
-      title: 'Pages',
+      title: '页面',
       items: [
         {
-          title: 'Auth',
+          title: '认证',
           icon: ShieldCheck,
           items: [
             {
-              title: 'Sign In',
-              url: '/sign-in',
-            },
-            {
-              title: 'Sign In (2 Col)',
-              url: '/sign-in-2',
-            },
-            {
-              title: 'Sign Up',
-              url: '/sign-up',
-            },
-            {
-              title: 'Forgot Password',
-              url: '/forgot-password',
-            },
-            {
-              title: 'OTP',
-              url: '/otp',
+              title: '登录',
+              url: '/login',
             },
           ],
         },
         {
-          title: 'Errors',
+          title: '错误页',
           icon: Bug,
           items: [
             {
-              title: 'Unauthorized',
-              url: '/errors/unauthorized',
+              title: '未授权',
+              url: '/401',
               icon: Lock,
             },
             {
-              title: 'Forbidden',
-              url: '/errors/forbidden',
+              title: '禁止访问',
+              url: '/403',
               icon: UserX,
             },
             {
-              title: 'Not Found',
-              url: '/errors/not-found',
+              title: '未找到',
+              url: '/404',
               icon: FileX,
             },
             {
-              title: 'Internal Server Error',
-              url: '/errors/internal-server-error',
+              title: '服务器错误',
+              url: '/500',
               icon: ServerOff,
             },
             {
-              title: 'Maintenance Error',
-              url: '/errors/maintenance-error',
+              title: '维护中',
+              url: '/503',
               icon: Construction,
             },
           ],
@@ -161,41 +122,41 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
-      title: 'Other',
+      title: '其他',
       items: [
         {
-          title: 'Settings',
+          title: '设置',
           icon: Settings,
           items: [
             {
-              title: 'Profile',
+              title: '个人资料',
               url: '/settings',
               icon: UserCog,
             },
             {
-              title: 'Account',
+              title: '账号',
               url: '/settings/account',
               icon: Wrench,
             },
             {
-              title: 'Appearance',
+              title: '外观',
               url: '/settings/appearance',
               icon: Palette,
             },
             {
-              title: 'Notifications',
+              title: '通知',
               url: '/settings/notifications',
               icon: Bell,
             },
             {
-              title: 'Display',
+              title: '显示',
               url: '/settings/display',
               icon: Monitor,
             },
           ],
         },
         {
-          title: 'Help Center',
+          title: '帮助中心',
           url: '/help-center',
           icon: HelpCircle,
         },
