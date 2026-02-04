@@ -9,7 +9,7 @@ import {
 } from './dto/social-media-account.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@ApiTags('新媒体管理-账号')
+@ApiTags('social-media-accounts')
 @Controller('social-media/accounts')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

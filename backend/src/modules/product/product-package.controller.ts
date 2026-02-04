@@ -18,7 +18,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProductPackageService } from './product-package.service';
 
-@ApiTags('产品套餐')
+@ApiTags('product-packages')
 @Controller('product-packages')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

@@ -11,7 +11,7 @@ import {
 } from './dto/social-media-post.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@ApiTags('新媒体管理-内容')
+@ApiTags('social-media-posts')
 @Controller('social-media/posts')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

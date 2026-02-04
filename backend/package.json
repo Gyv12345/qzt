@@ -40,6 +40,7 @@
     "class-validator": "^0.14.0",
     "form-data": "^4.0.5",
     "joi": "^17.11.0",
+    "nestjs-i18n": "^10.6.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

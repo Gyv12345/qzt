@@ -16,7 +16,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContractTemplateService } from './contract-template.service';
 
-@ApiTags('合同模板')
+@ApiTags('contract-templates')
 @Controller('contract-templates')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

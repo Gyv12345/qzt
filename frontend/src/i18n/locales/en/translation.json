@@ -1,0 +1,36 @@
+{
+  "common": {
+    "success": "Operation successful",
+    "error": "Operation failed",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "noData": "No data",
+    "submit": "Submit",
+    "reset": "Reset"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "invalidCredentials": "Invalid username or password",
+    "accountDisabled": "Account has been disabled",
+    "loginSuccess": "Login successful"
+  },
+  "customer": {
+    "title": "Customer Management",
+    "name": "Customer Name",
+    "code": "Customer Code",
+    "level": "Customer Level",
+    "industry": "Industry",
+    "createSuccess": "Customer created successfully",
+    "updateSuccess": "Customer updated successfully",
+    "deleteSuccess": "Customer deleted successfully"
+  }
+}
