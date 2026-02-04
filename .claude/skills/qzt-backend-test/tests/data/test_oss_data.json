@@ -1,0 +1,22 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/oss/upload",
+    "summary": "上传文件",
+    "request_body": {
+      "fileName": "document.pdf",
+      "fileContent": "base64...",
+      "fileType": "document",
+      "mimeType": "application/pdf"
+    }
+  },
+  "post_1": {
+    "method": "POST",
+    "path": "/oss/upload-url",
+    "summary": "获取上传授权 URL（前端直传）",
+    "request_body": {
+      "fileName": "document.pdf",
+      "mimeType": "application/pdf"
+    }
+  }
+}

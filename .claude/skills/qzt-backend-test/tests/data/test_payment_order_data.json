@@ -1,0 +1,55 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/payment/orders",
+    "summary": "创建支付订单",
+    "request_body": {
+      "amount": 100,
+      "paymentMethod": "wechat",
+      "paymentChannel": "0tes7Zy2K",
+      "clientIp": "fBc0x3",
+      "returnUrl": "https://www.test1483.com",
+      "body": "39kiHjNS",
+      "attach": "9vFkSnYK3t74bnPRV"
+    }
+  },
+  "post_5": {
+    "method": "POST",
+    "path": "/payment/orders/qrcode",
+    "summary": "生成支付二维码",
+    "request_body": {
+      "orderId": "rKJXgbCQpn"
+    }
+  },
+  "post_6": {
+    "method": "POST",
+    "path": "/payment/orders/refund",
+    "summary": "申请退款",
+    "request_body": {
+      "orderId": "0FFC7Va60TTK",
+      "amount": 100,
+      "reason": "xp4xWnVtZqC4rIF7x0j9"
+    }
+  },
+  "post_9": {
+    "method": "POST",
+    "path": "/payment/configs",
+    "summary": "创建支付配置",
+    "request_body": {
+      "paymentMethod": "wechat",
+      "paymentChannel": "wechat_pay",
+      "appId": "9x3lQ2p8",
+      "appSecret": "ATTrOB723Zko",
+      "merchantId": "X3b4PM6hEM6BIKR"
+    }
+  },
+  "put_11": {
+    "method": "PUT",
+    "path": "/payment/configs/{id}",
+    "summary": "更新支付配置",
+    "request_body": {
+      "apiKey": "ukrQFqQmAs",
+      "returnUrl": "北京市朝阳区测试路652号"
+    }
+  }
+}

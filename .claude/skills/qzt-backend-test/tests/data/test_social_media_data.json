@@ -1,0 +1,103 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/social-media/accounts",
+    "summary": "创建新媒体账号",
+    "request_body": {
+      "platform": "douyin",
+      "accountName": "企业官方账号",
+      "appId": "GEQBNEy9",
+      "refreshToken": "v4xGxOwGVfz8h42Ry90",
+      "accountId": "aVIutCO9BqTos747",
+      "unionId": "9Q66tErI1rvcdyeY"
+    }
+  },
+  "put_2": {
+    "method": "PUT",
+    "path": "/social-media/accounts/{id}",
+    "summary": "更新新媒体账号",
+    "request_body": {
+      "appId": "UDrQUQ5K92G6X0MaKDCK",
+      "accessToken": "3SXoH",
+      "status": 1,
+      "expiresAt": "WtUEr2vHDMryJl"
+    }
+  },
+  "post_5": {
+    "method": "POST",
+    "path": "/social-media/accounts/refresh-token",
+    "summary": "刷新访问令牌",
+    "request_body": {
+      "id": "VYwzy"
+    }
+  },
+  "post_7": {
+    "method": "POST",
+    "path": "/social-media/posts",
+    "summary": "创建新媒体内容",
+    "request_body": {
+      "accountId": "dkO4vaQnR1dEmXXj",
+      "title": "产品介绍视频",
+      "content": "C5lH9KDnbu",
+      "videoFileId": "oD2FkpVubvA3vJHWeQpb",
+      "coverFileId": "ddftG",
+      "videoUrl": "https://www.test1463.com",
+      "topics": [
+        "产品介绍",
+        "新品发布"
+      ],
+      "visibility": "public",
+      "scheduledAt": "LgrbKVsFWBmH8K1uH"
+    }
+  },
+  "put_9": {
+    "method": "PUT",
+    "path": "/social-media/posts/{id}",
+    "summary": "更新新媒体内容",
+    "request_body": {
+      "coverFileId": "wiodQ1hq8NsKP2",
+      "videoUrl": "https://www.test7838.com",
+      "location": "7hsb2Pv1ei1qCmWo26",
+      "visibility": "jL8DETo8BIB23CRe",
+      "scheduledAt": "EFrIlVbwEUm",
+      "status": "failed"
+    }
+  },
+  "post_12": {
+    "method": "POST",
+    "path": "/social-media/posts/publish",
+    "summary": "发布内容",
+    "request_body": {
+      "id": "sqfqY",
+      "platforms": [
+        "douyin",
+        "xiaohongshu"
+      ]
+    }
+  },
+  "post_13": {
+    "method": "POST",
+    "path": "/social-media/posts/schedule",
+    "summary": "定时发布",
+    "request_body": {
+      "id": "TCuJ1xpVShm9eo8yZLmv",
+      "scheduledAt": "H26CsyT"
+    }
+  },
+  "post_15": {
+    "method": "POST",
+    "path": "/social-media/posts/batch-publish",
+    "summary": "批量发布",
+    "request_body": {
+      "ids": [
+        "xVhEmllwAr6iC",
+        "JNtiE",
+        "te0p3F3NWpQulmET"
+      ],
+      "platforms": [
+        "c6oXDeGHctQR8bW",
+        "6WdF6YOolfQ8E9x"
+      ]
+    }
+  }
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 STATISTICS 模块 API 测试
-自动生成于: 2026-02-04T09:59:12.988041
+自动生成于: 2026-02-04T10:25:51.741832
 """
 
 import requests
@@ -12,7 +12,7 @@ import os
 # 添加父目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
-from test_base import TestBase
+from utils.test_base import TestBase
 
 
 class StatisticsTest(TestBase):
@@ -26,66 +26,134 @@ class StatisticsTest(TestBase):
     def test_get_0(self):
         """测试: 获取首页仪表板数据"""
         self.test_endpoint(
-            "GET", "/statistics/dashboard",
-            "获取首页仪表板数据",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/dashboard",
+        "获取首页仪表板数据",
+        expect_status=200,
+        require_auth=True
+    )
 
     def test_get_1(self):
         """测试: 获取客户增长趋势"""
         self.test_endpoint(
-            "GET", "/statistics/customer-growth",
-            "获取客户增长趋势",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/customer-growth",
+        "获取客户增长趋势",
+        expect_status=200,
+        require_auth=True
+    )
 
     def test_get_2(self):
         """测试: 获取合同续约率统计"""
         self.test_endpoint(
-            "GET", "/statistics/contract-renewal",
-            "获取合同续约率统计",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/contract-renewal",
+        "获取合同续约率统计",
+        expect_status=200,
+        require_auth=True
+    )
 
     def test_get_3(self):
         """测试: 获取开票金额分析"""
         self.test_endpoint(
-            "GET", "/statistics/invoice-analysis",
-            "获取开票金额分析",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/invoice-analysis",
+        "获取开票金额分析",
+        expect_status=200,
+        require_auth=True
+    )
 
     def test_get_4(self):
         """测试: 获取销售业绩排行"""
         self.test_endpoint(
-            "GET", "/statistics/sales-performance",
-            "获取销售业绩排行",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/sales-performance",
+        "获取销售业绩排行",
+        expect_status=200,
+        require_auth=True
+    )
 
     def test_get_5(self):
         """测试: 获取产品销售统计"""
         self.test_endpoint(
-            "GET", "/statistics/product-sales",
-            "获取产品销售统计",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/product-sales",
+        "获取产品销售统计",
+        expect_status=200,
+        require_auth=True
+    )
 
     def test_get_6(self):
         """测试: 导出数据"""
         self.test_endpoint(
-            "GET", "/statistics/export",
-            "导出数据",
-            expect_status=200,
-            require_auth=true
-        )
+        "GET", "/statistics/export",
+        "导出数据",
+        expect_status=200,
+        require_auth=True
+    )
 
+
+    def run_crud_tests(self):
+        """运行完整的 CRUD 测试流程"""
+        print("\n" + "="*60)
+        print(f"Statistics 模块 CRUD 测试")
+        print("="*60 + "\n")
+
+        # 1. 查询列表
+        # 列表测试在索引 0
+        if "test_get" in str(dir(self)):
+            try:
+                list_method = getattr(self, "test_get_0", None)
+                if list_method:
+                    list_method()
+            except:
+                pass
+
+        # 2. 创建资源
+        # 无创建测试
+        if "test_post" in str(dir(self)):
+            try:
+                create_method = getattr(self, "test_post_0", None)
+                if create_method:
+                    create_method()
+            except:
+                pass
+
+        # 3. 查询详情（使用创建的 ID）
+        # 无详情测试
+        if hasattr(self, 'test_get_1'):
+            try:
+                detail_method = getattr(self, "test_get_1", None)
+                if detail_method:
+                    # 替换路径中的 ID
+                    resource_id = self.get_resource_id('statistics')
+                    if resource_id:
+                        detail_method()
+            except:
+                pass
+
+        # 4. 更新资源（使用创建的 ID）
+        # 无更新测试
+        if hasattr(self, 'test_patch_0'):
+            try:
+                update_method = getattr(self, "test_patch_0", None)
+                if update_method:
+                    resource_id = self.get_resource_id('statistics')
+                    if resource_id:
+                        update_method()
+            except:
+                pass
+
+        # 5. 删除资源（使用创建的 ID）
+        # 无删除测试
+        if hasattr(self, 'test_delete_0'):
+            try:
+                delete_method = getattr(self, "test_delete_0", None)
+                if delete_method:
+                    resource_id = self.get_resource_id('statistics')
+                    if resource_id:
+                        delete_method()
+            except:
+                pass
+
+        self.print_summary()
+
+        # 清理资源
+        # self.cleanup_resources()
 
     def run_all_tests(self):
         """运行所有测试"""

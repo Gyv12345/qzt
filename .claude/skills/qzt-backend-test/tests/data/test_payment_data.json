@@ -1,0 +1,26 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/payments",
+    "summary": "创建收款记录",
+    "request_body": {
+      "contractId": "cuid123",
+      "amount": 5000,
+      "method": 1,
+      "voucherUrl": "https://www.test4736.com",
+      "payTime": "Q45EBJ9wpAiwaZm",
+      "remark": "mah9vSuFVIX1"
+    }
+  },
+  "patch_4": {
+    "method": "PATCH",
+    "path": "/payments/{id}",
+    "summary": "更新收款记录",
+    "request_body": {
+      "amount": 5000,
+      "method": 1,
+      "voucherUrl": "https://www.test5837.com",
+      "remark": "9TiNRFoSi"
+    }
+  }
+}

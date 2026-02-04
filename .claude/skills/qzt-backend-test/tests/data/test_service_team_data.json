@@ -1,0 +1,22 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/service-teams",
+    "summary": "添加服务团队成员",
+    "request_body": {
+      "customerId": "cuid123",
+      "userId": "cuid456",
+      "roleCode": "SALE"
+    }
+  },
+  "patch_4": {
+    "method": "PATCH",
+    "path": "/service-teams/{id}",
+    "summary": "更新服务团队成员",
+    "request_body": {
+      "customerId": "cuid123",
+      "userId": "cuid456",
+      "roleCode": "SALE"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/webhook/send",
+    "summary": "发送 Webhook 消息",
+    "request_body": {
+      "configId": "clxxxx",
+      "messageType": "text",
+      "content": {
+        "content": "测试消息"
+      }
+    }
+  },
+  "post_2": {
+    "method": "POST",
+    "path": "/webhook/configs",
+    "summary": "创建 Webhook 配置",
+    "request_body": {
+      "name": "企业微信通知",
+      "platform": "wecom",
+      "webhookUrl": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx",
+      "enabled": true
+    }
+  },
+  "patch_3": {
+    "method": "PATCH",
+    "path": "/webhook/configs/{id}",
+    "summary": "更新 Webhook 配置",
+    "request_body": {
+      "name": "企业微信通知",
+      "platform": "wecom",
+      "webhookUrl": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx",
+      "enabled": true
+    }
+  },
+  "post_5": {
+    "method": "POST",
+    "path": "/webhook/test",
+    "summary": "测试 Webhook 发送",
+    "request_body": {
+      "webhookUrl": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx",
+      "platform": "wecom"
+    }
+  }
+}

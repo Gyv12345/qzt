@@ -13,7 +13,9 @@ from pathlib import Path
 
 def discover_test_files(tests_dir: str) -> list:
     """发现所有测试文件"""
-    pattern = f"{tests_dir}/modules/test_*.py"
+    # 修复：tests_dir 应该已经是包含 modules 的目录
+    # 所以路径应该是 tests_dir/test_*.py 而不是 tests_dir/modules/test_*.py
+    pattern = f"{tests_dir}/test_*.py"
     test_files = glob.glob(pattern)
     return sorted(test_files)
 
@@ -21,6 +23,15 @@ def discover_test_files(tests_dir: str) -> list:
 def load_test_class(filepath: str):
     """动态加载测试类"""
     module_name = Path(filepath).stem
+
+    # 添加 tests 目录到 sys.path，以便导入 test_base
+    tests_dir = os.path.dirname(os.path.abspath(__file__))
+    if tests_dir not in sys.path:
+        sys.path.insert(0, tests_dir)
+    # 添加 utils 目录到 sys.path
+    utils_dir = os.path.join(tests_dir, 'utils')
+    if utils_dir not in sys.path:
+        sys.path.insert(0, utils_dir)
 
     spec = importlib.util.spec_from_file_location(module_name, filepath)
     if spec is None or spec.loader is None:
