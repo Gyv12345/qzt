@@ -25,13 +25,13 @@ import { getLogs } from './logs'
 import { getWebhook } from './webhook'
 import { getRules } from './rules'
 import { getCustomerContacts } from './customer-contacts'
-import { get as getProductPackagesApi } from './product-packages'
-import { get as getProductFlowsApi } from './product-flows'
-import { get as getContractTemplatesApi } from './contract-templates'
-import { get as getSocialMediaContentApi } from './social-media-posts'
-import { get as getSocialMediaAccountsApi } from './social-media-accounts'
-import { get as getSystemSettingsApi } from './system-config'
-import { get as getNotificationsApi } from './notifications'
+import { getProductPackages } from './product-packages'
+import { getProductFlows } from './product-flows'
+import { getContractTemplates } from './contract-templates'
+import { getSocialMediaPosts } from './social-media-posts'
+import { getSocialMediaAccounts } from './social-media-accounts'
+import { getSystemConfig } from './system-config'
+import { getNotifications } from './notifications'
 
 // 重新导出所有模块
 export { getAuthApi }
@@ -55,13 +55,13 @@ export { getLogs }
 export { getWebhook }
 export { getRules }
 export { getCustomerContacts }
-export { getProductPackagesApi }
-export { getProductFlowsApi }
-export { getContractTemplatesApi }
-export { getSocialMediaContentApi }
-export { getSocialMediaAccountsApi }
-export { getSystemSettingsApi }
-export { getNotificationsApi }
+export { getProductPackages }
+export { getProductFlows }
+export { getContractTemplates }
+export { getSocialMediaPosts }
+export { getSocialMediaAccounts }
+export { getSystemConfig }
+export { getNotifications }
 
 // 兼容旧的 getScrmApi
 export const getScrmApi = () => ({
@@ -86,4 +86,11 @@ export const getScrmApi = () => ({
   ...getWebhook(),
   ...getRules(),
   ...getCustomerContacts(),
+  ...getProductPackages(),
+  ...getProductFlows(),
+  ...getContractTemplates(),
+  ...getSocialMediaPosts(),
+  ...getSocialMediaAccounts(),
+  ...getSystemConfig(),
+  ...getNotifications(),
 })

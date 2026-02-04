@@ -310,6 +310,7 @@ pnpm run format         # 代码格式化
 | require 错误 | 改用 ES6 `import`，不使用 `require()` |
 | 404 错误 | 检查是否有 `/api` 前缀（不应该有） |
 | 类型错误 | 运行 `pnpm run generate:api` |
+| Bull 模块依赖错误 | 迁移到 BullMQ + node-cron（见下方） |
 
 ## 📖 技术栈概览
 
@@ -325,6 +326,7 @@ pnpm run format         # 代码格式化
 - PostgreSQL
 - Swagger/OpenAPI 3.0
 - nestjs-i18n (国际化，支持中英文)
+- BullMQ + node-cron (异步任务和定时调度)
 
 ### 工具
 - pnpm（包管理器）
@@ -341,38 +343,6 @@ pnpm run format         # 代码格式化
 7. ✅ **遵循 Prisma 最佳实践**，优化查询
 8. ✅ **遇到问题查阅参考文档**
 9. ✅ **遇到模块启动失败时，先询问用户再决定解决方案**
-
----
-
-**遇到具体问题时，优先查阅相应的参考文档获取详细指导和示例。**
-
-## 📝 本次问题总结（2026-02-04）
-
-### 问题描述
-前端报错：`The requested module '/src/services/api/auth.ts' does not provide an export named 'get'`
-
-### 根本原因
-1. 后端启动失败（模块依赖注入问题）
-2. 无法生成 API 客户端
-3. 前端导入名称与生成的不匹配
-
-### 修复过程
-1. ✅ 识别 `SchedulerModule` 和 `AutomationModule` 依赖注入问题
-2. ✅ 修复 i18n 路径配置（`dist/src/i18n/` → `src/i18n/`）
-3. ⚠️ 暂时禁用了有问题的模块（**应该先询问用户**）
-4. ✅ 使用 `./start-dev.sh` 成功启动后端
-5. ✅ 重新生成 API 客户端
-6. ✅ 修正前端导入语句
-
-### 经验教训
-1. **必须使用 `./start-dev.sh`** 启动服务，不要手动运行命令
-2. **遇到模块问题时必须先询问用户**，不能擅自注释掉功能模块
-3. **将解决方案记录到文档**，避免未来重复犯错
-4. **API 导入名称不匹配** 的问题可能重复出现，需要每次检查生成的导出名称
-
-### 文档更新
-- ✅ `SKILL.md` - 添加启动规范和决策流程
-- ✅ `troubleshooting.md` - 添加模块依赖注入问题解决方案
 
 ---
 

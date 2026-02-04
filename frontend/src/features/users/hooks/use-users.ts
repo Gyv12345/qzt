@@ -13,8 +13,7 @@ export function useUsers(params?: {
     queryKey: ['users', params],
     queryFn: async () => {
       const { usersControllerFindAll } = getScrmApi()
-      const response = await usersControllerFindAll(params)
-      return response.data as any
+      return await usersControllerFindAll(params)
     },
   })
 }
@@ -25,8 +24,7 @@ export function useUser(id: string) {
     queryKey: ['user', id],
     queryFn: async () => {
       const { usersControllerFindOne } = getScrmApi()
-      const response = await usersControllerFindOne(id)
-      return response.data as any
+      return await usersControllerFindOne(id)
     },
     enabled: !!id,
   })
@@ -39,8 +37,7 @@ export function useCreateUser() {
   return useMutation({
     mutationFn: async (data: CreateUserDto) => {
       const { usersControllerCreate } = getScrmApi()
-      const response = await usersControllerCreate(data)
-      return response.data
+      return await usersControllerCreate(data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -59,8 +56,7 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateUserDto }) => {
       const { usersControllerUpdate } = getScrmApi()
-      const response = await usersControllerUpdate(id, data)
-      return response.data
+      return await usersControllerUpdate(id, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -79,8 +75,7 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { usersControllerRemove } = getScrmApi()
-      const response = await usersControllerRemove(id)
-      return response.data
+      return await usersControllerRemove(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })

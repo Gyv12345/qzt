@@ -5,6 +5,7 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { UsersProvider } from './components/users-provider'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersTable } from './components/users-table'
@@ -16,7 +17,7 @@ export function Users() {
   const navigate = route.useNavigate()
 
   return (
-    <>
+    <UsersProvider>
       <Header fixed>
         <Search />
         <div className='ms-auto flex items-center space-x-4'>
@@ -40,6 +41,6 @@ export function Users() {
       </Main>
 
       <UsersDialogs />
-    </>
+    </UsersProvider>
   )
 }
