@@ -5,23 +5,9 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
-import type { LoginDto, RegisterDto } from "../../models";
+import type { LoginDto, LoginResponseDto, RegisterDto } from "@/models";
 
 import { customInstance } from "../api-client";
-
-// 登录响应类型
-export interface LoginResponseDto {
-  access_token: string;
-  user: {
-    id: string;
-    username: string;
-    name: string;
-    email?: string;
-    phone?: string;
-    avatar?: string;
-    roles: Array<{ id: string; name: string; code: string }>;
-  };
-}
 
 export const get = () => {
   /**
@@ -50,7 +36,7 @@ export const get = () => {
    * @summary 获取当前用户信息
    */
   const authControllerGetUserInfo = () => {
-    return customInstance<LoginResponseDto['user']>({ url: `/auth/me`, method: "GET" });
+    return customInstance<LoginResponseDto>({ url: `/auth/me`, method: "GET" });
   };
   return {
     authControllerLogin,
@@ -58,12 +44,3 @@ export const get = () => {
     authControllerGetUserInfo,
   };
 };
-export type AuthControllerLoginResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof get>["authControllerLogin"]>>
->;
-export type AuthControllerRegisterResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof get>["authControllerRegister"]>>
->;
-export type AuthControllerGetUserInfoResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof get>["authControllerGetUserInfo"]>>
->;

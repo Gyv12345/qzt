@@ -1,4 +1,5 @@
 import { getRouteApi } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -6,13 +7,19 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { CustomersPrimaryButtons } from './components/customers-primary-buttons'
 import { CustomersTable } from './components/customers-table'
-import { CustomersDialogs } from './components/customers-dialogs'
+import { CustomersDialogs, useCustomersDialogs } from './components/customers-dialogs'
 
-const route = getRouteApi('/_authenticated/customers/')
+const route = getRouteApi('/_authenticated/customers')
 
-export function Customers() {
+function CustomersContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+  const queryClient = useQueryClient()
+  const { openCreateDialog, openEditDialog } = useCustomersDialogs()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['customers'] })
+  }
 
   return (
     <>
@@ -32,12 +39,29 @@ export function Customers() {
               管理您的客户信息和跟进记录
             </p>
           </div>
-          <CustomersPrimaryButtons />
+          <CustomersPrimaryButtons onCreate={openCreateDialog} />
         </div>
-        <CustomersTable search={search} navigate={navigate} />
+        <CustomersTable
+          search={search}
+          navigate={navigate}
+          onEdit={openEditDialog}
+          onRefresh={handleRefresh}
+        />
       </Main>
-
-      <CustomersDialogs />
     </>
+  )
+}
+
+export function Customers() {
+  const queryClient = useQueryClient()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['customers'] })
+  }
+
+  return (
+    <CustomersDialogs onRefresh={handleRefresh}>
+      <CustomersContent />
+    </CustomersDialogs>
   )
 }

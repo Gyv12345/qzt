@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import {
   type SortingState,
   type VisibilityState,
@@ -23,18 +23,23 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { customersColumns } from './customers-columns'
-import { useCustomers } from '../hooks/use-customers'
+import { DataTableRowActions } from './data-table-row-actions'
+import { useCustomers, useDeleteCustomer } from '../hooks/use-customers'
 import type { Customer } from '../types/customer'
 
 type DataTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
+  onEdit: (customer: Customer) => void
+  onRefresh: () => void
 }
 
-export function CustomersTable({ search, navigate }: DataTableProps) {
+export function CustomersTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+
+  const deleteMutation = useDeleteCustomer()
 
   // 从 URL 获取分页和筛选参数
   const {
@@ -66,9 +71,42 @@ export function CustomersTable({ search, navigate }: DataTableProps) {
   const customers = data?.items || []
   const total = data?.total || 0
 
+  // 处理删除
+  const handleDelete = useCallback(async (customer: Customer) => {
+    if (window.confirm(`确定要删除客户"${customer.name}"吗？此操作不可恢复。`)) {
+      try {
+        await deleteMutation.mutateAsync(customer.id)
+        onRefresh()
+      } catch (error) {
+        console.error('删除失败:', error)
+      }
+    }
+  }, [deleteMutation, onRefresh])
+
+  // 创建带有回调的列定义
+  const columns = useMemo(() => {
+    return customersColumns.map((col) => {
+      if (col.id === 'actions') {
+        return {
+          ...col,
+          cell: (props: any) => {
+            return (
+              <DataTableRowActions
+                row={props.row}
+                onEdit={onEdit}
+                onDelete={handleDelete}
+              />
+            )
+          },
+        }
+      }
+      return col
+    })
+  }, [onEdit, handleDelete])
+
   const table = useReactTable({
     data: customers,
-    columns: customersColumns,
+    columns,
     state: {
       sorting,
       pagination: {
@@ -199,7 +237,7 @@ export function CustomersTable({ search, navigate }: DataTableProps) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={customersColumns.length}
+                  colSpan={columns.length}
                   className='h-24 text-center'
                 >
                   暂无数据

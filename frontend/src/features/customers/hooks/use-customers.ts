@@ -14,8 +14,7 @@ export function useCustomers(params?: {
     queryKey: ['customers', params],
     queryFn: async () => {
       const { customerControllerFindAll } = getScrmApi()
-      const response = await customerControllerFindAll(params)
-      return response.data as any
+      return await customerControllerFindAll(params) as any
     },
   })
 }
@@ -26,8 +25,7 @@ export function useCustomer(id: string) {
     queryKey: ['customer', id],
     queryFn: async () => {
       const { customerControllerFindOne } = getScrmApi()
-      const response = await customerControllerFindOne(id)
-      return response.data as any
+      return await customerControllerFindOne(id) as any
     },
     enabled: !!id,
   })
@@ -40,8 +38,7 @@ export function useCreateCustomer() {
   return useMutation({
     mutationFn: async (data: CreateCustomerDto) => {
       const { customerControllerCreate } = getScrmApi()
-      const response = await customerControllerCreate(data)
-      return response.data
+      return await customerControllerCreate(data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] })
@@ -60,8 +57,7 @@ export function useUpdateCustomer() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateCustomerDto }) => {
       const { customerControllerUpdate } = getScrmApi()
-      const response = await customerControllerUpdate(id, data)
-      return response.data
+      return await customerControllerUpdate(id, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] })
@@ -80,8 +76,7 @@ export function useDeleteCustomer() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { customerControllerRemove } = getScrmApi()
-      const response = await customerControllerRemove(id)
-      return response.data
+      return await customerControllerRemove(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] })
