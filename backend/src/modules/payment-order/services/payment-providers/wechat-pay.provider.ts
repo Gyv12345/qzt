@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { BasePaymentProvider } from './base-provider';
 import { QrCodeParams, QrCodeResult, CallbackResult, OrderStatus, RefundResult } from '../../interfaces/payment-provider.interface';
 import { QrCodeUtil } from '@/lib/qr-code.util';
+import { CertificateService } from '../certificate.service';
+import { CertificateType } from '../../dto/certificate.dto';
 import * as crypto from 'crypto';
 
 /**
@@ -13,7 +15,9 @@ export class WechatPayProvider extends BasePaymentProvider {
   private readonly baseUrl = 'https://api.mch.weixin.qq.com';
   private readonly apiV3 = '/v3';
 
-  constructor() {
+  constructor(
+    @Optional() private certificateService: CertificateService,
+  ) {
     super('WechatPayProvider');
   }
 
@@ -270,18 +274,52 @@ export class WechatPayProvider extends BasePaymentProvider {
    * 获取私钥
    */
   private getPrivateKey(): string {
-    // 这里应该从配置或文件中读取私钥
-    // TODO: 实现具体的私钥获取逻辑
-    return process.env.WECHAT_PRIVATE_KEY || '';
+    try {
+      // 优先从证书服务读取
+      if (this.certificateService) {
+        if (this.certificateService.certificateExists(
+          'wechat',
+          CertificateType.WECHAT_PRIVATE_KEY,
+        )) {
+          return this.certificateService.getCertificate(
+            'wechat',
+            CertificateType.WECHAT_PRIVATE_KEY,
+          );
+        }
+      }
+
+      // 从环境变量读取(降级策略)
+      return process.env.WECHAT_PRIVATE_KEY || '';
+    } catch (error) {
+      this.logger.error('获取微信私钥失败');
+      return '';
+    }
   }
 
   /**
    * 获取公钥
    */
   private getPublicKey(): string {
-    // 这里应该从配置或文件中读取公钥
-    // TODO: 实现具体的公钥获取逻辑
-    return process.env.WECHAT_PUBLIC_KEY || '';
+    try {
+      // 优先从证书服务读取
+      if (this.certificateService) {
+        if (this.certificateService.certificateExists(
+          'wechat',
+          CertificateType.WECHAT_PUBLIC_KEY,
+        )) {
+          return this.certificateService.getCertificate(
+            'wechat',
+            CertificateType.WECHAT_PUBLIC_KEY,
+          );
+        }
+      }
+
+      // 从环境变量读取(降级策略)
+      return process.env.WECHAT_PUBLIC_KEY || '';
+    } catch (error) {
+      this.logger.error('获取微信公钥失败');
+      return '';
+    }
   }
 
   /**
@@ -302,8 +340,32 @@ export class WechatPayProvider extends BasePaymentProvider {
    * 获取API密钥
    */
   private getApiKey(): Buffer {
-    const apiKey = process.env.WECHAT_API_KEY || '';
-    return Buffer.from(apiKey, 'utf8').slice(0, 32);
+    try {
+      let apiKey = '';
+
+      // 优先从证书服务读取
+      if (this.certificateService) {
+        if (this.certificateService.certificateExists(
+          'wechat',
+          CertificateType.WECHAT_API_KEY,
+        )) {
+          apiKey = this.certificateService.getCertificate(
+            'wechat',
+            CertificateType.WECHAT_API_KEY,
+          );
+        }
+      }
+
+      // 从环境变量读取(降级策略)
+      if (!apiKey) {
+        apiKey = process.env.WECHAT_API_KEY || '';
+      }
+
+      return Buffer.from(apiKey, 'utf8').slice(0, 32);
+    } catch (error) {
+      this.logger.error('获取微信API密钥失败');
+      return Buffer.alloc(32);
+    }
   }
 
   /**

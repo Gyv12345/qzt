@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { BasePaymentProvider } from './base-provider';
 import { QrCodeParams, QrCodeResult, CallbackResult, OrderStatus, RefundResult } from '../../interfaces/payment-provider.interface';
 import { QrCodeUtil } from '@/lib/qr-code.util';
+import { CertificateService } from '../certificate.service';
+import { CertificateType } from '../../dto/certificate.dto';
 import * as crypto from 'crypto';
 
 /**
@@ -12,7 +14,9 @@ import * as crypto from 'crypto';
 export class AlipayProvider extends BasePaymentProvider {
   private readonly gatewayUrl = 'https://openapi.alipay.com/gateway.do';
 
-  constructor() {
+  constructor(
+    @Optional() private certificateService: CertificateService,
+  ) {
     super('AlipayProvider');
   }
 
@@ -310,18 +314,52 @@ export class AlipayProvider extends BasePaymentProvider {
    * 获取私钥
    */
   private getPrivateKey(): string {
-    // 这里应该从配置或文件中读取私钥
-    // TODO: 实现具体的私钥获取逻辑
-    return process.env.ALIPAY_PRIVATE_KEY || '';
+    try {
+      // 优先从证书服务读取
+      if (this.certificateService) {
+        if (this.certificateService.certificateExists(
+          'alipay',
+          CertificateType.ALIPAY_PRIVATE_KEY,
+        )) {
+          return this.certificateService.getCertificate(
+            'alipay',
+            CertificateType.ALIPAY_PRIVATE_KEY,
+          );
+        }
+      }
+
+      // 从环境变量读取(降级策略)
+      return process.env.ALIPAY_PRIVATE_KEY || '';
+    } catch (error) {
+      this.logger.error('获取支付宝私钥失败');
+      return '';
+    }
   }
 
   /**
    * 获取支付宝公钥
    */
   private getAlipayPublicKey(): string {
-    // 这里应该从配置或文件中读取公钥
-    // TODO: 实现具体的公钥获取逻辑
-    return process.env.ALIPAY_PUBLIC_KEY || '';
+    try {
+      // 优先从证书服务读取
+      if (this.certificateService) {
+        if (this.certificateService.certificateExists(
+          'alipay',
+          CertificateType.ALIPAY_PUBLIC_KEY,
+        )) {
+          return this.certificateService.getCertificate(
+            'alipay',
+            CertificateType.ALIPAY_PUBLIC_KEY,
+          );
+        }
+      }
+
+      // 从环境变量读取(降级策略)
+      return process.env.ALIPAY_PUBLIC_KEY || '';
+    } catch (error) {
+      this.logger.error('获取支付宝公钥失败');
+      return '';
+    }
   }
 
   /**
