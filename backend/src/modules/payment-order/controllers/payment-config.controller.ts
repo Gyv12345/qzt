@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentConfigService } from '../services/payment-config.service';
 import {
@@ -79,6 +79,41 @@ export class PaymentConfigController {
     return {
       success: true,
       data: safeConfigs,
+    };
+  }
+
+  @Patch(':id/toggle')
+  @ApiOperation({ summary: '启用/禁用支付配置' })
+  async toggle(@Param('id') id: string) {
+    const config = await this.configService.toggleEnabled(id);
+    return {
+      success: true,
+      data: config,
+      message: `配置已${config.status === 1 ? '启用' : '禁用'}`,
+    };
+  }
+
+  @Get('active/:paymentMethod/:paymentChannel')
+  @ApiOperation({ summary: '获取激活的支付配置' })
+  async getActiveConfig(
+    @Param('paymentMethod') paymentMethod: string,
+    @Param('paymentChannel') paymentChannel: string
+  ) {
+    const config = await this.configService.getActiveConfig(paymentMethod, paymentChannel);
+
+    if (!config) {
+      return {
+        success: false,
+        message: '未找到激活的配置',
+      };
+    }
+
+    // 不返回敏感信息
+    const { appSecret, apiKey, ...safeConfig } = config;
+
+    return {
+      success: true,
+      data: safeConfig,
     };
   }
 }

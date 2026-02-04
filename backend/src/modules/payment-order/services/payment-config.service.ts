@@ -180,6 +180,34 @@ export class PaymentConfigService implements IPaymentConfigService {
   }
 
   /**
+   * 切换配置启用状态
+   */
+  async toggleEnabled(id: string): Promise<PaymentConfig> {
+    try {
+      const config = await this.prisma.paymentConfig.findUnique({
+        where: { id },
+      });
+
+      if (!config) {
+        throw new NotFoundException('配置不存在');
+      }
+
+      const updated = await this.prisma.paymentConfig.update({
+        where: { id },
+        data: {
+          status: config.status === 1 ? 0 : 1,
+        },
+      });
+
+      this.logger.log(`切换配置状态: ${id}, 新状态: ${updated.status}`);
+      return updated;
+    } catch (error) {
+      this.logger.error(`切换配置状态失败: ${error.message}`);
+      throw new BadRequestException(`切换状态失败: ${error.message}`);
+    }
+  }
+
+  /**
    * 解密敏感信息
    */
   async decryptSensitiveInfo(config: PaymentConfig): Promise<PaymentConfig> {
