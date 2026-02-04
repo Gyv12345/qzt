@@ -75,13 +75,16 @@ class QZTBackendTest:
             )
 
             if response.status_code in [200, 201]:
-                data = response.json()
+                result = response.json()
+                # token 在 data 对象内
+                data = result.get('data', {})
                 self.token = data.get('access_token')
                 if self.token:
                     self.log("登录成功，已获取 token", "PASS")
                     return True
                 else:
                     self.log("登录响应中缺少 token", "FAIL")
+                    self.log(f"响应内容: {json.dumps(result, indent=2, ensure_ascii=False)}", "WARN")
                     return False
             else:
                 self.log(f"登录失败: HTTP {response.status_code}", "FAIL")
@@ -205,21 +208,18 @@ class QZTBackendTest:
             expect_status=200, require_auth=True
         )
 
-        # 11. 产品流程测试
-        self.test_endpoint(
-            "GET", "/products/flows", "查询产品流程",
-            expect_status=200, require_auth=True
-        )
+        # 11. 产品流程测试（需要产品ID，这里跳过）
+        # 产品流程没有提供列表接口，需要通过产品ID查询
 
         # 12. 规则引擎测试
         self.test_endpoint(
-            "GET", "/rule-engine/triggers", "查询触发器",
+            "GET", "/rules/triggers", "查询触发器",
             expect_status=200, require_auth=True
         )
 
         # 13. 统计分析测试
         self.test_endpoint(
-            "GET", "/statistics/performance", "查询业绩统计",
+            "GET", "/statistics/sales-performance", "查询业绩统计",
             expect_status=200, require_auth=True
         )
 
@@ -230,7 +230,7 @@ class QZTBackendTest:
         )
 
         self.test_endpoint(
-            "GET", "/permissions", "查询权限列表",
+            "GET", "/permissions/permissions", "查询权限列表",
             expect_status=200, require_auth=True
         )
 
