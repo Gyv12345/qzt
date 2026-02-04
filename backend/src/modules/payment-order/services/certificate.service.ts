@@ -192,7 +192,7 @@ export class CertificateService {
   certificateExists(
     paymentMethod: string,
     certificateType: CertificateType,
-    environment: string = 'development',
+    environment: 'development' | 'production' = 'development',
   ): boolean {
     try {
       this.getCertificate(paymentMethod, certificateType, environment);
