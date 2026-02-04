@@ -49,3 +49,4 @@ certificates/
 *.tmp
 .temp/
 
+backend/.env.development
