@@ -53,11 +53,6 @@ export const sidebarData: SidebarData = {
           icon: Building,
         },
         {
-          title: '用户管理',
-          url: '/users',
-          icon: Users,
-        },
-        {
           title: '任务',
           url: '/tasks',
           icon: ListTodo,
@@ -72,6 +67,31 @@ export const sidebarData: SidebarData = {
           url: '/chats',
           badge: '3',
           icon: MessagesSquare,
+        },
+      ],
+    },
+    {
+      title: '系统设置',
+      items: [
+        {
+          title: '用户管理',
+          url: '/users',
+          icon: Users,
+        },
+        {
+          title: '部门管理',
+          url: '/departments',
+          icon: Building,
+        },
+        {
+          title: '角色管理',
+          url: '/roles',
+          icon: ShieldCheck,
+        },
+        {
+          title: '权限管理',
+          url: '/permissions',
+          icon: Lock,
         },
       ],
     },
