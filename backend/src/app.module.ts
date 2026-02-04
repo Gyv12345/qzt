@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Scope } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -19,7 +19,7 @@ import { ServiceTeamModule } from './modules/service-team/service-team.module';
 import { RuleEngineModule } from './modules/rule-engine/rule-engine.module';
 import { SystemModule } from './modules/system/system.module';
 import { PricingModule } from './modules/pricing/pricing.module';
-// import { AutomationModule } from './modules/automation/automation.module';
+import { AutomationModule } from './modules/automation/automation.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { UsersModule } from './modules/users/users.module';
 import { DepartmentModule } from './modules/department/department.module';
@@ -28,11 +28,12 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OssModule } from './modules/oss/oss.module';
 import { SocialMediaModule } from './modules/social-media/social-media.module';
 import { PaymentOrderModule } from './modules/payment-order/payment-order.module';
-// import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { I18nModule, AcceptLanguageResolver } from 'nestjs-i18n';
 import * as path from 'path';
 import { Reflector } from '@nestjs/core';
+import { BullModule } from '@nestjs/bull';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -139,7 +140,7 @@ const envSchema = Joi.object({
         limit: 10,
       },
     ]),
-    // ScheduleModule.forRoot(), // 暂时禁用以修复启动问题
+    // ScheduleModule.forRoot(), // 暂时禁用：Reflector 依赖问题
     PrismaModule,
     AuthModule,
     ContactModule,
@@ -155,7 +156,7 @@ const envSchema = Joi.object({
     RuleEngineModule,
     SystemModule,
     PricingModule,
-    // AutomationModule, // 暂时禁用以修复启动问题
+    AutomationModule,
     PermissionModule,
     UsersModule,
     DepartmentModule,
@@ -164,10 +165,17 @@ const envSchema = Joi.object({
     OssModule,
     SocialMediaModule,
     PaymentOrderModule,
-    // SchedulerModule, // 暂时禁用以修复启动问题
+    SchedulerModule,
     NotificationModule,
   ],
   controllers: [HealthController],
-  providers: [Reflector],
+  providers: [
+    {
+      provide: 'APP_REFLECTOR',
+      useClass: Reflector,
+      scope: Scope.TRANSIENT,
+    },
+    Reflector,
+  ],
 })
 export class AppModule {}

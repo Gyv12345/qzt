@@ -1,20 +1,25 @@
-import { Processor, Process, OnQueueActive, OnQueueCompleted, OnQueueFailed } from '@nestjs/bull';
+import { Processor, WorkerHost, OnQueueEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import { Job } from 'bullmq';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { AutomationService } from '../automation.service';
 
 @Processor('automation')
-export class ContractExpiryProcessor {
+export class ContractExpiryProcessor extends WorkerHost {
   private readonly logger = new Logger(ContractExpiryProcessor.name);
 
   constructor(
     private prisma: PrismaService,
     private automationService: AutomationService,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process('CONTRACT_EXPIRY')
-  async handleContractExpiry(job: Job) {
+  async process(job: Job<any, any, string>, token?: string): Promise<any> {
+    if (job.name !== 'CONTRACT_EXPIRY') {
+      return;
+    }
+
     this.logger.log('开始检查合同到期情况...');
 
     // 获取即将到期的合同(30天内、15天内、7天内、1天内)
@@ -82,17 +87,17 @@ export class ContractExpiryProcessor {
     };
   }
 
-  @OnQueueActive()
+  @OnQueueEvent('active')
   onActive(job: Job) {
     this.logger.log(`处理合同到期检查任务: ${job.id}`);
   }
 
-  @OnQueueCompleted()
+  @OnQueueEvent('completed')
   onCompleted(job: Job, result: any) {
     this.logger.log(`合同到期检查任务完成: ${job.id}, 结果: ${JSON.stringify(result)}`);
   }
 
-  @OnQueueFailed()
+  @OnQueueEvent('failed')
   onError(job: Job, error: Error) {
     this.logger.error(`合同到期检查任务失败: ${job.id}`, error.stack);
   }
