@@ -1,0 +1,11 @@
+{
+  "SUCCESS": "Operation successful",
+  "ERROR": "Operation failed",
+  "NOT_FOUND": "Resource not found",
+  "BAD_REQUEST": "Invalid request parameters",
+  "FORBIDDEN": "Access denied",
+  "INTERNAL_SERVER_ERROR": "Internal server error",
+  "CREATED": "Created successfully",
+  "UPDATED": "Updated successfully",
+  "DELETED": "Deleted successfully"
+}

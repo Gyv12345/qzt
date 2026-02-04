@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { ScheduleModule } from '@nestjs/schedule';
 import { AutomationService } from './automation.service';
 import { AutomationController } from './automation.controller';
 import { PrismaModule } from '../../common/prisma/prisma.module';
@@ -12,7 +11,6 @@ import { NotificationProcessor } from './processors/notification.processor';
 @Module({
   imports: [
     PrismaModule,
-    ScheduleModule.forRoot(),
     BullModule.registerQueue(
       {
         name: 'automation',

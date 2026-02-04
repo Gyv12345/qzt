@@ -1,0 +1,8 @@
+{
+  "NOT_FOUND": "Customer not found",
+  "CREATE_SUCCESS": "Customer created successfully",
+  "UPDATE_SUCCESS": "Customer updated successfully",
+  "DELETE_SUCCESS": "Customer deleted successfully",
+  "LIST_SUCCESS": "Customer list retrieved successfully",
+  "DETAIL_SUCCESS": "Customer details retrieved successfully"
+}
