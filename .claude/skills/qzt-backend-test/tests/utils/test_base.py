@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""
+测试基类
+提供通用的测试方法和工具
+"""
+
+import requests
+import json
+import random
+import string
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
+import sys
+import os
+
+
+class TestBase:
+    """测试基类"""
+
+    def __init__(self, base_url: str = "http://localhost:7890"):
+        self.base_url = base_url
+        self.token: Optional[str] = None
+        self.test_results: List[Dict[str, Any]] = []
+        self.passed = 0
+        self.failed = 0
+        self.module = "test"
+
+        # 存储测试创建的资源ID
+        self.created_resource_ids: Dict[str, List[str]] = {}
+
+    def log(self, message: str, status: str = "INFO"):
+        """记录测试日志"""
+        icons = {
+            "PASS": "✅",
+            "FAIL": "❌",
+            "INFO": "ℹ️",
+            "WARN": "⚠️",
+            "START": "🚀"
+        }
+        icon = icons.get(status, "•")
+        print(f"{icon} {message}")
+
+        if status in ["PASS", "FAIL"]:
+            self.test_results.append({
+                "test": message,
+                "status": status,
+                "timestamp": datetime.now().isoformat()
+            })
+            if status == "PASS":
+                self.passed += 1
+            else:
+                self.failed += 1
+
+    def check_server(self) -> bool:
+        """检查后端服务是否运行"""
+        self.log("检查后端服务状态", "START")
+        try:
+            response = requests.get(f"{self.base_url}/health", timeout=5)
+            if response.status_code == 200:
+                self.log(f"后端服务运行正常: {self.base_url}", "PASS")
+                return True
+            else:
+                self.log(f"后端服务响应异常: HTTP {response.status_code}", "FAIL")
+                return False
+        except requests.exceptions.ConnectionError:
+            self.log(f"无法连接到后端服务: {self.base_url}", "FAIL")
+            return False
+        except Exception as e:
+            self.log(f"后端服务检查失败: {str(e)}", "FAIL")
+            return False
+
+    def login(self, username: str = "admin", password: str = "admin123") -> bool:
+        """用户登录"""
+        self.log(f"测试用户登录: {username}", "START")
+        try:
+            payload = {"username": username, "password": password}
+            response = requests.post(
+                f"{self.base_url}/auth/login",
+                json=payload,
+                timeout=10
+            )
+
+            if response.status_code in [200, 201]:
+                result = response.json()
+                data = result.get('data', {})
+                self.token = data.get('access_token')
+                if self.token:
+                    self.log("登录成功，已获取 token", "PASS")
+                    return True
+                else:
+                    self.log("登录响应中缺少 token", "FAIL")
+                    return False
+            else:
+                self.log(f"登录失败: HTTP {response.status_code}", "FAIL")
+                return False
+        except Exception as e:
+            self.log(f"登录测试异常: {str(e)}", "FAIL")
+            return False
+
+    def test_endpoint(
+        self,
+        method: str,
+        path: str,
+        description: str,
+        data: Optional[Dict] = None,
+        params: Optional[Dict] = None,
+        expect_status: int = 200,
+        require_auth: bool = True,
+        return_response: bool = False
+    ) -> Tuple[bool, Optional[Dict]]:
+        """测试单个 API 端点"""
+        self.log(f"测试: {description}", "START")
+
+        if require_auth and not self.token:
+            self.log("需要认证但未登录，跳过测试", "WARN")
+            return False, None
+
+        try:
+            headers = {}
+            if require_auth:
+                headers["Authorization"] = f"Bearer {self.token}"
+
+            url = f"{self.base_url}{path}"
+            response = requests.request(
+                method=method,
+                url=url,
+                json=data,
+                params=params,
+                headers=headers,
+                timeout=10
+            )
+
+            if response.status_code == expect_status:
+                self.log(f"{description} - 成功", "PASS")
+                if return_response:
+                    try:
+                        return True, response.json()
+                    except:
+                        return True, {"data": response.text}
+                return True, None
+            else:
+                self.log(
+                    f"{description} - 失败: 期望 {expect_status}, 实际 {response.status_code}",
+                    "FAIL"
+                )
+                return False, None
+
+        except Exception as e:
+            self.log(f"{description} - 异常: {str(e)}", "FAIL")
+            return False, None
+
+    def generate_random_string(self, length: int = 8) -> str:
+        """生成随机字符串"""
+        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+    def generate_random_phone(self) -> str:
+        """生成有效的中国手机号"""
+        return f"1{random.randint(3, 9)}{random.randint(100000000, 999999999)}"
+
+    def print_summary(self):
+        """打印测试摘要"""
+        print("\n" + "="*60)
+        print(f"{self.module.upper()} 模块测试摘要")
+        print("="*60)
+        total = self.passed + self.failed
+        print(f"总计: {total} 个测试")
+        print(f"✅ 通过: {self.passed}")
+        print(f"❌ 失败: {self.failed}")
+        if total > 0:
+            print(f"通过率: {self.passed / total * 100:.1f}%")
+        print("="*60 + "\n")
