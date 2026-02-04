@@ -1,0 +1,52 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/products",
+    "summary": "创建产品",
+    "request_body": {
+      "name": "财税基础套餐",
+      "code": "FIN_BASE_001",
+      "price": 5000,
+      "invoiceLimit": 10,
+      "invoiceCount": 50,
+      "overLimitPrice": 20
+    }
+  },
+  "patch_3": {
+    "method": "PATCH",
+    "path": "/products/{id}",
+    "summary": "更新产品",
+    "request_body": {
+      "name": "财税基础套餐",
+      "code": "FIN_BASE_001",
+      "description": "xlyhMfV9pT3thh",
+      "price": 5000,
+      "invoiceLimit": 10,
+      "invoiceCount": 50,
+      "overLimitPrice": 20
+    }
+  },
+  "post_5": {
+    "method": "POST",
+    "path": "/products/flows",
+    "summary": "创建产品流程",
+    "request_body": {
+      "productId": "cuid123",
+      "name": "标准记账流程",
+      "type": "NODE",
+      "config": "{\"nodes\":[{\"name\":\"收集凭证\",\"role\":\"FINANCE\",\"order\":1}]}"
+    }
+  },
+  "patch_8": {
+    "method": "PATCH",
+    "path": "/products/flows/{id}",
+    "summary": "更新产品流程",
+    "request_body": {
+      "productId": "cuid123",
+      "name": "标准记账流程",
+      "type": "NODE",
+      "config": "{\"nodes\":[{\"name\":\"收集凭证\",\"role\":\"FINANCE\",\"order\":1}]}",
+      "enabled": true
+    }
+  }
+}

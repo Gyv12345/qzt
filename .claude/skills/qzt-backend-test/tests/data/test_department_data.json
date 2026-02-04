@@ -1,0 +1,23 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/departments",
+    "summary": "创建部门",
+    "request_body": {
+      "name": "技术部",
+      "sort": 0,
+      "status": 1
+    }
+  },
+  "patch_3": {
+    "method": "PATCH",
+    "path": "/departments/{id}",
+    "summary": "更新部门",
+    "request_body": {
+      "name": "技术部",
+      "parentId": "测试部门",
+      "sort": 0,
+      "status": 1
+    }
+  }
+}

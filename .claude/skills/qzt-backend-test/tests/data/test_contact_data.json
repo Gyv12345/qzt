@@ -1,0 +1,36 @@
+{
+  "post_0": {
+    "method": "POST",
+    "path": "/contacts",
+    "summary": "创建联系人",
+    "request_body": {
+      "name": "张三",
+      "phone": "13800138000",
+      "email": "test8897@example.com"
+    }
+  },
+  "put_3": {
+    "method": "PUT",
+    "path": "/contacts/{id}",
+    "summary": "更新联系人",
+    "request_body": {
+      "name": "张三",
+      "phone": "13800138000",
+      "email": "test1918@example.com",
+      "wechat": "ILaX1pFH26b6",
+      "position": "专员",
+      "department": "测试部门",
+      "remark": "RpfSlUSlNrFcZL"
+    }
+  },
+  "post_6": {
+    "method": "POST",
+    "path": "/contacts/{id}/companies",
+    "summary": "关联公司",
+    "request_body": {
+      "customerId": "clx123456",
+      "position": "测试北京信息技术有限公司",
+      "remark": "6PF2a6a"
+    }
+  }
+}
