@@ -7,9 +7,7 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
-import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
-import { users } from './data/users'
 
 const route = getRouteApi('/_authenticated/users/')
 
@@ -18,7 +16,7 @@ export function Users() {
   const navigate = route.useNavigate()
 
   return (
-    <UsersProvider>
+    <>
       <Header fixed>
         <Search />
         <div className='ms-auto flex items-center space-x-4'>
@@ -31,17 +29,17 @@ export function Users() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>User List</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>用户管理</h2>
             <p className='text-muted-foreground'>
-              Manage your users and their roles here.
+              管理系统用户和角色权限
             </p>
           </div>
           <UsersPrimaryButtons />
         </div>
-        <UsersTable data={users} search={search} navigate={navigate} />
+        <UsersTable search={search} navigate={navigate} />
       </Main>
 
       <UsersDialogs />
-    </UsersProvider>
+    </>
   )
 }

@@ -10,10 +10,10 @@
     "preview": "vite preview",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
-    "knip": "knip"
+    "knip": "knip",
+    "generate:api": "orval"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.58.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -74,6 +74,7 @@
     "eslint-plugin-react-refresh": "^0.4.25",
     "globals": "^16.5.0",
     "knip": "^5.73.4",
+    "orval": "^8.2.0",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "~5.9.3",
