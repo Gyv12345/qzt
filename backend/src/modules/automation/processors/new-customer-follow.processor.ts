@@ -1,20 +1,25 @@
-import { Processor, Process, OnQueueActive, OnQueueCompleted, OnQueueFailed } from '@nestjs/bull';
+import { Processor, WorkerHost, OnQueueEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import { Job } from 'bullmq';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { AutomationService } from '../automation.service';
 
 @Processor('automation')
-export class NewCustomerFollowProcessor {
+export class NewCustomerFollowProcessor extends WorkerHost {
   private readonly logger = new Logger(NewCustomerFollowProcessor.name);
 
   constructor(
     private prisma: PrismaService,
     private automationService: AutomationService,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process('NEW_CUSTOMER_FOLLOW')
-  async handleNewCustomerFollow(job: Job) {
+  async process(job: Job<any, any, string>, token?: string): Promise<any> {
+    if (job.name !== 'NEW_CUSTOMER_FOLLOW') {
+      return;
+    }
+
     this.logger.log('开始检查新客户跟进情况...');
 
     // 查找7天内添加的未签约客户
@@ -95,17 +100,17 @@ export class NewCustomerFollowProcessor {
     };
   }
 
-  @OnQueueActive()
+  @OnQueueEvent('active')
   onActive(job: Job) {
     this.logger.log(`处理新客户跟进检查任务: ${job.id}`);
   }
 
-  @OnQueueCompleted()
+  @OnQueueEvent('completed')
   onCompleted(job: Job, result: any) {
     this.logger.log(`新客户跟进检查任务完成: ${job.id}, 结果: ${JSON.stringify(result)}`);
   }
 
-  @OnQueueFailed()
+  @OnQueueEvent('failed')
   onError(job: Job, error: Error) {
     this.logger.error(`新客户跟进检查任务失败: ${job.id}`, error.stack);
   }

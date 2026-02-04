@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateAutomationRuleDto } from './dto/create-automation-rule.dto';
 import { UpdateAutomationRuleDto } from './dto/update-automation-rule.dto';
@@ -239,71 +238,5 @@ export class AutomationService {
         duration,
       },
     });
-  }
-
-  /**
-   * 定时任务: 每天早上9点检查新客户跟进
-   */
-  @Cron('0 9 * * *', {
-    timeZone: 'Asia/Shanghai',
-  })
-  async handleNewCustomerFollow() {
-    this.logger.log('开始执行新客户跟进检查...');
-
-    try {
-      await this.automationQueue.add(
-        'NEW_CUSTOMER_FOLLOW',
-        {},
-        {
-          attempts: 3,
-        },
-      );
-    } catch (error) {
-      this.logger.error('新客户跟进检查失败:', error);
-    }
-  }
-
-  /**
-   * 定时任务: 每天早上10点检查合同到期
-   */
-  @Cron('0 10 * * *', {
-    timeZone: 'Asia/Shanghai',
-  })
-  async handleContractExpiry() {
-    this.logger.log('开始执行合同到期检查...');
-
-    try {
-      await this.automationQueue.add(
-        'CONTRACT_EXPIRY',
-        {},
-        {
-          attempts: 3,
-        },
-      );
-    } catch (error) {
-      this.logger.error('合同到期检查失败:', error);
-    }
-  }
-
-  /**
-   * 定时任务: 每月1号上午10点生成财务月度待办
-   */
-  @Cron('0 10 1 * *', {
-    timeZone: 'Asia/Shanghai',
-  })
-  async handleMonthlyTasks() {
-    this.logger.log('开始生成财务月度待办...');
-
-    try {
-      await this.automationQueue.add(
-        'MONTHLY_TASK',
-        {},
-        {
-          attempts: 3,
-        },
-      );
-    } catch (error) {
-      this.logger.error('生成财务月度待办失败:', error);
-    }
   }
 }

@@ -1,20 +1,25 @@
-import { Processor, Process, OnQueueActive, OnQueueCompleted, OnQueueFailed } from '@nestjs/bull';
+import { Processor, WorkerHost, OnQueueEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import { Job } from 'bullmq';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { AutomationService } from '../automation.service';
 
 @Processor('automation')
-export class MonthlyTaskProcessor {
+export class MonthlyTaskProcessor extends WorkerHost {
   private readonly logger = new Logger(MonthlyTaskProcessor.name);
 
   constructor(
     private prisma: PrismaService,
     private automationService: AutomationService,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process('MONTHLY_TASK')
-  async handleMonthlyTasks(job: Job) {
+  async process(job: Job<any, any, string>, token?: string): Promise<any> {
+    if (job.name !== 'MONTHLY_TASK') {
+      return;
+    }
+
     this.logger.log('开始生成财务月度待办...');
 
     const today = new Date();
@@ -136,17 +141,17 @@ export class MonthlyTaskProcessor {
     };
   }
 
-  @OnQueueActive()
+  @OnQueueEvent('active')
   onActive(job: Job) {
     this.logger.log(`处理月度待办生成任务: ${job.id}`);
   }
 
-  @OnQueueCompleted()
+  @OnQueueEvent('completed')
   onCompleted(job: Job, result: any) {
     this.logger.log(`月度待办生成任务完成: ${job.id}, 结果: ${JSON.stringify(result)}`);
   }
 
-  @OnQueueFailed()
+  @OnQueueEvent('failed')
   onError(job: Job, error: Error) {
     this.logger.error(`月度待办生成任务失败: ${job.id}`, error.stack);
   }
