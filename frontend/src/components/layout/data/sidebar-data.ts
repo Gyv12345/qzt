@@ -24,6 +24,14 @@ import {
   Building,
   ScrollText,
   FileText,
+  BarChart3,
+  FileCheck,
+  UserCircle,
+  Archive,
+  Cpu,
+  PieChart,
+  Receipt,
+  Wallet,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
@@ -50,26 +58,69 @@ export const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: '客户管理',
-          url: '/customers',
-          icon: Building,
+          title: '销售管理',
+          icon: BarChart3,
+          items: [
+            {
+              title: '客户管理',
+              url: '/customers',
+              icon: Building,
+            },
+            {
+              title: '合同管理',
+              url: '/contracts',
+              icon: FileCheck,
+            },
+            {
+              title: '联系人管理',
+              url: '/contacts',
+              icon: UserCircle,
+            },
+            {
+              title: '产品管理',
+              url: '/products',
+              icon: Archive,
+            },
+          ],
         },
         {
-          title: '任务',
-          url: '/tasks',
-          icon: ListTodo,
+          title: '财务管理',
+          icon: PieChart,
+          items: [
+            {
+              title: '发票管理',
+              url: '/invoices',
+              icon: Receipt,
+            },
+            {
+              title: '收款管理',
+              url: '/payments',
+              icon: Wallet,
+            },
+          ],
         },
         {
-          title: '应用',
-          url: '/apps',
-          icon: Package,
+          title: '自动化',
+          url: '/automation',
+          icon: Cpu,
         },
-        {
-          title: '聊天',
-          url: '/chats',
-          badge: '3',
-          icon: MessagesSquare,
-        },
+        // 隐藏的任务、应用、聊天菜单
+        // {
+        //   title: '任务',
+        //   url: '/tasks',
+        //   icon: ListTodo,
+        // },
+        // {
+        //   title: '应用',
+        //   url: '/apps',
+        //   icon: Package,
+        // },
+        // {
+        //   title: '聊天',
+        //   url: '/chats',
+        //   badge: '3',
+        //   icon: MessagesSquare,
+        // },
       ],
     },
     {

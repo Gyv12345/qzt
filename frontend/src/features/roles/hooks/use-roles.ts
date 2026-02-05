@@ -1,18 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { getPermissions } from '@/services/api'
+import { getScrmApi } from '@/services/api'
 import type { CreateRoleDto, UpdateRoleDto } from '@/models'
 
 // 角色列表查询
-export function useRoles(params?: {
-  page?: number
-  pageSize?: number
-  keyword?: string
-}) {
+export function useRoles() {
   return useQuery({
-    queryKey: ['roles', params],
+    queryKey: ['roles'],
     queryFn: async () => {
-      return await getPermissions().permissionControllerFindAllRoles(params)
+      return await getScrmApi().permissionControllerFindAllRoles()
     },
   })
 }
@@ -23,7 +19,7 @@ export function useCreateRole() {
 
   return useMutation({
     mutationFn: async (data: CreateRoleDto) => {
-      return await getPermissions().permissionControllerCreateRole(data)
+      return await getScrmApi().permissionControllerCreateRole(data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
@@ -41,7 +37,7 @@ export function useUpdateRole() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateRoleDto }) => {
-      return await getPermissions().permissionControllerUpdateRole(id, data)
+      return await getScrmApi().permissionControllerUpdateRole(id, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
@@ -59,7 +55,7 @@ export function useDeleteRole() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await getPermissions().permissionControllerRemoveRole(id)
+      return await getScrmApi().permissionControllerRemoveRole(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })

@@ -28,13 +28,10 @@ export function RoleTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
-  const { data, isLoading, error } = useRoles({
-    page: pagination.pageIndex + 1,
-    pageSize: pagination.pageSize,
-  })
+  const { data, isLoading, error } = useRoles()
 
   const table = useReactTable({
-    data: data?.data || [],
+    data: data || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
