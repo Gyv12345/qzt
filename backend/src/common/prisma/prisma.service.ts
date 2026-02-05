@@ -27,12 +27,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
 
     // 按照外键依赖顺序删除数据
-    await this.logDetail.deleteMany();
-    await this.log.deleteMany();
-    await this.workflow.deleteMany();
-    await this.condition.deleteMany();
-    await this.trigger.deleteMany();
-
     await this.serviceTeam.deleteMany();
     await this.invoice.deleteMany();
     await this.payment.deleteMany();

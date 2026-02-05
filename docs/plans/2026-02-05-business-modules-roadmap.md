@@ -16,7 +16,7 @@
 1. **侧边栏菜单重组**
    - 新增"销售管理"父菜单：客户、合同、联系人、产品
    - 新增"财务管理"父菜单：发票、收款
-   - 新增"自动化"顶层菜单
+   - 移除"自动化"顶层菜单
    - 隐藏任务、应用、聊天菜单
 
 2. **完整 CRUD 模块（6个）✅ 全部完成**
@@ -25,7 +25,7 @@
    - ✅ **联系人管理**：完整 CRUD、企业关联、生日提醒、主要联系人/决策人标识
    - ✅ **发票管理**：完整 CRUD、客户选择、金额格式化、月份选择器、份数显示
    - ✅ **收款管理**：完整 CRUD、收款方式、状态管理、凭证上传、确认收款流程
-   - ✅ **自动化管理**：完整 CRUD、启用切换、手动触发、Tabs界面、执行历史
+   - ✅ **财务管理**：发票、收款模块完整 CRUD 与统计
 
 3. **增强功能组件（1个）**
    - ✅ **CustomerAdvancedSearch**：企业选择器高级查找（全屏对话框、搜索筛选、分页）
@@ -221,16 +221,12 @@ useConfirmPayment() - 确认收款 mutation
 
 ---
 
-#### 2.4 自动化管理模块（完整 CRUD）
+#### 2.4 自动化管理模块（删除）
 
 **状态**: ✅ 已完成（2026-02-05）
 
 **已完成功能**:
-- [x] 创建规则列表组件（`automation-rules-table.tsx`）
-- [x] 创建列定义（`automation-rules-columns.tsx`）
-- [x] 创建规则表单对话框（`automation-rule-form-dialog.tsx`）
-- [x] 创建按钮组件（`automation-primary-buttons.tsx`）
-- [x] 创建对话框容器（`automation-dialogs.tsx`）
+- [x] 自动化模块移除（前后端）并保留定制方案
 - [x] 实现 Tabs 切换（规则列表 / 通知中心 / 执行历史）
 - [x] 启用/禁用开关（即时生效）
 - [x] 手动触发按钮（测试或立即执行）
@@ -239,14 +235,10 @@ useConfirmPayment() - 确认收款 mutation
 - [x] 执行时间显示（最后执行、下次执行）
 - [x] 完整 CRUD 操作
 
-**文件位置**: `frontend/src/features/automation/`
+**文件位置**: `frontend/src/features/automation/`（已移除）
 
 **核心组件**:
-- `components/automation-rules-columns.tsx` - 列定义（名称、触发条件、执行动作、状态、时间）
-- `components/automation-rules-table.tsx` - 表格组件（启用切换、手动触发）
-- `components/automation-rule-form-dialog.tsx` - 表单对话框（Switch组件）
-- `components/automation-primary-buttons.tsx` - 顶部按钮
-- `components/automation-dialogs.tsx` - 对话框容器
+- 自动化相关组件已移除
 
 **技术亮点**:
 - Tabs 组件集成（3个标签页）
@@ -255,16 +247,11 @@ useConfirmPayment() - 确认收款 mutation
 - 操作列按钮组（启用、禁用、触发、编辑、删除）
 
 **API 特殊功能**:
-- `automationControllerToggleEnabled(id)` - 启用/禁用规则 ✅
-- `automationControllerTriggerRule(id)` - 手动触发规则 ✅
-- `automationControllerGetTaskHistory(params)` - 查询执行历史
-- `automationControllerGetNotifications(params)` - 查询通知
-- `automationControllerMarkNotificationAsRead(id)` - 标记通知为已读
+- 自动化相关 API 已移除
 
 **新增 Hooks**:
 ```typescript
-useToggleAutomationRule() - 切换启用状态
-useTriggerAutomationRule() - 手动触发规则
+- 自动化相关 hooks 已移除
 ```
 
 **实际工时**: 1 小时
@@ -327,7 +314,7 @@ useTriggerAutomationRule() - 手动触发规则
 **状态**: 📋 已规划
 **待完成**:
 - [ ] 为新增菜单项添加翻译
-  - 销售管理、财务管理、自动化
+  - 销售管理、财务管理
   - 合同、联系人、产品、发票、收款
 
 **相关文件**:
@@ -407,7 +394,7 @@ useTriggerAutomationRule() - 手动触发规则
 - ✅ 企业选择器高级查找 - 1小时
 - ✅ 发票管理模块（完整 CRUD）- 1小时
 - ✅ 收款管理模块（完整 CRUD）- 1.5小时
-- ✅ 自动化管理模块（完整 CRUD）- 1小时
+- ✅ 自动化管理模块（移除）
 
 **上午完成**:
 - ✅ 创建了 6 个业务模块的基础架构
@@ -431,7 +418,7 @@ useTriggerAutomationRule() - 手动触发规则
 3. **组合式列定义** - 动态注入cell渲染函数
 4. **URL状态管理** - 分页和筛选参数持久化
 5. **条件渲染模式** - 状态驱动的UI（确认收款、手动触发）
-6. **即时状态切换** - 启用/禁用自动化规则
+6. **即时状态切换** - 启用/禁用业务状态
 
 **问题与解决**:
 1. **表格数据不显示**: 后端返回 `data` 字段，代码访问 `items` 字段 → 已修复
@@ -466,7 +453,7 @@ useTriggerAutomationRule() - 手动触发规则
 1. ✅ 企业选择器高级查找 - 实际工时 1 小时
 2. ✅ 发票管理模块（完整 CRUD）- 实际工时 1 小时
 3. ✅ 收款管理模块（完整 CRUD）- 实际工时 1.5 小时
-4. ✅ 自动化管理模块（完整 CRUD）- 实际工时 1 小时
+4. ✅ 自动化管理模块（移除）
 
 **本周目标** - ✅ 已完成:
 - ✅ 所有 6 个模块的完整 CRUD 功能（100%完成）
@@ -501,7 +488,7 @@ useTriggerAutomationRule() - 手动触发规则
 3. ✅ **联系人管理** - 完整 CRUD、企业关联、生日提醒、标识
 4. ✅ **发票管理** - 完整 CRUD、客户选择、金额格式、月份选择
 5. ✅ **收款管理** - 完整 CRUD、凭证上传、确认收款、状态管理
-6. ✅ **自动化管理** - 完整 CRUD、启用切换、手动触发、Tabs界面
+6. ✅ **自动化管理** - 模块已移除
 
 **增强功能**:
 - ✅ 企业选择器高级查找（全屏对话框、筛选、搜索）

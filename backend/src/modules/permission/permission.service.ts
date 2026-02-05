@@ -484,10 +484,6 @@ export class PermissionService {
       { name: '查看定价', code: 'pricing.view', type: 'menu' },
       { name: '管理定价规则', code: 'pricing.manage', type: 'button' },
 
-      // 自动化任务
-      { name: '查看自动化', code: 'automation.view', type: 'menu' },
-      { name: '管理自动化', code: 'automation.manage', type: 'button' },
-
       // 统计分析
       { name: '查看统计', code: 'statistics.view', type: 'menu' },
 

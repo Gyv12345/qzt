@@ -75,12 +75,6 @@ export type {
   CreatePermissionDto,
 } from '@/models'
 
-// ==================== 自动化相关 ====================
-export type {
-  CreateAutomationRuleDto,
-  UpdateAutomationRuleDto,
-} from '@/models'
-
 // ==================== 日志相关 ====================
 export type {
   LoginLogsControllerFindLoginLogsParams,
