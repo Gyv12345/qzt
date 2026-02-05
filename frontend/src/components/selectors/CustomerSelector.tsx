@@ -54,7 +54,7 @@ export function CustomerSelector({ value, onChange, onAdvancedSearch, disabled }
 
       const { customerControllerFindAll } = getScrmApi()
       const result = await customerControllerFindAll({
-        name: debouncedSearchTerm,
+        keyword: debouncedSearchTerm,
         pageSize: 10,
       }) as any
 

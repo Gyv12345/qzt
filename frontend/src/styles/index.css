@@ -68,6 +68,11 @@
   animation: slideUp 300ms ease-out;
 }
 
+/*
+ * Radix UI Collapsible Animations
+ * --radix-collapsible-content-height is set at runtime by Radix UI
+ * IDE warning can be safely ignored - this is expected behavior
+ */
 @keyframes slideDown {
   from {
     height: 0;

@@ -109,7 +109,7 @@ export function DepartmentTreeTable() {
       return { filteredTreeData: treeData, autoExpandedIds: new Set<string>() }
     }
 
-    const filterNodes = (nodes: DepartmentNode[]): DepartmentNode[] => {
+    const filterNodes = (nodes: DepartmentNode[]): { nodes: DepartmentNode[], expandedIds: Set<string> } => {
       const filtered: DepartmentNode[] = []
       const expandedIds = new Set<string>()
 
