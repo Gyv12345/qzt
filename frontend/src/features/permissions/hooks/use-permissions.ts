@@ -1,18 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { getPermissions } from '@/services/api'
+import { getScrmApi } from '@/services/api'
 import type { CreatePermissionDto } from '@/models'
 
 // 权限列表查询
-export function usePermissions(params?: {
-  page?: number
-  pageSize?: number
-  keyword?: string
-}) {
+export function usePermissions(params?: { type?: string }) {
   return useQuery({
     queryKey: ['permissions', params],
     queryFn: async () => {
-      return await getPermissions().permissionControllerFindAll(params)
+      return await getScrmApi().permissionControllerFindAllPermissions(params)
     },
   })
 }
@@ -23,7 +19,7 @@ export function useCreatePermission() {
 
   return useMutation({
     mutationFn: async (data: CreatePermissionDto) => {
-      return await getPermissions().permissionControllerCreate(data)
+      return await getScrmApi().permissionControllerCreate(data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] })
@@ -41,7 +37,7 @@ export function useUpdatePermission() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await getPermissions().permissionControllerUpdate(id, data)
+      return await getScrmApi().permissionControllerUpdate(id, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] })
@@ -59,7 +55,7 @@ export function useDeletePermission() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await getPermissions().permissionControllerRemove(id)
+      return await getScrmApi().permissionControllerRemove(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] })

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { getDepartments } from '@/services/api'
+import { getScrmApi } from '@/services/api'
 import type { CreateDepartmentDto, UpdateDepartmentDto } from '@/models'
 
 // 部门列表查询
@@ -12,7 +12,7 @@ export function useDepartments(params?: {
   return useQuery({
     queryKey: ['departments', params],
     queryFn: async () => {
-      return await getDepartments().departmentControllerFindTree()
+      return await getScrmApi().departmentControllerFindTree()
     },
   })
 }
@@ -22,7 +22,7 @@ export function useDepartment(id: string) {
   return useQuery({
     queryKey: ['department', id],
     queryFn: async () => {
-      return await getDepartments().departmentControllerFindOne(id)
+      return await getScrmApi().departmentControllerFindOne(id)
     },
     enabled: !!id,
   })
@@ -34,7 +34,7 @@ export function useCreateDepartment() {
 
   return useMutation({
     mutationFn: async (data: CreateDepartmentDto) => {
-      return await getDepartments().departmentControllerCreate(data)
+      return await getScrmApi().departmentControllerCreate(data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] })
@@ -52,7 +52,7 @@ export function useUpdateDepartment() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateDepartmentDto }) => {
-      return await getDepartments().departmentControllerUpdate(id, data)
+      return await getScrmApi().departmentControllerUpdate(id, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] })
@@ -70,7 +70,7 @@ export function useDeleteDepartment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await getDepartments().departmentControllerRemove(id)
+      return await getScrmApi().departmentControllerRemove(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] })

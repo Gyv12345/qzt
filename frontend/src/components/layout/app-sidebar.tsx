@@ -28,9 +28,10 @@ export function AppSidebar() {
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
+      {/* SidebarFooter temporarily hidden */}
+      {/* <SidebarFooter>
         <NavUser user={sidebarData.user} />
-      </SidebarFooter>
+      </SidebarFooter> */}
       <SidebarRail />
     </Sidebar>
   )

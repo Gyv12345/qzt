@@ -24,11 +24,17 @@ import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
+import { Route as AuthenticatedProductsRouteRouteImport } from './routes/_authenticated/products/route'
 import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
+import { Route as AuthenticatedPaymentsRouteRouteImport } from './routes/_authenticated/payments/route'
 import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
 import { Route as AuthenticatedLoginLogsRouteRouteImport } from './routes/_authenticated/login-logs/route'
+import { Route as AuthenticatedInvoicesRouteRouteImport } from './routes/_authenticated/invoices/route'
 import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_authenticated/departments/route'
 import { Route as AuthenticatedCustomersRouteRouteImport } from './routes/_authenticated/customers/route'
+import { Route as AuthenticatedContractsRouteRouteImport } from './routes/_authenticated/contracts/route'
+import { Route as AuthenticatedContactsRouteRouteImport } from './routes/_authenticated/contacts/route'
+import { Route as AuthenticatedAutomationRouteRouteImport } from './routes/_authenticated/automation/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
@@ -116,10 +122,22 @@ const AuthenticatedRolesRouteRoute = AuthenticatedRolesRouteRouteImport.update({
   path: '/roles',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductsRouteRoute =
+  AuthenticatedProductsRouteRouteImport.update({
+    id: '/products',
+    path: '/products',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPermissionsRouteRoute =
   AuthenticatedPermissionsRouteRouteImport.update({
     id: '/permissions',
     path: '/permissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentsRouteRoute =
+  AuthenticatedPaymentsRouteRouteImport.update({
+    id: '/payments',
+    path: '/payments',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedOperationLogsRouteRoute =
@@ -134,6 +152,12 @@ const AuthenticatedLoginLogsRouteRoute =
     path: '/login-logs',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInvoicesRouteRoute =
+  AuthenticatedInvoicesRouteRouteImport.update({
+    id: '/invoices',
+    path: '/invoices',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDepartmentsRouteRoute =
   AuthenticatedDepartmentsRouteRouteImport.update({
     id: '/departments',
@@ -144,6 +168,24 @@ const AuthenticatedCustomersRouteRoute =
   AuthenticatedCustomersRouteRouteImport.update({
     id: '/customers',
     path: '/customers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContractsRouteRoute =
+  AuthenticatedContractsRouteRouteImport.update({
+    id: '/contracts',
+    path: '/contracts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsRouteRoute =
+  AuthenticatedContactsRouteRouteImport.update({
+    id: '/contacts',
+    path: '/contacts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAutomationRouteRoute =
+  AuthenticatedAutomationRouteRouteImport.update({
+    id: '/automation',
+    path: '/automation',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
@@ -212,11 +254,17 @@ const AuthenticatedErrorsErrorRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/automation': typeof AuthenticatedAutomationRouteRoute
+  '/contacts': typeof AuthenticatedContactsRouteRoute
+  '/contracts': typeof AuthenticatedContractsRouteRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/invoices': typeof AuthenticatedInvoicesRouteRoute
   '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
+  '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
@@ -243,11 +291,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/automation': typeof AuthenticatedAutomationRouteRoute
+  '/contacts': typeof AuthenticatedContactsRouteRoute
+  '/contracts': typeof AuthenticatedContractsRouteRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/invoices': typeof AuthenticatedInvoicesRouteRoute
   '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
+  '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -276,11 +330,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/automation': typeof AuthenticatedAutomationRouteRoute
+  '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
+  '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteRoute
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/_authenticated/invoices': typeof AuthenticatedInvoicesRouteRoute
   '/_authenticated/login-logs': typeof AuthenticatedLoginLogsRouteRoute
   '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
+  '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
@@ -311,11 +371,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/automation'
+    | '/contacts'
+    | '/contracts'
     | '/customers'
     | '/departments'
+    | '/invoices'
     | '/login-logs'
     | '/operation-logs'
+    | '/payments'
     | '/permissions'
+    | '/products'
     | '/roles'
     | '/settings'
     | '/forgot-password'
@@ -342,11 +408,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/automation'
+    | '/contacts'
+    | '/contracts'
     | '/customers'
     | '/departments'
+    | '/invoices'
     | '/login-logs'
     | '/operation-logs'
+    | '/payments'
     | '/permissions'
+    | '/products'
     | '/roles'
     | '/forgot-password'
     | '/otp'
@@ -374,11 +446,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/automation'
+    | '/_authenticated/contacts'
+    | '/_authenticated/contracts'
     | '/_authenticated/customers'
     | '/_authenticated/departments'
+    | '/_authenticated/invoices'
     | '/_authenticated/login-logs'
     | '/_authenticated/operation-logs'
+    | '/_authenticated/payments'
     | '/_authenticated/permissions'
+    | '/_authenticated/products'
     | '/_authenticated/roles'
     | '/_authenticated/settings'
     | '/(auth)/forgot-password'
@@ -527,11 +605,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRolesRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/permissions': {
       id: '/_authenticated/permissions'
       path: '/permissions'
       fullPath: '/permissions'
       preLoaderRoute: typeof AuthenticatedPermissionsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payments': {
+      id: '/_authenticated/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof AuthenticatedPaymentsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/operation-logs': {
@@ -548,6 +640,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLoginLogsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/invoices': {
+      id: '/_authenticated/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AuthenticatedInvoicesRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/departments': {
       id: '/_authenticated/departments'
       path: '/departments'
@@ -560,6 +659,27 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof AuthenticatedCustomersRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contracts': {
+      id: '/_authenticated/contracts'
+      path: '/contracts'
+      fullPath: '/contracts'
+      preLoaderRoute: typeof AuthenticatedContractsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts': {
+      id: '/_authenticated/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof AuthenticatedContactsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/automation': {
+      id: '/_authenticated/automation'
+      path: '/automation'
+      fullPath: '/automation'
+      preLoaderRoute: typeof AuthenticatedAutomationRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/users/': {
@@ -666,11 +786,17 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAutomationRouteRoute: typeof AuthenticatedAutomationRouteRoute
+  AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
+  AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
   AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute
   AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute
+  AuthenticatedInvoicesRouteRoute: typeof AuthenticatedInvoicesRouteRoute
   AuthenticatedLoginLogsRouteRoute: typeof AuthenticatedLoginLogsRouteRoute
   AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
+  AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
   AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
+  AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
   AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -683,11 +809,17 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAutomationRouteRoute: AuthenticatedAutomationRouteRoute,
+  AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
+  AuthenticatedContractsRouteRoute: AuthenticatedContractsRouteRoute,
   AuthenticatedCustomersRouteRoute: AuthenticatedCustomersRouteRoute,
   AuthenticatedDepartmentsRouteRoute: AuthenticatedDepartmentsRouteRoute,
+  AuthenticatedInvoicesRouteRoute: AuthenticatedInvoicesRouteRoute,
   AuthenticatedLoginLogsRouteRoute: AuthenticatedLoginLogsRouteRoute,
   AuthenticatedOperationLogsRouteRoute: AuthenticatedOperationLogsRouteRoute,
+  AuthenticatedPaymentsRouteRoute: AuthenticatedPaymentsRouteRoute,
   AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
+  AuthenticatedProductsRouteRoute: AuthenticatedProductsRouteRoute,
   AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
