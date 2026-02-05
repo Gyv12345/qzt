@@ -61,6 +61,24 @@
     "updateSuccess": "客户更新成功",
     "deleteSuccess": "客户删除成功"
   },
+  "product": {
+    "title": "产品管理",
+    "description": "管理您的产品信息和价格配置",
+    "searchPlaceholder": "搜索产品名称...",
+    "columns": {
+      "name": "产品名称",
+      "code": "产品代码",
+      "price": "价格",
+      "invoiceLimit": "开票额度/月",
+      "invoiceCount": "套餐开票张数",
+      "overLimitPrice": "超额单价",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "createSuccess": "产品创建成功",
+    "updateSuccess": "产品更新成功",
+    "deleteSuccess": "产品删除成功"
+  },
   "contact": {
     "title": "联系人管理",
     "description": "管理您的联系人和企业关联信息",
