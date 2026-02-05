@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { DataScopeService } from '../permission/services/data-scope.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 import { QueryContactDto } from './dto/query-contact.dto';
@@ -7,12 +8,15 @@ import { LinkCompanyDto } from './dto/link-company.dto';
 
 @Injectable()
 export class ContactService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private dataScopeService: DataScopeService,
+  ) {}
 
   /**
    * 创建联系人
    */
-  async create(createContactDto: CreateContactDto) {
+  async create(createContactDto: CreateContactDto, userId: string) {
     // 检查手机号是否已存在
     const existing = await this.prisma.contact.findUnique({
       where: { phone: createContactDto.phone },
@@ -24,7 +28,10 @@ export class ContactService {
 
     // 创建联系人
     const contact = await this.prisma.contact.create({
-      data: createContactDto,
+      data: {
+        ...createContactDto,
+        ownerUserId: userId,
+      },
     });
 
     return contact;
@@ -33,7 +40,7 @@ export class ContactService {
   /**
    * 查询联系人列表
    */
-  async findAll(query: QueryContactDto) {
+  async findAll(query: QueryContactDto, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
     const {
       page = 1,
       pageSize = 10,
@@ -66,12 +73,16 @@ export class ContactService {
       };
     }
 
+    const scopedWhere = dataScope
+      ? await this.dataScopeService.buildContactWhere(dataScope, where)
+      : where;
+
     // 计算总数
-    const total = await this.prisma.contact.count({ where });
+    const total = await this.prisma.contact.count({ where: scopedWhere });
 
     // 查询数据
     const data = await this.prisma.contact.findMany({
-      where,
+      where: scopedWhere,
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
@@ -118,7 +129,14 @@ export class ContactService {
   /**
    * 获取联系人详情
    */
-  async findOne(id: string) {
+  async findOne(id: string, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess('contact', id, dataScope);
+      if (!canAccess) {
+        throw new ForbiddenException('无权访问此联系人');
+      }
+    }
+
     const contact = await this.prisma.contact.findUnique({
       where: { id },
       include: {
@@ -181,7 +199,14 @@ export class ContactService {
   /**
    * 更新联系人
    */
-  async update(id: string, updateContactDto: UpdateContactDto) {
+  async update(id: string, updateContactDto: UpdateContactDto, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess('contact', id, dataScope);
+      if (!canAccess) {
+        throw new ForbiddenException('无权更新此联系人');
+      }
+    }
+
     // 检查联系人是否存在
     const contact = await this.prisma.contact.findUnique({
       where: { id },
@@ -214,7 +239,14 @@ export class ContactService {
   /**
    * 删除联系人
    */
-  async remove(id: string) {
+  async remove(id: string, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess('contact', id, dataScope);
+      if (!canAccess) {
+        throw new ForbiddenException('无权删除此联系人');
+      }
+    }
+
     // 检查联系人是否存在
     const contact = await this.prisma.contact.findUnique({
       where: { id },
@@ -245,7 +277,14 @@ export class ContactService {
   /**
    * 关联公司
    */
-  async linkCompany(contactId: string, linkDto: LinkCompanyDto) {
+  async linkCompany(contactId: string, linkDto: LinkCompanyDto, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess('contact', contactId, dataScope);
+      if (!canAccess) {
+        throw new ForbiddenException('无权关联此联系人');
+      }
+    }
+
     // 检查联系人是否存在
     const contact = await this.prisma.contact.findUnique({
       where: { id: contactId },
@@ -320,7 +359,14 @@ export class ContactService {
   /**
    * 取消关联公司
    */
-  async unlinkCompany(contactId: string, customerId: string) {
+  async unlinkCompany(contactId: string, customerId: string, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess('contact', contactId, dataScope);
+      if (!canAccess) {
+        throw new ForbiddenException('无权取消此联系人关联');
+      }
+    }
+
     // 检查关联是否存在
     const existing = await this.prisma.customerContact.findUnique({
       where: {

@@ -1,12 +1,11 @@
 import { Row } from '@tanstack/react-table'
-import { MoreHorizontal, Link2, Building2 } from 'lucide-react'
+import { MoreHorizontal, Link2, Building2, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import type { Contact } from '../types/contact'
 
@@ -28,45 +27,30 @@ export function DataTableRowActions({
   const contact = row.original
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant='ghost'
-          className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
-        >
-          <MoreHorizontal className='h-4 w-4' />
-          <span className='sr-only'>打开菜单</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' className='w-[180px]'>
-        <DropdownMenuItem onClick={() => onEdit(contact)}>
-          编辑
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => console.log('查看详情', contact.id)}>
-          查看详情
-        </DropdownMenuItem>
-        {contact.customerId && (
-          <DropdownMenuItem onClick={() => console.log('查看企业', contact.customerId)}>
-            查看企业
+    <div className='flex items-center gap-1'>
+      <Button size='sm' variant='ghost' onClick={() => onEdit(contact)}>
+        <Edit className='h-4 w-4' />
+      </Button>
+      <Button size='sm' variant='ghost' onClick={() => onDelete(contact)}>
+        <Trash2 className='h-4 w-4 text-destructive' />
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size='sm' variant='ghost'>
+            <MoreHorizontal className='h-4 w-4' />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='w-[180px]'>
+          <DropdownMenuItem onClick={() => onLinkCustomer(contact)}>
+            <Link2 className='mr-2 h-4 w-4' />
+            关联客户
           </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onLinkCustomer(contact)}>
-          <Link2 className='mr-2 h-4 w-4' />
-          关联客户
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onCreateCustomer(contact)}>
-          <Building2 className='mr-2 h-4 w-4' />
-          创建客户
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => onDelete(contact)}
-          className='text-destructive focus:text-destructive'
-        >
-          删除
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem onClick={() => onCreateCustomer(contact)}>
+            <Building2 className='mr-2 h-4 w-4' />
+            创建客户
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import {
   type SortingState,
   type VisibilityState,
@@ -22,7 +22,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { contactsColumns } from './contacts-columns'
+import { useTranslation } from 'react-i18next'
+import { getContactsColumns } from './contacts-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useContacts } from '../hooks/use-contacts'
 import type { Contact } from '../types/contact'
@@ -32,12 +33,23 @@ type DataTableProps = {
   navigate: NavigateFn
   onEdit: (contact: Contact) => void
   onDelete: (contact: Contact) => void
+  onOpenDetail: (contact: Contact) => void
   onRefresh: () => void
   onLinkCustomer: (contact: Contact) => void
   onCreateCustomer: (contact: Contact) => void
 }
 
-export function ContactsTable({ search, navigate, onEdit, onDelete, onRefresh, onLinkCustomer, onCreateCustomer }: DataTableProps) {
+export function ContactsTable({
+  search,
+  navigate,
+  onEdit,
+  onDelete,
+  onOpenDetail,
+  onRefresh,
+  onLinkCustomer,
+  onCreateCustomer,
+}: DataTableProps) {
+  const { t } = useTranslation()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -75,27 +87,25 @@ export function ContactsTable({ search, navigate, onEdit, onDelete, onRefresh, o
   const total = data?.total || 0
 
   // 创建带有回调的列定义
-  const columns = useMemo(() => {
-    return contactsColumns.map((col) => {
-      if (col.id === 'actions') {
-        return {
-          ...col,
-          cell: (props: any) => {
-            return (
-              <DataTableRowActions
-                row={props.row}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onLinkCustomer={onLinkCustomer}
-                onCreateCustomer={onCreateCustomer}
-              />
-            )
-          },
-        }
+  const columns = getContactsColumns({ onOpenDetail }).map((col) => {
+    if (col.id === 'actions') {
+      return {
+        ...col,
+        cell: (props: any) => {
+          return (
+            <DataTableRowActions
+              row={props.row}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onLinkCustomer={onLinkCustomer}
+              onCreateCustomer={onCreateCustomer}
+            />
+          )
+        },
       }
-      return col
-    })
-  }, [onEdit, onDelete, onLinkCustomer, onCreateCustomer])
+    }
+    return col
+  })
 
   const table = useReactTable({
     data: contacts,
@@ -159,8 +169,10 @@ export function ContactsTable({ search, navigate, onEdit, onDelete, onRefresh, o
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='搜索联系人姓名...'
+        searchPlaceholder={t('contact.searchPlaceholder')}
         searchKey='name'
+        searchMode='submit'
+        searchButtonLabel={t('common.search')}
       />
       <div className='overflow-hidden rounded-md border'>
         <Table>

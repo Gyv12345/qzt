@@ -9,7 +9,7 @@ export class CustomerContactService {
   /**
    * 为公司添加联系人（如果联系人不存在则创建）
    */
-  async addContact(customerId: string, addDto: AddContactDto) {
+  async addContact(customerId: string, addDto: AddContactDto, ownerUserId: string) {
     // 检查公司是否存在
     const customer = await this.prisma.customer.findUnique({
       where: { id: customerId },
@@ -32,6 +32,7 @@ export class CustomerContactService {
           phone: addDto.phone,
           email: addDto.email,
           wechat: addDto.wechat,
+          ownerUserId,
         },
       });
     }

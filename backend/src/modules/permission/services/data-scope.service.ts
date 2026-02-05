@@ -85,6 +85,36 @@ export class DataScopeService {
   }
 
   /**
+   * 根据数据范围构建联系人查询的where条件
+   */
+  async buildContactWhere(dataScope: DataScopeInfo, additionalWhere?: any): Promise<any> {
+    const where: any = { ...additionalWhere };
+
+    switch (dataScope.type) {
+      case DataScope.ALL:
+        break;
+
+      case DataScope.DEPARTMENT:
+      case DataScope.DEPARTMENT_AND_SUB:
+      case DataScope.CUSTOM:
+        if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
+          const userIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
+          where.ownerUserId = { in: userIds };
+        }
+        break;
+
+      case DataScope.SELF:
+      default:
+        if (dataScope.userIds && dataScope.userIds.length > 0) {
+          where.ownerUserId = { in: dataScope.userIds };
+        }
+        break;
+    }
+
+    return where;
+  }
+
+  /**
    * 根据部门ID获取所有用户ID
    */
   private async getUserIdsByDepartments(departmentIds: string[]): Promise<string[]> {
@@ -116,6 +146,9 @@ export class DataScopeService {
 
       case 'contract':
         return this.canAccessContract(resourceId, dataScope);
+
+      case 'contact':
+        return this.canAccessContact(resourceId, dataScope);
 
       default:
         // 默认允许访问
@@ -193,6 +226,43 @@ export class DataScopeService {
         }
         const allowedUserIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
         return allowedUserIds.includes(followUserId || '');
+
+      default:
+        return true;
+    }
+  }
+
+  /**
+   * 检查是否有权访问联系人
+   */
+  private async canAccessContact(
+    contactId: string,
+    dataScope: DataScopeInfo,
+  ): Promise<boolean> {
+    const contact = await this.prisma.contact.findUnique({
+      where: { id: contactId },
+      select: { ownerUserId: true },
+    });
+
+    if (!contact) {
+      return false;
+    }
+
+    switch (dataScope.type) {
+      case DataScope.ALL:
+        return true;
+
+      case DataScope.SELF:
+        return dataScope.userIds?.includes(contact.ownerUserId || '') || false;
+
+      case DataScope.DEPARTMENT:
+      case DataScope.DEPARTMENT_AND_SUB:
+      case DataScope.CUSTOM:
+        if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
+          return false;
+        }
+        const allowedUserIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
+        return allowedUserIds.includes(contact.ownerUserId || '');
 
       default:
         return true;

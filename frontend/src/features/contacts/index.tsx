@@ -6,6 +6,8 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitch } from '@/components/language-switch'
+import { ConfigDrawer } from '@/components/config-drawer'
+import { useTranslation } from 'react-i18next'
 import { ContactsPrimaryButtons } from './components/contacts-primary-buttons'
 import { ContactsTable } from './components/contacts-table'
 import { ContactsDialogs, useContactsDialogs } from './components/contacts-dialogs'
@@ -13,10 +15,18 @@ import { ContactsDialogs, useContactsDialogs } from './components/contacts-dialo
 const route = getRouteApi('/_authenticated/contacts')
 
 function ContactsContent() {
+  const { t } = useTranslation()
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const queryClient = useQueryClient()
-  const { openCreateDialog, openEditDialog, openDeleteDialog, openLinkCustomerDialog, openCreateCustomerDialog } = useContactsDialogs()
+  const {
+    openCreateDialog,
+    openEditDialog,
+    openDeleteDialog,
+    openDetailDrawer,
+    openLinkCustomerDialog,
+    openCreateCustomerDialog,
+  } = useContactsDialogs()
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['contacts'] })
@@ -29,6 +39,7 @@ function ContactsContent() {
         <div className='ms-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <LanguageSwitch />
+          <ConfigDrawer />
           <ProfileDropdown />
         </div>
       </Header>
@@ -36,18 +47,17 @@ function ContactsContent() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>联系人管理</h2>
-            <p className='text-muted-foreground'>
-              管理您的联系人和企业关联信息
-            </p>
+            <h2 className='text-2xl font-bold tracking-tight'>{t('contact.title')}</h2>
+            <p className='text-muted-foreground'>{t('contact.description')}</p>
           </div>
-          <ContactsPrimaryButtons onCreate={openCreateDialog} />
+          <ContactsPrimaryButtons onCreate={openCreateDialog} onImportSuccess={handleRefresh} />
         </div>
         <ContactsTable
           search={search}
           navigate={navigate}
           onEdit={openEditDialog}
           onDelete={openDeleteDialog}
+          onOpenDetail={openDetailDrawer}
           onRefresh={handleRefresh}
           onLinkCustomer={openLinkCustomerDialog}
           onCreateCustomer={openCreateCustomerDialog}

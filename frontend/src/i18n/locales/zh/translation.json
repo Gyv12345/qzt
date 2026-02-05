@@ -40,6 +40,34 @@
     "updateSuccess": "客户更新成功",
     "deleteSuccess": "客户删除成功"
   },
+  "contact": {
+    "title": "联系人管理",
+    "description": "管理您的联系人和企业关联信息",
+    "searchPlaceholder": "搜索联系人姓名...",
+    "columns": {
+      "name": "姓名",
+      "phone": "手机号",
+      "email": "邮箱",
+      "customerName": "所属企业",
+      "position": "职位",
+      "department": "部门",
+      "wechat": "微信号",
+      "birthdate": "生日",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "tags": {
+      "primary": "主要",
+      "decisionMaker": "决策人"
+    },
+    "empty": {
+      "customer": "未关联"
+    },
+    "birthdate": {
+      "today": "今天生日",
+      "inDays": "{{count}}天后"
+    }
+  },
   "user": {
     "title": "用户管理",
     "description": "管理系统用户和角色权限",
