@@ -33,7 +33,7 @@ export interface UserEntity {
   /** 角色列表 */
   roles?: UserRoleWithRelation[];
   /** 创建时间 */
-  createdAt: string;
+  createdAt: Date;
   /** 更新时间 */
-  updatedAt: string;
+  updatedAt: Date;
 }

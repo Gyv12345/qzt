@@ -6,13 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import type { Contact } from '../types/contact'
 
 type ContactsColumnsOptions = {
+  t: (key: string) => string
   onOpenDetail: (contact: Contact) => void
 }
 
 export function getContactsColumns({
+  t,
   onOpenDetail,
 }: ContactsColumnsOptions): ColumnDef<Contact>[] {
-  const { t } = useTranslation()
 
   return [
     {

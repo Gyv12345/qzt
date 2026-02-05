@@ -1,12 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { DataTableRowActions } from './data-table-row-actions'
 import type { Contract } from '../types/contract'
 
-export function getContractsColumns(): ColumnDef<Contract>[] {
-  const { t } = useTranslation()
+type GetContractsColumnsOptions = {
+  t: (key: string) => string
+}
+
+export function getContractsColumns({ t }: GetContractsColumnsOptions): ColumnDef<Contract>[] {
 
   // 金额格式化
   function formatAmount(amount: number) {

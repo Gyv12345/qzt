@@ -14,7 +14,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentOrderService } from '../services/payment-order.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
-@ApiTags('支付回调')
+@ApiTags('payment-webhooks')
 @Controller('payment')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
@@ -108,7 +108,7 @@ export class PaymentWebhookController {
 }
 
 // 公开的回调控制器（不需要认证）
-@ApiTags('支付回调-公开')
+@ApiTags('payment-webhooks-public')
 @Controller('payment/webhook')
 export class PublicPaymentWebhookController {
   private readonly logger = new Logger(PublicPaymentWebhookController.name);

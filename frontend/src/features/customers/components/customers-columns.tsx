@@ -6,11 +6,11 @@ import { DataTableRowActions } from './data-table-row-actions'
 import type { Customer } from '../types/customer'
 
 type CustomersColumnsOptions = {
+  t: (key: string) => string
   onOpenDetail?: (customer: Customer) => void
 }
 
-export function getCustomersColumns({ onOpenDetail }: CustomersColumnsOptions = {}): ColumnDef<Customer>[] {
-  const { t } = useTranslation()
+export function getCustomersColumns({ t, onOpenDetail }: CustomersColumnsOptions): ColumnDef<Customer>[] {
 
   // 客户等级映射
   const customerLevelMap: Record<number, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {

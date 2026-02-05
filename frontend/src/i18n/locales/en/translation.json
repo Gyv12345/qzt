@@ -19,7 +19,8 @@
     "goToPreviousPage": "Go to previous page",
     "goToPage": "Go to page {{page}}",
     "goToNextPage": "Go to next page",
-    "goToLastPage": "Go to last page"
+    "goToLastPage": "Go to last page",
+    "view": "View"
   },
   "auth": {
     "login": "Login",

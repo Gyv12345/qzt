@@ -1,11 +1,13 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableRowActions } from './data-table-row-actions'
 import type { Product } from '../types/product'
 
-export function getProductsColumns(): ColumnDef<Product>[] {
-  const { t } = useTranslation()
+type GetProductsColumnsOptions = {
+  t: (key: string) => string
+}
+
+export function getProductsColumns({ t }: GetProductsColumnsOptions): ColumnDef<Product>[] {
 
   // 金额格式化
   function formatAmount(amount: number) {

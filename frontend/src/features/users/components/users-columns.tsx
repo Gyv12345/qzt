@@ -1,5 +1,4 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -8,8 +7,11 @@ import { LongText } from '@/components/long-text'
 import type { UserEntity } from '@/models'
 import { DataTableRowActions } from './data-table-row-actions'
 
-export function getUsersColumns(): ColumnDef<UserEntity>[] {
-  const { t } = useTranslation()
+type GetUsersColumnsOptions = {
+  t: (key: string) => string
+}
+
+export function getUsersColumns({ t }: GetUsersColumnsOptions): ColumnDef<UserEntity>[] {
 
   return [
     {

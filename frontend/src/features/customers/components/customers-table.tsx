@@ -98,7 +98,7 @@ export function CustomersTable({
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return getCustomersColumns().map((col) => {
+    return getCustomersColumns({ t }).map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,

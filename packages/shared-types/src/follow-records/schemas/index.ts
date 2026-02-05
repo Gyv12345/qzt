@@ -1,0 +1,16 @@
+export {
+  followTypeSchema,
+  followRecordBaseSchema,
+  followRecordSchema,
+  createFollowRecordSchema,
+  updateFollowRecordSchema,
+  followTypeMap,
+  getFollowTypeLabel,
+  followTypeLegacySchema,
+  toFollowType,
+  toFollowTypeLegacy,
+  type FollowType,
+  type FollowRecordBase,
+  type FollowRecord,
+  type FollowTypeLegacy,
+} from './follow-record.schema'
