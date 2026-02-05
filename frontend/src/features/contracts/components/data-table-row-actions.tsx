@@ -1,3 +1,5 @@
+import { Row } from '@tanstack/react-table'
+import { MoreHorizontal, Edit, Trash2, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -6,14 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
 import type { Contract } from '../types/contract'
 
 interface DataTableRowActionsProps {
-  row: {
-    original: Contract
-    getValue: (key: string) => any
-  }
+  row: Row<Contract>
   onEdit: (contract: Contract) => void
   onDelete: (contract: Contract) => void
   onUpdatePaymentStatus?: (contract: Contract) => void
@@ -28,36 +26,34 @@ export function DataTableRowActions({
   const contract = row.original
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant='ghost'
-          className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
-        >
-          <MoreHorizontal className='h-4 w-4' />
-          <span className='sr-only'>打开菜单</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' className='w-[160px]'>
-        <DropdownMenuItem onClick={() => onEdit(contract)}>
-          编辑
-        </DropdownMenuItem>
-        {onUpdatePaymentStatus && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onUpdatePaymentStatus(contract)}>
-              更新收款状态
-            </DropdownMenuItem>
-          </>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => onDelete(contract)}
-          className='text-destructive focus:text-destructive'
-        >
-          删除
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className='flex items-center gap-1'>
+      <Button size='sm' variant='ghost' onClick={() => onEdit(contract)}>
+        <Edit className='h-4 w-4' />
+      </Button>
+      <Button size='sm' variant='ghost' onClick={() => onDelete(contract)}>
+        <Trash2 className='h-4 w-4 text-destructive' />
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size='sm' variant='ghost'>
+            <MoreHorizontal className='h-4 w-4' />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='w-[160px]'>
+          {onUpdatePaymentStatus && (
+            <>
+              <DropdownMenuItem onClick={() => onUpdatePaymentStatus(contract)}>
+                <DollarSign className='mr-2 h-4 w-4' />
+                更新收款状态
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem onClick={() => console.log('查看详情', contract.id)}>
+            查看详情
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
