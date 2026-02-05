@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { getContractsColumns } from './contracts-columns'
+import { getContractsColumns } from './contracts-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useContracts, useDeleteContract, useUpdatePaymentStatus } from '../hooks/use-contracts'
 import type { Contract } from '../types/contract'
