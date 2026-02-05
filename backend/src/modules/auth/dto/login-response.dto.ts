@@ -1,43 +1,57 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger'
+import type {
+  LoginRole,
+  LoginUser,
+  LoginResponse,
+} from '@qzt/shared-types/dist/auth/schemas'
 
-export class LoginRoleDto {
+/**
+ * 登录角色 DTO
+ */
+export class LoginRoleDto implements LoginRole {
   @ApiProperty({ description: '角色 ID' })
-  id: string;
+  id: string
 
   @ApiProperty({ description: '角色名称' })
-  name: string;
+  name: string
 
   @ApiProperty({ description: '角色代码' })
-  code: string;
+  code: string
 }
 
-export class LoginUserDto {
+/**
+ * 登录用户 DTO
+ */
+export class LoginUserDto implements LoginUser {
   @ApiProperty({ description: '用户 ID' })
-  id: string;
+  id: string
 
   @ApiProperty({ description: '用户名' })
-  username: string;
+  username: string
 
   @ApiProperty({ description: '姓名' })
-  name: string;
+  name: string
 
   @ApiProperty({ description: '邮箱', required: false })
-  email?: string;
+  email?: string
 
   @ApiProperty({ description: '手机号', required: false })
-  phone?: string;
+  phone?: string
 
   @ApiProperty({ description: '头像', required: false })
-  avatar?: string;
+  avatar?: string
 
   @ApiProperty({ description: '用户角色', type: [LoginRoleDto] })
-  roles: LoginRoleDto[];
+  roles: LoginRoleDto[]
 }
 
-export class LoginResponseDto {
+/**
+ * 登录响应 DTO
+ */
+export class LoginResponseDto implements LoginResponse {
   @ApiProperty({ description: '访问令牌' })
-  access_token: string;
+  access_token: string
 
   @ApiProperty({ description: '用户信息', type: LoginUserDto })
-  user: LoginUserDto;
+  user: LoginUserDto
 }

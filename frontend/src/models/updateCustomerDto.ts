@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { UpdateCustomerDtoCustomerLevel } from "./updateCustomerDtoCustomerLevel";
 
 export interface UpdateCustomerDto {
   /** 公司名称 */
@@ -13,7 +14,7 @@ export interface UpdateCustomerDto {
   shortName?: string;
   /** 公司编码 */
   code?: string;
-  /** 行业 */
+  /** 所属行业 */
   industry?: string;
   /** 公司规模 */
   scale?: string;
@@ -21,17 +22,13 @@ export interface UpdateCustomerDto {
   address?: string;
   /** 公司网站 */
   website?: string;
-  /** 客户等级: 0:线索公司 1:意向客户 2:正式客户 3:VIP客户 */
-  customerLevel?: number;
+  /** 客户等级 */
+  customerLevel?: UpdateCustomerDtoCustomerLevel;
   /** 来源渠道 */
   sourceChannel?: string;
   /** 跟进人ID */
   followUserId?: string;
-  /** 首次联系时间 */
-  firstContactDate?: string;
-  /** 签约时间 */
-  contractDate?: string;
-  /** 标签(JSON数组) */
+  /** 标签（JSON数组） */
   tags?: string;
   /** 备注 */
   remark?: string;
