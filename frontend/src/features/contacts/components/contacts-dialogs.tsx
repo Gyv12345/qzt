@@ -1,5 +1,6 @@
 import { useState, createContext, useContext } from 'react'
-import { ContactFormDialog } from './contact-form-dialog'
+import { ContactFormDrawer } from './contact-form-drawer'
+import { ContactDetailDrawer } from './contact-detail-drawer'
 import { LinkCustomerDialog } from './link-customer-dialog'
 import { ContactDeleteDialog } from './contact-delete-dialog'
 import type { Contact } from '../types/contact'
@@ -8,6 +9,7 @@ interface ContactsDialogsContextValue {
   openCreateDialog: () => void
   openEditDialog: (contact: Contact) => void
   openDeleteDialog: (contact: Contact) => void
+  openDetailDrawer: (contact: Contact | null) => void
   openLinkCustomerDialog: (contact: Contact) => void
   openCreateCustomerDialog: (contact: Contact) => void
 }
@@ -23,11 +25,13 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
   const [deletingContact, setDeletingContact] = useState<Contact | null>(null)
   const [linkingContact, setLinkingContact] = useState<Contact | null>(null)
+  const [detailContact, setDetailContact] = useState<Contact | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   const openCreateDialog = () => setIsCreateDialogOpen(true)
   const openEditDialog = (contact: Contact) => setEditingContact(contact)
   const openDeleteDialog = (contact: Contact) => setDeletingContact(contact)
+  const openDetailDrawer = (contact: Contact | null) => setDetailContact(contact)
   const openLinkCustomerDialog = (contact: Contact) => setLinkingContact(contact)
   const openCreateCustomerDialog = (contact: Contact) => {
     // TODO: 打开创建客户对话框，并预填联系人信息
@@ -36,12 +40,19 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
 
   return (
     <ContactsDialogsContext.Provider
-      value={{ openCreateDialog, openEditDialog, openDeleteDialog, openLinkCustomerDialog, openCreateCustomerDialog }}
+      value={{
+        openCreateDialog,
+        openEditDialog,
+        openDeleteDialog,
+        openDetailDrawer,
+        openLinkCustomerDialog,
+        openCreateCustomerDialog,
+      }}
     >
       {children}
 
-      {/* 创建联系人对话框 */}
-      <ContactFormDialog
+      {/* 创建联系人抽屉 */}
+      <ContactFormDrawer
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onSuccess={() => {
@@ -50,9 +61,9 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
         }}
       />
 
-      {/* 编辑联系人对话框 */}
+      {/* 编辑联系人抽屉 */}
       {editingContact && (
-        <ContactFormDialog
+        <ContactFormDrawer
           open={!!editingContact}
           onOpenChange={(open) => !open && setEditingContact(null)}
           contact={editingContact}
@@ -60,6 +71,17 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
             setEditingContact(null)
             onRefresh()
           }}
+        />
+      )}
+
+      {/* 联系人详情抽屉 */}
+      {detailContact && (
+        <ContactDetailDrawer
+          open={!!detailContact}
+          onOpenChange={(open) => !open && setDetailContact(null)}
+          contact={detailContact}
+          onLinkCustomer={openLinkCustomerDialog}
+          onCreateCustomer={openCreateCustomerDialog}
         />
       )}
 

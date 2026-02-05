@@ -40,6 +40,34 @@
     "updateSuccess": "Customer updated successfully",
     "deleteSuccess": "Customer deleted successfully"
   },
+  "contact": {
+    "title": "Contact Management",
+    "description": "Manage your contacts and company relationships",
+    "searchPlaceholder": "Search contact name...",
+    "columns": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "customerName": "Company",
+      "position": "Position",
+      "department": "Department",
+      "wechat": "WeChat",
+      "birthdate": "Birthday",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "tags": {
+      "primary": "Primary",
+      "decisionMaker": "Decision Maker"
+    },
+    "empty": {
+      "customer": "Unlinked"
+    },
+    "birthdate": {
+      "today": "Birthday today",
+      "inDays": "In {{count}} days"
+    }
+  },
   "user": {
     "title": "User Management",
     "description": "Manage system users and role permissions",

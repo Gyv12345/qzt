@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CustomerContactService } from './customer-contact.service';
@@ -25,8 +26,9 @@ export class CustomerContactController {
   addContact(
     @Param('customerId') customerId: string,
     @Body() addDto: AddContactDto,
+    @Request() req,
   ) {
-    return this.customerContactService.addContact(customerId, addDto);
+    return this.customerContactService.addContact(customerId, addDto, req.user.userId);
   }
 
   @Post('link')
