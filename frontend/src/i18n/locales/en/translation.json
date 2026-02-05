@@ -144,5 +144,115 @@
         }
       }
     }
+  },
+  "nav": {
+    "user": {
+      "upgradeToPro": "Upgrade to Pro",
+      "account": "Account",
+      "billing": "Billing",
+      "notifications": "Notifications",
+      "signOut": "Sign out",
+      "signOutDialog": {
+        "title": "Sign out",
+        "description": "Are you sure you want to sign out? You will need to sign in again to access your account.",
+        "confirm": "Sign out"
+      }
+    }
+  },
+  "profile": {
+    "profile": "Profile",
+    "billing": "Billing",
+    "settings": "Settings",
+    "newTeam": "New Team",
+    "signOut": "Sign out"
+  },
+  "config": {
+    "title": "Theme Settings",
+    "description": "Adjust the appearance and layout to suit your preferences.",
+    "openSettings": "Open theme settings",
+    "reset": "Reset",
+    "resetAll": "Reset all settings to default values",
+    "theme": {
+      "title": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "selectTheme": "Select theme preference",
+      "description": "Choose between system preference, light mode, or dark mode"
+    },
+    "sidebar": {
+      "title": "Sidebar",
+      "inset": "Inset",
+      "floating": "Floating",
+      "sidebar": "Sidebar",
+      "selectSidebar": "Select sidebar style",
+      "description": "Choose between inset, floating, or standard sidebar layout"
+    },
+    "layout": {
+      "title": "Layout",
+      "default": "Default",
+      "compact": "Compact",
+      "fullLayout": "Full layout",
+      "selectLayout": "Select layout style",
+      "description": "Choose between default expanded, compact icon-only, or full layout mode"
+    },
+    "direction": {
+      "title": "Direction",
+      "leftToRight": "Left to Right",
+      "rightToLeft": "Right to Left",
+      "selectDirection": "Select site direction",
+      "description": "Choose between left-to-right or right-to-left site direction"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account settings and set e-mail preferences.",
+    "selectPlaceholder": "Select setting",
+    "sidebar": {
+      "profile": "Profile",
+      "account": "Account",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "display": "Display"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "This is how others will see you on the site.",
+      "username": "Username",
+      "usernameDescription": "This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30 days.",
+      "email": "Email",
+      "selectEmail": "Select a verified email to display",
+      "emailDescription": "You can manage verified email addresses in your",
+      "emailSettings": "email settings",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us a little bit about yourself",
+      "bioDescription": "You can @mention other users and organizations to link to them.",
+      "urls": "URLs",
+      "urlsDescription": "Add links to your website, blog, or social media profiles.",
+      "addUrl": "Add URL",
+      "updateProfile": "Update profile",
+      "validation": {
+        "usernameMin": "Username must be at least 2 characters.",
+        "usernameMax": "Username must not be longer than 30 characters.",
+        "emailRequired": "Please select an email to display.",
+        "invalidUrl": "Please enter a valid URL."
+      }
+    },
+    "account": {
+      "title": "Account",
+      "description": "Manage your account settings and preferences."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the look and feel of the application as you use it."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure when and how you receive notifications."
+    },
+    "display": {
+      "title": "Display",
+      "description": "Adjust display settings to suit your needs."
+    }
   }
 }
