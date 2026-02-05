@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   type SortingState,
   type VisibilityState,
@@ -22,7 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { customersColumns } from './customers-columns'
+import { getCustomersColumns } from './customers-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useCustomers, useDeleteCustomer } from '../hooks/use-customers'
 import type { Customer } from '../types/customer'
@@ -46,6 +47,7 @@ export function CustomersTable({
   onRowDoubleClick,
   selectedCustomerId,
 }: DataTableProps) {
+  const { t } = useTranslation()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -96,7 +98,7 @@ export function CustomersTable({
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return customersColumns.map((col) => {
+    return getCustomersColumns().map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,
@@ -177,17 +179,19 @@ export function CustomersTable({
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='搜索客户名称...'
+        searchPlaceholder={t('customer.searchPlaceholder')}
         searchKey='name'
+        searchMode='submit'
+        searchButtonLabel={t('common.search')}
         filters={[
           {
             columnId: 'customerLevel',
-            title: '客户等级',
+            title: t('customer.level'),
             options: [
-              { label: '线索公司', value: '0' },
-              { label: '意向客户', value: '1' },
-              { label: '正式客户', value: '2' },
-              { label: 'VIP客户', value: '3' },
+              { label: t('customer.levels.0'), value: '0' },
+              { label: t('customer.levels.1'), value: '1' },
+              { label: t('customer.levels.2'), value: '2' },
+              { label: t('customer.levels.3'), value: '3' },
             ],
           },
         ]}
