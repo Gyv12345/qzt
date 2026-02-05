@@ -1,25 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Headers,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiResponse,
-  ApiProduces,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { LogsService } from './logs.service';
-import { QueryOperationLogDto } from './dto/query-operation-log.dto';
-import { QuerySystemLogDto } from './dto/query-system-log.dto';
-import { ExportLogDto } from './dto/export-log.dto';
+import {Body, Controller, Get, Param, Post, Query, UseGuards,} from '@nestjs/common';
+import {ApiBearerAuth, ApiOperation, ApiProduces, ApiResponse, ApiTags,} from '@nestjs/swagger';
+import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
+import {LogsService} from './logs.service';
+import {QueryOperationLogDto} from './dto/query-operation-log.dto';
+import {QuerySystemLogDto} from './dto/query-system-log.dto';
+import {ExportLogDto} from './dto/export-log.dto';
 
 @ApiTags('logs')
 @Controller('logs')
@@ -55,7 +40,6 @@ export class LogsController {
   @ApiResponse({ status: 200, description: '导出成功', content: { 'text/csv': {} } })
   @ApiProduces('text/csv')
   async exportToCsv(@Body() exportLogDto: ExportLogDto) {
-    const csv = await this.logsService.exportToCsv(exportLogDto);
-    return csv;
+    return await this.logsService.exportToCsv(exportLogDto);
   }
 }
