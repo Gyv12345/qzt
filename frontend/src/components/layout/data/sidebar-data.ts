@@ -61,6 +61,11 @@ export const sidebarData: SidebarData = {
           icon: BarChart3,
           items: [
             {
+              title: '联系人管理',
+              url: '/contacts',
+              icon: UserCircle,
+            },
+            {
               title: '客户管理',
               url: '/customers',
               icon: Building,
@@ -69,16 +74,6 @@ export const sidebarData: SidebarData = {
               title: '合同管理',
               url: '/contracts',
               icon: FileCheck,
-            },
-            {
-              title: '联系人管理',
-              url: '/contacts',
-              icon: UserCircle,
-            },
-            {
-              title: '产品管理',
-              url: '/products',
-              icon: Archive,
             },
           ],
         },
@@ -139,6 +134,11 @@ export const sidebarData: SidebarData = {
           title: '权限管理',
           url: '/permissions',
           icon: Lock,
+        },
+        {
+          title: '产品管理',
+          url: '/products',
+          icon: Archive,
         },
         {
           title: '日志管理',

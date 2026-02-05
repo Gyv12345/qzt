@@ -102,7 +102,6 @@ export const contactsColumns: ColumnDef<Contact>[] = [
 
       const date = new Date(birthdate)
       const now = new Date()
-      const currentYear = now.getFullYear()
       const birthMonth = date.getMonth() + 1
       const birthDay = date.getDate()
       const isBirthdaySoon =

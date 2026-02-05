@@ -5,9 +5,10 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { StatisticsService } from './statistics.service';
+import { DashboardStatsDto } from './dto/dashboard-stats.dto';
 
 @ApiTags('statistics')
 @Controller('statistics')
@@ -18,6 +19,7 @@ export class StatisticsController {
 
   @Get('dashboard')
   @ApiOperation({ summary: '获取首页仪表板数据' })
+  @ApiResponse({ status: 200, description: '获取成功', type: DashboardStatsDto })
   getDashboardStats() {
     return this.statisticsService.getDashboardStats();
   }

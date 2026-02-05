@@ -21,17 +21,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
 import { useCreateContact, useUpdateContact } from '../hooks/use-contacts'
 import type { Contact } from '../types/contact'
-import { CustomerSelector } from '@/components/selectors/CustomerSelector'
 
 // 联系人表单验证 schema
 const contactFormSchema = z.object({
@@ -44,9 +35,6 @@ const contactFormSchema = z.object({
   birthdate: z.string().optional(),
   tags: z.string().optional(),
   remark: z.string().optional(),
-  customerId: z.string().optional(),
-  isPrimary: z.boolean().optional(),
-  isDecisionMaker: z.boolean().optional(),
 })
 
 type ContactFormValues = z.infer<typeof contactFormSchema>
@@ -79,9 +67,6 @@ export function ContactFormDialog({
           birthdate: contact.birthdate || '',
           tags: contact.tags || '',
           remark: contact.remark || '',
-          customerId: contact.customerId || '',
-          isPrimary: (contact as any).isPrimary || false,
-          isDecisionMaker: (contact as any).isDecisionMaker || false,
         }
       : {
           name: '',
@@ -93,9 +78,6 @@ export function ContactFormDialog({
           birthdate: '',
           tags: '',
           remark: '',
-          customerId: '',
-          isPrimary: false,
-          isDecisionMaker: false,
         },
   })
 
@@ -121,7 +103,6 @@ export function ContactFormDialog({
         birthdate: values.birthdate || undefined,
         tags: values.tags || undefined,
         remark: values.remark || undefined,
-        customerId: values.customerId || undefined,
       }
 
       if (isEdit && contact) {
@@ -208,23 +189,6 @@ export function ContactFormDialog({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name='customerId'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>所属企业</FormLabel>
-                  <FormControl>
-                    <CustomerSelector
-                      value={field.value || ''}
-                      onChange={(value) => field.onChange(value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className='grid grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
@@ -268,44 +232,6 @@ export function ContactFormDialog({
                 </FormItem>
               )}
             />
-
-            <div className='flex gap-4'>
-              <FormField
-                control={form.control}
-                name='isPrimary'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className='space-y-1 leading-none'>
-                      <FormLabel>主要联系人</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='isDecisionMaker'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className='space-y-1 leading-none'>
-                      <FormLabel>决策人</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <FormField
               control={form.control}

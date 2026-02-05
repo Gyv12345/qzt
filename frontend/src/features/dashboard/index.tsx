@@ -18,11 +18,18 @@ import { useDashboardStats } from './hooks/use-dashboard-stats'
 export function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats()
 
-  const statsData = stats?.data || {
-    totalRevenue: 0,
-    customerCount: 0,
-    orderCount: 0,
-    growth: 0,
+  // API 返回结构：{ overview: {...}, monthly: {...}, recentActivities, unreadNotifications }
+  const overview = stats?.overview || {
+    totalCustomers: 0,
+    totalContracts: 0,
+    totalProducts: 0,
+    totalInvoices: 0,
+  }
+  const monthly = stats?.monthly || {
+    newCustomers: 0,
+    newContracts: 0,
+    contractAmount: 0,
+    invoiceAmount: 0,
   }
 
   return (
@@ -53,10 +60,10 @@ export function Dashboard() {
               ) : (
                 <>
                   <div className='text-2xl font-bold'>
-                    ¥{statsData.totalRevenue?.toLocaleString() || '0'}
+                    ¥{monthly.contractAmount?.toLocaleString() || '0'}
                   </div>
                   <p className='text-xs text-muted-foreground'>
-                    较上月 +{statsData.growth || 0}%
+                    本月合同金额
                   </p>
                 </>
               )}
@@ -73,10 +80,10 @@ export function Dashboard() {
               ) : (
                 <>
                   <div className='text-2xl font-bold'>
-                    {statsData.customerCount || 0}
+                    {overview.totalCustomers || 0}
                   </div>
                   <p className='text-xs text-muted-foreground'>
-                    本月新增
+                    总客户数
                   </p>
                 </>
               )}
@@ -93,10 +100,10 @@ export function Dashboard() {
               ) : (
                 <>
                   <div className='text-2xl font-bold'>
-                    {statsData.orderCount || 0}
+                    {overview.totalContracts || 0}
                   </div>
                   <p className='text-xs text-muted-foreground'>
-                    本月订单
+                    总合同数
                   </p>
                 </>
               )}
@@ -113,10 +120,10 @@ export function Dashboard() {
               ) : (
                 <>
                   <div className='text-2xl font-bold'>
-                    {statsData.growth || 0}%
+                    {monthly.newCustomers || 0}
                   </div>
                   <p className='text-xs text-muted-foreground'>
-                    较上月
+                    本月新增客户
                   </p>
                 </>
               )}
