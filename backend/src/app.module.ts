@@ -24,6 +24,7 @@ import { PermissionModule } from './modules/permission/permission.module';
 import { UsersModule } from './modules/users/users.module';
 import { DepartmentModule } from './modules/department/department.module';
 import { LogsModule } from './modules/logs/logs.module';
+import { LoginLogsModule } from './modules/login-logs/login-logs.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OssModule } from './modules/oss/oss.module';
 import { SocialMediaModule } from './modules/social-media/social-media.module';
@@ -161,6 +162,7 @@ const envSchema = Joi.object({
     UsersModule,
     DepartmentModule,
     LogsModule,
+    LoginLogsModule,
     WebhooksModule,
     OssModule,
     SocialMediaModule,

@@ -54,17 +54,6 @@ export function DepartmentTreeTable() {
     }
   }, [searchKeyword])
 
-  const { data: treeData, isLoading, error } = useDepartments()
-  const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment()
-
-  if (isLoading) {
-    return <div className="flex justify-center p-8">加载中...</div>
-  }
-
-  if (error) {
-    return <div className="text-destructive p-8">加载失败: {error.message}</div>
-  }
-
   // 切换展开/收起状态
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
@@ -265,6 +254,16 @@ export function DepartmentTreeTable() {
   }
 
   const total = countTotalDepartments(filteredTreeData || [])
+
+  // 渲染加载状态
+  if (isLoading) {
+    return <div className="flex justify-center p-8">加载中...</div>
+  }
+
+  // 渲染错误状态
+  if (error) {
+    return <div className="text-destructive p-8">加载失败: {error.message}</div>
+  }
 
   return (
     <div className="space-y-4">

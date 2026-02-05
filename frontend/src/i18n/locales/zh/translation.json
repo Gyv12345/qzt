@@ -103,5 +103,46 @@
       "confirmButton": "删除",
       "deletedMessage": "以下用户已被删除:"
     }
+  },
+  "settings": {
+    "title": "系统设置",
+    "description": "管理系统设置和首选项",
+    "logs": {
+      "title": "日志管理",
+      "loginLog": {
+        "title": "登录日志",
+        "description": "查看用户登录历史记录",
+        "columns": {
+          "username": "用户名",
+          "ipAddress": "IP 地址",
+          "loginTime": "登录时间",
+          "status": "状态",
+          "browser": "浏览器",
+          "os": "操作系统"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失败"
+        }
+      },
+      "operationLog": {
+        "title": "操作日志",
+        "description": "查看用户操作历史记录",
+        "columns": {
+          "username": "用户名",
+          "module": "模块",
+          "operation": "操作",
+          "method": "请求方法",
+          "url": "请求路径",
+          "ipAddress": "IP 地址",
+          "operationTime": "操作时间",
+          "status": "状态"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失败"
+        }
+      }
+    }
   }
 }

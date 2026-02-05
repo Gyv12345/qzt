@@ -354,7 +354,8 @@ pnpm run format         # 代码格式化
 ## 📚 会话记录
 
 详细的开发会话总结请查看：
-- **[2025-02-04 会话总结](./references/session-2025-02-04.md)** - 完整会话总结
+- **[2025-02-05 日志管理模块](./references/session-2025-02-05-logs-module.md)** - 日志管理功能开发、导航配置、缓存问题处理
+- **[2025-02-04 完整会话](./references/session-2025-02-04.md)** - 完整会话总结
 - **[2025-02-04 国际化实现](./references/session-2025-02-04-i18n.md)** - 中英文国际化实现
 - **[2025-02-04 用户管理模块](./references/session-2025-02-04-users-module.md)** - 用户管理 CRUD 功能
 - **[2025-02-04 部门管理模块](./references/session-2025-02-04-departments.md)** - 部门管理 CRUD + 树形表格 + 搜索

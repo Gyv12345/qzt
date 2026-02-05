@@ -22,6 +22,7 @@ import { getAutomation } from './automation'
 import { getPricing } from './pricing'
 import { getOss } from './oss'
 import { getLogs } from './logs'
+import { getLoginLogs } from './login-logs'
 import { getWebhook } from './webhook'
 import { getRules } from './rules'
 import { getCustomerContacts } from './customer-contacts'
@@ -52,6 +53,7 @@ export { getAutomation }
 export { getPricing }
 export { getOss }
 export { getLogs }
+export { getLoginLogs }
 export { getWebhook }
 export { getRules }
 export { getCustomerContacts }
@@ -83,6 +85,7 @@ export const getScrmApi = () => ({
   ...getPricing(),
   ...getOss(),
   ...getLogs(),
+  ...getLoginLogs(),
   ...getWebhook(),
   ...getRules(),
   ...getCustomerContacts(),

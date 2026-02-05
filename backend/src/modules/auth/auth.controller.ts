@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Req, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,8 +15,13 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
   @ApiResponse({ status: 201, type: LoginResponseDto })
-  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: any,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<LoginResponseDto> {
+    const ip = req.ip || req.connection.remoteAddress;
+    return this.authService.login(loginDto, { ip, userAgent });
   }
 
   @Get('me')

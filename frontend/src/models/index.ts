@@ -54,6 +54,7 @@ export * from "./invoiceControllerGetCustomerSummaryParams";
 export * from "./linkCompanyDto";
 export * from "./linkContactDto";
 export * from "./loginDto";
+export * from "./loginLogsControllerFindLoginLogsParams";
 export * from "./loginResponseDto";
 export * from "./loginRoleDto";
 export * from "./loginUserDto";

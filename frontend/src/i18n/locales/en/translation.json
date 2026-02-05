@@ -103,5 +103,46 @@
       "confirmButton": "Delete",
       "deletedMessage": "The following user has been deleted:"
     }
+  },
+  "settings": {
+    "title": "System Settings",
+    "description": "Manage system settings and preferences",
+    "logs": {
+      "title": "Log Management",
+      "loginLog": {
+        "title": "Login Logs",
+        "description": "View user login history",
+        "columns": {
+          "username": "Username",
+          "ipAddress": "IP Address",
+          "loginTime": "Login Time",
+          "status": "Status",
+          "browser": "Browser",
+          "os": "Operating System"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed"
+        }
+      },
+      "operationLog": {
+        "title": "Operation Logs",
+        "description": "View user operation history",
+        "columns": {
+          "username": "Username",
+          "module": "Module",
+          "operation": "Operation",
+          "method": "Method",
+          "url": "URL",
+          "ipAddress": "IP Address",
+          "operationTime": "Operation Time",
+          "status": "Status"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed"
+        }
+      }
+    }
   }
 }

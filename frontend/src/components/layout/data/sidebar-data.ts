@@ -22,6 +22,8 @@ import {
   Command,
   GalleryVerticalEnd,
   Building,
+  ScrollText,
+  FileText,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
@@ -92,6 +94,20 @@ export const sidebarData: SidebarData = {
           title: '权限管理',
           url: '/permissions',
           icon: Lock,
+        },
+        {
+          title: '日志管理',
+          icon: FileText,
+          items: [
+            {
+              title: '登录日志',
+              url: '/login-logs',
+            },
+            {
+              title: '操作日志',
+              url: '/operation-logs',
+            },
+          ],
         },
       ],
     },
