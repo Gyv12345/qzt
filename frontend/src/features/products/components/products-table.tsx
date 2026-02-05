@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   type SortingState,
   type VisibilityState,
@@ -22,7 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { productsColumns } from './products-columns'
+import { getProductsColumns } from './products-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useProducts, useDeleteProduct } from '../hooks/use-products'
 import type { Product } from '../types/product'
@@ -35,6 +36,7 @@ type DataTableProps = {
 }
 
 export function ProductsTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
+  const { t } = useTranslation()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -78,7 +80,7 @@ export function ProductsTable({ search, navigate, onEdit, onRefresh }: DataTable
   }, [deleteMutation, onRefresh])
 
   const columns = useMemo(() => {
-    return productsColumns.map((col) => {
+    return getProductsColumns().map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,
@@ -154,8 +156,10 @@ export function ProductsTable({ search, navigate, onEdit, onRefresh }: DataTable
     <div className={cn('flex flex-1 flex-col gap-4')}>
       <DataTableToolbar
         table={table}
-        searchPlaceholder='搜索产品名称...'
+        searchPlaceholder={t('product.searchPlaceholder')}
         searchKey='name'
+        searchMode='submit'
+        searchButtonLabel={t('common.search')}
         filters={[]}
       />
       <div className='overflow-hidden rounded-md border'>
