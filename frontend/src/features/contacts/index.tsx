@@ -16,7 +16,7 @@ function ContactsContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const queryClient = useQueryClient()
-  const { openCreateDialog, openEditDialog } = useContactsDialogs()
+  const { openCreateDialog, openEditDialog, openLinkCustomerDialog, openCreateCustomerDialog } = useContactsDialogs()
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['contacts'] })
@@ -48,6 +48,8 @@ function ContactsContent() {
           navigate={navigate}
           onEdit={openEditDialog}
           onRefresh={handleRefresh}
+          onLinkCustomer={openLinkCustomerDialog}
+          onCreateCustomer={openCreateCustomerDialog}
         />
       </Main>
     </>

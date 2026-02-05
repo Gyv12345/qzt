@@ -7,8 +7,8 @@ export function useDashboardStats() {
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const { statisticsControllerGetDashboardStats } = getScrmApi()
-      const response = await statisticsControllerGetDashboardStats()
-      return response.data as any
+      // API 拦截器已自动提取 response.data，直接返回即可
+      return await statisticsControllerGetDashboardStats()
     },
   })
 }
@@ -19,8 +19,8 @@ export function useCustomerGrowthTrend(params?: { days?: number }) {
     queryKey: ['customer-growth', params],
     queryFn: async () => {
       const { statisticsControllerGetCustomerGrowthTrend } = getScrmApi()
-      const response = await statisticsControllerGetCustomerGrowthTrend(params)
-      return response.data as any
+      // API 拦截器已自动提取 response.data
+      return await statisticsControllerGetCustomerGrowthTrend(params)
     },
   })
 }
@@ -31,8 +31,8 @@ export function useSalesPerformance(params?: { startDate?: string; endDate?: str
     queryKey: ['sales-performance', params],
     queryFn: async () => {
       const { statisticsControllerGetSalesPerformance } = getScrmApi()
-      const response = await statisticsControllerGetSalesPerformance(params)
-      return response.data as any
+      // API 拦截器已自动提取 response.data
+      return await statisticsControllerGetSalesPerformance(params)
     },
   })
 }

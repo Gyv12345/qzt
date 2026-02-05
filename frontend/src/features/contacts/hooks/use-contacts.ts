@@ -8,7 +8,12 @@ export function useContacts(params?: { page?: number; pageSize?: number; custome
     queryKey: ['contacts', params],
     queryFn: async () => {
       const { contactControllerFindAll } = getScrmApi()
-      return await contactControllerFindAll(params) as any
+      const response = await contactControllerFindAll(params) as any
+      // 后端返回的是 data 字段，转换为 items 以保持一致性
+      return {
+        ...response,
+        items: response.data || [],
+      }
     },
   })
 }
@@ -74,6 +79,44 @@ export function useDeleteContact() {
     },
     onError: (error: any) => {
       toast.error(error.message || '删除失败')
+    },
+  })
+}
+
+export function useLinkCustomer() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ contactId, data }: { contactId: string; data: any }) => {
+      const api = getScrmApi()
+      // API 方法签名：linkCompany(id: string, linkDto: LinkCompanyDto)
+      return await api.contactControllerLinkCompany(contactId, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] })
+      toast.success('关联客户成功')
+    },
+    onError: (error: any) => {
+      toast.error(error.message || '关联失败')
+    },
+  })
+}
+
+export function useUnlinkCustomer() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ contactId, customerId }: { contactId: string; customerId: string }) => {
+      const api = getScrmApi()
+      // API 方法签名：unlinkCompany(id: string, customerId: string)
+      return await api.contactControllerUnlinkCompany(contactId, customerId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] })
+      toast.success('取消关联成功')
+    },
+    onError: (error: any) => {
+      toast.error(error.message || '取消关联失败')
     },
   })
 }

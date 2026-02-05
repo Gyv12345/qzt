@@ -32,9 +32,11 @@ type DataTableProps = {
   navigate: NavigateFn
   onEdit: (contact: Contact) => void
   onRefresh: () => void
+  onLinkCustomer: (contact: Contact) => void
+  onCreateCustomer: (contact: Contact) => void
 }
 
-export function ContactsTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
+export function ContactsTable({ search, navigate, onEdit, onRefresh, onLinkCustomer, onCreateCustomer }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -47,7 +49,6 @@ export function ContactsTable({ search, navigate, onEdit, onRefresh }: DataTable
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
-    ensurePageInRange,
   } = useTableUrlState({
     search,
     navigate,
@@ -98,6 +99,8 @@ export function ContactsTable({ search, navigate, onEdit, onRefresh }: DataTable
                 row={props.row}
                 onEdit={onEdit}
                 onDelete={handleDelete}
+                onLinkCustomer={onLinkCustomer}
+                onCreateCustomer={onCreateCustomer}
               />
             )
           },
@@ -105,7 +108,7 @@ export function ContactsTable({ search, navigate, onEdit, onRefresh }: DataTable
       }
       return col
     })
-  }, [onEdit, handleDelete])
+  }, [onEdit, handleDelete, onLinkCustomer, onCreateCustomer])
 
   const table = useReactTable({
     data: contacts,

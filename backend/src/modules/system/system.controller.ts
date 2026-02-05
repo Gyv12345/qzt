@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CommonPhraseService } from './services/common-phrase.service';
 import { PaymentAccountService } from './services/payment-account.service';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 
 @ApiTags('system')
 @Controller('system')

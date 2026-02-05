@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  DashboardStatsDto,
   StatisticsControllerExportDataParams,
   StatisticsControllerGetContractRenewalStatsParams,
   StatisticsControllerGetCustomerGrowthTrendParams,
@@ -21,7 +22,7 @@ export const getStatistics = () => {
    * @summary 获取首页仪表板数据
    */
   const statisticsControllerGetDashboardStats = () => {
-    return customInstance<void>({
+    return customInstance<DashboardStatsDto>({
       url: `/statistics/dashboard`,
       method: "GET",
     });

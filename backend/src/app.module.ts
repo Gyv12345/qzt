@@ -1,7 +1,7 @@
 import { Module, Scope } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ScheduleModule } from '@nestjs/schedule';
+import { BullModule } from '@nestjs/bullmq';
 import * as Joi from 'joi';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -32,7 +32,6 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { I18nModule, AcceptLanguageResolver } from 'nestjs-i18n';
 import * as path from 'path';
 import { Reflector } from '@nestjs/core';
-import { BullModule } from '@nestjs/bull';
 
 // 环境变量验证Schema
 const envSchema = Joi.object({
@@ -123,6 +122,14 @@ const envSchema = Joi.object({
       validationOptions: {
         allowUnknown: true,
         abortEarly: false,
+      },
+    }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || '127.0.0.1',
+        port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        db: process.env.REDIS_DB ? Number(process.env.REDIS_DB) : 0,
       },
     }),
     I18nModule.forRoot({

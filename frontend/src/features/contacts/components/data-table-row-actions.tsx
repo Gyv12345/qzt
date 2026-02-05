@@ -1,5 +1,5 @@
 import { Row } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal, Link2, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,9 +14,17 @@ interface DataTableRowActionsProps {
   row: Row<Contact>
   onEdit: (contact: Contact) => void
   onDelete: (contact: Contact) => void
+  onLinkCustomer: (contact: Contact) => void
+  onCreateCustomer: (contact: Contact) => void
 }
 
-export function DataTableRowActions({ row, onEdit, onDelete }: DataTableRowActionsProps) {
+export function DataTableRowActions({
+  row,
+  onEdit,
+  onDelete,
+  onLinkCustomer,
+  onCreateCustomer,
+}: DataTableRowActionsProps) {
   const contact = row.original
 
   return (
@@ -30,7 +38,7 @@ export function DataTableRowActions({ row, onEdit, onDelete }: DataTableRowActio
           <span className='sr-only'>打开菜单</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' className='w-[160px]'>
+      <DropdownMenuContent align='end' className='w-[180px]'>
         <DropdownMenuItem onClick={() => onEdit(contact)}>
           编辑
         </DropdownMenuItem>
@@ -42,6 +50,15 @@ export function DataTableRowActions({ row, onEdit, onDelete }: DataTableRowActio
             查看企业
           </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onLinkCustomer(contact)}>
+          <Link2 className='mr-2 h-4 w-4' />
+          关联客户
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onCreateCustomer(contact)}>
+          <Building2 className='mr-2 h-4 w-4' />
+          创建客户
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => onDelete(contact)}
