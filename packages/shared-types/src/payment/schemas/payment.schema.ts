@@ -56,6 +56,8 @@ export const createPaymentSchema = paymentBaseSchema
  */
 export const updatePaymentSchema = paymentBaseSchema.partial()
 
+export type UpdatePaymentBase = z.infer<typeof updatePaymentSchema>
+
 /**
  * 查询收款记录 DTO Schema
  */

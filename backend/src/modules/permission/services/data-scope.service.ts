@@ -121,7 +121,7 @@ export class DataScopeService {
     const users = await this.prisma.user.findMany({
       where: {
         departmentId: { in: departmentIds },
-        status: 1, // 只获取启用的用户
+        status: 'ACTIVE', // 只获取启用的用户
       },
       select: { id: true },
     });

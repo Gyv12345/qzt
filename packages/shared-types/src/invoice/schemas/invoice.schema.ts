@@ -47,6 +47,8 @@ export const createInvoiceSchema = invoiceBaseSchema
  */
 export const updateInvoiceSchema = invoiceBaseSchema.partial()
 
+export type UpdateInvoiceBase = z.infer<typeof updateInvoiceSchema>
+
 /**
  * 查询发票 DTO Schema
  */

@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { ProductControllerFindAllStatus } from "./productControllerFindAllStatus";
 
 export type ProductControllerFindAllParams = {
   /**
@@ -22,5 +23,5 @@ export type ProductControllerFindAllParams = {
   /**
    * 状态
    */
-  status?: number;
+  status?: ProductControllerFindAllStatus;
 };

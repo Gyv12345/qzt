@@ -20,7 +20,7 @@ export class InvoiceService {
       where: { id: createInvoiceDto.customerId },
       include: {
         contracts: {
-          where: { status: { in: [1, 2] } }, // 部分收款或已收全
+          where: { status: { in: ['PARTIAL', 'PAID'] } }, // 部分收款或已收全
           include: { product: true },
         },
       },

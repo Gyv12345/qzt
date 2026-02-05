@@ -17,6 +17,7 @@ export {
   type UserDepartment,
   type UserBase,
   type User,
+  type UpdateUserBase,
   type QueryUserParams,
   type ResetPassword,
   type UserListResponse,

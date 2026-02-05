@@ -1,38 +1,46 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { IsOptional, IsString, IsIn } from 'class-validator'
+import { Type } from 'class-transformer'
 
+// 类型定义参考 @qzt/shared-types/dist/contract/schemas
+
+/**
+ * 查询合同 DTO
+ *
+ * 类型对应 shared-types 中的 QueryContractParams
+ */
 export class QueryContractDto {
-  @ApiProperty({ description: '页码', default: 1, required: false })
+  @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  page?: number = 1;
+  page?: number = 1
 
-  @ApiProperty({ description: '每页数量', default: 10, required: false })
+  @ApiPropertyOptional({ description: '每页数量', default: 10 })
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  pageSize?: number = 10;
+  pageSize?: number = 10
 
-  @ApiProperty({ description: '搜索关键词', required: false })
+  @ApiPropertyOptional({ description: '搜索关键词' })
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string
 
-  @ApiProperty({ description: '客户ID', required: false })
+  @ApiPropertyOptional({ description: '客户ID' })
   @IsOptional()
   @IsString()
-  customerId?: string;
+  customerId?: string
 
-  @ApiProperty({ description: '产品ID', required: false })
+  @ApiPropertyOptional({ description: '产品ID' })
   @IsOptional()
   @IsString()
-  productId?: string;
+  productId?: string
 
-  @ApiProperty({ description: '合同状态', required: false })
+  @ApiPropertyOptional({
+    description: '合同状态',
+    enum: ['UNPAID', 'PARTIAL', 'PAID'],
+  })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  status?: number;
+  @IsString()
+  @IsIn(['UNPAID', 'PARTIAL', 'PAID'], { message: '合同状态必须是 UNPAID、PARTIAL 或 PAID' })
+  status?: 'UNPAID' | 'PARTIAL' | 'PAID'
 }

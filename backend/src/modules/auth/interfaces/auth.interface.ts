@@ -10,7 +10,7 @@ export interface UserInfo {
   email?: string;
   phone?: string;
   avatar?: string;
-  status: number;
+  status: string;
   isAdmin: boolean;
   departmentId?: string;
   createdAt: Date;
@@ -32,7 +32,7 @@ export interface SafeUser {
   email?: string;
   phone?: string;
   avatar?: string;
-  status: number;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
   roles: Array<{

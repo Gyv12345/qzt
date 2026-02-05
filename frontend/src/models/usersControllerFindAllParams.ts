@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { UsersControllerFindAllStatus } from "./usersControllerFindAllStatus";
 
 export type UsersControllerFindAllParams = {
   /**
@@ -24,9 +25,9 @@ export type UsersControllerFindAllParams = {
    */
   departmentId?: string;
   /**
-   * 状态: 1启用 0禁用
+   * 状态
    */
-  status?: number;
+  status?: UsersControllerFindAllStatus;
   /**
    * 角色ID
    */

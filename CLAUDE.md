@@ -809,6 +809,155 @@ import { Component } from './Component'
 
 ---
 
+## 枚举类型迁移最佳实践
+
+### 背景与问题
+
+项目早期使用数字枚举（0, 1, 2...）表示状态，存在以下问题：
+- 代码可读性差（`status === 1` vs `status === 'ACTIVE'`）
+- 前后端类型不一致，容易出错
+- 新增状态时需要同步多处代码
+
+### 迁移策略
+
+**从数字枚举迁移到字符串枚举的完整流程：**
+
+#### 1. 数据库 Schema 修改
+
+```prisma
+// ❌ 旧方式：数字枚举
+model User {
+  status Int @default(1) // 1:启用 0:禁用
+}
+
+// ✅ 新方式：字符串枚举
+model User {
+  status String @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
+}
+```
+
+#### 2. 创建数据迁移文件
+
+```bash
+# 创建迁移目录
+mkdir -p backend/prisma/migrations/TIMESTAMP_description
+
+# 创建 migration.sql
+ALTER TABLE "users" ADD COLUMN "status_temp" TEXT;
+UPDATE "users" SET "status_temp" = CASE
+  WHEN "status" = 1 THEN 'ACTIVE'
+  WHEN "status" = 0 THEN 'INACTIVE'
+  ELSE 'ACTIVE'
+END;
+ALTER TABLE "users" DROP COLUMN "status";
+ALTER TABLE "users" RENAME COLUMN "status_temp" TO "status";
+```
+
+#### 3. 后端 DTO 修改
+
+**关键经验：不要使用 `implements` 关键字**
+
+```typescript
+// ❌ 问题：Zod 的 .optional().default() 推断类型与 DTO 不匹配
+import type { UserBase } from '@qzt/shared-types/dist/user/schemas'
+export class CreateUserDto implements UserBase {
+  status?: 'ACTIVE' | 'INACTIVE'  // TypeScript 报错：Property 'status' is optional...
+}
+
+// ✅ 正确：使用注释说明类型来源
+// 类型定义参考 @qzt/shared-types/dist/user/schemas
+export class CreateUserDto {
+  @ApiPropertyOptional({
+    description: '状态',
+    enum: ['ACTIVE', 'INACTIVE'],
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['ACTIVE', 'INACTIVE'])
+  status?: 'ACTIVE' | 'INACTIVE'
+}
+```
+
+**原因**：Zod Schema 中 `z.enum().optional().default('ACTIVE')` 推断的类型仍然是必需的（不包含 `undefined`），但 DTO 中需要让字段可选。
+
+#### 4. Service 层修改
+
+```typescript
+// ❌ 旧代码
+if (user.status !== 1) { throw new Error('用户已禁用') }
+await this.prisma.user.create({ data: { status: 1 } })
+await this.prisma.user.findMany({ where: { status: 1 } })
+
+// ✅ 新代码
+if (user.status !== 'ACTIVE') { throw new Error('用户已禁用') }
+await this.prisma.user.create({ data: { status: 'ACTIVE' } })
+await this.prisma.user.findMany({ where: { status: 'ACTIVE' } })
+```
+
+#### 5. 接口类型更新
+
+```typescript
+// backend/src/modules/auth/interfaces/auth.interface.ts
+export interface SafeUser {
+  // ...
+  status: string  // 从 number 改为 string
+}
+```
+
+#### 6. 验证与生成
+
+```bash
+# 1. 生成 Prisma 客户端
+cd backend && pnpm prisma generate
+
+# 2. 推送 schema 到数据库
+pnpm prisma db push
+
+# 3. 重启后端服务
+./start-dev.sh stop && ./start-dev.sh
+
+# 4. 验证 Swagger 文档
+curl -s http://localhost:7890/api-docs-json | jq '.components.schemas.CreateUserDto'
+
+# 5. 重新生成前端 API
+cd frontend && pnpm run generate:api
+```
+
+### 常见状态枚举映射
+
+| 模块 | 旧值 | 新值 |
+|------|------|------|
+| User/Department/Role | 0/1 | INACTIVE/ACTIVE |
+| Contract | 0/1/2 | UNPAID/PARTIAL/PAID |
+| Payment | 0/1 | PENDING/CONFIRMED |
+| Payment.method | '1'/'2'/'3'/'4' | BANK_TRANSFER/WECHAT/ALIPAY/CASH |
+| Invoice | 0/1/2 | PENDING/ISSUED/CANCELLED |
+
+### 避坑指南
+
+1. **不要使用 `implements` 与 Zod 推断类型**
+   - Zod 的 `.default()` 不会让字段在类型层面可选
+   - 解决方案：使用 JSDoc 注释说明类型来源
+
+2. **Service 层修改容易被遗漏**
+   - 搜索 `status: 0`、`status: 1`、`status !== 1` 等模式
+   - 特别注意定时任务、数据初始化脚本
+
+3. **前端 API 需要重新生成**
+   - Orval 从 Swagger 读取类型定义
+   - 后端修改后必须重启才能更新 Swagger
+
+4. **类型导入路径使用 `dist`**
+   ```typescript
+   // ✅ 正确
+   import type { UserBase } from '@qzt/shared-types/dist/user/schemas'
+
+   // ❌ 错误（子路径导出不可靠）
+   import type { UserBase } from '@qzt/shared-types/user'
+   ```
+
+---
+
 ## 快速检查清单
 
 ### 开始新功能前

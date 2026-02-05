@@ -1,28 +1,39 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { IsOptional, IsString, IsInt, Min, IsIn } from 'class-validator'
+import { Type } from 'class-transformer'
+// 类型定义参考 @qzt/shared-types/dist/product/schemas
 
+/**
+ * 查询产品 DTO
+ *
+ * 类型对应 shared-types 中的 QueryProductParams
+ */
 export class QueryProductDto {
-  @ApiProperty({ description: '页码', default: 1, required: false })
+  @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  page?: number = 1;
+  @Min(1)
+  page?: number
 
-  @ApiProperty({ description: '每页数量', default: 10, required: false })
+  @ApiPropertyOptional({ description: '每页数量', default: 10 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  pageSize?: number = 10;
+  @Min(1)
+  pageSize?: number
 
-  @ApiProperty({ description: '搜索关键词', required: false })
+  @ApiPropertyOptional({ description: '搜索关键词' })
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string
 
-  @ApiProperty({ description: '状态', required: false })
+  @ApiPropertyOptional({
+    description: '状态',
+    enum: ['ACTIVE', 'INACTIVE'],
+  })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  status?: number;
+  @IsString()
+  @IsIn(['ACTIVE', 'INACTIVE'], { message: '状态必须是 ACTIVE 或 INACTIVE' })
+  status?: 'ACTIVE' | 'INACTIVE'
 }

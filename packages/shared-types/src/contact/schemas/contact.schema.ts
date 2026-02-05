@@ -49,6 +49,8 @@ export const createContactSchema = contactBaseSchema
  */
 export const updateContactSchema = contactBaseSchema.partial()
 
+export type UpdateContactBase = z.infer<typeof updateContactSchema>
+
 /**
  * 查询联系人 DTO Schema
  */

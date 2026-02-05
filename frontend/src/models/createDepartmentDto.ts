@@ -13,6 +13,6 @@ export interface CreateDepartmentDto {
   parentId?: string;
   /** 排序 */
   sort?: number;
-  /** 状态: 1启用 0禁用 */
-  status?: number;
+  /** 状态: ACTIVE启用 INACTIVE禁用 */
+  status?: string;
 }

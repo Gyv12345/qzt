@@ -1,28 +1,49 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { IsOptional, IsString, IsIn } from 'class-validator'
+import { Type } from 'class-transformer'
 
+// 类型定义参考 @qzt/shared-types/dist/payment/schemas
+
+/**
+ * 查询收款记录 DTO
+ *
+ * 类型对应 shared-types 中的 Omit<QueryPaymentParams, 'keyword'>
+ */
 export class QueryPaymentDto {
-  @ApiProperty({ description: '页码', default: 1, required: false })
+  @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  page?: number = 1;
+  page?: number = 1
 
-  @ApiProperty({ description: '每页数量', default: 10, required: false })
+  @ApiPropertyOptional({ description: '每页数量', default: 10 })
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  pageSize?: number = 10;
+  pageSize?: number = 10
 
-  @ApiProperty({ description: '合同ID', required: false })
+  @ApiPropertyOptional({ description: '合同ID' })
   @IsOptional()
   @IsString()
-  contractId?: string;
+  contractId?: string
 
-  @ApiProperty({ description: '收款状态', required: false })
+  @ApiPropertyOptional({
+    description: '收款方式',
+    enum: ['BANK_TRANSFER', 'WECHAT', 'ALIPAY', 'CASH'],
+  })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  status?: number;
+  @IsString()
+  @IsIn(['BANK_TRANSFER', 'WECHAT', 'ALIPAY', 'CASH'], {
+    message: '收款方式必须是 BANK_TRANSFER、WECHAT、ALIPAY 或 CASH',
+  })
+  method?: 'BANK_TRANSFER' | 'WECHAT' | 'ALIPAY' | 'CASH'
+
+  @ApiPropertyOptional({
+    description: '收款状态',
+    enum: ['PENDING', 'CONFIRMED', 'CANCELLED'],
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['PENDING', 'CONFIRMED', 'CANCELLED'], {
+    message: '收款状态必须是 PENDING、CONFIRMED 或 CANCELLED',
+  })
+  status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED'
 }

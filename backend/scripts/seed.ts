@@ -15,7 +15,7 @@ async function main() {
       id: 'default-dept',
       name: '企账通有限公司',
       sort: 0,
-      status: 1,
+      status: 'ACTIVE',
       isSystem: true, // 标记为系统部门，不可删除
     },
   });
@@ -61,7 +61,7 @@ async function main() {
       name: '超级管理员',
       code: 'SUPERADMIN',
       description: '系统超级管理员，拥有所有权限',
-      status: 1,
+      status: 'ACTIVE',
     },
   });
   console.log('  ✅ 超级管理员角色创建完成');
@@ -73,7 +73,7 @@ async function main() {
       name: '普通用户',
       code: 'USER',
       description: '普通用户角色',
-      status: 1,
+      status: 'ACTIVE',
     },
   });
   console.log('  ✅ 普通用户角色创建完成\n');
@@ -88,7 +88,7 @@ async function main() {
       password: hashedPassword,
       name: '超级管理员',
       email: 'admin@qzt.com',
-      status: 1,
+      status: 'ACTIVE',
       isSystem: true, // 标记为系统用户，不可删除
       departmentId: defaultDepartment.id, // 关联到默认部门
       roles: {
@@ -117,7 +117,7 @@ async function main() {
       password: testPassword,
       name: '测试用户',
       email: 'test@qzt.com',
-      status: 1,
+      status: 'ACTIVE',
       roles: {
         create: {
           roleId: userRole.id,

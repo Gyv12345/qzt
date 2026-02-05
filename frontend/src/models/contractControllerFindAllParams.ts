@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { ContractControllerFindAllStatus } from "./contractControllerFindAllStatus";
 
 export type ContractControllerFindAllParams = {
   /**
@@ -30,5 +31,5 @@ export type ContractControllerFindAllParams = {
   /**
    * 合同状态
    */
-  status?: number;
+  status?: ContractControllerFindAllStatus;
 };

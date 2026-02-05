@@ -46,6 +46,8 @@ export const createProductSchema = productBaseSchema
  */
 export const updateProductSchema = productBaseSchema.partial()
 
+export type UpdateProductBase = z.infer<typeof updateProductSchema>
+
 /**
  * 查询产品 DTO Schema
  */

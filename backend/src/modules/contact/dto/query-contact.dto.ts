@@ -1,37 +1,43 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { IsOptional, IsString, IsIn } from 'class-validator'
+import { Transform } from 'class-transformer'
 
+// 类型定义参考 @qzt/shared-types/dist/contact/schemas
+
+/**
+ * 查询联系人 DTO
+ *
+ * 类型对应 shared-types 中的 QueryContactParams
+ */
 export class QueryContactDto {
-  @ApiProperty({ description: '页码', default: 1, required: false })
+  @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
   @Transform(({ value }) => parseInt(value))
-  @IsInt()
-  page?: number = 1;
+  page?: number = 1
 
-  @ApiProperty({ description: '每页数量', default: 10, required: false })
+  @ApiPropertyOptional({ description: '每页数量', default: 10 })
   @IsOptional()
   @Transform(({ value }) => parseInt(value))
-  @IsInt()
-  pageSize?: number = 10;
+  pageSize?: number = 10
 
-  @ApiProperty({ description: '搜索关键词', required: false })
+  @ApiPropertyOptional({ description: '搜索关键词' })
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string
 
-  @ApiProperty({ description: '公司ID筛选', required: false })
+  @ApiPropertyOptional({ description: '公司ID筛选' })
   @IsOptional()
   @IsString()
-  customerId?: string;
+  customerId?: string
 
-  @ApiProperty({ description: '排序字段', default: 'createdAt', required: false })
+  @ApiPropertyOptional({ description: '排序字段', default: 'createdAt' })
   @IsOptional()
   @IsString()
-  sortField?: string = 'createdAt';
+  sortField?: string = 'createdAt'
 
-  @ApiProperty({ description: '排序方向', default: 'desc', required: false })
+  @ApiPropertyOptional({ description: '排序方向', default: 'desc' })
   @IsOptional()
   @IsString()
-  sortOrder?: 'asc' | 'desc' = 'desc';
+  @IsIn(['asc', 'desc'], { message: '排序方向必须是 asc 或 desc' })
+  sortOrder?: 'asc' | 'desc' = 'desc'
 }
