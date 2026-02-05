@@ -11,7 +11,9 @@
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "knip": "knip",
-    "generate:api": "orval"
+    "generate:api": "orval",
+    "check:api": "./check-api-consistency.sh",
+    "dev:safe": "./check-api-consistency.sh && pnpm dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -63,6 +65,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "tsx": "^4.19.2",
     "@faker-js/faker": "^10.1.0",
     "@tanstack/eslint-plugin-query": "^5.91.2",
     "@tanstack/react-query-devtools": "^5.91.1",

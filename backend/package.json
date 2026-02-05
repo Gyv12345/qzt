@@ -17,7 +17,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "swagger": "ts-node src/scripts/swagger.ts"
+    "swagger": "ts-node src/scripts/swagger.ts",
+    "check:api": "./check-api-changes.sh"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",

@@ -1,14 +1,27 @@
 import { getRouteApi } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitch } from '@/components/language-switch'
+import { PaymentsPrimaryButtons } from './components/payments-primary-buttons'
+import { PaymentsTable } from './components/payments-table'
+import { PaymentsDialogs, usePaymentsDialogs } from './components/payments-dialogs'
 
 const route = getRouteApi('/_authenticated/payments')
 
-export function Payments() {
+function PaymentsContent() {
+  const search = route.useSearch()
+  const navigate = route.useNavigate()
+  const queryClient = useQueryClient()
+  const { openCreateDialog, openEditDialog } = usePaymentsDialogs()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['payments'] })
+  }
+
   return (
     <>
       <Header fixed>
@@ -28,17 +41,29 @@ export function Payments() {
               管理收款记录和凭证上传
             </p>
           </div>
+          <PaymentsPrimaryButtons onCreate={openCreateDialog} />
         </div>
-
-        <div className='flex items-center justify-center rounded-md border py-32'>
-          <div className='text-center'>
-            <p className='text-lg font-medium'>收款管理模块开发中</p>
-            <p className='text-sm text-muted-foreground mt-2'>
-              此模块将提供收款记录 CRUD、凭证上传、收款确认、进度统计等功能
-            </p>
-          </div>
-        </div>
+        <PaymentsTable
+          search={search}
+          navigate={navigate}
+          onEdit={openEditDialog}
+          onRefresh={handleRefresh}
+        />
       </Main>
     </>
+  )
+}
+
+export function Payments() {
+  const queryClient = useQueryClient()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['payments'] })
+  }
+
+  return (
+    <PaymentsDialogs onRefresh={handleRefresh}>
+      <PaymentsContent />
+    </PaymentsDialogs>
   )
 }

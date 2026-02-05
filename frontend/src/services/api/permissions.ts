@@ -10,7 +10,7 @@ import type {
   CreateRoleDto,
   PermissionControllerFindAllPermissionsParams,
   UpdateRoleDto,
-} from "@/models";
+} from "../../models";
 
 import { customInstance } from "../api-client";
 
