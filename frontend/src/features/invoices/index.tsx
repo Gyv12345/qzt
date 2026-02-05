@@ -1,14 +1,27 @@
 import { getRouteApi } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitch } from '@/components/language-switch'
+import { InvoicesPrimaryButtons } from './components/invoices-primary-buttons'
+import { InvoicesTable } from './components/invoices-table'
+import { InvoicesDialogs, useInvoicesDialogs } from './components/invoices-dialogs'
 
 const route = getRouteApi('/_authenticated/invoices')
 
-export function Invoices() {
+function InvoicesContent() {
+  const search = route.useSearch()
+  const navigate = route.useNavigate()
+  const queryClient = useQueryClient()
+  const { openCreateDialog, openEditDialog } = useInvoicesDialogs()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['invoices'] })
+  }
+
   return (
     <>
       <Header fixed>
@@ -28,17 +41,29 @@ export function Invoices() {
               管理开票记录和客户开票汇总
             </p>
           </div>
+          <InvoicesPrimaryButtons onCreate={openCreateDialog} />
         </div>
-
-        <div className='flex items-center justify-center rounded-md border py-32'>
-          <div className='text-center'>
-            <p className='text-lg font-medium'>发票管理模块开发中</p>
-            <p className='text-sm text-muted-foreground mt-2'>
-              此模块将提供开票记录 CRUD、客户汇总统计、超额预警等功能
-            </p>
-          </div>
-        </div>
+        <InvoicesTable
+          search={search}
+          navigate={navigate}
+          onEdit={openEditDialog}
+          onRefresh={handleRefresh}
+        />
       </Main>
     </>
+  )
+}
+
+export function Invoices() {
+  const queryClient = useQueryClient()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['invoices'] })
+  }
+
+  return (
+    <InvoicesDialogs onRefresh={handleRefresh}>
+      <InvoicesContent />
+    </InvoicesDialogs>
   )
 }

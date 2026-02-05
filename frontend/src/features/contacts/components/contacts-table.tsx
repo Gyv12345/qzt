@@ -22,35 +22,24 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { customersColumns } from './customers-columns'
+import { contactsColumns } from './contacts-columns'
 import { DataTableRowActions } from './data-table-row-actions'
-import { useCustomers, useDeleteCustomer } from '../hooks/use-customers'
-import type { Customer } from '../types/customer'
+import { useContacts, useDeleteContact } from '../hooks/use-contacts'
+import type { Contact } from '../types/contact'
 
 type DataTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
-  onEdit: (customer: Customer) => void
+  onEdit: (contact: Contact) => void
   onRefresh: () => void
-  onRowClick?: (customer: Customer) => void
-  onRowDoubleClick?: (customer: Customer) => void
-  selectedCustomerId?: string
 }
 
-export function CustomersTable({
-  search,
-  navigate,
-  onEdit,
-  onRefresh,
-  onRowClick,
-  onRowDoubleClick,
-  selectedCustomerId,
-}: DataTableProps) {
+export function ContactsTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
 
-  const deleteMutation = useDeleteCustomer()
+  const deleteMutation = useDeleteContact()
 
   // 从 URL 获取分页和筛选参数
   const {
@@ -66,7 +55,8 @@ export function CustomersTable({
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: 'name', searchKey: 'name', type: 'string' },
-      { columnId: 'customerLevel', searchKey: 'customerLevel', type: 'array' },
+      { columnId: 'phone', searchKey: 'phone', type: 'string' },
+      { columnId: 'customerName', searchKey: 'customerName', type: 'string' },
     ],
   })
 
@@ -75,18 +65,20 @@ export function CustomersTable({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
     name: columnFilters.find((f) => f.id === 'name')?.value as string,
+    phone: columnFilters.find((f) => f.id === 'phone')?.value as string,
+    customerName: columnFilters.find((f) => f.id === 'customerName')?.value as string,
   }
 
-  const { data, isLoading, error } = useCustomers(queryParams)
+  const { data, isLoading, error } = useContacts(queryParams)
 
-  const customers = data?.items || []
+  const contacts = data?.items || []
   const total = data?.total || 0
 
   // 处理删除
-  const handleDelete = useCallback(async (customer: Customer) => {
-    if (window.confirm(`确定要删除客户"${customer.name}"吗？此操作不可恢复。`)) {
+  const handleDelete = useCallback(async (contact: Contact) => {
+    if (window.confirm(`确定要删除联系人"${contact.name}"吗？此操作不可恢复。`)) {
       try {
-        await deleteMutation.mutateAsync(customer.id)
+        await deleteMutation.mutateAsync(contact.id)
         onRefresh()
       } catch (error) {
         console.error('删除失败:', error)
@@ -96,7 +88,7 @@ export function CustomersTable({
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return customersColumns.map((col) => {
+    return contactsColumns.map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,
@@ -116,7 +108,7 @@ export function CustomersTable({
   }, [onEdit, handleDelete])
 
   const table = useReactTable({
-    data: customers,
+    data: contacts,
     columns,
     state: {
       sorting,
@@ -163,7 +155,7 @@ export function CustomersTable({
   if (error) {
     return (
       <div className='flex flex-col items-center justify-center py-32'>
-        <p className='text-muted-foreground'>加载客户数据失败</p>
+        <p className='text-muted-foreground'>加载联系人数据失败</p>
       </div>
     )
   }
@@ -177,20 +169,8 @@ export function CustomersTable({
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='搜索客户名称...'
+        searchPlaceholder='搜索联系人姓名...'
         searchKey='name'
-        filters={[
-          {
-            columnId: 'customerLevel',
-            title: '客户等级',
-            options: [
-              { label: '线索公司', value: '0' },
-              { label: '意向客户', value: '1' },
-              { label: '正式客户', value: '2' },
-              { label: 'VIP客户', value: '3' },
-            ],
-          },
-        ]}
       />
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -222,36 +202,21 @@ export function CustomersTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const customer = row.original as Customer
-                const isSelected = selectedCustomerId === customer.id
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className={cn(
-                      'group/row cursor-pointer',
-                      isSelected && 'bg-muted/50'
-                    )}
-                    onClick={() => onRowClick?.(customer)}
-                    onDoubleClick={() => onRowDoubleClick?.(customer)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
-                          cell.column.columnDef.meta?.className,
-                          cell.column.columnDef.meta?.tdClassName
-                        )}
-                        onClick={(e) => {
-                          // 阻止操作列的点击事件冒泡
-                          if (cell.column.id === 'actions') {
-                            e.stopPropagation()
-                          }
-                        }}
-                      >
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className='group/row'
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        cell.column.columnDef.meta?.className,
+                        cell.column.columnDef.meta?.tdClassName
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -259,8 +224,7 @@ export function CustomersTable({
                     </TableCell>
                   ))}
                 </TableRow>
-                )
-              })
+              ))
             ) : (
               <TableRow>
                 <TableCell

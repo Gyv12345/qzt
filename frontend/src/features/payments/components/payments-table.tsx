@@ -22,35 +22,25 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { customersColumns } from './customers-columns'
+import { paymentsColumns } from './payments-columns'
 import { DataTableRowActions } from './data-table-row-actions'
-import { useCustomers, useDeleteCustomer } from '../hooks/use-customers'
-import type { Customer } from '../types/customer'
+import { usePayments, useDeletePayment, useConfirmPayment } from '../hooks/use-payments'
+import type { Payment } from '../types/payment'
 
 type DataTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
-  onEdit: (customer: Customer) => void
+  onEdit: (payment: Payment) => void
   onRefresh: () => void
-  onRowClick?: (customer: Customer) => void
-  onRowDoubleClick?: (customer: Customer) => void
-  selectedCustomerId?: string
 }
 
-export function CustomersTable({
-  search,
-  navigate,
-  onEdit,
-  onRefresh,
-  onRowClick,
-  onRowDoubleClick,
-  selectedCustomerId,
-}: DataTableProps) {
+export function PaymentsTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
 
-  const deleteMutation = useDeleteCustomer()
+  const deleteMutation = useDeletePayment()
+  const confirmMutation = useConfirmPayment()
 
   // 从 URL 获取分页和筛选参数
   const {
@@ -65,8 +55,8 @@ export function CustomersTable({
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      { columnId: 'name', searchKey: 'name', type: 'string' },
-      { columnId: 'customerLevel', searchKey: 'customerLevel', type: 'array' },
+      { columnId: 'customerName', searchKey: 'customerName', type: 'string' },
+      { columnId: 'status', searchKey: 'status', type: 'array' },
     ],
   })
 
@@ -74,19 +64,20 @@ export function CustomersTable({
   const queryParams = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-    name: columnFilters.find((f) => f.id === 'name')?.value as string,
+    customerName: columnFilters.find((f) => f.id === 'customerName')?.value as string,
+    status: columnFilters.find((f) => f.id === 'status')?.value as string,
   }
 
-  const { data, isLoading, error } = useCustomers(queryParams)
+  const { data, isLoading, error } = usePayments(queryParams)
 
-  const customers = data?.items || []
+  const payments = data?.items || []
   const total = data?.total || 0
 
   // 处理删除
-  const handleDelete = useCallback(async (customer: Customer) => {
-    if (window.confirm(`确定要删除客户"${customer.name}"吗？此操作不可恢复。`)) {
+  const handleDelete = useCallback(async (payment: Payment) => {
+    if (window.confirm(`确定要删除这条收款记录吗？此操作不可恢复。`)) {
       try {
-        await deleteMutation.mutateAsync(customer.id)
+        await deleteMutation.mutateAsync(payment.id)
         onRefresh()
       } catch (error) {
         console.error('删除失败:', error)
@@ -94,9 +85,19 @@ export function CustomersTable({
     }
   }, [deleteMutation, onRefresh])
 
+  // 处理确认收款
+  const handleConfirm = useCallback(async (payment: Payment) => {
+    try {
+      await confirmMutation.mutateAsync(payment.id)
+      onRefresh()
+    } catch (error) {
+      console.error('确认失败:', error)
+    }
+  }, [confirmMutation, onRefresh])
+
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return customersColumns.map((col) => {
+    return paymentsColumns.map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,
@@ -106,6 +107,7 @@ export function CustomersTable({
                 row={props.row}
                 onEdit={onEdit}
                 onDelete={handleDelete}
+                onConfirm={handleConfirm}
               />
             )
           },
@@ -113,10 +115,10 @@ export function CustomersTable({
       }
       return col
     })
-  }, [onEdit, handleDelete])
+  }, [onEdit, handleDelete, handleConfirm])
 
   const table = useReactTable({
-    data: customers,
+    data: payments,
     columns,
     state: {
       sorting,
@@ -163,7 +165,7 @@ export function CustomersTable({
   if (error) {
     return (
       <div className='flex flex-col items-center justify-center py-32'>
-        <p className='text-muted-foreground'>加载客户数据失败</p>
+        <p className='text-muted-foreground'>加载收款记录失败</p>
       </div>
     )
   }
@@ -178,16 +180,15 @@ export function CustomersTable({
       <DataTableToolbar
         table={table}
         searchPlaceholder='搜索客户名称...'
-        searchKey='name'
+        searchKey='customerName'
         filters={[
           {
-            columnId: 'customerLevel',
-            title: '客户等级',
+            columnId: 'status',
+            title: '收款状态',
             options: [
-              { label: '线索公司', value: '0' },
-              { label: '意向客户', value: '1' },
-              { label: '正式客户', value: '2' },
-              { label: 'VIP客户', value: '3' },
+              { label: '待确认', value: 'PENDING' },
+              { label: '已确认', value: 'CONFIRMED' },
+              { label: '已拒绝', value: 'REJECTED' },
             ],
           },
         ]}
@@ -222,36 +223,21 @@ export function CustomersTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const customer = row.original as Customer
-                const isSelected = selectedCustomerId === customer.id
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className={cn(
-                      'group/row cursor-pointer',
-                      isSelected && 'bg-muted/50'
-                    )}
-                    onClick={() => onRowClick?.(customer)}
-                    onDoubleClick={() => onRowDoubleClick?.(customer)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
-                          cell.column.columnDef.meta?.className,
-                          cell.column.columnDef.meta?.tdClassName
-                        )}
-                        onClick={(e) => {
-                          // 阻止操作列的点击事件冒泡
-                          if (cell.column.id === 'actions') {
-                            e.stopPropagation()
-                          }
-                        }}
-                      >
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className='group/row'
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        cell.column.columnDef.meta?.className,
+                        cell.column.columnDef.meta?.tdClassName
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -259,8 +245,7 @@ export function CustomersTable({
                     </TableCell>
                   ))}
                 </TableRow>
-                )
-              })
+              ))
             ) : (
               <TableRow>
                 <TableCell

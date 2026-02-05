@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/command'
 import { Badge } from '@/components/ui/badge'
 import { DialogTrigger } from '@/components/ui/dialog'
+import { CustomerAdvancedSearch } from './CustomerAdvancedSearch'
 import type { Customer } from '@/features/customers/types/customer'
 
 interface CustomerSelectorProps {
@@ -40,6 +41,7 @@ const customerLevelMap: Record<number, { label: string; variant: 'default' | 'se
 export function CustomerSelector({ value, onChange, onAdvancedSearch, disabled }: CustomerSelectorProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false)
 
   // 防抖处理
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
@@ -171,28 +173,36 @@ export function CustomerSelector({ value, onChange, onAdvancedSearch, disabled }
                 请输入至少 2 个字符进行搜索
               </div>
             )}
-            {onAdvancedSearch && (
-              <div className='border-t p-2'>
-                <DialogTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='w-full'
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setOpen(false)
-                      onAdvancedSearch()
-                    }}
-                  >
-                    <Search className='mr-2 h-4 w-4' />
-                    高级查找
-                  </Button>
-                </DialogTrigger>
-              </div>
-            )}
+            <div className='border-t p-2'>
+              <Button
+                variant='outline'
+                size='sm'
+                className='w-full'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpen(false)
+                  setIsAdvancedSearchOpen(true)
+                }}
+              >
+                <Search className='mr-2 h-4 w-4' />
+                高级查找
+              </Button>
+            </div>
           </CommandList>
         </Command>
       </PopoverContent>
+
+      {/* 高级查找对话框 */}
+      <CustomerAdvancedSearch
+        open={isAdvancedSearchOpen}
+        onOpenChange={setIsAdvancedSearchOpen}
+        onSelect={(customer) => {
+          onChange(customer.id)
+          if (onAdvancedSearch) {
+            onAdvancedSearch()
+          }
+        }}
+      />
     </Popover>
   )
 }

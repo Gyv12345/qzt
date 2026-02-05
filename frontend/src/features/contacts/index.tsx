@@ -1,14 +1,27 @@
 import { getRouteApi } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitch } from '@/components/language-switch'
+import { ContactsPrimaryButtons } from './components/contacts-primary-buttons'
+import { ContactsTable } from './components/contacts-table'
+import { ContactsDialogs, useContactsDialogs } from './components/contacts-dialogs'
 
 const route = getRouteApi('/_authenticated/contacts')
 
-export function Contacts() {
+function ContactsContent() {
+  const search = route.useSearch()
+  const navigate = route.useNavigate()
+  const queryClient = useQueryClient()
+  const { openCreateDialog, openEditDialog } = useContactsDialogs()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['contacts'] })
+  }
+
   return (
     <>
       <Header fixed>
@@ -28,17 +41,29 @@ export function Contacts() {
               管理您的联系人和企业关联信息
             </p>
           </div>
+          <ContactsPrimaryButtons onCreate={openCreateDialog} />
         </div>
-
-        <div className='flex items-center justify-center rounded-md border py-32'>
-          <div className='text-center'>
-            <p className='text-lg font-medium'>联系人管理模块开发中</p>
-            <p className='text-sm text-muted-foreground mt-2'>
-              此模块将提供联系人 CRUD 功能、企业关联管理、手机号查找等功能
-            </p>
-          </div>
-        </div>
+        <ContactsTable
+          search={search}
+          navigate={navigate}
+          onEdit={openEditDialog}
+          onRefresh={handleRefresh}
+        />
       </Main>
     </>
+  )
+}
+
+export function Contacts() {
+  const queryClient = useQueryClient()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['contacts'] })
+  }
+
+  return (
+    <ContactsDialogs onRefresh={handleRefresh}>
+      <ContactsContent />
+    </ContactsDialogs>
   )
 }
