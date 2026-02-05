@@ -1,11 +1,13 @@
 import { useState, createContext, useContext } from 'react'
 import { ContactFormDialog } from './contact-form-dialog'
 import { LinkCustomerDialog } from './link-customer-dialog'
+import { ContactDeleteDialog } from './contact-delete-dialog'
 import type { Contact } from '../types/contact'
 
 interface ContactsDialogsContextValue {
   openCreateDialog: () => void
   openEditDialog: (contact: Contact) => void
+  openDeleteDialog: (contact: Contact) => void
   openLinkCustomerDialog: (contact: Contact) => void
   openCreateCustomerDialog: (contact: Contact) => void
 }
@@ -19,11 +21,13 @@ interface ContactsDialogsProps {
 
 export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
+  const [deletingContact, setDeletingContact] = useState<Contact | null>(null)
   const [linkingContact, setLinkingContact] = useState<Contact | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   const openCreateDialog = () => setIsCreateDialogOpen(true)
   const openEditDialog = (contact: Contact) => setEditingContact(contact)
+  const openDeleteDialog = (contact: Contact) => setDeletingContact(contact)
   const openLinkCustomerDialog = (contact: Contact) => setLinkingContact(contact)
   const openCreateCustomerDialog = (contact: Contact) => {
     // TODO: 打开创建客户对话框，并预填联系人信息
@@ -32,7 +36,7 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
 
   return (
     <ContactsDialogsContext.Provider
-      value={{ openCreateDialog, openEditDialog, openLinkCustomerDialog, openCreateCustomerDialog }}
+      value={{ openCreateDialog, openEditDialog, openDeleteDialog, openLinkCustomerDialog, openCreateCustomerDialog }}
     >
       {children}
 
@@ -67,6 +71,21 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
           contact={linkingContact}
           onSuccess={() => {
             setLinkingContact(null)
+            onRefresh()
+          }}
+        />
+      )}
+
+      {/* 删除联系人对话框 */}
+      {deletingContact && (
+        <ContactDeleteDialog
+          open={!!deletingContact}
+          onOpenChange={(open) => {
+            if (!open) setDeletingContact(null)
+          }}
+          currentRow={deletingContact}
+          onSuccess={() => {
+            setDeletingContact(null)
             onRefresh()
           }}
         />

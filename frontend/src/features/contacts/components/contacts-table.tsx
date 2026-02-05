@@ -24,24 +24,23 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { contactsColumns } from './contacts-columns'
 import { DataTableRowActions } from './data-table-row-actions'
-import { useContacts, useDeleteContact } from '../hooks/use-contacts'
+import { useContacts } from '../hooks/use-contacts'
 import type { Contact } from '../types/contact'
 
 type DataTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onEdit: (contact: Contact) => void
+  onDelete: (contact: Contact) => void
   onRefresh: () => void
   onLinkCustomer: (contact: Contact) => void
   onCreateCustomer: (contact: Contact) => void
 }
 
-export function ContactsTable({ search, navigate, onEdit, onRefresh, onLinkCustomer, onCreateCustomer }: DataTableProps) {
+export function ContactsTable({ search, navigate, onEdit, onDelete, onRefresh, onLinkCustomer, onCreateCustomer }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
-
-  const deleteMutation = useDeleteContact()
 
   // 从 URL 获取分页和筛选参数
   const {
@@ -75,18 +74,6 @@ export function ContactsTable({ search, navigate, onEdit, onRefresh, onLinkCusto
   const contacts = data?.items || []
   const total = data?.total || 0
 
-  // 处理删除
-  const handleDelete = useCallback(async (contact: Contact) => {
-    if (window.confirm(`确定要删除联系人"${contact.name}"吗？此操作不可恢复。`)) {
-      try {
-        await deleteMutation.mutateAsync(contact.id)
-        onRefresh()
-      } catch (error) {
-        console.error('删除失败:', error)
-      }
-    }
-  }, [deleteMutation, onRefresh])
-
   // 创建带有回调的列定义
   const columns = useMemo(() => {
     return contactsColumns.map((col) => {
@@ -98,7 +85,7 @@ export function ContactsTable({ search, navigate, onEdit, onRefresh, onLinkCusto
               <DataTableRowActions
                 row={props.row}
                 onEdit={onEdit}
-                onDelete={handleDelete}
+                onDelete={onDelete}
                 onLinkCustomer={onLinkCustomer}
                 onCreateCustomer={onCreateCustomer}
               />
@@ -108,7 +95,7 @@ export function ContactsTable({ search, navigate, onEdit, onRefresh, onLinkCusto
       }
       return col
     })
-  }, [onEdit, handleDelete, onLinkCustomer, onCreateCustomer])
+  }, [onEdit, onDelete, onLinkCustomer, onCreateCustomer])
 
   const table = useReactTable({
     data: contacts,
