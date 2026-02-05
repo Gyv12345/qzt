@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   type SortingState,
   type VisibilityState,
@@ -22,7 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { usersColumns as columns } from './users-columns'
+import { getUsersColumns } from './users-columns'
 import { useUsers } from '../hooks/use-users'
 import type { User } from '../types/user'
 
@@ -32,6 +33,7 @@ type DataTableProps = {
 }
 
 export function UsersTable({ search, navigate }: DataTableProps) {
+  const { t } = useTranslation()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -62,8 +64,10 @@ export function UsersTable({ search, navigate }: DataTableProps) {
 
   const { data, isLoading, error } = useUsers(queryParams)
 
-  const users = data?.items || []
+  // 后端返回分页数据: { data, total, page, pageSize, totalPages }
+  const users = data?.data || []
   const total = data?.total || 0
+  const columns = getUsersColumns()
 
   const table = useReactTable({
     data: users,
@@ -113,7 +117,7 @@ export function UsersTable({ search, navigate }: DataTableProps) {
   if (error) {
     return (
       <div className='flex flex-col items-center justify-center py-32'>
-        <p className='text-muted-foreground'>加载用户数据失败</p>
+        <p className='text-muted-foreground'>{t('user.loadFailed')}</p>
       </div>
     )
   }
@@ -127,15 +131,15 @@ export function UsersTable({ search, navigate }: DataTableProps) {
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='搜索用户名...'
+        searchPlaceholder={t('user.searchPlaceholder')}
         searchKey='username'
         filters={[
           {
             columnId: 'status',
-            title: '状态',
+            title: t('user.status'),
             options: [
-              { label: '启用', value: '1' },
-              { label: '禁用', value: '0' },
+              { label: t('user.statusEnabled'), value: '1' },
+              { label: t('user.statusDisabled'), value: '0' },
             ],
           },
         ]}
@@ -199,7 +203,7 @@ export function UsersTable({ search, navigate }: DataTableProps) {
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  暂无数据
+                  {t('common.noData')}
                 </TableCell>
               </TableRow>
             )}

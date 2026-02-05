@@ -40,12 +40,35 @@ axiosInstance.interceptors.request.use(
 // 响应拦截器：统一提取 data 字段和错误处理
 axiosInstance.interceptors.response.use(
   (response) => {
-    // 后端统一响应格式: { success, statusCode, message, data }
-    // 自动提取 data 字段
     const responseData = response.data as any
-    if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+
+    // 检查是否是标准响应（包含 success, data, message）
+    const isStandardResponse =
+      responseData &&
+      typeof responseData === 'object' &&
+      'success' in responseData &&
+      'data' in responseData
+
+    // 检查 data 字段是否是分页响应（包含 data, total, page 等字段）
+    const isPaginatedResponse =
+      isStandardResponse &&
+      responseData.data &&
+      typeof responseData.data === 'object' &&
+      'data' in responseData.data &&
+      ('total' in responseData.data ||
+        'page' in responseData.data ||
+        'pageSize' in responseData.data ||
+        'totalPages' in responseData.data)
+
+    // 如果是分页响应，提取 data.data（分页对象）
+    if (isPaginatedResponse) {
       response.data = responseData.data
     }
+    // 如果是标准响应但不是分页响应，提取 data 字段
+    else if (isStandardResponse) {
+      response.data = responseData.data
+    }
+
     return response
   },
   (error: AxiosError) => {

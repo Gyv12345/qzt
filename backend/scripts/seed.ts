@@ -6,6 +6,21 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 开始初始化数据库...\n');
 
+  // 创建默认部门
+  console.log('🏢 创建默认部门...');
+  const defaultDepartment = await prisma.department.upsert({
+    where: { id: 'default-dept' },
+    update: {},
+    create: {
+      id: 'default-dept',
+      name: '企账通有限公司',
+      sort: 0,
+      status: 1,
+      isSystem: true, // 标记为系统部门，不可删除
+    },
+  });
+  console.log('  ✅ 默认部门创建完成\n');
+
   // 检查是否已存在 admin 用户
   const existingAdmin = await prisma.user.findUnique({
     where: { username: 'admin' },
@@ -40,16 +55,16 @@ async function main() {
   // 创建管理员角色
   console.log('🔑 创建角色...');
   const adminRole = await prisma.role.upsert({
-    where: { code: 'ADMIN' },
+    where: { code: 'SUPERADMIN' },
     update: {},
     create: {
-      name: '管理员',
-      code: 'ADMIN',
-      description: '系统管理员，拥有所有权限',
+      name: '超级管理员',
+      code: 'SUPERADMIN',
+      description: '系统超级管理员，拥有所有权限',
       status: 1,
     },
   });
-  console.log('  ✅ 管理员角色创建完成');
+  console.log('  ✅ 超级管理员角色创建完成');
 
   const userRole = await prisma.role.upsert({
     where: { code: 'USER' },
@@ -71,9 +86,11 @@ async function main() {
     data: {
       username: 'admin',
       password: hashedPassword,
-      name: '系统管理员',
+      name: '超级管理员',
       email: 'admin@qzt.com',
       status: 1,
+      isSystem: true, // 标记为系统用户，不可删除
+      departmentId: defaultDepartment.id, // 关联到默认部门
       roles: {
         create: {
           roleId: adminRole.id,
@@ -86,7 +103,9 @@ async function main() {
   console.log('\n📋 登录信息:');
   console.log('  用户名: admin');
   console.log('  密码: admin123');
-  console.log('  角色: 管理员');
+  console.log('  角色: 超级管理员');
+  console.log('  部门: 企账通有限公司');
+  console.log('  ⚠️  注意: Admin 用户不可删除，角色固定为超级管理员');
 
   // 创建测试用户
   console.log('\n👤 创建测试用户...');

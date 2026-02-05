@@ -21,6 +21,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UserEntity, PaginatedUsersDto } from './dto/user-entity.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -31,7 +32,7 @@ export class UsersController {
 
   @Post()
   @ApiOperation({ summary: '创建用户' })
-  @ApiResponse({ status: 201, description: '创建成功' })
+  @ApiResponse({ status: 201, description: '创建成功', type: UserEntity })
   @ApiResponse({ status: 400, description: '请求参数错误' })
   @ApiResponse({ status: 409, description: '用户名或邮箱已存在' })
   create(@Body() createUserDto: CreateUserDto) {
@@ -40,14 +41,14 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: '分页查询用户列表' })
-  @ApiResponse({ status: 200, description: '查询成功' })
+  @ApiResponse({ status: 200, description: '查询成功', type: PaginatedUsersDto })
   findAll(@Query() query: QueryUserDto) {
     return this.usersService.findAll(query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取用户详情' })
-  @ApiResponse({ status: 200, description: '查询成功' })
+  @ApiResponse({ status: 200, description: '查询成功', type: UserEntity })
   @ApiResponse({ status: 404, description: '用户不存在' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
@@ -55,7 +56,7 @@ export class UsersController {
 
   @Put(':id')
   @ApiOperation({ summary: '更新用户' })
-  @ApiResponse({ status: 200, description: '更新成功' })
+  @ApiResponse({ status: 200, description: '更新成功', type: UserEntity })
   @ApiResponse({ status: 404, description: '用户不存在' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);

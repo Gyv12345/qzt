@@ -1,6 +1,6 @@
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { DepartmentTable } from './components/department-table'
+import { DepartmentTreeTable } from './components/department-tree-table'
 
 export function Departments() {
   return (
@@ -14,7 +14,7 @@ export function Departments() {
           <h1 className="text-2xl font-bold tracking-tight">部门管理</h1>
         </div>
 
-        <DepartmentTable />
+        <DepartmentTreeTable />
       </Main>
     </>
   )

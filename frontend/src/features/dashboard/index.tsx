@@ -11,6 +11,7 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { LanguageSwitch } from '@/components/language-switch'
 import { Overview } from './components/overview'
 import { useDashboardStats } from './hooks/use-dashboard-stats'
 
@@ -33,6 +34,7 @@ export function Dashboard() {
         <div className='ms-auto flex items-center space-x-4'>
           <Search />
           <ThemeSwitch />
+          <LanguageSwitch />
           <ConfigDrawer />
           <ProfileDropdown />
         </div>

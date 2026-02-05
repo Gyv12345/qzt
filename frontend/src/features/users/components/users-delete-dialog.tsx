@@ -1,18 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
-import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { type User } from '../data/schema'
+import type { UserEntity } from '@/models'
+import { useDeleteUser } from '../hooks/use-users'
 
 type UserDeleteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRow: User
+  currentRow: UserEntity
 }
 
 export function UsersDeleteDialog({
@@ -20,13 +21,20 @@ export function UsersDeleteDialog({
   onOpenChange,
   currentRow,
 }: UserDeleteDialogProps) {
+  const { t } = useTranslation()
   const [value, setValue] = useState('')
+  const deleteUser = useDeleteUser()
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (value.trim() !== currentRow.username) return
 
-    onOpenChange(false)
-    showSubmittedData(currentRow, 'The following user has been deleted:')
+    try {
+      await deleteUser.mutateAsync(currentRow.id)
+      setValue('')
+      onOpenChange(false)
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
   }
 
   return (
@@ -41,40 +49,37 @@ export function UsersDeleteDialog({
             className='me-1 inline-block stroke-destructive'
             size={18}
           />{' '}
-          Delete User
+          {t('user.delete.title')}
         </span>
       }
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
-            Are you sure you want to delete{' '}
-            <span className='font-bold'>{currentRow.username}</span>?
+            {t('user.delete.description', { username: currentRow.username })}
             <br />
-            This action will permanently remove the user with the role of{' '}
-            <span className='font-bold'>
-              {currentRow.role.toUpperCase()}
-            </span>{' '}
-            from the system. This cannot be undone.
+            {t('user.delete.description2', {
+              role: currentRow.roles?.[0]?.role?.code || 'N/A'
+            })}
           </p>
 
           <Label className='my-2'>
-            Username:
+            {t('user.delete.usernameLabel')}
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter username to confirm deletion.'
+              placeholder={t('user.delete.usernamePlaceholder')}
             />
           </Label>
 
           <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
+            <AlertTitle>{t('user.delete.warning')}</AlertTitle>
             <AlertDescription>
-              Please be careful, this operation can not be rolled back.
+              {t('user.delete.warningText')}
             </AlertDescription>
           </Alert>
         </div>
       }
-      confirmText='Delete'
+      confirmText={t('user.delete.confirmButton')}
       destructive
     />
   )

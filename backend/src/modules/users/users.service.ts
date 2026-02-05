@@ -196,6 +196,11 @@ export class UsersService {
       }
     }
 
+    // 系统用户的角色不能修改
+    if (existingUser.isSystem && roleIds !== undefined) {
+      throw new ConflictException('系统用户的角色不能修改');
+    }
+
     // 如果更新密码，进行哈希
     let hashedPassword;
     if (password) {
@@ -238,6 +243,7 @@ export class UsersService {
       where: { id },
       select: {
         id: true,
+        isSystem: true,
         customers: {
           select: {
             id: true,
@@ -248,6 +254,11 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException('用户不存在');
+    }
+
+    // 系统用户不能删除
+    if (user.isSystem) {
+      throw new ConflictException('系统用户不能删除');
     }
 
     // 检查是否有关联的客户

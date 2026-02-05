@@ -354,6 +354,10 @@ pnpm run format         # 代码格式化
 ## 📚 会话记录
 
 详细的开发会话总结请查看：
-- **[2025-02-04 会话总结](./references/session-2025-02-04.md)** - API 导入错误修复、Redis 配置、系统设置模块新增
+- **[2025-02-04 会话总结](./references/session-2025-02-04.md)** - 完整会话总结
+- **[2025-02-04 国际化实现](./references/session-2025-02-04-i18n.md)** - 中英文国际化实现
+- **[2025-02-04 用户管理模块](./references/session-2025-02-04-users-module.md)** - 用户管理 CRUD 功能
+- **[2025-02-04 部门管理模块](./references/session-2025-02-04-departments.md)** - 部门管理 CRUD + 树形表格 + 搜索
+- **[2025-02-04 问题解决记录](./references/issue-resolution-2026-02-04.md)** - 问题排查和解决记录
 
 **遇到具体问题时，优先查阅相应的参考文档获取详细指导和示例。**
