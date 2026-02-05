@@ -28,7 +28,6 @@ import {
   FileCheck,
   UserCircle,
   Archive,
-  Cpu,
   PieChart,
   Receipt,
   Wallet,
@@ -98,11 +97,6 @@ export const sidebarData: SidebarData = {
               icon: Wallet,
             },
           ],
-        },
-        {
-          title: '自动化',
-          url: '/automation',
-          icon: Cpu,
         },
         // 隐藏的任务、应用、聊天菜单
         // {

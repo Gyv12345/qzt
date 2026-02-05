@@ -29,7 +29,6 @@ import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_aut
 import { Route as AuthenticatedCustomersRouteRouteImport } from './routes/_authenticated/customers/route'
 import { Route as AuthenticatedContractsRouteRouteImport } from './routes/_authenticated/contracts/route'
 import { Route as AuthenticatedContactsRouteRouteImport } from './routes/_authenticated/contacts/route'
-import { Route as AuthenticatedAutomationRouteRouteImport } from './routes/_authenticated/automation/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
@@ -152,12 +151,6 @@ const AuthenticatedContactsRouteRoute =
     path: '/contacts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAutomationRouteRoute =
-  AuthenticatedAutomationRouteRouteImport.update({
-    id: '/automation',
-    path: '/automation',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -224,7 +217,6 @@ const AuthenticatedErrorsErrorRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
-  '/automation': typeof AuthenticatedAutomationRouteRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
@@ -256,7 +248,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/automation': typeof AuthenticatedAutomationRouteRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
@@ -290,7 +281,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/_authenticated/automation': typeof AuthenticatedAutomationRouteRoute
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteRoute
@@ -326,7 +316,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/automation'
     | '/contacts'
     | '/contracts'
     | '/customers'
@@ -358,7 +347,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/automation'
     | '/contacts'
     | '/contracts'
     | '/customers'
@@ -391,7 +379,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/login'
-    | '/_authenticated/automation'
     | '/_authenticated/contacts'
     | '/_authenticated/contracts'
     | '/_authenticated/customers'
@@ -575,13 +562,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/automation': {
-      id: '/_authenticated/automation'
-      path: '/automation'
-      fullPath: '/automation'
-      preLoaderRoute: typeof AuthenticatedAutomationRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -686,7 +666,6 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAutomationRouteRoute: typeof AuthenticatedAutomationRouteRoute
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
   AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
   AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute
@@ -709,7 +688,6 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAutomationRouteRoute: AuthenticatedAutomationRouteRoute,
   AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
   AuthenticatedContractsRouteRoute: AuthenticatedContractsRouteRoute,
   AuthenticatedCustomersRouteRoute: AuthenticatedCustomersRouteRoute,

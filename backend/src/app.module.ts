@@ -16,10 +16,8 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
 import { ServiceTeamModule } from './modules/service-team/service-team.module';
-import { RuleEngineModule } from './modules/rule-engine/rule-engine.module';
 import { SystemModule } from './modules/system/system.module';
 import { PricingModule } from './modules/pricing/pricing.module';
-import { AutomationModule } from './modules/automation/automation.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { UsersModule } from './modules/users/users.module';
 import { DepartmentModule } from './modules/department/department.module';
@@ -154,10 +152,8 @@ const envSchema = Joi.object({
     InvoiceModule,
     StatisticsModule,
     ServiceTeamModule,
-    RuleEngineModule,
     SystemModule,
     PricingModule,
-    AutomationModule,
     PermissionModule,
     UsersModule,
     DepartmentModule,

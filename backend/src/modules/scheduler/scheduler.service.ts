@@ -15,7 +15,6 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private prisma: PrismaService,
-    @InjectQueue('automation') private automationQueue: Queue,
     @InjectQueue('notifications') private notificationsQueue: Queue,
   ) {}
 
@@ -38,18 +37,6 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
     // 每天凌晨2点检查合同到期提醒
     this.scheduleTask('0 2 * * *', 'check-contract-expiry', this.checkContractExpiry.bind(this));
-
-    // 每5分钟执行一次自动化规则
-    this.scheduleTask('*/5 * * * *', 'execute-automation-rules', this.executeAutomationRules.bind(this));
-
-    // 每天早上9点检查新客户跟进
-    this.scheduleTask('0 9 * * *', 'handle-new-customer-follow', this.handleNewCustomerFollow.bind(this));
-
-    // 每天早上10点检查合同到期（通过队列）
-    this.scheduleTask('0 10 * * *', 'handle-contract-expiry-queue', this.handleContractExpiryQueue.bind(this));
-
-    // 每月1号上午10点生成财务月度待办
-    this.scheduleTask('0 10 1 * *', 'handle-monthly-tasks', this.handleMonthlyTasks.bind(this));
 
     this.logger.log(`[调度器] 已启动 ${this.scheduledTasks.length} 个定时任务`);
   }
@@ -80,36 +67,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('[定时任务] 开始处理待执行的流程节点...');
 
     try {
-      // 获取所有待执行的周期性任务节点
-      const pendingExecutions = await this.prisma.productFlowExecution.findMany({
-        where: {
-          status: 'PENDING',
-          executedAt: null,
-        },
-        include: {
-          node: {
-            include: {
-              flow: {
-                include: {
-                  product: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: 'asc' },
-      });
-
-      this.logger.log(`[定时任务] 发现 ${pendingExecutions.length} 个待执行的节点`);
-
-      for (const execution of pendingExecutions) {
-        // 添加到队列异步处理
-        await this.automationQueue.add('PROCESS_FLOW_NODE', {
-          executionId: execution.id,
-        });
-      }
-
-      this.logger.log('[定时任务] 流程节点处理任务已添加到队列');
+      this.logger.log('[定时任务] 当前未启用自动化队列，跳过流程节点处理');
     } catch (error) {
       this.logger.error('[定时任务] 处理流程节点失败', error);
     }
@@ -165,85 +123,5 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * 每5分钟执行一次自动化规则
-   */
-  private async executeAutomationRules() {
-    this.logger.log('[定时任务] 开始执行自动化规则...');
-
-    try {
-      // 获取所有启用的自动化规则
-      const rules = await this.prisma.automationRule.findMany({
-        where: {
-          enabled: true,
-        },
-        include: {
-          tasks: {
-            orderBy: { executedAt: 'desc' },
-            take: 1,
-          },
-        },
-      });
-
-      this.logger.log(`[定时任务] 发现 ${rules.length} 个启用的自动化规则`);
-
-      for (const rule of rules) {
-        // 添加到队列异步处理
-        await this.automationQueue.add('EXECUTE_RULE', {
-          ruleId: rule.id,
-          type: rule.type,
-          config: rule.config,
-        });
-      }
-
-      this.logger.log('[定时任务] 自动化规则执行任务已添加到队列');
-    } catch (error) {
-      this.logger.error('[定时任务] 执行自动化规则失败', error);
-    }
-  }
-
-  /**
-   * 每天早上9点检查新客户跟进
-   */
-  private async handleNewCustomerFollow() {
-    this.logger.log('[定时任务] 开始执行新客户跟进检查...');
-
-    try {
-      await this.automationQueue.add('NEW_CUSTOMER_FOLLOW', {}, {
-        attempts: 3,
-      });
-    } catch (error) {
-      this.logger.error('[定时任务] 新客户跟进检查失败:', error);
-    }
-  }
-
-  /**
-   * 每天早上10点检查合同到期（通过队列）
-   */
-  private async handleContractExpiryQueue() {
-    this.logger.log('[定时任务] 开始执行合同到期检查...');
-
-    try {
-      await this.automationQueue.add('CONTRACT_EXPIRY', {}, {
-        attempts: 3,
-      });
-    } catch (error) {
-      this.logger.error('[定时任务] 合同到期检查失败:', error);
-    }
-  }
-
-  /**
-   * 每月1号上午10点生成财务月度待办
-   */
-  private async handleMonthlyTasks() {
-    this.logger.log('[定时任务] 开始生成财务月度待办...');
-
-    try {
-      await this.automationQueue.add('MONTHLY_TASK', {}, {
-        attempts: 3,
-      });
-    } catch (error) {
-      this.logger.error('[定时任务] 生成财务月度待办失败:', error);
-    }
-  }
+  
 }

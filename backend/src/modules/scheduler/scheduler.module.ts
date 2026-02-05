@@ -8,9 +8,6 @@ import { PrismaModule } from '@/common/prisma/prisma.module';
     PrismaModule,
     BullModule.registerQueue(
       {
-        name: 'automation',
-      },
-      {
         name: 'notifications',
       },
     ),

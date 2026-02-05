@@ -18,13 +18,11 @@ import { getPermissions } from './permissions'
 import { getServiceTeams } from './service-teams'
 import { getStatistics } from './statistics'
 import { getSystem } from './system'
-import { getAutomation } from './automation'
 import { getPricing } from './pricing'
 import { getOss } from './oss'
 import { getLogs } from './logs'
 import { getLoginLogs } from './login-logs'
 import { getWebhook } from './webhook'
-import { getRules } from './rules'
 import { getCustomerContacts } from './customer-contacts'
 import { getProductPackages } from './product-packages'
 import { getProductFlows } from './product-flows'
@@ -49,13 +47,11 @@ export { getPermissions }
 export { getServiceTeams }
 export { getStatistics }
 export { getSystem }
-export { getAutomation }
 export { getPricing }
 export { getOss }
 export { getLogs }
 export { getLoginLogs }
 export { getWebhook }
-export { getRules }
 export { getCustomerContacts }
 export { getProductPackages }
 export { getProductFlows }
@@ -81,13 +77,11 @@ export const getScrmApi = () => ({
   ...getServiceTeams(),
   ...getStatistics(),
   ...getSystem(),
-  ...getAutomation(),
   ...getPricing(),
   ...getOss(),
   ...getLogs(),
   ...getLoginLogs(),
   ...getWebhook(),
-  ...getRules(),
   ...getCustomerContacts(),
   ...getProductPackages(),
   ...getProductFlows(),
