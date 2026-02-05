@@ -79,6 +79,31 @@
     "updateSuccess": "产品更新成功",
     "deleteSuccess": "产品删除成功"
   },
+  "contract": {
+    "title": "合同管理",
+    "description": "管理您的合同信息和签约状态",
+    "searchPlaceholder": "搜索合同名称...",
+    "columns": {
+      "name": "合同名称",
+      "contractNo": "合同编号",
+      "customerName": "客户名称",
+      "amount": "合同金额",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "active": "生效中",
+      "expired": "已过期",
+      "terminated": "已终止"
+    },
+    "createSuccess": "合同创建成功",
+    "updateSuccess": "合同更新成功",
+    "deleteSuccess": "合同删除成功"
+  },
   "contact": {
     "title": "联系人管理",
     "description": "管理您的联系人和企业关联信息",

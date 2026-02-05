@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   type SortingState,
   type VisibilityState,
@@ -22,7 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { contractsColumns } from './contracts-columns'
+import { getContractsColumns } from './contracts-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useContracts, useDeleteContract, useUpdatePaymentStatus } from '../hooks/use-contracts'
 import type { Contract } from '../types/contract'
@@ -35,6 +36,7 @@ type DataTableProps = {
 }
 
 export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
+  const { t } = useTranslation()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -94,7 +96,7 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return contractsColumns.map((col) => {
+    return getContractsColumns().map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,
@@ -176,8 +178,10 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='搜索客户名称...'
+        searchPlaceholder={t('contract.searchPlaceholder')}
         searchKey='customerName'
+        searchMode='submit'
+        searchButtonLabel={t('common.search')}
         filters={[]}
       />
       <div className='overflow-hidden rounded-md border'>
