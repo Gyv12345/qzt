@@ -25,6 +25,8 @@ import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-p
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
 import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
+import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
+import { Route as AuthenticatedLoginLogsRouteRouteImport } from './routes/_authenticated/login-logs/route'
 import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_authenticated/departments/route'
 import { Route as AuthenticatedCustomersRouteRouteImport } from './routes/_authenticated/customers/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
@@ -120,6 +122,18 @@ const AuthenticatedPermissionsRouteRoute =
     path: '/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOperationLogsRouteRoute =
+  AuthenticatedOperationLogsRouteRouteImport.update({
+    id: '/operation-logs',
+    path: '/operation-logs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLoginLogsRouteRoute =
+  AuthenticatedLoginLogsRouteRouteImport.update({
+    id: '/login-logs',
+    path: '/login-logs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDepartmentsRouteRoute =
   AuthenticatedDepartmentsRouteRouteImport.update({
     id: '/departments',
@@ -200,6 +214,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
+  '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -229,6 +245,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
+  '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
@@ -260,6 +278,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteRoute
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/_authenticated/login-logs': typeof AuthenticatedLoginLogsRouteRoute
+  '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -293,6 +313,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/customers'
     | '/departments'
+    | '/login-logs'
+    | '/operation-logs'
     | '/permissions'
     | '/roles'
     | '/settings'
@@ -322,6 +344,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/customers'
     | '/departments'
+    | '/login-logs'
+    | '/operation-logs'
     | '/permissions'
     | '/roles'
     | '/forgot-password'
@@ -352,6 +376,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/customers'
     | '/_authenticated/departments'
+    | '/_authenticated/login-logs'
+    | '/_authenticated/operation-logs'
     | '/_authenticated/permissions'
     | '/_authenticated/roles'
     | '/_authenticated/settings'
@@ -508,6 +534,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPermissionsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/operation-logs': {
+      id: '/_authenticated/operation-logs'
+      path: '/operation-logs'
+      fullPath: '/operation-logs'
+      preLoaderRoute: typeof AuthenticatedOperationLogsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/login-logs': {
+      id: '/_authenticated/login-logs'
+      path: '/login-logs'
+      fullPath: '/login-logs'
+      preLoaderRoute: typeof AuthenticatedLoginLogsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/departments': {
       id: '/_authenticated/departments'
       path: '/departments'
@@ -628,6 +668,8 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute
   AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute
+  AuthenticatedLoginLogsRouteRoute: typeof AuthenticatedLoginLogsRouteRoute
+  AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
   AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
   AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -643,6 +685,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCustomersRouteRoute: AuthenticatedCustomersRouteRoute,
   AuthenticatedDepartmentsRouteRoute: AuthenticatedDepartmentsRouteRoute,
+  AuthenticatedLoginLogsRouteRoute: AuthenticatedLoginLogsRouteRoute,
+  AuthenticatedOperationLogsRouteRoute: AuthenticatedOperationLogsRouteRoute,
   AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
   AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,

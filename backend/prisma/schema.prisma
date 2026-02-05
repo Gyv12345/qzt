@@ -721,6 +721,25 @@ model PaymentAccount {
 
 // ==================== 日志管理 ====================
 
+model LoginLog {
+  id         String   @id @default(cuid())
+  userId     String
+  username   String
+  email      String?
+  ip         String?
+  userAgent  String?
+  browser    String?  // 浏览器信息
+  os         String?  // 操作系统
+  status     String   // SUCCESS, FAILED
+  failReason String?  // 失败原因
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("login_logs")
+}
+
 model OperationLog {
   id         String   @id @default(cuid())
   userId     String
