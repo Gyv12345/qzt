@@ -1,49 +1,28 @@
-import { z } from 'zod'
+// 从共享类型包导入 Customer 相关类型
+// 使用 Legacy 版本以保持与现有数字枚举的兼容性
+export {
+  customerLevelLegacySchema as customerLevelSchema,
+  customerSchemaLegacy as customerSchema,
+  createCustomerSchemaLegacy as createCustomerSchema,
+  updateCustomerSchemaLegacy as updateCustomerSchema,
+  queryCustomerSchemaLegacy as queryCustomerSchema,
+  toCustomerLevel,
+  toCustomerLevelLegacy,
+  type CustomerLevelLegacy as CustomerLevel,
+  type CustomerLegacy as Customer,
+  type QueryCustomerParamsLegacy as QueryCustomerParams,
+} from '@qzt/shared-types/customer'
 
-// 客户等级
-export const customerLevelSchema = z.union([
-  z.literal(0), // 线索公司
-  z.literal(1), // 意向客户
-  z.literal(2), // 正式客户
-  z.literal(3), // VIP客户
-])
-export type CustomerLevel = z.infer<typeof customerLevelSchema>
+// 单独导入接口类型
+import type { CustomerListResponse } from '@qzt/shared-types/customer'
 
-// 客户状态
-export const customerStatusSchema = z.union([
-  z.literal('active'),
-  z.literal('inactive'),
-])
-export type CustomerStatus = z.infer<typeof customerStatusSchema>
+// 重新导出更友好的类型别名
+export type { CustomerListResponse }
+export type CustomerList = CustomerListResponse
 
-// 客户 Schema
-export const customerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  shortName: z.string().optional(),
-  code: z.string().optional(),
-  industry: z.string().optional(),
-  scale: z.string().optional(),
-  address: z.string().optional(),
-  website: z.string().optional(),
-  customerLevel: customerLevelSchema,
-  sourceChannel: z.string().optional(),
-  followUserId: z.string().optional(),
-  followUserName: z.string().optional(),
-  firstContactDate: z.string().optional(),
-  contractDate: z.string().optional(),
-  tags: z.string().optional(),
-  remark: z.string().optional(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-})
-
-export type Customer = z.infer<typeof customerSchema>
-
-// 客户列表响应
-export interface CustomerListResponse {
-  items: Customer[]
-  total: number
-  page: number
-  pageSize: number
-}
+// 导出字符串枚举版本（供新代码使用）
+export type {
+  CustomerLevel as CustomerLevelString,
+  CustomerStatus,
+  Customer as CustomerString,
+} from '@qzt/shared-types/customer'

@@ -80,7 +80,7 @@ export function ProductsTable({ search, navigate, onEdit, onRefresh }: DataTable
   }, [deleteMutation, onRefresh])
 
   const columns = useMemo(() => {
-    return getProductsColumns().map((col) => {
+    return getProductsColumns({ t }).map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,

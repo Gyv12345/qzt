@@ -8,7 +8,7 @@ import {
 } from '../dto/payment-config.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
-@ApiTags('支付配置')
+@ApiTags('payment-configs')
 @Controller('payment/configs')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

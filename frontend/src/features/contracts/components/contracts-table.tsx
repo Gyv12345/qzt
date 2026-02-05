@@ -96,7 +96,7 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return getContractsColumns().map((col) => {
+    return getContractsColumns({ t }).map((col) => {
       if (col.id === 'actions') {
         return {
           ...col,

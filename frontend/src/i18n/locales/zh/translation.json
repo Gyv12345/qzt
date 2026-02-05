@@ -19,7 +19,8 @@
     "goToPreviousPage": "跳转到上一页",
     "goToPage": "跳转到第 {{page}} 页",
     "goToNextPage": "跳转到下一页",
-    "goToLastPage": "跳转到最后一页"
+    "goToLastPage": "跳转到最后一页",
+    "view": "查看"
   },
   "auth": {
     "login": "登录",

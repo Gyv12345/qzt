@@ -22,7 +22,9 @@
     /* Alias */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@qzt/shared-types": ["../packages/shared-types/src"],
+      "@qzt/shared-types/*": ["../packages/shared-types/src/*"]
     },
 
     /* Linting */

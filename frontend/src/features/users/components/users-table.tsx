@@ -67,7 +67,7 @@ export function UsersTable({ search, navigate }: DataTableProps) {
   // 后端返回分页数据: { data, total, page, pageSize, totalPages }
   const users = data?.data || []
   const total = data?.total || 0
-  const columns = getUsersColumns()
+  const columns = useMemo(() => getUsersColumns({ t }), [t])
 
   const table = useReactTable({
     data: users,

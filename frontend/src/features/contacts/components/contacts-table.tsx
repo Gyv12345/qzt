@@ -91,7 +91,7 @@ export function ContactsTable({
   const total = data?.total || 0
 
   // 创建带有回调的列定义
-  const columns = getContactsColumns({ onOpenDetail }).map((col) => {
+  const columns = getContactsColumns({ t, onOpenDetail }).map((col) => {
     if (col.id === 'actions') {
       return {
         ...col,

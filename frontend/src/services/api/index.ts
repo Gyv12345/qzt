@@ -1,6 +1,9 @@
 /**
  * API 模块统一导出
  * 按 tags 模式拆分，每个模块独立维护
+ *
+ * 注意：此文件由 Orval 自动生成和维护
+ * 如需修改，请更新 orval.config.ts 后运行 pnpm run generate:api
  */
 
 // 首先导入所有函数到当前作用域
@@ -31,6 +34,8 @@ import { getSocialMediaPosts } from './social-media-posts'
 import { getSocialMediaAccounts } from './social-media-accounts'
 import { getSystemConfig } from './system-config'
 import { getNotifications } from './notifications'
+import { getPaymentCertificates } from './payment-certificates'
+import { getPaymentTest } from './payment-test'
 
 // 重新导出所有模块
 export { getAuthApi }
@@ -60,6 +65,8 @@ export { getSocialMediaPosts }
 export { getSocialMediaAccounts }
 export { getSystemConfig }
 export { getNotifications }
+export { getPaymentCertificates }
+export { getPaymentTest }
 
 // 兼容旧的 getScrmApi
 export const getScrmApi = () => ({
@@ -90,4 +97,6 @@ export const getScrmApi = () => ({
   ...getSocialMediaAccounts(),
   ...getSystemConfig(),
   ...getNotifications(),
+  ...getPaymentCertificates(),
+  ...getPaymentTest(),
 })

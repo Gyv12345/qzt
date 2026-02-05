@@ -10,7 +10,7 @@ import {
 } from '../dto/payment-order.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
-@ApiTags('支付订单')
+@ApiTags('payment-orders')
 @Controller('payment/orders')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
