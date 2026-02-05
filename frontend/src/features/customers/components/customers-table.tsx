@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { getCustomersColumns } from './customers-columns'
+import { getCustomersColumns } from './customers-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useCustomers, useDeleteCustomer } from '../hooks/use-customers'
 import type { Customer } from '../types/customer'

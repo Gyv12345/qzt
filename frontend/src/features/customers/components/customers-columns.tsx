@@ -135,6 +135,3 @@ export function getCustomersColumns({ onOpenDetail }: CustomersColumnsOptions = 
     },
   ]
 }
-
-// 保留旧版本兼容性
-export const customersColumns: ColumnDef<Customer>[] = getCustomersColumns()

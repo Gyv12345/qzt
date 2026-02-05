@@ -116,6 +116,3 @@ export function getProductsColumns(): ColumnDef<Product>[] {
     },
   ]
 }
-
-// 保留旧版本兼容性
-export const productsColumns: ColumnDef<Product>[] = getProductsColumns()

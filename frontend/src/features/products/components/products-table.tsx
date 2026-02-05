@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { getProductsColumns } from './products-columns'
+import { getProductsColumns } from './products-columns'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useProducts, useDeleteProduct } from '../hooks/use-products'
 import type { Product } from '../types/product'

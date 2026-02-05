@@ -141,6 +141,3 @@ export function getContractsColumns(): ColumnDef<Contract>[] {
     },
   ]
 }
-
-// 保留旧版本兼容性
-export const contractsColumns: ColumnDef<Contract>[] = getContractsColumns()
