@@ -420,7 +420,7 @@ export class PermissionService {
         name: '超级管理员',
         code: 'SUPER_ADMIN',
         description: '系统内置超级管理员,拥有所有权限',
-        status: 1,
+        status: 'ACTIVE',
         rolePermissions: {
           create: permissions.map((p) => ({
             permission: {
@@ -440,7 +440,7 @@ export class PermissionService {
         username: 'admin',
         password: hashedPassword,
         name: '超级管理员',
-        status: 1,
+        status: 'ACTIVE',
         roles: {
           create: {
             roleId: superAdminRole.id,

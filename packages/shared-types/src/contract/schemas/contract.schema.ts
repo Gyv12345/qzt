@@ -48,6 +48,8 @@ export const createContractSchema = contractBaseSchema
  */
 export const updateContractSchema = contractBaseSchema.partial()
 
+export type UpdateContractBase = z.infer<typeof updateContractSchema>
+
 /**
  * 查询合同 DTO Schema
  */

@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { CreateUserDtoStatus } from "./createUserDtoStatus";
 
 export interface CreateUserDto {
   /** 用户名 */
@@ -21,6 +22,6 @@ export interface CreateUserDto {
   departmentId?: string;
   /** 角色ID列表 */
   roleIds?: string[];
-  /** 状态: 1启用 0禁用 */
-  status?: number;
+  /** 状态 */
+  status?: CreateUserDtoStatus;
 }

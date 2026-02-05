@@ -61,7 +61,7 @@ export class AuthService {
       throw new UnauthorizedException(this.i18n.t('auth.INVALID_CREDENTIALS'));
     }
 
-    if (user.status !== 1) {
+    if (user.status !== 'ACTIVE') {
       // 记录登录失败
       await this.loginLogsService.createLoginLog({
         userId: user.id,

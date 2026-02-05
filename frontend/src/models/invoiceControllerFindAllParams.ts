@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { InvoiceControllerFindAllStatus } from "./invoiceControllerFindAllStatus";
 
 export type InvoiceControllerFindAllParams = {
   /**
@@ -19,6 +20,14 @@ export type InvoiceControllerFindAllParams = {
    * 客户ID
    */
   customerId?: string;
+  /**
+   * 合同ID
+   */
+  contractId?: string;
+  /**
+   * 发票状态
+   */
+  status?: InvoiceControllerFindAllStatus;
   /**
    * 开票月份(YYYY-MM)
    */

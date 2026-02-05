@@ -20,7 +20,7 @@ export class ContractService {
         serviceStart: new Date(createContractDto.serviceStart),
         serviceEnd: new Date(createContractDto.serviceEnd),
         paidAmount: 0,
-        status: 0, // 0:待收款
+        status: 'UNPAID', // 待收款
       },
       include: {
         customer: {
@@ -162,7 +162,7 @@ export class ContractService {
     const payments = await this.prisma.payment.findMany({
       where: {
         contractId,
-        status: 1, // 已确认
+        status: 'CONFIRMED', // 已确认
       },
     });
 
@@ -178,11 +178,11 @@ export class ContractService {
     }
 
     // 更新合同状态
-    let status = 0; // 待收款
+    let status: 'UNPAID' | 'PARTIAL' | 'PAID' = 'UNPAID'; // 待收款
     if (paidAmount > 0 && paidAmount < contract.amount) {
-      status = 1; // 部分收款
+      status = 'PARTIAL'; // 部分收款
     } else if (paidAmount >= contract.amount) {
-      status = 2; // 已收全
+      status = 'PAID'; // 已收全
     }
 
     return this.prisma.contract.update({

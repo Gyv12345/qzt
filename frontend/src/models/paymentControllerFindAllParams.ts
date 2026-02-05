@@ -5,6 +5,8 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { PaymentControllerFindAllMethod } from "./paymentControllerFindAllMethod";
+import type { PaymentControllerFindAllStatus } from "./paymentControllerFindAllStatus";
 
 export type PaymentControllerFindAllParams = {
   /**
@@ -20,7 +22,11 @@ export type PaymentControllerFindAllParams = {
    */
   contractId?: string;
   /**
+   * 收款方式
+   */
+  method?: PaymentControllerFindAllMethod;
+  /**
    * 收款状态
    */
-  status?: number;
+  status?: PaymentControllerFindAllStatus;
 };

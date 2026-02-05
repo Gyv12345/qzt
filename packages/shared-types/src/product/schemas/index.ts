@@ -13,6 +13,7 @@ export {
   type ProductStatus,
   type ProductBase,
   type Product,
+  type UpdateProductBase,
   type QueryProductParams,
   type ProductListResponse,
   type ProductStatusLegacy,

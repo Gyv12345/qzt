@@ -13,7 +13,7 @@ async function main() {
       id: 'default-dept',
       name: '企账通有限公司',
       sort: 0,
-      status: 1,
+      status: 'ACTIVE',
       isSystem: true,
     },
   });
@@ -27,7 +27,7 @@ async function main() {
       name: '超级管理员',
       code: 'SUPERADMIN',
       description: '系统超级管理员，拥有所有权限',
-      status: 1,
+      status: 'ACTIVE',
     },
   });
   console.log('✅ 超级管理员角色已就绪');

@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
-    if (!user || user.status !== 1) {
+    if (!user || user.status !== 'ACTIVE') {
       throw new UnauthorizedException('账号无效或已被禁用');
     }
 

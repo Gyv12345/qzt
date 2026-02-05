@@ -29,7 +29,7 @@ export class PaymentService {
         method: createPaymentDto.method.toString(),
         voucherUrl: createPaymentDto.voucherUrl,
         payTime: createPaymentDto.payTime ? new Date(createPaymentDto.payTime) : null,
-        status: 0, // 0:待确认
+        status: 'PENDING', // 待确认
         remark: createPaymentDto.remark,
       },
       include: {
@@ -174,7 +174,7 @@ export class PaymentService {
     const updatedPayment = await this.prisma.payment.update({
       where: { id },
       data: {
-        status: 1, // 1:已确认
+        status: 'CONFIRMED', // 已确认
         payTime: payment.payTime || new Date(),
       },
     });
@@ -193,14 +193,14 @@ export class PaymentService {
 
     // 计算总收款金额
     const totalPaid = payments
-      .filter((p) => p.status === 1)
+      .filter((p) => p.status === 'CONFIRMED')
       .reduce((sum, p) => sum + p.amount, 0);
 
     return {
       payments,
       totalPaid,
       count: payments.length,
-      confirmedCount: payments.filter((p) => p.status === 1).length,
+      confirmedCount: payments.filter((p) => p.status === 'CONFIRMED').length,
     };
   }
 }

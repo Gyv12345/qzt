@@ -7,12 +7,12 @@
  */
 
 /**
- * 状态: 1启用 0禁用
+ * 状态
  */
 export type UserEntityStatus =
   (typeof UserEntityStatus)[keyof typeof UserEntityStatus];
 
 export const UserEntityStatus = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
 } as const;

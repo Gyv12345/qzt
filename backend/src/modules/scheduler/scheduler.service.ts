@@ -90,7 +90,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
             lte: thirtyDaysLater,
           },
           status: {
-            not: 2,
+            not: 'PAID',
           },
         },
         include: {

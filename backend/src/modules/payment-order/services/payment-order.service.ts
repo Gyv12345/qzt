@@ -292,9 +292,9 @@ export class PaymentOrderService implements IPaymentOrderService {
           data: {
             contractId: order.contractId,
             amount: order.amount,
-            method: paymentMethod === 'wechat' ? '2' : paymentMethod === 'alipay' ? '3' : '1',
+            method: paymentMethod === 'wechat' ? 'WECHAT' : paymentMethod === 'alipay' ? 'ALIPAY' : 'BANK_TRANSFER',
             payTime: result.paidAt,
-            status: 1,
+            status: 'CONFIRMED',
           },
         });
       }

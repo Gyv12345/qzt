@@ -28,7 +28,7 @@ async function main() {
       password: 'hashed_password_here',
       name: 'Test Admin',
       email: 'test@qzt.com',
-      status: 1,
+      status: 'ACTIVE',
     },
   });
   console.log('✅ User created:', testUser.username);

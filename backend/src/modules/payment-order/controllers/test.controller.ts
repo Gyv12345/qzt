@@ -66,9 +66,9 @@ export class PaymentTestController {
         data: {
           contractId: order.contractId,
           amount: order.amount,
-          method: order.paymentMethod === 'wechat' ? '2' : '3',
+          method: order.paymentMethod === 'wechat' ? 'WECHAT' : 'ALIPAY',
           payTime: new Date(),
-          status: 1,
+          status: 'CONFIRMED',
         },
       });
     }

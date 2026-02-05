@@ -5,12 +5,13 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { UpdatePaymentDtoMethod } from "./updatePaymentDtoMethod";
 
 export interface UpdatePaymentDto {
   /** 收款金额 */
   amount?: number;
-  /** 收款方式: 1:银行转账 2:微信 3:支付宝 4:现金 */
-  method?: number;
+  /** 收款方式 */
+  method?: UpdatePaymentDtoMethod;
   /** 凭证URL */
   voucherUrl?: string;
   /** 付款时间 */

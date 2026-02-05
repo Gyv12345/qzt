@@ -16,7 +16,7 @@ model Department {
   name      String
   parentId  String?
   sort      Int      @default(0)
-  status    Int      @default(1)
+  status    String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   isSystem  Boolean  @default(false) // 是否为系统部门(不可删除)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,7 +38,7 @@ model User {
   phone        String?
   avatar       String?
   departmentId String?
-  status       Int      @default(1) // 1:启用 0:禁用
+  status       String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   isSystem     Boolean  @default(false) // 是否为系统用户(不可删除)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -62,7 +62,7 @@ model Role {
   type        String   @default("system") // 角色类型: system(系统角色), team(团队角色)
   dataScope   String   @default("all") // 数据权限范围: all(全部), department(本部门), department_and_sub(本部门及下级), custom(自定义), self(仅本人)
   dataScopeDeptIds String? // 数据权限-自定义部门ID列表(JSON数组)
-  status      Int      @default(1)
+  status      String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -170,7 +170,7 @@ model Contact {
   tags          String? // 标签(JSON数组)
   remark        String? // 备注
   ownerUserId   String? // 负责人
-  status        Int      @default(1) // 1:启用 0:禁用
+  status        String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -299,7 +299,7 @@ model Product {
   overLimitPrice Float    @default(0) // 超额单价
   serviceRoleId  String?  // 服务负责人角色ID（哪个角色负责此产品的运维）
   packageId      String?  // 所属套餐ID
-  status         Int      @default(1)
+  status         String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -456,7 +456,7 @@ model Contract {
   templateId   String? // 合同模板ID
   amount       Float
   paidAmount   Float    @default(0)
-  status       Int      @default(0) // 0:待收款 1:部分收款 2:已收全
+  status       String   @default("UNPAID") // UNPAID:待收款 PARTIAL:部分收款 PAID:已收全
   serviceStart DateTime
   serviceEnd   DateTime
   remark       String?
@@ -479,10 +479,10 @@ model Payment {
   id         String    @id @default(cuid())
   contractId String
   amount     Float
-  method     String // 收款方式: 1:银行转账 2:微信 3:支付宝 4:现金
+  method     String // 收款方式: BANK_TRANSFER:银行转账 WECHAT:微信 ALIPAY:支付宝 CASH:现金
   voucherUrl String? // 凭证URL
   payTime    DateTime? // 付款时间
-  status     Int       @default(0) // 0:待确认 1:已确认
+  status     String    @default("PENDING") // PENDING:待确认 CONFIRMED:已确认 CANCELLED:已取消
   remark     String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -502,6 +502,8 @@ model Invoice {
   amount      Float
   count       Int // 开票张数
   month       String // 开票月份(YYYY-MM)
+  status      String   @default("PENDING") // PENDING:待开票 ISSUED:已开票 CANCELLED:已作废
+  issuedAt    DateTime? // 开票日期
   isOverLimit Boolean  @default(false) // 是否超额
   overAmount  Float? // 超额金额
   overCount   Int      @default(0) // 超额张数
@@ -513,6 +515,7 @@ model Invoice {
   priceChangeRecords  InvoicePriceChange[]
 
   @@index([customerId, month])
+  @@index([status])
   @@map("invoices")
 }
 

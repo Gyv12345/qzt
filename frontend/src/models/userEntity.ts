@@ -26,7 +26,7 @@ export interface UserEntity {
   departmentId?: string;
   /** 部门信息 */
   department?: DepartmentDto;
-  /** 状态: 1启用 0禁用 */
+  /** 状态 */
   status: UserEntityStatus;
   /** 是否为系统用户 */
   isSystem?: boolean;

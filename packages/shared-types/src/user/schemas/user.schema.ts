@@ -50,7 +50,7 @@ export const userBaseSchema = z.object({
   phone: z.string().max(20, '手机号最多20个字符').optional(),
   departmentId: z.string().cuid('请选择有效的部门').optional(),
   roleIds: z.array(z.string().cuid()).optional(),
-  status: userStatusSchema.default('ACTIVE'),
+  status: userStatusSchema.optional().default('ACTIVE'),
 })
 
 export type UserBase = z.infer<typeof userBaseSchema>
@@ -81,6 +81,8 @@ export const createUserSchema = userBaseSchema
 export const updateUserSchema = userBaseSchema.partial().omit({ password: true }).extend({
   password: z.string().min(6, '密码至少6个字符').optional(),
 })
+
+export type UpdateUserBase = z.infer<typeof updateUserSchema>
 
 /**
  * 查询用户 DTO Schema
