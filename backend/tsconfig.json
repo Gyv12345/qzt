@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -18,9 +19,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@/*": ["src/*"],
-      "@qzt/shared-types": ["../packages/shared-types/src"],
-      "@qzt/shared-types/*": ["../packages/shared-types/src/*"]
+      "@/*": ["src/*"]
     }
   }
 }

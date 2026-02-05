@@ -1,51 +1,8 @@
 {
   "name": "@qzt/shared-types",
   "version": "1.0.0",
-  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./customer": {
-      "types": "./dist/customer/index.d.ts",
-      "import": "./dist/customer/index.js"
-    },
-    "./contract": {
-      "types": "./dist/contract/index.d.ts",
-      "import": "./dist/contract/index.js"
-    },
-    "./product": {
-      "types": "./dist/product/index.d.ts",
-      "import": "./dist/product/index.js"
-    },
-    "./invoice": {
-      "types": "./dist/invoice/index.d.ts",
-      "import": "./dist/invoice/index.js"
-    },
-    "./payment": {
-      "types": "./dist/payment/index.d.ts",
-      "import": "./dist/payment/index.js"
-    },
-    "./auth": {
-      "types": "./dist/auth/index.d.ts",
-      "import": "./dist/auth/index.js"
-    },
-    "./user": {
-      "types": "./dist/user/index.d.ts",
-      "import": "./dist/user/index.js"
-    },
-    "./contact": {
-      "types": "./dist/contact/index.d.ts",
-      "import": "./dist/contact/index.js"
-    },
-    "./common": {
-      "types": "./dist/common/index.d.ts",
-      "import": "./dist/common/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -56,11 +13,9 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "typescript": "^5.1.3",
-    "class-validator": "^0.14.0"
+    "typescript": "^5.1.3"
   },
   "peerDependencies": {
-    "class-validator": "^0.14.0",
     "@nestjs/swagger": "^7.0.0"
   },
   "peerDependenciesMeta": {

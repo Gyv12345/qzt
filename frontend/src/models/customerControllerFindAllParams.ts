@@ -5,6 +5,8 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { CustomerControllerFindAllCustomerLevel } from "./customerControllerFindAllCustomerLevel";
+import type { CustomerControllerFindAllStatus } from "./customerControllerFindAllStatus";
 
 export type CustomerControllerFindAllParams = {
   /**
@@ -22,7 +24,11 @@ export type CustomerControllerFindAllParams = {
   /**
    * 客户等级
    */
-  customerLevel?: number;
+  customerLevel?: CustomerControllerFindAllCustomerLevel;
+  /**
+   * 客户状态
+   */
+  status?: CustomerControllerFindAllStatus;
   /**
    * 跟进人ID
    */

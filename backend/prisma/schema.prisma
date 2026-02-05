@@ -193,7 +193,7 @@ model Customer {
   scale         String? // 公司规模: 1-10人, 11-50人, 51-200人, 201-500人, 500人以上
   address       String? // 公司地址
   website       String? // 公司网站
-  customerLevel Int      @default(0) // 0:线索公司 1:意向客户 2:正式客户 3:VIP客户
+  customerLevel String   @default("LEAD") // 客户等级: LEAD, PROSPECT, CUSTOMER, VIP
   sourceChannel String? // 来源渠道
   followUserId  String? // 跟进人ID
   tags          String? // 标签(JSON数组)

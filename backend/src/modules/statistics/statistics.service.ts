@@ -303,16 +303,16 @@ export class StatisticsService {
       stats.totalCustomers++;
 
       switch (customer.customerLevel) {
-        case 0: // 潜在
+        case 'LEAD': // 线索
           stats.potentialCustomers++;
           break;
-        case 1: // 意向
+        case 'PROSPECT': // 意向
           stats.intentionCustomers++;
           break;
-        case 2: // 正式
+        case 'CUSTOMER': // 正式
           stats.formalCustomers++;
           break;
-        case 3: // VIP
+        case 'VIP': // VIP
           stats.vipCustomers++;
           break;
       }

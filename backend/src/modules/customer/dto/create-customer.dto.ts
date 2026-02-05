@@ -1,82 +1,89 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, MinLength, MaxLength, IsDateString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import {
+  IsString,
+  IsOptional,
+  MaxLength,
+  MinLength,
+  IsUrl,
+  IsIn,
+} from 'class-validator'
 
+/**
+ * 创建客户 DTO - 添加自定义 Swagger 描述
+ *
+ * 从 @qzt/shared-types 继承验证规则
+ */
 export class CreateCustomerDto {
   @ApiProperty({ description: '公司名称', example: 'XX科技有限公司' })
   @IsString()
   @MinLength(1)
   @MaxLength(200)
-  name: string;
+  name: string
 
-  @ApiProperty({ description: '公司简称', required: false })
+  @ApiPropertyOptional({ description: '公司简称', example: 'QZT' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  shortName?: string;
+  shortName?: string
 
-  @ApiProperty({ description: '公司编码', required: false })
+  @ApiPropertyOptional({ description: '公司编码', example: 'QZT001' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  code?: string;
+  code?: string
 
-  @ApiProperty({ description: '行业', required: false })
+  @ApiPropertyOptional({ description: '所属行业', example: '软件开发' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  industry?: string;
+  industry?: string
 
-  @ApiProperty({ description: '公司规模', required: false, example: '11-50人' })
+  @ApiPropertyOptional({ description: '公司规模', example: '11-50人' })
   @IsOptional()
   @IsString()
-  @MaxLength(50)
-  scale?: string;
+  @IsIn(['1-10人', '11-50人', '51-200人', '201-500人', '500人以上'])
+  scale?: string
 
-  @ApiProperty({ description: '公司地址', required: false })
+  @ApiPropertyOptional({ description: '公司地址' })
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  address?: string;
+  address?: string
 
-  @ApiProperty({ description: '公司网站', required: false })
+  @ApiPropertyOptional({ description: '公司网站', example: 'https://example.com' })
+  @IsOptional()
+  @IsUrl({}, { message: '请输入有效的网址' })
+  website?: string
+
+  @ApiPropertyOptional({
+    description: '客户等级',
+    example: 'LEAD',
+    enum: ['LEAD', 'PROSPECT', 'CUSTOMER', 'VIP'],
+  })
   @IsOptional()
   @IsString()
-  @MaxLength(200)
-  website?: string;
+  @IsIn(['LEAD', 'PROSPECT', 'CUSTOMER', 'VIP'])
+  customerLevel?: string
 
-  @ApiProperty({ description: '客户等级: 0:线索公司 1:意向客户 2:正式客户 3:VIP客户', default: 0 })
-  @IsOptional()
-  @IsInt()
-  customerLevel?: number;
-
-  @ApiProperty({ description: '来源渠道', required: false })
+  @ApiPropertyOptional({ description: '来源渠道' })
   @IsOptional()
   @IsString()
-  sourceChannel?: string;
+  @MaxLength(100)
+  sourceChannel?: string
 
-  @ApiProperty({ description: '跟进人ID', required: false })
+  @ApiPropertyOptional({ description: '跟进人ID', example: 'user_123' })
   @IsOptional()
   @IsString()
-  followUserId?: string;
+  followUserId?: string
 
-  @ApiProperty({ description: '首次联系时间', required: false })
-  @IsOptional()
-  @IsDateString()
-  firstContactDate?: string;
-
-  @ApiProperty({ description: '签约时间', required: false })
-  @IsOptional()
-  @IsDateString()
-  contractDate?: string;
-
-  @ApiProperty({ description: '标签(JSON数组)', required: false })
+  @ApiPropertyOptional({ description: '标签（JSON数组）' })
   @IsOptional()
   @IsString()
-  tags?: string;
+  tags?: string
 
-  @ApiProperty({ description: '备注', required: false })
+  @ApiPropertyOptional({ description: '备注' })
   @IsOptional()
   @IsString()
   @MaxLength(1000)
-  remark?: string;
+  remark?: string
 }

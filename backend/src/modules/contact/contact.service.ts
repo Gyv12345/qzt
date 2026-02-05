@@ -251,7 +251,6 @@ export class ContactService {
           department: row.department || undefined,
           ownerUserId: userId,
         })),
-        skipDuplicates: true,
       });
     }
 
