@@ -17,6 +17,7 @@ model Department {
   parentId  String?
   sort      Int      @default(0)
   status    Int      @default(1)
+  isSystem  Boolean  @default(false) // 是否为系统部门(不可删除)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -38,6 +39,7 @@ model User {
   avatar       String?
   departmentId String?
   status       Int      @default(1) // 1:启用 0:禁用
+  isSystem     Boolean  @default(false) // 是否为系统用户(不可删除)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

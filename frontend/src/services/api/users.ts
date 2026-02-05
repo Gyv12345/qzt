@@ -7,8 +7,10 @@
  */
 import type {
   CreateUserDto,
+  PaginatedUsersDto,
   ResetPasswordDto,
   UpdateUserDto,
+  UserEntity,
   UsersControllerFindAllParams,
 } from "../../models";
 
@@ -19,7 +21,7 @@ export const getUsers = () => {
    * @summary 创建用户
    */
   const usersControllerCreate = (createUserDto: CreateUserDto) => {
-    return customInstance<void>({
+    return customInstance<UserEntity>({
       url: `/users`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,19 +32,23 @@ export const getUsers = () => {
    * @summary 分页查询用户列表
    */
   const usersControllerFindAll = (params?: UsersControllerFindAllParams) => {
-    return customInstance<void>({ url: `/users`, method: "GET", params });
+    return customInstance<PaginatedUsersDto>({
+      url: `/users`,
+      method: "GET",
+      params,
+    });
   };
   /**
    * @summary 获取用户详情
    */
   const usersControllerFindOne = (id: string) => {
-    return customInstance<void>({ url: `/users/${id}`, method: "GET" });
+    return customInstance<UserEntity>({ url: `/users/${id}`, method: "GET" });
   };
   /**
    * @summary 更新用户
    */
   const usersControllerUpdate = (id: string, updateUserDto: UpdateUserDto) => {
-    return customInstance<void>({
+    return customInstance<UserEntity>({
       url: `/users/${id}`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },

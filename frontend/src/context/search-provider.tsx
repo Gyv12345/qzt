@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { CommandMenu } from '@/components/command-menu'
 
 type SearchContextType = {
@@ -6,7 +6,7 @@ type SearchContextType = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const SearchContext = createContext<SearchContextType | null>(null)
+const SearchContext = createContext<SearchContextType | undefined>(undefined)
 
 type SearchProviderProps = {
   children: React.ReactNode
@@ -26,8 +26,17 @@ export function SearchProvider({ children }: SearchProviderProps) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
+  // 使用 useMemo 确保 context 值的稳定性
+  const value = useMemo(
+    () => ({
+      open,
+      setOpen,
+    }),
+    [open]
+  )
+
   return (
-    <SearchContext value={{ open, setOpen }}>
+    <SearchContext value={value}>
       {children}
       <CommandMenu />
     </SearchContext>
@@ -38,7 +47,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
 export const useSearch = () => {
   const searchContext = useContext(SearchContext)
 
-  if (!searchContext) {
+  if (searchContext === undefined) {
     throw new Error('useSearch has to be used within SearchProvider')
   }
 

@@ -95,92 +95,92 @@ export const sidebarData: SidebarData = {
         },
       ],
     },
-    {
-      title: '页面',
-      items: [
-        {
-          title: '认证',
-          icon: ShieldCheck,
-          items: [
-            {
-              title: '登录',
-              url: '/login',
-            },
-          ],
-        },
-        {
-          title: '错误页',
-          icon: Bug,
-          items: [
-            {
-              title: '未授权',
-              url: '/401',
-              icon: Lock,
-            },
-            {
-              title: '禁止访问',
-              url: '/403',
-              icon: UserX,
-            },
-            {
-              title: '未找到',
-              url: '/404',
-              icon: FileX,
-            },
-            {
-              title: '服务器错误',
-              url: '/500',
-              icon: ServerOff,
-            },
-            {
-              title: '维护中',
-              url: '/503',
-              icon: Construction,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      title: '其他',
-      items: [
-        {
-          title: '设置',
-          icon: Settings,
-          items: [
-            {
-              title: '个人资料',
-              url: '/settings',
-              icon: UserCog,
-            },
-            {
-              title: '账号',
-              url: '/settings/account',
-              icon: Wrench,
-            },
-            {
-              title: '外观',
-              url: '/settings/appearance',
-              icon: Palette,
-            },
-            {
-              title: '通知',
-              url: '/settings/notifications',
-              icon: Bell,
-            },
-            {
-              title: '显示',
-              url: '/settings/display',
-              icon: Monitor,
-            },
-          ],
-        },
-        {
-          title: '帮助中心',
-          url: '/help-center',
-          icon: HelpCircle,
-        },
-      ],
-    },
+    // {
+    //   title: '页面',
+    //   items: [
+    //     {
+    //       title: '认证',
+    //       icon: ShieldCheck,
+    //       items: [
+    //         {
+    //           title: '登录',
+    //           url: '/login',
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       title: '错误页',
+    //       icon: Bug,
+    //       items: [
+    //         {
+    //           title: '未授权',
+    //           url: '/401',
+    //           icon: Lock,
+    //         },
+    //         {
+    //           title: '禁止访问',
+    //           url: '/403',
+    //           icon: UserX,
+    //         },
+    //         {
+    //           title: '未找到',
+    //           url: '/404',
+    //           icon: FileX,
+    //         },
+    //         {
+    //           title: '服务器错误',
+    //           url: '/500',
+    //           icon: ServerOff,
+    //         },
+    //         {
+    //           title: '维护中',
+    //           url: '/503',
+    //           icon: Construction,
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: '其他',
+    //   items: [
+    //     {
+    //       title: '设置',
+    //       icon: Settings,
+    //       items: [
+    //         {
+    //           title: '个人资料',
+    //           url: '/settings',
+    //           icon: UserCog,
+    //         },
+    //         {
+    //           title: '账号',
+    //           url: '/settings/account',
+    //           icon: Wrench,
+    //         },
+    //         {
+    //           title: '外观',
+    //           url: '/settings/appearance',
+    //           icon: Palette,
+    //         },
+    //         {
+    //           title: '通知',
+    //           url: '/settings/notifications',
+    //           icon: Bell,
+    //         },
+    //         {
+    //           title: '显示',
+    //           url: '/settings/display',
+    //           icon: Monitor,
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       title: '帮助中心',
+    //       url: '/help-center',
+    //       icon: HelpCircle,
+    //     },
+    //   ],
+    // },
   ],
 }

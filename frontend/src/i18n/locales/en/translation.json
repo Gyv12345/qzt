@@ -12,7 +12,14 @@
     "loading": "Loading...",
     "noData": "No data",
     "submit": "Submit",
-    "reset": "Reset"
+    "reset": "Reset",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {{current}} of {{total}}",
+    "goToFirstPage": "Go to first page",
+    "goToPreviousPage": "Go to previous page",
+    "goToPage": "Go to page {{page}}",
+    "goToNextPage": "Go to next page",
+    "goToLastPage": "Go to last page"
   },
   "auth": {
     "login": "Login",
@@ -32,5 +39,69 @@
     "createSuccess": "Customer created successfully",
     "updateSuccess": "Customer updated successfully",
     "deleteSuccess": "Customer deleted successfully"
+  },
+  "user": {
+    "title": "User Management",
+    "description": "Manage system users and role permissions",
+    "searchPlaceholder": "Search username...",
+    "status": "Status",
+    "statusEnabled": "Enabled",
+    "statusDisabled": "Disabled",
+    "loadFailed": "Failed to load user data",
+    "columns": {
+      "username": "Username",
+      "fullName": "Full Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "status": "Status",
+      "role": "Role",
+      "department": "Department",
+      "createdAt": "Created At"
+    },
+    "addNew": "Add New User",
+    "inviteUser": "Invite User",
+    "edit": "Edit User",
+    "addDescription": "Create new user here.",
+    "editDescription": "Update the user here.",
+    "clickSave": "Click save when you're done.",
+    "name": "Full Name",
+    "username": "Username",
+    "email": "Email",
+    "phoneNumber": "Phone Number",
+    "role": "Role",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "selectRole": "Select a role",
+    "saveChanges": "Save changes",
+    "placeholder": {
+      "name": "John Doe",
+      "username": "john_doe",
+      "email": "john.doe@example.com",
+      "phoneNumber": "+123456789",
+      "password": "e.g., S3cur3P@ssw0rd"
+    },
+    "validation": {
+      "nameRequired": "Full name is required.",
+      "usernameRequired": "Username is required.",
+      "phoneNumberRequired": "Phone number is required.",
+      "emailRequired": "Email is required.",
+      "roleRequired": "Role is required.",
+      "passwordRequired": "Password is required.",
+      "passwordMinLength": "Password must be at least 8 characters long.",
+      "passwordLowercase": "Password must contain at least one lowercase letter.",
+      "passwordNumber": "Password must contain at least one number.",
+      "passwordMismatch": "Passwords don't match."
+    },
+    "delete": {
+      "title": "Delete User",
+      "description": "Are you sure you want to delete {{username}}?",
+      "description2": "This action will permanently remove the user with the role of {{role}} from the system. This cannot be undone.",
+      "usernameLabel": "Username:",
+      "usernamePlaceholder": "Enter username to confirm deletion.",
+      "warning": "Warning!",
+      "warningText": "Please be careful, this operation can not be rolled back.",
+      "confirmButton": "Delete",
+      "deletedMessage": "The following user has been deleted:"
+    }
   }
 }

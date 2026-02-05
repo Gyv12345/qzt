@@ -182,6 +182,11 @@ export class DepartmentService {
       throw new NotFoundException('部门不存在');
     }
 
+    // 系统部门不能删除
+    if (department.isSystem) {
+      throw new ConflictException('系统部门不能删除');
+    }
+
     // 检查是否有子部门
     if (department.children.length > 0) {
       throw new ConflictException('该部门下有子部门，无法删除');

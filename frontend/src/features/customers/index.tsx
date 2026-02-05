@@ -5,6 +5,7 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { LanguageSwitch } from '@/components/language-switch'
 import { CustomersPrimaryButtons } from './components/customers-primary-buttons'
 import { CustomersTable } from './components/customers-table'
 import { CustomersDialogs, useCustomersDialogs } from './components/customers-dialogs'
@@ -27,6 +28,7 @@ function CustomersContent() {
         <Search />
         <div className='ms-auto flex items-center space-x-4'>
           <ThemeSwitch />
+          <LanguageSwitch />
           <ProfileDropdown />
         </div>
       </Header>

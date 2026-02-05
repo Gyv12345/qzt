@@ -23,6 +23,9 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
+import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
+import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_authenticated/departments/route'
 import { Route as AuthenticatedCustomersRouteRouteImport } from './routes/_authenticated/customers/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
@@ -106,6 +109,23 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRolesRouteRoute = AuthenticatedRolesRouteRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPermissionsRouteRoute =
+  AuthenticatedPermissionsRouteRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDepartmentsRouteRoute =
+  AuthenticatedDepartmentsRouteRouteImport.update({
+    id: '/departments',
+    path: '/departments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCustomersRouteRoute =
   AuthenticatedCustomersRouteRouteImport.update({
     id: '/customers',
@@ -179,6 +199,9 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
+  '/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/roles': typeof AuthenticatedRolesRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -205,6 +228,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
+  '/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/roles': typeof AuthenticatedRolesRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
   '/sign-in': typeof authSignInRoute
@@ -233,6 +259,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteRoute
+  '/_authenticated/departments': typeof AuthenticatedDepartmentsRouteRoute
+  '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
@@ -263,6 +292,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/customers'
+    | '/departments'
+    | '/permissions'
+    | '/roles'
     | '/settings'
     | '/forgot-password'
     | '/otp'
@@ -289,6 +321,9 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/customers'
+    | '/departments'
+    | '/permissions'
+    | '/roles'
     | '/forgot-password'
     | '/otp'
     | '/sign-in'
@@ -316,6 +351,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/customers'
+    | '/_authenticated/departments'
+    | '/_authenticated/permissions'
+    | '/_authenticated/roles'
     | '/_authenticated/settings'
     | '/(auth)/forgot-password'
     | '/(auth)/otp'
@@ -456,6 +494,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/roles': {
+      id: '/_authenticated/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AuthenticatedRolesRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/permissions': {
+      id: '/_authenticated/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof AuthenticatedPermissionsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/departments': {
+      id: '/_authenticated/departments'
+      path: '/departments'
+      fullPath: '/departments'
+      preLoaderRoute: typeof AuthenticatedDepartmentsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/customers': {
       id: '/_authenticated/customers'
       path: '/customers'
@@ -568,6 +627,9 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute
+  AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute
+  AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
+  AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
@@ -580,6 +642,9 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCustomersRouteRoute: AuthenticatedCustomersRouteRoute,
+  AuthenticatedDepartmentsRouteRoute: AuthenticatedDepartmentsRouteRoute,
+  AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
+  AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
