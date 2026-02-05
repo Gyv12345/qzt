@@ -2,14 +2,11 @@ import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-// import { AppTitle } from './app-title'
 import { sidebarData } from './data/sidebar-data'
 import { NavGroup } from './nav-group'
-import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar() {
@@ -28,9 +25,9 @@ export function AppSidebar() {
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      {/* SidebarFooter temporarily hidden */}
+      {/* 侧边栏底部暂时隐藏用户菜单，因为头部已有用户头像 */}
       {/* <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser />
       </SidebarFooter> */}
       <SidebarRail />
     </Sidebar>
