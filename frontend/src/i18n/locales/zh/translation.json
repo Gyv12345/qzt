@@ -104,6 +104,46 @@
     "updateSuccess": "合同更新成功",
     "deleteSuccess": "合同删除成功"
   },
+  "invoice": {
+    "title": "发票管理",
+    "description": "管理您的发票开具和记录",
+    "searchPlaceholder": "搜索发票号码...",
+    "columns": {
+      "invoiceNo": "发票号码",
+      "customerName": "客户名称",
+      "amount": "发票金额",
+      "invoiceDate": "开票日期",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "issued": "已开具",
+      "cancelled": "已作废"
+    }
+  },
+  "payment": {
+    "title": "收款管理",
+    "description": "管理您的收款记录和回款状态",
+    "searchPlaceholder": "搜索收款流水号...",
+    "columns": {
+      "paymentNo": "流水号",
+      "contractName": "合同名称",
+      "amount": "收款金额",
+      "paymentDate": "收款日期",
+      "method": "收款方式",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "method": {
+      "bank": "银行转账",
+      "cash": "现金",
+      "check": "支票",
+      "other": "其他"
+    }
+  },
   "contact": {
     "title": "联系人管理",
     "description": "管理您的联系人和企业关联信息",
