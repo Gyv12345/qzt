@@ -7,10 +7,12 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitch } from '@/components/language-switch'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ContactsPrimaryButtons } from './components/contacts-primary-buttons'
 import { ContactsTable } from './components/contacts-table'
 import { ContactsDialogs, useContactsDialogs } from './components/contacts-dialogs'
+import type { Contact } from './types/contact'
 
 const route = getRouteApi('/_authenticated/contacts')
 
@@ -19,6 +21,8 @@ function ContactsContent() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const queryClient = useQueryClient()
+  const [currentContacts, setCurrentContacts] = useState<Contact[]>([])
+  const [selectedContacts, setSelectedContacts] = useState<Contact[]>([])
   const {
     openCreateDialog,
     openEditDialog,
@@ -50,7 +54,12 @@ function ContactsContent() {
             <h2 className='text-2xl font-bold tracking-tight'>{t('contact.title')}</h2>
             <p className='text-muted-foreground'>{t('contact.description')}</p>
           </div>
-          <ContactsPrimaryButtons onCreate={openCreateDialog} onImportSuccess={handleRefresh} />
+          <ContactsPrimaryButtons
+            onCreate={openCreateDialog}
+            onImportSuccess={handleRefresh}
+            data={currentContacts}
+            selectedData={selectedContacts}
+          />
         </div>
         <ContactsTable
           search={search}
@@ -58,6 +67,8 @@ function ContactsContent() {
           onEdit={openEditDialog}
           onDelete={openDeleteDialog}
           onOpenDetail={openDetailDrawer}
+          onDataChange={setCurrentContacts}
+          onSelectionChange={setSelectedContacts}
           onRefresh={handleRefresh}
           onLinkCustomer={openLinkCustomerDialog}
           onCreateCustomer={openCreateCustomerDialog}

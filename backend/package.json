@@ -17,6 +17,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "backfill:contact-owner": "ts-node -r tsconfig-paths/register scripts/backfill-contact-owner.ts",
     "swagger": "ts-node src/scripts/swagger.ts",
     "check:api": "./check-api-changes.sh"
   },

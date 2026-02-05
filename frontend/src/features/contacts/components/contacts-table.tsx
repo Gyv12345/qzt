@@ -34,6 +34,8 @@ type DataTableProps = {
   onEdit: (contact: Contact) => void
   onDelete: (contact: Contact) => void
   onOpenDetail: (contact: Contact) => void
+  onSelectionChange?: (contacts: Contact[]) => void
+  onDataChange?: (contacts: Contact[]) => void
   onRefresh: () => void
   onLinkCustomer: (contact: Contact) => void
   onCreateCustomer: (contact: Contact) => void
@@ -45,6 +47,8 @@ export function ContactsTable({
   onEdit,
   onDelete,
   onOpenDetail,
+  onSelectionChange,
+  onDataChange,
   onRefresh,
   onLinkCustomer,
   onCreateCustomer,
@@ -136,6 +140,18 @@ export function ContactsTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     manualPagination: true,
   })
+
+  useEffect(() => {
+    onDataChange?.(contacts)
+  }, [contacts, onDataChange])
+
+  useEffect(() => {
+    if (!onSelectionChange) return
+    const selected = table
+      .getFilteredSelectedRowModel()
+      .rows.map((row) => row.original)
+    onSelectionChange(selected)
+  }, [rowSelection, contacts, onSelectionChange, table])
 
   useEffect(() => {
     const pageCount = Math.ceil(total / pagination.pageSize)
