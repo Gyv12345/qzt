@@ -5,6 +5,8 @@ import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 import { QueryContactDto } from './dto/query-contact.dto';
 import { LinkCompanyDto } from './dto/link-company.dto';
+import { ExportContactDto } from './dto/export-contact.dto';
+import { ImportContactDto } from './dto/import-contact.dto';
 
 @Injectable()
 export class ContactService {
@@ -51,27 +53,7 @@ export class ContactService {
     } = query;
 
     // 构建查询条件
-    const where: Record<string, unknown> = {};
-
-    // 关键词搜索（姓名、电话、邮箱）
-    if (keyword) {
-      where.OR = [
-        { name: { contains: keyword } },
-        { phone: { contains: keyword } },
-        { email: { contains: keyword } },
-        { wechat: { contains: keyword } },
-      ];
-    }
-
-    // 按公司筛选
-    if (customerId) {
-      where.customerContacts = {
-        some: {
-          customerId,
-          status: 1, // 只查询在职的关联
-        },
-      };
-    }
+    const where = this.buildContactWhere(keyword, customerId);
 
     const scopedWhere = dataScope
       ? await this.dataScopeService.buildContactWhere(dataScope, where)
@@ -185,6 +167,124 @@ export class ContactService {
       companies,
       customerContacts: undefined,
     };
+  }
+
+  /**
+   * 导出联系人数据
+   */
+  async exportContacts(
+    exportDto: ExportContactDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    const { range, ids, keyword, customerId } = exportDto;
+    let where: Record<string, unknown> = {};
+
+    if (range === 'selected' && ids?.length) {
+      where = { id: { in: ids } };
+    } else if (range === 'filtered') {
+      where = this.buildContactWhere(keyword, customerId);
+    }
+
+    const scopedWhere = dataScope
+      ? await this.dataScopeService.buildContactWhere(dataScope, where)
+      : where;
+
+    const contacts = await this.prisma.contact.findMany({
+      where: scopedWhere,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        customerContacts: {
+          where: { status: 1 },
+          include: {
+            customer: {
+              select: { id: true, name: true },
+            },
+          },
+          orderBy: {
+            isPrimary: 'desc',
+          },
+        },
+      },
+    });
+
+    return contacts.map((contact) => {
+      const primaryCustomer = contact.customerContacts.find((cc) => cc.isPrimary) || contact.customerContacts[0];
+      return {
+        ...contact,
+        customerName: primaryCustomer?.customer?.name || '',
+      };
+    });
+  }
+
+  /**
+   * 批量导入联系人
+   */
+  async importContacts(
+    importDto: ImportContactDto,
+    userId: string,
+  ) {
+    const rows = importDto.rows || [];
+    if (rows.length === 0) {
+      return { total: 0, created: 0, skipped: 0, errors: [] };
+    }
+
+    const validRows = rows.filter((row) => row.name && row.phone);
+    const phones = validRows.map((row) => row.phone);
+
+    const existing = await this.prisma.contact.findMany({
+      where: { phone: { in: phones } },
+      select: { phone: true },
+    });
+
+    const existingPhones = new Set(existing.map((item) => item.phone));
+
+    const toCreate = validRows.filter((row) => !existingPhones.has(row.phone));
+
+    if (toCreate.length > 0) {
+      await this.prisma.contact.createMany({
+        data: toCreate.map((row) => ({
+          name: row.name,
+          phone: row.phone,
+          email: row.email || undefined,
+          wechat: row.wechat || undefined,
+          position: row.position || undefined,
+          department: row.department || undefined,
+          ownerUserId: userId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    return {
+      total: rows.length,
+      created: toCreate.length,
+      skipped: rows.length - toCreate.length,
+      errors: rows.length - validRows.length,
+    };
+  }
+
+  private buildContactWhere(keyword?: string, customerId?: string) {
+    const where: Record<string, unknown> = {};
+
+    if (keyword) {
+      where.OR = [
+        { name: { contains: keyword } },
+        { phone: { contains: keyword } },
+        { email: { contains: keyword } },
+        { wechat: { contains: keyword } },
+      ];
+    }
+
+    if (customerId) {
+      where.customerContacts = {
+        some: {
+          customerId,
+          status: 1,
+        },
+      };
+    }
+
+    return where;
   }
 
   /**
