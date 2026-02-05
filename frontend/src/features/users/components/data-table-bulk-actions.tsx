@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip'
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
 import { UsersMultiDeleteDialog } from './users-multi-delete-dialog'
+import type { User } from '../types/user'
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>

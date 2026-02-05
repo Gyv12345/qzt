@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig, AxiosInstance } from 'axios'
+import axios, {AxiosError, AxiosInstance, InternalAxiosRequestConfig} from 'axios'
 
 // 从 localStorage 获取 token
 const getToken = (): string | null => {
@@ -26,8 +26,7 @@ axiosInstance.interceptors.request.use(
 
     // 添加 Accept-Language 请求头
     if (config.headers) {
-      const language = localStorage.getItem('i18nextLng') || 'zh'
-      config.headers['Accept-Language'] = language
+        config.headers['Accept-Language'] = localStorage.getItem('i18nextLng') || 'zh'
     }
 
     return config
@@ -83,8 +82,7 @@ axiosInstance.interceptors.response.use(
     }
 
     // 统一错误提示
-    const message = (error.response?.data as any)?.message || error.message || '请求失败'
-    error.message = message
+      error.message = (error.response?.data as any)?.message || error.message || '请求失败'
 
     return Promise.reject(error)
   },

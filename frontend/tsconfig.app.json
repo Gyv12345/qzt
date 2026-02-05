@@ -15,6 +15,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Allow importing ESM modules from CommonJS */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
     /* Alias */
     "baseUrl": ".",
     "paths": {
@@ -28,5 +32,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "orval.config.ts"]
 }

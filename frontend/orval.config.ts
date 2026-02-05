@@ -16,18 +16,8 @@ export default defineConfig({
           useInfinite: true,
           useInfiniteQueryParam: 'page',
         },
-        operations: {
-          'AuthController_login': {
-            response: {
-              type: 'LoginResponseDto',
-            },
-          },
-          'AuthController_getUserInfo': {
-            response: {
-              type: 'LoginUserDto',
-            },
-          },
-        },
+        // 注意：operations override 在 orval 8.x 中语法已改变
+        // 如果需要覆盖特定操作的类型，请查看 orval 最新文档
       },
     },
     input: {

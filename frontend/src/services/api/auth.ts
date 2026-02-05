@@ -5,7 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
-import type { LoginDto, LoginResponseDto } from "../../models";
+import type { LoginDto, LoginResponseDto } from "@/models";
 
 import { customInstance } from "../api-client";
 
