@@ -16,6 +16,7 @@ import {
   FileCheck,
   Settings,
   FileSignature,
+  Webhook,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -119,6 +120,11 @@ export const sidebarData: SidebarData = {
           title: "客户规则",
           url: "/customer-rules",
           icon: ShieldCheck,
+        },
+        {
+          title: "Webhook配置",
+          url: "/settings/webhooks",
+          icon: Webhook,
         },
       ],
     },
