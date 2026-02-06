@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import { UsersBatchActions } from "./users-batch-actions";
 import {
   type SortingState,
   type VisibilityState,
@@ -34,6 +36,7 @@ type DataTableProps = {
 
 export function UsersTable({ search, navigate }: DataTableProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -68,6 +71,11 @@ export function UsersTable({ search, navigate }: DataTableProps) {
   const users = data?.data || [];
   const total = data?.total || 0;
   const columns = useMemo(() => getUsersColumns({ t }), [t]);
+
+  // 获取选中的用户 ID
+  const selectedIds = Object.keys(rowSelection).filter(
+    (key) => rowSelection[key]
+  ).map((index) => users[Number(index)]?.id).filter(Boolean) as string[];
 
   const table = useReactTable({
     data: users,
@@ -129,6 +137,16 @@ export function UsersTable({ search, navigate }: DataTableProps) {
         "flex flex-1 flex-col gap-4",
       )}
     >
+      {selectedIds.length > 0 && (
+        <UsersBatchActions
+          selectedIds={selectedIds}
+          onClearSelection={() => setRowSelection({})}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+          }}
+        />
+      )}
+
       <DataTableToolbar
         table={table}
         searchPlaceholder={t("user.searchPlaceholder")}

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import useDialogState from "@/hooks/use-dialog-state";
 import type { UserEntity } from "@/models";
 
-type UsersDialogType = "invite" | "add" | "edit" | "delete";
+type UsersDialogType = "add" | "edit" | "delete" | "batchAdd";
 
 type UsersContextType = {
   open: UsersDialogType | null;
