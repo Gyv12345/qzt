@@ -8,6 +8,7 @@ import {
   InvoicesDialogs,
   useInvoicesDialogs,
 } from "./components/invoices-dialogs";
+import { CustomerInvoicesTab } from "./components/customer-invoices-tab";
 
 const route = getRouteApi("/_authenticated/invoices");
 
@@ -56,3 +57,5 @@ export function Invoices() {
     </InvoicesDialogs>
   );
 }
+
+export { CustomerInvoicesTab };

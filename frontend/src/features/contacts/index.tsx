@@ -9,6 +9,7 @@ import {
   ContactsDialogs,
   useContactsDialogs,
 } from "./components/contacts-dialogs";
+import { CustomerContactsTab } from "./components/customer-contacts-tab";
 
 const route = getRouteApi("/_authenticated/contacts");
 
@@ -74,3 +75,5 @@ export function Contacts() {
     </ContactsDialogs>
   );
 }
+
+export { CustomerContactsTab };
