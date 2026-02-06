@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
 
 /**
  * 通知服务
@@ -50,28 +50,33 @@ export class NotificationService {
   /**
    * 发送Webhook通知
    */
-  async sendWebhook(webhookUrl: string, data: {
-    title: string;
-    content: string;
-    link?: string;
-    metadata?: Record<string, any>;
-  }) {
+  async sendWebhook(
+    webhookUrl: string,
+    data: {
+      title: string;
+      content: string;
+      link?: string;
+      metadata?: Record<string, any>;
+    },
+  ) {
     try {
       const response = await fetch(webhookUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          msgtype: 'text',
+          msgtype: "text",
           text: data.content,
           mentioned_list: [],
-          card: data.link ? {
-            title: data.title,
-            description: data.content,
-            url: data.link,
-            btn_text: '查看详情',
-          } : undefined,
+          card: data.link
+            ? {
+                title: data.title,
+                description: data.content,
+                url: data.link,
+                btn_text: "查看详情",
+              }
+            : undefined,
         }),
       });
 
@@ -96,58 +101,70 @@ export class NotificationService {
   /**
    * 发送企业微信通知
    */
-  async sendWeChatMessage(webhookUrl: string, data: {
-    title: string;
-    content: string;
-    link?: string;
-  }) {
+  async sendWeChatMessage(
+    webhookUrl: string,
+    data: {
+      title: string;
+      content: string;
+      link?: string;
+    },
+  ) {
     return this.sendWebhook(webhookUrl, {
       title: data.title,
       content: data.content,
       link: data.link,
-      metadata: { type: 'link' },
+      metadata: { type: "link" },
     });
   }
 
   /**
    * 发送钉钉通知
    */
-  async sendDingTalkMessage(webhookUrl: string, data: {
-    title: string;
-    content: string;
-    link?: string;
-  }) {
+  async sendDingTalkMessage(
+    webhookUrl: string,
+    data: {
+      title: string;
+      content: string;
+      link?: string;
+    },
+  ) {
     return this.sendWebhook(webhookUrl, {
       title: data.title,
       content: data.content,
       link: data.link,
-      metadata: { type: 'link' },
+      metadata: { type: "link" },
     });
   }
 
   /**
    * 发送飞书通知
    */
-  async sendFeishuMessage(webhookUrl: string, data: {
-    title: string;
-    content: string;
-    link?: string;
-  }) {
+  async sendFeishuMessage(
+    webhookUrl: string,
+    data: {
+      title: string;
+      content: string;
+      link?: string;
+    },
+  ) {
     return this.sendWebhook(webhookUrl, {
       title: data.title,
       content: data.content,
       link: data.link,
-      metadata: { type: 'link' },
+      metadata: { type: "link" },
     });
   }
 
   /**
    * 获取用户通知
    */
-  async getUserNotifications(userId: string, filters?: {
-    isRead?: boolean;
-    type?: string;
-  }) {
+  async getUserNotifications(
+    userId: string,
+    filters?: {
+      isRead?: boolean;
+      type?: string;
+    },
+  ) {
     const where: any = { userId };
 
     if (filters?.isRead !== undefined) {
@@ -159,7 +176,7 @@ export class NotificationService {
 
     return this.prisma.notification.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 50,
     });
   }
@@ -216,9 +233,9 @@ export class NotificationService {
     title: string;
     content: string;
     link?: string;
-    channels?: ('in-app' | 'wechat' | 'dingtalk' | 'feishu')[];
+    channels?: ("in-app" | "wechat" | "dingtalk" | "feishu")[];
   }) {
-    const { userIds, channels = ['in-app'], ...rest } = data;
+    const { userIds, channels = ["in-app"], ...rest } = data;
 
     const results: any = {
       inApp: null,
@@ -228,7 +245,7 @@ export class NotificationService {
     };
 
     // 1. 发送站内通知
-    if (channels.includes('in-app')) {
+    if (channels.includes("in-app")) {
       const inAppNotifications = await this.createBatch({
         userIds,
         ...rest,
@@ -237,7 +254,7 @@ export class NotificationService {
     }
 
     // 2. 如果配置了Webhook通知，发送Webhook
-    const webhookChannels = channels.filter(c => c !== 'in-app');
+    const webhookChannels = channels.filter((c) => c !== "in-app");
     const webhookConfigs = await this.prisma.webhookConfig.findMany({
       where: {
         enabled: true,
