@@ -1,6 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
+import { ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DataTableRowActions } from "./data-table-row-actions";
 import type { Contract } from "../types/contract";
 
@@ -20,7 +28,7 @@ export function getContractsColumns({
   }
 
   // 日期格式化
-  function formatDate(dateStr: string) {
+  function formatDate(dateStr: string | Date) {
     return new Date(dateStr).toLocaleDateString("zh-CN");
   }
 
@@ -53,7 +61,21 @@ export function getContractsColumns({
       },
     },
     {
-      accessorKey: "customerName",
+      accessorKey: "contractNo",
+      header: "合同编号",
+      meta: {
+        displayName: "合同编号",
+        className: "w-[140px]",
+      },
+      cell: ({ row }) => {
+        return (
+          <div className="font-medium">{row.getValue("contractNo")}</div>
+        );
+      },
+    },
+    {
+      id: "customerName",
+      accessorFn: (row) => row.customer?.name,
       header: () => t("contract.columns.customerName"),
       meta: {
         displayName: t("contract.columns.customerName"),
@@ -62,29 +84,78 @@ export function getContractsColumns({
       cell: ({ row }) => {
         return (
           <div className="font-medium">
-            {row.getValue("customerName") || "-"}
+            {row.original.customer?.name || "-"}
           </div>
         );
       },
     },
     {
-      accessorKey: "productName",
-      header: "产品名称",
+      id: "products",
+      header: "产品",
       meta: {
-        displayName: "产品名称",
+        displayName: "产品",
+        className: "w-[150px]",
       },
-      cell: ({ row }) => row.getValue("productName") || "-",
+      cell: ({ row }) => {
+        const items = (row.original as Contract).items;
+        if (!items || items.length === 0) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+
+        if (items.length === 1) {
+          return (
+            <span className="text-sm">{items[0].product?.name || "-"}</span>
+          );
+        }
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 px-2">
+                <span className="text-sm">
+                  {items[0].product?.name} +{items.length - 1}
+                </span>
+                <ChevronDown className="ml-1 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {items.map((item, index) => (
+                <DropdownMenuItem key={index} className="flex-col items-start">
+                  <span className="font-medium">
+                    {item.product?.name || "未知产品"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {item.quantity} × ¥{item.actualPrice}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
     {
-      accessorKey: "amount",
-      header: () => t("contract.columns.amount"),
+      accessorKey: "totalAmount",
+      header: "合同金额",
       meta: {
-        displayName: t("contract.columns.amount"),
+        displayName: "合同金额",
         className: "w-[120px]",
       },
       cell: ({ row }) => {
-        const amount = row.getValue("amount") as number;
-        return <div className="font-medium">{formatAmount(amount)}</div>;
+        const totalAmount = row.getValue("totalAmount") as number;
+        const originalAmount = (row.original as Contract).originalAmount;
+        const hasDiscount = originalAmount > totalAmount;
+
+        return (
+          <div className="flex flex-col">
+            {hasDiscount && (
+              <span className="text-xs text-muted-foreground line-through">
+                {formatAmount(originalAmount)}
+              </span>
+            )}
+            <div className="font-medium">{formatAmount(totalAmount)}</div>
+          </div>
+        );
       },
     },
     {
@@ -106,14 +177,14 @@ export function getContractsColumns({
       cell: ({ row }) => formatDate(row.getValue("serviceEnd")),
     },
     {
-      accessorKey: "paymentStatus",
+      accessorKey: "status",
       header: "收款状态",
       meta: {
         displayName: "收款状态",
         className: "w-[100px]",
       },
       cell: ({ row }) => {
-        const status = row.getValue("paymentStatus") as string;
+        const status = row.getValue("status") as string;
         const statusMap: Record<
           string,
           {
@@ -121,11 +192,11 @@ export function getContractsColumns({
             variant: "default" | "secondary" | "outline" | "destructive";
           }
         > = {
-          unpaid: { label: "未收款", variant: "secondary" },
-          partial: { label: "部分收款", variant: "outline" },
-          paid: { label: "已收款", variant: "default" },
+          UNPAID: { label: "待收款", variant: "secondary" },
+          PARTIAL: { label: "部分收款", variant: "outline" },
+          PAID: { label: "已收款", variant: "default" },
         };
-        const config = statusMap[status] || statusMap.unpaid;
+        const config = statusMap[status] || statusMap.UNPAID;
         return <Badge variant={config.variant}>{config.label}</Badge>;
       },
     },
