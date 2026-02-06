@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/update-invoice.dto';
-import { QueryInvoiceDto } from './dto/query-invoice.dto';
-import { PricingService } from '../pricing/pricing.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateInvoiceDto } from "./dto/create-invoice.dto";
+import { UpdateInvoiceDto } from "./dto/update-invoice.dto";
+import { QueryInvoiceDto } from "./dto/query-invoice.dto";
+import { PricingService } from "../pricing/pricing.service";
 
 @Injectable()
 export class InvoiceService {
@@ -20,7 +20,7 @@ export class InvoiceService {
       where: { id: createInvoiceDto.customerId },
       include: {
         contracts: {
-          where: { status: { in: ['PARTIAL', 'PAID'] } }, // 部分收款或已收全
+          where: { status: { in: ["PARTIAL", "PAID"] } }, // 部分收款或已收全
           include: { product: true },
         },
       },
@@ -31,8 +31,8 @@ export class InvoiceService {
     }
 
     // 计算该客户本月已开票金额和张数
-    const monthStart = new Date(createInvoiceDto.month + '-01');
-    const monthEnd = new Date(createInvoiceDto.month + '-31');
+    const monthStart = new Date(createInvoiceDto.month + "-01");
+    const monthEnd = new Date(createInvoiceDto.month + "-31");
 
     const existingInvoices = await this.prisma.invoice.findMany({
       where: {
@@ -41,8 +41,14 @@ export class InvoiceService {
       },
     });
 
-    const totalAmount = existingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
-    const totalCount = existingInvoices.reduce((sum, inv) => sum + inv.count, 0);
+    const totalAmount = existingInvoices.reduce(
+      (sum, inv) => sum + inv.amount,
+      0,
+    );
+    const totalCount = existingInvoices.reduce(
+      (sum, inv) => sum + inv.count,
+      0,
+    );
 
     // 计算客户产品的开票额度和包含张数
     let invoiceLimit = 0;
@@ -96,7 +102,7 @@ export class InvoiceService {
           );
         }
       } catch (error) {
-        this.logger.error('计算价格失败:', error);
+        this.logger.error("计算价格失败:", error);
       }
     }
 
@@ -143,7 +149,7 @@ export class InvoiceService {
         where,
         skip,
         take: pageSize,
-        orderBy: [{ month: 'desc' }, { createdAt: 'desc' }],
+        orderBy: [{ month: "desc" }, { createdAt: "desc" }],
         include: {
           customer: {
             select: { id: true, name: true },
@@ -211,7 +217,7 @@ export class InvoiceService {
       where: { id },
     });
 
-    return { message: 'Invoice deleted successfully' };
+    return { message: "Invoice deleted successfully" };
   }
 
   async getCustomerInvoiceSummary(customerId: string, month?: string) {
@@ -223,7 +229,7 @@ export class InvoiceService {
 
     const invoices = await this.prisma.invoice.findMany({
       where,
-      orderBy: [{ month: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ month: "desc" }, { createdAt: "desc" }],
     });
 
     // 按月份分组统计

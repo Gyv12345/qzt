@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { QueryLoginLogDto } from './dto/query-login-log.dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { QueryLoginLogDto } from "./dto/query-login-log.dto";
 
 @Injectable()
 export class LoginLogsService {
@@ -13,7 +13,15 @@ export class LoginLogsService {
    * 分页查询登录日志
    */
   async findLoginLogs(query: QueryLoginLogDto) {
-    const { page = 1, pageSize = 10, userId, username, status, startDate, endDate } = query;
+    const {
+      page = 1,
+      pageSize = 10,
+      userId,
+      username,
+      status,
+      startDate,
+      endDate,
+    } = query;
     const skip = (page - 1) * pageSize;
 
     // 构建查询条件
@@ -51,7 +59,7 @@ export class LoginLogsService {
       where,
       skip,
       take: pageSize,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return {

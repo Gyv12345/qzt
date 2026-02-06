@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { QueryOperationLogDto } from './dto/query-operation-log.dto';
-import { QuerySystemLogDto } from './dto/query-system-log.dto';
-import { ExportLogDto } from './dto/export-log.dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { QueryOperationLogDto } from "./dto/query-operation-log.dto";
+import { QuerySystemLogDto } from "./dto/query-system-log.dto";
+import { ExportLogDto } from "./dto/export-log.dto";
 
 @Injectable()
 export class LogsService {
@@ -15,7 +15,15 @@ export class LogsService {
    * 分页查询操作日志
    */
   async findOperationLogs(query: QueryOperationLogDto) {
-    const { page = 1, pageSize = 10, userId, action, resource, startDate, endDate } = query;
+    const {
+      page = 1,
+      pageSize = 10,
+      userId,
+      action,
+      resource,
+      startDate,
+      endDate,
+    } = query;
     const skip = (page - 1) * pageSize;
 
     // 构建查询条件
@@ -53,7 +61,7 @@ export class LogsService {
       where,
       skip,
       take: pageSize,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return {
@@ -69,7 +77,14 @@ export class LogsService {
    * 分页查询系统日志
    */
   async findSystemLogs(query: QuerySystemLogDto) {
-    const { page = 1, pageSize = 10, level, module, startDate, endDate } = query;
+    const {
+      page = 1,
+      pageSize = 10,
+      level,
+      module,
+      startDate,
+      endDate,
+    } = query;
     const skip = (page - 1) * pageSize;
 
     // 构建查询条件
@@ -103,7 +118,7 @@ export class LogsService {
       where,
       skip,
       take: pageSize,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return {
@@ -118,8 +133,8 @@ export class LogsService {
   /**
    * 获取日志详情
    */
-  async findOne(type: 'operation' | 'system', id: string) {
-    if (type === 'operation') {
+  async findOne(type: "operation" | "system", id: string) {
+    if (type === "operation") {
       return this.prisma.operationLog.findUnique({
         where: { id },
       });
@@ -150,25 +165,36 @@ export class LogsService {
       }
     }
 
-    if (type === 'operation') {
+    if (type === "operation") {
       const logs = await this.prisma.operationLog.findMany({
         where: timeCondition,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 10000, // 限制导出数量
       });
 
       // 生成 CSV
-      const headers = ['ID', '用户ID', '用户名', '操作类型', '资源类型', '资源ID', 'IP地址', 'UserAgent', '详情', '创建时间'];
-      const rows = logs.map(log => [
+      const headers = [
+        "ID",
+        "用户ID",
+        "用户名",
+        "操作类型",
+        "资源类型",
+        "资源ID",
+        "IP地址",
+        "UserAgent",
+        "详情",
+        "创建时间",
+      ];
+      const rows = logs.map((log) => [
         log.id,
         log.userId,
         log.username,
         log.action,
         log.resource,
-        log.resourceId || '',
-        log.ip || '',
-        log.userAgent || '',
-        log.detail || '',
+        log.resourceId || "",
+        log.ip || "",
+        log.userAgent || "",
+        log.detail || "",
         log.createdAt.toISOString(),
       ]);
 
@@ -176,18 +202,26 @@ export class LogsService {
     } else {
       const logs = await this.prisma.systemLog.findMany({
         where: timeCondition,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 10000,
       });
 
-      const headers = ['ID', '级别', '模块', '消息', '堆栈信息', '详情', '创建时间'];
-      const rows = logs.map(log => [
+      const headers = [
+        "ID",
+        "级别",
+        "模块",
+        "消息",
+        "堆栈信息",
+        "详情",
+        "创建时间",
+      ];
+      const rows = logs.map((log) => [
         log.id,
         log.level,
         log.module,
         log.message,
-        log.stacktrace || '',
-        log.detail || '',
+        log.stacktrace || "",
+        log.detail || "",
         log.createdAt.toISOString(),
       ]);
 
@@ -200,7 +234,11 @@ export class LogsService {
    */
   private generateCsv(headers: string[], rows: string[][]): string {
     const csvRows = [headers, ...rows];
-    return csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    return csvRows
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+      )
+      .join("\n");
   }
 
   /**
