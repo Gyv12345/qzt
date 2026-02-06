@@ -3,8 +3,8 @@ import {
   IsNotEmpty,
   IsArray,
   IsOptional,
-  IsNumber,
   IsEnum,
+  ArrayNotEmpty,
 } from "class-validator";
 
 export enum RoleType {
@@ -46,7 +46,7 @@ export class CreateRoleDto {
   dataScopeDeptIds?: string; // JSON字符串，自定义部门ID列表
 
   @IsArray()
-  @IsString()
+  @IsString({ each: true })
   @IsOptional()
   permissionIds?: string[];
 }

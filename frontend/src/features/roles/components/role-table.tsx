@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ColumnFiltersState,
-  SortingState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -20,87 +20,133 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DataTablePagination } from "@/components/data-table";
+import { getRolesColumns } from "../data/columns";
+import { DataTableRowActions } from "./data-table-row-actions";
 import { useRoles } from "../hooks/use-roles";
-import { columns } from "../data/columns";
+import type { Role } from "../data/schema";
 
-export function RoleTable() {
+type DataTableProps = {
+  onEdit: (role: Role) => void;
+  onDelete: (role: Role) => void;
+};
+
+export function RoleTable({ onEdit, onDelete }: DataTableProps) {
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const { data, isLoading, error } = useRoles();
 
-  const table = useReactTable({
-    data: data || [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
-    state: {
-      sorting,
-      columnFilters,
-      pagination,
-    },
+  const roles = data || [];
+  const total = data?.length || 0;
+
+  // 创建带有回调的列定义
+  const columns = getRolesColumns({ onEdit, onDelete }).map((col) => {
+    if (col.id === "actions") {
+      return {
+        ...col,
+        cell: (props: any) => {
+          return (
+            <DataTableRowActions
+              row={props.row}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          );
+        },
+      };
+    }
+    return col;
   });
 
+  const table = useReactTable({
+    data: roles,
+    columns,
+    state: {
+      sorting,
+      pagination: {
+        ...pagination,
+        pageSize: pagination.pageSize,
+        pageIndex: pagination.pageIndex,
+      },
+      rowSelection,
+      columnVisibility,
+    },
+    pageCount: Math.ceil(total / pagination.pageSize),
+    enableRowSelection: true,
+    onPaginationChange: setPagination,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    getPaginationRowModel: getPaginationRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: false,
+  });
+
+  useEffect(() => {
+    const pageCount = Math.ceil(total / pagination.pageSize);
+    if (pagination.pageIndex >= pageCount && pageCount > 0) {
+      setPagination({ ...pagination, pageIndex: pageCount - 1 });
+    }
+  }, [total, pagination]);
+
   if (isLoading) {
-    return <div className="flex justify-center p-8">加载中...</div>;
+    return (
+      <div className="flex items-center justify-center py-32">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="text-destructive p-8">加载失败: {error.message}</div>
+      <div className="flex flex-col items-center justify-center py-32">
+        <p className="text-muted-foreground">加载角色数据失败</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Input
-          placeholder="搜索角色..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          新增角色
-        </Button>
-      </div>
-
-      <div className="rounded-md border">
+    <div
+      className={cn(
+        'max-sm:has-[div[role="toolbar"]]:mb-16',
+        "flex flex-1 flex-col gap-4",
+      )}
+    >
+      <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={
-                          header.column.getCanSort()
-                            ? "flex cursor-pointer select-items-center gap-2"
-                            : ""
-                        }
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                        {header.column.getCanSort() && (
-                          <ArrowUpDown className="h-4 w-4" />
-                        )}
-                      </div>
-                    )}
-                  </TableHead>
-                ))}
+              <TableRow key={headerGroup.id} className="group/row">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={cn(
+                        "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted",
+                        header.column.columnDef.meta?.className,
+                        header.column.columnDef.meta?.thClassName,
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -110,9 +156,17 @@ export function RoleTable() {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="group/row"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted",
+                        cell.column.columnDef.meta?.className,
+                        cell.column.columnDef.meta?.tdClassName,
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -134,30 +188,7 @@ export function RoleTable() {
           </TableBody>
         </Table>
       </div>
-
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          共 {data?.total || 0} 条记录
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            上一页
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            下一页
-          </Button>
-        </div>
-      </div>
+      <DataTablePagination table={table} className="mt-auto" />
     </div>
   );
 }
