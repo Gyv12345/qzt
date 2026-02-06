@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next'
-import { Link } from '@tanstack/react-router'
+import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Bell,
@@ -7,10 +7,10 @@ import {
   CreditCard,
   LogOut,
   Sparkles,
-} from 'lucide-react'
-import { useAuth } from '@/contexts/auth-context'
-import useDialogState from '@/hooks/use-dialog-state'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import useDialogState from "@/hooks/use-dialog-state";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,33 +19,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { SignOutDialog } from '@/components/sign-out-dialog'
+} from "@/components/ui/sidebar";
+import { SignOutDialog } from "@/components/sign-out-dialog";
 
 export function NavUser() {
-  const { t } = useTranslation()
-  const { isMobile } = useSidebar()
-  const { user } = useAuth()
-  const [open, setOpen] = useDialogState()
+  const { t } = useTranslation();
+  const { isMobile } = useSidebar();
+  const { user } = useAuth();
+  const [open, setOpen] = useDialogState();
 
   // 生成用户头像 fallback（使用姓名首字母）
   const getInitials = (name?: string) => {
-    if (!name) return 'U'
-    const parts = name.trim().split(' ')
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
     if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
+      return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase()
-  }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   if (!user) {
-    return null
+    return null;
   }
 
   return (
@@ -55,39 +55,41 @@ export function NavUser() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
-                size='lg'
-                className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <Avatar className='h-8 w-8 rounded-lg'>
+                <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className='rounded-lg'>
+                  <AvatarFallback className="rounded-lg">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className='grid flex-1 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>{user.name}</span>
-                  <span className='truncate text-xs'>{user.email || user.username}</span>
+                <div className="grid flex-1 text-start text-sm leading-tight">
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-xs">
+                    {user.email || user.username}
+                  </span>
                 </div>
-                <ChevronsUpDown className='ms-auto size-4' />
+                <ChevronsUpDown className="ms-auto size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-              side={isMobile ? 'bottom' : 'right'}
-              align='end'
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              side={isMobile ? "bottom" : "right"}
+              align="end"
               sideOffset={4}
             >
-              <DropdownMenuLabel className='p-0 font-normal'>
-                <div className='flex items-center gap-2 px-1 py-1.5 text-start text-sm'>
-                  <Avatar className='h-8 w-8 rounded-lg'>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                  <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className='rounded-lg'>
+                    <AvatarFallback className="rounded-lg">
                       {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className='grid flex-1 text-start text-sm leading-tight'>
-                    <span className='truncate font-semibold'>{user.name}</span>
-                    <span className='truncate text-xs'>
+                  <div className="grid flex-1 text-start text-sm leading-tight">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="truncate text-xs">
                       {user.email || user.username}
                     </span>
                   </div>
@@ -97,37 +99,37 @@ export function NavUser() {
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <Sparkles />
-                  {t('nav.user.upgradeToPro')}
+                  {t("nav.user.upgradeToPro")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings/account'>
+                  <Link to="/settings/account">
                     <BadgeCheck />
-                    {t('nav.user.account')}
+                    {t("nav.user.account")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings'>
+                  <Link to="/settings">
                     <CreditCard />
-                    {t('nav.user.billing')}
+                    {t("nav.user.billing")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings/notifications'>
+                  <Link to="/settings/notifications">
                     <Bell />
-                    {t('nav.user.notifications')}
+                    {t("nav.user.notifications")}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                variant='destructive'
+                variant="destructive"
                 onClick={() => setOpen(true)}
               >
                 <LogOut />
-                {t('nav.user.signOut')}
+                {t("nav.user.signOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -136,5 +138,5 @@ export function NavUser() {
 
       <SignOutDialog open={!!open} onOpenChange={setOpen} />
     </>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-import { useLayout } from '@/context/layout-provider'
+import { useLayout } from "@/context/layout-provider";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarRail,
-} from '@/components/ui/sidebar'
-import { sidebarData } from './data/sidebar-data'
-import { NavGroup } from './nav-group'
-import { TeamSwitcher } from './team-switcher'
+} from "@/components/ui/sidebar";
+import { sidebarData } from "./data/sidebar-data";
+import { NavGroup } from "./nav-group";
+import { TeamSwitcher } from "./team-switcher";
 
 export function AppSidebar() {
-  const { collapsible, variant } = useLayout()
+  const { collapsible, variant } = useLayout();
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
@@ -31,5 +31,5 @@ export function AppSidebar() {
       </SidebarFooter> */}
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
