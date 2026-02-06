@@ -95,6 +95,11 @@ const envSchema = Joi.object({
   // TOTP 2FA 配置
   TOTP_APP_NAME: Joi.string().default("企账通"),
   TOTP_ENCRYPTION_KEY: Joi.string().optional(),
+
+  // 并发优化配置
+  PM2_CLUSTER_ENABLED: Joi.boolean().default(false),
+  THROTTLE_TTL: Joi.number().default(60000),
+  THROTTLE_LIMIT: Joi.number().default(100),
 }).unknown(true);
 
 @Module({
@@ -126,8 +131,8 @@ const envSchema = Joi.object({
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 10,
+        ttl: Number(process.env.THROTTLE_TTL) || 60000,
+        limit: Number(process.env.THROTTLE_LIMIT) || 100,
       },
     ]),
     // ScheduleModule.forRoot(), // 暂时禁用：Reflector 依赖问题

@@ -19,7 +19,13 @@
     "prisma:migrate": "prisma migrate dev",
     "backfill:contact-owner": "ts-node -r tsconfig-paths/register scripts/backfill-contact-owner.ts",
     "swagger": "ts-node src/scripts/swagger.ts",
-    "check:api": "./check-api-changes.sh"
+    "check:api": "./check-api-changes.sh",
+    "pm2:start": "pm2 start pm2.config.cjs",
+    "pm2:stop": "pm2 stop pm2.config.cjs",
+    "pm2:restart": "pm2 restart pm2.config.cjs",
+    "pm2:logs": "pm2 logs qzt-backend",
+    "pm2:monit": "pm2 monit",
+    "pm2:delete": "pm2 delete pm2.config.cjs"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",
@@ -86,7 +92,8 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "pm2": "^5.4.2"
   },
   "jest": {
     "moduleFileExtensions": [
