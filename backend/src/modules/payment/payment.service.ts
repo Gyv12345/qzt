@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { QueryPaymentDto } from './dto/query-payment.dto';
-import { ContractService } from '../contract/contract.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreatePaymentDto } from "./dto/create-payment.dto";
+import { UpdatePaymentDto } from "./dto/update-payment.dto";
+import { QueryPaymentDto } from "./dto/query-payment.dto";
+import { ContractService } from "../contract/contract.service";
 
 @Injectable()
 export class PaymentService {
@@ -19,7 +19,9 @@ export class PaymentService {
     });
 
     if (!contract) {
-      throw new NotFoundException(`Contract #${createPaymentDto.contractId} not found`);
+      throw new NotFoundException(
+        `Contract #${createPaymentDto.contractId} not found`,
+      );
     }
 
     const payment = await this.prisma.payment.create({
@@ -28,8 +30,10 @@ export class PaymentService {
         amount: createPaymentDto.amount,
         method: createPaymentDto.method.toString(),
         voucherUrl: createPaymentDto.voucherUrl,
-        payTime: createPaymentDto.payTime ? new Date(createPaymentDto.payTime) : null,
-        status: 'PENDING', // 待确认
+        payTime: createPaymentDto.payTime
+          ? new Date(createPaymentDto.payTime)
+          : null,
+        status: "PENDING", // 待确认
         remark: createPaymentDto.remark,
       },
       include: {
@@ -66,7 +70,7 @@ export class PaymentService {
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           contract: {
             select: {
@@ -158,7 +162,7 @@ export class PaymentService {
       where: { id },
     });
 
-    return { message: 'Payment deleted successfully' };
+    return { message: "Payment deleted successfully" };
   }
 
   async confirmPayment(id: string) {
@@ -174,7 +178,7 @@ export class PaymentService {
     const updatedPayment = await this.prisma.payment.update({
       where: { id },
       data: {
-        status: 'CONFIRMED', // 已确认
+        status: "CONFIRMED", // 已确认
         payTime: payment.payTime || new Date(),
       },
     });
@@ -188,19 +192,19 @@ export class PaymentService {
   async getContractPayments(contractId: string) {
     const payments = await this.prisma.payment.findMany({
       where: { contractId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     // 计算总收款金额
     const totalPaid = payments
-      .filter((p) => p.status === 'CONFIRMED')
+      .filter((p) => p.status === "CONFIRMED")
       .reduce((sum, p) => sum + p.amount, 0);
 
     return {
       payments,
       totalPaid,
       count: payments.length,
-      confirmedCount: payments.filter((p) => p.status === 'CONFIRMED').length,
+      confirmedCount: payments.filter((p) => p.status === "CONFIRMED").length,
     };
   }
 }

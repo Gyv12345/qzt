@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { PaymentService } from './payment.service';
-import { PaymentController } from './payment.controller';
-import { PrismaModule } from '../../common/prisma/prisma.module';
-import { ContractModule } from '../contract/contract.module';
+import { Module } from "@nestjs/common";
+import { PaymentService } from "./payment.service";
+import { PaymentController } from "./payment.controller";
+import { PrismaModule } from "../../common/prisma/prisma.module";
+import { ContractModule } from "../contract/contract.module";
 
 @Module({
   imports: [PrismaModule, ContractModule],
