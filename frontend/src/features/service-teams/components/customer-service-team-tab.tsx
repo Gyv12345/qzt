@@ -22,19 +22,19 @@ import {
 } from "../hooks/use-service-teams";
 import { ServiceTeamFormDrawer } from "./service-team-form-drawer";
 
-// 角色显示映射
-const ROLE_LABELS: Record<string, string> = {
-  SALE: "销售",
-  FINANCE: "财务",
-  OUTWORK: "外勤",
-};
+// 角色配置（按顺序显示）
+const ROLE_CONFIG = [
+  { code: "SALE", label: "销售", variant: "default" as const },
+  { code: "FINANCE", label: "财务", variant: "secondary" as const },
+  { code: "OUTWORK", label: "外勤", variant: "outline" as const },
+];
 
-// 角色颜色映射
-const ROLE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
-  SALE: "default",
-  FINANCE: "secondary",
-  OUTWORK: "outline",
-};
+// API 返回的分组数据类型
+interface GroupedServiceTeams {
+  SALE: any[];
+  FINANCE: any[];
+  OUTWORK: any[];
+}
 
 interface CustomerServiceTeamTabProps {
   customerId: string;
@@ -79,7 +79,19 @@ export function CustomerServiceTeamTab({
     setEditingRecord(null);
   };
 
-  const serviceTeams = serviceTeamData || [];
+  const groupedTeams = (serviceTeamData || {}) as GroupedServiceTeams;
+
+  // 将分组数据展平为成员列表，同时保留角色信息
+  const allMembers = ROLE_CONFIG.flatMap((role) =>
+    (groupedTeams[role.code] || []).map((member) => ({
+      ...member,
+      roleLabel: role.label,
+      roleVariant: role.variant,
+    })),
+  );
+
+  // 检查是否有任何成员
+  const hasMembers = allMembers.length > 0;
 
   return (
     <>
@@ -98,7 +110,7 @@ export function CustomerServiceTeamTab({
           <div className="flex items-center justify-center py-8">
             <LoaderCircle className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : serviceTeams.length === 0 ? (
+        ) : !hasMembers ? (
           /* 空状态 */
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-8">
@@ -117,32 +129,30 @@ export function CustomerServiceTeamTab({
         ) : (
           /* 成员列表 */
           <div className="space-y-2">
-            {serviceTeams.map((team: any) => (
-              <Card key={team.id}>
+            {allMembers.map((member) => (
+              <Card key={member.id}>
                 <CardContent className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={team.user?.avatar} />
+                      <AvatarImage src={member.user?.avatar} />
                       <AvatarFallback>
-                        {team.user?.realName?.[0] ||
-                          team.user?.username?.[0] ||
+                        {member.user?.realName?.[0] ||
+                          member.user?.username?.[0] ||
                           "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          {team.user?.realName || team.user?.username}
+                          {member.user?.realName || member.user?.username}
                         </span>
-                        <Badge
-                          variant={ROLE_VARIANTS[team.roleCode] || "outline"}
-                        >
-                          {ROLE_LABELS[team.roleCode] || team.roleCode}
+                        <Badge variant={member.roleVariant}>
+                          {member.roleLabel}
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground">
                         分配于{" "}
-                        {format(new Date(team.createdAt), "yyyy-MM-dd", {
+                        {format(new Date(member.createdAt), "yyyy-MM-dd", {
                           locale: zhCN,
                         })}
                       </div>
@@ -153,7 +163,7 @@ export function CustomerServiceTeamTab({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => handleEdit(team)}
+                      onClick={() => handleEdit(member)}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -161,7 +171,7 @@ export function CustomerServiceTeamTab({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive"
-                      onClick={() => setDeleteId(team.id)}
+                      onClick={() => setDeleteId(member.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
