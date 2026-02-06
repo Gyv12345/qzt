@@ -1,6 +1,6 @@
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { PermissionTable } from './components/permission-table'
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { PermissionTable } from "./components/permission-table";
 
 export function Permissions() {
   return (
@@ -17,5 +17,5 @@ export function Permissions() {
         <PermissionTable />
       </Main>
     </>
-  )
+  );
 }

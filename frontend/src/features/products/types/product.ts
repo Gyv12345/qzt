@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 // 产品 Schema
 export const productSchema = z.object({
@@ -12,14 +12,14 @@ export const productSchema = z.object({
   overLimitPrice: z.number(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-})
+});
 
-export type Product = z.infer<typeof productSchema>
+export type Product = z.infer<typeof productSchema>;
 
 // 产品列表响应
 export interface ProductListResponse {
-  items: Product[]
-  total: number
-  page: number
-  pageSize: number
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

@@ -1,28 +1,31 @@
-import { useState, createContext, useContext } from 'react'
-import { PaymentFormDialog } from './payment-form-dialog'
-import type { Payment } from '../types/payment'
+import { useState, createContext, useContext } from "react";
+import { PaymentFormDialog } from "./payment-form-dialog";
+import type { Payment } from "../types/payment";
 
 interface PaymentsDialogsContextValue {
-  openCreateDialog: () => void
-  openEditDialog: (payment: Payment) => void
+  openCreateDialog: () => void;
+  openEditDialog: (payment: Payment) => void;
 }
 
-const PaymentsDialogsContext = createContext<PaymentsDialogsContextValue | null>(null)
+const PaymentsDialogsContext =
+  createContext<PaymentsDialogsContextValue | null>(null);
 
 interface PaymentsDialogsProps {
-  children: React.ReactNode
-  onRefresh: () => void
+  children: React.ReactNode;
+  onRefresh: () => void;
 }
 
 export function PaymentsDialogs({ children, onRefresh }: PaymentsDialogsProps) {
-  const [editingPayment, setEditingPayment] = useState<Payment | null>(null)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const openCreateDialog = () => setIsCreateDialogOpen(true)
-  const openEditDialog = (payment: Payment) => setEditingPayment(payment)
+  const openCreateDialog = () => setIsCreateDialogOpen(true);
+  const openEditDialog = (payment: Payment) => setEditingPayment(payment);
 
   return (
-    <PaymentsDialogsContext.Provider value={{ openCreateDialog, openEditDialog }}>
+    <PaymentsDialogsContext.Provider
+      value={{ openCreateDialog, openEditDialog }}
+    >
       {children}
 
       {/* 创建收款记录对话框 */}
@@ -30,8 +33,8 @@ export function PaymentsDialogs({ children, onRefresh }: PaymentsDialogsProps) {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onSuccess={() => {
-          setIsCreateDialogOpen(false)
-          onRefresh()
+          setIsCreateDialogOpen(false);
+          onRefresh();
         }}
       />
 
@@ -42,19 +45,19 @@ export function PaymentsDialogs({ children, onRefresh }: PaymentsDialogsProps) {
           onOpenChange={(open) => !open && setEditingPayment(null)}
           payment={editingPayment}
           onSuccess={() => {
-            setEditingPayment(null)
-            onRefresh()
+            setEditingPayment(null);
+            onRefresh();
           }}
         />
       )}
     </PaymentsDialogsContext.Provider>
-  )
+  );
 }
 
 export function usePaymentsDialogs() {
-  const context = useContext(PaymentsDialogsContext)
+  const context = useContext(PaymentsDialogsContext);
   if (!context) {
-    throw new Error('usePaymentsDialogs must be used within PaymentsDialogs')
+    throw new Error("usePaymentsDialogs must be used within PaymentsDialogs");
   }
-  return context
+  return context;
 }
