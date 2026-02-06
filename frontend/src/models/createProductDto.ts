@@ -15,10 +15,6 @@ export interface CreateProductDto {
   description?: string;
   /** 价格 */
   price: number;
-  /** 开票额度(月) */
-  invoiceLimit: number;
-  /** 套餐包含开票张数(月) */
-  invoiceCount: number;
-  /** 超额单价 */
-  overLimitPrice: number;
+  /** 产品时间轴 */
+  timeline?: string[];
 }

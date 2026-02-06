@@ -35,17 +35,33 @@ export class CreateProductDto {
   @MaxLength(500, { message: "产品描述最多500个字符" })
   description?: string;
 
-  @ApiProperty({ description: "价格", example: 5000 })
+  @ApiProperty({ description: "基础价格", example: 5000 })
   @IsNumber()
   @Min(0, { message: "价格必须大于等于0" })
   price: number;
 
   @ApiPropertyOptional({
-    description: "产品时间轴",
-    example: ["签约后启动服务", "完成工商注册", "税务登记完成"],
+    description: "产品时间轴(JSON数组)",
+    example: '["签约后启动服务", "完成工商注册", "税务登记完成"]',
   })
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  timeline?: string[];
+  @IsString()
+  timeline?: string;
+
+  @ApiPropertyOptional({
+    description: "定价类型",
+    example: "FIXED",
+    enum: ["FIXED", "TIER_AMOUNT", "TIER_COUNT", "ZERO_DECLARATION"],
+  })
+  @IsOptional()
+  @IsString()
+  pricingType?: string;
+
+  @ApiPropertyOptional({
+    description: "服务负责人角色ID",
+    example: "clxxxxxxx",
+  })
+  @IsOptional()
+  @IsString()
+  serviceRoleId?: string;
 }
