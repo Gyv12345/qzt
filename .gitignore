@@ -51,8 +51,4 @@ certificates/
 .temp/
 
 backend/.env.development
-.agents
-.claude
-CLAUDE.md
 
-docs
