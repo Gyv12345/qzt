@@ -87,6 +87,15 @@ export const getPermissions = () => {
     });
   };
   /**
+   * @summary 获取权限树
+   */
+  const permissionControllerFindPermissionTree = () => {
+    return customInstance<void>({
+      url: `/permissions/permissions/tree`,
+      method: "GET",
+    });
+  };
+  /**
    * @summary 获取权限详情
    */
   const permissionControllerFindOnePermission = (id: string) => {
@@ -211,6 +220,7 @@ export const getPermissions = () => {
     permissionControllerRemoveMenu,
     permissionControllerCreatePermission,
     permissionControllerFindAllPermissions,
+    permissionControllerFindPermissionTree,
     permissionControllerFindOnePermission,
     permissionControllerUpdatePermission,
     permissionControllerRemovePermission,
@@ -273,6 +283,15 @@ export type PermissionControllerFindAllPermissionsResult = NonNullable<
       ReturnType<
         typeof getPermissions
       >["permissionControllerFindAllPermissions"]
+    >
+  >
+>;
+export type PermissionControllerFindPermissionTreeResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getPermissions
+      >["permissionControllerFindPermissionTree"]
     >
   >
 >;

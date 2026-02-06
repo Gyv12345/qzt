@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import { useDirection } from "@/context/direction-provider";
 import {
   useCreatePermission,
   useUpdatePermission,
+  usePermissionTree,
 } from "../hooks/use-permissions";
 import {
   permissionFormSchema,
@@ -55,6 +56,8 @@ const typeOptions = [
   { value: "data", label: "数据权限" },
 ];
 
+const ROOT_PARENT_ID = "__root__";
+
 export function PermissionFormDrawer({
   open,
   onOpenChange,
@@ -66,6 +69,34 @@ export function PermissionFormDrawer({
   const { dir } = useDirection();
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
+  const { data: permissions } = usePermissionTree();
+
+  // 将树形结构平铺为选项列表
+  const flattenPermissions = useMemo(() => {
+    const flatten = (nodes: any[], level = 0): any[] => {
+      const result: any[] = [];
+      nodes.forEach((node) => {
+        // 编辑时排除自己和自己的子权限作为上级权限
+        if (isEdit && node.id === permission?.id) {
+          if (node.children) {
+            result.push(...flatten(node.children, level));
+          }
+          return;
+        }
+        result.push({
+          ...node,
+          level,
+        });
+        if (node.children) {
+          result.push(...flatten(node.children, level + 1));
+        }
+      });
+      return result;
+    };
+
+    return permissions ? flatten(permissions) : [];
+  }, [permissions, isEdit, permission]);
+
   const form = useForm<PermissionFormValues>({
     resolver: zodResolver(permissionFormSchema),
     defaultValues: permission
@@ -74,6 +105,7 @@ export function PermissionFormDrawer({
           code: permission.code,
           type: permission.type,
           description: permission.description || "",
+          parentId: permission.parentId || undefined,
           status: permission.status,
         }
       : {
@@ -81,6 +113,7 @@ export function PermissionFormDrawer({
           code: "",
           type: "button",
           description: "",
+          parentId: undefined,
           status: 1,
         },
   });
@@ -93,6 +126,10 @@ export function PermissionFormDrawer({
       const cleanedValues = {
         ...values,
         description: values.description || undefined,
+        parentId:
+          values.parentId === ROOT_PARENT_ID
+            ? undefined
+            : values.parentId,
       };
 
       if (isEdit && permission) {
@@ -119,6 +156,7 @@ export function PermissionFormDrawer({
         code: permission.code,
         type: permission.type,
         description: permission.description || "",
+        parentId: permission.parentId || undefined,
         status: permission.status,
       });
     } else {
@@ -127,6 +165,7 @@ export function PermissionFormDrawer({
         code: "",
         type: "button",
         description: "",
+        parentId: undefined,
         status: 1,
       });
     }
@@ -198,6 +237,39 @@ export function PermissionFormDrawer({
                       {typeOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="parentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>上级权限</FormLabel>
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(
+                        value === ROOT_PARENT_ID ? undefined : value,
+                      )
+                    }
+                    value={field.value || ROOT_PARENT_ID}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择上级权限（可选）" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={ROOT_PARENT_ID}>无上级权限</SelectItem>
+                      {flattenPermissions.map((perm) => (
+                        <SelectItem key={perm.id} value={perm.id}>
+                          {"  ".repeat(perm.level) + perm.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

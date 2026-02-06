@@ -17,6 +17,7 @@ export const permissionBaseSchema = z.object({
   code: z.string().min(1, '权限代码不能为空').max(100, '权限代码最多100个字符'),
   type: permissionTypeSchema,
   description: z.string().max(200, '描述最多200个字符').optional(),
+  parentId: z.string().optional(),
 })
 
 export type PermissionBase = z.infer<typeof permissionBaseSchema>
@@ -26,6 +27,7 @@ export type PermissionBase = z.infer<typeof permissionBaseSchema>
  */
 export const permissionSchema = permissionBaseSchema.extend({
   id: z.string().cuid(),
+  parentId: z.string().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 })

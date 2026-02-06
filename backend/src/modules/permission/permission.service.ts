@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, ConflictException } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
@@ -133,8 +133,23 @@ export class PermissionService {
    * 创建权限
    */
   async createPermission(createPermissionDto: CreatePermissionDto) {
+    const { parentId, ...data } = createPermissionDto;
+
+    // 如果指定了父权限，检查父权限是否存在
+    if (parentId) {
+      const parent = await this.prisma.permission.findUnique({
+        where: { id: parentId },
+      });
+      if (!parent) {
+        throw new NotFoundException("父权限不存在");
+      }
+    }
+
     return this.prisma.permission.create({
-      data: createPermissionDto,
+      data: {
+        ...data,
+        ...(parentId && { parentId }),
+      },
     });
   }
 
@@ -148,6 +163,26 @@ export class PermissionService {
       where,
       orderBy: [{ type: "asc" }, { createdAt: "desc" }],
     });
+  }
+
+  /**
+   * 获取权限树形结构
+   */
+  async findPermissionTree() {
+    const permissions = await this.prisma.permission.findMany({
+      orderBy: [{ type: "asc" }, { createdAt: "desc" }],
+    });
+
+    const buildTree = (parentId: string | null = null) => {
+      return permissions
+        .filter((perm) => perm.parentId === parentId)
+        .map((perm) => ({
+          ...perm,
+          children: buildTree(perm.id),
+        }));
+    };
+
+    return buildTree();
   }
 
   /**
@@ -167,9 +202,29 @@ export class PermissionService {
    * 更新权限
    */
   async updatePermission(id: string, updatePermissionDto: CreatePermissionDto) {
+    const { parentId, ...data } = updatePermissionDto;
+
+    // 不能将父权限设置为自己
+    if (parentId === id) {
+      throw new ConflictException("不能将父权限设置为自己");
+    }
+
+    // 检查父权限是否存在
+    if (parentId !== undefined && parentId) {
+      const parent = await this.prisma.permission.findUnique({
+        where: { id: parentId },
+      });
+      if (!parent) {
+        throw new NotFoundException("父权限不存在");
+      }
+    }
+
     return this.prisma.permission.update({
       where: { id },
-      data: updatePermissionDto,
+      data: {
+        ...data,
+        ...(parentId !== undefined && { parentId }),
+      },
     });
   }
 
@@ -177,6 +232,15 @@ export class PermissionService {
    * 删除权限
    */
   async removePermission(id: string) {
+    // 检查是否有子权限
+    const childrenCount = await this.prisma.permission.count({
+      where: { parentId: id },
+    });
+
+    if (childrenCount > 0) {
+      throw new Error("该权限下有子权限，无法删除");
+    }
+
     // 检查是否有角色使用此权限
     const roleCount = await this.prisma.rolePermission.count({
       where: { permissionId: id },
