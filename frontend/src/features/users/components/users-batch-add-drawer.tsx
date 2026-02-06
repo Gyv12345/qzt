@@ -62,49 +62,58 @@ export function UsersBatchAddDrawer({
   const createUser = useCreateUser();
 
   // 解析 Excel/CSV 文件
-  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    try {
-      const XLSX = await import("xlsx");
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+      try {
+        const XLSX = await import("xlsx");
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-      const users: ParsedUser[] = jsonData.map((row, index) => {
-        const username = row["用户名"] || row["username"] || "";
-        const name = row["姓名"] || row["name"] || "";
-        const email = row["邮箱"] || row["email"] || "";
-        const phone = row["电话"] || row["phone"] || row["phoneNumber"] || "";
-        const departmentName = row["部门"] || row["department"] || "";
-        const roleName = row["角色"] || row["role"] || "";
+        const users: ParsedUser[] = jsonData.map((row, index) => {
+          const username = row["用户名"] || row["username"] || "";
+          const name = row["姓名"] || row["name"] || "";
+          const email = row["邮箱"] || row["email"] || "";
+          const phone = row["电话"] || row["phone"] || row["phoneNumber"] || "";
+          const departmentName = row["部门"] || row["department"] || "";
+          const roleName = row["角色"] || row["role"] || "";
 
-        // 验证
-        const valid = !!(username && name && email);
-        const error = !username ? "缺少用户名" : !name ? "缺少姓名" : !email ? "缺少邮箱" : "";
+          // 验证
+          const valid = !!(username && name && email);
+          const error = !username
+            ? "缺少用户名"
+            : !name
+              ? "缺少姓名"
+              : !email
+                ? "缺少邮箱"
+                : "";
 
-        return {
-          username,
-          name,
-          email,
-          phone,
-          departmentName,
-          roleName,
-          valid,
-          error,
-        };
-      });
+          return {
+            username,
+            name,
+            email,
+            phone,
+            departmentName,
+            roleName,
+            valid,
+            error,
+          };
+        });
 
-      setParsedUsers(users);
-      toast.success(`成功解析 ${users.length} 条用户数据`);
-    } catch (error) {
-      toast.error("文件解析失败，请检查文件格式");
-      console.error(error);
-    }
-  }, []);
+        setParsedUsers(users);
+        toast.success(`成功解析 ${users.length} 条用户数据`);
+      } catch (error) {
+        toast.error("文件解析失败，请检查文件格式");
+        console.error(error);
+      }
+    },
+    [],
+  );
 
   // 删除用户
   const handleRemoveUser = (index: number) => {
@@ -152,9 +161,16 @@ export function UsersBatchAddDrawer({
 
     for (const user of validUsers) {
       try {
-        const departmentId = findDepartmentIdByName(user.departmentName || "") || defaultDepartmentId || undefined;
+        const departmentId =
+          findDepartmentIdByName(user.departmentName || "") ||
+          defaultDepartmentId ||
+          undefined;
         const roleIds = user.roleName
-          ? [roles.find((r) => r.label === user.roleName || r.value === user.roleName)?.value || defaultRole]
+          ? [
+              roles.find(
+                (r) => r.label === user.roleName || r.value === user.roleName,
+              )?.value || defaultRole,
+            ]
           : [defaultRole];
 
         await createUser.mutateAsync({
@@ -177,7 +193,9 @@ export function UsersBatchAddDrawer({
     setIsSubmitting(false);
 
     if (results.success > 0) {
-      toast.success(`成功创建 ${results.success} 个用户${results.failed > 0 ? `，失败 ${results.failed} 个` : ""}`);
+      toast.success(
+        `成功创建 ${results.success} 个用户${results.failed > 0 ? `，失败 ${results.failed} 个` : ""}`,
+      );
       onSuccess();
       onOpenChange(false);
       handleReset();
@@ -241,20 +259,20 @@ export function UsersBatchAddDrawer({
                   const XLSX = await import("xlsx");
                   const template = [
                     {
-                      "用户名": "zhangsan",
-                      "姓名": "张三",
-                      "邮箱": "zhangsan@example.com",
-                      "电话": "13800138000",
-                      "部门": "销售部",
-                      "角色": "sales",
+                      用户名: "zhangsan",
+                      姓名: "张三",
+                      邮箱: "zhangsan@example.com",
+                      电话: "13800138000",
+                      部门: "销售部",
+                      角色: "sales",
                     },
                     {
-                      "用户名": "lisi",
-                      "姓名": "李四",
-                      "邮箱": "lisi@example.com",
-                      "电话": "13900139000",
-                      "部门": "技术部",
-                      "角色": "developer",
+                      用户名: "lisi",
+                      姓名: "李四",
+                      邮箱: "lisi@example.com",
+                      电话: "13900139000",
+                      部门: "技术部",
+                      角色: "developer",
                     },
                   ];
                   const ws = XLSX.utils.json_to_sheet(template);
@@ -322,7 +340,9 @@ export function UsersBatchAddDrawer({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setParsedUsers((prev) => prev.filter((u) => u.valid))}
+                    onClick={() =>
+                      setParsedUsers((prev) => prev.filter((u) => u.valid))
+                    }
                   >
                     清除无效项
                   </Button>
@@ -347,7 +367,7 @@ export function UsersBatchAddDrawer({
                         key={index}
                         className={cn(
                           "border-t",
-                          !user.valid && "bg-destructive/10"
+                          !user.valid && "bg-destructive/10",
                         )}
                       >
                         <td className="p-2">{user.username || "-"}</td>
@@ -368,7 +388,10 @@ export function UsersBatchAddDrawer({
                           {user.valid ? (
                             <CheckCircle className="h-4 w-4 text-green-500 inline-block ml-1" />
                           ) : (
-                            <XCircle className="h-4 w-4 text-destructive inline-block ml-1" title={user.error} />
+                            <XCircle
+                              className="h-4 w-4 text-destructive inline-block ml-1"
+                              title={user.error}
+                            />
                           )}
                         </td>
                       </tr>
@@ -393,11 +416,11 @@ export function UsersBatchAddDrawer({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={parsedUsers.length === 0 || isSubmitting || validCount === 0}
+            disabled={
+              parsedUsers.length === 0 || isSubmitting || validCount === 0
+            }
           >
-            {isSubmitting
-              ? "创建中..."
-              : `创建 ${validCount} 个用户`}
+            {isSubmitting ? "创建中..." : `创建 ${validCount} 个用户`}
           </Button>
         </SheetFooter>
       </SheetContent>

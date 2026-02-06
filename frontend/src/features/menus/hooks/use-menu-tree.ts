@@ -36,12 +36,14 @@ export function useMenuTree() {
 /**
  * 将菜单树转换为权限树节点格式
  */
-export function convertToPermissionTree(menus: MenuNode[]): PermissionTreeNode[] {
-  return menus.map(menu => ({
+export function convertToPermissionTree(
+  menus: MenuNode[],
+): PermissionTreeNode[] {
+  return menus.map((menu) => ({
     id: menu.id,
     name: menu.name,
-    type: 'menu' as const,
-    permissions: menu.permissions?.map(p => ({
+    type: "menu" as const,
+    permissions: menu.permissions?.map((p) => ({
       id: p.id,
       name: p.name,
       code: p.code,
@@ -63,7 +65,7 @@ export function collectPermissionIds(nodes: PermissionTreeNode[]): string[] {
 
   function traverse(node: PermissionTreeNode) {
     if (node.permissions) {
-      node.permissions.forEach(p => ids.push(p.id));
+      node.permissions.forEach((p) => ids.push(p.id));
     }
     if (node.children) {
       node.children.forEach(traverse);
@@ -81,11 +83,11 @@ export function collectNodePermissionIds(node: PermissionTreeNode): string[] {
   const ids: string[] = [];
 
   if (node.permissions) {
-    node.permissions.forEach(p => ids.push(p.id));
+    node.permissions.forEach((p) => ids.push(p.id));
   }
 
   if (node.children) {
-    node.children.forEach(child => {
+    node.children.forEach((child) => {
       ids.push(...collectNodePermissionIds(child));
     });
   }

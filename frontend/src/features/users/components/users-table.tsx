@@ -73,9 +73,10 @@ export function UsersTable({ search, navigate }: DataTableProps) {
   const columns = useMemo(() => getUsersColumns({ t }), [t]);
 
   // 获取选中的用户 ID
-  const selectedIds = Object.keys(rowSelection).filter(
-    (key) => rowSelection[key]
-  ).map((index) => users[Number(index)]?.id).filter(Boolean) as string[];
+  const selectedIds = Object.keys(rowSelection)
+    .filter((key) => rowSelection[key])
+    .map((index) => users[Number(index)]?.id)
+    .filter(Boolean) as string[];
 
   const table = useReactTable({
     data: users,

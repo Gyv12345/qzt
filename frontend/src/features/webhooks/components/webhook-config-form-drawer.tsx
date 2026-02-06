@@ -125,7 +125,10 @@ export function WebhookConfigFormDrawer({
             <Select
               value={form.watch("platform")}
               onValueChange={(value) =>
-                form.setValue("platform", value as "wecom" | "feishu" | "dingtalk")
+                form.setValue(
+                  "platform",
+                  value as "wecom" | "feishu" | "dingtalk",
+                )
               }
             >
               <SelectTrigger id="platform">
@@ -134,7 +137,9 @@ export function WebhookConfigFormDrawer({
               <SelectContent>
                 {PLATFORM_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    <span className="mr-2">{getPlatformEmoji(option.value)}</span>
+                    <span className="mr-2">
+                      {getPlatformEmoji(option.value)}
+                    </span>
                     {option.label}
                   </SelectItem>
                 ))}
@@ -189,7 +194,9 @@ export function WebhookConfigFormDrawer({
               取消
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               {editingConfig ? "保存" : "创建"}
             </Button>
           </DialogFooter>

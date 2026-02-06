@@ -47,7 +47,13 @@ export function useUpdateWebhookConfig() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateWebhookConfigDto }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateWebhookConfigDto;
+    }) => {
       return await getScrmApi().webhooksControllerUpdateConfig(id, data);
     },
     onSuccess: () => {

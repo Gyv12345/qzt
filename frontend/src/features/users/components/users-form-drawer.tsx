@@ -53,7 +53,8 @@ export function UsersFormDrawer({
 
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
-  const { data: departmentsData, isLoading: departmentsLoading } = useDepartments();
+  const { data: departmentsData, isLoading: departmentsLoading } =
+    useDepartments();
 
   // 部门数据处理
   const departments = departmentsData || [];
@@ -153,7 +154,14 @@ export function UsersFormDrawer({
   const onSubmit = async (values: UserForm) => {
     try {
       // 提取需要提交的数据
-      const { isEdit: _, confirmPassword, role, phoneNumber, departmentId, ...rest } = values;
+      const {
+        isEdit: _,
+        confirmPassword,
+        role,
+        phoneNumber,
+        departmentId,
+        ...rest
+      } = values;
 
       // 映射字段名到 DTO 格式
       const submitData: any = {
@@ -210,9 +218,7 @@ export function UsersFormDrawer({
         className={isMobile ? "h-[85vh]" : "w-[500px]"}
       >
         <SheetHeader className="pb-0 text-start">
-          <SheetTitle>
-            {isEdit ? t("user.edit") : t("user.addNew")}
-          </SheetTitle>
+          <SheetTitle>{isEdit ? t("user.edit") : t("user.addNew")}</SheetTitle>
           <SheetDescription>
             {isEdit ? t("user.editDescription") : t("user.addDescription")}{" "}
             {t("user.clickSave")}
