@@ -1,31 +1,33 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Module } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import { getDatabaseUrl } from './config/database.config';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe, Module } from "@nestjs/common";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { AppModule } from "./app.module";
+import { getDatabaseUrl } from "./config/database.config";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import {
   LoggingInterceptor,
   TimeoutInterceptor,
   TransformInterceptor,
   PerformanceInterceptor,
-} from './common/interceptors';
+} from "./common/interceptors";
 import {
   RequestIdMiddleware,
   OperationLogMiddleware,
-} from './common/middleware';
+} from "./common/middleware";
 
 async function bootstrap() {
   // 设置DATABASE_URL for Prisma
   process.env.DATABASE_URL = getDatabaseUrl();
 
   const app = await NestFactory.create(AppModule, {
-    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+    logger: ["log", "error", "warn", "debug", "verbose"],
   });
 
   // ========== 中间件配置 ==========
   // 请求ID中间件（必须第一个）
-  const requestIdMiddleware = new (await import('./common/middleware/request-id.middleware.js')).RequestIdMiddleware();
+  const requestIdMiddleware = new (
+    await import("./common/middleware/request-id.middleware.js")
+  ).RequestIdMiddleware();
   app.use(requestIdMiddleware.use.bind(requestIdMiddleware));
 
   // 操作日志中间件（暂时注释掉，需要解决循环依赖）
@@ -59,22 +61,22 @@ async function bootstrap() {
 
   // 启用CORS - 安全配置
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3456',
+    origin: process.env.FRONTEND_URL || "http://localhost:3456",
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   // Swagger API文档
   const config = new DocumentBuilder()
-    .setTitle('企账通SCRM API')
-    .setDescription('企账通SCRM系统API文档')
-    .setVersion('1.0')
+    .setTitle("企账通SCRM API")
+    .setDescription("企账通SCRM系统API文档")
+    .setVersion("1.0")
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup("api-docs", app, document);
 
   const port = process.env.BACKEND_PORT || 7890;
   await app.listen(port);
