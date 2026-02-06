@@ -6,8 +6,10 @@ import {
   Min,
   MinLength,
   MaxLength,
+  IsArray,
 } from "class-validator";
 import type { ProductBase } from "@qzt/shared-types/dist/product/schemas";
+import { Transform } from "class-transformer";
 
 /**
  * 创建产品 DTO
@@ -38,18 +40,12 @@ export class CreateProductDto {
   @Min(0, { message: "价格必须大于等于0" })
   price: number;
 
-  @ApiProperty({ description: "开票额度(月)", example: 10 })
-  @IsNumber()
-  @Min(0, { message: "开票额度必须大于等于0" })
-  invoiceLimit: number;
-
-  @ApiProperty({ description: "套餐包含开票张数(月)", example: 50 })
-  @IsNumber()
-  @Min(0, { message: "开票张数必须大于等于0" })
-  invoiceCount: number;
-
-  @ApiProperty({ description: "超额单价", example: 20 })
-  @IsNumber()
-  @Min(0, { message: "超额单价必须大于等于0" })
-  overLimitPrice: number;
+  @ApiPropertyOptional({
+    description: "产品时间轴",
+    example: ["签约后启动服务", "完成工商注册", "税务登记完成"],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  timeline?: string[];
 }
