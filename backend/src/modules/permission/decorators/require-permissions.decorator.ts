@@ -1,6 +1,6 @@
-import { SetMetadata } from '@nestjs/common';
+import { SetMetadata } from "@nestjs/common";
 
-export const REQUIRE_PERMISSIONS_KEY = 'requirePermissions';
+export const REQUIRE_PERMISSIONS_KEY = "requirePermissions";
 
 /**
  * 权限装饰器 - 标记需要哪些权限才能访问

@@ -1,9 +1,9 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional } from "class-validator";
 
 export enum PermissionType {
-  MENU = 'menu',
-  BUTTON = 'button',
-  DATA = 'data',
+  MENU = "menu",
+  BUTTON = "button",
+  DATA = "data",
 }
 
 export class CreatePermissionDto {

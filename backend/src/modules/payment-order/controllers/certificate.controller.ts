@@ -1,33 +1,30 @@
+import { Controller, Get, Post, Body, UseGuards } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { CertificateService } from "../services/certificate.service";
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CertificateService } from '../services/certificate.service';
-import { CertificateConfigDto, VerifyCertificateDto } from '../dto/certificate.dto';
+  CertificateConfigDto,
+  VerifyCertificateDto,
+} from "../dto/certificate.dto";
 
 /**
  * 证书管理控制器
  * 提供证书的保存、验证、列表等API
  */
-@ApiTags('payment-certificates')
-@Controller('payment-certificates')
+@ApiTags("payment-certificates")
+@Controller("payment-certificates")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class CertificateController {
   constructor(private certificateService: CertificateService) {}
 
-  @Post('save')
-  @ApiOperation({ summary: '保存证书文件' })
+  @Post("save")
+  @ApiOperation({ summary: "保存证书文件" })
   async saveCertificate(@Body() dto: CertificateConfigDto) {
     if (!dto.certContent) {
       return {
         success: false,
-        error: 'Certificate content is required',
+        error: "Certificate content is required",
       };
     }
 
@@ -39,25 +36,27 @@ export class CertificateController {
     );
   }
 
-  @Post('verify')
-  @ApiOperation({ summary: '验证证书配置' })
+  @Post("verify")
+  @ApiOperation({ summary: "验证证书配置" })
   async verifyCertificates(@Body() dto: VerifyCertificateDto) {
-    return this.certificateService.verifyCertificates(dto.paymentMethod, dto.environment);
+    return this.certificateService.verifyCertificates(
+      dto.paymentMethod,
+      dto.environment,
+    );
   }
 
-  @Get('list')
-  @ApiOperation({ summary: '列出所有证书文件' })
+  @Get("list")
+  @ApiOperation({ summary: "列出所有证书文件" })
   async listCertificates() {
-    const fs = require('fs');
-    const path = require('path');
+    const fs = require("fs");
+    const path = require("path");
 
-    const certBasePath =
-      process.env.CERT_BASE_PATH || '/opt/qzt/certificates';
+    const certBasePath = process.env.CERT_BASE_PATH || "/opt/qzt/certificates";
     const certificates: any[] = [];
 
     try {
-      const methods = ['wechat', 'alipay'];
-      const environments = ['development', 'production'];
+      const methods = ["wechat", "alipay"];
+      const environments = ["development", "production"];
 
       for (const method of methods) {
         for (const env of environments) {

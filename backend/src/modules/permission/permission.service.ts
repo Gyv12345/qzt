@@ -1,8 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
-import { CreatePermissionDto, PermissionType } from './dto/create-permission.dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateRoleDto } from "./dto/create-role.dto";
+import { UpdateRoleDto } from "./dto/update-role.dto";
+import {
+  CreatePermissionDto,
+  PermissionType,
+} from "./dto/create-permission.dto";
 
 @Injectable()
 export class PermissionService {
@@ -29,7 +32,10 @@ export class PermissionService {
             name: route.name || existingMenu.name,
             icon: route.icon || existingMenu.icon,
             sort: route.order || existingMenu.sort,
-            enabled: route.enabled !== undefined ? route.enabled : existingMenu.enabled,
+            enabled:
+              route.enabled !== undefined
+                ? route.enabled
+                : existingMenu.enabled,
           },
         });
         syncedMenus.push(updated);
@@ -64,10 +70,7 @@ export class PermissionService {
       include: {
         permissions: true,
       },
-      orderBy: [
-        { sort: 'asc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
     });
 
     // 构建树形结构
@@ -118,7 +121,7 @@ export class PermissionService {
     });
 
     if (childrenCount > 0) {
-      throw new Error('该菜单下有子菜单，无法删除');
+      throw new Error("该菜单下有子菜单，无法删除");
     }
 
     return this.prisma.menu.delete({
@@ -143,10 +146,7 @@ export class PermissionService {
 
     return this.prisma.permission.findMany({
       where,
-      orderBy: [
-        { type: 'asc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ type: "asc" }, { createdAt: "desc" }],
     });
   }
 
@@ -183,7 +183,7 @@ export class PermissionService {
     });
 
     if (roleCount > 0) {
-      throw new Error('该权限正在被角色使用，无法删除');
+      throw new Error("该权限正在被角色使用，无法删除");
     }
 
     return this.prisma.permission.delete({
@@ -200,8 +200,8 @@ export class PermissionService {
     return this.prisma.role.create({
       data: {
         ...roleData,
-        type: roleData.type || 'system',
-        dataScope: roleData.dataScope || 'all',
+        type: roleData.type || "system",
+        dataScope: roleData.dataScope || "all",
         dataScopeDeptIds: dataScopeDeptIds || null,
         ...(permissionIds && {
           permissions: {
@@ -224,7 +224,7 @@ export class PermissionService {
         permissions: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }
@@ -266,7 +266,9 @@ export class PermissionService {
         ...(dataScopeDeptIds !== undefined && { dataScopeDeptIds }),
         ...(permissionIds && {
           permissions: {
-            connect: permissionIds.map((permissionId) => ({ id: permissionId })),
+            connect: permissionIds.map((permissionId) => ({
+              id: permissionId,
+            })),
           },
         }),
       },
@@ -316,7 +318,7 @@ export class PermissionService {
     // 收集所有权限代码
     const permissions = new Set<string>();
 
-    const roles = user.roles.map(userRole => ({
+    const roles = user.roles.map((userRole) => ({
       id: userRole.role.id,
       name: userRole.role.name,
       code: userRole.role.code,
@@ -402,12 +404,12 @@ export class PermissionService {
     // 检查是否已存在超级管理员
     const existingAdmin = await this.prisma.user.findFirst({
       where: {
-        username: 'admin',
+        username: "admin",
       },
     });
 
     if (existingAdmin) {
-      this.logger.log('超级管理员已存在');
+      this.logger.log("超级管理员已存在");
       return existingAdmin;
     }
 
@@ -417,10 +419,10 @@ export class PermissionService {
     // 创建超级管理员角色
     const superAdminRole = await this.prisma.role.create({
       data: {
-        name: '超级管理员',
-        code: 'SUPER_ADMIN',
-        description: '系统内置超级管理员,拥有所有权限',
-        status: 'ACTIVE',
+        name: "超级管理员",
+        code: "SUPER_ADMIN",
+        description: "系统内置超级管理员,拥有所有权限",
+        status: "ACTIVE",
         rolePermissions: {
           create: permissions.map((p) => ({
             permission: {
@@ -432,15 +434,15 @@ export class PermissionService {
     });
 
     // 创建超级管理员用户
-    const bcrypt = require('bcrypt');
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const bcrypt = require("bcrypt");
+    const hashedPassword = await bcrypt.hash("admin123", 10);
 
     const admin = await this.prisma.user.create({
       data: {
-        username: 'admin',
+        username: "admin",
         password: hashedPassword,
-        name: '超级管理员',
-        status: 'ACTIVE',
+        name: "超级管理员",
+        status: "ACTIVE",
         roles: {
           create: {
             roleId: superAdminRole.id,
@@ -449,7 +451,7 @@ export class PermissionService {
       },
     });
 
-    this.logger.log('超级管理员初始化完成');
+    this.logger.log("超级管理员初始化完成");
     return admin;
   }
 
@@ -459,42 +461,42 @@ export class PermissionService {
   private async createDefaultPermissions() {
     const defaultPermissions = [
       // 客户管理
-      { name: '查看客户', code: 'customer.view', type: 'menu' },
-      { name: '新增客户', code: 'customer.create', type: 'button' },
-      { name: '编辑客户', code: 'customer.update', type: 'button' },
-      { name: '删除客户', code: 'customer.delete', type: 'button' },
-      { name: '导出客户', code: 'customer.export', type: 'button' },
+      { name: "查看客户", code: "customer.view", type: "menu" },
+      { name: "新增客户", code: "customer.create", type: "button" },
+      { name: "编辑客户", code: "customer.update", type: "button" },
+      { name: "删除客户", code: "customer.delete", type: "button" },
+      { name: "导出客户", code: "customer.export", type: "button" },
 
       // 合同管理
-      { name: '查看合同', code: 'contract.view', type: 'menu' },
-      { name: '新增合同', code: 'contract.create', type: 'button' },
-      { name: '编辑合同', code: 'contract.update', type: 'button' },
-      { name: '删除合同', code: 'contract.delete', type: 'button' },
+      { name: "查看合同", code: "contract.view", type: "menu" },
+      { name: "新增合同", code: "contract.create", type: "button" },
+      { name: "编辑合同", code: "contract.update", type: "button" },
+      { name: "删除合同", code: "contract.delete", type: "button" },
 
       // 产品管理
-      { name: '查看产品', code: 'product.view', type: 'menu' },
-      { name: '新增产品', code: 'product.create', type: 'button' },
-      { name: '编辑产品', code: 'product.update', type: 'button' },
+      { name: "查看产品", code: "product.view", type: "menu" },
+      { name: "新增产品", code: "product.create", type: "button" },
+      { name: "编辑产品", code: "product.update", type: "button" },
 
       // 发票管理
-      { name: '查看发票', code: 'invoice.view', type: 'menu' },
-      { name: '新增发票', code: 'invoice.create', type: 'button' },
+      { name: "查看发票", code: "invoice.view", type: "menu" },
+      { name: "新增发票", code: "invoice.create", type: "button" },
 
       // 定价管理
-      { name: '查看定价', code: 'pricing.view', type: 'menu' },
-      { name: '管理定价规则', code: 'pricing.manage', type: 'button' },
+      { name: "查看定价", code: "pricing.view", type: "menu" },
+      { name: "管理定价规则", code: "pricing.manage", type: "button" },
 
       // 统计分析
-      { name: '查看统计', code: 'statistics.view', type: 'menu' },
+      { name: "查看统计", code: "statistics.view", type: "menu" },
 
       // 系统管理
-      { name: '查看用户', code: 'user.view', type: 'menu' },
-      { name: '新增用户', code: 'user.create', type: 'button' },
-      { name: '编辑用户', code: 'user.update', type: 'button' },
-      { name: '删除用户', code: 'user.delete', type: 'button' },
-      { name: '管理角色', code: 'role.manage', type: 'button' },
-      { name: '管理权限', code: 'permission.manage', type: 'button' },
-      { name: '管理菜单', code: 'menu.manage', type: 'button' },
+      { name: "查看用户", code: "user.view", type: "menu" },
+      { name: "新增用户", code: "user.create", type: "button" },
+      { name: "编辑用户", code: "user.update", type: "button" },
+      { name: "删除用户", code: "user.delete", type: "button" },
+      { name: "管理角色", code: "role.manage", type: "button" },
+      { name: "管理权限", code: "permission.manage", type: "button" },
+      { name: "管理菜单", code: "menu.manage", type: "button" },
     ];
 
     const createdPermissions = [];

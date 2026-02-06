@@ -1,8 +1,18 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
-import { CryptoUtil } from '@/lib/crypto.util';
-import { IPaymentConfigService, CreatePaymentConfigInput, UpdatePaymentConfigInput, QueryPaymentConfigInput } from '../interfaces/payment-config.interface';
-import { PaymentConfig } from '@prisma/client';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
+import { CryptoUtil } from "@/lib/crypto.util";
+import {
+  IPaymentConfigService,
+  CreatePaymentConfigInput,
+  UpdatePaymentConfigInput,
+  QueryPaymentConfigInput,
+} from "../interfaces/payment-config.interface";
+import { PaymentConfig } from "@prisma/client";
 
 @Injectable()
 export class PaymentConfigService implements IPaymentConfigService {
@@ -24,7 +34,7 @@ export class PaymentConfigService implements IPaymentConfigService {
       });
 
       if (existing) {
-        throw new BadRequestException('该支付方式和渠道的配置已存在');
+        throw new BadRequestException("该支付方式和渠道的配置已存在");
       }
 
       // 加密敏感信息
@@ -49,7 +59,10 @@ export class PaymentConfigService implements IPaymentConfigService {
   /**
    * 更新支付配置
    */
-  async update(id: string, data: UpdatePaymentConfigInput): Promise<PaymentConfig> {
+  async update(
+    id: string,
+    data: UpdatePaymentConfigInput,
+  ): Promise<PaymentConfig> {
     const existing = await this.findById(id);
     if (!existing) {
       throw new NotFoundException(`配置不存在: ${id}`);
@@ -119,7 +132,10 @@ export class PaymentConfigService implements IPaymentConfigService {
   /**
    * 根据支付方式和渠道查找配置
    */
-  async findByMethodAndChannel(paymentMethod: string, paymentChannel: string): Promise<PaymentConfig | null> {
+  async findByMethodAndChannel(
+    paymentMethod: string,
+    paymentChannel: string,
+  ): Promise<PaymentConfig | null> {
     try {
       const config = await this.prisma.paymentConfig.findFirst({
         where: {
@@ -151,7 +167,7 @@ export class PaymentConfigService implements IPaymentConfigService {
     try {
       const configs = await this.prisma.paymentConfig.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
       return configs;
     } catch (error) {
@@ -163,7 +179,10 @@ export class PaymentConfigService implements IPaymentConfigService {
   /**
    * 获取启用的配置
    */
-  async getActiveConfig(paymentMethod: string, paymentChannel: string): Promise<PaymentConfig | null> {
+  async getActiveConfig(
+    paymentMethod: string,
+    paymentChannel: string,
+  ): Promise<PaymentConfig | null> {
     try {
       const config = await this.prisma.paymentConfig.findFirst({
         where: {
@@ -189,7 +208,7 @@ export class PaymentConfigService implements IPaymentConfigService {
       });
 
       if (!config) {
-        throw new NotFoundException('配置不存在');
+        throw new NotFoundException("配置不存在");
       }
 
       const updated = await this.prisma.paymentConfig.update({
