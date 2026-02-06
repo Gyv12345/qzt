@@ -7,7 +7,7 @@ generator client {
 datasource db {
   provider = "sqlite" // 开发环境使用sqlite,生产环境改为mysql
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL") // 连接池专用URL（生产环境MySQL使用）
+  // directUrl = env("DIRECT_DATABASE_URL") // 连接池专用URL（生产环境MySQL使用，需要时取消注释）
 
   // 连接池配置（仅 MySQL 生效，SQLite 不需要）
   // connection_limit = 20  // 每个实例的最大连接数（2实例 × 20 = 40总连接）
