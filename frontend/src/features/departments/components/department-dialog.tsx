@@ -39,7 +39,7 @@ const departmentSchema = z.object({
   name: z.string().min(1, "部门名称不能为空"),
   parentId: z.string().optional(),
   sort: z.number().min(0, "排序必须大于等于0"),
-  status: z.number().min(0).max(1),
+  status: z.enum(["ACTIVE", "INACTIVE"]),
 });
 
 type DepartmentFormValues = z.infer<typeof departmentSchema>;
@@ -67,7 +67,7 @@ export function DepartmentDialog({
       name: "",
       parentId: undefined,
       sort: 0,
-      status: 1,
+      status: "ACTIVE",
     },
   });
 
@@ -85,14 +85,14 @@ export function DepartmentDialog({
         name: editingDepartment.name,
         parentId: editingDepartment.parentId || undefined,
         sort: editingDepartment.sort,
-        status: editingDepartment.status,
+        status: editingDepartment.status || "ACTIVE",
       });
     } else {
       form.reset({
         name: "",
         parentId: undefined,
         sort: 0,
-        status: 1,
+        status: "ACTIVE",
       });
     }
   }, [editingDepartment, form]);
@@ -179,34 +179,44 @@ export function DepartmentDialog({
             <FormField
               control={form.control}
               name="parentId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>上级部门</FormLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      field.onChange(
-                        value === ROOT_PARENT_ID ? undefined : value,
-                      )
-                    }
-                    value={field.value || ROOT_PARENT_ID}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="请选择上级部门（可选）" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={ROOT_PARENT_ID}>无上级部门</SelectItem>
-                      {departmentOptions.map((dept) => (
-                        <SelectItem key={dept.id} value={dept.id}>
-                          {"  ".repeat(dept.level) + dept.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // 顶级部门（parentId为null）编辑时禁用上级部门选择
+                const isTopLevelDepartment = isEdit && !editingDepartment?.parentId;
+                return (
+                  <FormItem>
+                    <FormLabel>上级部门</FormLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(
+                          value === ROOT_PARENT_ID ? undefined : value,
+                        )
+                      }
+                      value={field.value || ROOT_PARENT_ID}
+                      disabled={isTopLevelDepartment}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="请选择上级部门（可选）" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={ROOT_PARENT_ID}>无上级部门</SelectItem>
+                        {departmentOptions.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {"  ".repeat(dept.level) + dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isTopLevelDepartment && (
+                      <div className="text-muted-foreground text-xs">
+                        顶级部门不能修改上级部门
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
@@ -241,9 +251,9 @@ export function DepartmentDialog({
                   </div>
                   <FormControl>
                     <Switch
-                      checked={field.value === 1}
+                      checked={field.value === "ACTIVE"}
                       onCheckedChange={(checked) =>
-                        field.onChange(checked ? 1 : 0)
+                        field.onChange(checked ? "ACTIVE" : "INACTIVE")
                       }
                     />
                   </FormControl>

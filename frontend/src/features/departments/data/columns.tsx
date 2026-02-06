@@ -32,27 +32,18 @@ export const columns: ColumnDef<Department>[] = [
     cell: ({ row }) => <div>{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "code",
-    header: "部门编码",
-    cell: ({ row }) => <div>{row.getValue("code")}</div>,
-  },
-  {
-    accessorKey: "description",
-    header: "描述",
-    cell: ({ row }) => (
-      <div className="max-w-[200px] truncate">
-        {row.getValue("description") || "-"}
-      </div>
-    ),
+    accessorKey: "sort",
+    header: "排序",
+    cell: ({ row }) => <div>{row.getValue("sort")}</div>,
   },
   {
     accessorKey: "status",
     header: "状态",
     cell: ({ row }) => {
-      const status = row.getValue("status") as number;
+      const status = row.getValue("status") as "ACTIVE" | "INACTIVE";
       return (
-        <Badge variant={status === 1 ? "default" : "secondary"}>
-          {status === 1 ? "启用" : "禁用"}
+        <Badge variant={status === "ACTIVE" ? "default" : "secondary"}>
+          {status === "ACTIVE" ? "启用" : "禁用"}
         </Badge>
       );
     },

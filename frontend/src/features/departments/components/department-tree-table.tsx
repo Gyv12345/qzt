@@ -29,7 +29,7 @@ interface DepartmentNode {
   name: string;
   parentId: string | null;
   sort: number;
-  status: number;
+  status: "ACTIVE" | "INACTIVE";
   isSystem: boolean;
   createdAt: string;
   updatedAt: string;
@@ -216,7 +216,7 @@ export function DepartmentTreeTable() {
           </TableCell>
           <TableCell>{node.sort}</TableCell>
           <TableCell>
-            {node.status === 1 ? (
+            {node.status === "ACTIVE" ? (
               <Badge variant="default">启用</Badge>
             ) : (
               <Badge variant="secondary">禁用</Badge>
