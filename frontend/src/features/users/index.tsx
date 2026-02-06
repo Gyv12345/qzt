@@ -2,7 +2,7 @@ import { getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Main } from "@/components/layout/main";
 import { UsersProvider } from "./components/users-provider";
-import { UsersDialogs } from "./components/users-dialogs";
+import { UsersDrawers } from "./components/users-drawers";
 import { UsersPrimaryButtons } from "./components/users-primary-buttons";
 import { UsersTable } from "./components/users-table";
 
@@ -28,7 +28,7 @@ export function Users() {
         <UsersTable search={search} navigate={navigate} />
       </Main>
 
-      <UsersDialogs />
+      <UsersDrawers />
     </UsersProvider>
   );
 }
