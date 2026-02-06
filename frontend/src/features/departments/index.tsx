@@ -1,6 +1,6 @@
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { DepartmentTreeTable } from './components/department-tree-table'
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { DepartmentTreeTable } from "./components/department-tree-table";
 
 export function Departments() {
   return (
@@ -17,5 +17,5 @@ export function Departments() {
         <DepartmentTreeTable />
       </Main>
     </>
-  )
+  );
 }

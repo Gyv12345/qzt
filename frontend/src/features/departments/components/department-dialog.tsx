@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useTranslation } from 'react-i18next'
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormControl,
@@ -21,62 +21,62 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import {
   useCreateDepartment,
   useUpdateDepartment,
   useDepartments,
-} from '../hooks/use-departments'
+} from "../hooks/use-departments";
 
 const departmentSchema = z.object({
-  name: z.string().min(1, '部门名称不能为空'),
+  name: z.string().min(1, "部门名称不能为空"),
   parentId: z.string().optional(),
-  sort: z.number().min(0, '排序必须大于等于0'),
+  sort: z.number().min(0, "排序必须大于等于0"),
   status: z.number().min(0).max(1),
-})
+});
 
-type DepartmentFormValues = z.infer<typeof departmentSchema>
+type DepartmentFormValues = z.infer<typeof departmentSchema>;
 
 interface DepartmentDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  editingDepartment?: any
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingDepartment?: any;
 }
 
-const ROOT_PARENT_ID = '__root__'
+const ROOT_PARENT_ID = "__root__";
 
 export function DepartmentDialog({
   open,
   onOpenChange,
   editingDepartment,
 }: DepartmentDialogProps) {
-  const { t } = useTranslation()
-  const { data: departments } = useDepartments()
-  const isEdit = !!editingDepartment
+  const { t } = useTranslation();
+  const { data: departments } = useDepartments();
+  const isEdit = !!editingDepartment;
 
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
-      name: '',
+      name: "",
       parentId: undefined,
       sort: 0,
       status: 1,
     },
-  })
+  });
 
   const { mutate: createDepartment, isPending: isCreating } =
-    useCreateDepartment()
+    useCreateDepartment();
   const { mutate: updateDepartment, isPending: isUpdating } =
-    useUpdateDepartment()
+    useUpdateDepartment();
 
-  const isPending = isCreating || isUpdating
+  const isPending = isCreating || isUpdating;
 
   // 当编辑的部门改变时，更新表单值
   useEffect(() => {
@@ -86,76 +86,77 @@ export function DepartmentDialog({
         parentId: editingDepartment.parentId || undefined,
         sort: editingDepartment.sort,
         status: editingDepartment.status,
-      })
+      });
     } else {
       form.reset({
-        name: '',
+        name: "",
         parentId: undefined,
         sort: 0,
         status: 1,
-      })
+      });
     }
-  }, [editingDepartment, form])
+  }, [editingDepartment, form]);
 
   const onSubmit = (data: DepartmentFormValues) => {
     // 如果选择的是根节点，将 parentId 设为 undefined
-    const parentId = data.parentId === ROOT_PARENT_ID ? undefined : data.parentId
+    const parentId =
+      data.parentId === ROOT_PARENT_ID ? undefined : data.parentId;
 
     if (isEdit && editingDepartment) {
       updateDepartment(
         { id: editingDepartment.id, data: { ...data, parentId } },
         {
           onSuccess: () => {
-            onOpenChange(false)
-            form.reset()
+            onOpenChange(false);
+            form.reset();
           },
-        }
-      )
+        },
+      );
     } else {
       createDepartment(
         { ...data, parentId },
         {
           onSuccess: () => {
-            onOpenChange(false)
-            form.reset()
+            onOpenChange(false);
+            form.reset();
           },
-        }
-      )
+        },
+      );
     }
-  }
+  };
 
   // 将树形结构平铺为选项列表
   const flattenDepartments = (nodes: any[], level = 0): any[] => {
-    const result: any[] = []
+    const result: any[] = [];
     nodes.forEach((node) => {
       // 编辑时排除自己和自己的子部门作为上级部门
       if (isEdit && node.id === editingDepartment?.id) {
         // 跳过自己
         if (node.children) {
-          result.push(...flattenDepartments(node.children, level))
+          result.push(...flattenDepartments(node.children, level));
         }
-        return
+        return;
       }
       result.push({
         ...node,
         level,
-      })
+      });
       if (node.children) {
-        result.push(...flattenDepartments(node.children, level + 1))
+        result.push(...flattenDepartments(node.children, level + 1));
       }
-    })
-    return result
-  }
+    });
+    return result;
+  };
 
-  const departmentOptions = departments ? flattenDepartments(departments) : []
+  const departmentOptions = departments ? flattenDepartments(departments) : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? '编辑部门' : '添加部门'}</DialogTitle>
+          <DialogTitle>{isEdit ? "编辑部门" : "添加部门"}</DialogTitle>
           <DialogDescription>
-            {isEdit ? '修改部门信息' : '填写部门信息并选择上级部门（可选）'}
+            {isEdit ? "修改部门信息" : "填写部门信息并选择上级部门（可选）"}
           </DialogDescription>
         </DialogHeader>
 
@@ -183,7 +184,9 @@ export function DepartmentDialog({
                   <FormLabel>上级部门</FormLabel>
                   <Select
                     onValueChange={(value) =>
-                      field.onChange(value === ROOT_PARENT_ID ? undefined : value)
+                      field.onChange(
+                        value === ROOT_PARENT_ID ? undefined : value,
+                      )
                     }
                     value={field.value || ROOT_PARENT_ID}
                   >
@@ -196,7 +199,7 @@ export function DepartmentDialog({
                       <SelectItem value={ROOT_PARENT_ID}>无上级部门</SelectItem>
                       {departmentOptions.map((dept) => (
                         <SelectItem key={dept.id} value={dept.id}>
-                          {'  '.repeat(dept.level) + dept.name}
+                          {"  ".repeat(dept.level) + dept.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -239,7 +242,9 @@ export function DepartmentDialog({
                   <FormControl>
                     <Switch
                       checked={field.value === 1}
-                      onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? 1 : 0)
+                      }
                     />
                   </FormControl>
                 </FormItem>
@@ -256,12 +261,12 @@ export function DepartmentDialog({
                 取消
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? '提交中...' : '确定'}
+                {isPending ? "提交中..." : "确定"}
               </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
-import { ChevronRight, ChevronDown, Plus, Building2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect, useMemo } from "react";
+import { ChevronRight, ChevronDown, Plus, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,158 +20,170 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { useDepartments, useDeleteDepartment } from '../hooks/use-departments'
-import { DepartmentDialog } from './department-dialog'
+} from "@/components/ui/alert-dialog";
+import { useDepartments, useDeleteDepartment } from "../hooks/use-departments";
+import { DepartmentDialog } from "./department-dialog";
 
 interface DepartmentNode {
-  id: string
-  name: string
-  parentId: string | null
-  sort: number
-  status: number
-  isSystem: boolean
-  createdAt: string
-  updatedAt: string
-  children?: DepartmentNode[]
+  id: string;
+  name: string;
+  parentId: string | null;
+  sort: number;
+  status: number;
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+  children?: DepartmentNode[];
 }
 
 export function DepartmentTreeTable() {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingDepartment, setEditingDepartment] = useState<DepartmentNode | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deletingDepartment, setDeletingDepartment] = useState<DepartmentNode | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] =
+    useState<DepartmentNode | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingDepartment, setDeletingDepartment] =
+    useState<DepartmentNode | null>(null);
 
-  const { data: treeData, isLoading, error } = useDepartments()
-  const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment()
+  const { data: treeData, isLoading, error } = useDepartments();
+  const { mutate: deleteDepartment, isPending: isDeleting } =
+    useDeleteDepartment();
 
   // 当搜索关键词变化时，重置展开状态
   useEffect(() => {
     if (!searchKeyword.trim()) {
-      setExpandedIds(new Set())
+      setExpandedIds(new Set());
     }
-  }, [searchKeyword])
+  }, [searchKeyword]);
 
   // 切换展开/收起状态
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
-      const newSet = new Set(prev)
+      const newSet = new Set(prev);
       if (newSet.has(id)) {
-        newSet.delete(id)
+        newSet.delete(id);
       } else {
-        newSet.add(id)
+        newSet.add(id);
       }
-      return newSet
-    })
-  }
+      return newSet;
+    });
+  };
 
   // 处理编辑按钮点击
   const handleEdit = (department: DepartmentNode) => {
-    setEditingDepartment(department)
-    setDialogOpen(true)
-  }
+    setEditingDepartment(department);
+    setDialogOpen(true);
+  };
 
   // 处理删除按钮点击
   const handleDelete = (department: DepartmentNode) => {
-    setDeletingDepartment(department)
-    setDeleteDialogOpen(true)
-  }
+    setDeletingDepartment(department);
+    setDeleteDialogOpen(true);
+  };
 
   // 确认删除
   const confirmDelete = () => {
     if (deletingDepartment) {
       deleteDepartment(deletingDepartment.id, {
         onSuccess: () => {
-          setDeleteDialogOpen(false)
-          setDeletingDepartment(null)
+          setDeleteDialogOpen(false);
+          setDeletingDepartment(null);
         },
-      })
+      });
     }
-  }
+  };
 
   // 处理对话框关闭
   const handleDialogClose = () => {
-    setDialogOpen(false)
-    setEditingDepartment(null)
-  }
+    setDialogOpen(false);
+    setEditingDepartment(null);
+  };
 
   // 处理添加按钮点击
   const handleAdd = () => {
-    setEditingDepartment(null)
-    setDialogOpen(true)
-  }
+    setEditingDepartment(null);
+    setDialogOpen(true);
+  };
 
   // 根据搜索关键词过滤部门树（使用 useMemo 优化性能）
   const { filteredTreeData, autoExpandedIds } = useMemo(() => {
     if (!searchKeyword.trim()) {
-      return { filteredTreeData: treeData, autoExpandedIds: new Set<string>() }
+      return { filteredTreeData: treeData, autoExpandedIds: new Set<string>() };
     }
 
-    const filterNodes = (nodes: DepartmentNode[]): { nodes: DepartmentNode[], expandedIds: Set<string> } => {
-      const filtered: DepartmentNode[] = []
-      const expandedIds = new Set<string>()
+    const filterNodes = (
+      nodes: DepartmentNode[],
+    ): { nodes: DepartmentNode[]; expandedIds: Set<string> } => {
+      const filtered: DepartmentNode[] = [];
+      const expandedIds = new Set<string>();
 
       nodes.forEach((node) => {
-        const nodeCopy = { ...node }
-        const isMatch = node.name.toLowerCase().includes(searchKeyword.toLowerCase())
-        const filteredChildren = node.children ? filterNodes(node.children) : []
+        const nodeCopy = { ...node };
+        const isMatch = node.name
+          .toLowerCase()
+          .includes(searchKeyword.toLowerCase());
+        const filteredChildren = node.children
+          ? filterNodes(node.children)
+          : [];
 
         if (isMatch || filteredChildren.length > 0) {
-          nodeCopy.children = filteredChildren
-          filtered.push(nodeCopy)
+          nodeCopy.children = filteredChildren;
+          filtered.push(nodeCopy);
 
           // 如果有匹配的子节点，标记需要展开
           if (filteredChildren.length > 0) {
-            expandedIds.add(node.id)
+            expandedIds.add(node.id);
           }
         }
-      })
+      });
 
-      return { nodes: filtered, expandedIds }
-    }
+      return { nodes: filtered, expandedIds };
+    };
 
-    const result = filterNodes(treeData || [])
+    const result = filterNodes(treeData || []);
 
     // 递归收集所有需要展开的节点ID
-    const collectExpandedIds = (nodes: DepartmentNode[], ids: Set<string>): Set<string> => {
-      const allIds = new Set(ids)
+    const collectExpandedIds = (
+      nodes: DepartmentNode[],
+      ids: Set<string>,
+    ): Set<string> => {
+      const allIds = new Set(ids);
       nodes.forEach((node) => {
         if (node.children) {
           node.children.forEach((child) => {
             if (allIds.has(child.id)) {
-              allIds.add(node.id)
+              allIds.add(node.id);
             }
-          })
-          collectExpandedIds(node.children, allIds)
+          });
+          collectExpandedIds(node.children, allIds);
         }
-      })
-      return allIds
-    }
+      });
+      return allIds;
+    };
 
-    const allExpandedIds = collectExpandedIds(result.nodes, result.expandedIds)
+    const allExpandedIds = collectExpandedIds(result.nodes, result.expandedIds);
 
     return {
       filteredTreeData: result.nodes,
       autoExpandedIds: allExpandedIds,
-    }
-  }, [treeData, searchKeyword])
+    };
+  }, [treeData, searchKeyword]);
 
   // 自动展开搜索结果
   useEffect(() => {
     if (searchKeyword.trim() && autoExpandedIds.size > 0) {
-      setExpandedIds(autoExpandedIds)
+      setExpandedIds(autoExpandedIds);
     } else if (!searchKeyword.trim()) {
-      setExpandedIds(new Set())
+      setExpandedIds(new Set());
     }
-  }, [searchKeyword, autoExpandedIds])
+  }, [searchKeyword, autoExpandedIds]);
 
   // 递归渲染表格行
   const renderRows = (nodes: DepartmentNode[], level: number = 0) => {
     return nodes.flatMap((node) => {
-      const hasChildren = node.children && node.children.length > 0
-      const isExpanded = expandedIds.has(node.id)
+      const hasChildren = node.children && node.children.length > 0;
+      const isExpanded = expandedIds.has(node.id);
 
       const rows = [
         <TableRow key={node.id}>
@@ -211,11 +223,15 @@ export function DepartmentTreeTable() {
             )}
           </TableCell>
           <TableCell>
-            {new Date(node.createdAt).toLocaleDateString('zh-CN')}
+            {new Date(node.createdAt).toLocaleDateString("zh-CN")}
           </TableCell>
           <TableCell>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => handleEdit(node)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEdit(node)}
+              >
                 编辑
               </Button>
               <Button
@@ -223,46 +239,48 @@ export function DepartmentTreeTable() {
                 size="sm"
                 onClick={() => handleDelete(node)}
                 disabled={node.isSystem}
-                className={node.isSystem ? 'opacity-50 cursor-not-allowed' : ''}
+                className={node.isSystem ? "opacity-50 cursor-not-allowed" : ""}
               >
                 删除
               </Button>
             </div>
           </TableCell>
         </TableRow>,
-      ]
+      ];
 
       // 如果展开且有子节点，递归渲染子节点
       if (isExpanded && hasChildren) {
-        rows.push(...renderRows(node.children!, level + 1))
+        rows.push(...renderRows(node.children!, level + 1));
       }
 
-      return rows
-    })
-  }
+      return rows;
+    });
+  };
 
   // 统计总部门数（包括所有子部门）
   const countTotalDepartments = (nodes: DepartmentNode[]): number => {
-    let count = 0
+    let count = 0;
     nodes.forEach((node) => {
-      count += 1
+      count += 1;
       if (node.children) {
-        count += countTotalDepartments(node.children)
+        count += countTotalDepartments(node.children);
       }
-    })
-    return count
-  }
+    });
+    return count;
+  };
 
-  const total = countTotalDepartments(filteredTreeData || [])
+  const total = countTotalDepartments(filteredTreeData || []);
 
   // 渲染加载状态
   if (isLoading) {
-    return <div className="flex justify-center p-8">加载中...</div>
+    return <div className="flex justify-center p-8">加载中...</div>;
   }
 
   // 渲染错误状态
   if (error) {
-    return <div className="text-destructive p-8">加载失败: {error.message}</div>
+    return (
+      <div className="text-destructive p-8">加载失败: {error.message}</div>
+    );
   }
 
   return (
@@ -297,7 +315,7 @@ export function DepartmentTreeTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  {searchKeyword ? '未找到匹配的部门' : '暂无数据'}
+                  {searchKeyword ? "未找到匹配的部门" : "暂无数据"}
                 </TableCell>
               </TableRow>
             )}
@@ -305,9 +323,7 @@ export function DepartmentTreeTable() {
         </Table>
       </div>
 
-      <div className="text-muted-foreground text-sm">
-        共 {total} 个部门
-      </div>
+      <div className="text-muted-foreground text-sm">共 {total} 个部门</div>
 
       <DepartmentDialog
         open={dialogOpen}
@@ -335,11 +351,11 @@ export function DepartmentTreeTable() {
               disabled={isDeleting || deletingDepartment?.isSystem}
               className="bg-orange-600 text-white hover:bg-orange-700"
             >
-              {isDeleting ? '删除中...' : '确认删除'}
+              {isDeleting ? "删除中..." : "确认删除"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
