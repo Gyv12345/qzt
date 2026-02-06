@@ -1,4 +1,4 @@
-import * as QRCode from 'qrcode';
+import * as QRCode from "qrcode";
 
 /**
  * 二维码工具类
@@ -20,8 +20,8 @@ export class QrCodeUtil {
         width: 300,
         margin: 2,
         color: {
-          dark: '#000000',
-          light: '#FFFFFF',
+          dark: "#000000",
+          light: "#FFFFFF",
         },
         ...options,
       };
@@ -47,8 +47,8 @@ export class QrCodeUtil {
         width: 300,
         margin: 2,
         color: {
-          dark: '#000000',
-          light: '#FFFFFF',
+          dark: "#000000",
+          light: "#FFFFFF",
         },
         ...options,
       };
@@ -70,7 +70,7 @@ export class QrCodeUtil {
     options?: QRCode.QRCodeToDataURLOptions,
   ): Promise<string> {
     try {
-      return await QRCode.toString(data, { type: 'svg' });
+      return await QRCode.toString(data, { type: "svg" });
     } catch (error) {
       throw new Error(`生成二维码失败: ${error.message}`);
     }
@@ -92,8 +92,8 @@ export class QrCodeUtil {
         width: 300,
         margin: 2,
         color: {
-          dark: '#000000',
-          light: '#FFFFFF',
+          dark: "#000000",
+          light: "#FFFFFF",
         },
         ...options,
       };
@@ -114,9 +114,7 @@ export class QrCodeUtil {
     paymentUrl: string,
     amount?: number,
   ): Promise<string> {
-    const data = amount
-      ? `${paymentUrl}?amount=${amount}`
-      : paymentUrl;
+    const data = amount ? `${paymentUrl}?amount=${amount}` : paymentUrl;
 
     return await this.generateDataUrl(data, {
       width: 400,

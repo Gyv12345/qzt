@@ -1,8 +1,8 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { Request, Response, NextFunction } from "express";
+import { PrismaService } from "../prisma/prisma.service";
 
-declare module 'express' {
+declare module "express" {
   interface Request {
     user?: {
       userId: string;
@@ -68,11 +68,11 @@ export class OperationLogMiddleware implements NestMiddleware {
 
   private shouldSkip(path: string): boolean {
     const skipPaths = [
-      '/health',
-      '/api-docs',
-      '/api-docs-json',
-      '/auth/login',
-      '/auth/register',
+      "/health",
+      "/api-docs",
+      "/api-docs-json",
+      "/auth/login",
+      "/auth/register",
     ];
 
     return skipPaths.some((skipPath) => path.startsWith(skipPath));
@@ -109,8 +109,8 @@ export class OperationLogMiddleware implements NestMiddleware {
         action,
         resource,
         resourceId,
-        ip: req.ip || req.connection.remoteAddress || 'unknown',
-        userAgent: req.get('user-agent') || '',
+        ip: req.ip || req.connection.remoteAddress || "unknown",
+        userAgent: req.get("user-agent") || "",
         detail: {
           method,
           path,
@@ -134,7 +134,7 @@ export class OperationLogMiddleware implements NestMiddleware {
       });
     } catch (error) {
       // 记录日志失败不影响业务
-      console.error('Failed to log operation:', error);
+      console.error("Failed to log operation:", error);
     }
   }
 
@@ -143,19 +143,19 @@ export class OperationLogMiddleware implements NestMiddleware {
     path: string,
   ): { action: string; resource: string } {
     // 从路径提取资源名称
-    const pathParts = path.split('/').filter(Boolean);
-    const resource = pathParts[0] || 'unknown';
+    const pathParts = path.split("/").filter(Boolean);
+    const resource = pathParts[0] || "unknown";
 
     // 根据HTTP方法确定操作类型
     const actionMap: Record<string, string> = {
-      GET: 'VIEW',
-      POST: 'CREATE',
-      PUT: 'UPDATE',
-      PATCH: 'UPDATE',
-      DELETE: 'DELETE',
+      GET: "VIEW",
+      POST: "CREATE",
+      PUT: "UPDATE",
+      PATCH: "UPDATE",
+      DELETE: "DELETE",
     };
 
-    const action = actionMap[method] || 'UNKNOWN';
+    const action = actionMap[method] || "UNKNOWN";
 
     return { action, resource };
   }
