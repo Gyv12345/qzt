@@ -1,13 +1,7 @@
 import { useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/layout/header";
 import { Main } from "@/components/layout/main";
-import { ProfileDropdown } from "@/components/profile-dropdown";
-import { Search } from "@/components/search";
-import { ThemeSwitch } from "@/components/theme-switch";
-import { LanguageSwitch } from "@/components/language-switch";
-import { ConfigDrawer } from "@/components/config-drawer";
 import { Button } from "@/components/ui/button";
 import { FollowRecordsTable } from "./components/follow-records-table";
 import { FollowRecordFormDialog } from "./components/follow-record-form-dialog";
@@ -72,29 +66,22 @@ export function FollowRecords({
 
   return (
     <>
-      <Header>
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-medium">跟进记录</h1>
-          {customerName && (
-            <span className="text-sm text-muted-foreground">
-              - {customerName}
-            </span>
-          )}
-        </div>
-        <div className="ms-auto flex items-center space-x-4">
+      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
+        {/* 页面头部：标题 + 新建按钮 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold tracking-tight">跟进记录</h2>
+            {customerName && (
+              <span className="text-sm text-muted-foreground">
+                - {customerName}
+              </span>
+            )}
+          </div>
           <Button onClick={handleCreate} size="sm">
             <Plus className="mr-2 h-4 w-4" />
             新建跟进
           </Button>
-          <Search />
-          <ThemeSwitch />
-          <LanguageSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
         </div>
-      </Header>
-
-      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
         <FollowRecordsTable
           customerId={customerId}
           onEdit={handleEdit}
