@@ -294,6 +294,7 @@
       "account": "Account",
       "appearance": "Appearance",
       "notifications": "Notifications",
+      "webhooks": "Webhooks",
       "display": "Display"
     },
     "profile": {
@@ -334,6 +335,67 @@
     "display": {
       "title": "Display",
       "description": "Adjust display settings to suit your needs."
+    },
+    "webhooks": {
+      "title": "Webhook Settings",
+      "description": "Configure when and how you receive notifications."
+    }
+  },
+  "webhooks": {
+    "title": "Webhook Push Configuration",
+    "description": "Configure Feishu, WeCom, and DingTalk webhook push addresses",
+    "create": "New Configuration",
+    "edit": "Edit Configuration",
+    "delete": "Delete Configuration",
+    "test": "Test Send",
+    "testSuccess": "Test message sent successfully",
+    "testFailed": "Test message sending failed",
+    "createSuccess": "Webhook configuration created successfully",
+    "updateSuccess": "Webhook configuration updated successfully",
+    "deleteSuccess": "Webhook configuration deleted successfully",
+    "createFailed": "Creation failed",
+    "updateFailed": "Update failed",
+    "deleteFailed": "Deletion failed",
+    "deleteConfirm": "Are you sure you want to delete this webhook configuration? This action cannot be undone.",
+    "deleteConfirmTitle": "Confirm Delete",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "noData": "No webhook configuration",
+    "fields": {
+      "name": "Configuration Name",
+      "platform": "Platform",
+      "webhookUrl": "Webhook URL",
+      "enabled": "Enable Configuration"
+    },
+    "placeholders": {
+      "name": "e.g. Sales Notification Group",
+      "webhookUrl": "https://open.feishu.cn/open-apis/bot/v2/hook/..."
+    },
+    "platforms": {
+      "wecom": "WeCom",
+      "feishu": "Feishu",
+      "dingtalk": "DingTalk"
+    },
+    "validation": {
+      "nameRequired": "Configuration name is required",
+      "nameTooLong": "Configuration name must not exceed 100 characters",
+      "platformRequired": "Please select a platform",
+      "webhookUrlRequired": "Please enter webhook URL",
+      "webhookUrlInvalid": "Please enter a valid webhook URL"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "helpText": {
+      "enabled": "Messages will not be sent to this webhook when disabled",
+      "createDescription": "Add a new Feishu, WeCom, or DingTalk webhook configuration",
+      "editDescription": "Modify existing webhook configuration"
+    },
+    "actions": {
+      "send": "Send",
+      "save": "Save",
+      "create": "Create"
     }
   }
 }
