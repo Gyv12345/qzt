@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   type SortingState,
   type VisibilityState,
@@ -11,9 +11,9 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
-import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
+} from "@tanstack/react-table";
+import { cn } from "@/lib/utils";
+import { type NavigateFn, useTableUrlState } from "@/hooks/use-table-url-state";
 import {
   Table,
   TableBody,
@@ -21,28 +21,37 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { getContractsColumns } from './contracts-columns'
-import { DataTableRowActions } from './data-table-row-actions'
-import { useContracts, useDeleteContract, useUpdatePaymentStatus } from '../hooks/use-contracts'
-import type { Contract } from '../types/contract'
+} from "@/components/ui/table";
+import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
+import { getContractsColumns } from "./contracts-columns";
+import { DataTableRowActions } from "./data-table-row-actions";
+import {
+  useContracts,
+  useDeleteContract,
+  useUpdatePaymentStatus,
+} from "../hooks/use-contracts";
+import type { Contract } from "../types/contract";
 
 type DataTableProps = {
-  search: Record<string, unknown>
-  navigate: NavigateFn
-  onEdit: (contract: Contract) => void
-  onRefresh: () => void
-}
+  search: Record<string, unknown>;
+  navigate: NavigateFn;
+  onEdit: (contract: Contract) => void;
+  onRefresh: () => void;
+};
 
-export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTableProps) {
-  const { t } = useTranslation()
-  const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [sorting, setSorting] = useState<SortingState>([])
+export function ContractsTable({
+  search,
+  navigate,
+  onEdit,
+  onRefresh,
+}: DataTableProps) {
+  const { t } = useTranslation();
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const deleteMutation = useDeleteContract()
-  const updatePaymentStatusMutation = useUpdatePaymentStatus()
+  const deleteMutation = useDeleteContract();
+  const updatePaymentStatusMutation = useUpdatePaymentStatus();
 
   // 从 URL 获取分页和筛选参数
   const {
@@ -56,48 +65,55 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      { columnId: 'customerName', searchKey: 'customerName', type: 'string' },
+      { columnId: "customerName", searchKey: "customerName", type: "string" },
     ],
-  })
+  });
 
   // 构建查询参数
   const queryParams = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-    customerId: columnFilters.find((f) => f.id === 'customerId')?.value as string,
-  }
+    customerId: columnFilters.find((f) => f.id === "customerId")
+      ?.value as string,
+  };
 
-  const { data, isLoading, error } = useContracts(queryParams)
+  const { data, isLoading, error } = useContracts(queryParams);
 
-  const contracts = data?.data || []
-  const total = data?.total || 0
+  const contracts = data?.data || [];
+  const total = data?.total || 0;
 
   // 处理删除
-  const handleDelete = useCallback(async (contract: Contract) => {
-    if (window.confirm(`确定要删除合同吗？此操作不可恢复。`)) {
-      try {
-        await deleteMutation.mutateAsync(contract.id)
-        onRefresh()
-      } catch (error) {
-        console.error('删除失败:', error)
+  const handleDelete = useCallback(
+    async (contract: Contract) => {
+      if (window.confirm(`确定要删除合同吗？此操作不可恢复。`)) {
+        try {
+          await deleteMutation.mutateAsync(contract.id);
+          onRefresh();
+        } catch (error) {
+          console.error("删除失败:", error);
+        }
       }
-    }
-  }, [deleteMutation, onRefresh])
+    },
+    [deleteMutation, onRefresh],
+  );
 
   // 处理更新收款状态
-  const handleUpdatePaymentStatus = useCallback(async (contract: Contract) => {
-    try {
-      await updatePaymentStatusMutation.mutateAsync(contract.id)
-      onRefresh()
-    } catch (error) {
-      console.error('更新收款状态失败:', error)
-    }
-  }, [updatePaymentStatusMutation, onRefresh])
+  const handleUpdatePaymentStatus = useCallback(
+    async (contract: Contract) => {
+      try {
+        await updatePaymentStatusMutation.mutateAsync(contract.id);
+        onRefresh();
+      } catch (error) {
+        console.error("更新收款状态失败:", error);
+      }
+    },
+    [updatePaymentStatusMutation, onRefresh],
+  );
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
     return getContractsColumns({ t }).map((col) => {
-      if (col.id === 'actions') {
+      if (col.id === "actions") {
         return {
           ...col,
           cell: (props: any) => {
@@ -108,13 +124,13 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
                 onDelete={handleDelete}
                 onUpdatePaymentStatus={handleUpdatePaymentStatus}
               />
-            )
+            );
           },
-        }
+        };
       }
-      return col
-    })
-  }, [onEdit, handleDelete, handleUpdatePaymentStatus])
+      return col;
+    });
+  }, [onEdit, handleDelete, handleUpdatePaymentStatus]);
 
   const table = useReactTable({
     data: contracts,
@@ -144,70 +160,70 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     manualPagination: true,
-  })
+  });
 
   useEffect(() => {
-    const pageCount = Math.ceil(total / pagination.pageSize)
+    const pageCount = Math.ceil(total / pagination.pageSize);
     if (pagination.pageIndex >= pageCount && pageCount > 0) {
-      onPaginationChange({ ...pagination, pageIndex: pageCount - 1 })
+      onPaginationChange({ ...pagination, pageIndex: pageCount - 1 });
     }
-  }, [total, pagination, onPaginationChange])
+  }, [total, pagination, onPaginationChange]);
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-32'>
-        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+      <div className="flex items-center justify-center py-32">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
-      <div className='flex flex-col items-center justify-center py-32'>
-        <p className='text-muted-foreground'>加载合同数据失败</p>
+      <div className="flex flex-col items-center justify-center py-32">
+        <p className="text-muted-foreground">加载合同数据失败</p>
       </div>
-    )
+    );
   }
 
   return (
     <div
       className={cn(
         'max-sm:has-[div[role="toolbar"]]:mb-16',
-        'flex flex-1 flex-col gap-4'
+        "flex flex-1 flex-col gap-4",
       )}
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder={t('contract.searchPlaceholder')}
-        searchKey='customerName'
-        searchMode='submit'
-        searchButtonLabel={t('common.search')}
+        searchPlaceholder={t("contract.searchPlaceholder")}
+        searchKey="customerName"
+        searchMode="submit"
+        searchButtonLabel={t("common.search")}
         filters={[]}
       />
-      <div className='overflow-hidden rounded-md border'>
+      <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className='group/row'>
+              <TableRow key={headerGroup.id} className="group/row">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted",
                         header.column.columnDef.meta?.className,
-                        header.column.columnDef.meta?.thClassName
+                        header.column.columnDef.meta?.thClassName,
                       )}
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -217,21 +233,21 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
+                  data-state={row.getIsSelected() && "selected"}
+                  className="group/row"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted",
                         cell.column.columnDef.meta?.className,
-                        cell.column.columnDef.meta?.tdClassName
+                        cell.column.columnDef.meta?.tdClassName,
                       )}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -241,7 +257,7 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className='h-24 text-center'
+                  className="h-24 text-center"
                 >
                   暂无数据
                 </TableCell>
@@ -250,7 +266,7 @@ export function ContractsTable({ search, navigate, onEdit, onRefresh }: DataTabl
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} className='mt-auto' />
+      <DataTablePagination table={table} className="mt-auto" />
     </div>
-  )
+  );
 }

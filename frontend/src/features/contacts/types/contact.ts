@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const contactSchema = z.object({
   id: z.string(),
@@ -15,13 +15,13 @@ export const contactSchema = z.object({
   customerName: z.string().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-})
+});
 
-export type Contact = z.infer<typeof contactSchema>
+export type Contact = z.infer<typeof contactSchema>;
 
 export interface ContactListResponse {
-  items: Contact[]
-  total: number
-  page: number
-  pageSize: number
+  items: Contact[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
