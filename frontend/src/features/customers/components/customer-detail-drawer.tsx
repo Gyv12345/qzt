@@ -2,12 +2,12 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,29 +16,34 @@ import { CustomerServiceTeamTab } from "@/features/service-teams";
 import { useCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
 import { Phone, Mail, Building2, User, Users } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDirection } from "@/context/direction-provider";
 
-type CustomerDetailDialogProps = {
+type CustomerDetailDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerId: string;
 };
 
-export function CustomerDetailDialog({
+export function CustomerDetailDrawer({
   open,
   onOpenChange,
   customerId,
-}: CustomerDetailDialogProps) {
+}: CustomerDetailDrawerProps) {
   const { data: customer, isLoading } = useCustomer(customerId);
+  const isMobile = useIsMobile();
+  const { dir } = useDirection();
+  const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   if (isLoading) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[800px]">
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side={drawerSide} className={isMobile ? "h-[85vh]" : "w-[700px]"}>
           <div className="flex items-center justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     );
   }
 
@@ -49,16 +54,19 @@ export function CustomerDetailDialog({
   const customerData = customer as any;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{customerData.name}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={drawerSide}
+        className={isMobile ? "h-[85vh]" : "w-[700px]"}
+      >
+        <SheetHeader className="pb-0 text-start">
+          <SheetTitle className="text-xl">{customerData.name}</SheetTitle>
+          <SheetDescription>
             客户编号: {customerData.code || customerData.id}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <Tabs defaultValue="info" className="flex-1 overflow-hidden">
+        <Tabs defaultValue="info" className="mt-4 flex-1 overflow-hidden">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="info">基本信息</TabsTrigger>
             <TabsTrigger value="follow">跟进记录</TabsTrigger>
@@ -72,7 +80,7 @@ export function CustomerDetailDialog({
           {/* 基本信息 */}
           <TabsContent
             value="info"
-            className="mt-4 space-y-4 overflow-auto max-h-[60vh]"
+            className="mt-4 space-y-4 overflow-auto max-h-[calc(85vh-180px)]"
           >
             <div className="grid grid-cols-2 gap-4">
               <InfoItem
@@ -163,8 +171,8 @@ export function CustomerDetailDialog({
             </div>
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
