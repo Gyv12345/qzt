@@ -1,11 +1,5 @@
 import { useState } from "react";
-import { Header } from "@/components/layout/header";
 import { Main } from "@/components/layout/main";
-import { ProfileDropdown } from "@/components/profile-dropdown";
-import { Search } from "@/components/search";
-import { ThemeSwitch } from "@/components/theme-switch";
-import { LanguageSwitch } from "@/components/language-switch";
-import { ConfigDrawer } from "@/components/config-drawer";
 import { Button } from "@/components/ui/button";
 import { ServiceTeamsTable } from "./components/service-teams-table";
 import { ServiceTeamFormDrawer } from "./components/service-team-form-drawer";
@@ -40,16 +34,6 @@ export function ServiceTeamsPage() {
 
   return (
     <>
-      <Header fixed>
-        <Search />
-        <div className="ms-auto flex items-center space-x-4">
-          <ThemeSwitch />
-          <LanguageSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
-      </Header>
-
       <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
         <div className="flex justify-between">
           <div>
