@@ -123,7 +123,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: "Webhook配置",
-          url: "/settings/webhooks",
+          url: "/webhooks",
           icon: Webhook,
         },
       ],
