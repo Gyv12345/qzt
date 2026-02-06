@@ -101,9 +101,7 @@
       "name": "产品名称",
       "code": "产品代码",
       "price": "价格",
-      "invoiceLimit": "开票额度/月",
-      "invoiceCount": "套餐开票张数",
-      "overLimitPrice": "超额单价",
+      "description": "产品描述",
       "createdAt": "创建时间",
       "actions": "操作"
     },

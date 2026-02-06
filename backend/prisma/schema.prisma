@@ -301,9 +301,7 @@ model Product {
   description    String?
   price          Float    // 基础价格
   pricingType    String   @default("FIXED") // FIXED:固定价格 TIER_AMOUNT:按金额阶梯 TIER_COUNT:按次数计费 ZERO_DECLARATION:零申报
-  invoiceLimit   Float    @default(0) // 开票额度(月)
-  invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
-  overLimitPrice Float    @default(0) // 超额单价
+  timeline       String?  // 时间轴 JSON 数组，每项包含描述文本
   serviceRoleId  String?  // 服务负责人角色ID（哪个角色负责此产品的运维）
   status         String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   createdAt      DateTime @default(now())

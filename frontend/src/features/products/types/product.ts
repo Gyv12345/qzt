@@ -7,9 +7,7 @@ export const productSchema = z.object({
   code: z.string(),
   description: z.string().optional(),
   price: z.number(),
-  invoiceLimit: z.number(),
-  invoiceCount: z.number(),
-  overLimitPrice: z.number(),
+  timeline: z.array(z.string()).optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
