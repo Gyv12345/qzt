@@ -1,14 +1,16 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -27,8 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDirection } from "@/context/direction-provider";
 import { useCreateCustomer, useUpdateCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
+
+// 客户等级枚举
+const customerLevelEnum = z.enum(["LEAD", "PROSPECT", "CUSTOMER", "VIP"], {
+  errorMap: () => ({ message: "请选择有效的客户等级" }),
+});
 
 // 客户表单验证 schema
 const customerFormSchema = z.object({
@@ -39,7 +48,7 @@ const customerFormSchema = z.object({
   scale: z.string().optional(),
   address: z.string().optional(),
   website: z.string().optional(),
-  customerLevel: z.coerce.number().min(0).max(3),
+  customerLevel: customerLevelEnum,
   sourceChannel: z.string().optional(),
   tags: z.string().optional(),
   remark: z.string().optional(),
@@ -47,20 +56,24 @@ const customerFormSchema = z.object({
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
-interface CustomerFormDialogProps {
+interface CustomerFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer?: Customer;
   onSuccess: () => void;
 }
 
-export function CustomerFormDialog({
+export function CustomerFormDrawer({
   open,
   onOpenChange,
   customer,
   onSuccess,
-}: CustomerFormDialogProps) {
+}: CustomerFormDrawerProps) {
+  const { t } = useTranslation();
   const isEdit = !!customer;
+  const isMobile = useIsMobile();
+  const { dir } = useDirection();
+  const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -73,7 +86,7 @@ export function CustomerFormDialog({
           scale: customer.scale || "",
           address: customer.address || "",
           website: customer.website || "",
-          customerLevel: customer.customerLevel,
+          customerLevel: customer.customerLevel || "LEAD",
           sourceChannel: customer.sourceChannel || "",
           tags: customer.tags || "",
           remark: customer.remark || "",
@@ -86,12 +99,18 @@ export function CustomerFormDialog({
           scale: "",
           address: "",
           website: "",
-          customerLevel: 0,
+          customerLevel: "LEAD",
           sourceChannel: "",
           tags: "",
           remark: "",
         },
   });
+
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
 
   const createMutation = useCreateCustomer();
   const updateMutation = useUpdateCustomer();
@@ -104,32 +123,52 @@ export function CustomerFormDialog({
         await createMutation.mutateAsync(values as any);
       }
       onSuccess();
+      onOpenChange(false);
     } catch (error) {
       console.error("提交失败:", error);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "编辑客户" : "新建客户"}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? "修改客户信息" : "填写客户基本信息"}
-          </DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={drawerSide}
+        className={isMobile ? "h-[85vh]" : "w-[600px]"}
+      >
+        <SheetHeader className="pb-0 text-start">
+          <SheetTitle>
+            {isEdit
+              ? t("customer.edit") || "编辑客户"
+              : t("customer.create") || "新建客户"}
+          </SheetTitle>
+          <SheetDescription>
+            {isEdit
+              ? t("customer.editDescription") || "修改客户信息"
+              : t("customer.createDescription") || "填写客户基本信息"}
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 px-4 pb-6"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>公司名称 *</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.name") || "公司名称"} *
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入公司名称" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.name") || "请输入公司名称"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -141,9 +180,16 @@ export function CustomerFormDialog({
                 name="shortName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>简称</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.shortName") || "简称"}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入简称" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.shortName") || "请输入简称"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -157,9 +203,16 @@ export function CustomerFormDialog({
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>客户编码</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.code") || "客户编码"}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入客户编码" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.code") || "请输入客户编码"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,21 +224,33 @@ export function CustomerFormDialog({
                 name="customerLevel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>客户等级</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      defaultValue={field.value.toString()}
-                    >
+                    <FormLabel>
+                      {t("customer.fields.customerLevel") || "客户等级"}
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="选择客户等级" />
+                          <SelectValue
+                            placeholder={
+                              t("customer.placeholders.customerLevel") ||
+                              "选择客户等级"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="0">线索</SelectItem>
-                        <SelectItem value="1">意向</SelectItem>
-                        <SelectItem value="2">正式</SelectItem>
-                        <SelectItem value="3">VIP</SelectItem>
+                        <SelectItem value="LEAD">
+                          {t("customer.levels.LEAD")}
+                        </SelectItem>
+                        <SelectItem value="PROSPECT">
+                          {t("customer.levels.PROSPECT")}
+                        </SelectItem>
+                        <SelectItem value="CUSTOMER">
+                          {t("customer.levels.CUSTOMER")}
+                        </SelectItem>
+                        <SelectItem value="VIP">
+                          {t("customer.levels.VIP")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -200,9 +265,16 @@ export function CustomerFormDialog({
                 name="industry"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>行业</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.industry") || "行业"}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入行业" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.industry") || "请输入行业"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -214,9 +286,16 @@ export function CustomerFormDialog({
                 name="scale"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>规模</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.scale") || "规模"}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入规模" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.scale") || "请输入规模"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -229,9 +308,16 @@ export function CustomerFormDialog({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>地址</FormLabel>
+                  <FormLabel>
+                    {t("customer.fields.address") || "地址"}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="请输入地址" {...field} />
+                    <Input
+                      placeholder={
+                        t("customer.placeholders.address") || "请输入地址"
+                      }
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -244,9 +330,16 @@ export function CustomerFormDialog({
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>网站</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.website") || "网站"}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入网站" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.website") || "请输入网站"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -258,9 +351,17 @@ export function CustomerFormDialog({
                 name="sourceChannel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>来源渠道</FormLabel>
+                    <FormLabel>
+                      {t("customer.fields.sourceChannel") || "来源渠道"}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="请输入来源渠道" {...field} />
+                      <Input
+                        placeholder={
+                          t("customer.placeholders.sourceChannel") ||
+                          "请输入来源渠道"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -273,10 +374,13 @@ export function CustomerFormDialog({
               name="tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>标签</FormLabel>
+                  <FormLabel>{t("customer.fields.tags") || "标签"}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="请输入标签，多个标签用逗号分隔"
+                      placeholder={
+                        t("customer.placeholders.tags") ||
+                        "请输入标签，多个标签用逗号分隔"
+                      }
                       {...field}
                     />
                   </FormControl>
@@ -290,10 +394,12 @@ export function CustomerFormDialog({
               name="remark"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>备注</FormLabel>
+                  <FormLabel>{t("customer.fields.remark") || "备注"}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="请输入备注信息"
+                      placeholder={
+                        t("customer.placeholders.remark") || "请输入备注信息"
+                      }
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -304,28 +410,28 @@ export function CustomerFormDialog({
               )}
             />
 
-            <DialogFooter>
+            <SheetFooter className="px-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                取消
+                {t("common.cancel") || "取消"}
               </Button>
               <Button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
                 {createMutation.isPending || updateMutation.isPending
-                  ? "提交中..."
+                  ? t("common.submitting") || "提交中..."
                   : isEdit
-                    ? "保存"
-                    : "创建"}
+                    ? t("common.save") || "保存"
+                    : t("common.create") || "创建"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

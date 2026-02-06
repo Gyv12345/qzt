@@ -12,6 +12,7 @@
     "loading": "加载中...",
     "noData": "暂无数据",
     "submit": "提交",
+    "submitting": "提交中...",
     "reset": "重置",
     "rowsPerPage": "每页行数",
     "pageOf": "第 {{current}} 页，共 {{total}} 页",
@@ -34,6 +35,10 @@
   "customer": {
     "title": "客户管理",
     "description": "管理您的客户信息和跟进记录",
+    "create": "新建客户",
+    "edit": "编辑客户",
+    "createDescription": "填写客户基本信息",
+    "editDescription": "修改客户信息",
     "searchPlaceholder": "搜索客户名称...",
     "columns": {
       "name": "公司名称",
@@ -45,11 +50,37 @@
       "createdAt": "创建时间",
       "actions": "操作"
     },
+    "fields": {
+      "name": "公司名称",
+      "shortName": "简称",
+      "code": "客户编码",
+      "industry": "行业",
+      "scale": "规模",
+      "address": "地址",
+      "website": "网站",
+      "customerLevel": "客户等级",
+      "sourceChannel": "来源渠道",
+      "tags": "标签",
+      "remark": "备注"
+    },
+    "placeholders": {
+      "name": "请输入公司名称",
+      "shortName": "请输入简称",
+      "code": "请输入客户编码",
+      "industry": "请输入行业",
+      "scale": "请输入规模",
+      "address": "请输入地址",
+      "website": "请输入网站",
+      "customerLevel": "选择客户等级",
+      "sourceChannel": "请输入来源渠道",
+      "tags": "请输入标签，多个标签用逗号分隔",
+      "remark": "请输入备注信息"
+    },
     "levels": {
-      "0": "线索",
-      "1": "意向",
-      "2": "正式",
-      "3": "VIP"
+      "LEAD": "线索",
+      "PROSPECT": "意向",
+      "CUSTOMER": "正式",
+      "VIP": "VIP"
     },
     "empty": {
       "customer": "未关联"

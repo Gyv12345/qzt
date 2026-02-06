@@ -12,6 +12,7 @@
     "loading": "Loading...",
     "noData": "No data",
     "submit": "Submit",
+    "submitting": "Submitting...",
     "reset": "Reset",
     "rowsPerPage": "Rows per page",
     "pageOf": "Page {{current}} of {{total}}",
@@ -33,6 +34,57 @@
   },
   "customer": {
     "title": "Customer Management",
+    "description": "Manage your customer information and follow records",
+    "create": "New Customer",
+    "edit": "Edit Customer",
+    "createDescription": "Fill in customer basic information",
+    "editDescription": "Modify customer information",
+    "searchPlaceholder": "Search customer name...",
+    "columns": {
+      "name": "Company Name",
+      "shortName": "Short Name",
+      "industry": "Industry",
+      "customerLevel": "Customer Level",
+      "followUserName": "Follow User",
+      "sourceChannel": "Source Channel",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "fields": {
+      "name": "Company Name",
+      "shortName": "Short Name",
+      "code": "Customer Code",
+      "industry": "Industry",
+      "scale": "Scale",
+      "address": "Address",
+      "website": "Website",
+      "customerLevel": "Customer Level",
+      "sourceChannel": "Source Channel",
+      "tags": "Tags",
+      "remark": "Remark"
+    },
+    "placeholders": {
+      "name": "Enter company name",
+      "shortName": "Enter short name",
+      "code": "Enter customer code",
+      "industry": "Enter industry",
+      "scale": "Enter scale",
+      "address": "Enter address",
+      "website": "Enter website",
+      "customerLevel": "Select customer level",
+      "sourceChannel": "Enter source channel",
+      "tags": "Enter tags, separate with commas",
+      "remark": "Enter remarks"
+    },
+    "levels": {
+      "LEAD": "Lead",
+      "PROSPECT": "Prospect",
+      "CUSTOMER": "Customer",
+      "VIP": "VIP"
+    },
+    "empty": {
+      "customer": "Unlinked"
+    },
     "name": "Customer Name",
     "code": "Customer Code",
     "level": "Customer Level",

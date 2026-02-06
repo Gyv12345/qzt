@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Main } from "@/components/layout/main";
 import { ProfileDropdown } from "@/components/profile-dropdown";
@@ -9,7 +8,7 @@ import { LanguageSwitch } from "@/components/language-switch";
 import { ConfigDrawer } from "@/components/config-drawer";
 import { Button } from "@/components/ui/button";
 import { ServiceTeamsTable } from "./components/service-teams-table";
-import { ServiceTeamFormDialog } from "./components/service-team-form-dialog";
+import { ServiceTeamFormDrawer } from "./components/service-team-form-drawer";
 import { CustomerServiceTeamTab } from "./components/customer-service-team-tab";
 
 export { CustomerServiceTeamTab };
@@ -33,18 +32,17 @@ export function ServiceTeamsPage() {
     setFormOpen(true);
   };
 
+  const handleSuccess = () => {
+    handleFormClose();
+    // 刷新表格数据
+    window.location.reload();
+  };
+
   return (
     <>
-      <Header>
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-medium">服务团队</h1>
-        </div>
+      <Header fixed>
+        <Search />
         <div className="ms-auto flex items-center space-x-4">
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-2" />
-            添加成员
-          </Button>
-          <Search />
           <ThemeSwitch />
           <LanguageSwitch />
           <ConfigDrawer />
@@ -52,14 +50,23 @@ export function ServiceTeamsPage() {
         </div>
       </Header>
 
-      <Main>
+      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
+        <div className="flex justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">服务团队</h2>
+            <p className="text-muted-foreground">管理客户服务团队成员分配</p>
+          </div>
+          <Button onClick={handleAdd}>添加成员</Button>
+        </div>
+
         <ServiceTeamsTable onEdit={handleEdit} />
       </Main>
 
-      <ServiceTeamFormDialog
+      <ServiceTeamFormDrawer
         open={formOpen}
         onOpenChange={handleFormClose}
         editingRecord={editingRecord}
+        onSuccess={handleSuccess}
       />
     </>
   );

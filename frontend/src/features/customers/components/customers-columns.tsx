@@ -14,22 +14,23 @@ export function getCustomersColumns({
   t,
   onOpenDetail,
 }: CustomersColumnsOptions): ColumnDef<Customer>[] {
-  // 客户等级映射
-  const customerLevelMap: Record<
-    number,
+  // 客户等级映射配置
+  const customerLevelConfig: Record<
+    string,
     {
       label: string;
       variant: "default" | "secondary" | "outline" | "destructive";
     }
   > = {
-    0: { label: t("customer.levels.0"), variant: "secondary" },
-    1: { label: t("customer.levels.1"), variant: "outline" },
-    2: { label: t("customer.levels.2"), variant: "default" },
-    3: { label: t("customer.levels.3"), variant: "destructive" },
+    LEAD: { label: t("customer.levels.LEAD"), variant: "secondary" },
+    PROSPECT: { label: t("customer.levels.PROSPECT"), variant: "outline" },
+    CUSTOMER: { label: t("customer.levels.CUSTOMER"), variant: "default" },
+    VIP: { label: t("customer.levels.VIP"), variant: "destructive" },
   };
 
-  function CustomerLevelBadge({ level }: { level: number }) {
-    const config = customerLevelMap[level] || customerLevelMap[0];
+  function CustomerLevelBadge({ level }: { level: string | undefined }) {
+    const config =
+      customerLevelConfig[level || "LEAD"] || customerLevelConfig.LEAD;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   }
 
@@ -97,7 +98,7 @@ export function getCustomersColumns({
         className: "w-[100px]",
       },
       cell: ({ row }) => {
-        const level = row.getValue("customerLevel") as number;
+        const level = row.getValue("customerLevel") as string | undefined;
         return <CustomerLevelBadge level={level} />;
       },
     },

@@ -3,13 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -26,8 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { LoaderCircle } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDirection } from "@/context/direction-provider";
 import { useCustomers } from "@/features/customers/hooks/use-customers";
 import { useUsers } from "@/features/users/hooks/use-users";
 import {
@@ -53,7 +54,7 @@ const serviceTeamFormSchema = z.object({
 
 type ServiceTeamFormValues = z.infer<typeof serviceTeamFormSchema>;
 
-interface ServiceTeamFormDialogProps {
+interface ServiceTeamFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingRecord?: {
@@ -63,22 +64,26 @@ interface ServiceTeamFormDialogProps {
     roleCode: string;
   } | null;
   customerId?: string; // 预选客户ID（从客户详情传入）
+  onSuccess: () => void;
 }
 
-export function ServiceTeamFormDialog({
+export function ServiceTeamFormDrawer({
   open,
   onOpenChange,
   editingRecord,
-  customerId,
-}: ServiceTeamFormDialogProps) {
+  customerId: propCustomerId,
+  onSuccess,
+}: ServiceTeamFormDrawerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [userSearch, setUserSearch] = useState("");
+
+  const isMobile = useIsMobile();
+  const { dir } = useDirection();
+  const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   const form = useForm<ServiceTeamFormValues>({
     resolver: zodResolver(serviceTeamFormSchema),
     defaultValues: {
-      customerId: customerId || "",
+      customerId: propCustomerId || "",
       userId: "",
       roleCode: "SALE",
     },
@@ -109,12 +114,12 @@ export function ServiceTeamFormDialog({
       });
     } else {
       form.reset({
-        customerId: customerId || "",
+        customerId: propCustomerId || "",
         userId: "",
         roleCode: "SALE",
       });
     }
-  }, [editingRecord, customerId, form]);
+  }, [editingRecord, propCustomerId, form]);
 
   const customers = customersData?.data || [];
   const users = usersData?.data || [];
@@ -130,6 +135,7 @@ export function ServiceTeamFormDialog({
       } else {
         await createMutation.mutateAsync(values);
       }
+      onSuccess();
       onOpenChange(false);
       form.reset();
     } finally {
@@ -138,21 +144,27 @@ export function ServiceTeamFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={drawerSide}
+        className={isMobile ? "h-[85vh]" : "w-[500px]"}
+      >
+        <SheetHeader className="pb-0 text-start">
+          <SheetTitle>
             {editingRecord ? "编辑服务团队成员" : "添加服务团队成员"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {editingRecord
               ? "修改服务团队成员的角色或关联关系"
               : "为客户分配服务团队成员"}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 px-4 pb-6"
+          >
             {/* 客户选择 */}
             <FormField
               control={form.control}
@@ -163,7 +175,7 @@ export function ServiceTeamFormDialog({
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
-                    disabled={!!customerId || !!editingRecord}
+                    disabled={!!propCustomerId || !!editingRecord}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -236,7 +248,7 @@ export function ServiceTeamFormDialog({
               )}
             />
 
-            <DialogFooter>
+            <SheetFooter className="px-0">
               <Button
                 type="button"
                 variant="outline"
@@ -251,10 +263,10 @@ export function ServiceTeamFormDialog({
                 )}
                 {editingRecord ? "保存" : "添加"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
