@@ -1,27 +1,31 @@
-import { UsersActionDialog } from "./users-action-dialog";
+import { UsersFormDrawer } from "./users-form-drawer";
 import { UsersDeleteDialog } from "./users-delete-dialog";
-import { UsersInviteDialog } from "./users-invite-dialog";
+import { UsersBatchAddDrawer } from "./users-batch-add-drawer";
 import { useUsers } from "./users-provider";
 
-export function UsersDialogs() {
+export function UsersDrawers() {
   const { open, setOpen, currentRow, setCurrentRow } = useUsers();
   return (
     <>
-      <UsersActionDialog
+      <UsersFormDrawer
         key="user-add"
         open={open === "add"}
         onOpenChange={() => setOpen("add")}
       />
 
-      <UsersInviteDialog
-        key="user-invite"
-        open={open === "invite"}
-        onOpenChange={() => setOpen("invite")}
+      <UsersBatchAddDrawer
+        key="user-batch-add"
+        open={open === "batchAdd"}
+        onOpenChange={() => setOpen("batchAdd")}
+        onSuccess={() => {
+          // 刷新列表的逻辑
+          window.location.reload();
+        }}
       />
 
       {currentRow && (
         <>
-          <UsersActionDialog
+          <UsersFormDrawer
             key={`user-edit-${currentRow.id}`}
             open={open === "edit"}
             onOpenChange={() => {
