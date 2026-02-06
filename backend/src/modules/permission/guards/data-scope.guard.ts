@@ -3,19 +3,19 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { PrismaService } from '@/common/prisma/prisma.service';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { PrismaService } from "@/common/prisma/prisma.service";
 
 /**
  * 数据范围枚举
  */
 export enum DataScope {
-  ALL = 'all',                      // 查看全部数据
-  DEPARTMENT = 'department',        // 仅查看本部门数据
-  DEPARTMENT_AND_SUB = 'department_and_sub', // 查看本部门及下级部门数据
-  CUSTOM = 'custom',                // 自定义部门
-  SELF = 'self',                    // 仅查看本人数据
+  ALL = "all", // 查看全部数据
+  DEPARTMENT = "department", // 仅查看本部门数据
+  DEPARTMENT_AND_SUB = "department_and_sub", // 查看本部门及下级部门数据
+  CUSTOM = "custom", // 自定义部门
+  SELF = "self", // 仅查看本人数据
 }
 
 @Injectable()
@@ -27,7 +27,10 @@ export class DataScopeGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // 获取需要数据权限控制的资源类型
-    const resource = this.reflector.get<string>('dataScopeResource', context.getHandler());
+    const resource = this.reflector.get<string>(
+      "dataScopeResource",
+      context.getHandler(),
+    );
 
     // 如果没有标记资源类型，则跳过数据权限控制
     if (!resource) {
@@ -38,7 +41,7 @@ export class DataScopeGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('未登录');
+      throw new ForbiddenException("未登录");
     }
 
     // 超级管理员跳过数据权限控制
@@ -67,12 +70,14 @@ export class DataScopeGuard implements CanActivate {
   /**
    * 获取用户所有角色中最大的数据权限范围
    */
-  private getMaxDataScope(roles: Array<{
-    dataScope: string;
-    type: string;
-  }>): string {
+  private getMaxDataScope(
+    roles: Array<{
+      dataScope: string;
+      type: string;
+    }>,
+  ): string {
     // 过滤出系统角色（团队角色不参与数据权限控制）
-    const systemRoles = roles.filter(r => r.type === 'system');
+    const systemRoles = roles.filter((r) => r.type === "system");
 
     if (systemRoles.length === 0) {
       return DataScope.SELF;
@@ -88,7 +93,7 @@ export class DataScopeGuard implements CanActivate {
     ];
 
     for (const scope of scopePriority) {
-      if (systemRoles.some(r => r.dataScope === scope)) {
+      if (systemRoles.some((r) => r.dataScope === scope)) {
         return scope;
       }
     }
@@ -183,7 +188,7 @@ export class DataScopeGuard implements CanActivate {
         try {
           const ids = JSON.parse(role.dataScopeDeptIds);
           if (Array.isArray(ids)) {
-            ids.forEach(id => deptIds.add(id));
+            ids.forEach((id) => deptIds.add(id));
           }
         } catch {
           // 忽略解析错误

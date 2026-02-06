@@ -1,6 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IPaymentProvider } from '../../interfaces/payment-provider.interface';
-import { QrCodeParams, QrCodeResult, CallbackResult, OrderStatus, RefundResult } from '../../interfaces/payment-provider.interface';
+import { Injectable, Logger } from "@nestjs/common";
+import { IPaymentProvider } from "../../interfaces/payment-provider.interface";
+import {
+  QrCodeParams,
+  QrCodeResult,
+  CallbackResult,
+  OrderStatus,
+  RefundResult,
+} from "../../interfaces/payment-provider.interface";
 
 /**
  * 支付提供者基类
@@ -36,7 +42,11 @@ export abstract class BasePaymentProvider implements IPaymentProvider {
    * 退款
    * 子类必须实现
    */
-  abstract refund(orderNo: string, amount: number, reason?: string): Promise<RefundResult>;
+  abstract refund(
+    orderNo: string,
+    amount: number,
+    reason?: string,
+  ): Promise<RefundResult>;
 
   /**
    * 验证回调签名
@@ -57,9 +67,13 @@ export abstract class BasePaymentProvider implements IPaymentProvider {
   /**
    * HTTP请求辅助方法
    */
-  protected async httpPost(url: string, data: any, headers?: Record<string, string>): Promise<any> {
+  protected async httpPost(
+    url: string,
+    data: any,
+    headers?: Record<string, string>,
+  ): Promise<any> {
     try {
-      const axios = (await import('axios')).default;
+      const axios = (await import("axios")).default;
       const response = await axios.post(url, data, { headers });
       return response.data;
     } catch (error) {
@@ -71,9 +85,13 @@ export abstract class BasePaymentProvider implements IPaymentProvider {
   /**
    * HTTP GET请求辅助方法
    */
-  protected async httpGet(url: string, params?: any, headers?: Record<string, string>): Promise<any> {
+  protected async httpGet(
+    url: string,
+    params?: any,
+    headers?: Record<string, string>,
+  ): Promise<any> {
     try {
-      const axios = (await import('axios')).default;
+      const axios = (await import("axios")).default;
       const response = await axios.get(url, { params, headers });
       return response.data;
     } catch (error) {

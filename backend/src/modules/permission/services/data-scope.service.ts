@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
-import { DataScope } from '../guards/data-scope.guard';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
+import { DataScope } from "../guards/data-scope.guard";
 
 interface DataScopeInfo {
   type: string;
@@ -19,7 +19,10 @@ export class DataScopeService {
   /**
    * 根据数据范围构建客户查询的where条件
    */
-  async buildCustomerWhere(dataScope: DataScopeInfo, additionalWhere?: any): Promise<any> {
+  async buildCustomerWhere(
+    dataScope: DataScopeInfo,
+    additionalWhere?: any,
+  ): Promise<any> {
     const where: any = { ...additionalWhere };
 
     switch (dataScope.type) {
@@ -32,7 +35,9 @@ export class DataScopeService {
       case DataScope.CUSTOM:
         // 根据部门过滤 - 通过客户的跟进人所在部门
         if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
-          const userIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
+          const userIds = await this.getUserIdsByDepartments(
+            dataScope.departmentIds,
+          );
           where.followUserId = { in: userIds };
         }
         break;
@@ -52,7 +57,10 @@ export class DataScopeService {
   /**
    * 根据数据范围构建合同查询的where条件
    */
-  async buildContractWhere(dataScope: DataScopeInfo, additionalWhere?: any): Promise<any> {
+  async buildContractWhere(
+    dataScope: DataScopeInfo,
+    additionalWhere?: any,
+  ): Promise<any> {
     const where: any = { ...additionalWhere };
 
     switch (dataScope.type) {
@@ -64,7 +72,9 @@ export class DataScopeService {
       case DataScope.CUSTOM:
         // 根据部门过滤 - 通过客户间接过滤
         if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
-          const userIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
+          const userIds = await this.getUserIdsByDepartments(
+            dataScope.departmentIds,
+          );
           where.customer = {
             followUserId: { in: userIds },
           };
@@ -87,7 +97,10 @@ export class DataScopeService {
   /**
    * 根据数据范围构建联系人查询的where条件
    */
-  async buildContactWhere(dataScope: DataScopeInfo, additionalWhere?: any): Promise<any> {
+  async buildContactWhere(
+    dataScope: DataScopeInfo,
+    additionalWhere?: any,
+  ): Promise<any> {
     const where: any = { ...additionalWhere };
 
     switch (dataScope.type) {
@@ -98,7 +111,9 @@ export class DataScopeService {
       case DataScope.DEPARTMENT_AND_SUB:
       case DataScope.CUSTOM:
         if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
-          const userIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
+          const userIds = await this.getUserIdsByDepartments(
+            dataScope.departmentIds,
+          );
           where.ownerUserId = { in: userIds };
         }
         break;
@@ -117,16 +132,18 @@ export class DataScopeService {
   /**
    * 根据部门ID获取所有用户ID
    */
-  private async getUserIdsByDepartments(departmentIds: string[]): Promise<string[]> {
+  private async getUserIdsByDepartments(
+    departmentIds: string[],
+  ): Promise<string[]> {
     const users = await this.prisma.user.findMany({
       where: {
         departmentId: { in: departmentIds },
-        status: 'ACTIVE', // 只获取启用的用户
+        status: "ACTIVE", // 只获取启用的用户
       },
       select: { id: true },
     });
 
-    return users.map(u => u.id);
+    return users.map((u) => u.id);
   }
 
   /**
@@ -141,13 +158,13 @@ export class DataScopeService {
     dataScope: DataScopeInfo,
   ): Promise<boolean> {
     switch (resourceType) {
-      case 'customer':
+      case "customer":
         return this.canAccessCustomer(resourceId, dataScope);
 
-      case 'contract':
+      case "contract":
         return this.canAccessContract(resourceId, dataScope);
 
-      case 'contact':
+      case "contact":
         return this.canAccessContact(resourceId, dataScope);
 
       default:
@@ -177,7 +194,9 @@ export class DataScopeService {
         return true;
 
       case DataScope.SELF:
-        return dataScope.userIds?.includes(customer.followUserId || '') || false;
+        return (
+          dataScope.userIds?.includes(customer.followUserId || "") || false
+        );
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
@@ -185,8 +204,10 @@ export class DataScopeService {
         if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
           return false;
         }
-        const allowedUserIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
-        return allowedUserIds.includes(customer.followUserId || '');
+        const allowedUserIds = await this.getUserIdsByDepartments(
+          dataScope.departmentIds,
+        );
+        return allowedUserIds.includes(customer.followUserId || "");
 
       default:
         return true;
@@ -216,7 +237,7 @@ export class DataScopeService {
         return true;
 
       case DataScope.SELF:
-        return dataScope.userIds?.includes(followUserId || '') || false;
+        return dataScope.userIds?.includes(followUserId || "") || false;
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
@@ -224,8 +245,10 @@ export class DataScopeService {
         if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
           return false;
         }
-        const allowedUserIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
-        return allowedUserIds.includes(followUserId || '');
+        const allowedUserIds = await this.getUserIdsByDepartments(
+          dataScope.departmentIds,
+        );
+        return allowedUserIds.includes(followUserId || "");
 
       default:
         return true;
@@ -253,7 +276,7 @@ export class DataScopeService {
         return true;
 
       case DataScope.SELF:
-        return dataScope.userIds?.includes(contact.ownerUserId || '') || false;
+        return dataScope.userIds?.includes(contact.ownerUserId || "") || false;
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
@@ -261,8 +284,10 @@ export class DataScopeService {
         if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
           return false;
         }
-        const allowedUserIds = await this.getUserIdsByDepartments(dataScope.departmentIds);
-        return allowedUserIds.includes(contact.ownerUserId || '');
+        const allowedUserIds = await this.getUserIdsByDepartments(
+          dataScope.departmentIds,
+        );
+        return allowedUserIds.includes(contact.ownerUserId || "");
 
       default:
         return true;

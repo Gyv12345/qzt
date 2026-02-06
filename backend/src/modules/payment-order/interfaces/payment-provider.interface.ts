@@ -17,7 +17,11 @@ export interface IPaymentProvider {
   /**
    * 退款
    */
-  refund(orderNo: string, amount: number, reason?: string): Promise<RefundResult>;
+  refund(
+    orderNo: string,
+    amount: number,
+    reason?: string,
+  ): Promise<RefundResult>;
 
   /**
    * 验证回调签名
@@ -58,7 +62,7 @@ export interface CallbackResult {
 
 export interface OrderStatus {
   orderNo: string;
-  status: 'pending' | 'paid' | 'cancelled' | 'refunded' | 'expired';
+  status: "pending" | "paid" | "cancelled" | "refunded" | "expired";
   paidAt?: Date;
   transactionId?: string;
   amount: number;

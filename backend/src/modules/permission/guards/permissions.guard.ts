@@ -3,9 +3,9 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { REQUIRE_PERMISSIONS_KEY } from '../decorators/require-permissions.decorator';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { REQUIRE_PERMISSIONS_KEY } from "../decorators/require-permissions.decorator";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -28,7 +28,7 @@ export class PermissionsGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('未登录');
+      throw new ForbiddenException("未登录");
     }
 
     // 检查是否是超级管理员
@@ -43,7 +43,7 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!hasPermission) {
-      throw new ForbiddenException('权限不足');
+      throw new ForbiddenException("权限不足");
     }
 
     return true;

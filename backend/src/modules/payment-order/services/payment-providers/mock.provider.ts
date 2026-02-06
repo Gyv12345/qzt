@@ -1,7 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { QrCodeParams, QrCodeResult, CallbackResult, OrderStatus, RefundResult } from '../../interfaces/payment-provider.interface';
-import { QrCodeUtil } from '@/lib/qr-code.util';
-import { BasePaymentProvider } from './base-provider';
+import { Injectable, Logger } from "@nestjs/common";
+import {
+  QrCodeParams,
+  QrCodeResult,
+  CallbackResult,
+  OrderStatus,
+  RefundResult,
+} from "../../interfaces/payment-provider.interface";
+import { QrCodeUtil } from "@/lib/qr-code.util";
+import { BasePaymentProvider } from "./base-provider";
 
 /**
  * Mock支付提供者
@@ -10,7 +16,7 @@ import { BasePaymentProvider } from './base-provider';
 @Injectable()
 export class MockPaymentProvider extends BasePaymentProvider {
   constructor() {
-    super('MockPaymentProvider');
+    super("MockPaymentProvider");
   }
 
   /**
@@ -63,7 +69,7 @@ export class MockPaymentProvider extends BasePaymentProvider {
     // 模拟订单已支付
     return {
       orderNo,
-      status: 'paid',
+      status: "paid",
       paidAt: new Date(),
       transactionId: `mock_transaction_${orderNo}`,
       amount: 0,
@@ -73,7 +79,11 @@ export class MockPaymentProvider extends BasePaymentProvider {
   /**
    * 退款（Mock版本）
    */
-  async refund(orderNo: string, amount: number, reason?: string): Promise<RefundResult> {
+  async refund(
+    orderNo: string,
+    amount: number,
+    reason?: string,
+  ): Promise<RefundResult> {
     this.logger.log(`[Mock] 退款: ${orderNo}, 金额: ${amount}`);
 
     return {

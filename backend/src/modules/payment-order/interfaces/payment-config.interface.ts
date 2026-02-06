@@ -1,13 +1,19 @@
-import { PaymentConfig } from '@prisma/client';
+import { PaymentConfig } from "@prisma/client";
 
 export interface IPaymentConfigService {
   create(data: CreatePaymentConfigInput): Promise<PaymentConfig>;
   update(id: string, data: UpdatePaymentConfigInput): Promise<PaymentConfig>;
   delete(id: string): Promise<PaymentConfig>;
   findById(id: string): Promise<PaymentConfig | null>;
-  findByMethodAndChannel(paymentMethod: string, paymentChannel: string): Promise<PaymentConfig | null>;
+  findByMethodAndChannel(
+    paymentMethod: string,
+    paymentChannel: string,
+  ): Promise<PaymentConfig | null>;
   findAll(query: QueryPaymentConfigInput): Promise<PaymentConfig[]>;
-  getActiveConfig(paymentMethod: string, paymentChannel: string): Promise<PaymentConfig | null>;
+  getActiveConfig(
+    paymentMethod: string,
+    paymentChannel: string,
+  ): Promise<PaymentConfig | null>;
 }
 
 export interface CreatePaymentConfigInput {

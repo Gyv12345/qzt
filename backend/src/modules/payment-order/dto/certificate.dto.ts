@@ -1,15 +1,15 @@
-import { IsString, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsEnum } from "class-validator";
 
 /**
  * 证书类型枚举
  */
 export enum CertificateType {
-  WECHAT_APICLIENT_CERT = 'WECHAT_APICLIENT_CERT',
-  WECHAT_PRIVATE_KEY = 'WECHAT_PRIVATE_KEY',
-  WECHAT_PUBLIC_KEY = 'WECHAT_PUBLIC_KEY',
-  WECHAT_API_KEY = 'WECHAT_API_KEY',
-  ALIPAY_PRIVATE_KEY = 'ALIPAY_PRIVATE_KEY',
-  ALIPAY_PUBLIC_KEY = 'ALIPAY_PUBLIC_KEY',
+  WECHAT_APICLIENT_CERT = "WECHAT_APICLIENT_CERT",
+  WECHAT_PRIVATE_KEY = "WECHAT_PRIVATE_KEY",
+  WECHAT_PUBLIC_KEY = "WECHAT_PUBLIC_KEY",
+  WECHAT_API_KEY = "WECHAT_API_KEY",
+  ALIPAY_PRIVATE_KEY = "ALIPAY_PRIVATE_KEY",
+  ALIPAY_PUBLIC_KEY = "ALIPAY_PUBLIC_KEY",
 }
 
 /**
@@ -17,7 +17,7 @@ export enum CertificateType {
  */
 export class CertificateConfigDto {
   @IsString()
-  paymentMethod: 'wechat' | 'alipay';
+  paymentMethod: "wechat" | "alipay";
 
   @IsString()
   certificateType: CertificateType;
@@ -30,9 +30,9 @@ export class CertificateConfigDto {
   @IsOptional()
   certContent?: string;
 
-  @IsEnum(['development', 'production'])
+  @IsEnum(["development", "production"])
   @IsOptional()
-  environment?: 'development' | 'production';
+  environment?: "development" | "production";
 }
 
 /**
@@ -40,8 +40,8 @@ export class CertificateConfigDto {
  */
 export class VerifyCertificateDto {
   @IsString()
-  paymentMethod: 'wechat' | 'alipay';
+  paymentMethod: "wechat" | "alipay";
 
-  @IsEnum(['development', 'production'])
-  environment: 'development' | 'production';
+  @IsEnum(["development", "production"])
+  environment: "development" | "production";
 }

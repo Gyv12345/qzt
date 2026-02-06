@@ -1,11 +1,21 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
-import { CryptoUtil } from '@/lib/crypto.util';
-import { QrCodeUtil } from '@/lib/qr-code.util';
-import { DateUtil } from '@/lib/date.util';
-import { IPaymentOrderService, CreatePaymentOrderInput, UpdatePaymentOrderInput, QueryPaymentOrderInput } from '../interfaces/payment-order.interface';
-import { PaymentProviderFactory } from './payment-providers/factory';
-import { PaymentOrder } from '@prisma/client';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
+import { CryptoUtil } from "@/lib/crypto.util";
+import { QrCodeUtil } from "@/lib/qr-code.util";
+import { DateUtil } from "@/lib/date.util";
+import {
+  IPaymentOrderService,
+  CreatePaymentOrderInput,
+  UpdatePaymentOrderInput,
+  QueryPaymentOrderInput,
+} from "../interfaces/payment-order.interface";
+import { PaymentProviderFactory } from "./payment-providers/factory";
+import { PaymentOrder } from "@prisma/client";
 
 @Injectable()
 export class PaymentOrderService implements IPaymentOrderService {
@@ -40,7 +50,7 @@ export class PaymentOrderService implements IPaymentOrderService {
       const orderData = {
         ...data,
         orderNo,
-        status: 'pending',
+        status: "pending",
         expiredAt,
       };
 
@@ -59,7 +69,10 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 更新支付订单
    */
-  async update(id: string, data: UpdatePaymentOrderInput): Promise<PaymentOrder> {
+  async update(
+    id: string,
+    data: UpdatePaymentOrderInput,
+  ): Promise<PaymentOrder> {
     const existing = await this.findById(id);
     if (!existing) {
       throw new NotFoundException(`订单不存在: ${id}`);
@@ -89,8 +102,8 @@ export class PaymentOrderService implements IPaymentOrderService {
     }
 
     // 已支付或正在处理中的订单不允许删除
-    if (existing.status === 'paid' || existing.status === 'pending') {
-      throw new BadRequestException('该状态下的订单不允许删除');
+    if (existing.status === "paid" || existing.status === "pending") {
+      throw new BadRequestException("该状态下的订单不允许删除");
     }
 
     try {
@@ -139,8 +152,17 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 查询订单列表
    */
-  async findAll(query: QueryPaymentOrderInput): Promise<{ data: PaymentOrder[]; total: number }> {
-    const { contractId, orderNo, paymentMethod, status, page = 1, pageSize = 10 } = query;
+  async findAll(
+    query: QueryPaymentOrderInput,
+  ): Promise<{ data: PaymentOrder[]; total: number }> {
+    const {
+      contractId,
+      orderNo,
+      paymentMethod,
+      status,
+      page = 1,
+      pageSize = 10,
+    } = query;
     const skip = (page - 1) * pageSize;
 
     const where: any = {};
@@ -163,7 +185,7 @@ export class PaymentOrderService implements IPaymentOrderService {
           where,
           skip,
           take: pageSize,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         }),
         this.prisma.paymentOrder.count({ where }),
       ]);
@@ -178,19 +200,22 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 生成支付二维码
    */
-  async generateQrCode(orderId: string, clientIp?: string): Promise<{ qrCodeUrl: string; qrCodeData: string; expiresAt: Date }> {
+  async generateQrCode(
+    orderId: string,
+    clientIp?: string,
+  ): Promise<{ qrCodeUrl: string; qrCodeData: string; expiresAt: Date }> {
     const order = await this.findById(orderId);
     if (!order) {
       throw new NotFoundException(`订单不存在: ${orderId}`);
     }
 
-    if (order.status !== 'pending') {
+    if (order.status !== "pending") {
       throw new BadRequestException(`订单状态不正确: ${order.status}`);
     }
 
     // 检查订单是否过期
     if (order.expiredAt && DateUtil.isExpired(order.expiredAt)) {
-      throw new BadRequestException('订单已过期');
+      throw new BadRequestException("订单已过期");
     }
 
     try {
@@ -201,7 +226,7 @@ export class PaymentOrderService implements IPaymentOrderService {
       const result = await provider.generateQrCode({
         orderNo: order.orderNo,
         amount: order.amount,
-        description: order.body || '支付订单',
+        description: order.body || "支付订单",
         notifyUrl: order.notifyUrl,
         returnUrl: order.returnUrl,
         clientIp: clientIp || order.clientIp,
@@ -233,7 +258,16 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 处理支付回调
    */
-  async handleCallback(paymentMethod: string, data: any): Promise<{ success: boolean; orderNo: string; transactionId?: string; amount: number; error?: string }> {
+  async handleCallback(
+    paymentMethod: string,
+    data: any,
+  ): Promise<{
+    success: boolean;
+    orderNo: string;
+    transactionId?: string;
+    amount: number;
+    error?: string;
+  }> {
     try {
       this.logger.log(`处理支付回调: ${paymentMethod}`);
 
@@ -242,9 +276,9 @@ export class PaymentOrderService implements IPaymentOrderService {
         data: {
           orderId: data.order_no || data.out_trade_no,
           paymentMethod,
-          status: 'pending',
+          status: "pending",
           rawData: JSON.stringify(data),
-          ip: data.client_ip || '',
+          ip: data.client_ip || "",
         },
       });
 
@@ -262,7 +296,7 @@ export class PaymentOrderService implements IPaymentOrderService {
             paymentMethod,
           },
           data: {
-            status: 'failed',
+            status: "failed",
             error: result.error,
           },
         });
@@ -280,7 +314,7 @@ export class PaymentOrderService implements IPaymentOrderService {
       const updated = await this.prisma.paymentOrder.update({
         where: { id: order.id },
         data: {
-          status: 'paid',
+          status: "paid",
           transactionId: result.transactionId,
           paidAt: result.paidAt,
         },
@@ -292,9 +326,14 @@ export class PaymentOrderService implements IPaymentOrderService {
           data: {
             contractId: order.contractId,
             amount: order.amount,
-            method: paymentMethod === 'wechat' ? 'WECHAT' : paymentMethod === 'alipay' ? 'ALIPAY' : 'BANK_TRANSFER',
+            method:
+              paymentMethod === "wechat"
+                ? "WECHAT"
+                : paymentMethod === "alipay"
+                  ? "ALIPAY"
+                  : "BANK_TRANSFER",
             payTime: result.paidAt,
-            status: 'CONFIRMED',
+            status: "CONFIRMED",
           },
         });
       }
@@ -306,7 +345,7 @@ export class PaymentOrderService implements IPaymentOrderService {
           paymentMethod,
         },
         data: {
-          status: 'success',
+          status: "success",
           responseData: JSON.stringify(result),
         },
       });
@@ -317,7 +356,7 @@ export class PaymentOrderService implements IPaymentOrderService {
       this.logger.error(`处理支付回调失败: ${error.message}`);
       return {
         success: false,
-        orderNo: '',
+        orderNo: "",
         amount: 0,
         error: error.message,
       };
@@ -327,18 +366,22 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 退款
    */
-  async refund(orderId: string, amount: number, reason?: string): Promise<PaymentOrder> {
+  async refund(
+    orderId: string,
+    amount: number,
+    reason?: string,
+  ): Promise<PaymentOrder> {
     const order = await this.findById(orderId);
     if (!order) {
       throw new NotFoundException(`订单不存在: ${orderId}`);
     }
 
-    if (order.status !== 'paid') {
-      throw new BadRequestException('只有已支付的订单才能退款');
+    if (order.status !== "paid") {
+      throw new BadRequestException("只有已支付的订单才能退款");
     }
 
     if (amount > order.amount) {
-      throw new BadRequestException('退款金额不能超过订单金额');
+      throw new BadRequestException("退款金额不能超过订单金额");
     }
 
     try {
@@ -349,14 +392,14 @@ export class PaymentOrderService implements IPaymentOrderService {
       const refundResult = await provider.refund(order.orderNo, amount, reason);
 
       if (!refundResult.success) {
-        throw new Error(refundResult.error || '退款失败');
+        throw new Error(refundResult.error || "退款失败");
       }
 
       // 更新订单状态
       const updated = await this.prisma.paymentOrder.update({
         where: { id: orderId },
         data: {
-          status: 'refunded',
+          status: "refunded",
         },
       });
 
@@ -377,8 +420,8 @@ export class PaymentOrderService implements IPaymentOrderService {
       throw new NotFoundException(`订单不存在: ${id}`);
     }
 
-    if (order.status !== 'pending') {
-      throw new BadRequestException('只有待支付状态的订单才能取消');
+    if (order.status !== "pending") {
+      throw new BadRequestException("只有待支付状态的订单才能取消");
     }
 
     try {
@@ -392,7 +435,7 @@ export class PaymentOrderService implements IPaymentOrderService {
       const updated = await this.prisma.paymentOrder.update({
         where: { id },
         data: {
-          status: 'cancelled',
+          status: "cancelled",
         },
       });
 
@@ -407,7 +450,14 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 检查订单状态
    */
-  async checkOrderStatus(orderNo: string): Promise<{ orderNo: string; status: string; paidAt?: Date; transactionId?: string }> {
+  async checkOrderStatus(
+    orderNo: string,
+  ): Promise<{
+    orderNo: string;
+    status: string;
+    paidAt?: Date;
+    transactionId?: string;
+  }> {
     const order = await this.findByOrderNo(orderNo);
     if (!order) {
       throw new NotFoundException(`订单不存在: ${orderNo}`);
@@ -421,11 +471,11 @@ export class PaymentOrderService implements IPaymentOrderService {
       const status = await provider.queryOrder(orderNo);
 
       // 如果状态变化，更新本地订单
-      if (status.status !== order.status && status.status === 'paid') {
+      if (status.status !== order.status && status.status === "paid") {
         await this.prisma.paymentOrder.update({
           where: { id: order.id },
           data: {
-            status: 'paid',
+            status: "paid",
             transactionId: status.transactionId,
             paidAt: status.paidAt,
           },
@@ -448,9 +498,16 @@ export class PaymentOrderService implements IPaymentOrderService {
    * 生成订单号
    */
   private generateOrderNo(paymentMethod: string): string {
-    const prefix = paymentMethod === 'wechat' ? 'WX' : paymentMethod === 'alipay' ? 'ALI' : 'BNK';
+    const prefix =
+      paymentMethod === "wechat"
+        ? "WX"
+        : paymentMethod === "alipay"
+          ? "ALI"
+          : "BNK";
     const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    const random = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, "0");
     return `${prefix}${timestamp}${random}`;
   }
 
@@ -468,7 +525,7 @@ export class PaymentOrderService implements IPaymentOrderService {
     const [logs, total] = await Promise.all([
       this.prisma.paymentCallbackLog.findMany({
         where: { orderId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,
       }),
@@ -507,7 +564,7 @@ export class PaymentOrderService implements IPaymentOrderService {
     const [logs, total] = await Promise.all([
       this.prisma.paymentCallbackLog.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,
       }),

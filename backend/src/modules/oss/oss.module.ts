@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { OssService } from './oss.service';
-import { OssController } from './oss.controller';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { OssService } from "./oss.service";
+import { OssController } from "./oss.controller";
 
 @Module({
   imports: [ConfigModule],
