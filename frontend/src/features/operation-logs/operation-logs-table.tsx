@@ -1,9 +1,12 @@
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
+  type PaginationState,
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -16,11 +19,24 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getScrmApi } from "@/services/api";
-import type { OperationLog } from "@/models";
+import type { OperationLog, LogsControllerFindOperationLogsParams } from "@/models";
 import { Loader2 } from "lucide-react";
+import { DataTablePagination } from "@/components/data-table";
 
 export function OperationLogsTable() {
   const { t } = useTranslation();
+
+  // 分页状态
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  // 构建查询参数
+  const queryParams: LogsControllerFindOperationLogsParams = {
+    page: pageIndex + 1,
+    pageSize,
+  };
 
   // 使用真实的 API 获取数据
   const {
@@ -28,12 +44,35 @@ export function OperationLogsTable() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["operation-logs"],
-    queryFn: () => getScrmApi().logsControllerFindOperationLogs(),
+    queryKey: ["operation-logs", pageIndex, pageSize],
+    queryFn: () => getScrmApi().logsControllerFindOperationLogs(queryParams),
   });
 
   // 从响应中提取数据
   const data = response?.data || [];
+  const total = response?.total || 0;
+
+  // 处理分页变化
+  const onPaginationChange = useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination);
+    },
+    [],
+  );
+
+  // 操作类型中文映射
+  const actionMap: Record<string, string> = {
+    VIEW: "查看",
+    CREATE: "创建",
+    UPDATE: "更新",
+    DELETE: "删除",
+    UNKNOWN: "未知",
+  };
+
+  // 获取操作的中文显示
+  const getActionLabel = (action: string) => {
+    return actionMap[action] || action;
+  };
 
   const columns: ColumnDef<OperationLog>[] = [
     {
@@ -49,7 +88,7 @@ export function OperationLogsTable() {
     {
       accessorKey: "action",
       header: t("settings.logs.operationLog.columns.operation"),
-      cell: ({ row }) => <div>{row.getValue("action")}</div>,
+      cell: ({ row }) => <div>{getActionLabel(row.getValue("action"))}</div>,
     },
     {
       accessorKey: "resourceId",
@@ -78,7 +117,14 @@ export function OperationLogsTable() {
   const table = useReactTable({
     data,
     columns,
+    pageCount: Math.ceil(total / pageSize),
+    state: {
+      pagination: { pageIndex, pageSize },
+    },
+    onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
   });
 
   if (isLoading) {
@@ -164,6 +210,7 @@ export function OperationLogsTable() {
           </TableBody>
         </Table>
       </CardContent>
+      <DataTablePagination table={table} />
     </Card>
   );
 }
