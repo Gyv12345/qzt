@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
 
 @Injectable()
 export class ContractTemplateService {
@@ -11,7 +11,7 @@ export class ContractTemplateService {
   async findAll() {
     return this.prisma.contractTemplate.findMany({
       where: { status: 1 },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -42,13 +42,16 @@ export class ContractTemplateService {
   /**
    * 更新合同模板
    */
-  async update(id: string, data: {
-    name?: string;
-    content?: string;
-    variables?: string;
-    description?: string;
-    status?: number;
-  }) {
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      content?: string;
+      variables?: string;
+      description?: string;
+      status?: number;
+    },
+  ) {
     return this.prisma.contractTemplate.update({
       where: { id },
       data,
@@ -65,7 +68,7 @@ export class ContractTemplateService {
     });
 
     if (contractCount > 0) {
-      throw new Error('该模板正在被使用，无法删除');
+      throw new Error("该模板正在被使用，无法删除");
     }
 
     return this.prisma.contractTemplate.delete({
@@ -82,14 +85,14 @@ export class ContractTemplateService {
     });
 
     if (!template) {
-      throw new Error('模板不存在');
+      throw new Error("模板不存在");
     }
 
     let content = template.content;
 
     // 替换变量占位符 {{variableName}}
     for (const [key, value] of Object.entries(variables)) {
-      const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
+      const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "g");
       content = content.replace(regex, value);
     }
 
@@ -109,11 +112,11 @@ export class ContractTemplateService {
     });
 
     if (!template) {
-      throw new Error('模板不存在');
+      throw new Error("模板不存在");
     }
 
     try {
-      return JSON.parse(template.variables || '[]');
+      return JSON.parse(template.variables || "[]");
     } catch {
       return [];
     }
