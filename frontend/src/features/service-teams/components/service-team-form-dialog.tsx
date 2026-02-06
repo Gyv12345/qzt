@@ -116,8 +116,8 @@ export function ServiceTeamFormDialog({
     }
   }, [editingRecord, customerId, form]);
 
-  const customers = customersData?.items || [];
-  const users = usersData?.items || [];
+  const customers = customersData?.data || [];
+  const users = usersData?.data || [];
 
   const onSubmit = async (values: ServiceTeamFormValues) => {
     setIsSubmitting(true);

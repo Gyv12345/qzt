@@ -75,7 +75,7 @@ export function InvoicesTable({
 
   const { data, isLoading, error } = useInvoices(queryParams);
 
-  const invoices = data?.items || [];
+  const invoices = data?.data || [];
   const total = data?.total || 0;
 
   // 处理删除

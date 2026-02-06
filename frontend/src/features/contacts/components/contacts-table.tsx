@@ -86,7 +86,7 @@ export function ContactsTable({
 
   const { data, isLoading, error } = useContacts(queryParams);
 
-  const contacts = data?.items || [];
+  const contacts = data?.data || [];
   const total = data?.total || 0;
 
   // 创建带有回调的列定义

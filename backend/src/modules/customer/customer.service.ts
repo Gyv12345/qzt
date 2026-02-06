@@ -174,7 +174,7 @@ export class CustomerService {
     });
 
     return {
-      items: result,
+      data: result,
       total,
       page,
       pageSize,
@@ -520,7 +520,7 @@ export class CustomerService {
     }));
 
     return {
-      items: result,
+      data: result,
       total,
       page,
       pageSize,
@@ -589,7 +589,7 @@ export class CustomerService {
     }));
 
     return {
-      items: result,
+      data: result,
       total,
       page,
       pageSize,

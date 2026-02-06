@@ -44,7 +44,7 @@ export class FollowRecordService {
     ]);
 
     return {
-      records,
+      data: records,
       total,
       page,
       pageSize,
