@@ -163,19 +163,21 @@ export class PricingService {
   async calculatePrice(dto: CalculatePriceDto) {
     const { contractId, invoiceAmount, invoiceCount = 0 } = dto;
 
-    // 查询合同信息
-    const contract = await this.prisma.contract.findUnique({
-      where: { id: contractId },
+    // 查询合同信息（通过 ContractItem 获取产品）
+    const contractItems = await this.prisma.contractItem.findMany({
+      where: { contractId },
       include: {
         product: true,
       },
     });
 
-    if (!contract) {
-      throw new NotFoundException("合同不存在");
+    if (!contractItems || contractItems.length === 0) {
+      throw new NotFoundException("合同不存在或没有关联产品");
     }
 
-    const { product } = contract;
+    // 取第一个产品进行计算（多产品情况可以扩展）
+    const firstItem = contractItems[0];
+    const product = firstItem.product;
 
     // 获取产品的定价规则(取最新的生效规则)
     const pricingRule = await this.prisma.pricingRule.findFirst({

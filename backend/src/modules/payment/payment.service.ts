@@ -41,7 +41,7 @@ export class PaymentService {
           select: {
             id: true,
             contractNo: true,
-            amount: true,
+            totalAmount: true,
           },
         },
       },
@@ -76,7 +76,7 @@ export class PaymentService {
             select: {
               id: true,
               contractNo: true,
-              amount: true,
+              totalAmount: true,
               customer: {
                 select: { id: true, name: true },
               },
@@ -102,9 +102,6 @@ export class PaymentService {
         contract: {
           include: {
             customer: {
-              select: { id: true, name: true },
-            },
-            product: {
               select: { id: true, name: true },
             },
           },
@@ -142,7 +139,9 @@ export class PaymentService {
           select: {
             id: true,
             contractNo: true,
-            amount: true,
+            originalAmount: true,
+            totalAmount: true,
+            paidAmount: true,
           },
         },
       },
