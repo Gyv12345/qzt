@@ -21,7 +21,10 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { QueryUserDto } from "./dto/query-user.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
 import { UserEntity, PaginatedUsersDto } from "./dto/user-entity.dto";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { UserInfo } from "../auth/interfaces/auth.interface";
 
 @ApiTags("users")
 @Controller("users")
@@ -84,5 +87,16 @@ export class UsersController {
     @Body() resetPasswordDto: ResetPasswordDto,
   ) {
     return this.usersService.resetPassword(id, resetPasswordDto.newPassword);
+  }
+
+  @Post("me/password")
+  @ApiOperation({ summary: "修改当前用户密码（需要 2FA）" })
+  @ApiResponse({ status: 200, description: "修改成功" })
+  @ApiResponse({ status: 401, description: "当前密码错误或 2FA 验证失败" })
+  async updatePassword(
+    @CurrentUser() user: UserInfo,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(user.userId, updatePasswordDto);
   }
 }

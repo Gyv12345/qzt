@@ -30,9 +30,11 @@ async function bootstrap() {
   ).RequestIdMiddleware();
   app.use(requestIdMiddleware.use.bind(requestIdMiddleware));
 
-  // 操作日志中间件（暂时注释掉，需要解决循环依赖）
-  // const operationLogMiddleware = new (await import('./common/middleware/operation-log.middleware.js')).OperationLogMiddleware();
-  // app.use(operationLogMiddleware.use.bind(operationLogMiddleware));
+  // 操作日志中间件（使用延迟初始化避免循环依赖）
+  const operationLogMiddleware = new (
+    await import("./common/middleware/operation-log.middleware.js")
+  ).OperationLogMiddleware();
+  app.use(operationLogMiddleware.use.bind(operationLogMiddleware));
 
   // ========== 拦截器配置 ==========
   // 全局异常过滤器

@@ -285,7 +285,7 @@
       "description": "Choose between left-to-right or right-to-left site direction"
     }
   },
-  "settings": {
+  "accountSettings": {
     "title": "Settings",
     "description": "Manage your account settings and set e-mail preferences.",
     "selectPlaceholder": "Select setting",

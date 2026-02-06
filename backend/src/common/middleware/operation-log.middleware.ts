@@ -49,15 +49,13 @@ export class OperationLogMiddleware implements NestMiddleware {
     const originalJson = res.json.bind(res);
 
     // 重写 res.json 方法以捕获响应
+    const self = this;
     res.json = function (data: any) {
       // 异步记录操作日志
       setImmediate(() => {
-        void OperationLogMiddleware.prototype.logOperation.call(
-          { prisma: OperationLogMiddleware.prototype.prisma },
-          req,
-          res,
-          data,
-        );
+        self.logOperation(req, res, data).catch((err) => {
+          console.error("Failed to log operation:", err);
+        });
       });
 
       return originalJson(data);

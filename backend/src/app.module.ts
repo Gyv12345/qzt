@@ -23,6 +23,7 @@ import { UsersModule } from "./modules/users/users.module";
 import { DepartmentModule } from "./modules/department/department.module";
 import { LogsModule } from "./modules/logs/logs.module";
 import { LoginLogsModule } from "./modules/login-logs/login-logs.module";
+import { TwoFactorModule } from "./modules/two-factor/two-factor.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
 import { OssModule } from "./modules/oss/oss.module";
 import { SocialMediaModule } from "./modules/social-media/social-media.module";
@@ -90,6 +91,10 @@ const envSchema = Joi.object({
 
   // 前端URL (用于CORS)
   FRONTEND_URL: Joi.string().default("http://localhost:7890"),
+
+  // TOTP 2FA 配置
+  TOTP_APP_NAME: Joi.string().default("企账通"),
+  TOTP_ENCRYPTION_KEY: Joi.string().optional(),
 }).unknown(true);
 
 @Module({
@@ -145,6 +150,7 @@ const envSchema = Joi.object({
     DepartmentModule,
     LogsModule,
     LoginLogsModule,
+    TwoFactorModule,
     WebhooksModule,
     OssModule,
     SocialMediaModule,

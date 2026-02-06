@@ -27,8 +27,6 @@ import { getLogs } from "./logs";
 import { getLoginLogs } from "./login-logs";
 import { getWebhook } from "./webhook";
 import { getCustomerContacts } from "./customer-contacts";
-import { getProductPackages } from "./product-packages";
-import { getProductFlows } from "./product-flows";
 import { getContractTemplates } from "./contract-templates";
 import { getSocialMediaPosts } from "./social-media-posts";
 import { getSocialMediaAccounts } from "./social-media-accounts";
@@ -36,6 +34,7 @@ import { getSystemConfig } from "./system-config";
 import { getNotifications } from "./notifications";
 import { getPaymentCertificates } from "./payment-certificates";
 import { getPaymentTest } from "./payment-test";
+import { getTwoFactor } from "./two-factor";
 
 // 重新导出所有模块
 export { getAuthApi };
@@ -58,8 +57,6 @@ export { getLogs };
 export { getLoginLogs };
 export { getWebhook };
 export { getCustomerContacts };
-export { getProductPackages };
-export { getProductFlows };
 export { getContractTemplates };
 export { getSocialMediaPosts };
 export { getSocialMediaAccounts };
@@ -67,6 +64,7 @@ export { getSystemConfig };
 export { getNotifications };
 export { getPaymentCertificates };
 export { getPaymentTest };
+export { getTwoFactor };
 
 // 兼容旧的 getScrmApi
 export const getScrmApi = () => ({
@@ -90,8 +88,6 @@ export const getScrmApi = () => ({
   ...getLoginLogs(),
   ...getWebhook(),
   ...getCustomerContacts(),
-  ...getProductPackages(),
-  ...getProductFlows(),
   ...getContractTemplates(),
   ...getSocialMediaPosts(),
   ...getSocialMediaAccounts(),
@@ -99,4 +95,5 @@ export const getScrmApi = () => ({
   ...getNotifications(),
   ...getPaymentCertificates(),
   ...getPaymentTest(),
+  ...getTwoFactor(),
 });

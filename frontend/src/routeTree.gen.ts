@@ -21,8 +21,6 @@ import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedServiceTeamsRouteRouteImport } from './routes/_authenticated/service-teams/route'
 import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
 import { Route as AuthenticatedProductsRouteRouteImport } from './routes/_authenticated/products/route'
-import { Route as AuthenticatedProductPackagesRouteRouteImport } from './routes/_authenticated/product-packages/route'
-import { Route as AuthenticatedProductFlowsRouteRouteImport } from './routes/_authenticated/product-flows/route'
 import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
 import { Route as AuthenticatedPaymentsRouteRouteImport } from './routes/_authenticated/payments/route'
 import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
@@ -30,7 +28,9 @@ import { Route as AuthenticatedLoginLogsRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedInvoicesRouteRouteImport } from './routes/_authenticated/invoices/route'
 import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_authenticated/departments/route'
 import { Route as AuthenticatedCustomersRouteRouteImport } from './routes/_authenticated/customers/route'
+import { Route as AuthenticatedCustomerRulesRouteRouteImport } from './routes/_authenticated/customer-rules/route'
 import { Route as AuthenticatedContractsRouteRouteImport } from './routes/_authenticated/contracts/route'
+import { Route as AuthenticatedContractTemplatesRouteRouteImport } from './routes/_authenticated/contract-templates/route'
 import { Route as AuthenticatedContactsRouteRouteImport } from './routes/_authenticated/contacts/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
@@ -106,18 +106,6 @@ const AuthenticatedProductsRouteRoute =
     path: '/products',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedProductPackagesRouteRoute =
-  AuthenticatedProductPackagesRouteRouteImport.update({
-    id: '/product-packages',
-    path: '/product-packages',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedProductFlowsRouteRoute =
-  AuthenticatedProductFlowsRouteRouteImport.update({
-    id: '/product-flows',
-    path: '/product-flows',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedPermissionsRouteRoute =
   AuthenticatedPermissionsRouteRouteImport.update({
     id: '/permissions',
@@ -160,10 +148,22 @@ const AuthenticatedCustomersRouteRoute =
     path: '/customers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCustomerRulesRouteRoute =
+  AuthenticatedCustomerRulesRouteRouteImport.update({
+    id: '/customer-rules',
+    path: '/customer-rules',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContractsRouteRoute =
   AuthenticatedContractsRouteRouteImport.update({
     id: '/contracts',
     path: '/contracts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContractTemplatesRouteRoute =
+  AuthenticatedContractTemplatesRouteRouteImport.update({
+    id: '/contract-templates',
+    path: '/contract-templates',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsRouteRoute =
@@ -239,7 +239,9 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
+  '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
+  '/customer-rules': typeof AuthenticatedCustomerRulesRouteRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
   '/invoices': typeof AuthenticatedInvoicesRouteRoute
@@ -247,8 +249,6 @@ export interface FileRoutesByFullPath {
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
-  '/product-flows': typeof AuthenticatedProductFlowsRouteRoute
-  '/product-packages': typeof AuthenticatedProductPackagesRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
@@ -273,7 +273,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
+  '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
+  '/customer-rules': typeof AuthenticatedCustomerRulesRouteRoute
   '/customers': typeof AuthenticatedCustomersRouteRoute
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
   '/invoices': typeof AuthenticatedInvoicesRouteRoute
@@ -281,8 +283,6 @@ export interface FileRoutesByTo {
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
-  '/product-flows': typeof AuthenticatedProductFlowsRouteRoute
-  '/product-packages': typeof AuthenticatedProductPackagesRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
@@ -309,7 +309,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
+  '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
+  '/_authenticated/customer-rules': typeof AuthenticatedCustomerRulesRouteRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteRoute
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRouteRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRouteRoute
@@ -317,8 +319,6 @@ export interface FileRoutesById {
   '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
-  '/_authenticated/product-flows': typeof AuthenticatedProductFlowsRouteRoute
-  '/_authenticated/product-packages': typeof AuthenticatedProductPackagesRouteRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
   '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
@@ -347,7 +347,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/contacts'
+    | '/contract-templates'
     | '/contracts'
+    | '/customer-rules'
     | '/customers'
     | '/departments'
     | '/invoices'
@@ -355,8 +357,6 @@ export interface FileRouteTypes {
     | '/operation-logs'
     | '/payments'
     | '/permissions'
-    | '/product-flows'
-    | '/product-packages'
     | '/products'
     | '/roles'
     | '/service-teams'
@@ -381,7 +381,9 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/contacts'
+    | '/contract-templates'
     | '/contracts'
+    | '/customer-rules'
     | '/customers'
     | '/departments'
     | '/invoices'
@@ -389,8 +391,6 @@ export interface FileRouteTypes {
     | '/operation-logs'
     | '/payments'
     | '/permissions'
-    | '/product-flows'
-    | '/product-packages'
     | '/products'
     | '/roles'
     | '/service-teams'
@@ -416,7 +416,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/contacts'
+    | '/_authenticated/contract-templates'
     | '/_authenticated/contracts'
+    | '/_authenticated/customer-rules'
     | '/_authenticated/customers'
     | '/_authenticated/departments'
     | '/_authenticated/invoices'
@@ -424,8 +426,6 @@ export interface FileRouteTypes {
     | '/_authenticated/operation-logs'
     | '/_authenticated/payments'
     | '/_authenticated/permissions'
-    | '/_authenticated/product-flows'
-    | '/_authenticated/product-packages'
     | '/_authenticated/products'
     | '/_authenticated/roles'
     | '/_authenticated/service-teams'
@@ -545,20 +545,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/product-packages': {
-      id: '/_authenticated/product-packages'
-      path: '/product-packages'
-      fullPath: '/product-packages'
-      preLoaderRoute: typeof AuthenticatedProductPackagesRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/product-flows': {
-      id: '/_authenticated/product-flows'
-      path: '/product-flows'
-      fullPath: '/product-flows'
-      preLoaderRoute: typeof AuthenticatedProductFlowsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/permissions': {
       id: '/_authenticated/permissions'
       path: '/permissions'
@@ -608,11 +594,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCustomersRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customer-rules': {
+      id: '/_authenticated/customer-rules'
+      path: '/customer-rules'
+      fullPath: '/customer-rules'
+      preLoaderRoute: typeof AuthenticatedCustomerRulesRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contracts': {
       id: '/_authenticated/contracts'
       path: '/contracts'
       fullPath: '/contracts'
       preLoaderRoute: typeof AuthenticatedContractsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contract-templates': {
+      id: '/_authenticated/contract-templates'
+      path: '/contract-templates'
+      fullPath: '/contract-templates'
+      preLoaderRoute: typeof AuthenticatedContractTemplatesRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts': {
@@ -727,7 +727,9 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
+  AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute
   AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
+  AuthenticatedCustomerRulesRouteRoute: typeof AuthenticatedCustomerRulesRouteRoute
   AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute
   AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute
   AuthenticatedInvoicesRouteRoute: typeof AuthenticatedInvoicesRouteRoute
@@ -735,8 +737,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
   AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
   AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
-  AuthenticatedProductFlowsRouteRoute: typeof AuthenticatedProductFlowsRouteRoute
-  AuthenticatedProductPackagesRouteRoute: typeof AuthenticatedProductPackagesRouteRoute
   AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
   AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
   AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
@@ -752,7 +752,10 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
+  AuthenticatedContractTemplatesRouteRoute:
+    AuthenticatedContractTemplatesRouteRoute,
   AuthenticatedContractsRouteRoute: AuthenticatedContractsRouteRoute,
+  AuthenticatedCustomerRulesRouteRoute: AuthenticatedCustomerRulesRouteRoute,
   AuthenticatedCustomersRouteRoute: AuthenticatedCustomersRouteRoute,
   AuthenticatedDepartmentsRouteRoute: AuthenticatedDepartmentsRouteRoute,
   AuthenticatedInvoicesRouteRoute: AuthenticatedInvoicesRouteRoute,
@@ -760,9 +763,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOperationLogsRouteRoute: AuthenticatedOperationLogsRouteRoute,
   AuthenticatedPaymentsRouteRoute: AuthenticatedPaymentsRouteRoute,
   AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
-  AuthenticatedProductFlowsRouteRoute: AuthenticatedProductFlowsRouteRoute,
-  AuthenticatedProductPackagesRouteRoute:
-    AuthenticatedProductPackagesRouteRoute,
   AuthenticatedProductsRouteRoute: AuthenticatedProductsRouteRoute,
   AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
   AuthenticatedServiceTeamsRouteRoute: AuthenticatedServiceTeamsRouteRoute,

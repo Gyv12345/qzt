@@ -1,38 +1,21 @@
 import {
-  Construction,
   LayoutDashboard,
-  Monitor,
-  Bug,
-  ListTodo,
-  FileX,
-  HelpCircle,
-  Lock,
-  Bell,
-  Package,
-  Palette,
-  ServerOff,
-  Settings,
-  Wrench,
-  UserCog,
-  UserX,
-  Users,
-  MessagesSquare,
-  ShieldCheck,
-  AudioWaveform,
   Command,
-  GalleryVerticalEnd,
   Building,
-  ScrollText,
-  FileText,
   BarChart3,
-  FileCheck,
   UserCircle,
-  Archive,
+  UsersRound,
   PieChart,
   Receipt,
   Wallet,
-  UsersRound,
-  GitBranch,
+  Users,
+  ShieldCheck,
+  Lock,
+  Archive,
+  FileText,
+  FileCheck,
+  Settings,
+  FileSignature,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -120,6 +103,26 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
+      title: "业务设置",
+      items: [
+        {
+          title: "产品管理",
+          url: "/products",
+          icon: Archive,
+        },
+        {
+          title: "合同模板设置",
+          url: "/contract-templates",
+          icon: FileSignature,
+        },
+        {
+          title: "客户规则",
+          url: "/customer-rules",
+          icon: ShieldCheck,
+        },
+      ],
+    },
+    {
       title: "系统设置",
       items: [
         {
@@ -141,21 +144,6 @@ export const sidebarData: SidebarData = {
           title: "权限管理",
           url: "/permissions",
           icon: Lock,
-        },
-        {
-          title: "产品管理",
-          url: "/products",
-          icon: Archive,
-        },
-        {
-          title: "产品套餐",
-          url: "/product-packages",
-          icon: Package,
-        },
-        {
-          title: "产品流程",
-          url: "/product-flows",
-          icon: GitBranch,
         },
         {
           title: "日志管理",

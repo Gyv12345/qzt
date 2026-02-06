@@ -7,11 +7,13 @@ import { AuthController } from "./auth.controller";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { LocalStrategy } from "./strategies/local.strategy";
 import { LoginLogsModule } from "../login-logs/login-logs.module";
+import { TwoFactorModule } from "../two-factor/two-factor.module";
 
 @Module({
   imports: [
     PassportModule,
     LoginLogsModule,
+    TwoFactorModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
