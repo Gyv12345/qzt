@@ -312,7 +312,7 @@ model Product {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  contracts      Contract[]
+  contractItems  ContractItem[]  // 合同产品明细
   pricingRules   PricingRule[]
 
   @@map("products")
@@ -378,9 +378,9 @@ model Contract {
   id           String   @id @default(cuid())
   contractNo   String   @unique
   customerId   String
-  productId    String
   templateId   String? // 合同模板ID
-  amount       Float
+  originalAmount Float  // 原价总额（所有产品原价 × 数量之和）
+  totalAmount   Float    // 实际合同总额（所有产品实际价格 × 数量之和）
   paidAmount   Float    @default(0)
   status       String   @default("UNPAID") // UNPAID:待收款 PARTIAL:部分收款 PAID:已收全
   serviceStart DateTime
@@ -389,14 +389,33 @@ model Contract {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  customer        Customer  @relation(fields: [customerId], references: [id])
-  product         Product   @relation(fields: [productId], references: [id])
+  customer        Customer        @relation(fields: [customerId], references: [id])
   template        ContractTemplate? @relation(fields: [templateId], references: [id])
   payments        Payment[]
+  items           ContractItem[]  // 合同产品明细
 
   @@index([customerId])
   @@index([status])
   @@map("contracts")
+}
+
+// 合同产品明细表
+model ContractItem {
+  id            String   @id @default(cuid())
+  contractId    String
+  productId     String
+  quantity      Int      @default(1)  // 数量
+  originalPrice Float    // 产品原价（划线价格）
+  actualPrice   Float    // 实际成交价
+  subtotal      Float    // 小计（actualPrice × quantity）
+  createdAt     DateTime @default(now())
+
+  contract  Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([contractId])
+  @@index([productId])
+  @@map("contract_items")
 }
 
 // ==================== 收款模块 ====================

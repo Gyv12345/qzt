@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   Sheet,
   SheetContent,
@@ -22,23 +21,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CustomerSelector } from "@/components/selectors/CustomerSelector";
-import { ProductSelector } from "@/components/selectors/ProductSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
 import { useCreateContract, useUpdateContract } from "../hooks/use-contracts";
+import { ContractProductTable } from "./contract-product-table";
+import { contractFormSchema, type ContractFormValues } from "../types/contract";
 import type { Contract } from "../types/contract";
-
-// 合同表单验证 schema
-const contractFormSchema = z.object({
-  customerId: z.string().min(1, "请选择客户"),
-  productId: z.string().min(1, "请选择产品"),
-  amount: z.number().min(0, "金额必须大于等于0"),
-  serviceStart: z.string().min(1, "请选择服务开始日期"),
-  serviceEnd: z.string().min(1, "请选择服务结束日期"),
-  remark: z.string().optional(),
-});
-
-type ContractFormValues = z.infer<typeof contractFormSchema>;
 
 interface ContractFormDrawerProps {
   open: boolean;
@@ -65,20 +53,33 @@ export function ContractFormDrawer({
     defaultValues: contract
       ? {
           customerId: contract.customerId,
-          productId: contract.productId,
-          amount: contract.amount,
-          serviceStart: contract.serviceStart,
-          serviceEnd: contract.serviceEnd,
+          items:
+            contract.items?.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              originalPrice: item.originalPrice,
+              actualPrice: item.actualPrice,
+            })) || [],
+          serviceStart: new Date(contract.serviceStart)
+            .toISOString()
+            .split("T")[0],
+          serviceEnd: new Date(contract.serviceEnd)
+            .toISOString()
+            .split("T")[0],
           remark: contract.remark || "",
         }
       : {
           customerId: "",
-          productId: "",
-          amount: 0,
+          items: [],
           serviceStart: "",
           serviceEnd: "",
           remark: "",
         },
+  });
+
+  const fieldArray = useFieldArray({
+    name: "items",
+    control: form.control,
   });
 
   useEffect(() => {
@@ -87,6 +88,20 @@ export function ContractFormDrawer({
       setShowCustomerAdvancedSearch(false);
     }
   }, [open, form]);
+
+  // 如果有合同数据，更新 items
+  useEffect(() => {
+    if (contract && contract.items) {
+      fieldArray.replace(
+        contract.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          originalPrice: item.originalPrice,
+          actualPrice: item.actualPrice,
+        })),
+      );
+    }
+  }, [contract, fieldArray]);
 
   const createMutation = useCreateContract();
   const updateMutation = useUpdateContract();
@@ -109,7 +124,7 @@ export function ContractFormDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side={drawerSide}
-        className={isMobile ? "h-[85vh]" : "w-[600px]"}
+        className={isMobile ? "h-[85vh]" : "w-[700px]"}
       >
         <SheetHeader className="pb-0 text-start">
           <SheetTitle>{isEdit ? "编辑合同" : "新建合同"}</SheetTitle>
@@ -121,60 +136,21 @@ export function ContractFormDrawer({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 px-4 pb-6"
+            className="flex flex-col gap-4 px-4 pb-6"
           >
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="customerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>客户 *</FormLabel>
-                    <FormControl>
-                      <CustomerSelector
-                        value={field.value}
-                        onChange={field.onChange}
-                        onAdvancedSearch={() =>
-                          setShowCustomerAdvancedSearch(true)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="productId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>产品 *</FormLabel>
-                    <FormControl>
-                      <ProductSelector
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+            {/* 客户选择 */}
             <FormField
               control={form.control}
-              name="amount"
+              name="customerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>合同金额 *</FormLabel>
+                  <FormLabel>客户 *</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="请输入合同金额"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value) || 0)
+                    <CustomerSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                      onAdvancedSearch={() =>
+                        setShowCustomerAdvancedSearch(true)
                       }
                     />
                   </FormControl>
@@ -183,6 +159,14 @@ export function ContractFormDrawer({
               )}
             />
 
+            {/* 产品表格 */}
+            <ContractProductTable
+              form={form}
+              fieldArray={fieldArray}
+              disabled={createMutation.isPending || updateMutation.isPending}
+            />
+
+            {/* 服务时间 */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -213,6 +197,7 @@ export function ContractFormDrawer({
               />
             </div>
 
+            {/* 备注 */}
             <FormField
               control={form.control}
               name="remark"

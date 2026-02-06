@@ -1,12 +1,16 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsString,
+  IsArray,
   IsNumber,
   IsDateString,
   IsOptional,
   Min,
   MaxLength,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
+import { ContractItemDto } from "./create-contract.dto";
 
 /**
  * 更新合同 DTO
@@ -20,16 +24,20 @@ export class UpdateContractDto {
   @IsString()
   customerId?: string;
 
-  @ApiPropertyOptional({ description: "产品ID", example: "cuid456" })
+  @ApiPropertyOptional({
+    description: "合同产品列表（完整替换）",
+    type: [ContractItemDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ContractItemDto)
+  items?: ContractItemDto[];
+
+  @ApiPropertyOptional({ description: "合同模板ID" })
   @IsOptional()
   @IsString()
-  productId?: string;
-
-  @ApiPropertyOptional({ description: "合同金额", example: 10000 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0, { message: "合同金额必须大于等于0" })
-  amount?: number;
+  templateId?: string;
 
   @ApiPropertyOptional({ description: "服务开始日期", example: "2024-01-01" })
   @IsOptional()
