@@ -197,19 +197,6 @@ pnpm prisma migrate deploy
 
 ---
 
-## 常见问题 Top 6
-
-| 问题 | 解决方案 |
-|------|----------|
-| **Hooks 早期返回错误** | 将条件渲染移到所有 Hooks 之后 |
-| **数据访问错误** | 在 Network 标签查看实际响应（`data` vs `items`） |
-| **模块导入错误** | 使用 `import` 而非 `require()` |
-| **API 类型过期** | 运行 `cd frontend && pnpm run generate:api` |
-| **枚举类型** | 使用字符串枚举（`ACTIVE`/`INACTIVE`），而非数字 |
-| **表格数据为空** | 检查 API 返回的字段名是否匹配 |
-
----
-
 ## 实用命令
 
 ```bash
@@ -236,7 +223,7 @@ cd backend && pnpm prisma generate && pnpm prisma db push
 
 ### 开发前
 - [ ] 后端 API 是否已开发？
-- [ ] 是否运行了 `pnpm run generate:api`？
+- [ ] 是否运行了 `cd frontend && pnpm run generate:api`？
 - [ ] 是否查看了 `src/services/api/` 中的 API 文件？
 - [ ] 是否确认了 API 返回的数据结构？
 
@@ -250,3 +237,315 @@ cd backend && pnpm prisma generate && pnpm prisma db push
 - [ ] CRUD 操作都能正常工作？
 - [ ] 控制台无错误或警告？
 - [ ] API 调用成功（Network 标签验证）？
+
+---
+
+## 常见错误与经验教训
+
+### 1. React Hooks 导入遗漏
+
+**错误现象**：
+```
+ReferenceError: useMemo is not defined
+```
+
+**原因**：使用了 Hook 但忘记在 import 语句中声明
+
+**解决方案**：
+```tsx
+// ❌ 错误
+import { useEffect, useState } from "react";
+const columns = useMemo(() => [...], [deps]);
+
+// ✅ 正确
+import { useEffect, useState, useMemo } from "react";
+const columns = useMemo(() => [...], [deps]);
+```
+
+**预防**：使用 ESLint 规则 `react-hooks/exhaustive-deps` 自动检测
+
+---
+
+### 2. TypeScript 类型包选择错误
+
+**错误现象**：
+```
+TS2688: Cannot find type definition file for 'cron'.
+```
+
+**原因**：项目使用 `node-cron` 包，但错误安装了 `@types/cron`
+
+**解决方案**：
+```bash
+# ❌ 错误：node-cron 不对应 @types/cron
+pnpm add -D @types/cron
+
+# ✅ 正确：使用对应的类型包
+pnpm add -D @types/node-cron
+```
+
+**经验**：类型包名称通常与运行时包名称一致，注意前缀 `@types/`
+
+---
+
+### 3. Prisma Client 未生成
+
+**错误现象**：
+```
+Module '"@prisma/client"' has no exported member 'PrismaClient'
+后端编译失败，所有 API 返回 500
+```
+
+**原因**：修改 schema 后未重新生成 Prisma Client
+
+**解决方案**：
+```bash
+cd backend && pnpm prisma generate
+./start-dev.sh restart
+```
+
+**预防**：将 `prisma generate` 添加到 postinstall 钩子
+
+---
+
+### 4. API 调用工厂函数重复调用
+
+**错误现象**：
+```
+TypeError: getLoginLogs(...) is not a function
+```
+
+**原因**：错误地嵌套调用工厂函数
+
+**解决方案**：
+```typescript
+// ❌ 错误：重复调用工厂函数
+getScrmApi().getLoginLogs().loginLogsControllerFindLoginLogs()
+
+// ✅ 正确：只调用一次工厂函数
+getScrmApi().loginLogsControllerFindLoginLogs()
+```
+
+---
+
+### 5. 分页数据字段名不一致
+
+**错误现象**：
+```
+表格数据为空，但 API 返回有数据
+```
+
+**原因**：后端不同接口返回的分页结构字段名不同
+
+**解决方案**：
+```typescript
+// 先在 Network 标签确认实际字段名
+const data = response?.data || []   // 产品、合同等
+const items = response?.items || [] // 客户等
+const list = response || []         // 直接返回数组
+```
+
+**长期方案**：后端统一响应格式
+
+---
+
+### 6. 用户状态禁用导致登录失败
+
+**错误现象**：
+```
+登录后立即返回登录页，或显示 "账号已被禁用"
+```
+
+**原因**：测试用户 status 字段为 0（禁用状态）
+
+**解决方案**：
+```sql
+-- 检查用户状态
+SELECT id, username, status FROM users WHERE username = 'admin';
+
+-- 启用用户
+UPDATE users SET status = 1 WHERE username = 'admin';
+```
+
+---
+
+### 7. Git 提交粒度过大
+
+**问题**：单次提交包含多个不相关的修改
+
+**影响**：
+- 代码审查困难
+- 回滚时影响范围过大
+- 难以追踪问题引入时机
+
+**最佳实践**：
+```bash
+# 按功能模块分别提交
+git add backend/src/modules/auth/ && git commit -m "feat(auth): ..."
+git add backend/src/modules/users/ && git commit -m "feat(users): ..."
+
+# 每个提交只做一件事
+```
+
+---
+
+### 8. 中文件名导致的跨平台问题
+
+**错误现象**：
+```
+Windows 下 Orval 生成的文件名乱码或路径错误
+```
+
+**原因**：`@ApiTags()` 使用了中文标签
+
+**解决方案**：
+```typescript
+// ❌ 错误：中文标签
+@ApiTags('用户管理')
+@ApiTags('登录日志')
+
+// ✅ 正确：英文标签
+@ApiTags('users')
+@ApiTags('login-logs')
+```
+
+---
+
+### 9. 依赖安装顺序问题
+
+**错误现象**：
+```
+ERR_PNPM_WORKSPACE_PKG_NOT_FOUND
+```
+
+**原因**：在子目录直接安装依赖，而非根目录
+
+**解决方案**：
+```bash
+# ✅ 正确：从根目录安装
+cd /path/to/qzt
+pnpm install
+
+# ❌ 错误：从子目录安装
+cd backend && pnpm install
+```
+
+---
+
+### 10. 热重载未生效
+
+**现象**：修改代码后刷新页面，行为未改变
+
+**原因**：
+- 后端：NestJS watch 模式未正确触发
+- 前端：Vite 缓存问题
+
+**解决方案**：
+```bash
+# 后端：重启开发服务
+./start-dev.sh restart
+
+# 前端：清除缓存重启
+cd frontend && rm -rf node_modules/.vite && pnpm dev
+```
+
+---
+
+## 代码风格规范
+
+### 导入顺序
+```typescript
+// 1. React 核心库
+import { useState, useEffect } from "react";
+
+// 2. 第三方库（按字母顺序）
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+
+// 3. 内部组件
+import { Button } from "@/components/ui/button";
+
+// 4. 工具函数
+import { cn } from "@/lib/utils";
+
+// 5. 类型
+import type { User } from "@/types";
+```
+
+### 文件命名
+```
+组件：PascalCase          (UserTable.tsx)
+Hooks：camelCase          (useUsers.ts)
+工具：camelCase           (formatDate.ts)
+类型：PascalCase          (User.ts)
+常量：UPPER_SNAKE_CASE   (API_BASE_URL.ts)
+```
+
+### 提交信息格式
+```
+<type>(<scope>): <subject>
+
+type: feat | fix | refactor | chore | docs | test | style
+scope: 模块名（可选）
+subject: 简短描述（不超过 50 字符）
+
+示例：
+feat(users): add user export functionality
+fix(auth): resolve token refresh issue
+refactor(frontend): standardize API service imports
+```
+
+---
+
+## 环境变量管理
+
+### 后端 (.env)
+```bash
+# 数据库
+DATABASE_URL="file:./dev.db"
+
+# JWT
+JWT_SECRET="your-secret-key"
+JWT_EXPIRES_IN="7d"
+
+# 服务端口
+PORT=7890
+```
+
+### 前端 (.env)
+```bash
+# API 地址
+VITE_API_BASE_URL="http://localhost:7890"
+
+# 其他配置
+VITE_APP_TITLE="企账通"
+```
+
+---
+
+## 调试技巧
+
+```typescript
+// 后端：NestJS 日志
+this.logger.log('[UserInfo]', user);
+this.logger.error('[Error]', error);
+
+// 前端：API 调用日志
+console.log('[API Request]', { url, params });
+console.log('[API Response]', data);
+
+// 网络请求拦截器
+instance.interceptors.request.use(config => {
+  console.log('[Request]', config);
+  return config;
+});
+```
+
+## 性能优化建议
+
+| 前端 | 后端 |
+|------|------|
+| 列表虚拟化：`react-window` | 数据库索引 |
+| 搜索防抖：`useDebounce` | 分页限制 |
+| 路由懒加载：`React.lazy()` | 连接池优化 |
+| React Query 缓存 | Redis 缓存 |
