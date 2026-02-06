@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   ColumnFiltersState,
   SortingState,
@@ -8,10 +8,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { ArrowUpDown, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+} from "@tanstack/react-table";
+import { ArrowUpDown, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,19 +19,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { useDepartments } from '../hooks/use-departments'
-import { columns } from '../data/columns'
+} from "@/components/ui/table";
+import { useDepartments } from "../hooks/use-departments";
+import { columns } from "../data/columns";
 
 export function DepartmentTable() {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
   const { data, isLoading, error } = useDepartments({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-  })
+  });
 
   const table = useReactTable({
     data: data?.data || [],
@@ -48,14 +48,16 @@ export function DepartmentTable() {
       columnFilters,
       pagination,
     },
-  })
+  });
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">加载中...</div>
+    return <div className="flex justify-center p-8">加载中...</div>;
   }
 
   if (error) {
-    return <div className="text-destructive p-8">加载失败: {error.message}</div>
+    return (
+      <div className="text-destructive p-8">加载失败: {error.message}</div>
+    );
   }
 
   return (
@@ -63,9 +65,9 @@ export function DepartmentTable() {
       <div className="flex items-center justify-between">
         <Input
           placeholder="搜索部门..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn('name')?.setFilterValue(event.target.value)
+            table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -86,8 +88,8 @@ export function DepartmentTable() {
                       <div
                         className={
                           header.column.getCanSort()
-                            ? 'flex cursor-pointer select-items-center gap-2'
-                            : ''
+                            ? "flex cursor-pointer select-items-center gap-2"
+                            : ""
                         }
                         onClick={header.column.getToggleSortingHandler()}
                       >
@@ -110,7 +112,7 @@ export function DepartmentTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
+                  data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -160,5 +162,5 @@ export function DepartmentTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }
