@@ -1,6 +1,6 @@
 import { useState, createContext, useContext } from "react";
 import { CustomerFormDrawer } from "./customer-form-drawer";
-import { CustomerDetailDialog } from "./customer-detail-dialog";
+import { CustomerDetailDrawer } from "./customer-detail-drawer";
 import { CustomersImportDialog } from "./customers-import-dialog";
 import { CustomersExportDialog } from "./customers-export-dialog";
 import type { Customer } from "../types/customer";
@@ -79,9 +79,9 @@ export function CustomersDialogs({
         />
       )}
 
-      {/* 客户详情对话框 */}
+      {/* 客户详情抽屉 */}
       {detailCustomerId && (
-        <CustomerDetailDialog
+        <CustomerDetailDrawer
           open={!!detailCustomerId}
           onOpenChange={(open) => !open && setDetailCustomerId(null)}
           customerId={detailCustomerId}
