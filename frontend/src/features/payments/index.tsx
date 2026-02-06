@@ -8,6 +8,7 @@ import {
   PaymentsDialogs,
   usePaymentsDialogs,
 } from "./components/payments-dialogs";
+import { CustomerPaymentsTab } from "./components/customer-payments-tab";
 
 const route = getRouteApi("/_authenticated/payments");
 
@@ -56,3 +57,5 @@ export function Payments() {
     </PaymentsDialogs>
   );
 }
+
+export { CustomerPaymentsTab };

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
@@ -10,12 +9,15 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FollowRecords } from "@/features/follow-records";
+import { Separator } from "@/components/ui/separator";
+import { CustomerFollowRecordsTab } from "@/features/follow-records";
 import { CustomerServiceTeamTab } from "@/features/service-teams";
+import { CustomerContactsTab } from "@/features/contacts";
+import { CustomerPaymentsTab } from "@/features/payments";
+import { CustomerInvoicesTab } from "@/features/invoices";
 import { useCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
-import { Phone, Mail, Building2, User, Users } from "lucide-react";
+import { Phone, Mail, Building2, User, Users, FileText, CreditCard, Receipt } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
 
@@ -40,7 +42,7 @@ export function CustomerDetailDrawer({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side={drawerSide}
-          className={isMobile ? "h-[85vh]" : "w-[700px]"}
+          className={isMobile ? "h-[85vh]" : "w-[800px]"}
         >
           <div className="flex items-center justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -60,118 +62,128 @@ export function CustomerDetailDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side={drawerSide}
-        className={isMobile ? "h-[85vh]" : "w-[700px]"}
+        className={isMobile ? "h-[85vh]" : "w-[800px] overflow-y-auto"}
       >
-        <SheetHeader className="pb-0 text-start">
+        <SheetHeader className="pb-4 text-start">
           <SheetTitle className="text-xl">{customerData.name}</SheetTitle>
           <SheetDescription>
             客户编号: {customerData.code || customerData.id}
           </SheetDescription>
         </SheetHeader>
 
-        <Tabs defaultValue="info" className="mt-4 flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="info">基本信息</TabsTrigger>
-            <TabsTrigger value="follow">跟进记录</TabsTrigger>
-            <TabsTrigger value="service-team">
-              <Users className="h-4 w-4 mr-1" />
-              服务团队
-            </TabsTrigger>
-            <TabsTrigger value="contracts">合同</TabsTrigger>
-          </TabsList>
+        <Separator className="my-4" />
 
-          {/* 基本信息 */}
-          <TabsContent
-            value="info"
-            className="mt-4 space-y-4 overflow-auto max-h-[calc(85vh-180px)]"
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <InfoItem
-                icon={<Building2 className="h-4 w-4" />}
-                label="企业名称"
-                value={customerData.name}
-              />
-              <InfoItem
-                icon={<User className="h-4 w-4" />}
-                label="联系人"
-                value={customerData.contactName || "-"}
-              />
-              <InfoItem
-                icon={<Phone className="h-4 w-4" />}
-                label="联系电话"
-                value={customerData.contactPhone || "-"}
-              />
-              <InfoItem
-                icon={<Mail className="h-4 w-4" />}
-                label="邮箱"
-                value={customerData.email || "-"}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">客户等级</h4>
+        {/* 基本信息固定显示在顶部 */}
+        <div className="space-y-4 mb-6">
+          <div className="grid grid-cols-2 gap-4">
+            <InfoItem
+              icon={<User className="h-4 w-4" />}
+              label="联系人"
+              value={customerData.contactName || "-"}
+            />
+            <InfoItem
+              icon={<Phone className="h-4 w-4" />}
+              label="联系电话"
+              value={customerData.contactPhone || "-"}
+            />
+            <InfoItem
+              icon={<Mail className="h-4 w-4" />}
+              label="邮箱"
+              value={customerData.email || "-"}
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-sm">客户等级:</span>
               <Badge
                 variant={getCustomerLevelVariant(customerData.customerLevel)}
+                className="ml-auto"
               >
                 {getCustomerLevelLabel(customerData.customerLevel)}
               </Badge>
             </div>
+          </div>
 
-            {customerData.address && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">地址</h4>
-                <p className="text-sm text-muted-foreground">
-                  {customerData.address}
-                </p>
-              </div>
-            )}
-
-            {customerData.remark && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">备注</h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {customerData.remark}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-              <div>
-                创建时间:{" "}
-                {format(new Date(customerData.createdAt), "yyyy-MM-dd HH:mm", {
-                  locale: zhCN,
-                })}
-              </div>
-              <div>
-                更新时间:{" "}
-                {format(new Date(customerData.updatedAt), "yyyy-MM-dd HH:mm", {
-                  locale: zhCN,
-                })}
-              </div>
+          {customerData.address && (
+            <div className="space-y-1">
+              <span className="text-sm text-muted-foreground">地址:</span>
+              <p className="text-sm">
+                {customerData.address}
+              </p>
             </div>
-          </TabsContent>
+          )}
+
+          {customerData.remark && (
+            <div className="space-y-1">
+              <span className="text-sm text-muted-foreground">备注:</span>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {customerData.remark}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <Separator className="my-4" />
+
+        {/* Tabs */}
+        <Tabs defaultValue="follow" className="flex-1 overflow-hidden">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsTrigger value="follow" className="text-xs sm:text-sm">
+              跟进记录
+            </TabsTrigger>
+            <TabsTrigger value="contacts" className="text-xs sm:text-sm">
+              联系人
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs sm:text-sm">
+              <CreditCard className="h-4 w-4 mr-1" />
+              收款
+            </TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs sm:text-sm">
+              <Receipt className="h-4 w-4 mr-1" />
+              发票
+            </TabsTrigger>
+            <TabsTrigger value="service-team" className="text-xs sm:text-sm">
+              <Users className="h-4 w-4 mr-1" />
+              服务团队
+            </TabsTrigger>
+          </TabsList>
 
           {/* 跟进记录 */}
-          <TabsContent value="follow" className="mt-0">
-            <FollowRecords
+          <TabsContent value="follow" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+            <CustomerFollowRecordsTab
+              customerId={customerId}
+              customerName={customerData.name}
+            />
+          </TabsContent>
+
+          {/* 联系人 */}
+          <TabsContent value="contacts" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+            <CustomerContactsTab
+              customerId={customerId}
+              customerName={customerData.name}
+            />
+          </TabsContent>
+
+          {/* 收款 */}
+          <TabsContent value="payments" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+            <CustomerPaymentsTab
+              customerId={customerId}
+              customerName={customerData.name}
+            />
+          </TabsContent>
+
+          {/* 发票 */}
+          <TabsContent value="invoices" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+            <CustomerInvoicesTab
               customerId={customerId}
               customerName={customerData.name}
             />
           </TabsContent>
 
           {/* 服务团队 */}
-          <TabsContent value="service-team" className="mt-4">
+          <TabsContent value="service-team" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
             <CustomerServiceTeamTab
               customerId={customerId}
               customerName={customerData.name}
             />
-          </TabsContent>
-
-          {/* 合同 */}
-          <TabsContent value="contracts" className="mt-4">
-            <div className="text-center py-8 text-muted-foreground">
-              合同列表待开发
-            </div>
           </TabsContent>
         </Tabs>
       </SheetContent>

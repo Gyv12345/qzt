@@ -70,7 +70,15 @@ export function getCustomersColumns({
         className: "w-[180px]",
       },
       cell: ({ row }) => {
-        return <div className="font-medium">{row.getValue("name")}</div>;
+        const customer = row.original;
+        return (
+          <div
+            className="font-medium cursor-pointer hover:text-primary transition-colors"
+            onClick={() => onOpenDetail?.(customer)}
+          >
+            {row.getValue("name")}
+          </div>
+        );
       },
     },
     {

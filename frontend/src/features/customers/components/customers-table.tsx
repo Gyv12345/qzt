@@ -123,7 +123,7 @@ export function CustomersTable({
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return getCustomersColumns({ t }).map((col) => {
+    return getCustomersColumns({ t, onOpenDetail: onRowClick }).map((col) => {
       if (col.id === "actions") {
         return {
           ...col,
@@ -140,7 +140,7 @@ export function CustomersTable({
       }
       return col;
     });
-  }, [onEdit, handleDeleteClick]);
+  }, [onEdit, handleDeleteClick, onRowClick, t]);
 
   const table = useReactTable({
     data: customers,
@@ -278,11 +278,9 @@ export function CustomersTable({
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     className={cn(
-                      "group/row cursor-pointer",
+                      "group/row",
                       isSelected && "bg-muted/50",
                     )}
-                    onClick={() => onRowClick?.(customer)}
-                    onDoubleClick={() => onRowDoubleClick?.(customer)}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
@@ -292,12 +290,6 @@ export function CustomersTable({
                           cell.column.columnDef.meta?.className,
                           cell.column.columnDef.meta?.tdClassName,
                         )}
-                        onClick={(e) => {
-                          // 阻止操作列的点击事件冒泡
-                          if (cell.column.id === "actions") {
-                            e.stopPropagation();
-                          }
-                        }}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
