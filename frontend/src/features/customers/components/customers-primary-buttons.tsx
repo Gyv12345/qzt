@@ -1,19 +1,21 @@
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface CustomersPrimaryButtonsProps {
-  onCreate: () => void
+  onCreate: () => void;
 }
 
-export function CustomersPrimaryButtons({ onCreate }: CustomersPrimaryButtonsProps) {
+export function CustomersPrimaryButtons({
+  onCreate,
+}: CustomersPrimaryButtonsProps) {
   return (
-    <div className='flex items-center gap-2'>
-      <Button size='sm' className='h-8 gap-1' onClick={onCreate}>
-        <Plus className='h-3.5 w-3.5' />
-        <span className='sr-only sm:not-sr-only sm:whitespace-nowrap'>
+    <div className="flex items-center gap-2">
+      <Button size="sm" className="h-8 gap-1" onClick={onCreate}>
+        <Plus className="h-3.5 w-3.5" />
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
           新建客户
         </span>
       </Button>
     </div>
-  )
+  );
 }

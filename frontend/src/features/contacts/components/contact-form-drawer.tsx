@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Sheet,
   SheetContent,
@@ -9,7 +9,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -17,34 +17,34 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { useDirection } from '@/context/direction-provider'
-import { useCreateContact, useUpdateContact } from '../hooks/use-contacts'
-import type { Contact } from '../types/contact'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDirection } from "@/context/direction-provider";
+import { useCreateContact, useUpdateContact } from "../hooks/use-contacts";
+import type { Contact } from "../types/contact";
 
 const contactFormSchema = z.object({
-  name: z.string().min(1, '姓名不能为空'),
-  phone: z.string().min(11, '请输入有效的手机号').max(11, '请输入有效的手机号'),
-  email: z.string().email('请输入有效的邮箱').optional().or(z.literal('')),
+  name: z.string().min(1, "姓名不能为空"),
+  phone: z.string().min(11, "请输入有效的手机号").max(11, "请输入有效的手机号"),
+  email: z.string().email("请输入有效的邮箱").optional().or(z.literal("")),
   wechat: z.string().optional(),
   position: z.string().optional(),
   department: z.string().optional(),
   birthdate: z.string().optional(),
   tags: z.string().optional(),
   remark: z.string().optional(),
-})
+});
 
-type ContactFormValues = z.infer<typeof contactFormSchema>
+type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 interface ContactFormDrawerProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  contact?: Contact
-  onSuccess: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  contact?: Contact;
+  onSuccess: () => void;
 }
 
 export function ContactFormDrawer({
@@ -53,10 +53,10 @@ export function ContactFormDrawer({
   contact,
   onSuccess,
 }: ContactFormDrawerProps) {
-  const isEdit = !!contact
-  const isMobile = useIsMobile()
-  const { dir } = useDirection()
-  const drawerSide = isMobile ? 'bottom' : dir === 'rtl' ? 'left' : 'right'
+  const isEdit = !!contact;
+  const isMobile = useIsMobile();
+  const { dir } = useDirection();
+  const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -64,35 +64,35 @@ export function ContactFormDrawer({
       ? {
           name: contact.name,
           phone: contact.phone,
-          email: contact.email || '',
-          wechat: contact.wechat || '',
-          position: contact.position || '',
-          department: contact.department || '',
-          birthdate: contact.birthdate || '',
-          tags: contact.tags || '',
-          remark: contact.remark || '',
+          email: contact.email || "",
+          wechat: contact.wechat || "",
+          position: contact.position || "",
+          department: contact.department || "",
+          birthdate: contact.birthdate || "",
+          tags: contact.tags || "",
+          remark: contact.remark || "",
         }
       : {
-          name: '',
-          phone: '',
-          email: '',
-          wechat: '',
-          position: '',
-          department: '',
-          birthdate: '',
-          tags: '',
-          remark: '',
+          name: "",
+          phone: "",
+          email: "",
+          wechat: "",
+          position: "",
+          department: "",
+          birthdate: "",
+          tags: "",
+          remark: "",
         },
-  })
+  });
 
   useEffect(() => {
     if (!open) {
-      form.reset()
+      form.reset();
     }
-  }, [open, form])
+  }, [open, form]);
 
-  const createMutation = useCreateContact()
-  const updateMutation = useUpdateContact()
+  const createMutation = useCreateContact();
+  const updateMutation = useUpdateContact();
 
   const onSubmit = async (values: ContactFormValues) => {
     try {
@@ -105,41 +105,50 @@ export function ContactFormDrawer({
         birthdate: values.birthdate || undefined,
         tags: values.tags || undefined,
         remark: values.remark || undefined,
-      }
+      };
 
       if (isEdit && contact) {
-        await updateMutation.mutateAsync({ id: contact.id, data: cleanedValues as any })
+        await updateMutation.mutateAsync({
+          id: contact.id,
+          data: cleanedValues as any,
+        });
       } else {
-        await createMutation.mutateAsync(cleanedValues as any)
+        await createMutation.mutateAsync(cleanedValues as any);
       }
-      onSuccess()
-      onOpenChange(false)
+      onSuccess();
+      onOpenChange(false);
     } catch (error) {
-      console.error('提交失败:', error)
+      console.error("提交失败:", error);
     }
-  }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side={drawerSide} className={isMobile ? 'h-[85vh]' : 'w-[600px]'}>
-        <SheetHeader className='pb-0 text-start'>
-          <SheetTitle>{isEdit ? '编辑联系人' : '新建联系人'}</SheetTitle>
+      <SheetContent
+        side={drawerSide}
+        className={isMobile ? "h-[85vh]" : "w-[600px]"}
+      >
+        <SheetHeader className="pb-0 text-start">
+          <SheetTitle>{isEdit ? "编辑联系人" : "新建联系人"}</SheetTitle>
           <SheetDescription>
-            {isEdit ? '修改联系人信息' : '填写联系人基本信息'}
+            {isEdit ? "修改联系人信息" : "填写联系人基本信息"}
           </SheetDescription>
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 px-4 pb-6'>
-            <div className='grid grid-cols-2 gap-4'>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 px-4 pb-6"
+          >
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>姓名 *</FormLabel>
                     <FormControl>
-                      <Input placeholder='请输入姓名' {...field} />
+                      <Input placeholder="请输入姓名" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,12 +157,12 @@ export function ContactFormDrawer({
 
               <FormField
                 control={form.control}
-                name='phone'
+                name="phone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>手机号 *</FormLabel>
                     <FormControl>
-                      <Input placeholder='请输入手机号' {...field} />
+                      <Input placeholder="请输入手机号" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -161,15 +170,15 @@ export function ContactFormDrawer({
               />
             </div>
 
-            <div className='grid grid-cols-2 gap-4'>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name='email'
+                name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>邮箱</FormLabel>
                     <FormControl>
-                      <Input placeholder='请输入邮箱' {...field} />
+                      <Input placeholder="请输入邮箱" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -178,12 +187,12 @@ export function ContactFormDrawer({
 
               <FormField
                 control={form.control}
-                name='wechat'
+                name="wechat"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>微信号</FormLabel>
                     <FormControl>
-                      <Input placeholder='请输入微信号' {...field} />
+                      <Input placeholder="请输入微信号" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -191,15 +200,15 @@ export function ContactFormDrawer({
               />
             </div>
 
-            <div className='grid grid-cols-2 gap-4'>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name='position'
+                name="position"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>职位</FormLabel>
                     <FormControl>
-                      <Input placeholder='请输入职位' {...field} />
+                      <Input placeholder="请输入职位" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -208,12 +217,12 @@ export function ContactFormDrawer({
 
               <FormField
                 control={form.control}
-                name='department'
+                name="department"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>部门</FormLabel>
                     <FormControl>
-                      <Input placeholder='请输入部门' {...field} />
+                      <Input placeholder="请输入部门" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -223,12 +232,12 @@ export function ContactFormDrawer({
 
             <FormField
               control={form.control}
-              name='birthdate'
+              name="birthdate"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>生日</FormLabel>
                   <FormControl>
-                    <Input type='date' {...field} />
+                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -237,12 +246,15 @@ export function ContactFormDrawer({
 
             <FormField
               control={form.control}
-              name='tags'
+              name="tags"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>标签</FormLabel>
                   <FormControl>
-                    <Input placeholder='请输入标签，多个标签用逗号分隔' {...field} />
+                    <Input
+                      placeholder="请输入标签，多个标签用逗号分隔"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -251,14 +263,14 @@ export function ContactFormDrawer({
 
             <FormField
               control={form.control}
-              name='remark'
+              name="remark"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>备注</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder='请输入备注信息'
-                      className='resize-none'
+                      placeholder="请输入备注信息"
+                      className="resize-none"
                       rows={3}
                       {...field}
                     />
@@ -268,28 +280,28 @@ export function ContactFormDrawer({
               )}
             />
 
-            <SheetFooter className='px-0'>
+            <SheetFooter className="px-0">
               <Button
-                type='button'
-                variant='outline'
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
               >
                 取消
               </Button>
               <Button
-                type='submit'
+                type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
                 {createMutation.isPending || updateMutation.isPending
-                  ? '提交中...'
+                  ? "提交中..."
                   : isEdit
-                    ? '保存'
-                    : '创建'}
+                    ? "保存"
+                    : "创建"}
               </Button>
             </SheetFooter>
           </form>
         </Form>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from "react";
 import {
   Download,
   Upload,
@@ -6,33 +6,33 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertTriangle,
-} from 'lucide-react'
-import { toast } from 'sonner'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
+} from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -40,159 +40,164 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import type { Contact } from '../types/contact'
+} from "@/components/ui/table";
+import type { Contact } from "../types/contact";
 
-const HISTORY_STORAGE_KEY = 'contacts-import-export-history-v1'
+// TODO(human): 如果需要支持"导出当前页"功能，可以通过 props 传递当前页数据
+// 当前实现中"导出当前页"也会创建后台任务
+
+const HISTORY_STORAGE_KEY = "contacts-import-export-history-v1";
 
 type ExportColumn = {
-  id: string
-  displayName: string
-}
+  id: string;
+  displayName: string;
+};
 
 type ContactField = {
-  key: keyof Contact
-  label: string
-  required?: boolean
-}
+  key: keyof Contact;
+  label: string;
+  required?: boolean;
+};
 
 type HistoryItem = {
-  id: string
-  type: 'import' | 'export'
-  module: string
-  status: 'PENDING' | 'COMPLETED' | 'FAILED'
-  summary: string
-  detail?: string
-  createdAt: string
-}
+  id: string;
+  type: "import" | "export";
+  module: string;
+  status: "PENDING" | "COMPLETED" | "FAILED";
+  summary: string;
+  detail?: string;
+  createdAt: string;
+};
 
 interface DataTableExportImportProps {
-  module: string
-  data?: Contact[]
-  selectedData?: Contact[]
-  onImportSuccess?: () => void
+  module: string;
+  selectedData?: Contact[];
+  onImportSuccess?: () => void;
 }
 
 export function DataTableExportImport({
   module,
-  data = [],
   selectedData = [],
   onImportSuccess,
 }: DataTableExportImportProps) {
-  const { t } = useTranslation()
-  const [exportDialogOpen, setExportDialogOpen] = useState(false)
-  const [importDialogOpen, setImportDialogOpen] = useState(false)
-  const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
-  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
+  const { t } = useTranslation();
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    setHistoryItems(loadHistory())
-  }, [])
+    setHistoryItems(loadHistory());
+  }, []);
 
   const exportColumns = useMemo<ExportColumn[]>(() => {
-    if (module === 'contact') {
+    if (module === "contact") {
       return [
-        { id: 'name', displayName: t('contact.columns.name') },
-        { id: 'phone', displayName: t('contact.columns.phone') },
-        { id: 'email', displayName: t('contact.columns.email') },
-        { id: 'customerName', displayName: t('contact.columns.customerName') },
-        { id: 'position', displayName: t('contact.columns.position') },
-        { id: 'department', displayName: t('contact.columns.department') },
-        { id: 'wechat', displayName: t('contact.columns.wechat') },
-        { id: 'birthdate', displayName: t('contact.columns.birthdate') },
-        { id: 'createdAt', displayName: t('contact.columns.createdAt') },
-      ]
+        { id: "name", displayName: t("contact.columns.name") },
+        { id: "phone", displayName: t("contact.columns.phone") },
+        { id: "email", displayName: t("contact.columns.email") },
+        { id: "customerName", displayName: t("contact.columns.customerName") },
+        { id: "position", displayName: t("contact.columns.position") },
+        { id: "department", displayName: t("contact.columns.department") },
+        { id: "wechat", displayName: t("contact.columns.wechat") },
+        { id: "birthdate", displayName: t("contact.columns.birthdate") },
+        { id: "createdAt", displayName: t("contact.columns.createdAt") },
+      ];
     }
-    return []
-  }, [module, t])
+    return [];
+  }, [module, t]);
 
   const contactFields = useMemo<ContactField[]>(() => {
-    if (module === 'contact') {
+    if (module === "contact") {
       return [
-        { key: 'name', label: t('contact.columns.name'), required: true },
-        { key: 'phone', label: t('contact.columns.phone'), required: true },
-        { key: 'email', label: t('contact.columns.email') },
-        { key: 'wechat', label: t('contact.columns.wechat') },
-        { key: 'position', label: t('contact.columns.position') },
-        { key: 'department', label: t('contact.columns.department') },
-        { key: 'customerName', label: t('contact.columns.customerName') },
-      ]
+        { key: "name", label: t("contact.columns.name"), required: true },
+        { key: "phone", label: t("contact.columns.phone"), required: true },
+        { key: "email", label: t("contact.columns.email") },
+        { key: "wechat", label: t("contact.columns.wechat") },
+        { key: "position", label: t("contact.columns.position") },
+        { key: "department", label: t("contact.columns.department") },
+        { key: "customerName", label: t("contact.columns.customerName") },
+      ];
     }
-    return []
-  }, [module, t])
+    return [];
+  }, [module, t]);
 
   const pushHistoryItem = (item: HistoryItem) => {
-    const next = [item, ...historyItems]
-    setHistoryItems(next)
-    saveHistory(next)
-  }
+    const next = [item, ...historyItems];
+    setHistoryItems(next);
+    saveHistory(next);
+  };
 
   const handleExport = (payload: { range: string; columns: string[] }) => {
-    const exportData = resolveExportData(payload.range, data, selectedData)
+    const exportData = resolveExportData(payload.range, selectedData);
     const selectedColumns = exportColumns.filter((column) =>
-      payload.columns.includes(column.id)
-    )
+      payload.columns.includes(column.id),
+    );
 
     if (!selectedColumns.length) {
-      toast.error('请选择至少一个导出字段')
-      return
+      toast.error("请选择至少一个导出字段");
+      return;
     }
 
-    if (!exportData) {
+    // "selected" 范围直接导出，其他范围创建后台任务
+    if (payload.range === "selected" && exportData) {
+      const csvContent = buildCsv(
+        selectedColumns.map((col) => col.displayName),
+        exportData.map((row) =>
+          selectedColumns.map((column) =>
+            formatCellValue((row as any)[column.id]),
+          ),
+        ),
+      );
+
+      downloadFile(csvContent, `contacts-export-${payload.range}.csv`);
       pushHistoryItem({
         id: crypto.randomUUID(),
-        type: 'export',
+        type: "export",
         module,
-        status: 'PENDING',
-        summary: `导出${getRangeLabel(payload.range)}任务已创建`,
-        detail: '待后台导出完成',
+        status: "COMPLETED",
+        summary: `导出${getRangeLabel(payload.range)}完成`,
+        detail: `${exportData.length} 条记录`,
         createdAt: new Date().toISOString(),
-      })
-      toast.success('已创建后台导出任务')
-      setExportDialogOpen(false)
-      return
+      });
+      toast.success("导出完成");
+      setExportDialogOpen(false);
+      return;
     }
 
-    const csvContent = buildCsv(
-      selectedColumns.map((col) => col.displayName),
-      exportData.map((row) =>
-        selectedColumns.map((column) => formatCellValue((row as any)[column.id]))
-      )
-    )
-
-    downloadFile(csvContent, `contacts-export-${payload.range}.csv`)
+    // 其他范围创建后台导出任务
     pushHistoryItem({
       id: crypto.randomUUID(),
-      type: 'export',
+      type: "export",
       module,
-      status: 'COMPLETED',
-      summary: `导出${getRangeLabel(payload.range)}完成`,
-      detail: `${exportData.length} 条记录`,
+      status: "PENDING",
+      summary: `导出${getRangeLabel(payload.range)}任务已创建`,
+      detail: "待后台导出完成",
       createdAt: new Date().toISOString(),
-    })
-    toast.success('导出完成')
-    setExportDialogOpen(false)
-  }
+    });
+    toast.success("已创建后台导出任务");
+    setExportDialogOpen(false);
+  };
 
   const handleImportSuccess = (summary: string, detail: string) => {
     pushHistoryItem({
       id: crypto.randomUUID(),
-      type: 'import',
+      type: "import",
       module,
-      status: 'PENDING',
+      status: "PENDING",
       summary,
       detail,
       createdAt: new Date().toISOString(),
-    })
-    onImportSuccess?.()
-  }
+    });
+    onImportSuccess?.();
+  };
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant='outline' size='sm' className='h-8'>
-            <Download className='mr-2 h-4 w-4' />
+          <Button variant="outline" size="sm" className="h-8">
+            <Download className="mr-2 h-4 w-4" />
             导出
           </Button>
         </DropdownMenuTrigger>
@@ -200,7 +205,7 @@ export function DataTableExportImport({
           <DropdownMenuItem
             onClick={() =>
               handleExport({
-                range: 'selected',
+                range: "selected",
                 columns: exportColumns.map((col) => col.id),
               })
             }
@@ -210,7 +215,7 @@ export function DataTableExportImport({
           <DropdownMenuItem
             onClick={() =>
               handleExport({
-                range: 'currentPage',
+                range: "currentPage",
                 columns: exportColumns.map((col) => col.id),
               })
             }
@@ -224,22 +229,22 @@ export function DataTableExportImport({
       </DropdownMenu>
 
       <Button
-        variant='outline'
-        size='sm'
-        className='h-8'
+        variant="outline"
+        size="sm"
+        className="h-8"
         onClick={() => setImportDialogOpen(true)}
       >
-        <Upload className='mr-2 h-4 w-4' />
+        <Upload className="mr-2 h-4 w-4" />
         导入
       </Button>
 
       <Button
-        variant='ghost'
-        size='sm'
-        className='h-8 px-2'
+        variant="ghost"
+        size="sm"
+        className="h-8 px-2"
         onClick={() => setHistoryDialogOpen(true)}
       >
-        <Clock3 className='mr-1 h-4 w-4' />
+        <Clock3 className="mr-1 h-4 w-4" />
         历史
       </Button>
 
@@ -264,7 +269,7 @@ export function DataTableExportImport({
         items={historyItems}
       />
     </>
-  )
+  );
 }
 
 function ExportDialog({
@@ -274,26 +279,28 @@ function ExportDialog({
   selectedCount,
   onExport,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  columns: ExportColumn[]
-  selectedCount: number
-  onExport: (payload: { range: string; columns: string[] }) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  columns: ExportColumn[];
+  selectedCount: number;
+  onExport: (payload: { range: string; columns: string[] }) => void;
 }) {
-  const [selectedColumns, setSelectedColumns] = useState(columns.map((col) => col.id))
-  const [exportRange, setExportRange] = useState<'all' | 'filtered' | 'selected' | 'currentPage'>(
-    'filtered'
-  )
+  const [selectedColumns, setSelectedColumns] = useState(
+    columns.map((col) => col.id),
+  );
+  const [exportRange, setExportRange] = useState<
+    "all" | "filtered" | "selected" | "currentPage"
+  >("filtered");
 
   useEffect(() => {
-    setSelectedColumns(columns.map((col) => col.id))
-  }, [columns])
+    setSelectedColumns(columns.map((col) => col.id));
+  }, [columns]);
 
   const toggleColumn = (id: string, checked: boolean) => {
     setSelectedColumns((prev) =>
-      checked ? [...prev, id] : prev.filter((columnId) => columnId !== id)
-    )
-  }
+      checked ? [...prev, id] : prev.filter((columnId) => columnId !== id),
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -302,37 +309,44 @@ function ExportDialog({
           <DialogTitle>高级导出</DialogTitle>
         </DialogHeader>
 
-        <div className='space-y-4'>
-          <div className='space-y-2'>
+        <div className="space-y-4">
+          <div className="space-y-2">
             <Label>导出范围</Label>
-            <RadioGroup value={exportRange} onValueChange={(value) => setExportRange(value as any)}>
-              <div className='flex items-center gap-2'>
-                <RadioGroupItem value='all' id='export-all' />
-                <Label htmlFor='export-all'>导出全部数据</Label>
+            <RadioGroup
+              value={exportRange}
+              onValueChange={(value) => setExportRange(value as any)}
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="all" id="export-all" />
+                <Label htmlFor="export-all">导出全部数据</Label>
               </div>
-              <div className='flex items-center gap-2'>
-                <RadioGroupItem value='filtered' id='export-filtered' />
-                <Label htmlFor='export-filtered'>导出筛选后的数据</Label>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="filtered" id="export-filtered" />
+                <Label htmlFor="export-filtered">导出筛选后的数据</Label>
               </div>
-              <div className='flex items-center gap-2'>
-                <RadioGroupItem value='currentPage' id='export-current' />
-                <Label htmlFor='export-current'>导出当前页</Label>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="currentPage" id="export-current" />
+                <Label htmlFor="export-current">导出当前页</Label>
               </div>
-              <div className='flex items-center gap-2'>
-                <RadioGroupItem value='selected' id='export-selected' />
-                <Label htmlFor='export-selected'>导出选中的行 ({selectedCount})</Label>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="selected" id="export-selected" />
+                <Label htmlFor="export-selected">
+                  导出选中的行 ({selectedCount})
+                </Label>
               </div>
             </RadioGroup>
           </div>
 
-          <div className='space-y-2'>
+          <div className="space-y-2">
             <Label>选择导出字段</Label>
-            <div className='max-h-60 space-y-2 overflow-y-auto rounded-md border p-4'>
+            <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border p-4">
               {columns.map((column) => (
-                <div key={column.id} className='flex items-center gap-2'>
+                <div key={column.id} className="flex items-center gap-2">
                   <Checkbox
                     checked={selectedColumns.includes(column.id)}
-                    onCheckedChange={(value) => toggleColumn(column.id, !!value)}
+                    onCheckedChange={(value) =>
+                      toggleColumn(column.id, !!value)
+                    }
                   />
                   <span>{column.displayName}</span>
                 </div>
@@ -342,13 +356,17 @@ function ExportDialog({
         </div>
 
         <DialogFooter>
-          <Button onClick={() => onExport({ range: exportRange, columns: selectedColumns })}>
+          <Button
+            onClick={() =>
+              onExport({ range: exportRange, columns: selectedColumns })
+            }
+          >
             导出 CSV
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function ImportDialog({
@@ -357,125 +375,135 @@ function ImportDialog({
   fields,
   onImportSuccess,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  fields: ContactField[]
-  onImportSuccess: (summary: string, detail: string) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  fields: ContactField[];
+  onImportSuccess: (summary: string, detail: string) => void;
 }) {
-  const [step, setStep] = useState(1)
-  const [fileName, setFileName] = useState('')
-  const [headers, setHeaders] = useState<string[]>([])
-  const [rows, setRows] = useState<Record<string, string>[]>([])
-  const [mapping, setMapping] = useState<Record<string, string>>({})
+  const [step, setStep] = useState(1);
+  const [fileName, setFileName] = useState("");
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [rows, setRows] = useState<Record<string, string>[]>([]);
+  const [mapping, setMapping] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (open) {
-      return
+      return;
     }
-    setStep(1)
-    setFileName('')
-    setHeaders([])
-    setRows([])
-    setMapping({})
-  }, [open])
+    setStep(1);
+    setFileName("");
+    setHeaders([]);
+    setRows([]);
+    setMapping({});
+  }, [open]);
 
   const mappedPreview = useMemo(() => {
     return rows.slice(0, 10).map((row) => {
-      const mapped: Record<string, string> = {}
+      const mapped: Record<string, string> = {};
       fields.forEach((field) => {
-        const header = mapping[field.key as string]
-        mapped[field.key as string] = header ? row[header] || '' : ''
-      })
-      return mapped
-    })
-  }, [rows, fields, mapping])
+        const header = mapping[field.key as string];
+        mapped[field.key as string] = header ? row[header] || "" : "";
+      });
+      return mapped;
+    });
+  }, [rows, fields, mapping]);
 
   const validation = useMemo(() => {
-    let validCount = 0
+    let validCount = 0;
     rows.forEach((row) => {
       const isValid = fields.every((field) => {
-        if (!field.required) return true
-        const header = mapping[field.key as string]
-        return !!(header && row[header])
-      })
-      if (isValid) validCount += 1
-    })
+        if (!field.required) return true;
+        const header = mapping[field.key as string];
+        return !!(header && row[header]);
+      });
+      if (isValid) validCount += 1;
+    });
     return {
       total: rows.length,
       valid: validCount,
       invalid: Math.max(rows.length - validCount, 0),
-    }
-  }, [rows, fields, mapping])
+    };
+  }, [rows, fields, mapping]);
 
   const handleFileUpload = async (file: File) => {
-    const text = await file.text()
-    const parsed = parseCsv(text)
-    setFileName(file.name)
-    setHeaders(parsed.headers)
-    setRows(parsed.rows)
-    setMapping(autoMapFields(parsed.headers, fields))
-    setStep(2)
-  }
+    const text = await file.text();
+    const parsed = parseCsv(text);
+    setFileName(file.name);
+    setHeaders(parsed.headers);
+    setRows(parsed.rows);
+    setMapping(autoMapFields(parsed.headers, fields));
+    setStep(2);
+  };
 
   const handleImport = () => {
     if (validation.total === 0) {
-      toast.error('请先导入有效数据')
-      return
+      toast.error("请先导入有效数据");
+      return;
     }
 
     if (validation.valid === 0) {
-      toast.error('没有可导入的有效数据')
-      return
+      toast.error("没有可导入的有效数据");
+      return;
     }
 
     onImportSuccess(
       `导入联系人任务已提交 (${fileName})`,
-      `有效 ${validation.valid} 条，忽略 ${validation.invalid} 条`
-    )
+      `有效 ${validation.valid} 条，忽略 ${validation.invalid} 条`,
+    );
 
-    toast.success('导入任务已提交')
-    onOpenChange(false)
-  }
+    toast.success("导入任务已提交");
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-4xl'>
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>导入数据</DialogTitle>
         </DialogHeader>
 
-        <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-          <span className={step >= 1 ? 'text-foreground' : ''}>1. 上传</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className={step >= 1 ? "text-foreground" : ""}>1. 上传</span>
           <span>→</span>
-          <span className={step >= 2 ? 'text-foreground' : ''}>2. 字段映射</span>
+          <span className={step >= 2 ? "text-foreground" : ""}>
+            2. 字段映射
+          </span>
           <span>→</span>
-          <span className={step >= 3 ? 'text-foreground' : ''}>3. 预览确认</span>
+          <span className={step >= 3 ? "text-foreground" : ""}>
+            3. 预览确认
+          </span>
         </div>
 
         {step === 1 && (
-          <div className='rounded-md border border-dashed p-6 text-center'>
-            <FileSpreadsheet className='mx-auto mb-2 h-8 w-8 text-muted-foreground' />
-            <p className='text-sm text-muted-foreground'>支持 CSV 格式文件</p>
-            <div className='mt-4 flex items-center justify-center gap-2'>
-              <Button variant='outline' asChild>
+          <div className="rounded-md border border-dashed p-6 text-center">
+            <FileSpreadsheet className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">支持 CSV 格式文件</p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <Button variant="outline" asChild>
                 <label>
                   上传文件
                   <input
-                    type='file'
-                    accept='.csv,text/csv'
-                    className='hidden'
+                    type="file"
+                    accept=".csv,text/csv"
+                    className="hidden"
                     onChange={(event) => {
-                      const file = event.target.files?.[0]
-                      if (!file) return
-                      handleFileUpload(file)
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      handleFileUpload(file);
                     }}
                   />
                 </label>
               </Button>
               <Button
-                variant='ghost'
+                variant="ghost"
                 onClick={() =>
-                  downloadFile(buildCsv(['name', 'phone', 'email'], [['张三', '13800138000', 'test@example.com']]), 'contacts-template.csv')
+                  downloadFile(
+                    buildCsv(
+                      ["name", "phone", "email"],
+                      [["张三", "13800138000", "test@example.com"]],
+                    ),
+                    "contacts-template.csv",
+                  )
                 }
               >
                 下载模板
@@ -485,28 +513,33 @@ function ImportDialog({
         )}
 
         {step === 2 && (
-          <div className='space-y-4'>
-            <div className='text-sm text-muted-foreground'>
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
               已解析文件：{fileName}（{rows.length} 条）
             </div>
-            <div className='grid gap-3 sm:grid-cols-2'>
+            <div className="grid gap-3 sm:grid-cols-2">
               {fields.map((field) => (
-                <div key={field.key as string} className='space-y-1'>
+                <div key={field.key as string} className="space-y-1">
                   <Label>
                     {field.label}
-                    {field.required && <span className='text-destructive'> *</span>}
+                    {field.required && (
+                      <span className="text-destructive"> *</span>
+                    )}
                   </Label>
                   <Select
-                    value={mapping[field.key as string] || ''}
+                    value={mapping[field.key as string] || ""}
                     onValueChange={(value) =>
-                      setMapping((prev) => ({ ...prev, [field.key as string]: value }))
+                      setMapping((prev) => ({
+                        ...prev,
+                        [field.key as string]: value,
+                      }))
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder='请选择字段' />
+                      <SelectValue placeholder="请选择字段" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value=''>不导入</SelectItem>
+                      <SelectItem value="">不导入</SelectItem>
                       {headers.map((header) => (
                         <SelectItem key={header} value={header}>
                           {header}
@@ -518,7 +551,7 @@ function ImportDialog({
               ))}
             </div>
             <DialogFooter>
-              <Button variant='outline' onClick={() => setStep(1)}>
+              <Button variant="outline" onClick={() => setStep(1)}>
                 返回
               </Button>
               <Button onClick={() => setStep(3)}>下一步</Button>
@@ -527,25 +560,27 @@ function ImportDialog({
         )}
 
         {step === 3 && (
-          <div className='space-y-4'>
-            <div className='flex flex-wrap items-center gap-3 text-sm'>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
               <span>总计 {validation.total} 条</span>
-              <span className='flex items-center gap-1 text-emerald-600'>
-                <CheckCircle2 className='h-4 w-4' />
+              <span className="flex items-center gap-1 text-emerald-600">
+                <CheckCircle2 className="h-4 w-4" />
                 有效 {validation.valid} 条
               </span>
-              <span className='flex items-center gap-1 text-amber-600'>
-                <AlertTriangle className='h-4 w-4' />
+              <span className="flex items-center gap-1 text-amber-600">
+                <AlertTriangle className="h-4 w-4" />
                 忽略 {validation.invalid} 条
               </span>
             </div>
 
-            <div className='overflow-hidden rounded-md border'>
+            <div className="overflow-hidden rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     {fields.map((field) => (
-                      <TableHead key={field.key as string}>{field.label}</TableHead>
+                      <TableHead key={field.key as string}>
+                        {field.label}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -555,14 +590,17 @@ function ImportDialog({
                       <TableRow key={idx}>
                         {fields.map((field) => (
                           <TableCell key={field.key as string}>
-                            {row[field.key as string] || '-'}
+                            {row[field.key as string] || "-"}
                           </TableCell>
                         ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={fields.length} className='h-24 text-center'>
+                      <TableCell
+                        colSpan={fields.length}
+                        className="h-24 text-center"
+                      >
                         暂无预览数据
                       </TableCell>
                     </TableRow>
@@ -572,7 +610,7 @@ function ImportDialog({
             </div>
 
             <DialogFooter>
-              <Button variant='outline' onClick={() => setStep(2)}>
+              <Button variant="outline" onClick={() => setStep(2)}>
                 返回
               </Button>
               <Button onClick={handleImport}>确认导入</Button>
@@ -581,7 +619,7 @@ function ImportDialog({
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function HistoryDialog({
@@ -589,39 +627,41 @@ function HistoryDialog({
   onOpenChange,
   items,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  items: HistoryItem[]
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  items: HistoryItem[];
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl'>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>导入导出历史</DialogTitle>
         </DialogHeader>
-        <div className='space-y-3'>
+        <div className="space-y-3">
           {items.length === 0 ? (
-            <div className='text-sm text-muted-foreground'>暂无历史记录</div>
+            <div className="text-sm text-muted-foreground">暂无历史记录</div>
           ) : (
             items.map((item) => (
-              <div key={item.id} className='rounded-md border p-3'>
-                <div className='flex items-center justify-between'>
-                  <div className='text-sm font-medium'>{item.summary}</div>
-                  <span className='text-xs text-muted-foreground'>
+              <div key={item.id} className="rounded-md border p-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">{item.summary}</div>
+                  <span className="text-xs text-muted-foreground">
                     {new Date(item.createdAt).toLocaleString()}
                   </span>
                 </div>
-                <div className='mt-1 text-xs text-muted-foreground'>{item.detail}</div>
-                <div className='mt-2 text-xs'>
-                  <span className='rounded-full border px-2 py-0.5'>
-                    {item.type === 'import' ? '导入' : '导出'}
-                  </span>{' '}
-                  <span className='rounded-full border px-2 py-0.5'>
-                    {item.status === 'COMPLETED'
-                      ? '已完成'
-                      : item.status === 'FAILED'
-                        ? '失败'
-                        : '处理中'}
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {item.detail}
+                </div>
+                <div className="mt-2 text-xs">
+                  <span className="rounded-full border px-2 py-0.5">
+                    {item.type === "import" ? "导入" : "导出"}
+                  </span>{" "}
+                  <span className="rounded-full border px-2 py-0.5">
+                    {item.status === "COMPLETED"
+                      ? "已完成"
+                      : item.status === "FAILED"
+                        ? "失败"
+                        : "处理中"}
                   </span>
                 </div>
               </div>
@@ -630,159 +670,153 @@ function HistoryDialog({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-function resolveExportData(
-  range: string,
-  currentData: Contact[],
-  selectedData: Contact[]
-) {
-  if (range === 'selected') {
+function resolveExportData(range: string, selectedData: Contact[]) {
+  if (range === "selected") {
     if (!selectedData.length) {
-      toast.error('请先选择要导出的行')
-      return null
+      toast.error("请先选择要导出的行");
+      return null;
     }
-    return selectedData
+    return selectedData;
   }
 
-  if (range === 'currentPage') {
-    if (!currentData.length) {
-      toast.error('当前页没有可导出的数据')
-      return null
-    }
-    return currentData
-  }
-
-  return null
+  // "currentPage", "all", "filtered" 都返回 null，创建后台任务
+  return null;
 }
 
 function getRangeLabel(range: string) {
   switch (range) {
-    case 'selected':
-      return '选中行'
-    case 'currentPage':
-      return '当前页'
-    case 'filtered':
-      return '筛选数据'
-    case 'all':
-      return '全部数据'
+    case "selected":
+      return "选中行";
+    case "currentPage":
+      return "当前页";
+    case "filtered":
+      return "筛选数据";
+    case "all":
+      return "全部数据";
     default:
-      return '数据'
+      return "数据";
   }
 }
 
 function buildCsv(headers: string[], rows: string[][]) {
-  const headerLine = headers.map(escapeCsv).join(',')
-  const dataLines = rows.map((row) => row.map(escapeCsv).join(','))
-  return [headerLine, ...dataLines].join('\n')
+  const headerLine = headers.map(escapeCsv).join(",");
+  const dataLines = rows.map((row) => row.map(escapeCsv).join(","));
+  return [headerLine, ...dataLines].join("\n");
 }
 
 function escapeCsv(value: string) {
-  if (value == null) return ''
-  const needsEscape = /[",\n]/.test(value)
-  const escaped = value.replace(/"/g, '""')
-  return needsEscape ? `"${escaped}"` : escaped
+  if (value == null) return "";
+  const needsEscape = /[",\n]/.test(value);
+  const escaped = value.replace(/"/g, '""');
+  return needsEscape ? `"${escaped}"` : escaped;
 }
 
 function formatCellValue(value: unknown) {
-  if (value == null) return ''
-  if (value instanceof Date) return value.toISOString()
-  return String(value)
+  if (value == null) return "";
+  if (value instanceof Date) return value.toISOString();
+  return String(value);
 }
 
 function downloadFile(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', filename)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
-function parseCsv(content: string): { headers: string[]; rows: Record<string, string>[] } {
-  const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
-  const filtered = lines.filter((line) => line.trim() !== '')
+function parseCsv(content: string): {
+  headers: string[];
+  rows: Record<string, string>[];
+} {
+  const lines = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  const filtered = lines.filter((line) => line.trim() !== "");
   if (!filtered.length) {
-    return { headers: [], rows: [] }
+    return { headers: [], rows: [] };
   }
 
-  const headers = parseCsvLine(filtered[0])
+  const headers = parseCsvLine(filtered[0]);
   const rows = filtered.slice(1).map((line) => {
-    const values = parseCsvLine(line)
-    const row: Record<string, string> = {}
+    const values = parseCsvLine(line);
+    const row: Record<string, string> = {};
     headers.forEach((header, index) => {
-      row[header] = values[index] ?? ''
-    })
-    return row
-  })
+      row[header] = values[index] ?? "";
+    });
+    return row;
+  });
 
-  return { headers, rows }
+  return { headers, rows };
 }
 
 function parseCsvLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
 
   for (let i = 0; i < line.length; i += 1) {
-    const char = line[i]
-    const next = line[i + 1]
+    const char = line[i];
+    const next = line[i + 1];
 
     if (char === '"') {
       if (inQuotes && next === '"') {
-        current += '"'
-        i += 1
-        continue
+        current += '"';
+        i += 1;
+        continue;
       }
-      inQuotes = !inQuotes
-      continue
+      inQuotes = !inQuotes;
+      continue;
     }
 
-    if (char === ',' && !inQuotes) {
-      result.push(current)
-      current = ''
-      continue
+    if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+      continue;
     }
 
-    current += char
+    current += char;
   }
 
-  result.push(current)
-  return result.map((value) => value.trim())
+  result.push(current);
+  return result.map((value) => value.trim());
 }
 
 function normalize(value: string) {
-  return value.trim().toLowerCase().replace(/\s+/g, '')
+  return value.trim().toLowerCase().replace(/\s+/g, "");
 }
 
 function autoMapFields(headers: string[], fields: ContactField[]) {
-  const mapping: Record<string, string> = {}
+  const mapping: Record<string, string> = {};
   fields.forEach((field) => {
     const match = headers.find(
-      (header) => normalize(header) === normalize(field.label) || normalize(header) === normalize(field.key as string)
-    )
+      (header) =>
+        normalize(header) === normalize(field.label) ||
+        normalize(header) === normalize(field.key as string),
+    );
     if (match) {
-      mapping[field.key as string] = match
+      mapping[field.key as string] = match;
     }
-  })
-  return mapping
+  });
+  return mapping;
 }
 
 function loadHistory(): HistoryItem[] {
   try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return []
+    return [];
   }
 }
 
 function saveHistory(items: HistoryItem[]) {
-  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(items.slice(0, 50)))
+  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(items.slice(0, 50)));
 }

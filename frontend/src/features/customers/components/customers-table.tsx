@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   type SortingState,
   type VisibilityState,
@@ -11,9 +11,9 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
-import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
+} from "@tanstack/react-table";
+import { cn } from "@/lib/utils";
+import { type NavigateFn, useTableUrlState } from "@/hooks/use-table-url-state";
 import {
   Table,
   TableBody,
@@ -21,22 +21,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { getCustomersColumns } from './customers-columns'
-import { DataTableRowActions } from './data-table-row-actions'
-import { useCustomers, useDeleteCustomer } from '../hooks/use-customers'
-import type { Customer } from '../types/customer'
+} from "@/components/ui/table";
+import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
+import { getCustomersColumns } from "./customers-columns";
+import { DataTableRowActions } from "./data-table-row-actions";
+import { useCustomers, useDeleteCustomer } from "../hooks/use-customers";
+import type { Customer } from "../types/customer";
 
 type DataTableProps = {
-  search: Record<string, unknown>
-  navigate: NavigateFn
-  onEdit: (customer: Customer) => void
-  onRefresh: () => void
-  onRowClick?: (customer: Customer) => void
-  onRowDoubleClick?: (customer: Customer) => void
-  selectedCustomerId?: string
-}
+  search: Record<string, unknown>;
+  navigate: NavigateFn;
+  onEdit: (customer: Customer) => void;
+  onRefresh: () => void;
+  onRowClick?: (customer: Customer) => void;
+  onRowDoubleClick?: (customer: Customer) => void;
+  selectedCustomerId?: string;
+};
 
 export function CustomersTable({
   search,
@@ -47,12 +47,12 @@ export function CustomersTable({
   onRowDoubleClick,
   selectedCustomerId,
 }: DataTableProps) {
-  const { t } = useTranslation()
-  const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [sorting, setSorting] = useState<SortingState>([])
+  const { t } = useTranslation();
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const deleteMutation = useDeleteCustomer()
+  const deleteMutation = useDeleteCustomer();
 
   // 从 URL 获取分页和筛选参数
   const {
@@ -67,39 +67,44 @@ export function CustomersTable({
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      { columnId: 'name', searchKey: 'name', type: 'string' },
-      { columnId: 'customerLevel', searchKey: 'customerLevel', type: 'array' },
+      { columnId: "name", searchKey: "name", type: "string" },
+      { columnId: "customerLevel", searchKey: "customerLevel", type: "array" },
     ],
-  })
+  });
 
   // 构建查询参数
   const queryParams = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-    name: columnFilters.find((f) => f.id === 'name')?.value as string,
-  }
+    name: columnFilters.find((f) => f.id === "name")?.value as string,
+  };
 
-  const { data, isLoading, error } = useCustomers(queryParams)
+  const { data, isLoading, error } = useCustomers(queryParams);
 
-  const customers = data?.items || []
-  const total = data?.total || 0
+  const customers = data?.items || [];
+  const total = data?.total || 0;
 
   // 处理删除
-  const handleDelete = useCallback(async (customer: Customer) => {
-    if (window.confirm(`确定要删除客户"${customer.name}"吗？此操作不可恢复。`)) {
-      try {
-        await deleteMutation.mutateAsync(customer.id)
-        onRefresh()
-      } catch (error) {
-        console.error('删除失败:', error)
+  const handleDelete = useCallback(
+    async (customer: Customer) => {
+      if (
+        window.confirm(`确定要删除客户"${customer.name}"吗？此操作不可恢复。`)
+      ) {
+        try {
+          await deleteMutation.mutateAsync(customer.id);
+          onRefresh();
+        } catch (error) {
+          console.error("删除失败:", error);
+        }
       }
-    }
-  }, [deleteMutation, onRefresh])
+    },
+    [deleteMutation, onRefresh],
+  );
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
     return getCustomersColumns({ t }).map((col) => {
-      if (col.id === 'actions') {
+      if (col.id === "actions") {
         return {
           ...col,
           cell: (props: any) => {
@@ -109,13 +114,13 @@ export function CustomersTable({
                 onEdit={onEdit}
                 onDelete={handleDelete}
               />
-            )
+            );
           },
-        }
+        };
       }
-      return col
-    })
-  }, [onEdit, handleDelete])
+      return col;
+    });
+  }, [onEdit, handleDelete]);
 
   const table = useReactTable({
     data: customers,
@@ -145,81 +150,81 @@ export function CustomersTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     manualPagination: true,
-  })
+  });
 
   useEffect(() => {
-    const pageCount = Math.ceil(total / pagination.pageSize)
+    const pageCount = Math.ceil(total / pagination.pageSize);
     if (pagination.pageIndex >= pageCount && pageCount > 0) {
-      onPaginationChange({ ...pagination, pageIndex: pageCount - 1 })
+      onPaginationChange({ ...pagination, pageIndex: pageCount - 1 });
     }
-  }, [total, pagination, onPaginationChange])
+  }, [total, pagination, onPaginationChange]);
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-32'>
-        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+      <div className="flex items-center justify-center py-32">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
-      <div className='flex flex-col items-center justify-center py-32'>
-        <p className='text-muted-foreground'>加载客户数据失败</p>
+      <div className="flex flex-col items-center justify-center py-32">
+        <p className="text-muted-foreground">加载客户数据失败</p>
       </div>
-    )
+    );
   }
 
   return (
     <div
       className={cn(
         'max-sm:has-[div[role="toolbar"]]:mb-16',
-        'flex flex-1 flex-col gap-4'
+        "flex flex-1 flex-col gap-4",
       )}
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder={t('customer.searchPlaceholder')}
-        searchKey='name'
-        searchMode='submit'
-        searchButtonLabel={t('common.search')}
+        searchPlaceholder={t("customer.searchPlaceholder")}
+        searchKey="name"
+        searchMode="submit"
+        searchButtonLabel={t("common.search")}
         filters={[
           {
-            columnId: 'customerLevel',
-            title: t('customer.level'),
+            columnId: "customerLevel",
+            title: t("customer.level"),
             options: [
-              { label: t('customer.levels.0'), value: '0' },
-              { label: t('customer.levels.1'), value: '1' },
-              { label: t('customer.levels.2'), value: '2' },
-              { label: t('customer.levels.3'), value: '3' },
+              { label: t("customer.levels.0"), value: "0" },
+              { label: t("customer.levels.1"), value: "1" },
+              { label: t("customer.levels.2"), value: "2" },
+              { label: t("customer.levels.3"), value: "3" },
             ],
           },
         ]}
       />
-      <div className='overflow-hidden rounded-md border'>
+      <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className='group/row'>
+              <TableRow key={headerGroup.id} className="group/row">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted",
                         header.column.columnDef.meta?.className,
-                        header.column.columnDef.meta?.thClassName
+                        header.column.columnDef.meta?.thClassName,
                       )}
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -227,16 +232,16 @@ export function CustomersTable({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const customer = row.original as Customer
-                const isSelected = selectedCustomerId === customer.id
+                const customer = row.original as Customer;
+                const isSelected = selectedCustomerId === customer.id;
 
                 return (
                   <TableRow
                     key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
+                    data-state={row.getIsSelected() && "selected"}
                     className={cn(
-                      'group/row cursor-pointer',
-                      isSelected && 'bg-muted/50'
+                      "group/row cursor-pointer",
+                      isSelected && "bg-muted/50",
                     )}
                     onClick={() => onRowClick?.(customer)}
                     onDoubleClick={() => onRowDoubleClick?.(customer)}
@@ -245,31 +250,31 @@ export function CustomersTable({
                       <TableCell
                         key={cell.id}
                         className={cn(
-                          'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                          "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted",
                           cell.column.columnDef.meta?.className,
-                          cell.column.columnDef.meta?.tdClassName
+                          cell.column.columnDef.meta?.tdClassName,
                         )}
                         onClick={(e) => {
                           // 阻止操作列的点击事件冒泡
-                          if (cell.column.id === 'actions') {
-                            e.stopPropagation()
+                          if (cell.column.id === "actions") {
+                            e.stopPropagation();
                           }
                         }}
                       >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                )
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
               })
             ) : (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className='h-24 text-center'
+                  className="h-24 text-center"
                 >
                   暂无数据
                 </TableCell>
@@ -278,7 +283,7 @@ export function CustomersTable({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} className='mt-auto' />
+      <DataTablePagination table={table} className="mt-auto" />
     </div>
-  )
+  );
 }
