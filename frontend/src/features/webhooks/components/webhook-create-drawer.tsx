@@ -23,7 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useCreateWebhookConfig, PLATFORM_OPTIONS } from "../hooks/use-webhooks";
+import {
+  useCreateWebhookConfig,
+  PLATFORM_OPTIONS,
+} from "../hooks/use-webhooks";
 import type { CreateWebhookConfigDto } from "@/models";
 
 const webhookConfigSchema = z.object({
@@ -109,7 +112,10 @@ export function WebhookCreateDrawer() {
             <Select
               value={form.watch("platform")}
               onValueChange={(value) =>
-                form.setValue("platform", value as "wecom" | "feishu" | "dingtalk")
+                form.setValue(
+                  "platform",
+                  value as "wecom" | "feishu" | "dingtalk",
+                )
               }
             >
               <SelectTrigger id="create-platform">
@@ -118,7 +124,9 @@ export function WebhookCreateDrawer() {
               <SelectContent>
                 {PLATFORM_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    <span className="mr-2">{getPlatformEmoji(option.value)}</span>
+                    <span className="mr-2">
+                      {getPlatformEmoji(option.value)}
+                    </span>
                     {option.label}
                   </SelectItem>
                 ))}

@@ -9,7 +9,13 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Send } from "lucide-react";
+import {
+  ArrowUpDown,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Send,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -60,7 +66,9 @@ export function WebhookConfigsTable() {
   const testMutation = useTestWebhook();
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [editingConfig, setEditingConfig] = useState<WebhookConfig | null>(null);
+  const [editingConfig, setEditingConfig] = useState<WebhookConfig | null>(
+    null,
+  );
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [deleteConfigId, setDeleteConfigId] = useState<string | null>(null);
   const [testConfig, setTestConfig] = useState<WebhookConfig | null>(null);
