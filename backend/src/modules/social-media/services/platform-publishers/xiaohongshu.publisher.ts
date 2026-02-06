@@ -1,17 +1,24 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IPlatformPublisher, PublishData, PublishResult, UploadResult, TokenResult, AccountStatus } from '../../interfaces/platform-publisher.interface';
-import axios from 'axios';
-import * as FormData from 'form-data';
+import { Injectable, Logger } from "@nestjs/common";
+import {
+  IPlatformPublisher,
+  PublishData,
+  PublishResult,
+  UploadResult,
+  TokenResult,
+  AccountStatus,
+} from "../../interfaces/platform-publisher.interface";
+import axios from "axios";
+import * as FormData from "form-data";
 
 /**
  * 小红书开放平台发布器
  */
 @Injectable()
 export class XiaohongshuPublisher implements IPlatformPublisher {
-  readonly platform = 'xiaohongshu';
+  readonly platform = "xiaohongshu";
   private readonly logger = new Logger(XiaohongshuPublisher.name);
-  private readonly baseUrl = 'https://open.xiaohongshu.com';
-  private readonly apiVersion = 'v1';
+  private readonly baseUrl = "https://open.xiaohongshu.com";
+  private readonly apiVersion = "v1";
 
   /**
    * 发布内容到小红书
@@ -24,16 +31,19 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       if (!params.account.appId || !params.account.accessToken) {
         return {
           success: false,
-          error: '账号配置不完整，缺少 appId 或 accessToken',
+          error: "账号配置不完整，缺少 appId 或 accessToken",
         };
       }
 
       // 1. 上传图片/视频
-      const uploadResult = await this.uploadVideo(params.videoUrl, params.coverUrl);
+      const uploadResult = await this.uploadVideo(
+        params.videoUrl,
+        params.coverUrl,
+      );
       if (!uploadResult.success) {
         return {
           success: false,
-          error: uploadResult.error || '媒体上传失败',
+          error: uploadResult.error || "媒体上传失败",
         };
       }
       const mediaId = uploadResult.videoId;
@@ -42,7 +52,7 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       const noteData = {
         title: params.title,
         desc: this.formatContent(params),
-        media_type: 'video',
+        media_type: "video",
         media_id: mediaId,
         post_time: new Date().getTime(),
         poi_id: params.location,
@@ -55,7 +65,7 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
         {
           headers: {
             Authorization: `Bearer ${params.account.accessToken}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         },
       );
@@ -71,7 +81,7 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
         this.logger.error(`小红书发布失败: ${response.data.msg}`);
         return {
           success: false,
-          error: response.data.msg || '发布失败',
+          error: response.data.msg || "发布失败",
         };
       }
     } catch (error) {
@@ -92,7 +102,7 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       const ticketResponse = await axios.post(
         `${this.baseUrl}/${this.apiVersion}/media/upload_ticket`,
         {
-          media_type: 'video',
+          media_type: "video",
         },
       );
 
@@ -109,11 +119,11 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       // 2. 上传视频文件
       const form = new FormData();
       const videoBuffer = await this.downloadFile(fileUrl);
-      form.append('file', videoBuffer, 'video.mp4');
+      form.append("file", videoBuffer, "video.mp4");
 
       if (coverUrl) {
         const coverBuffer = await this.downloadFile(coverUrl);
-        form.append('cover', coverBuffer, 'cover.jpg');
+        form.append("cover", coverBuffer, "cover.jpg");
       }
 
       await axios.post(uploadUrl, form, {
@@ -170,7 +180,7 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       } else {
         return {
           success: false,
-          error: response.data.msg || '刷新令牌失败',
+          error: response.data.msg || "刷新令牌失败",
         };
       }
     } catch (error) {
@@ -204,7 +214,7 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       } else {
         return {
           success: false,
-          error: response.data.msg || '获取账号信息失败',
+          error: response.data.msg || "获取账号信息失败",
         };
       }
     } catch (error) {
@@ -220,11 +230,11 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
    * 格式化内容
    */
   private formatContent(data: PublishData): string {
-    let content = data.description || '';
+    let content = data.description || "";
 
     // 添加话题标签
     if (data.topics && data.topics.length > 0) {
-      const topics = data.topics.map((topic) => `#${topic}`).join(' ');
+      const topics = data.topics.map((topic) => `#${topic}`).join(" ");
       content = content ? `${content}\n${topics}` : topics;
     }
 
@@ -240,21 +250,25 @@ export class XiaohongshuPublisher implements IPlatformPublisher {
       friends: 1,
       private: 2,
     };
-    return map[visibility || 'public'] || 0;
+    return map[visibility || "public"] || 0;
   }
 
   /**
    * 下载文件
    */
   private async downloadFile(url: string): Promise<Buffer> {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const response = await axios.get(url, { responseType: "arraybuffer" });
     return Buffer.from(response.data);
   }
 
   /**
    * 上传媒体文件（辅助方法）
    */
-  private async uploadMedia(videoUrl: string, coverUrl: string | undefined, accessToken: string): Promise<string | undefined> {
+  private async uploadMedia(
+    videoUrl: string,
+    coverUrl: string | undefined,
+    accessToken: string,
+  ): Promise<string | undefined> {
     const result = await this.uploadVideo(videoUrl, coverUrl);
     return result.videoId;
   }

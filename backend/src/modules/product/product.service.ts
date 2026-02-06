@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { QueryProductDto } from './dto/query-product.dto';
-import { CreateProductFlowDto } from './dto/create-product-flow.dto';
-import { UpdateProductFlowDto } from './dto/update-product-flow.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateProductDto } from "./dto/create-product.dto";
+import { UpdateProductDto } from "./dto/update-product.dto";
+import { QueryProductDto } from "./dto/query-product.dto";
+import { CreateProductFlowDto } from "./dto/create-product-flow.dto";
+import { UpdateProductFlowDto } from "./dto/update-product-flow.dto";
 
 @Injectable()
 export class ProductService {
@@ -39,7 +39,7 @@ export class ProductService {
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       }),
     ]);
 
@@ -58,7 +58,7 @@ export class ProductService {
       include: {
         flows: {
           where: { enabled: true },
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
@@ -98,7 +98,7 @@ export class ProductService {
       where: { id },
     });
 
-    return { message: 'Product deleted successfully' };
+    return { message: "Product deleted successfully" };
   }
 
   // ==================== 产品流程管理 ====================
@@ -110,7 +110,9 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new NotFoundException(`Product #${createFlowDto.productId} not found`);
+      throw new NotFoundException(
+        `Product #${createFlowDto.productId} not found`,
+      );
     }
 
     return this.prisma.productFlow.create({
@@ -132,7 +134,7 @@ export class ProductService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -185,6 +187,6 @@ export class ProductService {
       where: { id },
     });
 
-    return { message: 'ProductFlow deleted successfully' };
+    return { message: "ProductFlow deleted successfully" };
   }
 }

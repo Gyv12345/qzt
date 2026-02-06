@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateServiceTeamDto } from './dto/create-service-team.dto';
-import { UpdateServiceTeamDto } from './dto/update-service-team.dto';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateServiceTeamDto } from "./dto/create-service-team.dto";
+import { UpdateServiceTeamDto } from "./dto/update-service-team.dto";
 
 @Injectable()
 export class ServiceTeamService {
@@ -15,7 +19,9 @@ export class ServiceTeamService {
     ]);
 
     if (!customer) {
-      throw new NotFoundException(`Customer #${createDto.customerId} not found`);
+      throw new NotFoundException(
+        `Customer #${createDto.customerId} not found`,
+      );
     }
     if (!user) {
       throw new NotFoundException(`User #${createDto.userId} not found`);
@@ -33,7 +39,9 @@ export class ServiceTeamService {
     });
 
     if (existing) {
-      throw new ConflictException('Service team member already exists for this customer and role');
+      throw new ConflictException(
+        "Service team member already exists for this customer and role",
+      );
     }
 
     return this.prisma.serviceTeam.create({
@@ -54,7 +62,7 @@ export class ServiceTeamService {
         customer: { select: { name: true } },
         user: { select: { name: true, username: true, phone: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -65,7 +73,7 @@ export class ServiceTeamService {
         customer: { select: { name: true } },
         user: { select: { name: true, username: true, phone: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -74,7 +82,9 @@ export class ServiceTeamService {
       where: { id },
       include: {
         customer: { select: { name: true } },
-        user: { select: { name: true, username: true, phone: true, email: true } },
+        user: {
+          select: { name: true, username: true, phone: true, email: true },
+        },
       },
     });
 
@@ -117,7 +127,7 @@ export class ServiceTeamService {
       where: { id },
     });
 
-    return { message: 'Service team member deleted successfully' };
+    return { message: "Service team member deleted successfully" };
   }
 
   /**

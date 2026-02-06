@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
 
 @Injectable()
 export class ProductPackageService {
@@ -11,18 +11,20 @@ export class ProductPackageService {
   async findAll(includeProducts?: boolean) {
     return this.prisma.productPackage.findMany({
       where: { status: 1 },
-      orderBy: { createdAt: 'desc' },
-      include: includeProducts ? {
-        products: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            price: true,
-            description: true,
-          },
-        },
-      } : undefined,
+      orderBy: { createdAt: "desc" },
+      include: includeProducts
+        ? {
+            products: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                price: true,
+                description: true,
+              },
+            },
+          }
+        : undefined,
     });
   }
 
@@ -73,14 +75,17 @@ export class ProductPackageService {
   /**
    * 更新产品套餐
    */
-  async update(id: string, data: {
-    name?: string;
-    description?: string;
-    discount?: number;
-    duration?: number;
-    productIds?: string[];
-    status?: number;
-  }) {
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      discount?: number;
+      duration?: number;
+      productIds?: string[];
+      status?: number;
+    },
+  ) {
     const { productIds, ...packageData } = data;
 
     // 如果更新产品列表，先断开旧关联
@@ -126,11 +131,11 @@ export class ProductPackageService {
     });
 
     if (!packageWithProducts) {
-      throw new Error('套餐不存在');
+      throw new Error("套餐不存在");
     }
 
     if (packageWithProducts.products.length > 0) {
-      throw new Error('套餐中还有产品，无法删除');
+      throw new Error("套餐中还有产品，无法删除");
     }
 
     return this.prisma.productPackage.delete({
@@ -149,7 +154,7 @@ export class ProductPackageService {
     });
 
     if (existingProduct?.packageId) {
-      throw new Error('该产品已属于其他套餐');
+      throw new Error("该产品已属于其他套餐");
     }
 
     return this.prisma.productPackage.update({

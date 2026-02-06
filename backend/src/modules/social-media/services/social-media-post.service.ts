@@ -1,14 +1,19 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
-import { ISocialMediaPostService } from '../interfaces/social-media-post.interface';
-import { IPlatformPublisher } from '../interfaces/platform-publisher.interface';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
+import { ISocialMediaPostService } from "../interfaces/social-media-post.interface";
+import { IPlatformPublisher } from "../interfaces/platform-publisher.interface";
 import {
   CreateSocialMediaPostDto,
   UpdateSocialMediaPostDto,
   QuerySocialMediaPostDto,
-} from '../dto/social-media-post.dto';
-import { SocialMediaPost, SocialMediaAccount, OssFile } from '@prisma/client';
-import { PlatformPublisherFactory } from './platform-publishers/factory';
+} from "../dto/social-media-post.dto";
+import { SocialMediaPost, SocialMediaAccount, OssFile } from "@prisma/client";
+import { PlatformPublisherFactory } from "./platform-publishers/factory";
 
 type SocialMediaPostWithRelations = SocialMediaPost & {
   account: SocialMediaAccount;
@@ -28,7 +33,9 @@ export class SocialMediaPostService implements ISocialMediaPostService {
   /**
    * 创建新媒体内容
    */
-  async create(data: CreateSocialMediaPostDto): Promise<SocialMediaPostWithRelations> {
+  async create(
+    data: CreateSocialMediaPostDto,
+  ): Promise<SocialMediaPostWithRelations> {
     try {
       // 验证账号是否存在
       const account = await this.prisma.socialMediaAccount.findUnique({
@@ -44,7 +51,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
         topics: data.topics ? JSON.stringify(data.topics) : null,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         // 如果设置了定时发布，状态为 scheduled，否则为 draft
-        status: data.scheduledAt ? 'scheduled' : 'draft',
+        status: data.scheduledAt ? "scheduled" : "draft",
       };
 
       const post = await this.prisma.socialMediaPost.create({
@@ -67,15 +74,18 @@ export class SocialMediaPostService implements ISocialMediaPostService {
   /**
    * 更新媒体内容
    */
-  async update(id: string, data: UpdateSocialMediaPostDto): Promise<SocialMediaPostWithRelations> {
+  async update(
+    id: string,
+    data: UpdateSocialMediaPostDto,
+  ): Promise<SocialMediaPostWithRelations> {
     const existing = await this.findById(id);
     if (!existing) {
       throw new NotFoundException(`内容不存在: ${id}`);
     }
 
     // 已发布或正在发布的内容不允许修改
-    if (existing.status === 'published' || existing.status === 'publishing') {
-      throw new BadRequestException('已发布或正在发布的内容不允许修改');
+    if (existing.status === "published" || existing.status === "publishing") {
+      throw new BadRequestException("已发布或正在发布的内容不允许修改");
     }
 
     try {
@@ -87,7 +97,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
 
       // 如果设置了定时发布时间，更新状态为 scheduled
       if (data.scheduledAt) {
-        updateData.status = 'scheduled';
+        updateData.status = "scheduled";
       }
 
       const post = await this.prisma.socialMediaPost.update({
@@ -118,8 +128,8 @@ export class SocialMediaPostService implements ISocialMediaPostService {
     }
 
     // 正在发布的内容不允许删除
-    if (existing.status === 'publishing') {
-      throw new BadRequestException('正在发布的内容不允许删除');
+    if (existing.status === "publishing") {
+      throw new BadRequestException("正在发布的内容不允许删除");
     }
 
     try {
@@ -161,7 +171,9 @@ export class SocialMediaPostService implements ISocialMediaPostService {
   /**
    * 查询内容列表
    */
-  async findAll(query: QuerySocialMediaPostDto): Promise<{ data: SocialMediaPostWithRelations[]; total: number }> {
+  async findAll(
+    query: QuerySocialMediaPostDto,
+  ): Promise<{ data: SocialMediaPostWithRelations[]; total: number }> {
     const { accountId, status, page = 1, pageSize = 10 } = query;
     const skip = (page - 1) * pageSize;
 
@@ -179,7 +191,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
           where,
           skip,
           take: pageSize,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           include: {
             account: true,
             videoFile: true,
@@ -205,29 +217,31 @@ export class SocialMediaPostService implements ISocialMediaPostService {
       throw new NotFoundException(`内容不存在: ${id}`);
     }
 
-    if (post.status === 'published') {
-      throw new BadRequestException('内容已发布');
+    if (post.status === "published") {
+      throw new BadRequestException("内容已发布");
     }
 
-    if (post.status === 'publishing') {
-      throw new BadRequestException('内容正在发布中');
+    if (post.status === "publishing") {
+      throw new BadRequestException("内容正在发布中");
     }
 
     try {
       // 更新状态为发布中
       await this.prisma.socialMediaPost.update({
         where: { id },
-        data: { status: 'publishing' },
+        data: { status: "publishing" },
       });
 
       // 获取对应的发布器
-      const publisher = this.publisherFactory.getPublisher(post.account.platform);
+      const publisher = this.publisherFactory.getPublisher(
+        post.account.platform,
+      );
 
       // 准备发布数据
       const publishData = {
         title: post.title,
         description: post.content || undefined,
-        videoUrl: post.videoUrl || post.videoFile?.fileUrl || '',
+        videoUrl: post.videoUrl || post.videoFile?.fileUrl || "",
         coverUrl: post.coverUrl || post.coverFile?.fileUrl || undefined,
         topics: post.topics ? JSON.parse(post.topics) : undefined,
         location: post.location || undefined,
@@ -243,7 +257,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
         const updated = await this.prisma.socialMediaPost.update({
           where: { id },
           data: {
-            status: 'published',
+            status: "published",
             publishedAt: new Date(),
             publishData: JSON.stringify({
               postId: result.postId,
@@ -264,7 +278,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
         const updated = await this.prisma.socialMediaPost.update({
           where: { id },
           data: {
-            status: 'failed',
+            status: "failed",
             error: result.error,
           },
           include: {
@@ -284,7 +298,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
       await this.prisma.socialMediaPost.update({
         where: { id },
         data: {
-          status: 'failed',
+          status: "failed",
           error: error.message,
         },
       });
@@ -296,25 +310,28 @@ export class SocialMediaPostService implements ISocialMediaPostService {
   /**
    * 定时发布
    */
-  async schedulePublish(id: string, scheduledAt: Date): Promise<SocialMediaPostWithRelations> {
+  async schedulePublish(
+    id: string,
+    scheduledAt: Date,
+  ): Promise<SocialMediaPostWithRelations> {
     const post = await this.findById(id);
     if (!post) {
       throw new NotFoundException(`内容不存在: ${id}`);
     }
 
-    if (post.status === 'published') {
-      throw new BadRequestException('内容已发布');
+    if (post.status === "published") {
+      throw new BadRequestException("内容已发布");
     }
 
     if (scheduledAt <= new Date()) {
-      throw new BadRequestException('定时发布时间必须大于当前时间');
+      throw new BadRequestException("定时发布时间必须大于当前时间");
     }
 
     try {
       const updated = await this.prisma.socialMediaPost.update({
         where: { id },
         data: {
-          status: 'scheduled',
+          status: "scheduled",
           scheduledAt,
         },
         include: {
@@ -324,7 +341,9 @@ export class SocialMediaPostService implements ISocialMediaPostService {
         },
       });
 
-      this.logger.log(`设置定时发布成功: ${id}, 时间: ${scheduledAt.toISOString()}`);
+      this.logger.log(
+        `设置定时发布成功: ${id}, 时间: ${scheduledAt.toISOString()}`,
+      );
       return updated;
     } catch (error) {
       this.logger.error(`设置定时发布失败: ${error.message}`);
@@ -341,15 +360,15 @@ export class SocialMediaPostService implements ISocialMediaPostService {
       throw new NotFoundException(`内容不存在: ${id}`);
     }
 
-    if (post.status !== 'scheduled') {
-      throw new BadRequestException('只能取消定时发布状态的内容');
+    if (post.status !== "scheduled") {
+      throw new BadRequestException("只能取消定时发布状态的内容");
     }
 
     try {
       const updated = await this.prisma.socialMediaPost.update({
         where: { id },
         data: {
-          status: 'draft',
+          status: "draft",
           scheduledAt: null,
         },
         include: {
@@ -400,7 +419,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
     const [logs, total] = await Promise.all([
       this.prisma.socialMediaPublishLog.findMany({
         where: { postId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,
       }),
@@ -439,7 +458,7 @@ export class SocialMediaPostService implements ISocialMediaPostService {
     const [logs, total] = await Promise.all([
       this.prisma.socialMediaPublishLog.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,
       }),

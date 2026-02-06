@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
-import { SchedulerService } from './scheduler.service';
-import { PrismaModule } from '@/common/prisma/prisma.module';
+import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
+import { SchedulerService } from "./scheduler.service";
+import { PrismaModule } from "@/common/prisma/prisma.module";
 
 @Module({
   imports: [
     PrismaModule,
     BullModule.registerQueue({
-      name: 'notifications',
+      name: "notifications",
     }),
   ],
   providers: [SchedulerService],
