@@ -1,8 +1,12 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { QueryCustomerDto } from './dto/query-customer.dto';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateCustomerDto } from "./dto/create-customer.dto";
+import { UpdateCustomerDto } from "./dto/update-customer.dto";
+import { QueryCustomerDto } from "./dto/query-customer.dto";
 
 @Injectable()
 export class CustomerService {
@@ -18,7 +22,7 @@ export class CustomerService {
         where: { id: createCustomerDto.followUserId },
       });
       if (!followUser) {
-        throw new NotFoundException('跟进人不存在');
+        throw new NotFoundException("跟进人不存在");
       }
     }
 
@@ -49,8 +53,8 @@ export class CustomerService {
       keyword,
       customerLevel,
       followUserId,
-      sortField = 'createdAt',
-      sortOrder = 'desc',
+      sortField = "createdAt",
+      sortOrder = "desc",
     } = query;
 
     // 构建查询条件
@@ -122,7 +126,9 @@ export class CustomerService {
     });
 
     // 查询跟进人信息
-    const userIds = Array.from(new Set(data.map(c => c.followUserId).filter(Boolean)));
+    const userIds = Array.from(
+      new Set(data.map((c) => c.followUserId).filter(Boolean)),
+    );
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
       select: {
@@ -132,12 +138,12 @@ export class CustomerService {
       },
     });
 
-    const userMap = new Map(users.map(u => [u.id, u]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
 
     // 组装数据
-    const result = data.map(customer => {
+    const result = data.map((customer) => {
       // 提取联系人信息
-      const contacts = customer.contacts.map(cc => ({
+      const contacts = customer.contacts.map((cc) => ({
         id: cc.contactId,
         ...cc.contact,
         isPrimary: cc.isPrimary,
@@ -145,17 +151,25 @@ export class CustomerService {
       }));
 
       // 找出主要联系人
-      const primaryContact = contacts.find(c => c.isPrimary);
+      const primaryContact = contacts.find((c) => c.isPrimary);
 
       return {
         ...customer,
-        followUser: customer.followUserId ? userMap.get(customer.followUserId) : null,
+        followUser: customer.followUserId
+          ? userMap.get(customer.followUserId)
+          : null,
         contacts,
         primaryContact,
         // 兼容旧字段，主要联系人的信息
-        contactName: primaryContact?.name || (contacts.length > 0 ? contacts[0].name : null),
-        contactPhone: primaryContact?.phone || (contacts.length > 0 ? contacts[0].phone : null),
-        contactEmail: primaryContact?.email || (contacts.length > 0 ? contacts[0].email : null),
+        contactName:
+          primaryContact?.name ||
+          (contacts.length > 0 ? contacts[0].name : null),
+        contactPhone:
+          primaryContact?.phone ||
+          (contacts.length > 0 ? contacts[0].phone : null),
+        contactEmail:
+          primaryContact?.email ||
+          (contacts.length > 0 ? contacts[0].email : null),
       };
     });
 
@@ -180,21 +194,21 @@ export class CustomerService {
             contact: true,
           },
           orderBy: [
-            { status: 'desc' },
-            { isPrimary: 'desc' },
-            { createdAt: 'asc' },
+            { status: "desc" },
+            { isPrimary: "desc" },
+            { createdAt: "asc" },
           ],
         },
       },
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 数据权限验证
     if (!isAdmin && customer.followUserId !== userId) {
-      throw new ForbiddenException('无权访问此客户');
+      throw new ForbiddenException("无权访问此客户");
     }
 
     // 查询跟进人信息
@@ -211,7 +225,7 @@ export class CustomerService {
     }
 
     // 组装联系人信息
-    const contacts = customer.contacts.map(cc => ({
+    const contacts = customer.contacts.map((cc) => ({
       id: cc.contactId,
       ...cc.contact,
       isPrimary: cc.isPrimary,
@@ -223,35 +237,45 @@ export class CustomerService {
       linkedAt: cc.createdAt,
     }));
 
-    const primaryContact = contacts.find(c => c.isPrimary && c.status === 1);
+    const primaryContact = contacts.find((c) => c.isPrimary && c.status === 1);
 
     return {
       ...customer,
       followUser,
       contacts,
       // 兼容旧字段
-      contactName: primaryContact?.name || (contacts.length > 0 ? contacts[0].name : null),
-      contactPhone: primaryContact?.phone || (contacts.length > 0 ? contacts[0].phone : null),
-      contactEmail: primaryContact?.email || (contacts.length > 0 ? contacts[0].email : null),
+      contactName:
+        primaryContact?.name || (contacts.length > 0 ? contacts[0].name : null),
+      contactPhone:
+        primaryContact?.phone ||
+        (contacts.length > 0 ? contacts[0].phone : null),
+      contactEmail:
+        primaryContact?.email ||
+        (contacts.length > 0 ? contacts[0].email : null),
     };
   }
 
   /**
    * 更新客户
    */
-  async update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string, isAdmin: boolean) {
+  async update(
+    id: string,
+    updateCustomerDto: UpdateCustomerDto,
+    userId: string,
+    isAdmin: boolean,
+  ) {
     // 检查客户是否存在
     const customer = await this.prisma.customer.findUnique({
       where: { id },
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 数据权限验证
     if (!isAdmin && customer.followUserId !== userId) {
-      throw new ForbiddenException('无权更新此客户');
+      throw new ForbiddenException("无权更新此客户");
     }
 
     // 验证跟进人是否存在
@@ -260,7 +284,7 @@ export class CustomerService {
         where: { id: updateCustomerDto.followUserId },
       });
       if (!followUser) {
-        throw new NotFoundException('跟进人不存在');
+        throw new NotFoundException("跟进人不存在");
       }
     }
 
@@ -283,12 +307,12 @@ export class CustomerService {
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 数据权限验证 - 只有管理员可以删除
     if (!isAdmin) {
-      throw new ForbiddenException('只有管理员可以删除客户');
+      throw new ForbiddenException("只有管理员可以删除客户");
     }
 
     // 删除客户
@@ -296,7 +320,7 @@ export class CustomerService {
       where: { id },
     });
 
-    return { message: '删除成功' };
+    return { message: "删除成功" };
   }
 
   /**
@@ -315,12 +339,12 @@ export class CustomerService {
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 数据权限验证 - 只有管理员可以分配
     if (!isAdmin) {
-      throw new ForbiddenException('只有管理员可以分配客户');
+      throw new ForbiddenException("只有管理员可以分配客户");
     }
 
     // 验证跟进人是否存在
@@ -329,7 +353,7 @@ export class CustomerService {
     });
 
     if (!followUser) {
-      throw new NotFoundException('跟进人不存在');
+      throw new NotFoundException("跟进人不存在");
     }
 
     // 使用事务:更新客户并记录分配历史
@@ -371,7 +395,7 @@ export class CustomerService {
   ) {
     // 权限验证 - 只有管理员可以批量分配
     if (!isAdmin) {
-      throw new ForbiddenException('只有管理员可以批量分配客户');
+      throw new ForbiddenException("只有管理员可以批量分配客户");
     }
 
     // 验证跟进人是否存在
@@ -380,7 +404,7 @@ export class CustomerService {
     });
 
     if (!followUser) {
-      throw new NotFoundException('跟进人不存在');
+      throw new NotFoundException("跟进人不存在");
     }
 
     // 查询所有客户
@@ -391,7 +415,7 @@ export class CustomerService {
     });
 
     if (customers.length === 0) {
-      throw new NotFoundException('未找到任何客户');
+      throw new NotFoundException("未找到任何客户");
     }
 
     // 使用事务批量更新
@@ -442,12 +466,12 @@ export class CustomerService {
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 数据权限验证
     if (!isAdmin && customer.followUserId !== userId) {
-      throw new ForbiddenException('无权访问此客户');
+      throw new ForbiddenException("无权访问此客户");
     }
 
     // 计算总数
@@ -461,7 +485,7 @@ export class CustomerService {
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -520,12 +544,12 @@ export class CustomerService {
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 数据权限验证
     if (!isAdmin && customer.followUserId !== userId) {
-      throw new ForbiddenException('无权访问此客户');
+      throw new ForbiddenException("无权访问此客户");
     }
 
     // 计算总数
@@ -539,7 +563,7 @@ export class CustomerService {
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
