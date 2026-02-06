@@ -38,7 +38,6 @@ export class PrismaService
     await this.followRecord.deleteMany();
     await this.customer.deleteMany();
 
-    await this.productFlow.deleteMany();
     await this.product.deleteMany();
 
     await this.rolePermission.deleteMany();

@@ -12,4 +12,6 @@ export interface LoginResponseDto {
   access_token: string;
   /** 用户信息 */
   user: LoginUserDto;
+  /** 是否需要强制设置 2FA（仅 admin 首次登录） */
+  requiresTwoFactorSetup?: boolean;
 }

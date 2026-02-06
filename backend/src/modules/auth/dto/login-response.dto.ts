@@ -54,4 +54,10 @@ export class LoginResponseDto implements LoginResponse {
 
   @ApiProperty({ description: "用户信息", type: LoginUserDto })
   user: LoginUserDto;
+
+  @ApiProperty({
+    description: "是否需要强制设置 2FA（仅 admin 首次登录）",
+    required: false,
+  })
+  requiresTwoFactorSetup?: boolean;
 }

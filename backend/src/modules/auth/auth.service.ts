@@ -7,6 +7,7 @@ import { PrismaService } from "@/common/prisma/prisma.service";
 import { LoginDto } from "./dto/login.dto";
 import { SafeUser } from "./interfaces/auth.interface";
 import { LoginLogsService } from "../login-logs/login-logs.service";
+import { TwoFactorService } from "../two-factor/two-factor.service";
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private configService: ConfigService,
     private i18n: I18nService,
     private loginLogsService: LoginLogsService,
+    private twoFactorService: TwoFactorService,
   ) {}
 
   async validateUser(
@@ -100,6 +102,13 @@ export class AuthService {
       username: user.username,
     };
 
+    // 检查是否需要强制设置 2FA
+    const requiresTwoFactorSetup =
+      await this.twoFactorService.checkRequiresTwoFactorSetup(user.id);
+
+    // 标记首次登录完成
+    await this.twoFactorService.markFirstLoginComplete(user.id);
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -115,6 +124,7 @@ export class AuthService {
           code: ur.role.code,
         })),
       },
+      requiresTwoFactorSetup,
     };
   }
 

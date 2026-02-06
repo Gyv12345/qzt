@@ -7,11 +7,8 @@
  */
 import type {
   CreateProductDto,
-  CreateProductFlowDto,
   ProductControllerFindAllParams,
-  ProductControllerFindFlowsParams,
   UpdateProductDto,
-  UpdateProductFlowDto,
 } from "../../models";
 
 import { customInstance } from "../api-client";
@@ -62,74 +59,12 @@ export const getProducts = () => {
   const productControllerRemove = (id: string) => {
     return customInstance<void>({ url: `/products/${id}`, method: "DELETE" });
   };
-  /**
-   * @summary 创建产品流程
-   */
-  const productControllerCreateFlow = (
-    createProductFlowDto: CreateProductFlowDto,
-  ) => {
-    return customInstance<void>({
-      url: `/products/flows`,
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      data: createProductFlowDto,
-    });
-  };
-  /**
-   * @summary 获取产品流程列表
-   */
-  const productControllerFindFlows = (
-    params: ProductControllerFindFlowsParams,
-  ) => {
-    return customInstance<void>({
-      url: `/products/flows`,
-      method: "GET",
-      params,
-    });
-  };
-  /**
-   * @summary 获取产品流程详情
-   */
-  const productControllerFindFlow = (id: string) => {
-    return customInstance<void>({
-      url: `/products/flows/${id}`,
-      method: "GET",
-    });
-  };
-  /**
-   * @summary 更新产品流程
-   */
-  const productControllerUpdateFlow = (
-    id: string,
-    updateProductFlowDto: UpdateProductFlowDto,
-  ) => {
-    return customInstance<void>({
-      url: `/products/flows/${id}`,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      data: updateProductFlowDto,
-    });
-  };
-  /**
-   * @summary 删除产品流程
-   */
-  const productControllerRemoveFlow = (id: string) => {
-    return customInstance<void>({
-      url: `/products/flows/${id}`,
-      method: "DELETE",
-    });
-  };
   return {
     productControllerCreate,
     productControllerFindAll,
     productControllerFindOne,
     productControllerUpdate,
     productControllerRemove,
-    productControllerCreateFlow,
-    productControllerFindFlows,
-    productControllerFindFlow,
-    productControllerUpdateFlow,
-    productControllerRemoveFlow,
   };
 };
 export type ProductControllerCreateResult = NonNullable<
@@ -150,29 +85,4 @@ export type ProductControllerUpdateResult = NonNullable<
 >;
 export type ProductControllerRemoveResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getProducts>["productControllerRemove"]>>
->;
-export type ProductControllerCreateFlowResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getProducts>["productControllerCreateFlow"]>
-  >
->;
-export type ProductControllerFindFlowsResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getProducts>["productControllerFindFlows"]>
-  >
->;
-export type ProductControllerFindFlowResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getProducts>["productControllerFindFlow"]>
-  >
->;
-export type ProductControllerUpdateFlowResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getProducts>["productControllerUpdateFlow"]>
-  >
->;
-export type ProductControllerRemoveFlowResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getProducts>["productControllerRemoveFlow"]>
-  >
 >;

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginComponent() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isPendingTwoFactorSetup } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,7 +17,8 @@ function LoginComponent() {
     );
   }
 
-  if (isAuthenticated) {
+  // 如果已经认证且不是待处理 2FA 设置状态，跳转到首页
+  if (isAuthenticated && !isPendingTwoFactorSetup) {
     return <Navigate to="/" replace />;
   }
 

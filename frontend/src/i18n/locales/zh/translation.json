@@ -440,7 +440,7 @@
       "description": "在从左到右或从右到左网站方向之间选择"
     }
   },
-  "settings": {
+  "accountSettings": {
     "title": "设置",
     "description": "管理您的账户设置和电子邮件首选项。",
     "selectPlaceholder": "选择设置",

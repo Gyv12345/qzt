@@ -9,6 +9,7 @@ import type {
   CreateUserDto,
   PaginatedUsersDto,
   ResetPasswordDto,
+  UpdatePasswordDto,
   UpdateUserDto,
   UserEntity,
   UsersControllerFindAllParams,
@@ -75,6 +76,19 @@ export const getUsers = () => {
       data: resetPasswordDto,
     });
   };
+  /**
+   * @summary 修改当前用户密码（需要 2FA）
+   */
+  const usersControllerUpdatePassword = (
+    updatePasswordDto: UpdatePasswordDto,
+  ) => {
+    return customInstance<void>({
+      url: `/users/me/password`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: updatePasswordDto,
+    });
+  };
   return {
     usersControllerCreate,
     usersControllerFindAll,
@@ -82,6 +96,7 @@ export const getUsers = () => {
     usersControllerUpdate,
     usersControllerRemove,
     usersControllerResetPassword,
+    usersControllerUpdatePassword,
   };
 };
 export type UsersControllerCreateResult = NonNullable<
@@ -102,5 +117,10 @@ export type UsersControllerRemoveResult = NonNullable<
 export type UsersControllerResetPasswordResult = NonNullable<
   Awaited<
     ReturnType<ReturnType<typeof getUsers>["usersControllerResetPassword"]>
+  >
+>;
+export type UsersControllerUpdatePasswordResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getUsers>["usersControllerUpdatePassword"]>
   >
 >;

@@ -4,10 +4,14 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
-// 从 localStorage 获取 token
+// 从 localStorage 或 sessionStorage 获取 token
 const getToken = (): string | null => {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token");
+  // 优先从 localStorage 获取，如果没有则从 sessionStorage 获取（用于 2FA 设置流程）
+  return (
+    localStorage.getItem("access_token") ||
+    sessionStorage.getItem("pending_2fa_setup_token")
+  );
 };
 
 // 创建 axios 实例

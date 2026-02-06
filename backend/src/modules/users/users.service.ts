@@ -3,13 +3,16 @@ import {
   Logger,
   NotFoundException,
   ConflictException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { QueryUserDto } from "./dto/query-user.dto";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
 import * as bcrypt from "bcrypt";
+import { TwoFactorService } from "../two-factor/two-factor.service";
 
 // 用户选择类型（排除密码）
 type UserSelect = Omit<Prisma.UserSelect, "password">;
@@ -18,7 +21,10 @@ type UserSelect = Omit<Prisma.UserSelect, "password">;
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private twoFactorService: TwoFactorService,
+  ) {}
 
   /**
    * 创建用户
@@ -308,6 +314,63 @@ export class UsersService {
     });
 
     return { message: "密码重置成功" };
+  }
+
+  /**
+   * 修改密码（需要验证当前密码和 2FA）
+   */
+  async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
+    const { currentPassword, newPassword, twoFactorToken } = updatePasswordDto;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        password: true,
+        twoFactorEnabled: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("用户不存在");
+    }
+
+    // 验证当前密码
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("当前密码错误");
+    }
+
+    // 如果用户启用了 2FA，验证 2FA token
+    if (user.twoFactorEnabled) {
+      if (!twoFactorToken) {
+        throw new UnauthorizedException("需要双因素认证验证码");
+      }
+
+      const isValid = await this.twoFactorService.verifyOperationToken(
+        id,
+        twoFactorToken,
+      );
+
+      if (!isValid) {
+        throw new UnauthorizedException("双因素认证验证码无效");
+      }
+    }
+
+    // 哈希新密码
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    return { message: "密码修改成功" };
   }
 
   /**

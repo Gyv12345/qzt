@@ -28,16 +28,16 @@ import { Textarea } from "@/components/ui/textarea";
 const profileFormSchema = z.object({
   username: z
     .string()
-    .min(2, "settings.profile.validation.usernameMin")
-    .max(30, "settings.profile.validation.usernameMax"),
+    .min(2, "accountSettings.profile.validation.usernameMin")
+    .max(30, "accountSettings.profile.validation.usernameMax"),
   email: z.email({
-    error: () => "settings.profile.validation.emailRequired",
+    error: () => "accountSettings.profile.validation.emailRequired",
   }),
   bio: z.string().max(160).min(4),
   urls: z
     .array(
       z.object({
-        value: z.url("settings.profile.validation.invalidUrl"),
+        value: z.url("accountSettings.profile.validation.invalidUrl"),
       }),
     )
     .optional(),
@@ -78,12 +78,12 @@ export function ProfileForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("settings.profile.username")}</FormLabel>
+              <FormLabel>{t("accountSettings.profile.username")}</FormLabel>
               <FormControl>
                 <Input placeholder="shadcn" {...field} />
               </FormControl>
               <FormDescription>
-                {t("settings.profile.usernameDescription")}
+                {t("accountSettings.profile.usernameDescription")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -94,12 +94,12 @@ export function ProfileForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("settings.profile.email")}</FormLabel>
+              <FormLabel>{t("accountSettings.profile.email")}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={t("settings.profile.selectEmail")}
+                      placeholder={t("accountSettings.profile.selectEmail")}
                     />
                   </SelectTrigger>
                 </FormControl>
@@ -110,9 +110,9 @@ export function ProfileForm() {
                 </SelectContent>
               </Select>
               <FormDescription>
-                {t("settings.profile.emailDescription")}
+                {t("accountSettings.profile.emailDescription")}
                 <Link to="/settings">
-                  {t("settings.profile.emailSettings")}
+                  {t("accountSettings.profile.emailSettings")}
                 </Link>
               </FormDescription>
               <FormMessage />
@@ -124,16 +124,16 @@ export function ProfileForm() {
           name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("settings.profile.bio")}</FormLabel>
+              <FormLabel>{t("accountSettings.profile.bio")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={t("settings.profile.bioPlaceholder")}
+                  placeholder={t("accountSettings.profile.bioPlaceholder")}
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                {t("settings.profile.bioDescription")}
+                {t("accountSettings.profile.bioDescription")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -148,10 +148,10 @@ export function ProfileForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    {t("settings.profile.urls")}
+                    {t("accountSettings.profile.urls")}
                   </FormLabel>
                   <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    {t("settings.profile.urlsDescription")}
+                    {t("accountSettings.profile.urlsDescription")}
                   </FormDescription>
                   <FormControl className={cn(index !== 0 && "mt-1.5")}>
                     <Input {...field} />
@@ -168,10 +168,12 @@ export function ProfileForm() {
             className="mt-2"
             onClick={() => append({ value: "" })}
           >
-            {t("settings.profile.addUrl")}
+            {t("accountSettings.profile.addUrl")}
           </Button>
         </div>
-        <Button type="submit">{t("settings.profile.updateProfile")}</Button>
+        <Button type="submit">
+          {t("accountSettings.profile.updateProfile")}
+        </Button>
       </form>
     </Form>
   );

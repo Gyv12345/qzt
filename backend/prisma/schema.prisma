@@ -43,6 +43,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // 2FA 相关字段
+  twoFactorEnabled    Boolean   @default(false)  // 是否启用 2FA
+  twoFactorSecret     String?                    // TOTP 密钥（加密存储）
+  twoFactorBackupCodes String?                   // 备份码（JSON 数组，加密存储）
+  twoFactorSetupCompletedAt DateTime?            // 2FA 设置完成时间
+  hasCompletedFirstLogin Boolean @default(false) // 是否完成首次登录流程
+
   roles         UserRole[]
   followRecords FollowRecord[]
   serviceTeams  ServiceTeam[]
@@ -298,36 +305,14 @@ model Product {
   invoiceCount   Int      @default(0) // 套餐包含开票张数(月)
   overLimitPrice Float    @default(0) // 超额单价
   serviceRoleId  String?  // 服务负责人角色ID（哪个角色负责此产品的运维）
-  packageId      String?  // 所属套餐ID
   status         String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   contracts      Contract[]
-  flows          ProductFlow[]
   pricingRules   PricingRule[]
-  package        ProductPackage?  @relation("PackageProducts", fields: [packageId], references: [id])
-  packageItems   ProductPackage[] @relation("PackageItems")
 
   @@map("products")
-}
-
-// 产品套餐
-model ProductPackage {
-  id          String   @id @default(cuid())
-  name        String   // 套餐名称
-  code        String   @unique // 套餐编码
-  description String?  // 套餐描述
-  discount    Float    @default(0) // 套餐折扣（0-1）
-  duration    Int?     // 套餐时长（月）
-  status      Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  products    Product[] @relation("PackageItems")
-  packageItems Product[] @relation("PackageProducts")
-
-  @@map("product_packages")
 }
 
 // ==================== 阶梯定价规则 ====================
@@ -366,68 +351,6 @@ model PricingTier {
 
   @@index([pricingRuleId])
   @@map("pricing_tiers")
-}
-
-// ==================== 产品流程 ====================
-
-model ProductFlow {
-  id        String   @id @default(cuid())
-  productId String
-  name      String // 流程名称
-  type      String // NODE:一次性节点流程 CYCLE:周期性流程
-  config    String // 流程配置(JSON)
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  nodes     ProductFlowNode[]
-
-  @@map("product_flows")
-}
-
-// 产品流程节点
-model ProductFlowNode {
-  id          String   @id @default(cuid())
-  flowId      String   // 流程ID
-  name        String   // 节点名称
-  type        String   // 节点类型: TASK(任务), NOTIFY(通知), APPROVE(审批)
-  roleId      String?  // 负责人角色ID
-  order       Int      // 执行顺序
-  config      String?  // 节点配置(JSON)
-  notifyConfig String? // 通知配置(JSON): 发送给谁、通知内容等
-  cycleConfig String? // 周期配置(JSON): 仅周期性节点使用，包含cron表达式
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  flow        ProductFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
-  executions  ProductFlowExecution[]
-
-  @@index([flowId])
-  @@map("product_flow_nodes")
-}
-
-// 产品流程执行记录
-model ProductFlowExecution {
-  id          String   @id @default(cuid())
-  nodeId      String   // 节点ID
-  contractId  String?  // 关联合同ID（可选）
-  customerId  String?  // 关联客户ID
-  status      String   // 状态: PENDING(待执行), RUNNING(执行中), SUCCESS(成功), FAILED(失败), SKIPPED(跳过)
-  result      String?  // 执行结果(JSON)
-  error       String?  // 错误信息
-  executedAt  DateTime? // 实际执行时间
-  completedAt DateTime? // 完成时间
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  node        ProductFlowNode @relation(fields: [nodeId], references: [id])
-
-  @@index([nodeId])
-  @@index([contractId])
-  @@index([status])
-  @@map("product_flow_executions")
 }
 
 // ==================== 合同模块 ====================
