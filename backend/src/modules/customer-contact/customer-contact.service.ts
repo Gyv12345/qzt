@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { AddContactDto, LinkContactDto, UpdateContactRoleDto } from './dto/link-contact.dto';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import {
+  AddContactDto,
+  LinkContactDto,
+  UpdateContactRoleDto,
+} from "./dto/link-contact.dto";
 
 @Injectable()
 export class CustomerContactService {
@@ -9,14 +17,18 @@ export class CustomerContactService {
   /**
    * 为公司添加联系人（如果联系人不存在则创建）
    */
-  async addContact(customerId: string, addDto: AddContactDto, ownerUserId: string) {
+  async addContact(
+    customerId: string,
+    addDto: AddContactDto,
+    ownerUserId: string,
+  ) {
     // 检查公司是否存在
     const customer = await this.prisma.customer.findUnique({
       where: { id: customerId },
     });
 
     if (!customer) {
-      throw new NotFoundException('公司不存在');
+      throw new NotFoundException("公司不存在");
     }
 
     // 检查手机号对应的联系人是否存在
@@ -63,12 +75,12 @@ export class CustomerContactService {
           },
         });
         return {
-          message: '关联成功（已恢复离职状态）',
+          message: "关联成功（已恢复离职状态）",
           contact,
           customer,
         };
       }
-      throw new ConflictException('该联系人已关联此公司');
+      throw new ConflictException("该联系人已关联此公司");
     }
 
     // 如果设置为主要联系人，需要取消其他主要联系人
@@ -99,7 +111,7 @@ export class CustomerContactService {
     });
 
     return {
-      message: '添加成功',
+      message: "添加成功",
       contact,
       customer,
     };
@@ -115,7 +127,7 @@ export class CustomerContactService {
     });
 
     if (!customer) {
-      throw new NotFoundException('公司不存在');
+      throw new NotFoundException("公司不存在");
     }
 
     // 检查联系人是否存在
@@ -124,7 +136,7 @@ export class CustomerContactService {
     });
 
     if (!contact) {
-      throw new NotFoundException('联系人不存在');
+      throw new NotFoundException("联系人不存在");
     }
 
     // 检查是否已经关联
@@ -152,9 +164,9 @@ export class CustomerContactService {
             remark: linkDto.remark ?? existing.remark,
           },
         });
-        return { message: '关联成功（已恢复离职状态）' };
+        return { message: "关联成功（已恢复离职状态）" };
       }
-      throw new ConflictException('该联系人已关联此公司');
+      throw new ConflictException("该联系人已关联此公司");
     }
 
     // 如果设置为主要联系人，需要取消其他主要联系人
@@ -184,13 +196,17 @@ export class CustomerContactService {
       },
     });
 
-    return { message: '关联成功' };
+    return { message: "关联成功" };
   }
 
   /**
    * 更新联系人角色
    */
-  async updateContactRole(customerId: string, contactId: string, updateDto: UpdateContactRoleDto) {
+  async updateContactRole(
+    customerId: string,
+    contactId: string,
+    updateDto: UpdateContactRoleDto,
+  ) {
     // 检查关联是否存在
     const existing = await this.prisma.customerContact.findUnique({
       where: {
@@ -202,7 +218,7 @@ export class CustomerContactService {
     });
 
     if (!existing) {
-      throw new NotFoundException('关联不存在');
+      throw new NotFoundException("关联不存在");
     }
 
     // 如果设置为主要联系人，需要取消其他主要联系人
@@ -247,7 +263,7 @@ export class CustomerContactService {
     });
 
     if (!existing) {
-      throw new NotFoundException('关联不存在');
+      throw new NotFoundException("关联不存在");
     }
 
     // 软删除：设置状态为离职
@@ -263,7 +279,7 @@ export class CustomerContactService {
       },
     });
 
-    return { message: '已取消关联（标记为离职状态）' };
+    return { message: "已取消关联（标记为离职状态）" };
   }
 
   /**
@@ -278,9 +294,9 @@ export class CustomerContactService {
         contact: true,
       },
       orderBy: [
-        { status: 'desc' }, // 在职的排前面
-        { isPrimary: 'desc' }, // 主要联系人排前面
-        { createdAt: 'asc' },
+        { status: "desc" }, // 在职的排前面
+        { isPrimary: "desc" }, // 主要联系人排前面
+        { createdAt: "asc" },
       ],
     });
 
