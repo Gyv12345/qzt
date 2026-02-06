@@ -1,10 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
-import type { CreatePermissionDto, PermissionControllerFindAllPermissionsParams } from "@/models";
+import type {
+  CreatePermissionDto,
+  PermissionControllerFindAllPermissionsParams,
+} from "@/models";
 
 // 权限列表查询
-export function usePermissions(params?: PermissionControllerFindAllPermissionsParams) {
+export function usePermissions(
+  params?: PermissionControllerFindAllPermissionsParams,
+) {
   return useQuery({
     queryKey: ["permissions", params],
     queryFn: async () => {
@@ -38,7 +43,13 @@ export function useUpdatePermission() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: CreatePermissionDto }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: CreatePermissionDto;
+    }) => {
       const { permissionControllerUpdatePermission } = getScrmApi();
       return await permissionControllerUpdatePermission(id, data);
     },

@@ -40,7 +40,12 @@ function DepartmentTree({
             onClick={() => onSelect(dept.id)}
           >
             {dept.children && dept.children.length > 0 ? (
-              <DepartmentTreeItem dept={dept} selectedId={selectedId} onSelect={onSelect} level={level} />
+              <DepartmentTreeItem
+                dept={dept}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                level={level}
+              />
             ) : (
               <>
                 <span className="w-4" />

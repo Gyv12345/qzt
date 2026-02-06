@@ -38,7 +38,10 @@ export function CustomerDetailDrawer({
   if (isLoading) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side={drawerSide} className={isMobile ? "h-[85vh]" : "w-[700px]"}>
+        <SheetContent
+          side={drawerSide}
+          className={isMobile ? "h-[85vh]" : "w-[700px]"}
+        >
           <div className="flex items-center justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>

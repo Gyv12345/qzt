@@ -30,15 +30,14 @@ export function PermissionTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingPermission, setEditingPermission] = useState<Permission | undefined>();
+  const [editingPermission, setEditingPermission] = useState<
+    Permission | undefined
+  >();
 
   const { data, isLoading, error, refetch } = usePermissions();
   const deleteMutation = useDeletePermission();
 
-  const columns = useMemo(
-    () => createColumns(handleEdit, handleDelete),
-    []
-  );
+  const columns = useMemo(() => createColumns(handleEdit, handleDelete), []);
 
   const handleCreate = () => {
     setEditingPermission(undefined);

@@ -32,8 +32,15 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
-import { useCreatePermission, useUpdatePermission } from "../hooks/use-permissions";
-import { permissionFormSchema, type PermissionFormValues, type Permission } from "../data/schema";
+import {
+  useCreatePermission,
+  useUpdatePermission,
+} from "../hooks/use-permissions";
+import {
+  permissionFormSchema,
+  type PermissionFormValues,
+  type Permission,
+} from "../data/schema";
 
 interface PermissionFormDrawerProps {
   open: boolean;

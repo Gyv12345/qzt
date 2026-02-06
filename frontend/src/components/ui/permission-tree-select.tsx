@@ -64,15 +64,16 @@ function PermissionTreeNodeItem({
     return collectNodePermissionIds(node);
   }, [node]);
 
-  const allChildrenSelected = childNodeIds.length > 0 &&
-    childNodeIds.every(id => selectedIds.has(id));
-  const someChildrenSelected = childNodeIds.some(id => selectedIds.has(id));
+  const allChildrenSelected =
+    childNodeIds.length > 0 && childNodeIds.every((id) => selectedIds.has(id));
+  const someChildrenSelected = childNodeIds.some((id) => selectedIds.has(id));
 
   const handleToggle = (checked: boolean) => {
     onToggleMenu(node.id, checked, childNodeIds);
   };
 
-  const hasChildren = (node.children?.length || 0) > 0 || (node.permissions?.length || 0) > 0;
+  const hasChildren =
+    (node.children?.length || 0) > 0 || (node.permissions?.length || 0) > 0;
 
   return (
     <li>
@@ -101,15 +102,15 @@ function PermissionTreeNodeItem({
           onCheckedChange={handleToggle}
           className={cn(
             allChildrenSelected && "data-[state=checked]:bg-primary",
-            !allChildrenSelected && someChildrenSelected && "data-[state=unchecked]:bg-primary/50"
+            !allChildrenSelected &&
+              someChildrenSelected &&
+              "data-[state=unchecked]:bg-primary/50",
           )}
         >
           {!allChildrenSelected && someChildrenSelected && (
             <Minus className="h-3 w-3" />
           )}
-          {allChildrenSelected && (
-            <Check className="h-3 w-3" />
-          )}
+          {allChildrenSelected && <Check className="h-3 w-3" />}
         </Checkbox>
 
         <span className="flex-1">{node.name}</span>
@@ -167,11 +168,11 @@ interface PermissionTreeSelectProps {
 
 // 将 MenuNode 转换为 PermissionTreeNode
 function convertMenuToPermissionTree(menus: MenuNode[]): PermissionTreeNode[] {
-  return menus.map(menu => ({
+  return menus.map((menu) => ({
     id: menu.id,
     name: menu.name,
-    type: 'menu',
-    permissions: menu.permissions?.map(p => ({
+    type: "menu",
+    permissions: menu.permissions?.map((p) => ({
       id: p.id,
       name: p.name,
       code: p.code,
@@ -198,25 +199,21 @@ export function PermissionTreeSelect({
 
   const permissionTree = useMemo(
     () => convertMenuToPermissionTree(menuTree),
-    [menuTree]
+    [menuTree],
   );
 
   const handleToggle = (id: string, checked: boolean) => {
-    const newIds = checked
-      ? [...value, id]
-      : value.filter(v => v !== id);
+    const newIds = checked ? [...value, id] : value.filter((v) => v !== id);
     onChange(newIds);
   };
 
   const handleToggleMenu = (
     menuId: string,
     checked: boolean,
-    childIds: string[]
+    childIds: string[],
   ) => {
-    const otherIds = value.filter(v => !childIds.includes(v));
-    const newIds = checked
-      ? [...otherIds, ...childIds]
-      : otherIds;
+    const otherIds = value.filter((v) => !childIds.includes(v));
+    const newIds = checked ? [...otherIds, ...childIds] : otherIds;
     onChange(newIds);
   };
 
@@ -231,12 +228,10 @@ export function PermissionTreeSelect({
           className={cn(
             "w-full justify-start text-left font-normal",
             value.length === 0 && "text-muted-foreground",
-            className
+            className,
           )}
         >
-          {selectedCount > 0
-            ? `已选择 ${selectedCount} 个权限`
-            : placeholder}
+          {selectedCount > 0 ? `已选择 ${selectedCount} 个权限` : placeholder}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start">
