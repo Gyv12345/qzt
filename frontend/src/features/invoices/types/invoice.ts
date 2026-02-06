@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const invoiceSchema = z.object({
   id: z.string(),
@@ -12,13 +12,13 @@ export const invoiceSchema = z.object({
   remark: z.string().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-})
+});
 
-export type Invoice = z.infer<typeof invoiceSchema>
+export type Invoice = z.infer<typeof invoiceSchema>;
 
 export interface InvoiceListResponse {
-  items: Invoice[]
-  total: number
-  page: number
-  pageSize: number
+  items: Invoice[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
