@@ -51,4 +51,4 @@ certificates/
 .temp/
 
 backend/.env.development
-
+.idea
