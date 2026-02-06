@@ -68,9 +68,7 @@ export function getContractsColumns({
         className: "w-[140px]",
       },
       cell: ({ row }) => {
-        return (
-          <div className="font-medium">{row.getValue("contractNo")}</div>
-        );
+        return <div className="font-medium">{row.getValue("contractNo")}</div>;
       },
     },
     {
