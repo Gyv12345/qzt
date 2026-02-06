@@ -63,9 +63,7 @@ export function ContractFormDrawer({
           serviceStart: new Date(contract.serviceStart)
             .toISOString()
             .split("T")[0],
-          serviceEnd: new Date(contract.serviceEnd)
-            .toISOString()
-            .split("T")[0],
+          serviceEnd: new Date(contract.serviceEnd).toISOString().split("T")[0],
           remark: contract.remark || "",
         }
       : {
