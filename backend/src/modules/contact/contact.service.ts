@@ -1,12 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { DataScopeService } from '../permission/services/data-scope.service';
-import { CreateContactDto } from './dto/create-contact.dto';
-import { UpdateContactDto } from './dto/update-contact.dto';
-import { QueryContactDto } from './dto/query-contact.dto';
-import { LinkCompanyDto } from './dto/link-company.dto';
-import { ExportContactDto } from './dto/export-contact.dto';
-import { ImportContactDto } from './dto/import-contact.dto';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { DataScopeService } from "../permission/services/data-scope.service";
+import { CreateContactDto } from "./dto/create-contact.dto";
+import { UpdateContactDto } from "./dto/update-contact.dto";
+import { QueryContactDto } from "./dto/query-contact.dto";
+import { LinkCompanyDto } from "./dto/link-company.dto";
+import { ExportContactDto } from "./dto/export-contact.dto";
+import { ImportContactDto } from "./dto/import-contact.dto";
 
 @Injectable()
 export class ContactService {
@@ -25,7 +30,7 @@ export class ContactService {
     });
 
     if (existing) {
-      throw new ConflictException('该手机号已存在');
+      throw new ConflictException("该手机号已存在");
     }
 
     // 创建联系人
@@ -42,14 +47,17 @@ export class ContactService {
   /**
    * 查询联系人列表
    */
-  async findAll(query: QueryContactDto, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+  async findAll(
+    query: QueryContactDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
     const {
       page = 1,
       pageSize = 10,
       keyword,
       customerId,
-      sortField = 'createdAt',
-      sortOrder = 'desc',
+      sortField = "createdAt",
+      sortOrder = "desc",
     } = query;
 
     // 构建查询条件
@@ -111,11 +119,18 @@ export class ContactService {
   /**
    * 获取联系人详情
    */
-  async findOne(id: string, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+  async findOne(
+    id: string,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
     if (dataScope) {
-      const canAccess = await this.dataScopeService.canAccess('contact', id, dataScope);
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        id,
+        dataScope,
+      );
       if (!canAccess) {
-        throw new ForbiddenException('无权访问此联系人');
+        throw new ForbiddenException("无权访问此联系人");
       }
     }
 
@@ -137,14 +152,14 @@ export class ContactService {
             },
           },
           orderBy: {
-            isPrimary: 'desc', // 主要联系人排前面
+            isPrimary: "desc", // 主要联系人排前面
           },
         },
       },
     });
 
     if (!contact) {
-      throw new NotFoundException('联系人不存在');
+      throw new NotFoundException("联系人不存在");
     }
 
     // 组装数据
@@ -179,9 +194,9 @@ export class ContactService {
     const { range, ids, keyword, customerId } = exportDto;
     let where: Record<string, unknown> = {};
 
-    if (range === 'selected' && ids?.length) {
+    if (range === "selected" && ids?.length) {
       where = { id: { in: ids } };
-    } else if (range === 'filtered') {
+    } else if (range === "filtered") {
       where = this.buildContactWhere(keyword, customerId);
     }
 
@@ -191,7 +206,7 @@ export class ContactService {
 
     const contacts = await this.prisma.contact.findMany({
       where: scopedWhere,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         customerContacts: {
           where: { status: 1 },
@@ -201,17 +216,19 @@ export class ContactService {
             },
           },
           orderBy: {
-            isPrimary: 'desc',
+            isPrimary: "desc",
           },
         },
       },
     });
 
     return contacts.map((contact) => {
-      const primaryCustomer = contact.customerContacts.find((cc) => cc.isPrimary) || contact.customerContacts[0];
+      const primaryCustomer =
+        contact.customerContacts.find((cc) => cc.isPrimary) ||
+        contact.customerContacts[0];
       return {
         ...contact,
-        customerName: primaryCustomer?.customer?.name || '',
+        customerName: primaryCustomer?.customer?.name || "",
       };
     });
   }
@@ -219,10 +236,7 @@ export class ContactService {
   /**
    * 批量导入联系人
    */
-  async importContacts(
-    importDto: ImportContactDto,
-    userId: string,
-  ) {
+  async importContacts(importDto: ImportContactDto, userId: string) {
     const rows = importDto.rows || [];
     if (rows.length === 0) {
       return { total: 0, created: 0, skipped: 0, errors: [] };
@@ -298,11 +312,19 @@ export class ContactService {
   /**
    * 更新联系人
    */
-  async update(id: string, updateContactDto: UpdateContactDto, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+  async update(
+    id: string,
+    updateContactDto: UpdateContactDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
     if (dataScope) {
-      const canAccess = await this.dataScopeService.canAccess('contact', id, dataScope);
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        id,
+        dataScope,
+      );
       if (!canAccess) {
-        throw new ForbiddenException('无权更新此联系人');
+        throw new ForbiddenException("无权更新此联系人");
       }
     }
 
@@ -312,7 +334,7 @@ export class ContactService {
     });
 
     if (!contact) {
-      throw new NotFoundException('联系人不存在');
+      throw new NotFoundException("联系人不存在");
     }
 
     // 如果要更新手机号，检查新手机号是否已被使用
@@ -322,7 +344,7 @@ export class ContactService {
       });
 
       if (existing) {
-        throw new ConflictException('该手机号已被使用');
+        throw new ConflictException("该手机号已被使用");
       }
     }
 
@@ -338,11 +360,18 @@ export class ContactService {
   /**
    * 删除联系人
    */
-  async remove(id: string, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+  async remove(
+    id: string,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
     if (dataScope) {
-      const canAccess = await this.dataScopeService.canAccess('contact', id, dataScope);
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        id,
+        dataScope,
+      );
       if (!canAccess) {
-        throw new ForbiddenException('无权删除此联系人');
+        throw new ForbiddenException("无权删除此联系人");
       }
     }
 
@@ -355,7 +384,7 @@ export class ContactService {
     });
 
     if (!contact) {
-      throw new NotFoundException('联系人不存在');
+      throw new NotFoundException("联系人不存在");
     }
 
     // 如果有关联的公司，提示用户
@@ -370,17 +399,25 @@ export class ContactService {
       where: { id },
     });
 
-    return { message: '删除成功' };
+    return { message: "删除成功" };
   }
 
   /**
    * 关联公司
    */
-  async linkCompany(contactId: string, linkDto: LinkCompanyDto, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+  async linkCompany(
+    contactId: string,
+    linkDto: LinkCompanyDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
     if (dataScope) {
-      const canAccess = await this.dataScopeService.canAccess('contact', contactId, dataScope);
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        contactId,
+        dataScope,
+      );
       if (!canAccess) {
-        throw new ForbiddenException('无权关联此联系人');
+        throw new ForbiddenException("无权关联此联系人");
       }
     }
 
@@ -390,7 +427,7 @@ export class ContactService {
     });
 
     if (!contact) {
-      throw new NotFoundException('联系人不存在');
+      throw new NotFoundException("联系人不存在");
     }
 
     // 检查公司是否存在
@@ -399,7 +436,7 @@ export class ContactService {
     });
 
     if (!customer) {
-      throw new NotFoundException('公司不存在');
+      throw new NotFoundException("公司不存在");
     }
 
     // 检查是否已经关联
@@ -419,9 +456,9 @@ export class ContactService {
           where: { id: existing.id },
           data: { status: 1, ...linkDto },
         });
-        return { message: '关联成功（已恢复离职状态）' };
+        return { message: "关联成功（已恢复离职状态）" };
       }
-      throw new ConflictException('该联系人已关联此公司');
+      throw new ConflictException("该联系人已关联此公司");
     }
 
     // 如果设置为主要联系人，需要取消其他主要联系人
@@ -452,17 +489,25 @@ export class ContactService {
       },
     });
 
-    return { message: '关联成功' };
+    return { message: "关联成功" };
   }
 
   /**
    * 取消关联公司
    */
-  async unlinkCompany(contactId: string, customerId: string, dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] }) {
+  async unlinkCompany(
+    contactId: string,
+    customerId: string,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
     if (dataScope) {
-      const canAccess = await this.dataScopeService.canAccess('contact', contactId, dataScope);
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        contactId,
+        dataScope,
+      );
       if (!canAccess) {
-        throw new ForbiddenException('无权取消此联系人关联');
+        throw new ForbiddenException("无权取消此联系人关联");
       }
     }
 
@@ -477,7 +522,7 @@ export class ContactService {
     });
 
     if (!existing) {
-      throw new NotFoundException('关联不存在');
+      throw new NotFoundException("关联不存在");
     }
 
     // 软删除：设置状态为离职
@@ -493,6 +538,6 @@ export class ContactService {
       },
     });
 
-    return { message: '已取消关联（标记为离职状态）' };
+    return { message: "已取消关联（标记为离职状态）" };
   }
 }

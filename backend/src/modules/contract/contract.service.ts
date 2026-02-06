@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateContractDto } from './dto/create-contract.dto';
-import { UpdateContractDto } from './dto/update-contract.dto';
-import { QueryContractDto } from './dto/query-contract.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateContractDto } from "./dto/create-contract.dto";
+import { UpdateContractDto } from "./dto/update-contract.dto";
+import { QueryContractDto } from "./dto/query-contract.dto";
 
 @Injectable()
 export class ContractService {
@@ -11,7 +11,7 @@ export class ContractService {
   async create(createContractDto: CreateContractDto) {
     // 生成合同编号
     const contractCount = await this.prisma.contract.count();
-    const contractNo = `CON${new Date().getFullYear()}${String(contractCount + 1).padStart(6, '0')}`;
+    const contractNo = `CON${new Date().getFullYear()}${String(contractCount + 1).padStart(6, "0")}`;
 
     return this.prisma.contract.create({
       data: {
@@ -20,7 +20,7 @@ export class ContractService {
         serviceStart: new Date(createContractDto.serviceStart),
         serviceEnd: new Date(createContractDto.serviceEnd),
         paidAmount: 0,
-        status: 'UNPAID', // 待收款
+        status: "UNPAID", // 待收款
       },
       include: {
         customer: {
@@ -34,7 +34,14 @@ export class ContractService {
   }
 
   async findAll(query: QueryContractDto) {
-    const { page = 1, pageSize = 10, keyword, customerId, productId, status } = query;
+    const {
+      page = 1,
+      pageSize = 10,
+      keyword,
+      customerId,
+      productId,
+      status,
+    } = query;
     const skip = (page - 1) * pageSize;
 
     const where: any = {};
@@ -64,7 +71,7 @@ export class ContractService {
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           customer: {
             select: { id: true, name: true },
@@ -96,7 +103,7 @@ export class ContractService {
           select: { id: true, name: true, price: true, description: true },
         },
         payments: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         },
       },
     });
@@ -154,7 +161,7 @@ export class ContractService {
       where: { id },
     });
 
-    return { message: 'Contract deleted successfully' };
+    return { message: "Contract deleted successfully" };
   }
 
   async updatePaymentStatus(contractId: string) {
@@ -162,7 +169,7 @@ export class ContractService {
     const payments = await this.prisma.payment.findMany({
       where: {
         contractId,
-        status: 'CONFIRMED', // 已确认
+        status: "CONFIRMED", // 已确认
       },
     });
 
@@ -178,11 +185,11 @@ export class ContractService {
     }
 
     // 更新合同状态
-    let status: 'UNPAID' | 'PARTIAL' | 'PAID' = 'UNPAID'; // 待收款
+    let status: "UNPAID" | "PARTIAL" | "PAID" = "UNPAID"; // 待收款
     if (paidAmount > 0 && paidAmount < contract.amount) {
-      status = 'PARTIAL'; // 部分收款
+      status = "PARTIAL"; // 部分收款
     } else if (paidAmount >= contract.amount) {
-      status = 'PAID'; // 已收全
+      status = "PAID"; // 已收全
     }
 
     return this.prisma.contract.update({
