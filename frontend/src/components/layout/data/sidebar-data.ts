@@ -31,64 +31,71 @@ import {
   PieChart,
   Receipt,
   Wallet,
-} from 'lucide-react'
-import { type SidebarData } from '../types'
+  UsersRound,
+  GitBranch,
+} from "lucide-react";
+import { type SidebarData } from "../types";
 
 export const sidebarData: SidebarData = {
   user: {
-    name: 'Admin',
-    email: 'admin@example.com',
-    avatar: '/avatars/shadcn.jpg',
+    name: "Admin",
+    email: "admin@example.com",
+    avatar: "/avatars/shadcn.jpg",
   },
   teams: [
     {
-      name: '企账通 SCRM',
+      name: "企账通 SCRM",
       logo: Command,
-      plan: '企业版',
+      plan: "企业版",
     },
   ],
   navGroups: [
     {
-      title: '业务',
+      title: "业务",
       items: [
         {
-          title: '工作台',
-          url: '/',
+          title: "工作台",
+          url: "/",
           icon: LayoutDashboard,
         },
         {
-          title: '销售管理',
+          title: "销售管理",
           icon: BarChart3,
           items: [
             {
-              title: '联系人管理',
-              url: '/contacts',
+              title: "联系人管理",
+              url: "/contacts",
               icon: UserCircle,
             },
             {
-              title: '客户管理',
-              url: '/customers',
+              title: "客户管理",
+              url: "/customers",
               icon: Building,
             },
             {
-              title: '合同管理',
-              url: '/contracts',
+              title: "合同管理",
+              url: "/contracts",
               icon: FileCheck,
+            },
+            {
+              title: "服务团队",
+              url: "/service-teams",
+              icon: UsersRound,
             },
           ],
         },
         {
-          title: '财务管理',
+          title: "财务管理",
           icon: PieChart,
           items: [
             {
-              title: '发票管理',
-              url: '/invoices',
+              title: "发票管理",
+              url: "/invoices",
               icon: Receipt,
             },
             {
-              title: '收款管理',
-              url: '/payments',
+              title: "收款管理",
+              url: "/payments",
               icon: Wallet,
             },
           ],
@@ -113,44 +120,54 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
-      title: '系统设置',
+      title: "系统设置",
       items: [
         {
-          title: '用户管理',
-          url: '/users',
+          title: "用户管理",
+          url: "/users",
           icon: Users,
         },
         {
-          title: '部门管理',
-          url: '/departments',
+          title: "部门管理",
+          url: "/departments",
           icon: Building,
         },
         {
-          title: '角色管理',
-          url: '/roles',
+          title: "角色管理",
+          url: "/roles",
           icon: ShieldCheck,
         },
         {
-          title: '权限管理',
-          url: '/permissions',
+          title: "权限管理",
+          url: "/permissions",
           icon: Lock,
         },
         {
-          title: '产品管理',
-          url: '/products',
+          title: "产品管理",
+          url: "/products",
           icon: Archive,
         },
         {
-          title: '日志管理',
+          title: "产品套餐",
+          url: "/product-packages",
+          icon: Package,
+        },
+        {
+          title: "产品流程",
+          url: "/product-flows",
+          icon: GitBranch,
+        },
+        {
+          title: "日志管理",
           icon: FileText,
           items: [
             {
-              title: '登录日志',
-              url: '/login-logs',
+              title: "登录日志",
+              url: "/login-logs",
             },
             {
-              title: '操作日志',
-              url: '/operation-logs',
+              title: "操作日志",
+              url: "/operation-logs",
             },
           ],
         },
@@ -244,4 +261,4 @@ export const sidebarData: SidebarData = {
     //   ],
     // },
   ],
-}
+};

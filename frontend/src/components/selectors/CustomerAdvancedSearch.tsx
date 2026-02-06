@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
-import { useQueryClient } from '@tanstack/react-query'
+import { useState } from "react";
+import { getRouteApi } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -8,54 +8,56 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { CustomersTable } from '@/features/customers/components/customers-table'
-import type { Customer } from '@/features/customers/types/customer'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { CustomersTable } from "@/features/customers/components/customers-table";
+import type { Customer } from "@/features/customers/types/customer";
 
 interface CustomerAdvancedSearchProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSelect: (customer: Customer) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (customer: Customer) => void;
 }
 
 // 临时路由用于搜索参数（不影响主应用路由）
-const mockSearch = {}
-const mockNavigate = (opts: any) => {}
+const mockSearch = {};
+const mockNavigate = (opts: any) => {};
 
 export function CustomerAdvancedSearch({
   open,
   onOpenChange,
   onSelect,
 }: CustomerAdvancedSearchProps) {
-  const queryClient = useQueryClient()
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const queryClient = useQueryClient();
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['customers'] })
-  }
+    queryClient.invalidateQueries({ queryKey: ["customers"] });
+  };
 
   const handleSelect = () => {
     if (selectedCustomer) {
-      onSelect(selectedCustomer)
-      onOpenChange(false)
-      setSelectedCustomer(null)
+      onSelect(selectedCustomer);
+      onOpenChange(false);
+      setSelectedCustomer(null);
     }
-  }
+  };
 
   const handleRowClick = (customer: Customer) => {
-    setSelectedCustomer(customer)
-  }
+    setSelectedCustomer(customer);
+  };
 
   const handleDoubleClick = (customer: Customer) => {
-    onSelect(customer)
-    onOpenChange(false)
-    setSelectedCustomer(null)
-  }
+    onSelect(customer);
+    onOpenChange(false);
+    setSelectedCustomer(null);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-6xl max-h-[90vh] overflow-hidden flex flex-col'>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>高级查找 - 选择企业</DialogTitle>
           <DialogDescription>
@@ -63,7 +65,7 @@ export function CustomerAdvancedSearch({
           </DialogDescription>
         </DialogHeader>
 
-        <div className='flex-1 overflow-hidden'>
+        <div className="flex-1 overflow-hidden">
           <CustomersTable
             search={mockSearch as any}
             navigate={mockNavigate as any}
@@ -75,19 +77,19 @@ export function CustomerAdvancedSearch({
           />
         </div>
 
-        <DialogFooter className='gap-2 sm:gap-0'>
+        <DialogFooter className="gap-2 sm:gap-0">
           <Button
-            type='button'
-            variant='outline'
+            type="button"
+            variant="outline"
             onClick={() => {
-              onOpenChange(false)
-              setSelectedCustomer(null)
+              onOpenChange(false);
+              setSelectedCustomer(null);
             }}
           >
             取消
           </Button>
           <Button
-            type='button'
+            type="button"
             onClick={handleSelect}
             disabled={!selectedCustomer}
           >
@@ -96,5 +98,5 @@ export function CustomerAdvancedSearch({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
