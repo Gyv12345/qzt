@@ -30,18 +30,18 @@ interface CustomerSelectorProps {
   disabled?: boolean;
 }
 
-// 客户等级映射
+// 客户等级映射 (customerLevel 现在是 String 类型: LEAD, PROSPECT, CUSTOMER, VIP)
 const customerLevelMap: Record<
-  number,
+  string,
   {
     label: string;
     variant: "default" | "secondary" | "outline" | "destructive";
   }
 > = {
-  0: { label: "线索", variant: "secondary" },
-  1: { label: "意向", variant: "outline" },
-  2: { label: "正式", variant: "default" },
-  3: { label: "VIP", variant: "destructive" },
+  LEAD: { label: "线索", variant: "secondary" },
+  PROSPECT: { label: "意向", variant: "outline" },
+  CUSTOMER: { label: "正式", variant: "default" },
+  VIP: { label: "VIP", variant: "destructive" },
 };
 
 export function CustomerSelector({

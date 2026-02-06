@@ -95,7 +95,7 @@ function DataTableRowActions({
 
 export const createColumns = (
   onEdit?: (permission: Permission) => void,
-  onDelete?: (permission: Permission) => void
+  onDelete?: (permission: Permission) => void,
 ): ColumnDef<Permission>[] => {
   const baseColumns: ColumnDef<Permission>[] = [
     {
@@ -138,9 +138,7 @@ export const createColumns = (
       cell: ({ row }) => {
         const type = row.getValue("type") as string;
         return (
-          <Badge variant={typeBadgeVariant(type)}>
-            {typeLabel(type)}
-          </Badge>
+          <Badge variant={typeBadgeVariant(type)}>{typeLabel(type)}</Badge>
         );
       },
     },
@@ -172,11 +170,7 @@ export const createColumns = (
       id: "actions",
       header: "操作",
       cell: ({ row }: { row: Row<Permission> }) => (
-        <DataTableRowActions
-          row={row}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} />
       ),
     });
   }

@@ -3,7 +3,10 @@ import { ChevronDown, ChevronRight, Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useMenuTree, convertToPermissionTree } from "@/features/menus/hooks/use-menu-tree";
+import {
+  useMenuTree,
+  convertToPermissionTree,
+} from "@/features/menus/hooks/use-menu-tree";
 import { PermissionFormDrawer } from "./permission-form-drawer";
 import { useDeletePermission } from "../hooks/use-permissions";
 import type { Permission, PermissionTreeNode } from "../data/schema";
@@ -49,7 +52,8 @@ function PermissionTreeNodeItem({
   onDelete,
 }: PermissionTreeNodeItemProps) {
   const [isOpen, setIsOpen] = useState(true);
-  const hasChildren = (node.children?.length || 0) > 0 || (node.permissions?.length || 0) > 0;
+  const hasChildren =
+    (node.children?.length || 0) > 0 || (node.permissions?.length || 0) > 0;
 
   const handleEdit = (permission: Permission) => {
     onEdit(permission);
@@ -65,7 +69,7 @@ function PermissionTreeNodeItem({
       <div
         className={cn(
           "flex items-center gap-2 py-2 px-3 hover:bg-accent/50 border-b",
-          node.type === 'menu' && "bg-muted/30 font-medium"
+          node.type === "menu" && "bg-muted/30 font-medium",
         )}
         style={{ paddingLeft: `${level * 16 + 12}px` }}
       >
@@ -117,7 +121,9 @@ function PermissionTreeNodeItem({
                   <Badge variant={typeBadgeVariant(permission.type)}>
                     {typeLabel(permission.type)}
                   </Badge>
-                  <Badge variant={permission.status === 1 ? "default" : "secondary"}>
+                  <Badge
+                    variant={permission.status === 1 ? "default" : "secondary"}
+                  >
                     {permission.status === 1 ? "启用" : "禁用"}
                   </Badge>
                   <div className="flex items-center gap-1 ml-auto">
@@ -170,7 +176,9 @@ interface PermissionTreeTableProps {
 export function PermissionTreeTable({ onRefresh }: PermissionTreeTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingPermission, setEditingPermission] = useState<Permission | undefined>();
+  const [editingPermission, setEditingPermission] = useState<
+    Permission | undefined
+  >();
 
   const { data: menuTree, isLoading, error, refetch } = useMenuTree();
   const deleteMutation = useDeletePermission();
@@ -191,13 +199,17 @@ export function PermissionTreeTable({ onRefresh }: PermissionTreeTableProps) {
           text.toLowerCase().includes(searchQuery.toLowerCase());
 
         const nameMatches = matchesSearch(node.name);
-        const matchedPermissions = node.permissions?.filter(p =>
-          matchesSearch(p.name) || matchesSearch(p.code)
+        const matchedPermissions = node.permissions?.filter(
+          (p) => matchesSearch(p.name) || matchesSearch(p.code),
         );
 
         const filteredChildren = node.children ? filterTree(node.children) : [];
 
-        if (nameMatches || (matchedPermissions && matchedPermissions.length > 0) || filteredChildren.length > 0) {
+        if (
+          nameMatches ||
+          (matchedPermissions && matchedPermissions.length > 0) ||
+          filteredChildren.length > 0
+        ) {
           acc.push({
             ...node,
             permissions: matchedPermissions || node.permissions,

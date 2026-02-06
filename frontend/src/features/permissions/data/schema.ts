@@ -39,7 +39,7 @@ export interface MenuNode {
 export interface PermissionTreeNode {
   id: string;
   name: string;
-  type: 'menu' | 'permission';
+  type: "menu" | "permission";
   code?: string;
   permissionType?: string; // menu/button/data
   permissions?: Permission[];
