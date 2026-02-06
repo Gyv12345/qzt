@@ -18,8 +18,11 @@ import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedServiceTeamsRouteRouteImport } from './routes/_authenticated/service-teams/route'
 import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
 import { Route as AuthenticatedProductsRouteRouteImport } from './routes/_authenticated/products/route'
+import { Route as AuthenticatedProductPackagesRouteRouteImport } from './routes/_authenticated/product-packages/route'
+import { Route as AuthenticatedProductFlowsRouteRouteImport } from './routes/_authenticated/product-flows/route'
 import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
 import { Route as AuthenticatedPaymentsRouteRouteImport } from './routes/_authenticated/payments/route'
 import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
@@ -86,6 +89,12 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedServiceTeamsRouteRoute =
+  AuthenticatedServiceTeamsRouteRouteImport.update({
+    id: '/service-teams',
+    path: '/service-teams',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRolesRouteRoute = AuthenticatedRolesRouteRouteImport.update({
   id: '/roles',
   path: '/roles',
@@ -95,6 +104,18 @@ const AuthenticatedProductsRouteRoute =
   AuthenticatedProductsRouteRouteImport.update({
     id: '/products',
     path: '/products',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProductPackagesRouteRoute =
+  AuthenticatedProductPackagesRouteRouteImport.update({
+    id: '/product-packages',
+    path: '/product-packages',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProductFlowsRouteRoute =
+  AuthenticatedProductFlowsRouteRouteImport.update({
+    id: '/product-flows',
+    path: '/product-flows',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPermissionsRouteRoute =
@@ -226,8 +247,11 @@ export interface FileRoutesByFullPath {
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/product-flows': typeof AuthenticatedProductFlowsRouteRoute
+  '/product-packages': typeof AuthenticatedProductPackagesRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
+  '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/401': typeof errors401Route
   '/403': typeof errors403Route
@@ -257,8 +281,11 @@ export interface FileRoutesByTo {
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/product-flows': typeof AuthenticatedProductFlowsRouteRoute
+  '/product-packages': typeof AuthenticatedProductPackagesRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
+  '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -290,8 +317,11 @@ export interface FileRoutesById {
   '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
+  '/_authenticated/product-flows': typeof AuthenticatedProductFlowsRouteRoute
+  '/_authenticated/product-packages': typeof AuthenticatedProductPackagesRouteRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
+  '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
@@ -325,8 +355,11 @@ export interface FileRouteTypes {
     | '/operation-logs'
     | '/payments'
     | '/permissions'
+    | '/product-flows'
+    | '/product-packages'
     | '/products'
     | '/roles'
+    | '/service-teams'
     | '/settings'
     | '/401'
     | '/403'
@@ -356,8 +389,11 @@ export interface FileRouteTypes {
     | '/operation-logs'
     | '/payments'
     | '/permissions'
+    | '/product-flows'
+    | '/product-packages'
     | '/products'
     | '/roles'
+    | '/service-teams'
     | '/401'
     | '/403'
     | '/404'
@@ -388,8 +424,11 @@ export interface FileRouteTypes {
     | '/_authenticated/operation-logs'
     | '/_authenticated/payments'
     | '/_authenticated/permissions'
+    | '/_authenticated/product-flows'
+    | '/_authenticated/product-packages'
     | '/_authenticated/products'
     | '/_authenticated/roles'
+    | '/_authenticated/service-teams'
     | '/_authenticated/settings'
     | '/(errors)/401'
     | '/(errors)/403'
@@ -485,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/service-teams': {
+      id: '/_authenticated/service-teams'
+      path: '/service-teams'
+      fullPath: '/service-teams'
+      preLoaderRoute: typeof AuthenticatedServiceTeamsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/roles': {
       id: '/_authenticated/roles'
       path: '/roles'
@@ -497,6 +543,20 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof AuthenticatedProductsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/product-packages': {
+      id: '/_authenticated/product-packages'
+      path: '/product-packages'
+      fullPath: '/product-packages'
+      preLoaderRoute: typeof AuthenticatedProductPackagesRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/product-flows': {
+      id: '/_authenticated/product-flows'
+      path: '/product-flows'
+      fullPath: '/product-flows'
+      preLoaderRoute: typeof AuthenticatedProductFlowsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/permissions': {
@@ -675,8 +735,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
   AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
   AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
+  AuthenticatedProductFlowsRouteRoute: typeof AuthenticatedProductFlowsRouteRoute
+  AuthenticatedProductPackagesRouteRoute: typeof AuthenticatedProductPackagesRouteRoute
   AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
   AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
+  AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
@@ -697,8 +760,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOperationLogsRouteRoute: AuthenticatedOperationLogsRouteRoute,
   AuthenticatedPaymentsRouteRoute: AuthenticatedPaymentsRouteRoute,
   AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
+  AuthenticatedProductFlowsRouteRoute: AuthenticatedProductFlowsRouteRoute,
+  AuthenticatedProductPackagesRouteRoute:
+    AuthenticatedProductPackagesRouteRoute,
   AuthenticatedProductsRouteRoute: AuthenticatedProductsRouteRoute,
   AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
+  AuthenticatedServiceTeamsRouteRoute: AuthenticatedServiceTeamsRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
