@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const paymentSchema = z.object({
   id: z.string(),
@@ -13,13 +13,13 @@ export const paymentSchema = z.object({
   remark: z.string().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-})
+});
 
-export type Payment = z.infer<typeof paymentSchema>
+export type Payment = z.infer<typeof paymentSchema>;
 
 export interface PaymentListResponse {
-  items: Payment[]
-  total: number
-  page: number
-  pageSize: number
+  items: Payment[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   ColumnFiltersState,
   SortingState,
@@ -8,10 +8,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { ArrowUpDown, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+} from "@tanstack/react-table";
+import { ArrowUpDown, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,16 +19,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { usePermissions } from '../hooks/use-permissions'
-import { columns } from '../data/columns'
+} from "@/components/ui/table";
+import { usePermissions } from "../hooks/use-permissions";
+import { columns } from "../data/columns";
 
 export function PermissionTable() {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-  const { data, isLoading, error } = usePermissions()
+  const { data, isLoading, error } = usePermissions();
 
   const table = useReactTable({
     data: data || [],
@@ -45,14 +45,16 @@ export function PermissionTable() {
       columnFilters,
       pagination,
     },
-  })
+  });
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">加载中...</div>
+    return <div className="flex justify-center p-8">加载中...</div>;
   }
 
   if (error) {
-    return <div className="text-destructive p-8">加载失败: {error.message}</div>
+    return (
+      <div className="text-destructive p-8">加载失败: {error.message}</div>
+    );
   }
 
   return (
@@ -60,9 +62,9 @@ export function PermissionTable() {
       <div className="flex items-center justify-between">
         <Input
           placeholder="搜索权限..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn('name')?.setFilterValue(event.target.value)
+            table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -83,8 +85,8 @@ export function PermissionTable() {
                       <div
                         className={
                           header.column.getCanSort()
-                            ? 'flex cursor-pointer select-items-center gap-2'
-                            : ''
+                            ? "flex cursor-pointer select-items-center gap-2"
+                            : ""
                         }
                         onClick={header.column.getToggleSortingHandler()}
                       >
@@ -107,7 +109,7 @@ export function PermissionTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
+                  data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -157,5 +159,5 @@ export function PermissionTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }
