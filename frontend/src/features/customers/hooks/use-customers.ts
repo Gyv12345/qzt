@@ -8,7 +8,7 @@ export function useCustomers(params?: {
   page?: number;
   pageSize?: number;
   name?: string;
-  customerLevel?: number;
+  customerLevel?: string;
 }) {
   return useQuery({
     queryKey: ["customers", params],

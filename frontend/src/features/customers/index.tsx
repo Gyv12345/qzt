@@ -10,6 +10,7 @@ import { LanguageSwitch } from "@/components/language-switch";
 import { ConfigDrawer } from "@/components/config-drawer";
 import { CustomersPrimaryButtons } from "./components/customers-primary-buttons";
 import { CustomersTable } from "./components/customers-table";
+import { CustomerStatisticsPanel } from "./components/customer-statistics-panel";
 import {
   CustomersDialogs,
   useCustomersDialogs,
@@ -23,8 +24,13 @@ function CustomersContent() {
   const search = route.useSearch();
   const navigate = route.useNavigate();
   const queryClient = useQueryClient();
-  const { openCreateDialog, openEditDialog, openDetailDialog } =
-    useCustomersDialogs();
+  const {
+    openCreateDialog,
+    openEditDialog,
+    openDetailDialog,
+    openImportDialog,
+    openExportDialog,
+  } = useCustomersDialogs();
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -54,8 +60,13 @@ function CustomersContent() {
             </h2>
             <p className="text-muted-foreground">{t("customer.description")}</p>
           </div>
-          <CustomersPrimaryButtons onCreate={openCreateDialog} />
+          <CustomersPrimaryButtons
+            onCreate={openCreateDialog}
+            onImport={openImportDialog}
+            onExport={openExportDialog}
+          />
         </div>
+
         <CustomersTable
           search={search}
           navigate={navigate}
@@ -63,6 +74,9 @@ function CustomersContent() {
           onRefresh={handleRefresh}
           onRowClick={handleRowClick}
         />
+
+        {/* 统计面板 */}
+        <CustomerStatisticsPanel />
       </Main>
     </>
   );
@@ -70,13 +84,21 @@ function CustomersContent() {
 
 export function Customers() {
   const queryClient = useQueryClient();
+  const search = route.useSearch();
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["customers"] });
   };
 
+  // 提取当前筛选条件用于导出
+  const currentFilters = {
+    keyword: search.name as string | undefined,
+    customerLevel: search.customerLevel as string | undefined,
+    followUserId: search.followUserId as string | undefined,
+  };
+
   return (
-    <CustomersDialogs onRefresh={handleRefresh}>
+    <CustomersDialogs onRefresh={handleRefresh} currentFilters={currentFilters}>
       <CustomersContent />
     </CustomersDialogs>
   );

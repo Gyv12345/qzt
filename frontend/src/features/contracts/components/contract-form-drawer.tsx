@@ -1,15 +1,15 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -23,6 +23,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CustomerSelector } from "@/components/selectors/CustomerSelector";
 import { ProductSelector } from "@/components/selectors/ProductSelector";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDirection } from "@/context/direction-provider";
 import { useCreateContract, useUpdateContract } from "../hooks/use-contracts";
 import type { Contract } from "../types/contract";
 
@@ -38,20 +40,23 @@ const contractFormSchema = z.object({
 
 type ContractFormValues = z.infer<typeof contractFormSchema>;
 
-interface ContractFormDialogProps {
+interface ContractFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contract?: Contract;
   onSuccess: () => void;
 }
 
-export function ContractFormDialog({
+export function ContractFormDrawer({
   open,
   onOpenChange,
   contract,
   onSuccess,
-}: ContractFormDialogProps) {
+}: ContractFormDrawerProps) {
   const isEdit = !!contract;
+  const isMobile = useIsMobile();
+  const { dir } = useDirection();
+  const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
   const [showCustomerAdvancedSearch, setShowCustomerAdvancedSearch] =
     useState(false);
 
@@ -76,6 +81,13 @@ export function ContractFormDialog({
         },
   });
 
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+      setShowCustomerAdvancedSearch(false);
+    }
+  }, [open, form]);
+
   const createMutation = useCreateContract();
   const updateMutation = useUpdateContract();
 
@@ -87,23 +99,30 @@ export function ContractFormDialog({
         await createMutation.mutateAsync(values as any);
       }
       onSuccess();
+      onOpenChange(false);
     } catch (error) {
       console.error("提交失败:", error);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "编辑合同" : "新建合同"}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={drawerSide}
+        className={isMobile ? "h-[85vh]" : "w-[600px]"}
+      >
+        <SheetHeader className="pb-0 text-start">
+          <SheetTitle>{isEdit ? "编辑合同" : "新建合同"}</SheetTitle>
+          <SheetDescription>
             {isEdit ? "修改合同信息" : "填写合同基本信息"}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 px-4 pb-6"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -213,7 +232,7 @@ export function ContractFormDialog({
               )}
             />
 
-            <DialogFooter>
+            <SheetFooter className="px-0">
               <Button
                 type="button"
                 variant="outline"
@@ -231,10 +250,10 @@ export function ContractFormDialog({
                     ? "保存"
                     : "创建"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

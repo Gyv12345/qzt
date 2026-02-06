@@ -23,8 +23,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getCustomersColumns } from "./customers-columns";
 import { DataTableRowActions } from "./data-table-row-actions";
+import { CustomersBatchActions } from "./customers-batch-actions";
 import { useCustomers, useDeleteCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
 
@@ -33,6 +44,8 @@ type DataTableProps = {
   navigate: NavigateFn;
   onEdit: (customer: Customer) => void;
   onRefresh: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
   onRowClick?: (customer: Customer) => void;
   onRowDoubleClick?: (customer: Customer) => void;
   selectedCustomerId?: string;
@@ -43,6 +56,8 @@ export function CustomersTable({
   navigate,
   onEdit,
   onRefresh,
+  onImport,
+  onExport,
   onRowClick,
   onRowDoubleClick,
   selectedCustomerId,
@@ -51,6 +66,8 @@ export function CustomersTable({
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<Customer | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const deleteMutation = useDeleteCustomer();
 
@@ -84,22 +101,25 @@ export function CustomersTable({
   const customers = data?.data || [];
   const total = data?.total || 0;
 
-  // 处理删除
-  const handleDelete = useCallback(
-    async (customer: Customer) => {
-      if (
-        window.confirm(`确定要删除客户"${customer.name}"吗？此操作不可恢复。`)
-      ) {
-        try {
-          await deleteMutation.mutateAsync(customer.id);
-          onRefresh();
-        } catch (error) {
-          console.error("删除失败:", error);
-        }
-      }
-    },
-    [deleteMutation, onRefresh],
-  );
+  // 处理删除 - 打开确认对话框
+  const handleDeleteClick = useCallback((customer: Customer) => {
+    setDeleteConfirm(customer);
+  }, []);
+
+  // 确认删除
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    setIsDeleting(true);
+    try {
+      await deleteMutation.mutateAsync(deleteConfirm.id);
+      onRefresh();
+    } catch (error) {
+      console.error("删除失败:", error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirm(null);
+    }
+  };
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
@@ -112,7 +132,7 @@ export function CustomersTable({
               <DataTableRowActions
                 row={props.row}
                 onEdit={onEdit}
-                onDelete={handleDelete}
+                onDelete={handleDeleteClick}
               />
             );
           },
@@ -120,7 +140,7 @@ export function CustomersTable({
       }
       return col;
     });
-  }, [onEdit, handleDelete]);
+  }, [onEdit, handleDeleteClick]);
 
   const table = useReactTable({
     data: customers,
@@ -159,6 +179,15 @@ export function CustomersTable({
     }
   }, [total, pagination, onPaginationChange]);
 
+  // 获取选中的客户ID列表 - 必须在所有条件返回之前调用
+  const selectedCustomerIds = useMemo(() => {
+    return Object.keys(rowSelection).filter((key) => rowSelection[key]);
+  }, [rowSelection]);
+
+  const handleClearSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -182,6 +211,15 @@ export function CustomersTable({
         "flex flex-1 flex-col gap-4",
       )}
     >
+      {/* 批量操作栏 */}
+      {selectedCustomerIds.length > 0 && (
+        <CustomersBatchActions
+          selectedIds={selectedCustomerIds}
+          onClearSelection={handleClearSelection}
+          onSuccess={onRefresh}
+        />
+      )}
+
       <DataTableToolbar
         table={table}
         searchPlaceholder={t("customer.searchPlaceholder")}
@@ -193,10 +231,10 @@ export function CustomersTable({
             columnId: "customerLevel",
             title: t("customer.level"),
             options: [
-              { label: t("customer.levels.0"), value: "0" },
-              { label: t("customer.levels.1"), value: "1" },
-              { label: t("customer.levels.2"), value: "2" },
-              { label: t("customer.levels.3"), value: "3" },
+              { label: t("customer.levels.LEAD"), value: "LEAD" },
+              { label: t("customer.levels.PROSPECT"), value: "PROSPECT" },
+              { label: t("customer.levels.CUSTOMER"), value: "CUSTOMER" },
+              { label: t("customer.levels.VIP"), value: "VIP" },
             ],
           },
         ]}
@@ -284,6 +322,30 @@ export function CustomersTable({
         </Table>
       </div>
       <DataTablePagination table={table} className="mt-auto" />
+
+      {/* 删除确认对话框 */}
+      <AlertDialog
+        open={!!deleteConfirm}
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要删除客户"{deleteConfirm?.name}"吗？此操作无法撤销。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "删除中..." : "删除"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

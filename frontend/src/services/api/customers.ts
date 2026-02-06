@@ -8,7 +8,11 @@
 import type {
   AssignDto,
   BatchAssignDto,
+  BatchDeleteCustomersDto,
+  BatchTagsCustomersDto,
+  BatchUpdateCustomersDto,
   CreateCustomerDto,
+  CustomerControllerExportCustomersParams,
   CustomerControllerFindAllParams,
   UpdateCustomerDto,
 } from "../../models";
@@ -84,6 +88,45 @@ export const getCustomers = () => {
     });
   };
   /**
+   * @summary 批量更新客户
+   */
+  const customerControllerBatchUpdate = (
+    batchUpdateCustomersDto: BatchUpdateCustomersDto,
+  ) => {
+    return customInstance<void>({
+      url: `/customers/batch-update`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: batchUpdateCustomersDto,
+    });
+  };
+  /**
+   * @summary 批量删除客户
+   */
+  const customerControllerBatchDelete = (
+    batchDeleteCustomersDto: BatchDeleteCustomersDto,
+  ) => {
+    return customInstance<void>({
+      url: `/customers/batch-delete`,
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      data: batchDeleteCustomersDto,
+    });
+  };
+  /**
+   * @summary 批量管理客户标签
+   */
+  const customerControllerBatchTags = (
+    batchTagsCustomersDto: BatchTagsCustomersDto,
+  ) => {
+    return customInstance<void>({
+      url: `/customers/batch-tags`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: batchTagsCustomersDto,
+    });
+  };
+  /**
    * @summary 查询客户分配历史
    */
   const customerControllerGetAssignmentHistory = (id: string) => {
@@ -101,6 +144,60 @@ export const getCustomers = () => {
       method: "GET",
     });
   };
+  /**
+   * @summary 批量导入客户
+   */
+  const customerControllerImportCustomers = () => {
+    return customInstance<void>({ url: `/customers/import`, method: "POST" });
+  };
+  /**
+   * @summary 导出客户数据
+   */
+  const customerControllerExportCustomers = (
+    params?: CustomerControllerExportCustomersParams,
+  ) => {
+    return customInstance<void>({
+      url: `/customers/export`,
+      method: "GET",
+      params,
+    });
+  };
+  /**
+   * @summary 下载客户导入模板
+   */
+  const customerControllerDownloadImportTemplate = () => {
+    return customInstance<void>({
+      url: `/customers/import-template`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary 客户等级分布统计
+   */
+  const customerControllerGetLevelDistribution = () => {
+    return customInstance<void>({
+      url: `/customers/statistics/level-distribution`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary 客户转化率分析
+   */
+  const customerControllerGetConversionRate = () => {
+    return customInstance<void>({
+      url: `/customers/statistics/conversion-rate`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary 客户增长趋势
+   */
+  const customerControllerGetGrowthTrend = () => {
+    return customInstance<void>({
+      url: `/customers/statistics/growth-trend`,
+      method: "GET",
+    });
+  };
   return {
     customerControllerCreate,
     customerControllerFindAll,
@@ -109,8 +206,17 @@ export const getCustomers = () => {
     customerControllerRemove,
     customerControllerAssignOne,
     customerControllerBatchAssign,
+    customerControllerBatchUpdate,
+    customerControllerBatchDelete,
+    customerControllerBatchTags,
     customerControllerGetAssignmentHistory,
     customerControllerGetFollowRecords,
+    customerControllerImportCustomers,
+    customerControllerExportCustomers,
+    customerControllerDownloadImportTemplate,
+    customerControllerGetLevelDistribution,
+    customerControllerGetConversionRate,
+    customerControllerGetGrowthTrend,
   };
 };
 export type CustomerControllerCreateResult = NonNullable<
@@ -148,6 +254,21 @@ export type CustomerControllerBatchAssignResult = NonNullable<
     ReturnType<ReturnType<typeof getCustomers>["customerControllerBatchAssign"]>
   >
 >;
+export type CustomerControllerBatchUpdateResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCustomers>["customerControllerBatchUpdate"]>
+  >
+>;
+export type CustomerControllerBatchDeleteResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCustomers>["customerControllerBatchDelete"]>
+  >
+>;
+export type CustomerControllerBatchTagsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCustomers>["customerControllerBatchTags"]>
+  >
+>;
 export type CustomerControllerGetAssignmentHistoryResult = NonNullable<
   Awaited<
     ReturnType<
@@ -159,6 +280,50 @@ export type CustomerControllerGetFollowRecordsResult = NonNullable<
   Awaited<
     ReturnType<
       ReturnType<typeof getCustomers>["customerControllerGetFollowRecords"]
+    >
+  >
+>;
+export type CustomerControllerImportCustomersResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCustomers>["customerControllerImportCustomers"]
+    >
+  >
+>;
+export type CustomerControllerExportCustomersResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCustomers>["customerControllerExportCustomers"]
+    >
+  >
+>;
+export type CustomerControllerDownloadImportTemplateResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getCustomers
+      >["customerControllerDownloadImportTemplate"]
+    >
+  >
+>;
+export type CustomerControllerGetLevelDistributionResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCustomers>["customerControllerGetLevelDistribution"]
+    >
+  >
+>;
+export type CustomerControllerGetConversionRateResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCustomers>["customerControllerGetConversionRate"]
+    >
+  >
+>;
+export type CustomerControllerGetGrowthTrendResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCustomers>["customerControllerGetGrowthTrend"]
     >
   >
 >;

@@ -186,24 +186,27 @@ function InfoItem({
   );
 }
 
-function getCustomerLevelLabel(level: string | number): string {
+function getCustomerLevelLabel(level: string): string {
   const levels: Record<string, string> = {
-    "0": "普通客户",
-    "1": "VIP客户",
-    "2": "重要客户",
-    "3": "战略客户",
+    LEAD: "线索公司",
+    PROSPECT: "意向客户",
+    CUSTOMER: "正式客户",
+    VIP: "VIP客户",
   };
-  return levels[String(level)] || "未知";
+  return levels[level] || "未知";
 }
 
 function getCustomerLevelVariant(
-  level: string | number,
-): "default" | "secondary" | "outline" {
-  const variants: Record<string, "default" | "secondary" | "outline"> = {
-    "0": "outline",
-    "1": "secondary",
-    "2": "default",
-    "3": "default",
+  level: string,
+): "default" | "secondary" | "outline" | "destructive" {
+  const variants: Record<
+    string,
+    "default" | "secondary" | "outline" | "destructive"
+  > = {
+    LEAD: "secondary",
+    PROSPECT: "outline",
+    CUSTOMER: "default",
+    VIP: "destructive",
   };
-  return variants[String(level)] || "outline";
+  return variants[level] || "secondary";
 }

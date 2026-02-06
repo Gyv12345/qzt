@@ -20,7 +20,7 @@ import {
   useCustomerServiceTeam,
   useDeleteServiceTeam,
 } from "../hooks/use-service-teams";
-import { ServiceTeamFormDialog } from "./service-team-form-dialog";
+import { ServiceTeamFormDrawer } from "./service-team-form-drawer";
 
 // 角色显示映射
 const ROLE_LABELS: Record<string, string> = {
@@ -173,12 +173,16 @@ export function CustomerServiceTeamTab({
         )}
       </div>
 
-      {/* 表单对话框 */}
-      <ServiceTeamFormDialog
+      {/* 表单抽屉 */}
+      <ServiceTeamFormDrawer
         open={formOpen}
         onOpenChange={handleFormClose}
         editingRecord={editingRecord}
         customerId={customerId}
+        onSuccess={() => {
+          handleFormClose();
+          window.location.reload();
+        }}
       />
 
       {/* 删除确认对话框 */}

@@ -5,7 +5,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { ContractFormDialog } from "./contract-form-dialog";
+import { ContractFormDrawer } from "./contract-form-drawer";
 import type { Contract } from "../types/contract";
 
 interface ContractsDialogsContextType {
@@ -52,7 +52,7 @@ export function ContractsDialogsProvider({
       value={{ openCreateDialog, openEditDialog, closeDialog }}
     >
       {children}
-      <ContractFormDialog
+      <ContractFormDrawer
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         contract={editingContract}
