@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateFollowRecordDto } from './dto/create-follow-record.dto';
-import { UpdateFollowRecordDto } from './dto/update-follow-record.dto';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateFollowRecordDto } from "./dto/create-follow-record.dto";
+import { UpdateFollowRecordDto } from "./dto/update-follow-record.dto";
 
 @Injectable()
 export class FollowRecordService {
@@ -34,7 +38,7 @@ export class FollowRecordService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       }),
       this.prisma.followRecord.count({ where }),
     ]);
@@ -58,7 +62,7 @@ export class FollowRecordService {
     });
 
     if (!customer) {
-      throw new NotFoundException('客户不存在');
+      throw new NotFoundException("客户不存在");
     }
 
     // 创建跟进记录
@@ -103,12 +107,12 @@ export class FollowRecordService {
     });
 
     if (!followRecord) {
-      throw new NotFoundException('跟进记录不存在');
+      throw new NotFoundException("跟进记录不存在");
     }
 
     // 数据权限验证
     if (!isAdmin && followRecord.userId !== userId) {
-      throw new ForbiddenException('无权查看此跟进记录');
+      throw new ForbiddenException("无权查看此跟进记录");
     }
 
     return followRecord;
@@ -117,19 +121,23 @@ export class FollowRecordService {
   /**
    * 更新跟进记录
    */
-  async update(id: string, updateFollowRecordDto: UpdateFollowRecordDto, userId: string) {
+  async update(
+    id: string,
+    updateFollowRecordDto: UpdateFollowRecordDto,
+    userId: string,
+  ) {
     // 检查跟进记录是否存在
     const followRecord = await this.prisma.followRecord.findUnique({
       where: { id },
     });
 
     if (!followRecord) {
-      throw new NotFoundException('跟进记录不存在');
+      throw new NotFoundException("跟进记录不存在");
     }
 
     // 数据权限验证 - 只有创建者可以修改
     if (followRecord.userId !== userId) {
-      throw new ForbiddenException('无权修改此跟进记录');
+      throw new ForbiddenException("无权修改此跟进记录");
     }
 
     // 更新跟进记录
@@ -162,12 +170,12 @@ export class FollowRecordService {
     });
 
     if (!followRecord) {
-      throw new NotFoundException('跟进记录不存在');
+      throw new NotFoundException("跟进记录不存在");
     }
 
     // 数据权限验证 - 只有创建者可以删除
     if (followRecord.userId !== userId) {
-      throw new ForbiddenException('无权删除此跟进记录');
+      throw new ForbiddenException("无权删除此跟进记录");
     }
 
     // 删除跟进记录
@@ -175,6 +183,6 @@ export class FollowRecordService {
       where: { id },
     });
 
-    return { message: '删除成功' };
+    return { message: "删除成功" };
   }
 }
