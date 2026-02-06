@@ -11,6 +11,7 @@ import {
 } from "./hooks/use-follow-records";
 import { followRecordsKeys } from "./hooks/use-follow-records";
 import type { FollowRecordItem } from "./types/follow-record";
+import { CustomerFollowRecordsTab } from "./components/customer-follow-records-tab";
 
 type FollowRecordsProps = {
   customerId: string;
@@ -100,3 +101,5 @@ export function FollowRecords({
     </>
   );
 }
+
+export { CustomerFollowRecordsTab };
