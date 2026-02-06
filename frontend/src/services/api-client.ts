@@ -1,112 +1,124 @@
-import axios, {AxiosError, AxiosInstance, InternalAxiosRequestConfig} from 'axios'
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
 
 // 从 localStorage 获取 token
 const getToken = (): string | null => {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('access_token')
-}
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("access_token");
+};
 
 // 创建 axios 实例
 const axiosInstance: AxiosInstance = axios.create({
   // 使用 /api 前缀，通过 Vite 代理转发到后端
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
 // 请求拦截器：自动注入 token 和语言设置
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = getToken()
+    const token = getToken();
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     // 添加 Accept-Language 请求头
     if (config.headers) {
-        config.headers['Accept-Language'] = localStorage.getItem('i18nextLng') || 'zh'
+      config.headers["Accept-Language"] =
+        localStorage.getItem("i18nextLng") || "zh";
     }
 
-    return config
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   },
-)
+);
 
 // 响应拦截器：统一提取 data 字段和错误处理
 axiosInstance.interceptors.response.use(
   (response) => {
-    const responseData = response.data as any
+    const responseData = response.data as any;
 
     // 检查是否是标准响应（包含 success, data, message）
     const isStandardResponse =
       responseData &&
-      typeof responseData === 'object' &&
-      'success' in responseData &&
-      'data' in responseData
+      typeof responseData === "object" &&
+      "success" in responseData &&
+      "data" in responseData;
 
     // 检查 data 字段是否是分页响应（包含 data, total, page 等字段）
     const isPaginatedResponse =
       isStandardResponse &&
       responseData.data &&
-      typeof responseData.data === 'object' &&
-      'data' in responseData.data &&
-      ('total' in responseData.data ||
-        'page' in responseData.data ||
-        'pageSize' in responseData.data ||
-        'totalPages' in responseData.data)
+      typeof responseData.data === "object" &&
+      "data" in responseData.data &&
+      ("total" in responseData.data ||
+        "page" in responseData.data ||
+        "pageSize" in responseData.data ||
+        "totalPages" in responseData.data);
 
     // 如果是分页响应，提取 data.data（分页对象）
     if (isPaginatedResponse) {
-      response.data = responseData.data
+      response.data = responseData.data;
     }
     // 如果是标准响应但不是分页响应，提取 data 字段
     else if (isStandardResponse) {
-      response.data = responseData.data
+      response.data = responseData.data;
     }
 
-    return response
+    return response;
   },
   (error: AxiosError) => {
     // 401 未授权：清除 token 并跳转登录
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('user_info')
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user_info");
         // 不直接跳转，由 AuthContext 处理
-        window.dispatchEvent(new CustomEvent('unauthorized'))
+        window.dispatchEvent(new CustomEvent("unauthorized"));
       }
     }
 
     // 统一错误提示
-      error.message = (error.response?.data as any)?.message || error.message || '请求失败'
+    error.message =
+      (error.response?.data as any)?.message || error.message || "请求失败";
 
-    return Promise.reject(error)
+    return Promise.reject(error);
   },
-)
+);
 
 // Orval 要求导出一个函数，接收请求配置并返回 Promise
 export const customInstance = async <T>(config: {
-  url: string
-  method: string
-  data?: any
-  params?: any
-  headers?: any
-  baseURL?: string
+  url: string;
+  method: string;
+  data?: any;
+  params?: any;
+  headers?: any;
+  baseURL?: string;
 }): Promise<T> => {
-  console.log('[api-client] 发起请求:', { url: config.url, method: config.method })
+  console.log("[api-client] 发起请求:", {
+    url: config.url,
+    method: config.method,
+  });
   const response = await axiosInstance.request({
     url: config.url,
     method: config.method as any,
     data: config.data,
     params: config.params,
     headers: config.headers,
-  })
-  console.log('[api-client] 收到响应:', { status: response.status, data: response.data })
-  return response.data as T
-}
+  });
+  console.log("[api-client] 收到响应:", {
+    status: response.status,
+    data: response.data,
+  });
+  return response.data as T;
+};
 
-export default axiosInstance
+export default axiosInstance;
