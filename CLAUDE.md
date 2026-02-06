@@ -1,10 +1,22 @@
 # 企账通 (QZT) 开发指南
-# 强制
-检测当前环境，如果是在gitworkspace下运行，则不能启动前后端，否则会导致错误。只能开发功能。开发结束后，提交pr，由主分支合并之后测试运行
 
-# 技能
+> 企业客营管理系统 - 全栈开发指南
 
+---
+
+## 环境限制
+
+**重要**：检测当前环境，如果是在 gitworkspace 下运行，则不能启动前后端，否则会导致错误。只能开发功能。开发结束后，提交 PR，由主分支合并之后测试运行。
+
+---
+
+## 技能配置
+
+```yaml
 Skill("glm-monorepo")
+```
+
+---
 
 ## 快速开始
 
@@ -15,19 +27,29 @@ Skill("glm-monorepo")
 | 启动方式 | `./start-dev.sh` |
 | 包管理器 | 使用 `pnpm`（npm 很慢） |
 
-**POST 操作状态码选择**：
-- `201 Created` - 创建了新资源（用户注册、创建订单、上传文件）
-- `200 OK` - POST 但不是创建资源（登录、触发某个动作）
-- `204 No Content` - 处理成功但无需返回内容
+### POST 操作状态码选择
+
+| 状态码 | 使用场景 |
+|--------|----------|
+| `201 Created` | 创建了新资源（用户注册、创建订单、上传文件） |
+| `200 OK` | POST 但不是创建资源（登录、触发某个动作） |
+| `204 No Content` | 处理成功但无需返回内容 |
 
 ---
 
 ## API 开发流程
 
-**后端 → 前端开发顺序**：
+### 后端 → 前端开发顺序
 
-1. **后端开发 API** → 添加 `@ApiTags('tag-name')`（**必须使用英文**，避免中文导致跨平台兼容性问题）
-2. **生成 API 客户端** → `cd frontend && pnpm run generate:api`
+1. **后端开发 API**
+   - 添加 `@ApiTags('tag-name')`
+   - **必须使用英文**，避免中文导致跨平台兼容性问题
+
+2. **生成 API 客户端**
+   ```bash
+   cd frontend && pnpm run generate:api
+   ```
+
 3. **手动更新 `src/services/api/index.ts`**
    ```typescript
    import { getLoginLogs } from './login-logs'
@@ -37,6 +59,7 @@ Skill("glm-monorepo")
      ...getLoginLogs(),  // ✅ 正确：直接展开
    })
    ```
+
 4. **前端使用**
    ```typescript
    // ✅ 正确调用
@@ -46,7 +69,8 @@ Skill("glm-monorepo")
    // getScrmApi().getLoginLogs().loginLogsControllerFindLoginLogs()
    ```
 
-**响应数据提取**：
+### 响应数据提取
+
 - API 拦截器已自动提取 `response.data`
 - 分页响应结构：`{ data, total, page, pageSize, totalPages }`
 
@@ -54,9 +78,12 @@ Skill("glm-monorepo")
 
 ## React Hooks 规范
 
-**黄金法则**：所有 Hooks 必须在顶层调用，条件渲染放在所有 Hooks 之后
+### 黄金法则
 
-❌ **错误示例**：
+所有 Hooks 必须在顶层调用，条件渲染放在所有 Hooks 之后。
+
+### ❌ 错误示例
+
 ```tsx
 function Component() {
   const data = useQuery()
@@ -71,7 +98,8 @@ function Component() {
 }
 ```
 
-✅ **正确示例**：
+### ✅ 正确示例
+
 ```tsx
 function Component() {
   const data = useQuery()
@@ -93,9 +121,9 @@ features/{module}/
 ├── components/                    # UI 组件层
 │   ├── {module}s-table.tsx        # 核心表格组件
 │   ├── {module}s-columns.tsx      # 列定义
-│   ├── {module}-form-dialog.tsx   # 新建/编辑对话框
+│   ├── {module}-form-drawer.tsx   # 新建/编辑抽屉
 │   ├── {module}s-primary-buttons.tsx  # 顶部操作按钮
-│   ├── {module}s-dialogs.tsx      # 对话框容器
+│   ├── {module}s-drawers.tsx      # 抽屉容器
 │   └── data-table-row-actions.tsx # 行内操作
 ├── hooks/                         # 数据管理层
 │   └── use-{module}s.ts           # CRUD hooks
@@ -107,7 +135,8 @@ routes/_authenticated/{module}/
 └── route.tsx                      # 路由定义
 ```
 
-**核心原则**：
+### 核心原则
+
 - 先查看后端已实现的 API，再设计前端数据结构
 - 使用 Orval 生成的类型，不要手动编写 API 调用
 - 使用 Zod schema 确保类型安全
@@ -116,9 +145,12 @@ routes/_authenticated/{module}/
 
 ## API 数据访问
 
-**问题**：后端 API 响应结构不统一
+### 问题
 
-**常见结构**：
+后端 API 响应结构不统一
+
+### 常见结构
+
 ```typescript
 // 情况 A: data 字段（产品、合同等）
 { "total": 7, "data": [...], "page": 1, "pageSize": 10 }
@@ -130,7 +162,8 @@ routes/_authenticated/{module}/
 [...]
 ```
 
-**调试步骤**：
+### 调试步骤
+
 1. 打开浏览器开发者工具 → Network 标签
 2. 找到对应的 API 请求
 3. 查看 Response 中的实际数据结构
@@ -147,7 +180,8 @@ const roles = data || []               // 直接返回数组
 
 ## 菜单结构配置
 
-**嵌套菜单实现**：
+### 嵌套菜单实现
+
 ```typescript
 {
   title: '系统设置',
@@ -165,21 +199,27 @@ const roles = data || []               // 直接返回数组
 }
 ```
 
-**规则**：
-- 父菜单：`title` + `icon` + `items`
-- 子菜单：只需 `title` + `url`（不需要 icon）
+### 规则
+
+| 菜单类型 | 必需字段 |
+|----------|----------|
+| 父菜单 | `title` + `icon` + `items` |
+| 子菜单 | `title` + `url`（不需要 icon） |
+
 - 最多支持 2 级嵌套
 
 ---
 
 ## ES 模块导入规范
 
-**❌ 禁止使用 CommonJS require**：
+### ❌ 禁止使用 CommonJS require
+
 ```typescript
 const { Component } = require('./Component')  // ❌ 错误
 ```
 
-**✅ 必须使用 ES 模块 import**：
+### ✅ 必须使用 ES 模块 import
+
 ```typescript
 import { Component } from './Component'  // ✅ 正确
 ```
@@ -228,17 +268,20 @@ cd backend && pnpm prisma generate && pnpm prisma db push
 ## 快速检查清单
 
 ### 开发前
+
 - [ ] 后端 API 是否已开发？
 - [ ] 是否运行了 `cd frontend && pnpm run generate:api`？
 - [ ] 是否查看了 `src/services/api/` 中的 API 文件？
 - [ ] 是否确认了 API 返回的数据结构？
 
 ### 开发中
+
 - [ ] 是否使用了标准目录结构？
 - [ ] Hooks 是否都在顶层调用？
 - [ ] 是否使用了 `import` 而非 `require()`？
 
 ### 完成后
+
 - [ ] 前端页面能正常加载数据？
 - [ ] CRUD 操作都能正常工作？
 - [ ] 控制台无错误或警告？
@@ -460,6 +503,7 @@ cd frontend && rm -rf node_modules/.vite && pnpm dev
 ## 代码风格规范
 
 ### 导入顺序
+
 ```typescript
 // 1. React 核心库
 import { useState, useEffect } from "react";
@@ -479,15 +523,17 @@ import type { User } from "@/types";
 ```
 
 ### 文件命名
-```
-组件：PascalCase          (UserTable.tsx)
-Hooks：camelCase          (useUsers.ts)
-工具：camelCase           (formatDate.ts)
-类型：PascalCase          (User.ts)
-常量：UPPER_SNAKE_CASE   (API_BASE_URL.ts)
-```
+
+| 类型 | 命名风格 | 示例 |
+|------|----------|------|
+| 组件 | PascalCase | `UserTable.tsx` |
+| Hooks | camelCase | `useUsers.ts` |
+| 工具 | camelCase | `formatDate.ts` |
+| 类型 | PascalCase | `User.ts` |
+| 常量 | UPPER_SNAKE_CASE | `API_BASE_URL.ts` |
 
 ### 提交信息格式
+
 ```
 <type>(<scope>): <subject>
 
@@ -506,6 +552,7 @@ refactor(frontend): standardize API service imports
 ## 环境变量管理
 
 ### 后端 (.env)
+
 ```bash
 # 数据库
 DATABASE_URL="file:./dev.db"
@@ -519,6 +566,7 @@ PORT=7890
 ```
 
 ### 前端 (.env)
+
 ```bash
 # API 地址
 VITE_API_BASE_URL="http://localhost:7890"
@@ -546,6 +594,8 @@ instance.interceptors.request.use(config => {
   return config;
 });
 ```
+
+---
 
 ## 性能优化建议
 
