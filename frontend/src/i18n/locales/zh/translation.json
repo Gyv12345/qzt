@@ -449,6 +449,7 @@
       "account": "账户",
       "appearance": "外观",
       "notifications": "通知",
+      "webhooks": "推送配置",
       "display": "显示"
     },
     "profile": {
@@ -489,6 +490,67 @@
     "display": {
       "title": "显示",
       "description": "调整显示设置以适应您的需求。"
+    },
+    "webhooks": {
+      "title": "推送配置",
+      "description": "配置何时以及如何接收通知。"
+    }
+  },
+  "webhooks": {
+    "title": "Webhook 推送配置",
+    "description": "配置飞书、企业微信、钉钉的 Webhook 推送地址",
+    "create": "新建配置",
+    "edit": "编辑配置",
+    "delete": "删除配置",
+    "test": "测试发送",
+    "testSuccess": "测试消息发送成功",
+    "testFailed": "测试消息发送失败",
+    "createSuccess": "Webhook 配置创建成功",
+    "updateSuccess": "Webhook 配置更新成功",
+    "deleteSuccess": "Webhook 配置删除成功",
+    "createFailed": "创建失败",
+    "updateFailed": "更新失败",
+    "deleteFailed": "删除失败",
+    "deleteConfirm": "确定要删除此 Webhook 配置吗？此操作无法撤销。",
+    "deleteConfirmTitle": "确认删除",
+    "cancel": "取消",
+    "confirm": "确认",
+    "noData": "暂无 Webhook 配置",
+    "fields": {
+      "name": "配置名称",
+      "platform": "平台",
+      "webhookUrl": "Webhook URL",
+      "enabled": "启用配置"
+    },
+    "placeholders": {
+      "name": "例如：销售通知群",
+      "webhookUrl": "https://open.feishu.cn/open-apis/bot/v2/hook/..."
+    },
+    "platforms": {
+      "wecom": "企业微信",
+      "feishu": "飞书",
+      "dingtalk": "钉钉"
+    },
+    "validation": {
+      "nameRequired": "配置名称不能为空",
+      "nameTooLong": "配置名称最多100个字符",
+      "platformRequired": "请选择平台",
+      "webhookUrlRequired": "请输入 Webhook URL",
+      "webhookUrlInvalid": "请输入有效的 Webhook URL"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "helpText": {
+      "enabled": "关闭后将不会发送消息到此 Webhook",
+      "createDescription": "添加新的飞书、企业微信或钉钉 Webhook 配置",
+      "editDescription": "修改现有的 Webhook 配置信息"
+    },
+    "actions": {
+      "send": "发送",
+      "save": "保存",
+      "create": "创建"
     }
   }
 }
