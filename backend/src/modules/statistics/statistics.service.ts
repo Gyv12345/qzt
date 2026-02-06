@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
 
 @Injectable()
 export class StatisticsService {
@@ -141,7 +141,7 @@ export class StatisticsService {
       ]);
 
       trends.push({
-        month: `${year}-${String(month + 1).padStart(2, '0')}`,
+        month: `${year}-${String(month + 1).padStart(2, "0")}`,
         newCustomers,
         totalCustomers,
       });
@@ -221,7 +221,7 @@ export class StatisticsService {
       date.setMonth(date.getMonth() - i);
       const year = date.getFullYear();
       const month = date.getMonth();
-      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+      const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
       // 查询当月开票数据
       const invoices = await this.prisma.invoice.findMany({
@@ -303,16 +303,16 @@ export class StatisticsService {
       stats.totalCustomers++;
 
       switch (customer.customerLevel) {
-        case 'LEAD': // 线索
+        case "LEAD": // 线索
           stats.potentialCustomers++;
           break;
-        case 'PROSPECT': // 意向
+        case "PROSPECT": // 意向
           stats.intentionCustomers++;
           break;
-        case 'CUSTOMER': // 正式
+        case "CUSTOMER": // 正式
           stats.formalCustomers++;
           break;
-        case 'VIP': // VIP
+        case "VIP": // VIP
           stats.vipCustomers++;
           break;
       }
@@ -356,7 +356,10 @@ export class StatisticsService {
 
     // 按正式客户数排序
     return performance.sort(
-      (a, b) => b.formalCustomers + b.vipCustomers - (a.formalCustomers + a.vipCustomers),
+      (a, b) =>
+        b.formalCustomers +
+        b.vipCustomers -
+        (a.formalCustomers + a.vipCustomers),
     );
   }
 
@@ -436,7 +439,7 @@ export class StatisticsService {
     const recentCustomers = await this.prisma.customer.findMany({
       take: Math.floor(limit / 3),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       select: {
         id: true,
@@ -447,7 +450,7 @@ export class StatisticsService {
 
     activities.push(
       ...recentCustomers.map((c) => ({
-        type: 'customer',
+        type: "customer",
         message: `新增客户: ${c.name}`,
         createdAt: c.createdAt,
       })),
@@ -457,7 +460,7 @@ export class StatisticsService {
     const recentContracts = await this.prisma.contract.findMany({
       take: Math.floor(limit / 3),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       include: {
         customer: {
@@ -470,7 +473,7 @@ export class StatisticsService {
 
     activities.push(
       ...recentContracts.map((c) => ({
-        type: 'contract',
+        type: "contract",
         message: `创建合同: ${c.customer.name}`,
         createdAt: c.createdAt,
       })),
@@ -480,7 +483,7 @@ export class StatisticsService {
     const recentFollows = await this.prisma.followRecord.findMany({
       take: Math.floor(limit / 3),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       include: {
         customer: {
@@ -493,7 +496,7 @@ export class StatisticsService {
 
     activities.push(
       ...recentFollows.map((f) => ({
-        type: 'follow',
+        type: "follow",
         message: `跟进客户: ${f.customer.name}`,
         createdAt: f.createdAt,
       })),
@@ -510,10 +513,10 @@ export class StatisticsService {
    */
   async exportData(type: string, filters?: any) {
     let data: any[] = [];
-    let filename = '';
+    let filename = "";
 
     switch (type) {
-      case 'customers':
+      case "customers":
         data = await this.prisma.customer.findMany({
           where: filters,
           include: {
@@ -524,13 +527,13 @@ export class StatisticsService {
             },
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
         });
         filename = `customers_${Date.now()}.json`;
         break;
 
-      case 'contracts':
+      case "contracts":
         data = await this.prisma.contract.findMany({
           where: filters,
           include: {
@@ -546,13 +549,13 @@ export class StatisticsService {
             },
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
         });
         filename = `contracts_${Date.now()}.json`;
         break;
 
-      case 'invoices':
+      case "invoices":
         data = await this.prisma.invoice.findMany({
           where: filters,
           include: {
@@ -563,7 +566,7 @@ export class StatisticsService {
             },
           },
           orderBy: {
-            month: 'desc',
+            month: "desc",
           },
         });
         filename = `invoices_${Date.now()}.json`;

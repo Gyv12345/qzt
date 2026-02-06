@@ -1,9 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import axios from 'axios';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateWebhookConfigDto } from './dto/create-webhook-config.dto';
-import { UpdateWebhookConfigDto } from './dto/update-webhook-config.dto';
-import { SendWebhookDto } from './dto/send-webhook.dto';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import axios from "axios";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateWebhookConfigDto } from "./dto/create-webhook-config.dto";
+import { UpdateWebhookConfigDto } from "./dto/update-webhook-config.dto";
+import { SendWebhookDto } from "./dto/send-webhook.dto";
 
 @Injectable()
 export class WebhooksService {
@@ -27,20 +27,23 @@ export class WebhooksService {
    */
   async findConfigs() {
     return this.prisma.webhookConfig.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
   /**
    * 更新 Webhook 配置
    */
-  async updateConfig(id: string, updateWebhookConfigDto: UpdateWebhookConfigDto) {
+  async updateConfig(
+    id: string,
+    updateWebhookConfigDto: UpdateWebhookConfigDto,
+  ) {
     const existing = await this.prisma.webhookConfig.findUnique({
       where: { id },
     });
 
     if (!existing) {
-      throw new NotFoundException('Webhook 配置不存在');
+      throw new NotFoundException("Webhook 配置不存在");
     }
 
     const config = await this.prisma.webhookConfig.update({
@@ -60,14 +63,14 @@ export class WebhooksService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Webhook 配置不存在');
+      throw new NotFoundException("Webhook 配置不存在");
     }
 
     await this.prisma.webhookConfig.delete({
       where: { id },
     });
 
-    return { message: '删除成功' };
+    return { message: "删除成功" };
   }
 
   /**
@@ -82,11 +85,11 @@ export class WebhooksService {
     });
 
     if (!config) {
-      throw new NotFoundException('Webhook 配置不存在');
+      throw new NotFoundException("Webhook 配置不存在");
     }
 
     if (!config.enabled) {
-      throw new Error('Webhook 配置已禁用');
+      throw new Error("Webhook 配置已禁用");
     }
 
     // 构建消息
@@ -102,7 +105,7 @@ export class WebhooksService {
         platform: config.platform,
         messageType,
         content: JSON.stringify(content),
-        status: response.success ? 'success' : 'failed',
+        status: response.success ? "success" : "failed",
         response: JSON.stringify(response.data),
         error: response.error,
       },
@@ -118,7 +121,10 @@ export class WebhooksService {
   /**
    * 测试 Webhook 发送
    */
-  async testSend(webhookUrl: string, platform: 'wecom' | 'feishu' | 'dingtalk') {
+  async testSend(
+    webhookUrl: string,
+    platform: "wecom" | "feishu" | "dingtalk",
+  ) {
     // 构建测试消息
     const message = this.buildTestMessage(platform);
 
@@ -135,13 +141,17 @@ export class WebhooksService {
   /**
    * 构建消息
    */
-  private buildMessage(platform: string, messageType: string, content: Record<string, any>) {
+  private buildMessage(
+    platform: string,
+    messageType: string,
+    content: Record<string, any>,
+  ) {
     switch (platform) {
-      case 'wecom':
+      case "wecom":
         return this.buildWecomMessage(messageType, content);
-      case 'feishu':
+      case "feishu":
         return this.buildFeishuMessage(messageType, content);
-      case 'dingtalk':
+      case "dingtalk":
         return this.buildDingtalkMessage(messageType, content);
       default:
         throw new Error(`不支持的平台: ${platform}`);
@@ -157,19 +167,24 @@ export class WebhooksService {
     };
 
     switch (messageType) {
-      case 'text':
+      case "text":
         return { ...baseMessage, text: { content: content.content } };
-      case 'markdown':
+      case "markdown":
         return { ...baseMessage, markdown: { content: content.content } };
-      case 'card':
+      case "card":
         return {
-          msgtype: 'template_card',
+          msgtype: "template_card",
           template_card: {
-            card_type: 'text_notice',
+            card_type: "text_notice",
             source: { icon_url: content.iconUrl, desc: content.desc },
             main_title: { title: content.title, desc: content.desc },
-            emphasis_content: { title: content.emphasis || '' },
-            quote_area: { type: 1, url: content.url, title: content.quoteTitle, desc: content.quoteDesc },
+            emphasis_content: { title: content.emphasis || "" },
+            quote_area: {
+              type: 1,
+              url: content.url,
+              title: content.quoteTitle,
+              desc: content.quoteDesc,
+            },
             sub_title_text: content.subtitle,
             horizontal_content_list: content.items || [],
             jump_list: content.jumps || [],
@@ -184,52 +199,73 @@ export class WebhooksService {
   /**
    * 构建飞书消息
    */
-  private buildFeishuMessage(messageType: string, content: Record<string, any>) {
+  private buildFeishuMessage(
+    messageType: string,
+    content: Record<string, any>,
+  ) {
     switch (messageType) {
-      case 'text':
+      case "text":
         return {
-          msg_type: 'text',
+          msg_type: "text",
           content: { text: content.content },
         };
-      case 'markdown':
+      case "markdown":
         return {
-          msg_type: 'interactive',
+          msg_type: "interactive",
           card: {
-            header: { title: { tag: 'plain_text', content: content.title || 'Markdown' } },
-            elements: [{ tag: 'div', text: { tag: 'lark_md', content: content.content } }],
+            header: {
+              title: {
+                tag: "plain_text",
+                content: content.title || "Markdown",
+              },
+            },
+            elements: [
+              {
+                tag: "div",
+                text: { tag: "lark_md", content: content.content },
+              },
+            ],
           },
         };
-      case 'card':
+      case "card":
         return {
-          msg_type: 'interactive',
+          msg_type: "interactive",
           card: {
-            header: { title: { tag: 'plain_text', content: content.title || '' } },
+            header: {
+              title: { tag: "plain_text", content: content.title || "" },
+            },
             elements: content.elements || [],
           },
         };
       default:
-        return { msg_type: 'text', content: { text: content.content } };
+        return { msg_type: "text", content: { text: content.content } };
     }
   }
 
   /**
    * 构建钉钉消息
    */
-  private buildDingtalkMessage(messageType: string, content: Record<string, any>) {
+  private buildDingtalkMessage(
+    messageType: string,
+    content: Record<string, any>,
+  ) {
     const baseMessage = { msgtype: messageType };
 
     switch (messageType) {
-      case 'text':
+      case "text":
         return { ...baseMessage, text: { content: content.content } };
-      case 'markdown':
-        return { ...baseMessage, markdown: { title: content.title || '消息', text: content.content } };
-      case 'card':
+      case "markdown":
         return {
-          msgtype: 'actionCard',
+          ...baseMessage,
+          markdown: { title: content.title || "消息", text: content.content },
+        };
+      case "card":
+        return {
+          msgtype: "actionCard",
           actionCard: {
-            title: content.title || '',
+            title: content.title || "",
             text: content.content,
-            btnOrientation: content.btnOrientation || '0',
+            btnOrientation: content.btnOrientation || "0",
             btns: content.buttons || [],
           },
         };
@@ -242,17 +278,17 @@ export class WebhooksService {
    * 构建测试消息
    */
   private buildTestMessage(platform: string) {
-    const testContent = { content: '这是一条测试消息' };
+    const testContent = { content: "这是一条测试消息" };
 
     switch (platform) {
-      case 'wecom':
-        return { msgtype: 'text', text: { content: '这是一条测试消息' } };
-      case 'feishu':
-        return { msg_type: 'text', content: { text: '这是一条测试消息' } };
-      case 'dingtalk':
-        return { msgtype: 'text', text: { content: '这是一条测试消息' } };
+      case "wecom":
+        return { msgtype: "text", text: { content: "这是一条测试消息" } };
+      case "feishu":
+        return { msg_type: "text", content: { text: "这是一条测试消息" } };
+      case "dingtalk":
+        return { msgtype: "text", text: { content: "这是一条测试消息" } };
       default:
-        return { content: '这是一条测试消息' };
+        return { content: "这是一条测试消息" };
     }
   }
 
@@ -262,7 +298,7 @@ export class WebhooksService {
   private async sendRequest(url: string, message: any) {
     try {
       const response = await axios.post(url, message, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         timeout: 5000,
       });
 

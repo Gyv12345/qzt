@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from "@nestjs/swagger";
 
 /**
  * 用户状态枚举（字符串版本）
@@ -6,6 +6,6 @@ import { ApiProperty } from '@nestjs/swagger'
  * 与 @qzt/shared-types 保持一致
  */
 export enum UserStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
 }

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../common/prisma/prisma.service";
 
 @Injectable()
 export class PaymentAccountService {
@@ -14,7 +14,7 @@ export class PaymentAccountService {
 
     return this.prisma.paymentAccount.findMany({
       where,
-      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
   }
 
@@ -79,7 +79,7 @@ export class PaymentAccountService {
       where: { id },
     });
 
-    return { message: 'Payment account deleted successfully' };
+    return { message: "Payment account deleted successfully" };
   }
 
   /**
