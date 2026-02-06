@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../common/prisma/prisma.service";
 
 @Injectable()
 export class CommonPhraseService {
@@ -25,19 +25,24 @@ export class CommonPhraseService {
     // Prisma 会自动转换 userId: null 为 IS NULL 查询
     return this.prisma.commonPhrase.findMany({
       where,
-      orderBy: [{ useCount: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ useCount: "desc" }, { createdAt: "desc" }],
     });
   }
 
   /**
    * 创建常用语
    */
-  async create(userId: string, content: string, category?: string, isSystem?: boolean) {
+  async create(
+    userId: string,
+    content: string,
+    category?: string,
+    isSystem?: boolean,
+  ) {
     return this.prisma.commonPhrase.create({
       data: {
         userId: isSystem ? null : userId,
         content,
-        category: category || 'OTHER',
+        category: category || "OTHER",
         useCount: 0,
         isSystem: isSystem || false,
       },
@@ -65,7 +70,7 @@ export class CommonPhraseService {
       where: { id },
     });
 
-    return { message: 'Common phrase deleted successfully' };
+    return { message: "Common phrase deleted successfully" };
   }
 
   /**
@@ -99,16 +104,13 @@ export class CommonPhraseService {
 
     if (userId) {
       where.AND.push({
-        OR: [
-          { userId },
-          { userId: null },
-        ],
+        OR: [{ userId }, { userId: null }],
       });
     }
 
     return this.prisma.commonPhrase.findMany({
       where,
-      orderBy: { useCount: 'desc' },
+      orderBy: { useCount: "desc" },
       take: 20,
     });
   }

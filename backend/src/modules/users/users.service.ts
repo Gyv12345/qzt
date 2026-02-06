@@ -1,13 +1,18 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { QueryUserDto } from './dto/query-user.dto';
-import * as bcrypt from 'bcrypt';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { QueryUserDto } from "./dto/query-user.dto";
+import * as bcrypt from "bcrypt";
 
 // 用户选择类型（排除密码）
-type UserSelect = Omit<Prisma.UserSelect, 'password'>;
+type UserSelect = Omit<Prisma.UserSelect, "password">;
 
 @Injectable()
 export class UsersService {
@@ -27,7 +32,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new ConflictException('用户名已存在');
+      throw new ConflictException("用户名已存在");
     }
 
     // 如果提供了邮箱，检查邮箱是否已存在
@@ -36,7 +41,7 @@ export class UsersService {
         where: { email: userData.email },
       });
       if (existingEmail) {
-        throw new ConflictException('邮箱已被使用');
+        throw new ConflictException("邮箱已被使用");
       }
     }
 
@@ -65,7 +70,14 @@ export class UsersService {
    * 分页查询用户列表
    */
   async findAll(query: QueryUserDto) {
-    const { page = 1, pageSize = 10, search, departmentId, status, roleId } = query;
+    const {
+      page = 1,
+      pageSize = 10,
+      search,
+      departmentId,
+      status,
+      roleId,
+    } = query;
     const skip = (page - 1) * pageSize;
 
     // 构建查询条件
@@ -106,7 +118,7 @@ export class UsersService {
       take: pageSize,
       select: this.getUserSelect(),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -155,7 +167,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw new NotFoundException("用户不存在");
     }
 
     return user;
@@ -173,7 +185,7 @@ export class UsersService {
     });
 
     if (!existingUser) {
-      throw new NotFoundException('用户不存在');
+      throw new NotFoundException("用户不存在");
     }
 
     // 如果更新用户名，检查是否冲突
@@ -182,7 +194,7 @@ export class UsersService {
         where: { username },
       });
       if (conflictUser) {
-        throw new ConflictException('用户名已存在');
+        throw new ConflictException("用户名已存在");
       }
     }
 
@@ -192,13 +204,13 @@ export class UsersService {
         where: { email },
       });
       if (conflictEmail) {
-        throw new ConflictException('邮箱已被使用');
+        throw new ConflictException("邮箱已被使用");
       }
     }
 
     // 系统用户的角色不能修改
     if (existingUser.isSystem && roleIds !== undefined) {
-      throw new ConflictException('系统用户的角色不能修改');
+      throw new ConflictException("系统用户的角色不能修改");
     }
 
     // 如果更新密码，进行哈希
@@ -253,24 +265,24 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw new NotFoundException("用户不存在");
     }
 
     // 系统用户不能删除
     if (user.isSystem) {
-      throw new ConflictException('系统用户不能删除');
+      throw new ConflictException("系统用户不能删除");
     }
 
     // 检查是否有关联的客户
     if (user.customers.length > 0) {
-      throw new ConflictException('该用户有关联的客户，无法删除');
+      throw new ConflictException("该用户有关联的客户，无法删除");
     }
 
     await this.prisma.user.delete({
       where: { id },
     });
 
-    return { message: '删除成功' };
+    return { message: "删除成功" };
   }
 
   /**
@@ -283,7 +295,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw new NotFoundException("用户不存在");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -295,7 +307,7 @@ export class UsersService {
       },
     });
 
-    return { message: '密码重置成功' };
+    return { message: "密码重置成功" };
   }
 
   /**

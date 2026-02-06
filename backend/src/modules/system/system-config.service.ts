@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
 
 @Injectable()
 export class SystemConfigService {
@@ -13,7 +13,7 @@ export class SystemConfigService {
 
     return this.prisma.systemConfig.findMany({
       where,
-      orderBy: [{ category: 'asc' }, { key: 'asc' }],
+      orderBy: [{ category: "asc" }, { key: "asc" }],
     });
   }
 
@@ -43,13 +43,16 @@ export class SystemConfigService {
   /**
    * 创建或更新配置
    */
-  async upsert(key: string, data: {
-    value: string;
-    category: string;
-    description?: string;
-    isPublic?: boolean;
-    updatedBy?: string;
-  }) {
+  async upsert(
+    key: string,
+    data: {
+      value: string;
+      category: string;
+      description?: string;
+      isPublic?: boolean;
+      updatedBy?: string;
+    },
+  ) {
     return this.prisma.systemConfig.upsert({
       where: { key },
       update: {
@@ -72,13 +75,16 @@ export class SystemConfigService {
   /**
    * 批量更新配置
    */
-  async batchUpdate(configs: Array<{
-    key: string;
-    value: string;
-    category: string;
-    description?: string;
-    isPublic?: boolean;
-  }>, updatedBy?: string) {
+  async batchUpdate(
+    configs: Array<{
+      key: string;
+      value: string;
+      category: string;
+      description?: string;
+      isPublic?: boolean;
+    }>,
+    updatedBy?: string,
+  ) {
     const results = [];
 
     for (const config of configs) {
@@ -106,7 +112,7 @@ export class SystemConfigService {
    */
   async getBasicConfig() {
     const configs = await this.prisma.systemConfig.findMany({
-      where: { category: 'basic' },
+      where: { category: "basic" },
     });
 
     const configMap: Record<string, any> = {};
