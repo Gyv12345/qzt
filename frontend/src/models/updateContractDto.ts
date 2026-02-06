@@ -5,14 +5,15 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { ContractItemDto } from "./contractItemDto";
 
 export interface UpdateContractDto {
   /** 客户ID */
   customerId?: string;
-  /** 产品ID */
-  productId?: string;
-  /** 合同金额 */
-  amount?: number;
+  /** 合同产品列表（完整替换） */
+  items?: ContractItemDto[];
+  /** 合同模板ID */
+  templateId?: string;
   /** 服务开始日期 */
   serviceStart?: string;
   /** 服务结束日期 */

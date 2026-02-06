@@ -22,6 +22,7 @@ export * from "./certificateConfigDto";
 export * from "./contactControllerFindAllParams";
 export * from "./contractControllerFindAllParams";
 export * from "./contractControllerFindAllStatus";
+export * from "./contractItemDto";
 export * from "./createContactDto";
 export * from "./createContractDto";
 export * from "./createCustomerDto";
