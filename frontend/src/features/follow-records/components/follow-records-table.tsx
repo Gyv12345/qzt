@@ -84,7 +84,7 @@ export function FollowRecordsTable({
     pageSize: pagination.pageSize,
   });
 
-  const records = data?.items || [];
+  const records = data?.data || [];
   const total = data?.total || 0;
 
   const columns = useMemo<ColumnDef<FollowRecordItem>[]>(() => {

@@ -81,7 +81,7 @@ export function CustomersTable({
 
   const { data, isLoading, error } = useCustomers(queryParams);
 
-  const customers = data?.items || [];
+  const customers = data?.data || [];
   const total = data?.total || 0;
 
   // 处理删除

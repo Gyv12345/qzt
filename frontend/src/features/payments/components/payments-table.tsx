@@ -80,7 +80,7 @@ export function PaymentsTable({
 
   const { data, isLoading, error } = usePayments(queryParams);
 
-  const payments = data?.items || [];
+  const payments = data?.data || [];
   const total = data?.total || 0;
 
   // 处理删除

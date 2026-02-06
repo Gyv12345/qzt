@@ -450,9 +450,7 @@ export class PaymentOrderService implements IPaymentOrderService {
   /**
    * 检查订单状态
    */
-  async checkOrderStatus(
-    orderNo: string,
-  ): Promise<{
+  async checkOrderStatus(orderNo: string): Promise<{
     orderNo: string;
     status: string;
     paidAt?: Date;
