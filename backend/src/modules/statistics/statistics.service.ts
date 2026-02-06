@@ -63,7 +63,7 @@ export class StatisticsService {
           },
         },
         _sum: {
-          amount: true,
+          totalAmount: true,
         },
       }),
 
@@ -98,7 +98,7 @@ export class StatisticsService {
       monthly: {
         newCustomers: monthlyNewCustomers,
         newContracts: monthlyNewContracts,
-        contractAmount: monthlyContractAmount._sum.amount || 0,
+        contractAmount: monthlyContractAmount._sum.totalAmount || 0,
         invoiceAmount: monthlyInvoiceAmount._sum.amount || 0,
       },
       recentActivities,
@@ -375,54 +375,53 @@ export class StatisticsService {
       endDate = new Date();
     }
 
-    const products = await this.prisma.product.findMany({
-      include: {
-        _count: {
-          select: {
-            contracts: {
-              where: {
-                createdAt: {
-                  gte: startDate,
-                  lte: endDate,
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    // 查询每个产品的合同金额
-    const stats = [];
-
-    for (const product of products) {
-      const contracts = await this.prisma.contract.findMany({
-        where: {
-          productId: product.id,
+    // 通过 ContractItem 关联表查询产品销售统计
+    const contractItems = await this.prisma.contractItem.groupBy({
+      by: ["productId"],
+      where: {
+        contract: {
           createdAt: {
             gte: startDate,
             lte: endDate,
           },
         },
-        select: {
-          amount: true,
-        },
-      });
+      },
+      _sum: {
+        subtotal: true,
+      },
+      _count: {
+        id: true,
+      },
+    });
 
-      const totalAmount = contracts.reduce((sum, c) => sum + c.amount, 0);
+    // 获取产品详情
+    const productIds = contractItems.map((item) => item.productId);
+    const products = await this.prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+      },
+    });
 
-      stats.push({
-        productId: product.id,
-        productName: product.name,
-        productCode: product.code,
-        contractCount: product._count.contracts,
-        totalAmount,
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    // 组装统计数据
+    const stats = contractItems.map((item) => {
+      const product = productMap.get(item.productId);
+      return {
+        productId: item.productId,
+        productName: product?.name || "Unknown",
+        productCode: product?.code || "",
+        contractCount: item._count.id,
+        totalAmount: item._sum.subtotal || 0,
         avgAmount:
-          product._count.contracts > 0
-            ? totalAmount / product._count.contracts
-            : 0,
-      });
-    }
+          item._count.id > 0 ? (item._sum.subtotal || 0) / item._count.id : 0,
+      };
+    });
 
     // 按合同数排序
     return stats.sort((a, b) => b.contractCount - a.contractCount);
@@ -538,11 +537,6 @@ export class StatisticsService {
           where: filters,
           include: {
             customer: {
-              select: {
-                name: true,
-              },
-            },
-            product: {
               select: {
                 name: true,
               },

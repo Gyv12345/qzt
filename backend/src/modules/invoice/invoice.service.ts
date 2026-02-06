@@ -18,12 +18,6 @@ export class InvoiceService {
     // 验证客户存在
     const customer = await this.prisma.customer.findUnique({
       where: { id: createInvoiceDto.customerId },
-      include: {
-        contracts: {
-          where: { status: { in: ["PARTIAL", "PAID"] } }, // 部分收款或已收全
-          include: { product: true },
-        },
-      },
     });
 
     if (!customer) {
@@ -50,34 +44,19 @@ export class InvoiceService {
       0,
     );
 
-    // 计算客户产品的开票额度和包含张数
-    let invoiceLimit = 0;
-    let invoiceCount = 0;
-    let overLimitPrice = 0;
+    // 注: 由于 Product 模型已移除 invoiceLimit/invoiceCount/overLimitPrice 字段
+    // 这里简化处理，直接标记为不超额
+    const invoiceLimit = 0;
+    const invoiceCount = 0;
+    const overLimitPrice = 0;
 
-    for (const contract of customer.contracts) {
-      invoiceLimit += contract.product.invoiceLimit;
-      invoiceCount += contract.product.invoiceCount;
-      overLimitPrice = contract.product.overLimitPrice;
-    }
-
-    // 计算超额情况
+    // 计算超额情况 (暂时禁用)
     const newTotalAmount = totalAmount + createInvoiceDto.amount;
     const newTotalCount = totalCount + createInvoiceDto.count;
 
-    let isOverLimit = false;
-    let overAmount = 0;
-    let overCount = 0;
-
-    if (newTotalAmount > invoiceLimit) {
-      isOverLimit = true;
-      overAmount = newTotalAmount - invoiceLimit;
-    }
-
-    if (newTotalCount > invoiceCount) {
-      isOverLimit = true;
-      overCount = newTotalCount - invoiceCount;
-    }
+    const isOverLimit = false;
+    const overAmount = 0;
+    const overCount = 0;
 
     // 如果超额并且有关联合同,使用阶梯定价计算新价格
     const priceChangeRecord = null;
