@@ -1,8 +1,12 @@
-import { Injectable, NestMiddleware, BadRequestException } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  Injectable,
+  NestMiddleware,
+  BadRequestException,
+} from "@nestjs/common";
+import { Request, Response, NextFunction } from "express";
+import { v4 as uuidv4 } from "uuid";
 
-declare module 'express' {
+declare module "express" {
   interface Request {
     id: string;
   }
@@ -12,7 +16,7 @@ declare module 'express' {
 export class RequestIdMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     // 从请求头获取请求ID，如果没有则生成新的
-    const requestId = req.headers['x-request-id'] as string | undefined;
+    const requestId = req.headers["x-request-id"] as string | undefined;
 
     if (requestId) {
       // 验证UUID格式（可选）
@@ -28,7 +32,7 @@ export class RequestIdMiddleware implements NestMiddleware {
     }
 
     // 在响应头中返回请求ID
-    res.setHeader('X-Request-ID', req.id);
+    res.setHeader("X-Request-ID", req.id);
 
     next();
   }

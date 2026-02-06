@@ -1,29 +1,32 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { PrismaClient } from "@prisma/client";
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   constructor() {
     super({
-      log: ['query', 'info', 'warn', 'error'],
+      log: ["query", "info", "warn", "error"],
     });
   }
 
   async onModuleInit() {
     await this.$connect();
     // 启用SQLite外键约束
-    await this.$executeRawUnsafe('PRAGMA foreign_keys = ON');
-    console.log('✅ Database connected successfully');
+    await this.$executeRawUnsafe("PRAGMA foreign_keys = ON");
+    console.log("✅ Database connected successfully");
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
-    console.log('👋 Database disconnected');
+    console.log("👋 Database disconnected");
   }
 
   async cleanDatabase() {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Cannot clean database in production!');
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Cannot clean database in production!");
     }
 
     // 按照外键依赖顺序删除数据

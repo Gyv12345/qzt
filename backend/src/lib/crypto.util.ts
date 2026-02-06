@@ -1,11 +1,11 @@
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 
 /**
  * 加密工具类
  * 使用 AES-256-GCM 进行加密/解密
  */
 export class CryptoUtil {
-  private static readonly ALGORITHM = 'aes-256-gcm';
+  private static readonly ALGORITHM = "aes-256-gcm";
   private static readonly KEY_LENGTH = 32;
   private static readonly IV_LENGTH = 16;
   private static readonly AUTH_TAG_LENGTH = 16;
@@ -14,8 +14,9 @@ export class CryptoUtil {
    * 从环境变量获取加密密钥
    */
   private static getEncryptionKey(): Buffer {
-    const key = process.env.ENCRYPTION_KEY || 'default-encryption-key-32-bytes-long!';
-    return Buffer.from(key.padEnd(32, '0').slice(0, 32), 'utf8');
+    const key =
+      process.env.ENCRYPTION_KEY || "default-encryption-key-32-bytes-long!";
+    return Buffer.from(key.padEnd(32, "0").slice(0, 32), "utf8");
   }
 
   /**
@@ -29,13 +30,13 @@ export class CryptoUtil {
       const key = this.getEncryptionKey();
       const cipher = crypto.createCipheriv(this.ALGORITHM, key, iv);
 
-      let encrypted = cipher.update(text, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
+      let encrypted = cipher.update(text, "utf8", "hex");
+      encrypted += cipher.final("hex");
 
       const authTag = cipher.getAuthTag();
 
       // 返回格式: iv:authTag:encrypted
-      return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
+      return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
     } catch (error) {
       throw new Error(`加密失败: ${error.message}`);
     }
@@ -48,13 +49,13 @@ export class CryptoUtil {
    */
   static decrypt(encryptedText: string): string {
     try {
-      const parts = encryptedText.split(':');
+      const parts = encryptedText.split(":");
       if (parts.length !== 3) {
-        throw new Error('无效的加密格式');
+        throw new Error("无效的加密格式");
       }
 
-      const iv = Buffer.from(parts[0], 'hex');
-      const authTag = Buffer.from(parts[1], 'hex');
+      const iv = Buffer.from(parts[0], "hex");
+      const authTag = Buffer.from(parts[1], "hex");
       const encrypted = parts[2];
 
       const key = this.getEncryptionKey();
@@ -62,8 +63,8 @@ export class CryptoUtil {
 
       decipher.setAuthTag(authTag);
 
-      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
+      let decrypted = decipher.update(encrypted, "hex", "utf8");
+      decrypted += decipher.final("utf8");
 
       return decrypted;
     } catch (error) {
@@ -96,8 +97,9 @@ export class CryptoUtil {
    * @returns 随机字符串
    */
   static randomString(length: number): string {
-    return crypto.randomBytes(Math.ceil(length / 2))
-      .toString('hex')
+    return crypto
+      .randomBytes(Math.ceil(length / 2))
+      .toString("hex")
       .slice(0, length);
   }
 
@@ -107,6 +109,6 @@ export class CryptoUtil {
    * @returns SHA256 哈希值
    */
   static hash(data: string): string {
-    return crypto.createHash('sha256').update(data).digest('hex');
+    return crypto.createHash("sha256").update(data).digest("hex");
   }
 }
