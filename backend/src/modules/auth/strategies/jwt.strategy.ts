@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@/common/prisma/prisma.service';
-import { JwtPayload, UserInfo } from '../interfaces/auth.interface';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "@/common/prisma/prisma.service";
+import { JwtPayload, UserInfo } from "../interfaces/auth.interface";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: configService.get<string>("JWT_SECRET"),
     });
   }
 
@@ -30,8 +30,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
-    if (!user || user.status !== 'ACTIVE') {
-      throw new UnauthorizedException('账号无效或已被禁用');
+    if (!user || user.status !== "ACTIVE") {
+      throw new UnauthorizedException("账号无效或已被禁用");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,7 +45,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       phone: result.phone,
       avatar: result.avatar,
       status: result.status,
-      isAdmin: result.roles.some(ur => ur.role.code === 'SUPER_ADMIN'),
+      isAdmin: result.roles.some((ur) => ur.role.code === "SUPER_ADMIN"),
       departmentId: result.departmentId,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
