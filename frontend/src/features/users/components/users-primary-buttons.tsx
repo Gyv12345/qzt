@@ -1,4 +1,4 @@
-import { MailPlus, UserPlus } from "lucide-react";
+import { FileUp, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useUsers } from "./users-provider";
@@ -11,9 +11,9 @@ export function UsersPrimaryButtons() {
       <Button
         variant="outline"
         className="space-x-1"
-        onClick={() => setOpen("invite")}
+        onClick={() => setOpen("batchAdd")}
       >
-        <span>{t("user.inviteUser")}</span> <MailPlus size={18} />
+        <span>{t("user.batchAdd") || "批量添加"}</span> <FileUp size={18} />
       </Button>
       <Button className="space-x-1" onClick={() => setOpen("add")}>
         <span>{t("user.addNew")}</span> <UserPlus size={18} />
