@@ -1,7 +1,7 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-import { type Row } from '@tanstack/react-table'
-import { Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { type Row } from "@tanstack/react-table";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,38 +14,38 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { labels } from '../data/data'
-import { taskSchema } from '../data/schema'
-import { useTasks } from './tasks-provider'
+} from "@/components/ui/dropdown-menu";
+import { labels } from "../data/data";
+import { taskSchema } from "../data/schema";
+import { useTasks } from "./tasks-provider";
 
 type DataTableRowActionsProps<TData> = {
-  row: Row<TData>
-}
+  row: Row<TData>;
+};
 
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const task = taskSchema.parse(row.original)
+  const task = taskSchema.parse(row.original);
 
-  const { setOpen, setCurrentRow } = useTasks()
+  const { setOpen, setCurrentRow } = useTasks();
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant='ghost'
-          className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
+          variant="ghost"
+          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
         >
-          <DotsHorizontalIcon className='h-4 w-4' />
-          <span className='sr-only'>Open menu</span>
+          <DotsHorizontalIcon className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' className='w-[160px]'>
+      <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           onClick={() => {
-            setCurrentRow(task)
-            setOpen('update')
+            setCurrentRow(task);
+            setOpen("update");
           }}
         >
           Edit
@@ -68,8 +68,8 @@ export function DataTableRowActions<TData>({
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
-            setCurrentRow(task)
-            setOpen('delete')
+            setCurrentRow(task);
+            setOpen("delete");
           }}
         >
           Delete
@@ -79,5 +79,5 @@ export function DataTableRowActions<TData>({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { RoleTable } from './components/role-table'
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { RoleTable } from "./components/role-table";
 
 export function Roles() {
   return (
@@ -17,5 +17,5 @@ export function Roles() {
         <RoleTable />
       </Main>
     </>
-  )
+  );
 }
