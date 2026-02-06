@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ColumnFiltersState,
   SortingState,
@@ -20,15 +20,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePermissions } from "../hooks/use-permissions";
-import { columns } from "../data/columns";
+import { usePermissions, useDeletePermission } from "../hooks/use-permissions";
+import { PermissionFormDrawer } from "./permission-form-drawer";
+import { createColumns } from "../data/columns";
+import type { Permission } from "../data/schema";
 
 export function PermissionTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingPermission, setEditingPermission] = useState<Permission | undefined>();
 
-  const { data, isLoading, error } = usePermissions();
+  const { data, isLoading, error, refetch } = usePermissions();
+  const deleteMutation = useDeletePermission();
+
+  const columns = useMemo(
+    () => createColumns(handleEdit, handleDelete),
+    []
+  );
+
+  const handleCreate = () => {
+    setEditingPermission(undefined);
+    setDrawerOpen(true);
+  };
+
+  const handleEdit = (permission: Permission) => {
+    setEditingPermission(permission);
+    setDrawerOpen(true);
+  };
+
+  const handleDelete = async (permission: Permission) => {
+    if (window.confirm(`确定要删除权限 "${permission.name}" 吗？`)) {
+      try {
+        await deleteMutation.mutateAsync(permission.id);
+        refetch();
+      } catch (error) {
+        console.error("删除失败:", error);
+      }
+    }
+  };
+
+  const handleSuccess = () => {
+    refetch();
+  };
 
   const table = useReactTable({
     data: data || [],
@@ -58,106 +93,115 @@ export function PermissionTable() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Input
-          placeholder="搜索权限..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          新增权限
-        </Button>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Input
+            placeholder="搜索权限..."
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("name")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            新增权限
+          </Button>
+        </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={
-                          header.column.getCanSort()
-                            ? "flex cursor-pointer select-items-center gap-2"
-                            : ""
-                        }
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                        {header.column.getCanSort() && (
-                          <ArrowUpDown className="h-4 w-4" />
-                        )}
-                      </div>
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={
+                            header.column.getCanSort()
+                              ? "flex cursor-pointer select-items-center gap-2"
+                              : ""
+                          }
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                          {header.column.getCanSort() && (
+                            <ArrowUpDown className="h-4 w-4" />
+                          )}
+                        </div>
                       )}
-                    </TableCell>
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  暂无数据
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    暂无数据
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="text-muted-foreground flex-1 text-sm">
+            共 {data?.length || 0} 条记录
+          </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              上一页
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              下一页
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          共 {data?.total || 0} 条记录
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            上一页
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            下一页
-          </Button>
-        </div>
-      </div>
-    </div>
+      <PermissionFormDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        permission={editingPermission}
+        onSuccess={handleSuccess}
+      />
+    </>
   );
 }
