@@ -79,33 +79,19 @@ export function getProductsColumns({
       },
     },
     {
-      accessorKey: "invoiceLimit",
-      header: () => t("product.columns.invoiceLimit"),
+      accessorKey: "description",
+      header: () => t("product.columns.description"),
       meta: {
-        displayName: t("product.columns.invoiceLimit"),
-        className: "w-[110px]",
-      },
-      cell: ({ row }) => row.getValue("invoiceLimit"),
-    },
-    {
-      accessorKey: "invoiceCount",
-      header: () => t("product.columns.invoiceCount"),
-      meta: {
-        displayName: t("product.columns.invoiceCount"),
-        className: "w-[120px]",
-      },
-      cell: ({ row }) => row.getValue("invoiceCount"),
-    },
-    {
-      accessorKey: "overLimitPrice",
-      header: () => t("product.columns.overLimitPrice"),
-      meta: {
-        displayName: t("product.columns.overLimitPrice"),
-        className: "w-[110px]",
+        displayName: t("product.columns.description"),
+        className: "w-[200px]",
       },
       cell: ({ row }) => {
-        const price = row.getValue("overLimitPrice") as number;
-        return formatAmount(price);
+        const description = row.getValue("description") as string;
+        return (
+          <div className="max-w-[200px] truncate text-muted-foreground">
+            {description || "-"}
+          </div>
+        );
       },
     },
     {

@@ -6,6 +6,7 @@ import {
   Min,
   MaxLength,
   MinLength,
+  IsArray,
 } from "class-validator";
 import type { UpdateProductBase } from "@qzt/shared-types/dist/product/schemas";
 
@@ -42,21 +43,12 @@ export class UpdateProductDto implements UpdateProductBase {
   @Min(0, { message: "价格必须大于等于0" })
   price?: number;
 
-  @ApiPropertyOptional({ description: "开票额度(月)", example: 10 })
+  @ApiPropertyOptional({
+    description: "产品时间轴",
+    example: ["签约后启动服务", "完成工商注册", "税务登记完成"],
+  })
   @IsOptional()
-  @IsNumber()
-  @Min(0, { message: "开票额度必须大于等于0" })
-  invoiceLimit?: number;
-
-  @ApiPropertyOptional({ description: "套餐包含开票张数(月)", example: 50 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0, { message: "开票张数必须大于等于0" })
-  invoiceCount?: number;
-
-  @ApiPropertyOptional({ description: "超额单价", example: 20 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0, { message: "超额单价必须大于等于0" })
-  overLimitPrice?: number;
+  @IsArray()
+  @IsString({ each: true })
+  timeline?: string[];
 }

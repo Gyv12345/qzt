@@ -5,9 +5,9 @@ import { Main } from "@/components/layout/main";
 import { ProductsPrimaryButtons } from "./components/products-primary-buttons";
 import { ProductsTable } from "./components/products-table";
 import {
-  ProductsDialogs,
-  useProductsDialogs,
-} from "./components/products-dialogs";
+  ProductsDrawers,
+  useProductsDrawers,
+} from "./components/products-drawers";
 
 const route = getRouteApi("/_authenticated/products");
 
@@ -16,7 +16,7 @@ function ProductsContent() {
   const search = route.useSearch();
   const navigate = route.useNavigate();
   const queryClient = useQueryClient();
-  const { openCreateDialog, openEditDialog } = useProductsDialogs();
+  const { openCreateDrawer, openEditDrawer } = useProductsDrawers();
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -31,12 +31,12 @@ function ProductsContent() {
           </h2>
           <p className="text-muted-foreground">{t("product.description")}</p>
         </div>
-        <ProductsPrimaryButtons onCreate={openCreateDialog} />
+        <ProductsPrimaryButtons onCreate={openCreateDrawer} />
       </div>
       <ProductsTable
         search={search}
         navigate={navigate}
-        onEdit={openEditDialog}
+        onEdit={openEditDrawer}
         onRefresh={handleRefresh}
       />
     </Main>
@@ -51,8 +51,8 @@ export function Products() {
   };
 
   return (
-    <ProductsDialogs onRefresh={handleRefresh}>
+    <ProductsDrawers onRefresh={handleRefresh}>
       <ProductsContent />
-    </ProductsDialogs>
+    </ProductsDrawers>
   );
 }
