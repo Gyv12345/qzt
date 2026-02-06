@@ -1,50 +1,50 @@
-import { StrictMode } from 'react'
-import ReactDOM from 'react-dom/client'
-import { AxiosError } from 'axios'
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
+import { AxiosError } from "axios";
 import {
   QueryCache,
   QueryClient,
   QueryClientProvider,
-} from '@tanstack/react-query'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { handleServerError } from '@/lib/handle-server-error'
-import { DirectionProvider } from './context/direction-provider'
-import { FontProvider } from './context/font-provider'
-import { ThemeProvider } from './context/theme-provider'
-import { AuthProvider } from './contexts/auth-context'
+} from "@tanstack/react-query";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { handleServerError } from "@/lib/handle-server-error";
+import { DirectionProvider } from "./context/direction-provider";
+import { FontProvider } from "./context/font-provider";
+import { ThemeProvider } from "./context/theme-provider";
+import { AuthProvider } from "./contexts/auth-context";
 // i18n
-import './i18n/config'
+import "./i18n/config";
 // Generated Routes
-import { routeTree } from './routeTree.gen'
+import { routeTree } from "./routeTree.gen";
 // Styles
-import './styles/index.css'
+import "./styles/index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
         // eslint-disable-next-line no-console
-        if (import.meta.env.DEV) console.log({ failureCount, error })
+        if (import.meta.env.DEV) console.log({ failureCount, error });
 
-        if (failureCount >= 0 && import.meta.env.DEV) return false
-        if (failureCount > 3 && import.meta.env.PROD) return false
+        if (failureCount >= 0 && import.meta.env.DEV) return false;
+        if (failureCount > 3 && import.meta.env.PROD) return false;
 
         return !(
           error instanceof AxiosError &&
           [401, 403].includes(error.response?.status ?? 0)
-        )
+        );
       },
       refetchOnWindowFocus: import.meta.env.PROD,
       staleTime: 10 * 1000, // 10s
     },
     mutations: {
       onError: (error) => {
-        handleServerError(error)
+        handleServerError(error);
 
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
-            toast.error('Content not modified!')
+            toast.error("Content not modified!");
           }
         }
       },
@@ -54,43 +54,43 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast.error('登录已过期!')
+          toast.error("登录已过期!");
           // AuthContext 会通过 unauthorized 事件处理
-          window.dispatchEvent(new CustomEvent('unauthorized'))
+          window.dispatchEvent(new CustomEvent("unauthorized"));
         }
         if (error.response?.status === 500) {
-          toast.error('服务器错误!')
+          toast.error("服务器错误!");
           if (import.meta.env.PROD) {
-            router.navigate({ to: '/500' })
+            router.navigate({ to: "/500" });
           }
         }
         if (error.response?.status === 403) {
-          toast.error('没有权限访问此页面')
+          toast.error("没有权限访问此页面");
         }
       }
     },
   }),
-})
+});
 
 // Create a new router instance
 const router = createRouter({
   routeTree,
   context: { queryClient },
-  defaultPreload: 'intent',
+  defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
-})
+});
 
 // Register the router instance for type safety
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
-    router: typeof router
+    router: typeof router;
   }
 }
 
 // Render the app
-const rootElement = document.getElementById('root')!
+const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
+  const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
@@ -104,6 +104,6 @@ if (!rootElement.innerHTML) {
           </ThemeProvider>
         </AuthProvider>
       </QueryClientProvider>
-    </StrictMode>
-  )
+    </StrictMode>,
+  );
 }
