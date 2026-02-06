@@ -1,9 +1,18 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
-import { CryptoUtil } from '@/lib/crypto.util';
-import { ISocialMediaAccountService } from '../interfaces/social-media-account.interface';
-import { CreateSocialMediaAccountDto, UpdateSocialMediaAccountDto, QuerySocialMediaAccountDto } from '../dto/social-media-account.dto';
-import { SocialMediaAccount } from '@prisma/client';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
+import { CryptoUtil } from "@/lib/crypto.util";
+import { ISocialMediaAccountService } from "../interfaces/social-media-account.interface";
+import {
+  CreateSocialMediaAccountDto,
+  UpdateSocialMediaAccountDto,
+  QuerySocialMediaAccountDto,
+} from "../dto/social-media-account.dto";
+import { SocialMediaAccount } from "@prisma/client";
 
 @Injectable()
 export class SocialMediaAccountService implements ISocialMediaAccountService {
@@ -20,8 +29,12 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
       const encryptedData = {
         ...data,
         appSecret: data.appSecret ? CryptoUtil.encrypt(data.appSecret) : null,
-        accessToken: data.accessToken ? CryptoUtil.encrypt(data.accessToken) : null,
-        refreshToken: data.refreshToken ? CryptoUtil.encrypt(data.refreshToken) : null,
+        accessToken: data.accessToken
+          ? CryptoUtil.encrypt(data.accessToken)
+          : null,
+        refreshToken: data.refreshToken
+          ? CryptoUtil.encrypt(data.refreshToken)
+          : null,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
       };
 
@@ -40,7 +53,10 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
   /**
    * 更新媒体账号
    */
-  async update(id: string, data: UpdateSocialMediaAccountDto): Promise<SocialMediaAccount> {
+  async update(
+    id: string,
+    data: UpdateSocialMediaAccountDto,
+  ): Promise<SocialMediaAccount> {
     const existing = await this.findById(id);
     if (!existing) {
       throw new NotFoundException(`账号不存在: ${id}`);
@@ -119,7 +135,9 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
   /**
    * 查询账号列表
    */
-  async findAll(query: QuerySocialMediaAccountDto): Promise<{ data: SocialMediaAccount[]; total: number }> {
+  async findAll(
+    query: QuerySocialMediaAccountDto,
+  ): Promise<{ data: SocialMediaAccount[]; total: number }> {
     const { platform, status, page = 1, pageSize = 10 } = query;
     const skip = (page - 1) * pageSize;
 
@@ -137,7 +155,7 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
           where,
           skip,
           take: pageSize,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         }),
         this.prisma.socialMediaAccount.count({ where }),
       ]);
@@ -152,14 +170,16 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
   /**
    * 刷新访问令牌
    */
-  async refreshAccessToken(id: string): Promise<{ accessToken: string; expiresAt: Date }> {
+  async refreshAccessToken(
+    id: string,
+  ): Promise<{ accessToken: string; expiresAt: Date }> {
     const account = await this.findById(id);
     if (!account) {
       throw new NotFoundException(`账号不存在: ${id}`);
     }
 
     if (!account.refreshToken) {
-      throw new BadRequestException('该账号没有配置刷新令牌');
+      throw new BadRequestException("该账号没有配置刷新令牌");
     }
 
     try {
@@ -170,7 +190,7 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
       // TODO: 实现具体的平台令牌刷新逻辑
 
       // 模拟刷新成功
-      const newAccessToken = 'new_access_token';
+      const newAccessToken = "new_access_token";
       const expiresAt = new Date(Date.now() + 7200 * 1000); // 2小时后过期
 
       const updated = await this.update(id, {
@@ -191,7 +211,9 @@ export class SocialMediaAccountService implements ISocialMediaAccountService {
   /**
    * 解密敏感信息
    */
-  async decryptSensitiveInfo(account: SocialMediaAccount): Promise<SocialMediaAccount> {
+  async decryptSensitiveInfo(
+    account: SocialMediaAccount,
+  ): Promise<SocialMediaAccount> {
     const decrypted = { ...account };
 
     if (account.appSecret) {

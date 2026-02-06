@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IPlatformPublisher } from '../../interfaces/platform-publisher.interface';
-import { DouyinPublisher } from './douyin.publisher';
-import { XiaohongshuPublisher } from './xiaohongshu.publisher';
-import { WechatPublisher } from './wechat.publisher';
+import { Injectable, Logger } from "@nestjs/common";
+import { IPlatformPublisher } from "../../interfaces/platform-publisher.interface";
+import { DouyinPublisher } from "./douyin.publisher";
+import { XiaohongshuPublisher } from "./xiaohongshu.publisher";
+import { WechatPublisher } from "./wechat.publisher";
 
 @Injectable()
 export class PlatformPublisherFactory {
@@ -15,9 +15,9 @@ export class PlatformPublisherFactory {
     private readonly xiaohongshuPublisher: XiaohongshuPublisher,
     private readonly wechatPublisher: WechatPublisher,
   ) {
-    this.publishers.set('douyin', this.douyinPublisher);
-    this.publishers.set('xiaohongshu', this.xiaohongshuPublisher);
-    this.publishers.set('wechat', this.wechatPublisher);
+    this.publishers.set("douyin", this.douyinPublisher);
+    this.publishers.set("xiaohongshu", this.xiaohongshuPublisher);
+    this.publishers.set("wechat", this.wechatPublisher);
   }
 
   /**

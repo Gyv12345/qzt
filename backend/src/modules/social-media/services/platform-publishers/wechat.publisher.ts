@@ -1,17 +1,24 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IPlatformPublisher, PublishData, PublishResult, UploadResult, TokenResult, AccountStatus } from '../../interfaces/platform-publisher.interface';
-import axios from 'axios';
-import * as FormData from 'form-data';
+import { Injectable, Logger } from "@nestjs/common";
+import {
+  IPlatformPublisher,
+  PublishData,
+  PublishResult,
+  UploadResult,
+  TokenResult,
+  AccountStatus,
+} from "../../interfaces/platform-publisher.interface";
+import axios from "axios";
+import * as FormData from "form-data";
 
 /**
  * 微信视频号发布器
  */
 @Injectable()
 export class WechatPublisher implements IPlatformPublisher {
-  readonly platform = 'wechat';
+  readonly platform = "wechat";
   private readonly logger = new Logger(WechatPublisher.name);
-  private readonly baseUrl = 'https://api.weixin.qq.com';
-  private readonly apiVersion = 'cgi-bin';
+  private readonly baseUrl = "https://api.weixin.qq.com";
+  private readonly apiVersion = "cgi-bin";
 
   /**
    * 发布内容到微信视频号
@@ -24,7 +31,7 @@ export class WechatPublisher implements IPlatformPublisher {
       if (!params.account.appId || !params.account.accessToken) {
         return {
           success: false,
-          error: '账号配置不完整，缺少 appId 或 accessToken',
+          error: "账号配置不完整，缺少 appId 或 accessToken",
         };
       }
 
@@ -33,7 +40,7 @@ export class WechatPublisher implements IPlatformPublisher {
       if (!uploadResult.success) {
         return {
           success: false,
-          error: uploadResult.error || '视频上传失败',
+          error: uploadResult.error || "视频上传失败",
         };
       }
       const mediaId = uploadResult.videoId;
@@ -41,7 +48,9 @@ export class WechatPublisher implements IPlatformPublisher {
       // 2. 创建发布任务
       const publishData = {
         media_id: mediaId,
-        thumb_media_id: params.coverUrl ? await this.uploadCover(params.coverUrl, params.account.accessToken) : undefined,
+        thumb_media_id: params.coverUrl
+          ? await this.uploadCover(params.coverUrl, params.account.accessToken)
+          : undefined,
         title: params.title,
         desc: this.formatContent(params),
         see_scope: this.mapVisibility(params.visibility),
@@ -64,7 +73,7 @@ export class WechatPublisher implements IPlatformPublisher {
         this.logger.error(`微信视频号发布失败: ${response.data.errmsg}`);
         return {
           success: false,
-          error: response.data.errmsg || '发布失败',
+          error: response.data.errmsg || "发布失败",
         };
       }
     } catch (error) {
@@ -83,16 +92,19 @@ export class WechatPublisher implements IPlatformPublisher {
     try {
       const form = new FormData();
       const videoBuffer = await this.downloadFile(fileUrl);
-      form.append('media', videoBuffer, { filename: 'video.mp4', contentType: 'video/mp4' });
-      form.append('type', 'video');
+      form.append("media", videoBuffer, {
+        filename: "video.mp4",
+        contentType: "video/mp4",
+      });
+      form.append("type", "video");
 
       // 需要accessToken，但接口定义中没有，这里需要重新设计
       // 暂时返回错误，提示需要额外参数
-      this.logger.warn('微信视频上传需要accessToken，请使用其他方式调用');
+      this.logger.warn("微信视频上传需要accessToken，请使用其他方式调用");
 
       return {
         success: false,
-        error: '微信视频上传需要accessToken参数',
+        error: "微信视频上传需要accessToken参数",
       };
     } catch (error) {
       this.logger.error(`上传视频失败: ${error.message}`);
@@ -106,12 +118,18 @@ export class WechatPublisher implements IPlatformPublisher {
   /**
    * 上传视频到微信（带token）
    */
-  async uploadVideoWithToken(videoUrl: string, accessToken: string): Promise<string> {
+  async uploadVideoWithToken(
+    videoUrl: string,
+    accessToken: string,
+  ): Promise<string> {
     try {
       const form = new FormData();
       const videoBuffer = await this.downloadFile(videoUrl);
-      form.append('media', videoBuffer, { filename: 'video.mp4', contentType: 'video/mp4' });
-      form.append('type', 'video');
+      form.append("media", videoBuffer, {
+        filename: "video.mp4",
+        contentType: "video/mp4",
+      });
+      form.append("type", "video");
 
       const response = await axios.post(
         `${this.baseUrl}/${this.apiVersion}/media/upload?access_token=${accessToken}&type=video`,
@@ -135,12 +153,18 @@ export class WechatPublisher implements IPlatformPublisher {
   /**
    * 上传封面图
    */
-  private async uploadCover(coverUrl: string, accessToken: string): Promise<string> {
+  private async uploadCover(
+    coverUrl: string,
+    accessToken: string,
+  ): Promise<string> {
     try {
       const form = new FormData();
       const coverBuffer = await this.downloadFile(coverUrl);
-      form.append('media', coverBuffer, { filename: 'cover.jpg', contentType: 'image/jpeg' });
-      form.append('type', 'thumb');
+      form.append("media", coverBuffer, {
+        filename: "cover.jpg",
+        contentType: "image/jpeg",
+      });
+      form.append("type", "thumb");
 
       const response = await axios.post(
         `${this.baseUrl}/${this.apiVersion}/media/upload?access_token=${accessToken}&type=thumb`,
@@ -179,7 +203,7 @@ export class WechatPublisher implements IPlatformPublisher {
       } else {
         return {
           success: false,
-          error: response.data.errmsg || '刷新令牌失败',
+          error: response.data.errmsg || "刷新令牌失败",
         };
       }
     } catch (error) {
@@ -208,7 +232,7 @@ export class WechatPublisher implements IPlatformPublisher {
       } else {
         return {
           success: false,
-          error: response.data.errmsg || '获取账号信息失败',
+          error: response.data.errmsg || "获取账号信息失败",
         };
       }
     } catch (error) {
@@ -224,11 +248,11 @@ export class WechatPublisher implements IPlatformPublisher {
    * 格式化内容
    */
   private formatContent(data: PublishData): string {
-    let content = data.description || '';
+    let content = data.description || "";
 
     // 添加话题标签
     if (data.topics && data.topics.length > 0) {
-      const topics = data.topics.map((topic) => `#${topic}#`).join(' ');
+      const topics = data.topics.map((topic) => `#${topic}#`).join(" ");
       content = content ? `${content}\n${topics}` : topics;
     }
 
@@ -244,21 +268,25 @@ export class WechatPublisher implements IPlatformPublisher {
       friends: 1,
       private: 2,
     };
-    return map[visibility || 'public'] || 0;
+    return map[visibility || "public"] || 0;
   }
 
   /**
    * 下载文件
    */
   private async downloadFile(url: string): Promise<Buffer> {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const response = await axios.get(url, { responseType: "arraybuffer" });
     return Buffer.from(response.data);
   }
 
   /**
    * 上传媒体文件（辅助方法）
    */
-  private async uploadMedia(videoUrl: string, coverUrl: string | undefined, accessToken: string): Promise<string> {
+  private async uploadMedia(
+    videoUrl: string,
+    coverUrl: string | undefined,
+    accessToken: string,
+  ): Promise<string> {
     return this.uploadVideoWithToken(videoUrl, accessToken);
   }
 }

@@ -1,10 +1,18 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsArray, ValidateNested, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  IsNumber,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 export enum PricingRuleType {
-  AMOUNT_TIER = 'AMOUNT_TIER', // 按金额阶梯
-  COUNT_TIER = 'COUNT_TIER', // 按次数计费
-  ZERO_DECLARATION = 'ZERO_DECLARATION', // 零申报
+  AMOUNT_TIER = "AMOUNT_TIER", // 按金额阶梯
+  COUNT_TIER = "COUNT_TIER", // 按次数计费
+  ZERO_DECLARATION = "ZERO_DECLARATION", // 零申报
 }
 
 class PricingTierDto {

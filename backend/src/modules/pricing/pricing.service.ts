@@ -1,8 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreatePricingRuleDto, PricingRuleType } from './dto/create-pricing-rule.dto';
-import { UpdatePricingRuleDto } from './dto/update-pricing-rule.dto';
-import { CalculatePriceDto } from './dto/calculate-price.dto';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import {
+  CreatePricingRuleDto,
+  PricingRuleType,
+} from "./dto/create-pricing-rule.dto";
+import { UpdatePricingRuleDto } from "./dto/update-pricing-rule.dto";
+import { CalculatePriceDto } from "./dto/calculate-price.dto";
 
 @Injectable()
 export class PricingService {
@@ -20,7 +27,7 @@ export class PricingService {
     });
 
     if (!product) {
-      throw new NotFoundException('产品不存在');
+      throw new NotFoundException("产品不存在");
     }
 
     // 创建定价规则和阶梯
@@ -36,7 +43,7 @@ export class PricingService {
       },
       include: {
         tiers: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
         product: {
           select: {
@@ -61,7 +68,7 @@ export class PricingService {
       where,
       include: {
         tiers: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
         product: {
           select: {
@@ -72,7 +79,7 @@ export class PricingService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }
@@ -85,7 +92,7 @@ export class PricingService {
       where: { id },
       include: {
         tiers: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
         product: {
           select: {
@@ -99,7 +106,7 @@ export class PricingService {
     });
 
     if (!pricingRule) {
-      throw new NotFoundException('定价规则不存在');
+      throw new NotFoundException("定价规则不存在");
     }
 
     return pricingRule;
@@ -133,7 +140,7 @@ export class PricingService {
       },
       include: {
         tiers: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -165,7 +172,7 @@ export class PricingService {
     });
 
     if (!contract) {
-      throw new NotFoundException('合同不存在');
+      throw new NotFoundException("合同不存在");
     }
 
     const { product } = contract;
@@ -176,18 +183,15 @@ export class PricingService {
         productId: product.id,
         status: 1,
         effectiveDate: { lte: new Date() },
-        OR: [
-          { expiryDate: null },
-          { expiryDate: { gte: new Date() } },
-        ],
+        OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
       },
       include: {
         tiers: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
       orderBy: {
-        effectiveDate: 'desc',
+        effectiveDate: "desc",
       },
     });
 
@@ -200,8 +204,8 @@ export class PricingService {
         basePrice: product.price,
         finalPrice: product.price,
         additionalPrice: 0,
-        ruleType: 'FIXED',
-        ruleName: '固定价格',
+        ruleType: "FIXED",
+        ruleName: "固定价格",
       };
     }
 
@@ -330,7 +334,7 @@ export class PricingService {
     const paidTier = tiers[1]; // 第二阶梯:超额价格
 
     if (!freeTier || !paidTier) {
-      throw new BadRequestException('零申报规则配置错误,需要两个阶梯');
+      throw new BadRequestException("零申报规则配置错误,需要两个阶梯");
     }
 
     const freeCount = freeTier.minThreshold; // 免费次数
@@ -365,11 +369,11 @@ export class PricingService {
       where: { productId },
       include: {
         tiers: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
       orderBy: {
-        effectiveDate: 'desc',
+        effectiveDate: "desc",
       },
     });
   }

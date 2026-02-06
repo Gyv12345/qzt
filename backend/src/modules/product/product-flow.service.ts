@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/common/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/common/prisma/prisma.service";
 
 @Injectable()
 export class ProductFlowService {
@@ -13,10 +13,10 @@ export class ProductFlowService {
       where: { productId },
       include: {
         nodes: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
   }
 
@@ -28,7 +28,7 @@ export class ProductFlowService {
       where: { id },
       include: {
         nodes: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
         product: {
           select: {
@@ -47,7 +47,7 @@ export class ProductFlowService {
   async create(data: {
     productId: string;
     name: string;
-    type: 'NODE' | 'CYCLE';
+    type: "NODE" | "CYCLE";
     config: string;
     nodes?: Array<{
       name: string;
@@ -72,7 +72,7 @@ export class ProductFlowService {
       },
       include: {
         nodes: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -81,17 +81,20 @@ export class ProductFlowService {
   /**
    * 更新流程
    */
-  async update(id: string, data: {
-    name?: string;
-    config?: string;
-    enabled?: boolean;
-  }) {
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      config?: string;
+      enabled?: boolean;
+    },
+  ) {
     return this.prisma.productFlow.update({
       where: { id },
       data,
       include: {
         nodes: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -116,7 +119,7 @@ export class ProductFlowService {
     });
 
     if (!flow) {
-      throw new Error('流程不存在');
+      throw new Error("流程不存在");
     }
 
     return this.prisma.productFlow.update({
@@ -130,15 +133,18 @@ export class ProductFlowService {
   /**
    * 添加节点到流程
    */
-  async addNode(flowId: string, node: {
-    name: string;
-    type: string;
-    roleId?: string;
-    order: number;
-    config?: string;
-    notifyConfig?: string;
-    cycleConfig?: string;
-  }) {
+  async addNode(
+    flowId: string,
+    node: {
+      name: string;
+      type: string;
+      roleId?: string;
+      order: number;
+      config?: string;
+      notifyConfig?: string;
+      cycleConfig?: string;
+    },
+  ) {
     return this.prisma.productFlowNode.create({
       data: {
         flowId,
@@ -150,14 +156,17 @@ export class ProductFlowService {
   /**
    * 更新节点
    */
-  async updateNode(nodeId: string, data: {
-    name?: string;
-    roleId?: string;
-    config?: string;
-    notifyConfig?: string;
-    cycleConfig?: string;
-    enabled?: boolean;
-  }) {
+  async updateNode(
+    nodeId: string,
+    data: {
+      name?: string;
+      roleId?: string;
+      config?: string;
+      notifyConfig?: string;
+      cycleConfig?: string;
+      enabled?: boolean;
+    },
+  ) {
     return this.prisma.productFlowNode.update({
       where: { id: nodeId },
       data,
@@ -186,7 +195,7 @@ export class ProductFlowService {
     return this.prisma.productFlowExecution.create({
       data: {
         ...data,
-        status: 'PENDING',
+        status: "PENDING",
       },
       include: {
         node: {
@@ -235,7 +244,7 @@ export class ProductFlowService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -244,7 +253,7 @@ export class ProductFlowService {
    */
   async updateExecutionStatus(
     executionId: string,
-    status: 'RUNNING' | 'SUCCESS' | 'FAILED' | 'SKIPPED',
+    status: "RUNNING" | "SUCCESS" | "FAILED" | "SKIPPED",
     result?: string,
     error?: string,
   ) {
@@ -252,9 +261,13 @@ export class ProductFlowService {
       status,
     };
 
-    if (status === 'RUNNING') {
+    if (status === "RUNNING") {
       data.executedAt = new Date();
-    } else if (status === 'SUCCESS' || status === 'FAILED' || status === 'SKIPPED') {
+    } else if (
+      status === "SUCCESS" ||
+      status === "FAILED" ||
+      status === "SKIPPED"
+    ) {
       data.completedAt = new Date();
     }
 
@@ -279,7 +292,7 @@ export class ProductFlowService {
     const executions = await this.prisma.productFlowExecution.findMany({
       where: {
         contractId,
-        status: 'PENDING',
+        status: "PENDING",
       },
       include: {
         node: {
@@ -288,7 +301,7 @@ export class ProductFlowService {
           },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
 
     return executions.map((exec) => ({

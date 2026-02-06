@@ -1,16 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IPlatformPublisher, PublishData, PublishResult, UploadResult, TokenResult, AccountStatus } from '../../interfaces/platform-publisher.interface';
-import axios from 'axios';
+import { Injectable, Logger } from "@nestjs/common";
+import {
+  IPlatformPublisher,
+  PublishData,
+  PublishResult,
+  UploadResult,
+  TokenResult,
+  AccountStatus,
+} from "../../interfaces/platform-publisher.interface";
+import axios from "axios";
 
 /**
  * 抖音开放平台发布器
  */
 @Injectable()
 export class DouyinPublisher implements IPlatformPublisher {
-  readonly platform = 'douyin';
+  readonly platform = "douyin";
   private readonly logger = new Logger(DouyinPublisher.name);
-  private readonly baseUrl = 'https://open.douyin.com';
-  private readonly apiVersion = 'v1.0';
+  private readonly baseUrl = "https://open.douyin.com";
+  private readonly apiVersion = "v1.0";
 
   /**
    * 发布内容到抖音
@@ -23,7 +30,7 @@ export class DouyinPublisher implements IPlatformPublisher {
       if (!params.account.appId || !params.account.accessToken) {
         return {
           success: false,
-          error: '账号配置不完整，缺少 appId 或 accessToken',
+          error: "账号配置不完整，缺少 appId 或 accessToken",
         };
       }
 
@@ -32,7 +39,7 @@ export class DouyinPublisher implements IPlatformPublisher {
       if (!uploadResult.success) {
         return {
           success: false,
-          error: uploadResult.error || '视频上传失败',
+          error: uploadResult.error || "视频上传失败",
         };
       }
       const videoId = uploadResult.videoId;
@@ -53,8 +60,8 @@ export class DouyinPublisher implements IPlatformPublisher {
         draftData,
         {
           headers: {
-            'access-token': params.account.accessToken,
-            'Content-Type': 'application/json',
+            "access-token": params.account.accessToken,
+            "Content-Type": "application/json",
           },
         },
       );
@@ -70,7 +77,7 @@ export class DouyinPublisher implements IPlatformPublisher {
         this.logger.error(`抖音发布失败: ${response.data.data?.description}`);
         return {
           success: false,
-          error: response.data.data?.description || '发布失败',
+          error: response.data.data?.description || "发布失败",
         };
       }
     } catch (error) {
@@ -145,7 +152,7 @@ export class DouyinPublisher implements IPlatformPublisher {
       } else {
         return {
           success: false,
-          error: response.data.data?.description || '刷新令牌失败',
+          error: response.data.data?.description || "刷新令牌失败",
         };
       }
     } catch (error) {
@@ -166,7 +173,7 @@ export class DouyinPublisher implements IPlatformPublisher {
         `${this.baseUrl}/${this.apiVersion}/user/info/`,
         {
           headers: {
-            'access-token': accessToken,
+            "access-token": accessToken,
           },
         },
       );
@@ -179,7 +186,7 @@ export class DouyinPublisher implements IPlatformPublisher {
       } else {
         return {
           success: false,
-          error: response.data.data?.description || '获取账号信息失败',
+          error: response.data.data?.description || "获取账号信息失败",
         };
       }
     } catch (error) {
@@ -195,11 +202,11 @@ export class DouyinPublisher implements IPlatformPublisher {
    * 格式化内容
    */
   private formatContent(data: PublishData): string {
-    let content = data.description || '';
+    let content = data.description || "";
 
     // 添加话题标签
     if (data.topics && data.topics.length > 0) {
-      const topics = data.topics.map((topic) => `#${topic}`).join(' ');
+      const topics = data.topics.map((topic) => `#${topic}`).join(" ");
       content = content ? `${content}\n${topics}` : topics;
     }
 
@@ -215,7 +222,7 @@ export class DouyinPublisher implements IPlatformPublisher {
       friends: 1,
       private: 2,
     };
-    return map[visibility || 'public'] || 0;
+    return map[visibility || "public"] || 0;
   }
 
   /**
@@ -223,22 +230,27 @@ export class DouyinPublisher implements IPlatformPublisher {
    */
   private async getVideoSize(videoUrl: string): Promise<number> {
     const response = await axios.head(videoUrl);
-    const contentLength = response.headers['content-length'];
+    const contentLength = response.headers["content-length"];
     return parseInt(contentLength, 10);
   }
 
   /**
    * 分片上传视频
    */
-  private async uploadVideoChunk(uploadUrl: string, videoUrl: string): Promise<void> {
+  private async uploadVideoChunk(
+    uploadUrl: string,
+    videoUrl: string,
+  ): Promise<void> {
     // 下载视频
-    const videoResponse = await axios.get(videoUrl, { responseType: 'arraybuffer' });
+    const videoResponse = await axios.get(videoUrl, {
+      responseType: "arraybuffer",
+    });
     const videoBuffer = Buffer.from(videoResponse.data);
 
     // 上传视频
     await axios.put(uploadUrl, videoBuffer, {
       headers: {
-        'Content-Type': 'video/mp4',
+        "Content-Type": "video/mp4",
       },
     });
   }
