@@ -277,10 +277,7 @@ export function CustomersTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={cn(
-                      "group/row",
-                      isSelected && "bg-muted/50",
-                    )}
+                    className={cn("group/row", isSelected && "bg-muted/50")}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell

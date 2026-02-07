@@ -34,7 +34,9 @@ export function CustomerFollowRecordsTab({
     async (id: string) => {
       if (window.confirm("确定要删除这条跟进记录吗？")) {
         try {
-          const { useDeleteFollowRecord } = require("../hooks/use-follow-records");
+          const {
+            useDeleteFollowRecord,
+          } = require("../hooks/use-follow-records");
           const deleteMutation = useDeleteFollowRecord();
           await deleteMutation.mutateAsync(id);
           handleRefresh();

@@ -21,7 +21,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { usePermissionTree, useDeletePermission } from "../hooks/use-permissions";
+import {
+  usePermissionTree,
+  useDeletePermission,
+} from "../hooks/use-permissions";
 import { PermissionFormDrawer } from "./permission-form-drawer";
 
 interface PermissionNode {
@@ -232,9 +235,7 @@ export function PermissionTreeTable() {
             </div>
           </TableCell>
           <TableCell>
-            <code className="text-sm text-muted-foreground">
-              {node.code}
-            </code>
+            <code className="text-sm text-muted-foreground">{node.code}</code>
           </TableCell>
           <TableCell>
             {node.status === 1 ? (

@@ -127,9 +127,7 @@ export function PermissionFormDrawer({
         ...values,
         description: values.description || undefined,
         parentId:
-          values.parentId === ROOT_PARENT_ID
-            ? undefined
-            : values.parentId,
+          values.parentId === ROOT_PARENT_ID ? undefined : values.parentId,
       };
 
       if (isEdit && permission) {

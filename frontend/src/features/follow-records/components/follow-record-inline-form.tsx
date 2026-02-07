@@ -26,12 +26,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   followRecordSchema,
   FOLLOW_TYPE_OPTIONS,
@@ -197,10 +192,7 @@ export function FollowRecordInlineForm({
             />
 
             <div className="flex justify-end pt-2">
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-              >
+              <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? "保存中..." : "保存"}
               </Button>
             </div>

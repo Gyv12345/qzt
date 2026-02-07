@@ -34,7 +34,9 @@ export function CustomerPaymentsTab({
 }: CustomerPaymentsTabProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingPayment, setEditingPayment] = useState<PaymentItem | undefined>();
+  const [editingPayment, setEditingPayment] = useState<
+    PaymentItem | undefined
+  >();
 
   const { data, isLoading } = usePayments({
     customerId,
@@ -89,11 +91,9 @@ export function CustomerPaymentsTab({
         header: "收款日期",
         cell: ({ row }: any) => {
           const date = row.original.paymentDate;
-          return date ? (
-            format(new Date(date), "yyyy-MM-dd", { locale: zhCN })
-          ) : (
-            "-"
-          );
+          return date
+            ? format(new Date(date), "yyyy-MM-dd", { locale: zhCN })
+            : "-";
         },
       },
       {
@@ -189,7 +189,10 @@ export function CustomerPaymentsTab({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
                       暂无数据
                     </TableCell>
                   </TableRow>

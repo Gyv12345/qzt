@@ -124,9 +124,7 @@ export function FollowRecordsCompactTable({
 
   if (records.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        暂无跟进记录
-      </div>
+      <div className="text-center py-8 text-muted-foreground">暂无跟进记录</div>
     );
   }
 

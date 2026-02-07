@@ -34,7 +34,9 @@ export function CustomerInvoicesTab({
 }: CustomerInvoicesTabProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<InvoiceItem | undefined>();
+  const [editingInvoice, setEditingInvoice] = useState<
+    InvoiceItem | undefined
+  >();
 
   const { data, isLoading } = useInvoices({
     customerId,
@@ -94,11 +96,9 @@ export function CustomerInvoicesTab({
         header: "开票日期",
         cell: ({ row }: any) => {
           const date = row.original.invoiceDate;
-          return date ? (
-            format(new Date(date), "yyyy-MM-dd", { locale: zhCN })
-          ) : (
-            "-"
-          );
+          return date
+            ? format(new Date(date), "yyyy-MM-dd", { locale: zhCN })
+            : "-";
         },
       },
       {
@@ -181,7 +181,10 @@ export function CustomerInvoicesTab({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
                       暂无数据
                     </TableCell>
                   </TableRow>

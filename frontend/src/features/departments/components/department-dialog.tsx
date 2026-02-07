@@ -181,7 +181,8 @@ export function DepartmentDialog({
               name="parentId"
               render={({ field }) => {
                 // 顶级部门（parentId为null）编辑时禁用上级部门选择
-                const isTopLevelDepartment = isEdit && !editingDepartment?.parentId;
+                const isTopLevelDepartment =
+                  isEdit && !editingDepartment?.parentId;
                 return (
                   <FormItem>
                     <FormLabel>上级部门</FormLabel>
@@ -200,7 +201,9 @@ export function DepartmentDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={ROOT_PARENT_ID}>无上级部门</SelectItem>
+                        <SelectItem value={ROOT_PARENT_ID}>
+                          无上级部门
+                        </SelectItem>
                         {departmentOptions.map((dept) => (
                           <SelectItem key={dept.id} value={dept.id}>
                             {"  ".repeat(dept.level) + dept.name}

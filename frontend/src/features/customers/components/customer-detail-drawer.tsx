@@ -17,7 +17,16 @@ import { CustomerPaymentsTab } from "@/features/payments";
 import { CustomerInvoicesTab } from "@/features/invoices";
 import { useCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
-import { Phone, Mail, Building2, User, Users, FileText, CreditCard, Receipt } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  Building2,
+  User,
+  Users,
+  FileText,
+  CreditCard,
+  Receipt,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
 
@@ -105,9 +114,7 @@ export function CustomerDetailDrawer({
           {customerData.address && (
             <div className="space-y-1">
               <span className="text-sm text-muted-foreground">地址:</span>
-              <p className="text-sm">
-                {customerData.address}
-              </p>
+              <p className="text-sm">{customerData.address}</p>
             </div>
           )}
 
@@ -147,7 +154,10 @@ export function CustomerDetailDrawer({
           </TabsList>
 
           {/* 跟进记录 */}
-          <TabsContent value="follow" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+          <TabsContent
+            value="follow"
+            className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
+          >
             <CustomerFollowRecordsTab
               customerId={customerId}
               customerName={customerData.name}
@@ -155,7 +165,10 @@ export function CustomerDetailDrawer({
           </TabsContent>
 
           {/* 联系人 */}
-          <TabsContent value="contacts" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+          <TabsContent
+            value="contacts"
+            className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
+          >
             <CustomerContactsTab
               customerId={customerId}
               customerName={customerData.name}
@@ -163,7 +176,10 @@ export function CustomerDetailDrawer({
           </TabsContent>
 
           {/* 收款 */}
-          <TabsContent value="payments" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+          <TabsContent
+            value="payments"
+            className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
+          >
             <CustomerPaymentsTab
               customerId={customerId}
               customerName={customerData.name}
@@ -171,7 +187,10 @@ export function CustomerDetailDrawer({
           </TabsContent>
 
           {/* 发票 */}
-          <TabsContent value="invoices" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+          <TabsContent
+            value="invoices"
+            className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
+          >
             <CustomerInvoicesTab
               customerId={customerId}
               customerName={customerData.name}
@@ -179,7 +198,10 @@ export function CustomerDetailDrawer({
           </TabsContent>
 
           {/* 服务团队 */}
-          <TabsContent value="service-team" className="mt-4 overflow-auto max-h-[calc(85vh-400px)]">
+          <TabsContent
+            value="service-team"
+            className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
+          >
             <CustomerServiceTeamTab
               customerId={customerId}
               customerName={customerData.name}

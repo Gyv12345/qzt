@@ -19,7 +19,10 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getScrmApi } from "@/services/api";
-import type { LoginLog, LoginLogsControllerFindLoginLogsParams } from "@/models";
+import type {
+  LoginLog,
+  LoginLogsControllerFindLoginLogsParams,
+} from "@/models";
 import { Loader2 } from "lucide-react";
 import { DataTablePagination } from "@/components/data-table";
 
@@ -53,12 +56,9 @@ export function LoginLogsTable() {
   const total = response?.total || 0;
 
   // 处理分页变化
-  const onPaginationChange = useCallback(
-    (newPagination: PaginationState) => {
-      setPagination(newPagination);
-    },
-    [],
-  );
+  const onPaginationChange = useCallback((newPagination: PaginationState) => {
+    setPagination(newPagination);
+  }, []);
 
   const columns: ColumnDef<LoginLog>[] = [
     {
