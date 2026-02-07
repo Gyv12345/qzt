@@ -18,6 +18,7 @@ import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
+import { Route as AuthenticatedSocialMediaRouteRouteImport } from './routes/_authenticated/social-media/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedServiceTeamsRouteRouteImport } from './routes/_authenticated/service-teams/route'
 import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
@@ -33,6 +34,7 @@ import { Route as AuthenticatedCustomerRulesRouteRouteImport } from './routes/_a
 import { Route as AuthenticatedContractsRouteRouteImport } from './routes/_authenticated/contracts/route'
 import { Route as AuthenticatedContractTemplatesRouteRouteImport } from './routes/_authenticated/contract-templates/route'
 import { Route as AuthenticatedContactsRouteRouteImport } from './routes/_authenticated/contacts/route'
+import { Route as AuthenticatedCmsRouteRouteImport } from './routes/_authenticated/cms/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
@@ -88,6 +90,12 @@ const errors401Route = errors401RouteImport.update({
   path: '/401',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSocialMediaRouteRoute =
+  AuthenticatedSocialMediaRouteRouteImport.update({
+    id: '/social-media',
+    path: '/social-media',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
     id: '/settings',
@@ -177,6 +185,11 @@ const AuthenticatedContactsRouteRoute =
     path: '/contacts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCmsRouteRoute = AuthenticatedCmsRouteRouteImport.update({
+  id: '/cms',
+  path: '/cms',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -237,6 +250,7 @@ const AuthenticatedErrorsErrorRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/cms': typeof AuthenticatedCmsRouteRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -252,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
+  '/social-media': typeof AuthenticatedSocialMediaRouteRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -271,6 +286,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/cms': typeof AuthenticatedCmsRouteRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -285,6 +301,7 @@ export interface FileRoutesByTo {
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
+  '/social-media': typeof AuthenticatedSocialMediaRouteRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -307,6 +324,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/cms': typeof AuthenticatedCmsRouteRoute
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
   '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
@@ -322,6 +340,7 @@ export interface FileRoutesById {
   '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
   '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
+  '/_authenticated/social-media': typeof AuthenticatedSocialMediaRouteRoute
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
   '/(errors)/404': typeof errors404Route
@@ -345,6 +364,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/cms'
     | '/contacts'
     | '/contract-templates'
     | '/contracts'
@@ -360,6 +380,7 @@ export interface FileRouteTypes {
     | '/roles'
     | '/service-teams'
     | '/settings'
+    | '/social-media'
     | '/401'
     | '/403'
     | '/404'
@@ -379,6 +400,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/cms'
     | '/contacts'
     | '/contract-templates'
     | '/contracts'
@@ -393,6 +415,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/roles'
     | '/service-teams'
+    | '/social-media'
     | '/401'
     | '/403'
     | '/404'
@@ -414,6 +437,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/cms'
     | '/_authenticated/contacts'
     | '/_authenticated/contract-templates'
     | '/_authenticated/contracts'
@@ -429,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/roles'
     | '/_authenticated/service-teams'
     | '/_authenticated/settings'
+    | '/_authenticated/social-media'
     | '/(errors)/401'
     | '/(errors)/403'
     | '/(errors)/404'
@@ -522,6 +547,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/401'
       preLoaderRoute: typeof errors401RouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/social-media': {
+      id: '/_authenticated/social-media'
+      path: '/social-media'
+      fullPath: '/social-media'
+      preLoaderRoute: typeof AuthenticatedSocialMediaRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -628,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cms': {
+      id: '/_authenticated/cms'
+      path: '/cms'
+      fullPath: '/cms'
+      preLoaderRoute: typeof AuthenticatedCmsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -723,6 +762,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRoute
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
   AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute
   AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
@@ -738,6 +778,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
   AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedSocialMediaRouteRoute: typeof AuthenticatedSocialMediaRouteRoute
   AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
@@ -749,6 +790,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCmsRouteRoute: AuthenticatedCmsRouteRoute,
   AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
   AuthenticatedContractTemplatesRouteRoute:
     AuthenticatedContractTemplatesRouteRoute,
@@ -765,6 +807,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
   AuthenticatedServiceTeamsRouteRoute: AuthenticatedServiceTeamsRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedSocialMediaRouteRoute: AuthenticatedSocialMediaRouteRoute,
   AuthenticatedWebhooksRoute: AuthenticatedWebhooksRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,

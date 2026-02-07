@@ -5,6 +5,7 @@
  * 企账通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type { UpdateProductDtoPricingType } from "./updateProductDtoPricingType";
 
 export interface UpdateProductDto {
   /** 产品名称 */
@@ -13,8 +14,12 @@ export interface UpdateProductDto {
   code?: string;
   /** 产品描述 */
   description?: string;
-  /** 价格 */
+  /** 基础价格 */
   price?: number;
-  /** 产品时间轴 */
-  timeline?: string[];
+  /** 产品时间轴(JSON数组) */
+  timeline?: string;
+  /** 定价类型 */
+  pricingType?: UpdateProductDtoPricingType;
+  /** 服务负责人角色ID */
+  serviceRoleId?: string;
 }
