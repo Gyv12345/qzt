@@ -1,62 +1,131 @@
 /**
  * CMS 内容管理主页面
- *
- * TODO(human): 此页面需要等待 API 生成后完成以下步骤：
- * 1. 在 hooks/use-cms-contents.ts 中替换 mockCmsApi 为实际 API 调用
- * 2. 实现完整的组件功能（见下方注释）
- * 3. 添加路由配置
- * 4. 添加菜单配置
  */
 
+import { useState, useCallback } from "react";
 import { getRouteApi } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 import { Main } from "@/components/layout/main";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Briefcase, Package, Users, Tags } from "lucide-react";
+import { FileText, Briefcase, Package, Users, Tags, Plus } from "lucide-react";
 import { useCmsContentsByType } from "./hooks/use-cms-contents";
-import { CONTENT_TYPE_CONFIG, type ContentType } from "./types/cms";
+import { type ContentType } from "./types/cms";
+import {
+  CmsContentsTable,
+  CmsTagsManager,
+  CmsDrawers,
+  CmsPrimaryButtons,
+  useCmsDrawers,
+} from "./components";
 
 const route = getRouteApi("/_authenticated/cms");
 
-// TODO(human): 实现以下组件
-// import { CmsContentsTable } from "./components/cms-contents-table";
-// import { CmsContentFormDrawer } from "./components/cms-content-form-drawer";
-// import { CmsTagsManager } from "./components/cms-tags-manager";
-// import { CmsDrawers, useCmsDrawers } from "./components/cms-drawers";
-
 export function Cms() {
-  const { t } = useTranslation();
   const search = route.useSearch();
+  const navigate = route.useNavigate();
+  const [tagsManagerOpen, setTagsManagerOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // 获取各类型内容数据
-  const { data: articles, isLoading: articlesLoading } = useCmsContentsByType(
-    "ARTICLE",
-    search,
-  );
-  const { data: cases, isLoading: casesLoading } = useCmsContentsByType(
-    "CASE_STUDY",
-    search,
-  );
-  const { data: products, isLoading: productsLoading } = useCmsContentsByType(
-    "PRODUCT_SHOWCASE",
-    search,
-  );
-  const { data: profiles, isLoading: profilesLoading } = useCmsContentsByType(
-    "PROFILE",
-    search,
-  );
+  const {
+    data: articles,
+    isLoading: articlesLoading,
+    error: articlesError,
+  } = useCmsContentsByType("ARTICLE", search);
+  const {
+    data: cases,
+    isLoading: casesLoading,
+    error: casesError,
+  } = useCmsContentsByType("CASE_STUDY", search);
+  const {
+    data: products,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useCmsContentsByType("PRODUCT_SHOWCASE", search);
+  const {
+    data: profiles,
+    isLoading: profilesLoading,
+    error: profilesError,
+  } = useCmsContentsByType("PROFILE", search);
 
-  const isLoading =
-    articlesLoading || casesLoading || productsLoading || profilesLoading;
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
-  // TODO(human): 实现抽屉控制
-  // const { openCreateDrawer, openEditDrawer } = useCmsDrawers();
+  const handleManageTags = useCallback(() => {
+    setTagsManagerOpen(true);
+  }, []);
 
-  const handleCreate = (type: ContentType) => {
-    console.log("创建内容:", type);
-    // TODO(human): 调用 openCreateDrawer(type)
-  };
+  return (
+    <CmsDrawers onRefresh={handleRefresh}>
+      <CmsContentManager
+        search={search}
+        navigate={navigate}
+        articles={articles}
+        articlesLoading={articlesLoading}
+        articlesError={articlesError}
+        cases={cases}
+        casesLoading={casesLoading}
+        casesError={casesError}
+        products={products}
+        productsLoading={productsLoading}
+        productsError={productsError}
+        profiles={profiles}
+        profilesLoading={profilesLoading}
+        profilesError={profilesError}
+        onManageTags={handleManageTags}
+        refreshKey={refreshKey}
+        onRefresh={handleRefresh}
+      />
+      <CmsTagsManager
+        open={tagsManagerOpen}
+        onOpenChange={setTagsManagerOpen}
+        onSuccess={handleRefresh}
+      />
+    </CmsDrawers>
+  );
+}
+
+interface CmsContentManagerProps {
+  search: Record<string, unknown>;
+  navigate: any;
+  articles: any;
+  articlesLoading: boolean;
+  articlesError: unknown;
+  cases: any;
+  casesLoading: boolean;
+  casesError: unknown;
+  products: any;
+  productsLoading: boolean;
+  productsError: unknown;
+  profiles: any;
+  profilesLoading: boolean;
+  profilesError: unknown;
+  onManageTags: () => void;
+  refreshKey: number;
+  onRefresh: () => void;
+}
+
+function CmsContentManager({
+  search,
+  navigate,
+  articles,
+  articlesLoading,
+  articlesError,
+  cases,
+  casesLoading,
+  casesError,
+  products,
+  productsLoading,
+  productsError,
+  profiles,
+  profilesLoading,
+  profilesError,
+  onManageTags,
+  refreshKey,
+  onRefresh,
+}: CmsContentManagerProps) {
+  const { openCreateDrawer, openEditDrawer } = useCmsDrawers();
 
   return (
     <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
@@ -69,8 +138,7 @@ export function Cms() {
           </p>
         </div>
         <div className="flex gap-2">
-          {/* TODO(human): 实现标签管理按钮 */}
-          <Button variant="outline">
+          <Button variant="outline" onClick={onManageTags}>
             <Tags className="mr-2 h-4 w-4" />
             标签管理
           </Button>
@@ -120,91 +188,68 @@ export function Cms() {
           </TabsList>
 
           {/* 新建按钮 */}
-          <Button onClick={() => handleCreate("ARTICLE")}>
+          <Button onClick={() => openCreateDrawer("ARTICLE")}>
             <Plus className="mr-2 h-4 w-4" />
             新建内容
           </Button>
         </div>
 
         {/* 文章标签页 */}
-        <TabsContent value="ARTICLE" className="mt-4">
-          {isLoading ? (
-            <div className="flex h-64 items-center justify-center text-muted-foreground">
-              加载中...
-            </div>
-          ) : (
-            <div className="rounded-md border p-8 text-center text-muted-foreground">
-              <FileText className="mx-auto h-12 w-12 opacity-50" />
-              <p className="mt-4">
-                {articles && articles.total > 0
-                  ? `共 ${articles.total} 篇文章`
-                  : "暂无文章，点击上方按钮创建第一篇文章"}
-              </p>
-              {/* TODO(human): 替换为 CmsContentsTable 组件 */}
-              {/* <CmsContentsTable data={articles?.data || []} onEdit={openEditDrawer} /> */}
-            </div>
-          )}
+        <TabsContent value="ARTICLE" className="mt-4 flex-1">
+          <CmsContentsTable
+            key={`articles-${refreshKey}`}
+            data={articles?.data || []}
+            total={articles?.total || 0}
+            isLoading={articlesLoading}
+            search={search}
+            navigate={route.navigate}
+            onEdit={openEditDrawer}
+            onRefresh={handleRefresh}
+          />
         </TabsContent>
 
         {/* 案例标签页 */}
-        <TabsContent value="CASE_STUDY" className="mt-4">
-          {isLoading ? (
-            <div className="flex h-64 items-center justify-center text-muted-foreground">
-              加载中...
-            </div>
-          ) : (
-            <div className="rounded-md border p-8 text-center text-muted-foreground">
-              <Briefcase className="mx-auto h-12 w-12 opacity-50" />
-              <p className="mt-4">
-                {cases && cases.total > 0
-                  ? `共 ${cases.total} 个案例`
-                  : "暂无案例，点击上方按钮创建第一个案例"}
-              </p>
-            </div>
-          )}
+        <TabsContent value="CASE_STUDY" className="mt-4 flex-1">
+          <CmsContentsTable
+            key={`cases-${refreshKey}`}
+            data={cases?.data || []}
+            total={cases?.total || 0}
+            isLoading={casesLoading}
+            search={search}
+            navigate={route.navigate}
+            onEdit={openEditDrawer}
+            onRefresh={handleRefresh}
+          />
         </TabsContent>
 
         {/* 产品展示标签页 */}
-        <TabsContent value="PRODUCT_SHOWCASE" className="mt-4">
-          {isLoading ? (
-            <div className="flex h-64 items-center justify-center text-muted-foreground">
-              加载中...
-            </div>
-          ) : (
-            <div className="rounded-md border p-8 text-center text-muted-foreground">
-              <Package className="mx-auto h-12 w-12 opacity-50" />
-              <p className="mt-4">
-                {products && products.total > 0
-                  ? `共 ${products.total} 个产品展示`
-                  : "暂无产品展示，点击上方按钮创建第一个产品展示"}
-              </p>
-            </div>
-          )}
+        <TabsContent value="PRODUCT_SHOWCASE" className="mt-4 flex-1">
+          <CmsContentsTable
+            key={`products-${refreshKey}`}
+            data={products?.data || []}
+            total={products?.total || 0}
+            isLoading={productsLoading}
+            search={search}
+            navigate={route.navigate}
+            onEdit={openEditDrawer}
+            onRefresh={handleRefresh}
+          />
         </TabsContent>
 
         {/* 人员介绍标签页 */}
-        <TabsContent value="PROFILE" className="mt-4">
-          {isLoading ? (
-            <div className="flex h-64 items-center justify-center text-muted-foreground">
-              加载中...
-            </div>
-          ) : (
-            <div className="rounded-md border p-8 text-center text-muted-foreground">
-              <Users className="mx-auto h-12 w-12 opacity-50" />
-              <p className="mt-4">
-                {profiles && profiles.total > 0
-                  ? `共 ${profiles.total} 个人物介绍`
-                  : "暂无人员介绍，点击上方按钮创建第一个人员介绍"}
-              </p>
-            </div>
-          )}
+        <TabsContent value="PROFILE" className="mt-4 flex-1">
+          <CmsContentsTable
+            key={`profiles-${refreshKey}`}
+            data={profiles?.data || []}
+            total={profiles?.total || 0}
+            isLoading={profilesLoading}
+            search={search}
+            navigate={route.navigate}
+            onEdit={openEditDrawer}
+            onRefresh={handleRefresh}
+          />
         </TabsContent>
       </Tabs>
-
-      {/* TODO(human): 添加内容编辑抽屉 */}
-      {/* <CmsDrawers onRefresh={() => {}}> */}
-      {/*   <CmsContentFormDrawer /> */}
-      {/* </CmsDrawers> */}
     </Main>
   );
 }

@@ -24,6 +24,7 @@ Skill("glm-monorepo")
 |------|------|
 | 前端端口 | 3456 |
 | 后端端口 | 7890 |
+| 网站端口 | 5180 |
 | 启动方式 | `./start-dev.sh` |
 | 包管理器 | 使用 `pnpm`（npm 很慢） |
 
@@ -500,6 +501,169 @@ cd frontend && rm -rf node_modules/.vite && pnpm dev
 
 ---
 
+### 11. 子组件访问父组件状态导致 ReferenceError
+
+**错误现象**：
+```
+ReferenceError: setTagsManagerOpen is not defined
+```
+
+**原因**：子组件直接使用父组件中定义的 state setter，但该变量未通过 props 传递
+
+**解决方案**：
+```tsx
+// ❌ 错误：子组件直接使用父组件的变量
+function Parent() {
+  const [open, setOpen] = useState(false)
+  return <Child onClick={() => setOpen(true)} />
+}
+
+function Child({ onClick }) {
+  return <button onClick={() => setOpen(true)}>  // ReferenceError!
+    Open
+  </button>
+}
+
+// ✅ 正确：通过 props 传递回调函数
+function Parent() {
+  const [open, setOpen] = useState(false)
+  const handleOpen = useCallback(() => setOpen(true), [])
+  return <Child onOpen={handleOpen} />
+}
+
+function Child({ onOpen }) {
+  return <button onClick={onOpen}>Open</button>
+}
+```
+
+**预防**：子组件只能访问通过 props 传递的值，使用回调模式实现子组件向父组件通信
+
+---
+
+### 12. 组件重复包裹导致双重渲染
+
+**错误现象**：
+```
+组件渲染两次，状态管理混乱，重复 API 调用
+```
+
+**原因**：同一组件在不同层级被重复包裹
+
+**解决方案**：
+```tsx
+// ❌ 错误：CmsDrawers 和 CmsTagsManager 被包裹两次
+function Parent() {
+  return (
+    <CmsDrawers>
+      <Child />
+      <CmsTagsManager />
+    </CmsDrawers>
+  )
+}
+
+function Child() {
+  return (
+    <CmsDrawers>  {/* 重复！ */}
+      <CmsTagsManager />
+    </CmsDrawers>
+  )
+}
+
+// ✅ 正确：只在一处包裹
+function Parent() {
+  return (
+    <CmsDrawers>
+      <Child />
+      <CmsTagsManager />
+    </CmsDrawers>
+  )
+}
+
+function Child() {
+  return <div>{/* 不再重复包裹 */}</div>
+}
+```
+
+**预防**：使用 React DevTools 的 Profiler 检测组件重复渲染
+
+---
+
+### 13. Next.js 15 Async Params
+
+**错误现象**：
+```
+Type error: Type '{ slug: string }' does not satisfy the constraint 'PageProps'
+```
+
+**原因**：Next.js 15 中，动态路由的 `params` 和 `searchParams` 现在是 Promise
+
+**解决方案**：
+```tsx
+// ❌ 错误：直接解构 params
+export default async function Page({ params }: { params: { slug: string } }) {
+  const { slug } = params
+}
+
+// ✅ 正确：await params
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+}
+```
+
+---
+
+### 14. Tailwind v4 配置变化
+
+**错误现象**：
+```
+Type error: Type '["class"]' is not assignable to type 'DarkModeStrategy'
+```
+
+**原因**：Tailwind v4 的 `darkMode` 配置从数组改为字符串
+
+**解决方案**：
+```typescript
+// ❌ Tailwind v3
+export default {
+  darkMode: ["class"],  // 数组
+}
+
+// ✅ Tailwind v4
+export default {
+  darkMode: "class",  // 字符串
+}
+```
+
+---
+
+### 15. CORS 配置重复
+
+**错误现象**：
+```
+allowedOrigins 数组中有重复的 URL
+```
+
+**原因**：硬编码和环境变量默认值重复
+
+**解决方案**：
+```typescript
+// ❌ 错误：重复定义
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:3456",
+  process.env.WEBSITE_URL || "http://localhost:5180",
+  "http://localhost:5180",  // 重复!
+  "http://localhost:3456",  // 重复!
+]
+
+// ✅ 正确：使用 Set 去重
+const allowedOrigins = Array.from(new Set([
+  process.env.FRONTEND_URL || "http://localhost:3456",
+  process.env.WEBSITE_URL || "http://localhost:5180",
+]))
+```
+
+---
+
 ## 代码风格规范
 
 ### 导入顺序
@@ -605,3 +769,65 @@ instance.interceptors.request.use(config => {
 | 搜索防抖：`useDebounce` | 分页限制 |
 | 路由懒加载：`React.lazy()` | 连接池优化 |
 | React Query 缓存 | Redis 缓存 |
+
+---
+
+## Website（公司网站）开发
+
+### 项目概述
+
+`website/` 是独立的 Next.js 15 项目，用于展示 CMS 公开内容（文章、案例等）。
+
+### 技术栈
+
+- **框架**: Next.js 15 (App Router) + TypeScript
+- **样式**: Tailwind CSS v4 + shadcn/ui
+- **动画**: Framer Motion
+- **端口**: 5180
+
+### 开发命令
+
+```bash
+# 开发环境
+cd website && pnpm dev
+
+# 生产构建
+cd website && pnpm build
+
+# Docker 部署
+docker compose -f docker/docker-compose.prod.yml up website
+```
+
+### CMS API 集成
+
+网站使用 Next.js 的 `fetch` 配合 ISR（增量静态再生成）从后端获取内容：
+
+```typescript
+// website/lib/api.ts
+export async function getArticles(params?: { page?: number }) {
+  const res = await fetch(`${API_BASE_URL}/public/cms/articles`, {
+    next: { revalidate: 3600 }, // ISR: 每小时刷新
+  })
+  return res.json()
+}
+```
+
+**注意**: Website 项目是独立的展示网站，不使用 Orval 生成的 API（那是 frontend 管理后台专用的）。
+
+### 路由结构
+
+```
+/                    # 首页
+/articles            # 文章列表
+/articles/[slug]     # 文章详情
+/cases               # 案例列表
+/cases/[slug]        # 案例详情
+```
+
+### 环境变量
+
+```bash
+# website/.env.local
+NEXT_PUBLIC_API_URL=http://localhost:7890
+PORT=5180
+```

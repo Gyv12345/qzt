@@ -62,8 +62,14 @@ async function bootstrap() {
   );
 
   // 启用CORS - 安全配置
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || "http://localhost:3456",
+    process.env.WEBSITE_URL || "http://localhost:5180",
+    "http://localhost:5180", // 开发环境 Next.js website 端口
+    "http://localhost:3456", // 开发环境前端端口 (frontend)
+  ];
   app.enableCors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3456",
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],

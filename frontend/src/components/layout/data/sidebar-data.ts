@@ -17,6 +17,7 @@ import {
   Settings,
   FileSignature,
   Webhook,
+  FileCode,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -125,6 +126,11 @@ export const sidebarData: SidebarData = {
           title: "Webhook配置",
           url: "/webhooks",
           icon: Webhook,
+        },
+        {
+          title: "内容管理",
+          url: "/cms",
+          icon: FileCode,
         },
       ],
     },

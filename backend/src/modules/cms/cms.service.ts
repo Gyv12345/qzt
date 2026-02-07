@@ -332,6 +332,35 @@ export class CmsService {
     return this.formatContentResponse(updated);
   }
 
+  async findContentBySlug(slug: string) {
+    const content = await this.prisma.cmsContent.findFirst({
+      where: {
+        slug,
+        status: "PUBLISHED",
+      },
+      include: {
+        author: {
+          select: { id: true, name: true },
+        },
+        product: true,
+        userProfile: {
+          select: { id: true, name: true, avatar: true },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    if (!content) {
+      throw new NotFoundException("Content not found");
+    }
+
+    return this.formatContentResponse(content);
+  }
+
   // ==================== 快捷查询 ====================
 
   async getArticles(query: QueryCmsContentDto) {
