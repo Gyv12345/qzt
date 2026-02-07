@@ -1,9 +1,12 @@
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
+  type PaginationState,
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -16,11 +19,24 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getScrmApi } from "@/services/api";
-import type { LoginLog } from "@/models";
+import type { LoginLog, LoginLogsControllerFindLoginLogsParams } from "@/models";
 import { Loader2 } from "lucide-react";
+import { DataTablePagination } from "@/components/data-table";
 
 export function LoginLogsTable() {
   const { t } = useTranslation();
+
+  // 分页状态
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  // 构建查询参数
+  const queryParams: LoginLogsControllerFindLoginLogsParams = {
+    page: pageIndex + 1,
+    pageSize,
+  };
 
   // 使用真实的 API 获取数据
   const {
@@ -28,12 +44,21 @@ export function LoginLogsTable() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["login-logs"],
-    queryFn: () => getScrmApi().loginLogsControllerFindLoginLogs(),
+    queryKey: ["login-logs", pageIndex, pageSize],
+    queryFn: () => getScrmApi().loginLogsControllerFindLoginLogs(queryParams),
   });
 
   // 从响应中提取数据
   const data = response?.data || [];
+  const total = response?.total || 0;
+
+  // 处理分页变化
+  const onPaginationChange = useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination);
+    },
+    [],
+  );
 
   const columns: ColumnDef<LoginLog>[] = [
     {
@@ -89,7 +114,14 @@ export function LoginLogsTable() {
   const table = useReactTable({
     data,
     columns,
+    pageCount: Math.ceil(total / pageSize),
+    state: {
+      pagination: { pageIndex, pageSize },
+    },
+    onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
   });
 
   if (isLoading) {
@@ -175,6 +207,7 @@ export function LoginLogsTable() {
           </TableBody>
         </Table>
       </CardContent>
+      <DataTablePagination table={table} />
     </Card>
   );
 }

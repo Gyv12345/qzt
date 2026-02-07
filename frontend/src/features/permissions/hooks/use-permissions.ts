@@ -19,6 +19,17 @@ export function usePermissions(
   });
 }
 
+// 权限树查询
+export function usePermissionTree() {
+  return useQuery({
+    queryKey: ["permissions", "tree"],
+    queryFn: async () => {
+      const { permissionControllerFindPermissionTree } = getScrmApi();
+      return await permissionControllerFindPermissionTree();
+    },
+  });
+}
+
 // 创建权限
 export function useCreatePermission() {
   const queryClient = useQueryClient();

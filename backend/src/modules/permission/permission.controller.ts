@@ -66,6 +66,12 @@ export class PermissionController {
     return this.permissionService.findAllPermissions(type as PermissionType);
   }
 
+  @Get("permissions/tree")
+  @ApiOperation({ summary: "获取权限树" })
+  findPermissionTree() {
+    return this.permissionService.findPermissionTree();
+  }
+
   @Get("permissions/:id")
   @ApiOperation({ summary: "获取权限详情" })
   findOnePermission(@Param("id") id: string) {

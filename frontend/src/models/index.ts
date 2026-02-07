@@ -146,6 +146,8 @@ export * from "./updateUserDtoStatus";
 export * from "./updateWebhookConfigDto";
 export * from "./updateWebhookConfigDtoPlatform";
 export * from "./uploadFileDto";
+export * from "./LoginLog";
+export * from "./OperationLog";
 export * from "./uploadFileDtoFileType";
 export * from "./uploadUrlDto";
 export * from "./userEntity";

@@ -6,6 +6,7 @@ export const permissionFormSchema = z.object({
   code: z.string().min(1, "权限编码不能为空"),
   type: z.enum(["menu", "button", "data"]),
   description: z.string().optional(),
+  parentId: z.string().optional(),
   status: z.number().default(1),
 });
 
@@ -18,9 +19,11 @@ export const permissionSchema = z.object({
   code: z.string(),
   type: z.enum(["menu", "button", "data"]),
   description: z.string().optional(),
+  parentId: z.string().optional(),
   status: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  children: z.array(z.lazy(() => permissionSchema)).optional(),
 });
 
 export type Permission = z.infer<typeof permissionSchema>;
@@ -42,6 +45,7 @@ export interface PermissionTreeNode {
   type: "menu" | "permission";
   code?: string;
   permissionType?: string; // menu/button/data
+  parentId?: string | null;
   permissions?: Permission[];
   children?: PermissionTreeNode[];
   level?: number;
