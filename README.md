@@ -3,7 +3,7 @@
 <div align="center">
 
 <!-- 基础信息 -->
-![Version](https://img.shields.io/badge/version-2.2.1-blue)
+![Version](https://img.shields.io/badge/version-2026.02.08.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E=20.0.0-brightgreen)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9.3-3178C6)
@@ -191,7 +191,8 @@ pnpm install
 
 ## 致谢
 
-- [Claude Code Infrastructure Showcase](https://github.com/anthropics/anthropic-quickstarts) - 几个月、几十万行代码的经验分享
+- [Claude Code Infrastructure Showcase](https://github.com/diet103/claude-code-infrastructure-showcase) - @diet103 大佬的 Vibe Coding 实践分享，几个月、几十万行代码的经验总结
+- [shadcn-admin](https://github.com/satnaing/shadcn-admin) - 优秀的 shadcn/ui + React Admin 模板，提供了现成的 CRUD 架构
 - [shadcn/ui](https://ui.shadcn.com/) - 优美的 React 组件库
 - 智谱 AI - 大管量、高性价比的 AI 服务
 

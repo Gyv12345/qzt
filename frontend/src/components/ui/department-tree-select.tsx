@@ -20,92 +20,90 @@ interface DepartmentTreeProps {
   selectedId?: string;
   onSelect: (id: string) => void;
   level?: number;
+  parentId?: string;
 }
+
+// 使用 Map 来跟踪每个部门的展开状态
+const expandStateMap = new Map<string, boolean>();
 
 function DepartmentTree({
   departments,
   selectedId,
   onSelect,
   level = 0,
+  parentId = "root",
 }: DepartmentTreeProps) {
   return (
-    <ul className={cn(level > 0 && "ml-4 border-l border-border pl-2")}>
-      {departments.map((dept) => (
-        <li key={dept.id}>
-          <div
-            className={cn(
-              "flex items-center gap-1 py-1.5 px-2 rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm",
-              selectedId === dept.id && "bg-accent text-accent-foreground",
+    <ul className={cn("m-0 list-none", level > 0 && "ml-6")}>
+      {departments.map((dept, index) => {
+        const deptKey = `${parentId}-${dept.id}`;
+        const [isOpen, setIsOpen] = useState(
+          () => expandStateMap.get(deptKey) ?? true,
+        );
+
+        const handleToggle = (e: React.MouseEvent) => {
+          e.stopPropagation();
+          const newState = !isOpen;
+          setIsOpen(newState);
+          expandStateMap.set(deptKey, newState);
+        };
+
+        const hasChildren = dept.children && dept.children.length > 0;
+
+        return (
+          <li key={dept.id} className="relative">
+            {/* Tree connecting line for child items */}
+            {level > 0 && (
+              <div className="absolute left-[-18px] top-0 bottom-0 w-px bg-border" />
             )}
-            onClick={() => onSelect(dept.id)}
-          >
-            {dept.children && dept.children.length > 0 ? (
-              <DepartmentTreeItem
-                dept={dept}
+            {level > 0 && index === 0 && (
+              <div className="absolute left-[-18px] top-3 w-4 h-px bg-border" />
+            )}
+            {level > 0 && index > 0 && (
+              <div className="absolute left-[-18px] top-0 w-4 h-px bg-border" />
+            )}
+
+            <div
+              className={cn(
+                "flex items-center gap-1 py-1.5 px-2 rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm",
+                selectedId === dept.id && "bg-accent text-accent-foreground",
+              )}
+              onClick={() => onSelect(dept.id)}
+            >
+              {/* 展开按钮 - 只有父节点才显示 */}
+              <span className="flex-shrink-0 w-5 flex items-center justify-center">
+                {hasChildren ? (
+                  <button
+                    type="button"
+                    onClick={handleToggle}
+                    className="p-0.5 hover:bg-muted rounded transition-colors"
+                    aria-label={isOpen ? "收起" : "展开"}
+                  >
+                    {isOpen ? (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                ) : null}
+              </span>
+              <span className="flex-1 select-none">{dept.name}</span>
+            </div>
+
+            {/* Children container - 只在展开时显示 */}
+            {hasChildren && isOpen && (
+              <DepartmentTree
+                departments={dept.children!}
                 selectedId={selectedId}
                 onSelect={onSelect}
-                level={level}
+                level={level + 1}
+                parentId={dept.id}
               />
-            ) : (
-              <>
-                <span className="w-4" />
-                <span className="flex-1">{dept.name}</span>
-              </>
             )}
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
-  );
-}
-
-function DepartmentTreeItem({
-  dept,
-  selectedId,
-  onSelect,
-  level,
-}: {
-  dept: Department;
-  selectedId?: string;
-  onSelect: (id: string) => void;
-  level: number;
-}) {
-  const [isOpen, setIsOpen] = useState(true);
-
-  return (
-    <>
-      <div
-        className="flex items-center gap-1 flex-1"
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(dept.id);
-        }}
-      >
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          className="flex-shrink-0 p-0.5 hover:bg-muted rounded"
-        >
-          {isOpen ? (
-            <ChevronDown className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronRight className="h-3.5 w-3.5" />
-          )}
-        </button>
-        <span className="flex-1">{dept.name}</span>
-      </div>
-      {isOpen && dept.children && dept.children.length > 0 && (
-        <DepartmentTree
-          departments={dept.children}
-          selectedId={selectedId}
-          onSelect={onSelect}
-          level={level + 1}
-        />
-      )}
-    </>
   );
 }
 

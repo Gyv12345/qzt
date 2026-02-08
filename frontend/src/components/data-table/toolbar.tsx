@@ -22,6 +22,7 @@ type DataTableToolbarProps<TData> = {
       icon?: React.ComponentType<{ className?: string }>;
     }[];
   }[];
+  actions?: React.ReactNode;
 };
 
 export function DataTableToolbar<TData>({
@@ -31,6 +32,7 @@ export function DataTableToolbar<TData>({
   searchMode = "instant",
   searchButtonLabel = "搜索",
   filters = [],
+  actions,
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
     table.getState().columnFilters.length > 0 || table.getState().globalFilter;
@@ -104,6 +106,7 @@ export function DataTableToolbar<TData>({
             );
           })}
         </div>
+        {actions}
         {isFiltered && (
           <Button
             variant="ghost"

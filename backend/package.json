@@ -1,6 +1,6 @@
 {
   "name": "@qzt/backend",
-  "version": "1.0.0",
+  "version": "2026.02.08.1",
   "description": "QZT Backend - NestJS API Server",
   "scripts": {
     "build": "nest build",

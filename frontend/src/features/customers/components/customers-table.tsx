@@ -12,6 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type NavigateFn, useTableUrlState } from "@/hooks/use-table-url-state";
 import {
@@ -23,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +38,10 @@ import {
 import { getCustomersColumns } from "./customers-columns";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { CustomersBatchActions } from "./customers-batch-actions";
+import {
+  CustomerAdvancedFilter,
+  type CustomerFilterValues,
+} from "./customer-advanced-filter";
 import { useCustomers, useDeleteCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
 
@@ -56,10 +62,10 @@ export function CustomersTable({
   navigate,
   onEdit,
   onRefresh,
-  onImport,
-  onExport,
+  onImport: _onImport,
+  onExport: _onExport,
   onRowClick,
-  onRowDoubleClick,
+  onRowDoubleClick: _onRowDoubleClick,
   selectedCustomerId,
 }: DataTableProps) {
   const { t } = useTranslation();
@@ -68,6 +74,10 @@ export function CustomersTable({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<Customer | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<CustomerFilterValues>(
+    {},
+  );
 
   const deleteMutation = useDeleteCustomer();
 
@@ -77,7 +87,6 @@ export function CustomersTable({
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
-    ensurePageInRange,
   } = useTableUrlState({
     search,
     navigate,
@@ -93,7 +102,10 @@ export function CustomersTable({
   const queryParams = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
+    // 基础搜索（来自 URL 的 name 参数）
     name: columnFilters.find((f) => f.id === "name")?.value as string,
+    // 高级筛选的等级
+    customerLevel: advancedFilters.customerLevels?.join(","),
   };
 
   const { data, isLoading, error } = useCustomers(queryParams);
@@ -113,8 +125,8 @@ export function CustomersTable({
     try {
       await deleteMutation.mutateAsync(deleteConfirm.id);
       onRefresh();
-    } catch (error) {
-      console.error("删除失败:", error);
+    } catch (_error) {
+      // Error is handled by the mutation
     } finally {
       setIsDeleting(false);
       setDeleteConfirm(null);
@@ -127,7 +139,7 @@ export function CustomersTable({
       if (col.id === "actions") {
         return {
           ...col,
-          cell: (props: any) => {
+          cell: (props: { row: { original: Customer } }) => {
             return (
               <DataTableRowActions
                 row={props.row}
@@ -188,6 +200,49 @@ export function CustomersTable({
     setRowSelection({});
   }, []);
 
+  // 应用高级筛选
+  const handleApplyAdvancedFilter = useCallback(
+    (filters: CustomerFilterValues) => {
+      setAdvancedFilters(filters);
+
+      // 更新 URL 筛选状态
+      const newFilters = [...columnFilters];
+
+      // 更新 name 筛选
+      const nameIndex = newFilters.findIndex((f) => f.id === "name");
+      if (filters.name) {
+        if (nameIndex >= 0) {
+          newFilters[nameIndex] = { id: "name", value: filters.name };
+        } else {
+          newFilters.push({ id: "name", value: filters.name });
+        }
+      } else if (nameIndex >= 0) {
+        newFilters.splice(nameIndex, 1);
+      }
+
+      // 更新 customerLevel 筛选
+      const levelIndex = newFilters.findIndex((f) => f.id === "customerLevel");
+      if (filters.customerLevels && filters.customerLevels.length > 0) {
+        if (levelIndex >= 0) {
+          newFilters[levelIndex] = {
+            id: "customerLevel",
+            value: filters.customerLevels,
+          };
+        } else {
+          newFilters.push({
+            id: "customerLevel",
+            value: filters.customerLevels,
+          });
+        }
+      } else if (levelIndex >= 0) {
+        newFilters.splice(levelIndex, 1);
+      }
+
+      onColumnFiltersChange(newFilters);
+    },
+    [columnFilters, onColumnFiltersChange],
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -238,6 +293,17 @@ export function CustomersTable({
             ],
           },
         ]}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAdvancedFilterOpen(true)}
+            className="h-8 gap-1"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            高级筛选
+          </Button>
+        }
       />
       <div className="overflow-hidden rounded-md border">
         <Table>
@@ -335,6 +401,14 @@ export function CustomersTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 高级筛选抽屉 */}
+      <CustomerAdvancedFilter
+        open={advancedFilterOpen}
+        onOpenChange={setAdvancedFilterOpen}
+        onApply={handleApplyAdvancedFilter}
+        initialFilters={advancedFilters}
+      />
     </div>
   );
 }

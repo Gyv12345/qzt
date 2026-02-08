@@ -3,7 +3,7 @@
 <div align="center">
 
 <!-- Basics -->
-![Version](https://img.shields.io/badge/version-2.2.1-blue)
+![Version](https://img.shields.io/badge/version-2026.02.08.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E=20.0.0-brightgreen)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9.3-3178C6)
@@ -191,7 +191,8 @@ pnpm install
 
 ## Acknowledgments
 
-- [Claude Code Infrastructure Showcase](https://github.com/anthropics/anthropic-quickstarts) - Experience sharing from months of development and hundreds of thousands of lines of code
+- [Claude Code Infrastructure Showcase](https://github.com/diet103/claude-code-infrastructure-showcase) - @diet103's Vibe Coding practice sharing, experience from months of development and hundreds of thousands of lines of code
+- [shadcn-admin](https://github.com/satnaing/shadcn-admin) - Excellent shadcn/ui + React Admin template, providing ready-to-use CRUD architecture
 - [shadcn/ui](https://ui.shadcn.com/) - Beautiful React component library
 - Zhipu AI - High-volume, cost-effective AI services
 
