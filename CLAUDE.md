@@ -664,6 +664,47 @@ const allowedOrigins = Array.from(new Set([
 
 ---
 
+### 16. Fragment 闭合标签不匹配
+
+**错误现象**：
+```
+SyntaxError: Expression expected
+x Expression expected
+  277 |     </>
+      :       ^
+  278 |   );
+```
+
+**原因**：混用了 Fragment 的完整形式 `<Fragment>` 和简写闭合标签 `</>`
+
+**解决方案**：
+```tsx
+// ❌ 错误：开头用完整形式，结尾用简写
+return (
+  <Fragment>
+    <div>Content</div>
+  </>
+)
+
+// ✅ 正确：全程使用完整形式
+return (
+  <Fragment>
+    <div>Content</div>
+  </Fragment>
+)
+
+// ✅ 正确：全程使用简写形式
+return (
+  <>
+    <div>Content</div>
+  </>
+)
+```
+
+**经验**：Fragment 的开闭标签必须成对使用完整形式 `<Fragment>...</Fragment>` 或简写形式 `<>...</>`，不能混用。
+
+---
+
 ## 代码风格规范
 
 ### 导入顺序
