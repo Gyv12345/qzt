@@ -8,6 +8,7 @@ export const productSchema = z.object({
   description: z.string().optional(),
   price: z.number(),
   timeline: z.array(z.string()).optional(),
+  imageId: z.string().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });

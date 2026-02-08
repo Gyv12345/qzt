@@ -5,10 +5,12 @@ import type { Product } from "../types/product";
 
 type GetProductsColumnsOptions = {
   t: (key: string) => string;
+  onViewDetail?: (productId: string) => void;
 };
 
 export function getProductsColumns({
   t,
+  onViewDetail,
 }: GetProductsColumnsOptions): ColumnDef<Product>[] {
   // 金额格式化
   function formatAmount(amount: number) {
@@ -53,9 +55,18 @@ export function getProductsColumns({
         displayName: t("product.columns.name"),
         className: "w-[180px]",
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
-      ),
+      cell: ({ row }) => {
+        const productName = row.getValue("name") as string;
+        const productId = row.original.id;
+        return (
+          <button
+            onClick={() => onViewDetail?.(productId)}
+            className="font-medium text-primary hover:underline text-left"
+          >
+            {productName}
+          </button>
+        );
+      },
     },
     {
       accessorKey: "code",

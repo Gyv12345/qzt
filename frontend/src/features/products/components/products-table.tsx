@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type SortingState,
@@ -25,6 +26,8 @@ import {
 import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
 import { getProductsColumns } from "./products-columns";
 import { DataTableRowActions } from "./data-table-row-actions";
+import { ProductDeleteDialog } from "./product-delete-dialog";
+import { ProductDetailDrawer } from "./product-detail-drawer";
 import { useProducts, useDeleteProduct } from "../hooks/use-products";
 import type { Product } from "../types/product";
 
@@ -45,6 +48,14 @@ export function ProductsTable({
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // 删除对话框状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  // 详情抽屉状态
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  const [productToView, setProductToView] = useState<string | undefined>();
 
   const deleteMutation = useDeleteProduct();
 
@@ -71,41 +82,51 @@ export function ProductsTable({
   const products = data?.data || [];
   const total = data?.total || 0;
 
-  const handleDelete = useCallback(
-    async (product: Product) => {
-      if (
-        window.confirm(`确定要删除产品"${product.name}"吗？此操作不可恢复。`)
-      ) {
-        try {
-          await deleteMutation.mutateAsync(product.id);
-          onRefresh();
-        } catch (error) {
-          console.error("删除失败:", error);
-        }
-      }
-    },
-    [deleteMutation, onRefresh],
-  );
+  const handleDeleteClick = useCallback((product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!productToDelete) return;
+
+    try {
+      await deleteMutation.mutateAsync(productToDelete.id);
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+      onRefresh();
+    } catch (error) {
+      console.error("删除失败:", error);
+    }
+  }, [productToDelete, deleteMutation, onRefresh]);
+
+  const handleViewDetail = useCallback((productId: string) => {
+    setProductToView(productId);
+    setDetailDrawerOpen(true);
+  }, []);
 
   const columns = useMemo(() => {
-    return getProductsColumns({ t }).map((col) => {
-      if (col.id === "actions") {
-        return {
-          ...col,
-          cell: (props: any) => {
-            return (
-              <DataTableRowActions
-                row={props.row}
-                onEdit={onEdit}
-                onDelete={handleDelete}
-              />
-            );
-          },
-        };
-      }
-      return col;
-    });
-  }, [onEdit, handleDelete]);
+    return getProductsColumns({ t, onViewDetail: handleViewDetail }).map(
+      (col) => {
+        if (col.id === "actions") {
+          return {
+            ...col,
+            cell: (props: any) => {
+              return (
+                <DataTableRowActions
+                  row={props.row}
+                  onEdit={onEdit}
+                  onDelete={handleDeleteClick}
+                  onViewDetail={handleViewDetail}
+                />
+              );
+            },
+          };
+        }
+        return col;
+      },
+    );
+  }, [onEdit, handleDeleteClick, handleViewDetail, t]);
 
   const table = useReactTable({
     data: products,
@@ -161,78 +182,98 @@ export function ProductsTable({
   }
 
   return (
-    <div className={cn("flex flex-1 flex-col gap-4")}>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder={t("product.searchPlaceholder")}
-        searchKey="name"
-        searchMode="submit"
-        searchButtonLabel={t("common.search")}
-        filters={[]}
-      />
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="group/row">
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={cn(
-                      "bg-background group-hover/row:bg-muted",
-                      header.column.columnDef.meta?.className,
-                    )}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="group/row"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
+    <Fragment>
+      <div className={cn("flex flex-1 flex-col gap-4")}>
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder={t("product.searchPlaceholder")}
+          searchKey="name"
+          searchMode="submit"
+          searchButtonLabel={t("common.search")}
+          filters={[]}
+        />
+        <div className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="group/row">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
                       className={cn(
                         "bg-background group-hover/row:bg-muted",
-                        cell.column.columnDef.meta?.className,
+                        header.column.columnDef.meta?.className,
                       )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  暂无数据
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="group/row"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          "bg-background group-hover/row:bg-muted",
+                          cell.column.columnDef.meta?.className,
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    暂无数据
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <DataTablePagination table={table} className="mt-auto" />
       </div>
-      <DataTablePagination table={table} className="mt-auto" />
-    </div>
+
+      {/* 删除确认对话框 */}
+      {productToDelete && (
+        <ProductDeleteDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          currentRow={productToDelete}
+          onSuccess={onRefresh}
+        />
+      )}
+
+      {/* 详情抽屉 */}
+      <ProductDetailDrawer
+        open={detailDrawerOpen}
+        onOpenChange={setDetailDrawerOpen}
+        productId={productToView}
+        onEdit={onEdit}
+      />
+    </Fragment>
   );
 }

@@ -22,4 +22,6 @@ export interface UpdateProductDto {
   pricingType?: UpdateProductDtoPricingType;
   /** 服务负责人角色ID */
   serviceRoleId?: string;
+  /** 产品图片ID */
+  imageId?: string;
 }

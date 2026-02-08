@@ -66,4 +66,9 @@ export class UpdateProductDto implements UpdateProductBase {
   @IsOptional()
   @IsString()
   serviceRoleId?: string;
+
+  @ApiPropertyOptional({ description: "产品图片ID" })
+  @IsOptional()
+  @IsString()
+  imageId?: string;
 }

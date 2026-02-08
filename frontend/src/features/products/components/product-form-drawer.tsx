@@ -25,6 +25,7 @@ import { PlusIcon, XIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
 import { useCreateProduct, useUpdateProduct } from "../hooks/use-products";
+import { ImageUpload } from "@/components/ui/image-upload";
 import type { Product } from "../types/product";
 
 const productFormSchema = z.object({
@@ -33,6 +34,7 @@ const productFormSchema = z.object({
   description: z.string().optional(),
   price: z.number().min(0, "价格必须大于等于0"),
   timeline: z.array(z.string()).optional(),
+  imageId: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -64,6 +66,7 @@ export function ProductFormDrawer({
           description: product.description || "",
           price: product.price,
           timeline: product.timeline || [],
+          imageId: product.imageId,
         }
       : {
           name: "",
@@ -71,6 +74,7 @@ export function ProductFormDrawer({
           description: "",
           price: 0,
           timeline: [],
+          imageId: undefined,
         },
   });
 
@@ -188,6 +192,26 @@ export function ProductFormDrawer({
                       className="resize-none"
                       rows={3}
                       {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="imageId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>产品图片</FormLabel>
+                  <FormControl>
+                    <ImageUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={
+                        createMutation.isPending || updateMutation.isPending
+                      }
                     />
                   </FormControl>
                   <FormMessage />
