@@ -16,14 +16,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  Phone,
-  MessageCircle,
-  MapPin,
-  Mail,
-  MoreHorizontal,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
   Table,
   TableBody,
   TableCell,
@@ -33,22 +25,17 @@ import {
 } from "@/components/ui/table";
 import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
-import { FollowType, type FollowRecordItem } from "../types/follow-record";
+import {
+  FollowType,
+  FOLLOW_TYPE_ICONS,
+  type FollowRecordItem,
+} from "../types/follow-record";
 import { useFollowRecords } from "../hooks/use-follow-records";
 
 type DataTableProps = {
   customerId: string;
   onEdit?: (record: FollowRecordItem) => void;
   onDelete?: (id: string) => void;
-};
-
-/** 跟进类型图标映射 */
-const FOLLOW_TYPE_ICONS: Record<FollowType, React.ReactNode> = {
-  [FollowType.PHONE]: <Phone className="h-4 w-4" />,
-  [FollowType.WECHAT]: <MessageCircle className="h-4 w-4" />,
-  [FollowType.VISIT]: <MapPin className="h-4 w-4" />,
-  [FollowType.EMAIL]: <Mail className="h-4 w-4" />,
-  [FollowType.OTHER]: <MoreHorizontal className="h-4 w-4" />,
 };
 
 /** 跟进类型标签样式 */
@@ -95,10 +82,12 @@ export function FollowRecordsTable({
         cell: ({ row }) => {
           const type = row.getValue("type") as FollowType;
           const badge = FOLLOW_TYPE_BADGES[type];
-          const icon = FOLLOW_TYPE_ICONS[type];
+          const Icon = FOLLOW_TYPE_ICONS[type];
           return (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{icon}</span>
+              <span className="text-muted-foreground">
+                <Icon className="h-4 w-4" />
+              </span>
               <Badge variant={badge.variant}>{badge.label}</Badge>
             </div>
           );

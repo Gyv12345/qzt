@@ -8,7 +8,7 @@ type User = {
 
 type Team = {
   name: string;
-  logo: React.ElementType;
+  logo: React.ElementType | string;
   plan: string;
 };
 

@@ -1,4 +1,12 @@
 import { z } from "zod";
+import { type ComponentType } from "react";
+import {
+  Phone,
+  MessageCircle,
+  MapPin,
+  Mail,
+  MoreHorizontal,
+} from "lucide-react";
 
 /** 跟进类型枚举 */
 export enum FollowType {
@@ -8,6 +16,18 @@ export enum FollowType {
   EMAIL = 4,
   OTHER = 5,
 }
+
+/** 跟进类型图标映射 */
+export const FOLLOW_TYPE_ICONS: Record<
+  FollowType,
+  ComponentType<{ className?: string }>
+> = {
+  [FollowType.PHONE]: Phone,
+  [FollowType.WECHAT]: MessageCircle,
+  [FollowType.VISIT]: MapPin,
+  [FollowType.EMAIL]: Mail,
+  [FollowType.OTHER]: MoreHorizontal,
+};
 
 /** 跟进类型选项 */
 export const FOLLOW_TYPE_OPTIONS = [

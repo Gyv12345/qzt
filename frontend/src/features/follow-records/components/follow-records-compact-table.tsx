@@ -44,7 +44,11 @@ export function FollowRecordsCompactTable({
         cell: ({ row }: any) => {
           const type = row.original.type;
           const Icon = FOLLOW_TYPE_ICONS[type as FollowType];
-          return <div className="flex items-center gap-2">{Icon}</div>;
+          return (
+            <div className="flex items-center gap-2">
+              <Icon className="h-4 w-4" />
+            </div>
+          );
         },
       },
       {

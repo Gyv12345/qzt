@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
-import type { LoginDto } from "@/models";
 import * as authStorage from "@/lib/auth-storage";
 import type { StoredUser } from "@/lib/auth-storage";
 

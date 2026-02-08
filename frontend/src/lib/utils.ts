@@ -58,3 +58,51 @@ export function getPageNumbers(currentPage: number, totalPages: number) {
 
   return rangeWithDots;
 }
+
+/**
+ * 格式化日期
+ * @param dateString - ISO 日期字符串
+ * @param format - 格式类型：'full' | 'date' | 'datetime' | 'time'
+ * @returns 格式化后的日期字符串
+ */
+export function formatDate(
+  dateString: string,
+  format: "full" | "date" | "datetime" | "time" = "datetime",
+): string {
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  };
+
+  switch (format) {
+    case "full":
+      return date.toLocaleString("zh-CN", {
+        ...options,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    case "date":
+      return date.toLocaleDateString("zh-CN", options);
+    case "datetime":
+      return date.toLocaleString("zh-CN", {
+        ...options,
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    case "time":
+      return date.toLocaleTimeString("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    default:
+      return date.toLocaleDateString("zh-CN", options);
+  }
+}

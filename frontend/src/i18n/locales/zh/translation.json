@@ -550,5 +550,121 @@
       "save": "保存",
       "create": "创建"
     }
+  },
+  "customerRule": {
+    "title": "客户规则管理",
+    "description": "配置客户管理规则、验证逻辑和业务约束",
+    "searchPlaceholder": "搜索规则名称...",
+    "columns": {
+      "title": "规则标题",
+      "code": "规则代码",
+      "description": "规则描述",
+      "daysValue": "天数设置",
+      "enabled": "启用状态",
+      "updatedAt": "更新时间"
+    },
+    "fields": {
+      "title": "规则标题",
+      "description": "规则描述",
+      "daysValue": "天数设置",
+      "enabled": "启用规则"
+    },
+    "placeholders": {
+      "title": "请输入规则标题",
+      "description": "请输入规则描述"
+    },
+    "helpText": {
+      "enabled": "启用后将应用此规则到客户管理流程中"
+    },
+    "edit": {
+      "title": "编辑规则",
+      "description": "修改客户规则的配置和参数"
+    },
+    "updateSuccess": "规则更新成功"
+  },
+  "contractTemplate": {
+    "title": "合同模板管理",
+    "description": "管理合同模板，支持富文本编辑和变量插入",
+    "create": "新建模板",
+    "edit": "编辑模板",
+    "preview": "预览模板",
+    "createSuccess": "合同模板创建成功",
+    "updateSuccess": "合同模板更新成功",
+    "deleteSuccess": "合同模板删除成功",
+    "columns": {
+      "name": "模板名称",
+      "code": "模板编码",
+      "description": "描述",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "禁用"
+    },
+    "fields": {
+      "name": "模板名称",
+      "code": "模板编码",
+      "content": "模板内容",
+      "description": "模板描述",
+      "variables": "变量定义"
+    },
+    "placeholders": {
+      "name": "请输入模板名称",
+      "code": "请输入模板编码",
+      "description": "请输入模板描述",
+      "content": "请输入合同内容，可以插入变量..."
+    },
+    "variables": {
+      "basic": "基本信息",
+      "contract": "合同信息",
+      "product": "产品信息",
+      "company": "我方信息",
+      "user": "用户信息",
+      "customerName": "客户名称",
+      "customerShortName": "客户简称",
+      "contractNo": "合同编号",
+      "contractName": "合同名称",
+      "contractAmount": "合同金额",
+      "signDate": "签约日期",
+      "startDate": "服务开始日期",
+      "endDate": "服务结束日期",
+      "productName": "产品名称",
+      "productCode": "产品编码",
+      "productPrice": "产品价格",
+      "productQuantity": "产品数量",
+      "companyName": "我方公司名称",
+      "companyAddress": "我方地址",
+      "companyPhone": "我方电话",
+      "userName": "操作员姓名"
+    },
+    "editor": {
+      "bold": "粗体",
+      "italic": "斜体",
+      "underline": "下划线",
+      "strike": "删除线",
+      "code": "代码",
+      "heading1": "一级标题",
+      "heading2": "二级标题",
+      "bulletList": "无序列表",
+      "orderedList": "有序列表",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中对齐",
+      "alignRight": "右对齐",
+      "undo": "撤销",
+      "redo": "重做",
+      "link": "链接",
+      "insertVariable": "插入变量",
+      "placeholder": "请输入合同内容，可以插入变量..."
+    },
+    "preview": {
+      "title": "预览合同模板",
+      "description": "预览合同模板内容，变量已替换为示例数据",
+      "refresh": "刷新预览",
+      "download": "下载",
+      "print": "打印",
+      "sampleDataNote": "示例数据已应用，实际使用时将替换为真实数据"
+    }
   }
 }

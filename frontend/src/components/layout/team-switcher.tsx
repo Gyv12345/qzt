@@ -19,7 +19,7 @@ import {
 type TeamSwitcherProps = {
   teams: {
     name: string;
-    logo: React.ElementType;
+    logo: React.ElementType | string;
     plan: string;
   }[];
 };
@@ -38,7 +38,15 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <activeTeam.logo className="size-4" />
+                {typeof activeTeam.logo === "string" ? (
+                  <img
+                    src={activeTeam.logo}
+                    alt={activeTeam.name}
+                    className="size-5"
+                  />
+                ) : (
+                  <activeTeam.logo className="size-4" />
+                )}
               </div>
               <div className="grid flex-1 text-start text-sm leading-tight">
                 <span className="truncate font-semibold">
@@ -65,7 +73,15 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className="size-4 shrink-0" />
+                  {typeof team.logo === "string" ? (
+                    <img
+                      src={team.logo}
+                      alt={team.name}
+                      className="size-4 shrink-0"
+                    />
+                  ) : (
+                    <team.logo className="size-4 shrink-0" />
+                  )}
                 </div>
                 {team.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>

@@ -9,12 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { FileText, Briefcase, Package, Users, Tags, Plus } from "lucide-react";
 import { useCmsContentsByType } from "./hooks/use-cms-contents";
-import { type ContentType } from "./types/cms";
 import {
   CmsContentsTable,
   CmsTagsManager,
   CmsDrawers,
-  CmsPrimaryButtons,
   useCmsDrawers,
 } from "./components";
 
@@ -60,19 +58,14 @@ export function Cms() {
     <CmsDrawers onRefresh={handleRefresh}>
       <CmsContentManager
         search={search}
-        navigate={navigate}
         articles={articles}
         articlesLoading={articlesLoading}
-        articlesError={articlesError}
         cases={cases}
         casesLoading={casesLoading}
-        casesError={casesError}
         products={products}
         productsLoading={productsLoading}
-        productsError={productsError}
         profiles={profiles}
         profilesLoading={profilesLoading}
-        profilesError={profilesError}
         onManageTags={handleManageTags}
         refreshKey={refreshKey}
         onRefresh={handleRefresh}
@@ -88,19 +81,14 @@ export function Cms() {
 
 interface CmsContentManagerProps {
   search: Record<string, unknown>;
-  navigate: any;
   articles: any;
   articlesLoading: boolean;
-  articlesError: unknown;
   cases: any;
   casesLoading: boolean;
-  casesError: unknown;
   products: any;
   productsLoading: boolean;
-  productsError: unknown;
   profiles: any;
   profilesLoading: boolean;
-  profilesError: unknown;
   onManageTags: () => void;
   refreshKey: number;
   onRefresh: () => void;
@@ -108,25 +96,19 @@ interface CmsContentManagerProps {
 
 function CmsContentManager({
   search,
-  navigate,
   articles,
   articlesLoading,
-  articlesError,
   cases,
   casesLoading,
-  casesError,
   products,
   productsLoading,
-  productsError,
   profiles,
   profilesLoading,
-  profilesError,
   onManageTags,
   refreshKey,
   onRefresh,
 }: CmsContentManagerProps) {
   const { openCreateDrawer, openEditDrawer } = useCmsDrawers();
-
   return (
     <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
       {/* 页面标题 */}
@@ -204,7 +186,7 @@ function CmsContentManager({
             search={search}
             navigate={route.navigate}
             onEdit={openEditDrawer}
-            onRefresh={handleRefresh}
+            onRefresh={onRefresh}
           />
         </TabsContent>
 
@@ -218,7 +200,7 @@ function CmsContentManager({
             search={search}
             navigate={route.navigate}
             onEdit={openEditDrawer}
-            onRefresh={handleRefresh}
+            onRefresh={onRefresh}
           />
         </TabsContent>
 
@@ -232,7 +214,7 @@ function CmsContentManager({
             search={search}
             navigate={route.navigate}
             onEdit={openEditDrawer}
-            onRefresh={handleRefresh}
+            onRefresh={onRefresh}
           />
         </TabsContent>
 
@@ -246,7 +228,7 @@ function CmsContentManager({
             search={search}
             navigate={route.navigate}
             onEdit={openEditDrawer}
-            onRefresh={handleRefresh}
+            onRefresh={onRefresh}
           />
         </TabsContent>
       </Tabs>
