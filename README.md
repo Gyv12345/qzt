@@ -3,7 +3,7 @@
 <div align="center">
 
 <!-- 基础信息 -->
-![Version](https://img.shields.io/badge/version-2026.02.08.1-blue)
+![Version](https://img.shields.io/badge/version-2026.02.08-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E=20.0.0-brightgreen)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9.3-3178C6)
@@ -25,19 +25,36 @@
 
 <!-- 项目状态 -->
 ![Development](https://img.shields.io/badge/status-active-success)
-![AI](https://img.shields.io/badge/AI-Glm--4.7-8B5CF6?style=flat-square)
+![AI](https://img.shields.io/badge/AI-Claude_Code_%2B_GLM_4.7-8B5CF6?style=flat-square)
 
 <br/>
 
 > 企业客户关系管理系统 - 第五版
 
-一个使用 **Claude Code** + **GLM-4.7** 开发的现代化 CRM 系统。从 2025 年 9 月开始，经历了五次重构，最终选择了这套技术栈。
+一个使用 **Claude Code** + **智谱 GLM-4.7（国产开源大模型）** 开发的现代化 CRM 系统。从 2025 年 9 月开始，经历了五次重构，最终选择了这套技术栈。
+
+> **🤖 100% AI 生成代码** - 本版本所有代码均由 AI 生成，**没有手敲过一行代码**。6 天完成 78,000+ 行代码，230 个后端文件，635 个前端文件。
+>
+> **💡 核心**：Claude Code（开发框架）+ 智谱 GLM-4.7（[国产开源](https://github.com/THUDM/GLM-4)）= 高性价比全栈开发方案
+>
+> **🚀 [智谱 GLM Coding 超值订阅](https://www.bigmodel.cn/glm-coding?ic=ROWCC3GYIC)** - 支持 Claude Code、Cline 等 20+ 编程工具，限时拼团价，高性价比 AI 编程方案！
 
 [在线演示](#) · [快速开始](#快速开始) · [功能介绍](#功能模块) · [开发文档](#开发理念) · [English](./README.en.md)
 
 **⭐ 如果这个项目对你有帮助，请给一个 Star**
 
 </div>
+
+---
+
+## 项目结构
+
+| 模块 | 说明 | 文档 |
+|------|------|------|
+| [backend](./backend/) | NestJS 后端 API 服务 | [中文](./backend/README.md) · [English](./backend/README.en.md) |
+| [frontend](./frontend/) | React 管理后台 | [中文](./frontend/README.md) · [English](./frontend/README.en.md) |
+| [website](./website/) | Next.js 官方网站 | [中文](./website/README.md) · [English](./website/README.en.md) |
+| [packages](./packages/) | Monorepo 共享包 | [中文](./packages/README.md) · [English](./packages/README.en.md) |
 
 ---
 
@@ -81,8 +98,9 @@
 | Playwright | E2E 测试 |
 
 ### AI 辅助开发
-- **主模型**: GLM-4.7
-- **工具**: Claude Code 
+- **主模型**: [GLM-4.7](https://github.com/THUDM/GLM-4)（智谱 AI，国产开源）
+- **工具**: [Claude Code](https://claude.ai/code)
+- **超值订阅**: [🚀 GLM Coding 拼团](https://www.bigmodel.cn/glm-coding?ic=ROWCC3GYIC)（支持 Claude Code、Cline 等 20+ 工具）
 ---
 
 ## 项目历程
@@ -93,11 +111,23 @@
 | 第二版 | 2025.10           | React + Node.js | ❌ 技术栈不熟悉，调试困难 |
 | 第三版 | 2025.11           | Java + 自研前端 | ❌ 前端白屏问题无法解决 |
 | 第四版 | 2025.11 - 2025.01 | Java + 外包前端 | ❌ 进度慢，接口定义混乱 |
-| **第五版** | **2026.02 - 至今**  | **NestJS + React** | ✅ **OpenAPI 约定，前后端同步** |
+| **第五版** | **2026.02.02 - 至今**  | **NestJS + React** | ✅ **OpenAPI 约定，前后端同步** |
 
 ---
 
 ## 开发理念
+
+### 🤖 零手写开发 (Zero-Touch Development)
+
+> **第五版所有代码均由 AI 生成，开发者未手敲任何代码。**
+
+**技术组合**：[Claude Code](https://claude.ai/code)（框架）+ [智谱 GLM-4.7](https://github.com/THUDM/GLM-4)（国产开源）
+
+这是 Vibe Coding 的终极形态：
+- **不写代码，只写意图** - 通过自然语言描述功能需求
+- **AI 全权负责** - 从架构设计到代码实现，全部交给 Claude Code
+- **人工只做决策** - 选择技术栈、确认方案、审查代码
+- **效率飞跃** - 6 天完成 78,000+ 行代码，相当于传统开发 2-3 个月的工作量
 
 ### Vibe Coding 心得
 
@@ -115,11 +145,11 @@
 
 | 指标 | 数值 |
 |------|------|
-| 📦 后端 TS/TSX 文件 | 202 |
-| 🎨 前端 TS/TSX 文件 | 526 |
-| 📄 总代码行数 | ~30,000+ |
-| 🔧 NPM 依赖 | ~80+ |
-| 📅 开发周期 | 5 个月 |
+| 📦 后端 TS 文件 | 230 |
+| 🎨 前端 TS/TSX 文件 | 635 |
+| 📄 总代码行数 | ~78,000 |
+| 🔧 NPM 依赖 | ~116 |
+| 📅 开发周期 | 6 天 |
 | 🔄 主要重构 | 5 次 |
 
 </div>
@@ -349,7 +379,8 @@ firewall-cmd --list-all   # 查看状态
 - [Claude Code Infrastructure Showcase](https://github.com/diet103/claude-code-infrastructure-showcase) - @diet103 大佬的 Vibe Coding 实践分享，几个月、几十万行代码的经验总结
 - [shadcn-admin](https://github.com/satnaing/shadcn-admin) - 优秀的 shadcn/ui + React Admin 模板，提供了现成的 CRUD 架构
 - [shadcn/ui](https://ui.shadcn.com/) - 优美的 React 组件库
-- 智谱 AI - 大管量、高性价比的 AI 服务
+- [智谱 GLM-4](https://github.com/THUDM/GLM-4) - 国产开源大模型，可本地部署
+- [🚀 GLM Coding 超值订阅](https://www.bigmodel.cn/glm-coding?ic=ROWCC3GYIC) - 支持 Claude Code、Cline 等 20+ 编程工具，限时拼团价
 
 ---
 

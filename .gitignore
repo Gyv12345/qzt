@@ -8,6 +8,15 @@ pnpm-lock.yaml
 dist/
 build/
 *.tsbuildinfo
+.next/
+*.local
+
+# Cache
+.cache/
+.vite/
+.turbo/
+node_modules/.cache/
+node_modules/.tmp/
 
 # Environment
 .env
@@ -16,11 +25,11 @@ build/
 !.env.example
 
 # IDE
-.idea/
 .vscode/
 *.swp
 *.swo
 *~
+# .idea/ 已纳入版本控制（内部有 .gitignore 忽略用户特定文件）
 
 # OS
 .DS_Store
@@ -51,4 +60,3 @@ certificates/
 .temp/
 
 backend/.env.development
-.idea

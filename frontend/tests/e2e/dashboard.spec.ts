@@ -7,7 +7,7 @@ test.describe("仪表盘", () => {
   });
 
   test("应该显示仪表盘页面", async ({ page }) => {
-    await expect(page).toHaveTitle(/Shadcn Admin/);
+    await expect(page).toHaveTitle(/QZT Admin/);
     await expect(page.locator("h1")).toContainText("工作台");
   });
 

@@ -1,19 +1,36 @@
-# 联系人 CRUD 模板
+# CRUD 模板
 
-本文档提供联系人模块的完整代码参考。开发新 CRUD 功能时，**复制联系人模块的文件结构**，然后修改内容。
+本文档提供项目 CRUD 功能的完整代码参考。开发新 CRUD 功能时，参考联系人模块的实现。
 
-## 文件复制指南
+## 快速开始
 
 ```bash
-# 1. 复制联系人模块目录
+# 复制联系人模块作为起点
 cp -r frontend/src/features/contacts frontend/src/features/{new-module}
 
-# 2. 批量替换文件名和内容
-# 将 Contact → NewModule
-# 将 contact → newModule
+# 批量替换（IDE 或命令行）
+# Contact → NewModule
+# contact → newModule
 ```
 
-## 核心代码片段
+## 前端组件结构
+
+```
+features/{module}/
+├── components/
+│   ├── {module}s-dialogs.tsx       # Context API 状态管理
+│   ├── {module}-form-drawer.tsx    # 表单抽屉（Sheet）
+│   ├── {module}-detail-drawer.tsx  # 详情抽屉（可选）
+│   ├── {module}s-table.tsx         # 表格组件
+│   ├── {module}s-columns.tsx       # 列定义
+│   ├── {module}s-primary-buttons.tsx  # 顶部按钮
+│   └── {module}-delete-dialog.tsx  # 删除确认（AlertDialog）
+├── hooks/use-{module}s.ts          # API hooks
+├── types/{module}.ts               # Zod schema
+└── index.tsx
+```
+
+## 核心代码模板
 
 ### 1. Context API 状态管理
 
@@ -30,16 +47,16 @@ interface ContextValue {
 const Context = createContext<ContextValue | null>(null);
 
 export function ModuleDialogs({ children, onRefresh }) {
-  const [editingItem, setEditingItem] = useState(null);
-  const [deletingItem, setDeletingItem] = useState(null);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [deletingItem, setDeletingItem] = useState<Item | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
     <Context.Provider value={{ openCreateDialog, openEditDialog, openDeleteDialog }}>
       {children}
-      <FormDrawer open={isCreateOpen} />
-      <FormDrawer item={editingItem} />
-      <DeleteDialog item={deletingItem} />
+      <ContactFormDrawer open={isCreateOpen} onOpenChange={setIsCreateOpen} onSuccess={onRefresh} />
+      {editingItem && <ContactFormDrawer open={!!editingItem} contact={editingItem} onSuccess={onRefresh} />}
+      {deletingItem && <ContactDeleteDialog open={!!deletingItem} currentRow={deletingItem} onSuccess={onRefresh} />}
     </Context.Provider>
   );
 }
@@ -51,53 +68,68 @@ export function useModuleDialogs() {
 }
 ```
 
-### 2. 表单抽屉（Sheet/Drawer）
+### 2. 表单抽屉（Sheet）- **必须使用**
 
 ```typescript
 // {module}-form-drawer.tsx
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDirection } from "@/context/direction-provider";
 
 const formSchema = z.object({
   name: z.string().min(1, "不能为空"),
   // ... 更多字段
 });
 
-export function ModuleFormDrawer({ open, onOpenChange, item, onSuccess }) {
+interface FormDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  item?: Item;
+  onSuccess: () => void;
+}
+
+export function ModuleFormDrawer({ open, onOpenChange, item, onSuccess }: FormDrawerProps) {
+  const isEdit = !!item;
+  const isMobile = useIsMobile();
+  const { dir } = useDirection();
+  const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: item || { name: "" },
   });
 
-  const createMutation = useCreateModule();
-  const updateMutation = useUpdateModule();
+  useEffect(() => {
+    if (!open) form.reset();
+  }, [open, form]);
 
   const onSubmit = async (values) => {
-    if (item) {
-      await updateMutation.mutateAsync({ id: item.id, data: values });
-    } else {
-      await createMutation.mutateAsync(values);
-    }
+    // 提交逻辑
     onSuccess();
+    onOpenChange(false);
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="min-w-[500px]">
-        <SheetHeader>
-          <SheetTitle>{item ? "编辑" : "新建"}</SheetTitle>
+      <SheetContent side={drawerSide} className={isMobile ? "h-[85vh]" : "w-[600px]"}>
+        <SheetHeader className="pb-0 text-start">
+          <SheetTitle>{isEdit ? "编辑" : "新建"}</SheetTitle>
+          <SheetDescription>{isEdit ? "修改信息" : "填写基本信息"}</SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem>
-                <FormLabel>名称</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
-              </FormItem>
-            )} />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-4 pb-6">
+            {/* 表单字段 */}
+            <SheetFooter className="px-0">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
+              <Button type="submit">提交</Button>
+            </SheetFooter>
           </form>
         </Form>
       </SheetContent>
@@ -105,6 +137,11 @@ export function ModuleFormDrawer({ open, onOpenChange, item, onSuccess }) {
   );
 }
 ```
+
+**关键点**：
+- 使用 `Sheet` 组件（shadcn/ui 的抽屉）
+- 移动端用 `bottom`，桌面端用 `right/left`
+- `useEffect` 在关闭时重置表单
 
 ### 3. API Hooks
 
@@ -116,20 +153,14 @@ import { getScrmApi } from "@/services/api";
 export function useModules(params) {
   return useQuery({
     queryKey: ["modules", params],
-    queryFn: async () => {
-      const { moduleControllerFindAll } = getScrmApi();
-      return await moduleControllerFindAll(params);
-    },
+    queryFn: async () => await getScrmApi().moduleControllerFindAll(params),
   });
 }
 
 export function useCreateModule() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data) => {
-      const { moduleControllerCreate } = getScrmApi();
-      return await moduleControllerCreate(data);
-    },
+    mutationFn: async (data) => await getScrmApi().moduleControllerCreate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["modules"] });
       toast.success("创建成功");
@@ -140,18 +171,7 @@ export function useCreateModule() {
 // useUpdateModule, useDeleteModule 类似
 ```
 
-**重要**：直接返回 API 调用结果，不要访问 `.data`：
-
-```typescript
-// ✅ 正确
-queryFn: async () => await getScrmApi().moduleControllerFindAll(params)
-
-// ❌ 错误
-queryFn: async () => {
-  const response = await getScrmApi().moduleControllerFindAll(params);
-  return response.data;  // undefined!
-}
-```
+**重要**：直接返回 API 调用结果，不要访问 `.data`
 
 ### 4. 表格组件
 
@@ -163,18 +183,14 @@ export function ModuleTable({ search, navigate, onEdit, onDelete }) {
     pagination: { defaultPage: 1, defaultPageSize: 10 },
   });
 
-  const queryParams = {
+  const { data, isLoading } = useModules({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-  };
-
-  const { data, isLoading } = useModules(queryParams);
+  });
 
   // ✅ 使用 data?.data
   const items = data?.data || [];
   const total = data?.total || 0;
-
-  const columns = useMemo(() => getColumns(), []);
 
   const table = useReactTable({
     data: items,
@@ -182,28 +198,69 @@ export function ModuleTable({ search, navigate, onEdit, onDelete }) {
     pageCount: Math.ceil(total / pagination.pageSize),
     manualPagination: true,
   });
-
-  // ... 渲染表格
 }
 ```
 
-## 后端 Service 模板
+### 5. 删除确认（AlertDialog）- **必须使用**
 
 ```typescript
-// {module}.service.ts
+// {module}-delete-dialog.tsx
+import { useState } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+
+interface DeleteDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentRow: Item;
+  onSuccess: () => void;
+}
+
+export function ModuleDeleteDialog({ open, onOpenChange, currentRow, onSuccess }: DeleteDialogProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteMutation.mutateAsync(currentRow.id);
+      onSuccess();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确认删除</AlertDialogTitle>
+          <AlertDialogDescription>确定要删除吗？此操作无法撤销。</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+            {isDeleting ? "删除中..." : "删除"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+```
+
+**禁止使用** `window.confirm()`
+
+## 后端模板
+
+### Service（标准分页结构）
+
+```typescript
 @Injectable()
 export class ModuleService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateDto, userId: string) {
-    return await this.prisma.module.create({
-      data: { ...dto, ownerUserId: userId },
-    });
-  }
-
   async findAll(query: QueryDto) {
     const { page = 1, pageSize = 10, keyword } = query;
-
     const where = keyword ? { OR: [{ name: { contains: keyword } }] } : {};
     const total = await this.prisma.module.count({ where });
     const data = await this.prisma.module.findMany({
@@ -213,80 +270,29 @@ export class ModuleService {
       orderBy: { createdAt: "desc" },
     });
 
-    // ✅ 返回标准分页结构
-    return {
-      data,
-      total,
-      page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
-    };
-  }
-
-  async findOne(id: string) {
-    const item = await this.prisma.module.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException("不存在");
-    return item;
-  }
-
-  async update(id: string, dto: UpdateDto) {
-    return await this.prisma.module.update({
-      where: { id },
-      data: dto,
-    });
-  }
-
-  async remove(id: string) {
-    await this.prisma.module.delete({ where: { id } });
-    return { message: "删除成功" };
+    // ✅ 标准分页结构
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 }
 ```
 
-## 后端 Controller 模板
+### Controller
 
 ```typescript
-// {module}.controller.ts
-@ApiTags("modules")  // ✅ 使用英文
+@ApiTags("modules")  // ✅ 必须使用英文
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("modules")
 export class ModuleController {
-  constructor(private readonly moduleService: ModuleService) {}
-
   @Get()
   @ApiOperation({ summary: "查询列表" })
   findAll(@Query() query: QueryDto) {
     return this.moduleService.findAll(query);
-  }
-
-  @Post()
-  @ApiOperation({ summary: "创建" })
-  create(@Body() dto: CreateDto, @Request() req) {
-    return this.moduleService.create(dto, req.user.userId);
-  }
-
-  @Get(":id")
-  @ApiOperation({ summary: "获取详情" })
-  findOne(@Param("id") id: string) {
-    return this.moduleService.findOne(id);
-  }
-
-  @Put(":id")
-  @ApiOperation({ summary: "更新" })
-  update(@Param("id") id: string, @Body() dto: UpdateDto) {
-    return this.moduleService.update(id, dto);
-  }
-
-  @Delete(":id")
-  @ApiOperation({ summary: "删除" })
-  remove(@Param("id") id: string) {
-    return this.moduleService.remove(id);
   }
 }
 ```
 
 ## 相关文档
 
-- [分页响应统一规范](./pagination-response-standard.md)
+- [分页响应规范](./pagination-response-standard.md)
 - [故障排除指南](./troubleshooting.md)

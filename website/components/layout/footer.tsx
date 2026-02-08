@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Github, Twitter, Linkedin, Mail } from "lucide-react";
+import { Github, Twitter, Linkedin, Mail, Heart } from "lucide-react";
 
 const footerNav = {
   product: [
@@ -27,63 +27,79 @@ const footerNav = {
   ],
 };
 
+const sectionTitles = {
+  product: "产品",
+  company: "公司",
+  resources: "资源",
+  legal: "法律",
+};
+
+const socialLinks = [
+  { name: "GitHub", href: "https://github.com", icon: Github },
+  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
+  { name: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
+  { name: "Email", href: "mailto:contact@qzt.example.com", icon: Mail },
+];
+
 export function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
-          <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="text-2xl font-heading font-bold text-primary">
-              企智通
+    <footer className="relative overflow-hidden border-t border-slate-200/50 bg-gradient-to-b from-slate-50 to-white">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-40 -bottom-40 h-96 w-96 rounded-full bg-gradient-to-br from-blue-100/30 via-purple-100/30 to-transparent blur-3xl" />
+        <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-gradient-to-tl from-purple-100/30 via-pink-100/30 to-transparent blur-3xl" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-6">
+          {/* 品牌区域 */}
+          <div className="col-span-2 lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-500">
+                <span className="text-lg font-bold text-white">Q</span>
+              </div>
+              <span className="text-xl font-heading font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                企智通
+              </span>
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground">
+            <p className="mt-4 text-sm leading-relaxed text-slate-600">
               专业的企业客户管理解决方案，助力企业实现数字化转型。
+              <br />
+              让每一个客户关系都更有价值。
             </p>
-            <div className="mt-6 flex space-x-4">
-              <a
-                href="https://github.com"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="sr-only">GitHub</span>
-                <Github className="h-5 w-5" />
-              </a>
-              <a
-                href="https://twitter.com"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="sr-only">Twitter</span>
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a
-                href="https://linkedin.com"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="sr-only">LinkedIn</span>
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a
-                href="mailto:contact@qzt.example.com"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="sr-only">Email</span>
-                <Mail className="h-5 w-5" />
-              </a>
+
+            {/* 社交链接 */}
+            <div className="mt-6 flex gap-3">
+              {socialLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    className="group flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md hover:shadow-blue-500/10"
+                    aria-label={link.name}
+                  >
+                    <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                  </a>
+                );
+              })}
             </div>
           </div>
-          {Object.entries(footerNav).map(([title, items]) => (
-            <div key={title}>
-              <h3 className="text-sm font-semibold leading-6 text-foreground">
-                {title === "product" && "产品"}
-                {title === "company" && "公司"}
-                {title === "resources" && "资源"}
-                {title === "legal" && "法律"}
+
+          {/* 导航链接 */}
+          {Object.entries(footerNav).map(([key, items]) => (
+            <div key={key}>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {sectionTitles[key as keyof typeof sectionTitles]}
               </h3>
-              <ul role="list" className="mt-6 space-y-4">
+              <ul role="list" className="mt-4 space-y-3">
                 {items.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground"
+                      className="text-sm text-slate-600 transition-colors hover:text-blue-600"
                     >
                       {item.name}
                     </Link>
@@ -93,10 +109,19 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-12 border-t border-muted pt-8">
-          <p className="text-center text-xs leading-5 text-muted-foreground">
-            &copy; {new Date().getFullYear()} 企智通. 保留所有权利.
-          </p>
+
+        {/* 底部版权信息 */}
+        <div className="mt-12 border-t border-slate-200 pt-8">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <p className="flex items-center gap-1 text-sm text-slate-500">
+              &copy; {currentYear} 企智通. 保留所有权利.
+            </p>
+            <p className="flex items-center gap-1 text-sm text-slate-500">
+              Made with
+              <Heart className="h-4 w-4 fill-red-500 text-red-500 animate-pulse" />
+              for better business
+            </p>
+          </div>
         </div>
       </div>
     </footer>
