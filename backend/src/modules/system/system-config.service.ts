@@ -126,4 +126,37 @@ export class SystemConfigService {
 
     return configMap;
   }
+
+  /**
+   * 获取登录页配置（公开接口）
+   */
+  async getLoginConfig() {
+    const configs = await this.prisma.systemConfig.findMany({
+      where: {
+        OR: [
+          { category: "login" },
+          { key: { in: ["site_name", "company_name", "logo_url"] } },
+        ],
+        isPublic: true,
+      },
+    });
+
+    const configMap: Record<string, any> = {
+      siteName: "企智通",
+      companyName: "河南爱编程网络科技有限公司",
+      logoUrl: "/images/qzt-logo.png",
+      icp: "",
+      policeIcp: "",
+    };
+
+    for (const config of configs) {
+      try {
+        configMap[config.key] = JSON.parse(config.value);
+      } catch {
+        configMap[config.key] = config.value;
+      }
+    }
+
+    return configMap;
+  }
 }

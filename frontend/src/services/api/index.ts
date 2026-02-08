@@ -36,6 +36,7 @@ import { getPaymentCertificates } from "./payment-certificates";
 import { getPaymentTest } from "./payment-test";
 import { getTwoFactor } from "./two-factor";
 import { getCms } from "./cms";
+import { getCustomerRules } from "./customer-rules";
 
 // 重新导出所有模块
 export { getAuthApi };
@@ -67,6 +68,7 @@ export { getPaymentCertificates };
 export { getPaymentTest };
 export { getTwoFactor };
 export { getCms };
+export { getCustomerRules };
 
 // 兼容旧的 getScrmApi
 export const getScrmApi = () => ({
@@ -99,4 +101,5 @@ export const getScrmApi = () => ({
   ...getPaymentTest(),
   ...getTwoFactor(),
   ...getCms(),
+  ...getCustomerRules(),
 });

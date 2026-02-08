@@ -24,6 +24,15 @@ export const getSystemConfig = () => {
     });
   };
   /**
+   * @summary 获取登录页配置（无需认证）
+   */
+  const systemConfigControllerGetLoginConfig = () => {
+    return customInstance<void>({
+      url: `/system/config/public/login`,
+      method: "GET",
+    });
+  };
+  /**
    * @summary 获取基础配置（系统名称、Logo等）
    */
   const systemConfigControllerGetBasicConfig = () => {
@@ -68,6 +77,7 @@ export const getSystemConfig = () => {
   return {
     systemConfigControllerFindAll,
     systemConfigControllerFindPublic,
+    systemConfigControllerGetLoginConfig,
     systemConfigControllerGetBasicConfig,
     systemConfigControllerFindOne,
     systemConfigControllerUpsert,
@@ -86,6 +96,13 @@ export type SystemConfigControllerFindPublicResult = NonNullable<
   Awaited<
     ReturnType<
       ReturnType<typeof getSystemConfig>["systemConfigControllerFindPublic"]
+    >
+  >
+>;
+export type SystemConfigControllerGetLoginConfigResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getSystemConfig>["systemConfigControllerGetLoginConfig"]
     >
   >
 >;

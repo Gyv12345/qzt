@@ -60,6 +60,12 @@ export const getOss = () => {
   const ossControllerRemove = (id: string) => {
     return customInstance<void>({ url: `/oss/files/${id}`, method: "DELETE" });
   };
+  /**
+   * @summary 下载文件（代理）
+   */
+  const ossControllerDownloadFile = (id: string) => {
+    return customInstance<void>({ url: `/oss/download/${id}`, method: "GET" });
+  };
   return {
     ossControllerUploadFile,
     ossControllerGetUploadUrl,
@@ -67,6 +73,7 @@ export const getOss = () => {
     ossControllerGetUsage,
     ossControllerFindOne,
     ossControllerRemove,
+    ossControllerDownloadFile,
   };
 };
 export type OssControllerUploadFileResult = NonNullable<
@@ -86,4 +93,7 @@ export type OssControllerFindOneResult = NonNullable<
 >;
 export type OssControllerRemoveResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getOss>["ossControllerRemove"]>>
+>;
+export type OssControllerDownloadFileResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getOss>["ossControllerDownloadFile"]>>
 >;

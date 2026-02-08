@@ -31,6 +31,8 @@ import { PaymentOrderModule } from "./modules/payment-order/payment-order.module
 import { SchedulerModule } from "./modules/scheduler/scheduler.module";
 import { NotificationModule } from "./modules/notification/notification.module";
 import { CmsModule } from "./modules/cms/cms.module";
+import { CustomerRuleModule } from "./modules/customer-rules/customer-rule.module";
+import { EsignModule } from "./modules/esign/esign.module";
 import { I18nModule, AcceptLanguageResolver } from "nestjs-i18n";
 import * as path from "path";
 import { Reflector } from "@nestjs/core";
@@ -164,6 +166,8 @@ const envSchema = Joi.object({
     SchedulerModule,
     NotificationModule,
     CmsModule,
+    CustomerRuleModule,
+    EsignModule,
   ],
   controllers: [HealthController],
   providers: [

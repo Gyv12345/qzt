@@ -170,6 +170,39 @@ export class OssService {
   }
 
   /**
+   * 代理下载文件（避免直接暴露 OSS URL）
+   */
+  async downloadFile(id: string) {
+    const file = await this.prisma.ossFile.findUnique({
+      where: { id },
+    });
+
+    if (!file) {
+      throw new NotFoundException("文件不存在");
+    }
+
+    if (!this.ossClient) {
+      throw new BadRequestException("OSS 服务未配置");
+    }
+
+    try {
+      // 从 OSS 获取文件流
+      const result = await this.ossClient.get(
+        decodeURIComponent(file.fileName),
+      );
+
+      return {
+        stream: result.content,
+        filename: file.fileName,
+        mimeType: file.mimeType,
+      };
+    } catch (error: any) {
+      this.logger.error(`OSS 下载失败: ${error.message}`, error.stack);
+      throw new BadRequestException(`文件下载失败: ${error.message}`);
+    }
+  }
+
+  /**
    * 删除文件
    */
   async remove(id: string) {

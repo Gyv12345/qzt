@@ -8,7 +8,9 @@ import {
   Query,
   UseGuards,
   Request,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
 import {
   ApiTags,
   ApiOperation,
@@ -73,6 +75,23 @@ export class OssController {
   @ApiResponse({ status: 404, description: "文件不存在" })
   findOne(@Param("id") id: string) {
     return this.ossService.findOne(id);
+  }
+
+  @Get("download/:id")
+  @ApiOperation({ summary: "下载文件（代理）" })
+  @ApiResponse({ status: 200, description: "下载成功" })
+  @ApiResponse({ status: 404, description: "文件不存在" })
+  async downloadFile(@Param("id") id: string, @Res() res: Response) {
+    const { stream, filename, mimeType } =
+      await this.ossService.downloadFile(id);
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${encodeURIComponent(filename)}"`,
+    );
+    res.setHeader("Content-Type", mimeType || "application/octet-stream");
+
+    stream.pipe(res);
   }
 
   @Delete("files/:id")

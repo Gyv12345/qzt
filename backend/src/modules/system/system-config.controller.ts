@@ -38,6 +38,13 @@ export class SystemConfigController {
     return this.systemConfigService.findPublic();
   }
 
+  @Get("public/login")
+  @ApiOperation({ summary: "获取登录页配置（无需认证）" })
+  @ApiResponse({ status: 200, description: "查询成功" })
+  getLoginConfig() {
+    return this.systemConfigService.getLoginConfig();
+  }
+
   @Get("basic")
   @ApiOperation({ summary: "获取基础配置（系统名称、Logo等）" })
   @ApiResponse({ status: 200, description: "查询成功" })
