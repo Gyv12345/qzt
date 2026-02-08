@@ -63,6 +63,7 @@ model User {
   department    Department?     @relation(fields: [departmentId], references: [id])
   cmsAuthoredContents CmsContent[] @relation("CmsContentAuthor")
   cmsProfiles  CmsContent[]     @relation("CmsUserProfile")
+  changeLogs   ChangeLog[]      @relation("ChangeLogUser")
 
   @@index([departmentId])
   @@map("users")
@@ -314,6 +315,7 @@ model Product {
   pricingType    String   @default("FIXED") // FIXED:固定价格 TIER_AMOUNT:按金额阶梯 TIER_COUNT:按次数计费 ZERO_DECLARATION:零申报
   timeline       String?  // 时间轴 JSON 数组，每项包含描述文本
   serviceRoleId  String?  // 服务负责人角色ID（哪个角色负责此产品的运维）
+  imageId        String?  @unique // 产品图片ID（一对一关系）
   status         String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -321,6 +323,7 @@ model Product {
   contractItems  ContractItem[]  // 合同产品明细
   pricingRules   PricingRule[]
   cmsShowcases   CmsContent[]    @relation("CmsProductShowcase")
+  image          OssFile?        @relation("ProductImage", fields: [imageId], references: [id]) // 图片关联
 
   @@map("products")
 }
@@ -400,6 +403,7 @@ model Contract {
   template        ContractTemplate? @relation(fields: [templateId], references: [id])
   payments        Payment[]
   items           ContractItem[]  // 合同产品明细
+  esignRecord     EsignRecord?    // e签宝签署记录
 
   @@index([customerId])
   @@index([status])
@@ -668,6 +672,7 @@ model OssFile {
 
   videoPosts  SocialMediaPost[] @relation("SocialMediaPostVideo")
   coverPosts  SocialMediaPost[] @relation("SocialMediaPostCover")
+  product     Product?           @relation("ProductImage")
 
   @@index([uploaderId])
   @@index([fileType])
@@ -906,3 +911,63 @@ model CmsContentTag {
 // 注意：SQLite 不支持枚举类型，已在 CmsContent 模型中使用 String 类型代替
 // ContentType: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE
 // ContentStatus: DRAFT, PUBLISHED, ARCHIVED
+
+// ==================== 客户规则 ====================
+
+model CustomerRule {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // 规则唯一标识如 FOLLOW_UP_DAYS
+  title       String // 规则标题
+  description String? // 规则描述
+  daysValue   Int      @default(0) // 天数值
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+  @@index([enabled])
+  @@map("customer_rules")
+}
+
+// ==================== e签宝电子签名 ====================
+
+model EsignRecord {
+  id          String   @id @default(cuid())
+  contractId  String   @unique
+  flowId      String   // e签宝流程ID
+  status      String   @default("DRAFT") // 签署状态: DRAFT, SIGNING, COMPLETED, FAILED, CANCELLED
+  signUrl     String?  // 签署URL
+  signedAt    DateTime? // 签署完成时间
+  remark      String?  // 备注
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([flowId])
+  @@index([status])
+  @@map("esign_records")
+}
+
+// ==================== 变更记录 ====================
+
+model ChangeLog {
+  id          String   @id @default(cuid())
+  entityType  String   // 实体类型: Customer, Product, Contract, etc.
+  entityId    String   // 实体ID
+  fieldName   String   // 字段名称
+  oldValue    String?  // 变更前的值（JSON字符串）
+  newValue    String?  // 变更后的值（JSON字符串）
+  changedBy   String   // 操作人ID
+  changeType  String   // CREATE, UPDATE, DELETE
+  reason      String?  // 变更原因
+  createdAt   DateTime @default(now())
+
+  changedByUser User?   @relation("ChangeLogUser", fields: [changedBy], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([changedBy])
+  @@index([createdAt])
+  @@map("change_logs")
+}

@@ -3,6 +3,126 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+// 创建默认客户规则
+async function seedCustomerRules() {
+  console.log('\n📋 创建默认客户规则...');
+
+  const rules = [
+    {
+      code: 'FOLLOW_DAYS',
+      title: '跟进天数规则',
+      description: '超过设置天数未跟进的客户将被标记需要跟进',
+      daysValue: 7,
+      enabled: true,
+    },
+    {
+      code: 'NO_CONTACT_DAYS',
+      title: '未联系天数规则',
+      description: '超过设置天数未联系的客户将被标记为流失风险',
+      daysValue: 30,
+      enabled: true,
+    },
+    {
+      code: 'CONTRACT_EXPIRY_DAYS',
+      title: '合同到期提醒',
+      description: '合同到期前多少天开始提醒续约',
+      daysValue: 30,
+      enabled: true,
+    },
+    {
+      code: 'PAYMENT_OVERDUE_DAYS',
+      title: '付款逾期规则',
+      description: '付款逾期多少天触发预警',
+      daysValue: 7,
+      enabled: true,
+    },
+  ];
+
+  for (const rule of rules) {
+    await prisma.customerRule.upsert({
+      where: { code: rule.code },
+      update: {},
+      create: rule,
+    });
+  }
+
+  console.log('  ✅ 默认客户规则创建完成');
+}
+
+// 创建系统配置
+async function seedSystemConfig() {
+  console.log('\n⚙️  创建系统配置...');
+
+  const configs = [
+    // 基础配置
+    {
+      key: 'site_name',
+      value: '企智通',
+      category: 'basic',
+      description: '系统名称',
+      isPublic: true,
+    },
+    {
+      key: 'company_name',
+      value: '河南爱编程网络科技有限公司',
+      category: 'basic',
+      description: '公司名称',
+      isPublic: true,
+    },
+    {
+      key: 'logo_url',
+      value: '/images/qzt-logo.png',
+      category: 'basic',
+      description: '系统Logo路径',
+      isPublic: true,
+    },
+    // 登录页配置
+    {
+      key: 'login_icp',
+      value: '',
+      category: 'login',
+      description: 'ICP备案号',
+      isPublic: true,
+    },
+    {
+      key: 'login_police_icp',
+      value: '',
+      category: 'login',
+      description: '公安备案号',
+      isPublic: true,
+    },
+    {
+      key: 'login_copyright',
+      value: `© ${new Date().getFullYear()} 河南爱编程网络科技有限公司 版权所有`,
+      category: 'login',
+      description: '版权信息',
+      isPublic: true,
+    },
+    {
+      key: 'login_website_url',
+      value: 'https://www.example.com',
+      category: 'login',
+      description: '官网网址',
+      isPublic: true,
+    },
+  ];
+
+  for (const config of configs) {
+    await prisma.systemConfig.upsert({
+      where: { key: config.key },
+      update: {
+        value: config.value,
+        description: config.description,
+        isPublic: config.isPublic,
+        category: config.category,
+      },
+      create: config,
+    });
+  }
+
+  console.log('  ✅ 系统配置创建完成');
+}
+
 async function main() {
   console.log('🌱 开始初始化数据库...\n');
 
@@ -131,6 +251,12 @@ async function main() {
   console.log('  用户名: testuser');
   console.log('  密码: test12345');
   console.log('  角色: 普通用户');
+
+  // 创建默认客户规则
+  await seedCustomerRules();
+
+  // 创建系统配置
+  await seedSystemConfig();
 
   console.log('\n✅ 数据库初始化完成!\n');
 }
