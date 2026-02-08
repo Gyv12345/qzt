@@ -32,6 +32,15 @@ export function HeroSection() {
           transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
           className="mx-auto max-w-3xl text-center"
         >
+          {/* Logo */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.8 }}
+            className="mb-8 flex justify-center"
+          >
+            <img src="/logo.png" alt="企智通" className="h-16 w-auto" />
+          </motion.div>
           <h1 className="text-4xl font-heading font-bold md:text-6xl lg:text-7xl">
             企业客户管理
             <span className="block text-blue-200">新时代的智能选择</span>
