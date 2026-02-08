@@ -23,6 +23,7 @@ import {
   Sliders,
   Layout,
   Tag,
+  Terminal,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -190,6 +191,11 @@ export const sidebarData: SidebarData = {
               title: "操作日志",
               url: "/operation-logs",
               icon: ClipboardList,
+            },
+            {
+              title: "系统日志",
+              url: "/system-logs",
+              icon: Terminal,
             },
           ],
         },

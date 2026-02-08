@@ -33,6 +33,7 @@ import { NotificationModule } from "./modules/notification/notification.module";
 import { CmsModule } from "./modules/cms/cms.module";
 import { CustomerRuleModule } from "./modules/customer-rules/customer-rule.module";
 import { EsignModule } from "./modules/esign/esign.module";
+import { SystemLogsModule } from "./modules/system-logs/system-logs.module";
 import { I18nModule, AcceptLanguageResolver } from "nestjs-i18n";
 import * as path from "path";
 import { Reflector } from "@nestjs/core";
@@ -168,6 +169,7 @@ const envSchema = Joi.object({
     CmsModule,
     CustomerRuleModule,
     EsignModule,
+    SystemLogsModule,
   ],
   controllers: [HealthController],
   providers: [

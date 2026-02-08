@@ -18,6 +18,7 @@ import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
+import { Route as AuthenticatedSystemLogsRouteRouteImport } from './routes/_authenticated/system-logs/route'
 import { Route as AuthenticatedSocialMediaRouteRouteImport } from './routes/_authenticated/social-media/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedServiceTeamsRouteRouteImport } from './routes/_authenticated/service-teams/route'
@@ -90,6 +91,12 @@ const errors401Route = errors401RouteImport.update({
   path: '/401',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSystemLogsRouteRoute =
+  AuthenticatedSystemLogsRouteRouteImport.update({
+    id: '/system-logs',
+    path: '/system-logs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSocialMediaRouteRoute =
   AuthenticatedSocialMediaRouteRouteImport.update({
     id: '/social-media',
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/social-media': typeof AuthenticatedSocialMediaRouteRoute
+  '/system-logs': typeof AuthenticatedSystemLogsRouteRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -302,6 +310,7 @@ export interface FileRoutesByTo {
   '/roles': typeof AuthenticatedRolesRouteRoute
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/social-media': typeof AuthenticatedSocialMediaRouteRoute
+  '/system-logs': typeof AuthenticatedSystemLogsRouteRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -341,6 +350,7 @@ export interface FileRoutesById {
   '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/_authenticated/social-media': typeof AuthenticatedSocialMediaRouteRoute
+  '/_authenticated/system-logs': typeof AuthenticatedSystemLogsRouteRoute
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
   '/(errors)/404': typeof errors404Route
@@ -381,6 +391,7 @@ export interface FileRouteTypes {
     | '/service-teams'
     | '/settings'
     | '/social-media'
+    | '/system-logs'
     | '/401'
     | '/403'
     | '/404'
@@ -416,6 +427,7 @@ export interface FileRouteTypes {
     | '/roles'
     | '/service-teams'
     | '/social-media'
+    | '/system-logs'
     | '/401'
     | '/403'
     | '/404'
@@ -454,6 +466,7 @@ export interface FileRouteTypes {
     | '/_authenticated/service-teams'
     | '/_authenticated/settings'
     | '/_authenticated/social-media'
+    | '/_authenticated/system-logs'
     | '/(errors)/401'
     | '/(errors)/403'
     | '/(errors)/404'
@@ -547,6 +560,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/401'
       preLoaderRoute: typeof errors401RouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/system-logs': {
+      id: '/_authenticated/system-logs'
+      path: '/system-logs'
+      fullPath: '/system-logs'
+      preLoaderRoute: typeof AuthenticatedSystemLogsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/social-media': {
       id: '/_authenticated/social-media'
@@ -779,6 +799,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedSocialMediaRouteRoute: typeof AuthenticatedSocialMediaRouteRoute
+  AuthenticatedSystemLogsRouteRoute: typeof AuthenticatedSystemLogsRouteRoute
   AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
@@ -808,6 +829,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedServiceTeamsRouteRoute: AuthenticatedServiceTeamsRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedSocialMediaRouteRoute: AuthenticatedSocialMediaRouteRoute,
+  AuthenticatedSystemLogsRouteRoute: AuthenticatedSystemLogsRouteRoute,
   AuthenticatedWebhooksRoute: AuthenticatedWebhooksRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
