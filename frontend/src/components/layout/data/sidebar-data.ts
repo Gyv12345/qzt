@@ -18,6 +18,11 @@ import {
   FileSignature,
   Webhook,
   FileCode,
+  History,
+  ClipboardList,
+  Sliders,
+  Layout,
+  Tag,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -30,7 +35,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: "企智通 SCRM",
-      logo: Command,
+      logo: "/images/qzt-logo.png",
       plan: "企业版",
     },
   ],
@@ -105,6 +110,26 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
+      title: "内容管理",
+      items: [
+        {
+          title: "文章管理",
+          url: "/cms/articles",
+          icon: FileText,
+        },
+        {
+          title: "页面元素管理",
+          url: "/cms/elements",
+          icon: Layout,
+        },
+        {
+          title: "标签管理",
+          url: "/cms/tags",
+          icon: Tag,
+        },
+      ],
+    },
+    {
       title: "业务设置",
       items: [
         {
@@ -120,17 +145,12 @@ export const sidebarData: SidebarData = {
         {
           title: "客户规则",
           url: "/customer-rules",
-          icon: ShieldCheck,
+          icon: Sliders,
         },
         {
           title: "Webhook配置",
           url: "/webhooks",
           icon: Webhook,
-        },
-        {
-          title: "内容管理",
-          url: "/cms",
-          icon: FileCode,
         },
       ],
     },
@@ -164,10 +184,12 @@ export const sidebarData: SidebarData = {
             {
               title: "登录日志",
               url: "/login-logs",
+              icon: History,
             },
             {
               title: "操作日志",
               url: "/operation-logs",
+              icon: ClipboardList,
             },
           ],
         },
