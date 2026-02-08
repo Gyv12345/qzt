@@ -11,6 +11,9 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { ContractTemplateService } from "./contract-template.service";
+import { CreateContractTemplateDto } from "./dto/create-contract-template.dto";
+import { UpdateContractTemplateDto } from "./dto/update-contract-template.dto";
+import { PreviewContractTemplateDto } from "./dto/preview-contract-template.dto";
 
 @ApiTags("contract-templates")
 @Controller("contract-templates")
@@ -43,40 +46,24 @@ export class ContractTemplateController {
   @ApiOperation({ summary: "预览合同（替换变量）" })
   preview(
     @Param("id") id: string,
-    @Body() data: { variables: Record<string, any> },
+    @Body() previewDto: PreviewContractTemplateDto,
   ) {
-    return this.contractTemplateService.preview(id, data.variables);
+    return this.contractTemplateService.preview(id, previewDto.variables);
   }
 
   @Post()
   @ApiOperation({ summary: "创建合同模板" })
-  create(
-    @Body()
-    data: {
-      name: string;
-      code: string;
-      content: string;
-      variables?: string;
-      description?: string;
-    },
-  ) {
-    return this.contractTemplateService.create(data);
+  create(@Body() createDto: CreateContractTemplateDto) {
+    return this.contractTemplateService.create(createDto);
   }
 
   @Put(":id")
   @ApiOperation({ summary: "更新合同模板" })
   update(
     @Param("id") id: string,
-    @Body()
-    data: {
-      name?: string;
-      content?: string;
-      variables?: string;
-      description?: string;
-      status?: number;
-    },
+    @Body() updateDto: UpdateContractTemplateDto,
   ) {
-    return this.contractTemplateService.update(id, data);
+    return this.contractTemplateService.update(id, updateDto);
   }
 
   @Delete(":id")

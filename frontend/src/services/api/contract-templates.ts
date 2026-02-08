@@ -5,6 +5,12 @@
  * 企智通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
+import type {
+  CreateContractTemplateDto,
+  PreviewContractTemplateDto,
+  UpdateContractTemplateDto,
+} from "../../models";
+
 import { customInstance } from "../api-client";
 
 export const getContractTemplates = () => {
@@ -17,8 +23,15 @@ export const getContractTemplates = () => {
   /**
    * @summary 创建合同模板
    */
-  const contractTemplateControllerCreate = () => {
-    return customInstance<void>({ url: `/contract-templates`, method: "POST" });
+  const contractTemplateControllerCreate = (
+    createContractTemplateDto: CreateContractTemplateDto,
+  ) => {
+    return customInstance<void>({
+      url: `/contract-templates`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createContractTemplateDto,
+    });
   };
   /**
    * @summary 获取模板详情
@@ -32,10 +45,15 @@ export const getContractTemplates = () => {
   /**
    * @summary 更新合同模板
    */
-  const contractTemplateControllerUpdate = (id: string) => {
+  const contractTemplateControllerUpdate = (
+    id: string,
+    updateContractTemplateDto: UpdateContractTemplateDto,
+  ) => {
     return customInstance<void>({
       url: `/contract-templates/${id}`,
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateContractTemplateDto,
     });
   };
   /**
@@ -59,10 +77,15 @@ export const getContractTemplates = () => {
   /**
    * @summary 预览合同（替换变量）
    */
-  const contractTemplateControllerPreview = (id: string) => {
+  const contractTemplateControllerPreview = (
+    id: string,
+    previewContractTemplateDto: PreviewContractTemplateDto,
+  ) => {
     return customInstance<void>({
       url: `/contract-templates/${id}/preview`,
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: previewContractTemplateDto,
     });
   };
   return {
