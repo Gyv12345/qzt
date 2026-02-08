@@ -128,6 +128,8 @@
 
 ## 快速开始
 
+### 开发环境
+
 ```bash
 # 克隆项目
 git clone https://github.com/Gyv12345/qzt.git
@@ -141,12 +143,165 @@ pnpm install
 
 # 前端: http://localhost:3456
 # 后端: http://localhost:7890
+# 网站: http://localhost:5180
 # API 文档: http://localhost:7890/api-docs
 ```
 
+### 生产环境部署
+
+企智通使用 **GitHub Actions CI/CD** 实现自动化部署，服务器上只运行编译产物，无需源码。
+
+#### 部署架构
+
+```
+GitHub (推送) → Actions (构建) → 服务器 (部署)
+```
+
+#### 首次部署步骤
+
+**1. 服务器初始化**
+
+```bash
+# 一键安装依赖（支持 Ubuntu/Debian/CentOS/RHEL）
+curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
+```
+
+**2. 配置环境变量**
+
+```bash
+vim /opt/qzt/backend/.env
+```
+
+必填项：
+```bash
+# 数据库
+DATABASE_URL="mysql://用户名:密码@RDS地址:3306/数据库名"
+
+# Redis（密码在 /root/.redis_password）
+REDIS_PASSWORD=
+
+# JWT（用 openssl rand -hex 32 生成）
+JWT_SECRET=
+
+# 域名（生产环境）或 IP（开发环境）
+DOMAIN_NAME=yourdomain.com
+ADMIN_DOMAIN=admin.yourdomain.com
+```
+
+**3. 配置 SSL 证书**
+
+```bash
+bash /opt/qzt/scripts/deploy/setup-ssl.sh
+```
+
+| 选项 | 适用场景 |
+|------|---------|
+| 1 | 自签名证书（开发测试） |
+| 2 | 上传已有证书 |
+| 3 | Let's Encrypt（需要域名） |
+
+**4. 配置 GitHub Secrets**
+
+在仓库 `Settings` → `Secrets and variables` → `Actions` 添加：
+
+| Secret | 值 |
+|--------|-----|
+| `SERVER_HOST` | 服务器 IP |
+| `SERVER_USER` | `root` |
+| `SSH_PRIVATE_KEY` | 服务器私钥 (`cat ~/.ssh/id_ed25519`) |
+| `SSH_PORT` | `22` |
+
+**5. 触发部署**
+
+```bash
+git push origin main
+```
+
+详细部署文档请查看 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+
 ---
 
-## 功能模块
+## 生产环境指南
+
+### 服务管理
+
+```bash
+# 查看服务状态
+pm2 status
+
+# 查看日志
+pm2 logs qzt-backend      # 后端日志
+pm2 logs qzt-website      # 网站日志
+
+# 重启服务
+pm2 restart all           # 重启所有
+pm2 reload qzt-backend    # 零停机重载
+
+# 监控面板
+pm2 monit
+```
+
+### 日志位置
+
+| 服务 | 日志路径 |
+|------|---------|
+| 后端应用 | `/opt/qzt/backend/logs/` |
+| 网站应用 | `/opt/qzt/website/logs/` |
+| Nginx 主站 | `/var/log/nginx/域名-access.log` |
+| Nginx 管理后台 | `/var/log/nginx/admin.域名-access.log` |
+| 系统日志 | `journalctl -u nginx -f` |
+
+```bash
+# 实时查看后端日志
+tail -f /opt/qzt/backend/logs/pm2-combined.log
+
+# 实时查看 Nginx 日志
+tail -f /var/log/nginx/*.log
+```
+
+### 软件安装位置
+
+| 软件 | 安装位置 | 配置文件 |
+|------|---------|----------|
+| Node.js | `/usr/local/bin/node` | `~/.npmrc` |
+| pnpm | 通过 Corepack 管理 | - |
+| PM2 | 全局 npm 包 | `/opt/qzt/backend/ecosystem.config.cjs` |
+| Redis | 系统包管理器 | `/etc/redis/redis.conf` |
+| Nginx | 系统包管理器 | `/etc/nginx/nginx.conf` |
+| 应用代码 | `/opt/qzt/` | `/opt/qzt/backend/.env` |
+
+### 常用命令
+
+```bash
+# Nginx
+nginx -t                  # 测试配置
+systemctl reload nginx    # 重载配置
+systemctl status nginx    # 查看状态
+
+# Redis
+redis-cli                 # 连接
+AUTH "密码"               # 认证
+INFO                      # 查看信息
+exit                      # 退出
+
+# 防火墙 (UFW)
+ufw status                # 查看状态
+ufw allow 22/tcp          # 开放端口
+
+# 防火墙 (firewalld)
+firewall-cmd --list-all   # 查看状态
+```
+
+### 访问地址
+
+| 服务 | 地址 |
+|------|------|
+| 主站 | `https://domain.com` |
+| 管理后台 | `https://admin.domain.com` |
+| 后端 API | `https://domain.com/api` 或 `https://admin.domain.com/api` |
+| API 文档 | `https://domain.com/api-docs` |
+
+---
 
 - 👥 **用户管理**: 用户 CRUD、角色分配、部门管理
 - 🏢 **客户管理**: 客户信息、跟进记录、统计面板

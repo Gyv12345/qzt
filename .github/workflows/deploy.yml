@@ -1,0 +1,164 @@
+# ============================================================
+# 企智通 QZT - CI/CD 部署流程
+# ============================================================
+# 触发：push 到 main 分支
+# 流程：构建 → 打包 → SSH 部署
+# ============================================================
+
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 支持手动触发
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # ============================================
+  # Job 1: 构建产物
+  # ============================================
+  build:
+    name: Build Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ============================================
+      # 构建后端
+      # ============================================
+      - name: Build Backend
+        run: |
+          cd backend
+          pnpm prisma generate
+          pnpm build
+
+      # ============================================
+      # 构建前端
+      # ============================================
+      - name: Build Frontend
+        run: |
+          cd frontend
+          pnpm build
+
+      # ============================================
+      # 构建网站
+      # ============================================
+      - name: Build Website
+        run: |
+          cd website
+          pnpm build
+
+      # ============================================
+      # 打包产物（只上传必要文件）
+      # ============================================
+      - name: Create Deployment Package
+        run: |
+          mkdir -p artifact
+
+          # 后端产物
+          mkdir -p artifact/backend
+          cp -r backend/dist artifact/backend/
+          cp -r backend/prisma artifact/backend/
+          cp backend/package.json backend/pnpm-lock.yaml artifact/backend/
+          cp backend/.env.production.template artifact/backend/
+
+          # 前端产物
+          mkdir -p artifact/frontend
+          cp -r frontend/dist artifact/frontend/
+
+          # 网站产物
+          mkdir -p artifact/website
+          cp -r website/.next artifact/website/
+          cp -r website/public artifact/website/
+          cp website/package.json artifact/website/
+          # Next.js standalone 输出
+          if [ -d website/.next/standalone ]; then
+            cp -r website/.next/standalone/* artifact/website/
+          fi
+
+          # 配置文件
+          mkdir -p artifact/config
+          cp -r config/pm2 artifact/config/
+          cp -r config/logrotate artifact/config/
+
+          # 服务器部署脚本
+          cp scripts/deploy/server-deploy.sh artifact/
+          chmod +x artifact/server-deploy.sh
+
+          # 版本信息
+          echo "${{ github.sha }}" > artifact/VERSION
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > artifact/BUILD_TIME
+
+      - name: Create Tarball
+        run: |
+          cd artifact
+          tar -czf ../qzt-build.tar.gz .
+          cd ..
+          echo "Build size: $(du -h qzt-build.tar.gz | cut -f1)"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qzt-build
+          path: qzt-build.tar.gz
+          retention-days: 7
+
+  # ============================================
+  # Job 2: 部署到服务器
+  # ============================================
+  deploy:
+    name: Deploy to Server
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qzt-build
+
+      - name: Deploy to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "qzt-build.tar.gz"
+          target: "/opt/qzt-deploy/"
+          strip_components: 0
+
+      - name: Run Deployment Script
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_PATH: /opt/qzt
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            cd /opt/qzt-deploy
+            tar -xzf qzt-build.tar.gz
+            bash server-deploy.sh
