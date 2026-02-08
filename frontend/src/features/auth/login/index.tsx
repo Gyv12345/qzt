@@ -14,7 +14,7 @@ export function Login() {
       <div className="mx-auto flex w-full flex-col justify-center space-y-2 py-8 sm:w-[400px] sm:p-8">
         <div className="mb-4 flex items-center justify-center">
           <Logo className="me-2" />
-          <h1 className="text-xl font-medium">企账通 SCRM</h1>
+          <h1 className="text-xl font-medium">企智通 SCRM</h1>
         </div>
         <Card className="gap-4">
           <CardHeader>

@@ -37,7 +37,7 @@ export function HeroSection() {
             <span className="block text-blue-200">新时代的智能选择</span>
           </h1>
           <p className="mt-6 text-lg text-blue-100 md:text-xl">
-            企账通为您提供一站式企业客户关系管理解决方案，
+            企智通为您提供一站式企业客户关系管理解决方案，
             助力企业实现数字化转型，提升运营效率。
           </p>
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">

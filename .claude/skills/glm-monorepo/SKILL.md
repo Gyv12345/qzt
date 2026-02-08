@@ -1,6 +1,6 @@
 ---
 name: glm-monorepo
-description: 企账通项目全栈开发技能。用于单体 Monorepo 项目的后端 API 开发、前端 CRUD 页面开发。后端 NestJS + Prisma，前端 React + TanStack Router + Shadcn UI。核心约定：CRUD 使用抽屉、头部包含搜索/主题/i18n/用户、所有文本 i18n 化、API 使用英文 @ApiTags、分页响应统一使用 data 字段。
+description: 企智通项目全栈开发技能。用于单体 Monorepo 项目的后端 API 开发、前端 CRUD 页面开发。后端 NestJS + Prisma，前端 React + TanStack Router + Shadcn UI。核心约定：CRUD 使用抽屉、头部包含搜索/主题/i18n/用户、所有文本 i18n 化、API 使用英文 @ApiTags、分页响应统一使用 data 字段。
 ---
 
 ## 快速开始

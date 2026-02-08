@@ -29,13 +29,13 @@ export async function generateMetadata({
   try {
     const article = await getContentBySlug(slug);
     return {
-      title: `${article.metaTitle || article.title} - 企账通`,
+      title: `${article.metaTitle || article.title} - 企智通`,
       description: article.metaDesc || article.excerpt,
       keywords: article.keywords,
     };
   } catch {
     return {
-      title: "文章详情 - 企账通",
+      title: "文章详情 - 企智通",
     };
   }
 }

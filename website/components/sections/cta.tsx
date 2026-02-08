@@ -28,7 +28,7 @@ export function CtaSection() {
               准备好开启数字化转型了吗？
             </h2>
             <p className="mt-6 text-lg text-blue-100">
-              加入数千家企业的选择，让企账通助您实现业务增长。
+              加入数千家企业的选择，让企智通助您实现业务增长。
               立即注册，享受 30 天免费试用。
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">

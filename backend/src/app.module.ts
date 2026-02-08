@@ -86,7 +86,7 @@ const envSchema = Joi.object({
   BACKEND_PORT: Joi.number().default(3456),
 
   // 应用配置
-  APP_NAME: Joi.string().default("企账通"),
+  APP_NAME: Joi.string().default("企智通"),
   APP_URL: Joi.string().default("http://localhost:7890"),
   API_URL: Joi.string().default("http://localhost:3456"),
 
@@ -94,7 +94,7 @@ const envSchema = Joi.object({
   FRONTEND_URL: Joi.string().default("http://localhost:7890"),
 
   // TOTP 2FA 配置
-  TOTP_APP_NAME: Joi.string().default("企账通"),
+  TOTP_APP_NAME: Joi.string().default("企智通"),
   TOTP_ENCRYPTION_KEY: Joi.string().optional(),
 
   // 并发优化配置

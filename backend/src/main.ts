@@ -77,8 +77,8 @@ async function bootstrap() {
 
   // Swagger API文档
   const config = new DocumentBuilder()
-    .setTitle("企账通SCRM API")
-    .setDescription("企账通SCRM系统API文档")
+    .setTitle("企智通SCRM API")
+    .setDescription("企智通SCRM系统API文档")
     .setVersion("1.0")
     .addBearerAuth()
     .build();

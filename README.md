@@ -1,4 +1,4 @@
-# 企账通 (QZT)
+# 企智通 (QZT)
 
 <div align="center">
 

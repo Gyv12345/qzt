@@ -13,7 +13,7 @@ async function main() {
     update: {},
     create: {
       id: 'default-dept',
-      name: '企账通有限公司',
+      name: '企智通有限公司',
       sort: 0,
       status: 'ACTIVE',
       isSystem: true, // 标记为系统部门，不可删除
@@ -104,7 +104,7 @@ async function main() {
   console.log('  用户名: admin');
   console.log('  密码: admin123');
   console.log('  角色: 超级管理员');
-  console.log('  部门: 企账通有限公司');
+  console.log('  部门: 企智通有限公司');
   console.log('  ⚠️  注意: Admin 用户不可删除，角色固定为超级管理员');
 
   // 创建测试用户

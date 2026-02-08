@@ -29,7 +29,7 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: "企账通 SCRM",
+      name: "企智通 SCRM",
       logo: Command,
       plan: "企业版",
     },

@@ -50,7 +50,7 @@ export const envSchema = Joi.object({
   BACKEND_PORT: Joi.number().default(3456),
 
   // 应用配置
-  APP_NAME: Joi.string().default("企账通"),
+  APP_NAME: Joi.string().default("企智通"),
   APP_URL: Joi.string().default("http://localhost:7890"),
   API_URL: Joi.string().default("http://localhost:3456"),
 }).unknown(true);

@@ -1,4 +1,4 @@
-# Docker Compose 生产环境配置 - 企账通
+# Docker Compose 生产环境配置 - 企智通
 version: '3.8'
 
 services:

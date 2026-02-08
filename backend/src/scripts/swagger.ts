@@ -8,8 +8,8 @@ async function generateSwagger() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle("企账通SCRM API")
-    .setDescription("企账通SCRM系统API文档")
+    .setTitle("企智通SCRM API")
+    .setDescription("企智通SCRM系统API文档")
     .setVersion("1.0")
     .addBearerAuth()
     .addTag("认证", "用户认证相关接口")

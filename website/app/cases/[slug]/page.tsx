@@ -29,12 +29,12 @@ export async function generateMetadata({
   try {
     const caseStudy = await getContentBySlug(slug);
     return {
-      title: `${caseStudy.metaTitle || caseStudy.title} - 企账通`,
+      title: `${caseStudy.metaTitle || caseStudy.title} - 企智通`,
       description: caseStudy.metaDesc || caseStudy.excerpt,
     };
   } catch {
     return {
-      title: "案例详情 - 企账通",
+      title: "案例详情 - 企智通",
     };
   }
 }
@@ -135,7 +135,7 @@ export default async function CasePage({
               想要实现类似的成功？
             </h3>
             <p className="mt-2 text-muted-foreground">
-              联系我们，了解企账通如何帮助您的业务增长
+              联系我们，了解企智通如何帮助您的业务增长
             </p>
             <a
               href="/contact"

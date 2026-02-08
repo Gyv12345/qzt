@@ -5,7 +5,7 @@ import { ArticleCard } from "@/components/articles/article-card";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "客户案例 - 企账通",
+  title: "客户案例 - 企智通",
   description: "了解我们如何帮助客户实现业务增长",
 };
 

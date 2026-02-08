@@ -28,7 +28,7 @@ export class TwoFactorService {
       throw new UnauthorizedException("用户不存在");
     }
 
-    const appName = this.configService.get<string>("TOTP_APP_NAME", "企账通");
+    const appName = this.configService.get<string>("TOTP_APP_NAME", "企智通");
     const accountName = user.email || user.username;
 
     // 生成新的 TOTP 密钥

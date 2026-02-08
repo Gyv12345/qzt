@@ -34,7 +34,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="text-2xl font-heading font-bold text-primary">
-              企账通
+              企智通
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               专业的企业客户管理解决方案，助力企业实现数字化转型。
@@ -95,7 +95,7 @@ export function Footer() {
         </div>
         <div className="mt-12 border-t border-muted pt-8">
           <p className="text-center text-xs leading-5 text-muted-foreground">
-            &copy; {new Date().getFullYear()} 企账通. 保留所有权利.
+            &copy; {new Date().getFullYear()} 企智通. 保留所有权利.
           </p>
         </div>
       </div>

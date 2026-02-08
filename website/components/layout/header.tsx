@@ -34,7 +34,7 @@ export function Header() {
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
             <span className="text-2xl font-heading font-bold text-primary">
-              企账通
+              企智通
             </span>
           </Link>
         </div>

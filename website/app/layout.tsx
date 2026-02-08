@@ -17,7 +17,7 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "企账通 - 企业客营管理系统",
+  title: "企智通 - 企业客营管理系统",
   description: "专业的企业客户管理解决方案，助力企业实现数字化转型，提升运营效率",
 };
 

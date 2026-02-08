@@ -1,4 +1,4 @@
-# QZT (Enterprise CRM)
+# QZT (Enterprise Intelligence CRM) - 企智通
 
 <div align="center">
 

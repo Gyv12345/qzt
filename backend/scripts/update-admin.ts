@@ -11,7 +11,7 @@ async function main() {
     update: {},
     create: {
       id: 'default-dept',
-      name: '企账通有限公司',
+      name: '企智通有限公司',
       sort: 0,
       status: 'ACTIVE',
       isSystem: true,

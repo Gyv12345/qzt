@@ -1,4 +1,4 @@
-# 企账通 (QZT) 开发指南
+# 企智通 (QZT) 开发指南
 
 > 企业客营管理系统 - 全栈开发指南
 
@@ -736,7 +736,7 @@ PORT=7890
 VITE_API_BASE_URL="http://localhost:7890"
 
 # 其他配置
-VITE_APP_TITLE="企账通"
+VITE_APP_TITLE="企智通"
 ```
 
 ---
