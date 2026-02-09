@@ -79,6 +79,9 @@ export function Cms() {
   );
 }
 
+// 导出为 CmsIndex 用于索引路由
+export { Cms as CmsIndex };
+
 interface CmsContentManagerProps {
   search: Record<string, unknown>;
   articles: any;

@@ -34,12 +34,29 @@ export class QueryCmsContentDto {
 
   @ApiPropertyOptional({
     description: "内容类型",
-    enum: ["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE", "PAGE_ELEMENT"],
+    enum: [
+      "ARTICLE",
+      "CASE_STUDY",
+      "PRODUCT_SHOWCASE",
+      "PROFILE",
+      "PAGE_ELEMENT",
+    ],
   })
   @IsOptional()
   @IsString()
-  @IsIn(["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE", "PAGE_ELEMENT"])
-  contentType?: "ARTICLE" | "CASE_STUDY" | "PRODUCT_SHOWCASE" | "PROFILE" | "PAGE_ELEMENT";
+  @IsIn([
+    "ARTICLE",
+    "CASE_STUDY",
+    "PRODUCT_SHOWCASE",
+    "PROFILE",
+    "PAGE_ELEMENT",
+  ])
+  contentType?:
+    | "ARTICLE"
+    | "CASE_STUDY"
+    | "PRODUCT_SHOWCASE"
+    | "PROFILE"
+    | "PAGE_ELEMENT";
 
   @ApiPropertyOptional({
     description: "状态",

@@ -18,6 +18,9 @@ import { UpdateCmsContentDto } from "./dto/update-cms-content.dto";
 import { QueryCmsContentDto } from "./dto/query-cms-content.dto";
 import { CreateCmsTagDto } from "./dto/create-cms-tag.dto";
 import { UpdateCmsTagDto } from "./dto/update-cms-tag.dto";
+import { CreateCmsPageDto } from "./dto/create-cms-page.dto";
+import { UpdateCmsPageDto } from "./dto/update-cms-page.dto";
+import { QueryCmsPageDto } from "./dto/query-cms-page.dto";
 
 @ApiTags("cms") // 使用英文标签，避免跨平台问题
 @Controller("cms")
@@ -140,5 +143,52 @@ export class CmsController {
   @ApiOperation({ summary: "删除标签" })
   deleteTag(@Param("id") id: string) {
     return this.cmsService.deleteTag(id);
+  }
+
+  // ==================== 页面管理 ====================
+
+  @Post("pages")
+  @ApiOperation({ summary: "创建页面" })
+  createPage(@Body() createCmsPageDto: CreateCmsPageDto) {
+    return this.cmsService.createPage(createCmsPageDto);
+  }
+
+  @Get("pages")
+  @ApiOperation({ summary: "获取页面列表" })
+  findAllPages(@Query() query: QueryCmsPageDto) {
+    return this.cmsService.findAllPages(query);
+  }
+
+  @Get("pages/:id")
+  @ApiOperation({ summary: "获取页面详情" })
+  findOnePage(@Param("id") id: string) {
+    return this.cmsService.findOnePage(id);
+  }
+
+  @Patch("pages/:id")
+  @ApiOperation({ summary: "更新页面" })
+  updatePage(
+    @Param("id") id: string,
+    @Body() updateCmsPageDto: UpdateCmsPageDto,
+  ) {
+    return this.cmsService.updatePage(id, updateCmsPageDto);
+  }
+
+  @Delete("pages/:id")
+  @ApiOperation({ summary: "删除页面" })
+  deletePage(@Param("id") id: string) {
+    return this.cmsService.deletePage(id);
+  }
+
+  @Post("pages/:id/publish")
+  @ApiOperation({ summary: "发布页面" })
+  publishPage(@Param("id") id: string) {
+    return this.cmsService.publishPage(id);
+  }
+
+  @Post("pages/:id/unpublish")
+  @ApiOperation({ summary: "取消发布页面" })
+  unpublishPage(@Param("id") id: string) {
+    return this.cmsService.unpublishPage(id);
   }
 }

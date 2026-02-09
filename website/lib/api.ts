@@ -138,3 +138,43 @@ export async function getTags(): Promise<
   if (!res.ok) throw new Error("Failed to fetch tags");
   return res.json();
 }
+
+// ==================== 页面管理 API ====================
+
+// 页面元素接口
+export interface CmsPageElement {
+  id: string;
+  sectionType: "HERO" | "STATS" | "FEATURES" | "CTA" | "TESTIMONIALS" | "PARTNERS" | "CONTACT";
+  elementType: "heading" | "text" | "button" | "image" | "card" | "list" | "statistic" | "testimonial";
+  sortOrder: number;
+  content?: string;
+  styleConfig?: string;
+  visible: boolean;
+}
+
+// CMS 页面接口
+export interface CmsPage {
+  id: string;
+  name: string;
+  title: string;
+  slug: string;
+  description?: string;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  elements: CmsPageElement[];
+}
+
+// 根据 slug 获取页面
+export async function getPageBySlug(slug: string): Promise<CmsPage | null> {
+  const res = await fetch(`${API_BASE_URL}/public/cms/pages/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) return null;
+
+  const json = await res.json();
+  // 后端响应格式：{ success, data }
+  return json.data || null;
+}

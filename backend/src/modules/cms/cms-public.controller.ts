@@ -74,6 +74,12 @@ export class CmsPublicController {
     return this.cmsService.getPageElementBySlug(slug);
   }
 
+  @Get("pages/:slug")
+  @ApiOperation({ summary: "Get published page by slug" })
+  findPageBySlug(@Param("slug") slug: string) {
+    return this.cmsService.findPageBySlug(slug);
+  }
+
   @Get("tags")
   @ApiOperation({ summary: "Get all tags" })
   findAllTags() {

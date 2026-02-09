@@ -7,13 +7,17 @@
  */
 import type {
   CmsControllerFindAllContentsParams,
+  CmsControllerFindAllPagesParams,
   CmsControllerGetArticlesParams,
   CmsControllerGetCasesParams,
+  CmsControllerGetPageElementsParams,
   CmsControllerGetProductShowcasesParams,
   CmsControllerGetProfilesParams,
   CreateCmsContentDto,
+  CreateCmsPageDto,
   CreateCmsTagDto,
   UpdateCmsContentDto,
+  UpdateCmsPageDto,
   UpdateCmsTagDto,
 } from "../../models";
 
@@ -135,6 +139,18 @@ export const getCms = () => {
     });
   };
   /**
+   * @summary 获取页面元素列表
+   */
+  const cmsControllerGetPageElements = (
+    params?: CmsControllerGetPageElementsParams,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/page-elements`,
+      method: "GET",
+      params,
+    });
+  };
+  /**
    * @summary 获取所有标签
    */
   const cmsControllerFindAllTags = () => {
@@ -177,6 +193,69 @@ export const getCms = () => {
   const cmsControllerDeleteTag = (id: string) => {
     return customInstance<void>({ url: `/cms/tags/${id}`, method: "DELETE" });
   };
+  /**
+   * @summary 创建页面
+   */
+  const cmsControllerCreatePage = (createCmsPageDto: CreateCmsPageDto) => {
+    return customInstance<void>({
+      url: `/cms/pages`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createCmsPageDto,
+    });
+  };
+  /**
+   * @summary 获取页面列表
+   */
+  const cmsControllerFindAllPages = (
+    params?: CmsControllerFindAllPagesParams,
+  ) => {
+    return customInstance<void>({ url: `/cms/pages`, method: "GET", params });
+  };
+  /**
+   * @summary 获取页面详情
+   */
+  const cmsControllerFindOnePage = (id: string) => {
+    return customInstance<void>({ url: `/cms/pages/${id}`, method: "GET" });
+  };
+  /**
+   * @summary 更新页面
+   */
+  const cmsControllerUpdatePage = (
+    id: string,
+    updateCmsPageDto: UpdateCmsPageDto,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/pages/${id}`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: updateCmsPageDto,
+    });
+  };
+  /**
+   * @summary 删除页面
+   */
+  const cmsControllerDeletePage = (id: string) => {
+    return customInstance<void>({ url: `/cms/pages/${id}`, method: "DELETE" });
+  };
+  /**
+   * @summary 发布页面
+   */
+  const cmsControllerPublishPage = (id: string) => {
+    return customInstance<void>({
+      url: `/cms/pages/${id}/publish`,
+      method: "POST",
+    });
+  };
+  /**
+   * @summary 取消发布页面
+   */
+  const cmsControllerUnpublishPage = (id: string) => {
+    return customInstance<void>({
+      url: `/cms/pages/${id}/unpublish`,
+      method: "POST",
+    });
+  };
   return {
     cmsControllerCreateContent,
     cmsControllerFindAllContents,
@@ -189,11 +268,19 @@ export const getCms = () => {
     cmsControllerGetCases,
     cmsControllerGetProductShowcases,
     cmsControllerGetProfiles,
+    cmsControllerGetPageElements,
     cmsControllerFindAllTags,
     cmsControllerCreateTag,
     cmsControllerFindOneTag,
     cmsControllerUpdateTag,
     cmsControllerDeleteTag,
+    cmsControllerCreatePage,
+    cmsControllerFindAllPages,
+    cmsControllerFindOnePage,
+    cmsControllerUpdatePage,
+    cmsControllerDeletePage,
+    cmsControllerPublishPage,
+    cmsControllerUnpublishPage,
   };
 };
 export type CmsControllerCreateContentResult = NonNullable<
@@ -233,6 +320,9 @@ export type CmsControllerGetProductShowcasesResult = NonNullable<
 export type CmsControllerGetProfilesResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerGetProfiles"]>>
 >;
+export type CmsControllerGetPageElementsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerGetPageElements"]>>
+>;
 export type CmsControllerFindAllTagsResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerFindAllTags"]>>
 >;
@@ -247,4 +337,25 @@ export type CmsControllerUpdateTagResult = NonNullable<
 >;
 export type CmsControllerDeleteTagResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerDeleteTag"]>>
+>;
+export type CmsControllerCreatePageResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerCreatePage"]>>
+>;
+export type CmsControllerFindAllPagesResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerFindAllPages"]>>
+>;
+export type CmsControllerFindOnePageResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerFindOnePage"]>>
+>;
+export type CmsControllerUpdatePageResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerUpdatePage"]>>
+>;
+export type CmsControllerDeletePageResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerDeletePage"]>>
+>;
+export type CmsControllerPublishPageResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerPublishPage"]>>
+>;
+export type CmsControllerUnpublishPageResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerUnpublishPage"]>>
 >;

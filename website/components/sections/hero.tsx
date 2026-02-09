@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, TrendingUp } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import type { CmsPage } from "@/lib/api";
 
 // CMS 内容接口
 interface HeroContent {
@@ -22,6 +23,7 @@ interface HeroSectionProps {
     excerpt?: string;
     title?: string;
   } | null;
+  pageData?: CmsPage | null;
 }
 
 // 默认内容
@@ -57,9 +59,58 @@ function parseHeroContent(cmsContent: HeroSectionProps["cmsContent"]): HeroConte
   }
 }
 
-export function HeroSection({ cmsContent }: HeroSectionProps) {
+// 从页面数据解析 Hero 内容
+function parsePageData(pageData: CmsPage | null | undefined): HeroContent | null {
+  if (!pageData?.elements) return null;
+
+  // 查找 HERO 区域的元素
+  const heroElements = pageData.elements
+    .filter((el) => el.sectionType === "HERO" && el.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (heroElements.length === 0) return null;
+
+  const result: HeroContent = {};
+
+  for (const element of heroElements) {
+    try {
+      const content = element.content ? JSON.parse(element.content) : {};
+
+      switch (element.elementType) {
+        case "heading":
+          if (content.text) {
+            if (!result.title) result.title = content.text;
+            else if (!result.subtitle) result.subtitle = content.text;
+          }
+          break;
+        case "text":
+          if (content.text && !result.description) {
+            result.description = content.text;
+          }
+          break;
+        case "button":
+          if (content.isPrimary && !result.ctaPrimaryText) {
+            result.ctaPrimaryText = content.text;
+            result.ctaPrimaryUrl = content.url;
+          } else if (!content.isPrimary && !result.ctaSecondaryText) {
+            result.ctaSecondaryText = content.text;
+            result.ctaSecondaryUrl = content.url;
+          }
+          break;
+      }
+    } catch {
+      // 忽略解析错误
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+export function HeroSection({ cmsContent, pageData }: HeroSectionProps) {
   const shouldReduceMotion = useReducedMotion();
-  const hero = parseHeroContent(cmsContent);
+  // 优先使用页面数据，回退到旧的 PAGE_ELEMENT 方式
+  const pageHero = parsePageData(pageData);
+  const hero = pageHero || parseHeroContent(cmsContent);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-blue-50/30 py-20 md:py-28 lg:py-36">

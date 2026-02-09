@@ -17,8 +17,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { CmsPage } from "@/lib/api";
 
-const features = [
+const defaultFeatures = [
   {
     icon: Zap,
     title: "快速部署",
@@ -63,8 +64,41 @@ const features = [
   },
 ];
 
-export function FeaturesSection() {
+interface FeaturesSectionProps {
+  pageData?: CmsPage | null;
+}
+
+// 从页面数据解析功能内容
+function parsePageData(pageData: CmsPage | null | undefined) {
+  if (!pageData?.elements) return null;
+
+  const featureElements = pageData.elements
+    .filter((el) => el.sectionType === "FEATURES" && el.elementType === "card" && el.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (featureElements.length === 0) return null;
+
+  return featureElements.map((el) => {
+    try {
+      const content = el.content ? JSON.parse(el.content) : {};
+      return {
+        icon: Zap, // 简化处理
+        title: content.title || "功能特点",
+        description: content.description || "",
+        gradient: content.gradient || "from-blue-400 to-cyan-500",
+        bgGradient: content.bgGradient || "from-blue-50 to-cyan-50",
+      };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+}
+
+export function FeaturesSection({ pageData }: FeaturesSectionProps) {
   const shouldReduceMotion = useReducedMotion();
+
+  // 优先使用页面数据，回退到默认值
+  const features = parsePageData(pageData) || defaultFeatures;
 
   const containerVariants = {
     hidden: { opacity: 0 },

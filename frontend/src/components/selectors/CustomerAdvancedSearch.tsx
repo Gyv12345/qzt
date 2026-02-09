@@ -56,7 +56,9 @@ export function CustomerAdvancedSearch({
   });
 
   // 选中的客户
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
 
   // 构建查询参数
   const queryParams = useMemo(() => {
@@ -129,7 +131,9 @@ export function CustomerAdvancedSearch({
   };
 
   // 获取等级徽章样式
-  const getLevelVariant = (level: string): "default" | "secondary" | "outline" | "destructive" => {
+  const getLevelVariant = (
+    level: string,
+  ): "default" | "secondary" | "outline" | "destructive" => {
     switch (level) {
       case "LEAD":
         return "secondary";
@@ -174,7 +178,9 @@ export function CustomerAdvancedSearch({
             <Label htmlFor="search-level">客户等级</Label>
             <Select
               value={filters.customerLevel}
-              onValueChange={(value) => handleFilterChange("customerLevel", value)}
+              onValueChange={(value) =>
+                handleFilterChange("customerLevel", value)
+              }
             >
               <SelectTrigger id="search-level">
                 <SelectValue placeholder="全部等级" />
@@ -225,7 +231,9 @@ export function CustomerAdvancedSearch({
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{customer.name}</span>
                         {customer.customerLevel && (
-                          <Badge variant={getLevelVariant(customer.customerLevel)}>
+                          <Badge
+                            variant={getLevelVariant(customer.customerLevel)}
+                          >
                             {getLevelLabel(customer.customerLevel)}
                           </Badge>
                         )}
@@ -301,7 +309,11 @@ export function CustomerAdvancedSearch({
           <Button type="button" variant="outline" onClick={handleCancel}>
             取消
           </Button>
-          <Button type="button" onClick={handleConfirm} disabled={!selectedCustomer}>
+          <Button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!selectedCustomer}
+          >
             确认
           </Button>
         </DialogFooter>

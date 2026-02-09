@@ -120,8 +120,8 @@ export const sidebarData: SidebarData = {
           icon: FileText,
         },
         {
-          title: "页面元素管理",
-          url: "/cms/elements",
+          title: "页面管理",
+          url: "/cms/pages",
           icon: Layout,
         },
         {

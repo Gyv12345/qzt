@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CmsControllerGetCasesContentType =
-  (typeof CmsControllerGetCasesContentType)[keyof typeof CmsControllerGetCasesContentType];
+export type CmsControllerGetPageElementsContentType =
+  (typeof CmsControllerGetPageElementsContentType)[keyof typeof CmsControllerGetPageElementsContentType];
 
-export const CmsControllerGetCasesContentType = {
+export const CmsControllerGetPageElementsContentType = {
   ARTICLE: "ARTICLE",
   CASE_STUDY: "CASE_STUDY",
   PRODUCT_SHOWCASE: "PRODUCT_SHOWCASE",

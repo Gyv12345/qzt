@@ -9,6 +9,8 @@ import { UpdateCmsContentDto } from "./dto/update-cms-content.dto";
 import { QueryCmsContentDto } from "./dto/query-cms-content.dto";
 import { CreateCmsTagDto } from "./dto/create-cms-tag.dto";
 import { UpdateCmsTagDto } from "./dto/update-cms-tag.dto";
+import { CreateCmsPageDto } from "./dto/create-cms-page.dto";
+import { UpdateCmsPageDto } from "./dto/update-cms-page.dto";
 
 @Injectable()
 export class CmsService {
@@ -27,6 +29,7 @@ export class CmsService {
       data.contentType,
       data.productId,
       data.userId,
+      data.contractId,
     );
 
     // 检查 slug 是否重复
@@ -57,6 +60,15 @@ export class CmsService {
         },
         userProfile: {
           select: { id: true, name: true, avatar: true },
+        },
+        contract: {
+          select: {
+            id: true,
+            contractNo: true,
+            customer: {
+              select: { id: true, name: true, shortName: true },
+            },
+          },
         },
         tags: {
           include: {
@@ -126,6 +138,15 @@ export class CmsService {
           userProfile: {
             select: { id: true, name: true, avatar: true },
           },
+          contract: {
+            select: {
+              id: true,
+              contractNo: true,
+              customer: {
+                select: { id: true, name: true, shortName: true },
+              },
+            },
+          },
           tags: {
             include: {
               tag: true,
@@ -169,6 +190,16 @@ export class CmsService {
             phone: true,
           },
         },
+        contract: {
+          select: {
+            id: true,
+            contractNo: true,
+            totalAmount: true,
+            customer: {
+              select: { id: true, name: true, shortName: true },
+            },
+          },
+        },
         tags: {
           include: {
             tag: true,
@@ -210,7 +241,14 @@ export class CmsService {
     const productId =
       data.productId !== undefined ? data.productId : existing.productId;
     const userId = data.userId !== undefined ? data.userId : existing.userId;
-    this.validateContentTypeRelations(contentType, productId, userId);
+    const contractId =
+      data.contractId !== undefined ? data.contractId : existing.contractId;
+    this.validateContentTypeRelations(
+      contentType,
+      productId,
+      userId,
+      contractId,
+    );
 
     // 更新标签关联
     let updateTags = undefined;
@@ -240,6 +278,15 @@ export class CmsService {
         },
         userProfile: {
           select: { id: true, name: true, avatar: true },
+        },
+        contract: {
+          select: {
+            id: true,
+            contractNo: true,
+            customer: {
+              select: { id: true, name: true, shortName: true },
+            },
+          },
         },
         tags: {
           include: {
@@ -537,26 +584,37 @@ export class CmsService {
     contentType: string,
     productId?: string,
     userId?: string,
+    contractId?: string,
   ) {
     switch (contentType) {
       case "PRODUCT_SHOWCASE":
         if (!productId) {
           throw new BadRequestException("产品展示类型必须指定关联的产品");
         }
-        if (userId) {
-          throw new BadRequestException("产品展示类型不应指定关联的用户");
+        if (userId || contractId) {
+          throw new BadRequestException("产品展示类型不应指定关联的用户或合同");
         }
         break;
       case "PROFILE":
         if (!userId) {
           throw new BadRequestException("人员介绍类型必须指定关联的用户");
         }
-        if (productId) {
-          throw new BadRequestException("人员介绍类型不应指定关联的产品");
+        if (productId || contractId) {
+          throw new BadRequestException("人员介绍类型不应指定关联的产品或合同");
+        }
+        break;
+      case "CASE_STUDY":
+        // 案例类型可以关联合同，但不应该关联产品或用户
+        if (productId || userId) {
+          throw new BadRequestException("案例类型不应指定关联的产品或用户");
+        }
+        // contractId 是可选的，如果提供则验证合同存在
+        if (contractId) {
+          // 验证合同是否存在（可选，为了更好的用户体验）
+          // 这里简单验证即可，详细验证可以在调用方进行
         }
         break;
       case "ARTICLE":
-      case "CASE_STUDY":
       case "PAGE_ELEMENT":
         if (productId) {
           throw new BadRequestException(
@@ -568,6 +626,11 @@ export class CmsService {
             `${contentType} 类型不应指定关联的用户`,
           );
         }
+        if (contractId) {
+          throw new BadRequestException(
+            `${contentType} 类型不应指定关联的合同`,
+          );
+        }
         break;
     }
   }
@@ -577,5 +640,223 @@ export class CmsService {
       ...content,
       tags: content.tags?.map((ct: any) => ct.tag) || [],
     };
+  }
+
+  // ==================== 页面管理 ====================
+
+  async createPage(createCmsPageDto: any) {
+    const { elements, ...data } = createCmsPageDto;
+
+    // 检查 slug 是否重复
+    const existing = await this.prisma.cmsPage.findUnique({
+      where: { slug: data.slug },
+    });
+    if (existing) {
+      throw new BadRequestException("页面URL路径已存在");
+    }
+
+    // 创建页面
+    const page = await this.prisma.cmsPage.create({
+      data: {
+        ...data,
+        ...(elements && {
+          elements: {
+            create: elements,
+          },
+        }),
+      },
+      include: {
+        elements: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    return page;
+  }
+
+  async findAllPages(query: any) {
+    const { page = 1, pageSize = 10, keyword, status } = query;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+
+    if (keyword) {
+      where.OR = [
+        { name: { contains: keyword } },
+        { title: { contains: keyword } },
+        { description: { contains: keyword } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const [total, pages] = await Promise.all([
+      this.prisma.cmsPage.count({ where }),
+      this.prisma.cmsPage.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        include: {
+          elements: {
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      data: pages,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  async findOnePage(id: string) {
+    const page = await this.prisma.cmsPage.findUnique({
+      where: { id },
+      include: {
+        elements: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page #${id} not found`);
+    }
+
+    return page;
+  }
+
+  async findPageBySlug(slug: string) {
+    const page = await this.prisma.cmsPage.findFirst({
+      where: {
+        slug,
+        status: "PUBLISHED",
+      },
+      include: {
+        elements: {
+          where: { visible: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    if (!page) {
+      throw new NotFoundException("Page not found");
+    }
+
+    return page;
+  }
+
+  async updatePage(id: string, updateCmsPageDto: any) {
+    const { elements, ...data } = updateCmsPageDto;
+
+    // 验证页面是否存在
+    const existing = await this.prisma.cmsPage.findUnique({
+      where: { id },
+    });
+    if (!existing) {
+      throw new NotFoundException(`Page #${id} not found`);
+    }
+
+    // 如果更新 slug，检查是否重复
+    if (data.slug && data.slug !== existing.slug) {
+      const slugExists = await this.prisma.cmsPage.findUnique({
+        where: { slug: data.slug },
+      });
+      if (slugExists) {
+        throw new BadRequestException("页面URL路径已存在");
+      }
+    }
+
+    // 更新元素
+    if (elements !== undefined) {
+      // 删除旧元素
+      await this.prisma.cmsPageElement.deleteMany({
+        where: { pageId: id },
+      });
+    }
+
+    const page = await this.prisma.cmsPage.update({
+      where: { id },
+      data: {
+        ...data,
+        ...(elements !== undefined && {
+          elements: {
+            create: elements,
+          },
+        }),
+      },
+      include: {
+        elements: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    return page;
+  }
+
+  async deletePage(id: string) {
+    const page = await this.prisma.cmsPage.findUnique({
+      where: { id },
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page #${id} not found`);
+    }
+
+    await this.prisma.cmsPage.delete({
+      where: { id },
+    });
+
+    return { message: "Page deleted successfully" };
+  }
+
+  async publishPage(id: string) {
+    const page = await this.prisma.cmsPage.findUnique({
+      where: { id },
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page #${id} not found`);
+    }
+
+    if (page.status === "PUBLISHED") {
+      throw new BadRequestException("Page is already published");
+    }
+
+    return this.prisma.cmsPage.update({
+      where: { id },
+      data: {
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+      },
+    });
+  }
+
+  async unpublishPage(id: string) {
+    const page = await this.prisma.cmsPage.findUnique({
+      where: { id },
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page #${id} not found`);
+    }
+
+    return this.prisma.cmsPage.update({
+      where: { id },
+      data: {
+        status: "DRAFT",
+        publishedAt: null,
+      },
+    });
   }
 }

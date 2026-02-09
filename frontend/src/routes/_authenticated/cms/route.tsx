@@ -1,6 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Cms } from "@/features/cms";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/cms")({
-  component: Cms,
+  component: CmsLayout,
 });
+
+function CmsLayout() {
+  return (
+    <div className="flex flex-1 flex-col">
+      <Outlet />
+    </div>
+  );
+}

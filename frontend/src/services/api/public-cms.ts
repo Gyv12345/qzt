@@ -7,6 +7,7 @@
  */
 import type {
   CmsPublicControllerFindPublishedContentsParams,
+  CmsPublicControllerGetPageElementsParams,
   CmsPublicControllerGetPublishedArticlesParams,
   CmsPublicControllerGetPublishedCasesParams,
   CmsPublicControllerGetPublishedProfilesParams,
@@ -86,6 +87,36 @@ export const getPublicCms = () => {
     });
   };
   /**
+   * @summary Get published page elements
+   */
+  const cmsPublicControllerGetPageElements = (
+    params?: CmsPublicControllerGetPageElementsParams,
+  ) => {
+    return customInstance<void>({
+      url: `/public/cms/page-elements`,
+      method: "GET",
+      params,
+    });
+  };
+  /**
+   * @summary Get page element by slug
+   */
+  const cmsPublicControllerGetPageElementBySlug = (slug: string) => {
+    return customInstance<void>({
+      url: `/public/cms/page-elements/${slug}`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary Get published page by slug
+   */
+  const cmsPublicControllerFindPageBySlug = (slug: string) => {
+    return customInstance<void>({
+      url: `/public/cms/pages/${slug}`,
+      method: "GET",
+    });
+  };
+  /**
    * @summary Get all tags
    */
   const cmsPublicControllerFindAllTags = () => {
@@ -98,6 +129,9 @@ export const getPublicCms = () => {
     cmsPublicControllerGetPublishedCases,
     cmsPublicControllerGetPublishedShowcases,
     cmsPublicControllerGetPublishedProfiles,
+    cmsPublicControllerGetPageElements,
+    cmsPublicControllerGetPageElementBySlug,
+    cmsPublicControllerFindPageBySlug,
     cmsPublicControllerFindAllTags,
   };
 };
@@ -144,6 +178,27 @@ export type CmsPublicControllerGetPublishedProfilesResult = NonNullable<
   Awaited<
     ReturnType<
       ReturnType<typeof getPublicCms>["cmsPublicControllerGetPublishedProfiles"]
+    >
+  >
+>;
+export type CmsPublicControllerGetPageElementsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetPageElements"]
+    >
+  >
+>;
+export type CmsPublicControllerGetPageElementBySlugResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetPageElementBySlug"]
+    >
+  >
+>;
+export type CmsPublicControllerFindPageBySlugResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerFindPageBySlug"]
     >
   >
 >;

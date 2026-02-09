@@ -17,4 +17,5 @@ export const UpdateCmsContentDtoContentType = {
   CASE_STUDY: "CASE_STUDY",
   PRODUCT_SHOWCASE: "PRODUCT_SHOWCASE",
   PROFILE: "PROFILE",
+  PAGE_ELEMENT: "PAGE_ELEMENT",
 } as const;
