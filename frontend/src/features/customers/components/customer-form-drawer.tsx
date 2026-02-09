@@ -60,7 +60,7 @@ interface CustomerFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer?: Customer;
-  onSuccess: () => void;
+  onSuccess: (customerId?: string) => void;
 }
 
 export function CustomerFormDrawer({
@@ -119,10 +119,12 @@ export function CustomerFormDrawer({
     try {
       if (isEdit && customer) {
         await updateMutation.mutateAsync({ id: customer.id, data: values });
+        onSuccess(customer.id);
       } else {
-        await createMutation.mutateAsync(values as any);
+        const result = await createMutation.mutateAsync(values as any);
+        // 返回创建的客户 ID
+        onSuccess((result as any)?.id);
       }
-      onSuccess();
       onOpenChange(false);
     } catch (error) {
       console.error("提交失败:", error);

@@ -3,16 +3,21 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Link2, Building2 } from "lucide-react";
 import type { Contact } from "../types/contact";
 
 type ContactsColumnsOptions = {
   t: (key: string) => string;
   onOpenDetail: (contact: Contact) => void;
+  onLinkCustomer: (contact: Contact) => void;
+  onCreateCustomer: (contact: Contact) => void;
 };
 
 export function getContactsColumns({
   t,
   onOpenDetail,
+  onLinkCustomer,
+  onCreateCustomer,
 }: ContactsColumnsOptions): ColumnDef<Contact>[] {
   return [
     {
@@ -89,14 +94,6 @@ export function getContactsColumns({
       },
     },
     {
-      accessorKey: "email",
-      header: () => t("contact.columns.email"),
-      meta: {
-        displayName: t("contact.columns.email"),
-      },
-      cell: ({ row }) => row.getValue("email") || "-",
-    },
-    {
       accessorKey: "customerName",
       header: () => t("contact.columns.customerName"),
       meta: {
@@ -104,14 +101,41 @@ export function getContactsColumns({
       },
       cell: ({ row }) => {
         const customerName = row.getValue("customerName") as string;
+        const contact = row.original;
+        if (customerName) {
+          return customerName;
+        }
         return (
-          customerName || (
-            <span className="text-muted-foreground">
-              {t("contact.empty.customer")}
-            </span>
-          )
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => onLinkCustomer(contact)}
+            >
+              <Link2 className="mr-1 h-3 w-3" />
+              关联客户
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => onCreateCustomer(contact)}
+            >
+              <Building2 className="mr-1 h-3 w-3" />
+              创建客户
+            </Button>
+          </div>
         );
       },
+    },
+    {
+      accessorKey: "email",
+      header: () => t("contact.columns.email"),
+      meta: {
+        displayName: t("contact.columns.email"),
+      },
+      cell: ({ row }) => row.getValue("email") || "-",
     },
     {
       accessorKey: "position",
