@@ -46,6 +46,8 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
+import { Route as AuthenticatedCmsTagsRouteRouteImport } from './routes/_authenticated/cms/tags/route'
+import { Route as AuthenticatedCmsElementsRouteRouteImport } from './routes/_authenticated/cms/elements/route'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -253,11 +255,23 @@ const AuthenticatedErrorsErrorRoute =
     path: '/errors/$error',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCmsTagsRouteRoute =
+  AuthenticatedCmsTagsRouteRouteImport.update({
+    id: '/tags',
+    path: '/tags',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsElementsRouteRoute =
+  AuthenticatedCmsElementsRouteRouteImport.update({
+    id: '/elements',
+    path: '/elements',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
-  '/cms': typeof AuthenticatedCmsRouteRoute
+  '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -281,6 +295,8 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/webhooks': typeof AuthenticatedWebhooksRoute
+  '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
+  '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -294,7 +310,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/cms': typeof AuthenticatedCmsRouteRoute
+  '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -318,6 +334,8 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/webhooks': typeof AuthenticatedWebhooksRoute
   '/': typeof AuthenticatedIndexRoute
+  '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
+  '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -333,7 +351,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/_authenticated/cms': typeof AuthenticatedCmsRouteRoute
+  '/_authenticated/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
   '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
@@ -358,6 +376,8 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/_authenticated/webhooks': typeof AuthenticatedWebhooksRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
+  '/_authenticated/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -398,6 +418,8 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/webhooks'
+    | '/cms/elements'
+    | '/cms/tags'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
@@ -435,6 +457,8 @@ export interface FileRouteTypes {
     | '/503'
     | '/webhooks'
     | '/'
+    | '/cms/elements'
+    | '/cms/tags'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
@@ -474,6 +498,8 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/webhooks'
     | '/_authenticated/'
+    | '/_authenticated/cms/elements'
+    | '/_authenticated/cms/tags'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
@@ -757,8 +783,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cms/tags': {
+      id: '/_authenticated/cms/tags'
+      path: '/tags'
+      fullPath: '/cms/tags'
+      preLoaderRoute: typeof AuthenticatedCmsTagsRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/elements': {
+      id: '/_authenticated/cms/elements'
+      path: '/elements'
+      fullPath: '/cms/elements'
+      preLoaderRoute: typeof AuthenticatedCmsElementsRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
   }
 }
+
+interface AuthenticatedCmsRouteRouteChildren {
+  AuthenticatedCmsElementsRouteRoute: typeof AuthenticatedCmsElementsRouteRoute
+  AuthenticatedCmsTagsRouteRoute: typeof AuthenticatedCmsTagsRouteRoute
+}
+
+const AuthenticatedCmsRouteRouteChildren: AuthenticatedCmsRouteRouteChildren = {
+  AuthenticatedCmsElementsRouteRoute: AuthenticatedCmsElementsRouteRoute,
+  AuthenticatedCmsTagsRouteRoute: AuthenticatedCmsTagsRouteRoute,
+}
+
+const AuthenticatedCmsRouteRouteWithChildren =
+  AuthenticatedCmsRouteRoute._addFileChildren(
+    AuthenticatedCmsRouteRouteChildren,
+  )
 
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
@@ -782,7 +837,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRoute
+  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRouteWithChildren
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
   AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute
   AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
@@ -811,7 +866,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedCmsRouteRoute: AuthenticatedCmsRouteRoute,
+  AuthenticatedCmsRouteRoute: AuthenticatedCmsRouteRouteWithChildren,
   AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
   AuthenticatedContractTemplatesRouteRoute:
     AuthenticatedContractTemplatesRouteRoute,
