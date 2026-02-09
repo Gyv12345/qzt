@@ -161,7 +161,9 @@ export function CmsTagsPage() {
       ) : sortedTags.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <TagIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <div className="text-muted-foreground">暂无标签，点击上方按钮创建</div>
+          <div className="text-muted-foreground">
+            暂无标签，点击上方按钮创建
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -214,9 +216,7 @@ export function CmsTagsPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {editingTag ? "编辑标签" : "新建标签"}
-            </DialogTitle>
+            <DialogTitle>{editingTag ? "编辑标签" : "新建标签"}</DialogTitle>
             <DialogDescription>
               {editingTag
                 ? "修改标签信息，点击保存生效"
@@ -225,10 +225,7 @@ export function CmsTagsPage() {
           </DialogHeader>
 
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -313,11 +310,7 @@ export function CmsTagsPage() {
               />
 
               <DialogFooter className="gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={closeDialog}
-                >
+                <Button type="button" variant="outline" onClick={closeDialog}>
                   取消
                 </Button>
                 <Button
