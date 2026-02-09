@@ -59,6 +59,21 @@ export class CmsPublicController {
     });
   }
 
+  @Get("page-elements")
+  @ApiOperation({ summary: "Get published page elements" })
+  getPageElements(@Query() query: QueryCmsContentDto) {
+    return this.cmsService.getPageElements({
+      ...query,
+      status: "PUBLISHED",
+    });
+  }
+
+  @Get("page-elements/:slug")
+  @ApiOperation({ summary: "Get page element by slug" })
+  getPageElementBySlug(@Param("slug") slug: string) {
+    return this.cmsService.getPageElementBySlug(slug);
+  }
+
   @Get("tags")
   @ApiOperation({ summary: "Get all tags" })
   findAllTags() {

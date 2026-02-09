@@ -6,7 +6,8 @@ export type CmsContentType =
   | "ARTICLE"
   | "CASE_STUDY"
   | "PRODUCT_SHOWCASE"
-  | "PROFILE";
+  | "PROFILE"
+  | "PAGE_ELEMENT";
 
 // CMS 内容接口
 export interface CmsContent {
@@ -106,6 +107,24 @@ export async function getProfiles(params?: {
   pageSize?: number;
 }) {
   return getPublishedContents({ ...params, contentType: "PROFILE" });
+}
+
+// 便捷函数：获取页面元素
+export async function getPageElements(params?: {
+  page?: number;
+  pageSize?: number;
+}) {
+  return getPublishedContents({ ...params, contentType: "PAGE_ELEMENT" });
+}
+
+// 根据 slug 获取页面元素
+export async function getPageElement(slug: string): Promise<CmsContent> {
+  const res = await fetch(`${API_BASE_URL}/public/cms/page-elements/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) return null as any; // 允许返回 null，组件可以处理
+  return res.json();
 }
 
 // 获取所有标签
