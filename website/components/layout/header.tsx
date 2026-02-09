@@ -12,6 +12,7 @@ const nav = [
   { name: "文章", href: "/articles" },
   { name: "案例", href: "/cases" },
   { name: "产品", href: "/products" },
+  { name: "人员", href: "/profiles" },
   { name: "联系我们", href: "/contact" },
 ];
 

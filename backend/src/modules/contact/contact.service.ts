@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { DataScopeService } from "../permission/services/data-scope.service";
@@ -12,6 +13,7 @@ import { QueryContactDto } from "./dto/query-contact.dto";
 import { LinkCompanyDto } from "./dto/link-company.dto";
 import { ExportContactDto } from "./dto/export-contact.dto";
 import { ImportContactDto } from "./dto/import-contact.dto";
+import { SubmitContactDto } from "./dto/submit-contact.dto";
 
 @Injectable()
 export class ContactService {
@@ -539,5 +541,157 @@ export class ContactService {
     });
 
     return { message: "已取消关联（标记为离职状态）" };
+  }
+
+  /**
+   * 处理网站联系表单提交（公开接口）
+   * 1. 创建或更新联系人
+   * 2. 创建或更新客户
+   * 3. 创建跟进记录
+   * 4. 自动分配跟进人
+   */
+  async submitContactForm(submitContactDto: SubmitContactDto) {
+    const { name, phone, email, company, message } = submitContactDto;
+
+    // 验证必填字段
+    if (!name || !phone || !message) {
+      throw new BadRequestException("姓名、电话和留言为必填项");
+    }
+
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      throw new BadRequestException("手机号格式不正确");
+    }
+
+    // 使用事务处理整个流程
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. 查找或创建联系人
+      let contact = await tx.contact.findUnique({
+        where: { phone: phone.trim() },
+      });
+
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: {
+            name: name.trim(),
+            phone: phone.trim(),
+            email: email?.trim() || null,
+            status: "ACTIVE",
+          },
+        });
+      } else {
+        // 更新联系人信息
+        contact = await tx.contact.update({
+          where: { id: contact.id },
+          data: {
+            name: name.trim(),
+            email: email?.trim() || contact.email,
+          },
+        });
+      }
+
+      // 2. 查找或创建客户
+      let customer;
+      const companyName = company?.trim();
+
+      if (companyName) {
+        // 如果提供了公司名称，查找或创建对应客户
+        customer = await tx.customer.findFirst({
+          where: {
+            name: {
+              contains: companyName,
+            },
+          },
+        });
+
+        if (!customer) {
+          // 自动分配跟进人（选择一个活跃的销售人员）
+          const assignedUser = await this.assignSalesUser(tx);
+
+          customer = await tx.customer.create({
+            data: {
+              name: companyName,
+              customerLevel: "LEAD",
+              sourceChannel: "官网表单",
+              followUserId: assignedUser?.id || null,
+              firstContactDate: new Date(),
+              status: 1,
+            },
+          });
+        }
+
+        // 关联联系人和客户
+        const existingLink = await tx.customerContact.findUnique({
+          where: {
+            customerId_contactId: {
+              customerId: customer.id,
+              contactId: contact.id,
+            },
+          },
+        });
+
+        if (!existingLink) {
+          await tx.customerContact.create({
+            data: {
+              customerId: customer.id,
+              contactId: contact.id,
+              isPrimary: true,
+              status: 1,
+            },
+          });
+        }
+      }
+
+      // 3. 创建跟进记录
+      const followRecord = await tx.followRecord.create({
+        data: {
+          customerId: customer?.id || null,
+          contactId: contact.id,
+          userId: customer?.followUserId || null,
+          type: 5, // 其他类型
+          content: `【官网表单咨询】\n姓名：${name}\n电话：${phone}\n邮箱：${email || "未填写"}\n公司：${company || "未填写"}\n\n留言内容：\n${message}`,
+        },
+      });
+
+      return {
+        success: true,
+        message: "提交成功，我们会尽快与您联系",
+        data: {
+          contactId: contact.id,
+          customerId: customer?.id || null,
+          followRecordId: followRecord.id,
+        },
+      };
+    });
+
+    return result;
+  }
+
+  /**
+   * 自动分配销售人员
+   * 策略：选择 admin 用户
+   */
+  private async assignSalesUser(prisma: any) {
+    // 查找状态为活跃的用户（简单起见，这里选择 admin 用户）
+    const adminUser = await prisma.user.findFirst({
+      where: {
+        username: "admin",
+        status: "ACTIVE",
+      },
+    });
+
+    if (adminUser) {
+      return adminUser;
+    }
+
+    // 如果没有 admin 用户，返回第一个活跃用户
+    const activeUser = await prisma.user.findFirst({
+      where: {
+        status: "ACTIVE",
+      },
+    });
+
+    return activeUser;
   }
 }
