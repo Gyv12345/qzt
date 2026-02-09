@@ -69,7 +69,7 @@ export function CustomerSelector({
         pageSize: 10,
       })) as any;
 
-      return result?.items || [];
+      return result?.data || [];
     },
     enabled: debouncedSearchTerm.length >= 2,
   });
