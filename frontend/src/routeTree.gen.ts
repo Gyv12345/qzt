@@ -8,818 +8,818 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedWebhooksRouteImport } from './routes/_authenticated/webhooks'
-import { Route as errors503RouteImport } from './routes/(errors)/503'
-import { Route as errors500RouteImport } from './routes/(errors)/500'
-import { Route as errors404RouteImport } from './routes/(errors)/404'
-import { Route as errors403RouteImport } from './routes/(errors)/403'
-import { Route as errors401RouteImport } from './routes/(errors)/401'
-import { Route as AuthenticatedSystemLogsRouteRouteImport } from './routes/_authenticated/system-logs/route'
-import { Route as AuthenticatedSocialMediaRouteRouteImport } from './routes/_authenticated/social-media/route'
-import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
-import { Route as AuthenticatedServiceTeamsRouteRouteImport } from './routes/_authenticated/service-teams/route'
-import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
-import { Route as AuthenticatedProductsRouteRouteImport } from './routes/_authenticated/products/route'
-import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
-import { Route as AuthenticatedPaymentsRouteRouteImport } from './routes/_authenticated/payments/route'
-import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
-import { Route as AuthenticatedLoginLogsRouteRouteImport } from './routes/_authenticated/login-logs/route'
-import { Route as AuthenticatedInvoicesRouteRouteImport } from './routes/_authenticated/invoices/route'
-import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_authenticated/departments/route'
-import { Route as AuthenticatedCustomersRouteRouteImport } from './routes/_authenticated/customers/route'
-import { Route as AuthenticatedCustomerRulesRouteRouteImport } from './routes/_authenticated/customer-rules/route'
-import { Route as AuthenticatedContractsRouteRouteImport } from './routes/_authenticated/contracts/route'
-import { Route as AuthenticatedContractTemplatesRouteRouteImport } from './routes/_authenticated/contract-templates/route'
-import { Route as AuthenticatedContactsRouteRouteImport } from './routes/_authenticated/contacts/route'
-import { Route as AuthenticatedCmsRouteRouteImport } from './routes/_authenticated/cms/route'
-import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
-import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
-import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
-import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
-import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
-import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
-import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
-import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
-import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
-import { Route as AuthenticatedCmsTagsRouteRouteImport } from './routes/_authenticated/cms/tags/route'
-import { Route as AuthenticatedCmsElementsRouteRouteImport } from './routes/_authenticated/cms/elements/route'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as LoginRouteImport } from "./routes/login";
+import { Route as AuthenticatedRouteRouteImport } from "./routes/_authenticated/route";
+import { Route as AuthenticatedIndexRouteImport } from "./routes/_authenticated/index";
+import { Route as AuthenticatedWebhooksRouteImport } from "./routes/_authenticated/webhooks";
+import { Route as errors503RouteImport } from "./routes/(errors)/503";
+import { Route as errors500RouteImport } from "./routes/(errors)/500";
+import { Route as errors404RouteImport } from "./routes/(errors)/404";
+import { Route as errors403RouteImport } from "./routes/(errors)/403";
+import { Route as errors401RouteImport } from "./routes/(errors)/401";
+import { Route as AuthenticatedSystemLogsRouteRouteImport } from "./routes/_authenticated/system-logs/route";
+import { Route as AuthenticatedSocialMediaRouteRouteImport } from "./routes/_authenticated/social-media/route";
+import { Route as AuthenticatedSettingsRouteRouteImport } from "./routes/_authenticated/settings/route";
+import { Route as AuthenticatedServiceTeamsRouteRouteImport } from "./routes/_authenticated/service-teams/route";
+import { Route as AuthenticatedRolesRouteRouteImport } from "./routes/_authenticated/roles/route";
+import { Route as AuthenticatedProductsRouteRouteImport } from "./routes/_authenticated/products/route";
+import { Route as AuthenticatedPermissionsRouteRouteImport } from "./routes/_authenticated/permissions/route";
+import { Route as AuthenticatedPaymentsRouteRouteImport } from "./routes/_authenticated/payments/route";
+import { Route as AuthenticatedOperationLogsRouteRouteImport } from "./routes/_authenticated/operation-logs/route";
+import { Route as AuthenticatedLoginLogsRouteRouteImport } from "./routes/_authenticated/login-logs/route";
+import { Route as AuthenticatedInvoicesRouteRouteImport } from "./routes/_authenticated/invoices/route";
+import { Route as AuthenticatedDepartmentsRouteRouteImport } from "./routes/_authenticated/departments/route";
+import { Route as AuthenticatedCustomersRouteRouteImport } from "./routes/_authenticated/customers/route";
+import { Route as AuthenticatedCustomerRulesRouteRouteImport } from "./routes/_authenticated/customer-rules/route";
+import { Route as AuthenticatedContractsRouteRouteImport } from "./routes/_authenticated/contracts/route";
+import { Route as AuthenticatedContractTemplatesRouteRouteImport } from "./routes/_authenticated/contract-templates/route";
+import { Route as AuthenticatedContactsRouteRouteImport } from "./routes/_authenticated/contacts/route";
+import { Route as AuthenticatedCmsRouteRouteImport } from "./routes/_authenticated/cms/route";
+import { Route as AuthenticatedUsersIndexRouteImport } from "./routes/_authenticated/users/index";
+import { Route as AuthenticatedTasksIndexRouteImport } from "./routes/_authenticated/tasks/index";
+import { Route as AuthenticatedSettingsIndexRouteImport } from "./routes/_authenticated/settings/index";
+import { Route as AuthenticatedHelpCenterIndexRouteImport } from "./routes/_authenticated/help-center/index";
+import { Route as AuthenticatedChatsIndexRouteImport } from "./routes/_authenticated/chats/index";
+import { Route as AuthenticatedAppsIndexRouteImport } from "./routes/_authenticated/apps/index";
+import { Route as AuthenticatedSettingsNotificationsRouteImport } from "./routes/_authenticated/settings/notifications";
+import { Route as AuthenticatedSettingsAppearanceRouteImport } from "./routes/_authenticated/settings/appearance";
+import { Route as AuthenticatedSettingsAccountRouteImport } from "./routes/_authenticated/settings/account";
+import { Route as AuthenticatedErrorsErrorRouteImport } from "./routes/_authenticated/errors/$error";
+import { Route as AuthenticatedCmsTagsRouteRouteImport } from "./routes/_authenticated/cms/tags/route";
+import { Route as AuthenticatedCmsElementsRouteRouteImport } from "./routes/_authenticated/cms/elements/route";
 
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+  id: "/login",
+  path: "/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+  id: "/_authenticated",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedWebhooksRoute = AuthenticatedWebhooksRouteImport.update({
-  id: '/webhooks',
-  path: '/webhooks',
+  id: "/webhooks",
+  path: "/webhooks",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const errors503Route = errors503RouteImport.update({
-  id: '/(errors)/503',
-  path: '/503',
+  id: "/(errors)/503",
+  path: "/503",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const errors500Route = errors500RouteImport.update({
-  id: '/(errors)/500',
-  path: '/500',
+  id: "/(errors)/500",
+  path: "/500",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const errors404Route = errors404RouteImport.update({
-  id: '/(errors)/404',
-  path: '/404',
+  id: "/(errors)/404",
+  path: "/404",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const errors403Route = errors403RouteImport.update({
-  id: '/(errors)/403',
-  path: '/403',
+  id: "/(errors)/403",
+  path: "/403",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const errors401Route = errors401RouteImport.update({
-  id: '/(errors)/401',
-  path: '/401',
+  id: "/(errors)/401",
+  path: "/401",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AuthenticatedSystemLogsRouteRoute =
   AuthenticatedSystemLogsRouteRouteImport.update({
-    id: '/system-logs',
-    path: '/system-logs',
+    id: "/system-logs",
+    path: "/system-logs",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSocialMediaRouteRoute =
   AuthenticatedSocialMediaRouteRouteImport.update({
-    id: '/social-media',
-    path: '/social-media',
+    id: "/social-media",
+    path: "/social-media",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
-    id: '/settings',
-    path: '/settings',
+    id: "/settings",
+    path: "/settings",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedServiceTeamsRouteRoute =
   AuthenticatedServiceTeamsRouteRouteImport.update({
-    id: '/service-teams',
-    path: '/service-teams',
+    id: "/service-teams",
+    path: "/service-teams",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedRolesRouteRoute = AuthenticatedRolesRouteRouteImport.update({
-  id: '/roles',
-  path: '/roles',
+  id: "/roles",
+  path: "/roles",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedProductsRouteRoute =
   AuthenticatedProductsRouteRouteImport.update({
-    id: '/products',
-    path: '/products',
+    id: "/products",
+    path: "/products",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedPermissionsRouteRoute =
   AuthenticatedPermissionsRouteRouteImport.update({
-    id: '/permissions',
-    path: '/permissions',
+    id: "/permissions",
+    path: "/permissions",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedPaymentsRouteRoute =
   AuthenticatedPaymentsRouteRouteImport.update({
-    id: '/payments',
-    path: '/payments',
+    id: "/payments",
+    path: "/payments",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedOperationLogsRouteRoute =
   AuthenticatedOperationLogsRouteRouteImport.update({
-    id: '/operation-logs',
-    path: '/operation-logs',
+    id: "/operation-logs",
+    path: "/operation-logs",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedLoginLogsRouteRoute =
   AuthenticatedLoginLogsRouteRouteImport.update({
-    id: '/login-logs',
-    path: '/login-logs',
+    id: "/login-logs",
+    path: "/login-logs",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedInvoicesRouteRoute =
   AuthenticatedInvoicesRouteRouteImport.update({
-    id: '/invoices',
-    path: '/invoices',
+    id: "/invoices",
+    path: "/invoices",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedDepartmentsRouteRoute =
   AuthenticatedDepartmentsRouteRouteImport.update({
-    id: '/departments',
-    path: '/departments',
+    id: "/departments",
+    path: "/departments",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedCustomersRouteRoute =
   AuthenticatedCustomersRouteRouteImport.update({
-    id: '/customers',
-    path: '/customers',
+    id: "/customers",
+    path: "/customers",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedCustomerRulesRouteRoute =
   AuthenticatedCustomerRulesRouteRouteImport.update({
-    id: '/customer-rules',
-    path: '/customer-rules',
+    id: "/customer-rules",
+    path: "/customer-rules",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedContractsRouteRoute =
   AuthenticatedContractsRouteRouteImport.update({
-    id: '/contracts',
-    path: '/contracts',
+    id: "/contracts",
+    path: "/contracts",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedContractTemplatesRouteRoute =
   AuthenticatedContractTemplatesRouteRouteImport.update({
-    id: '/contract-templates',
-    path: '/contract-templates',
+    id: "/contract-templates",
+    path: "/contract-templates",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedContactsRouteRoute =
   AuthenticatedContactsRouteRouteImport.update({
-    id: '/contacts',
-    path: '/contacts',
+    id: "/contacts",
+    path: "/contacts",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedCmsRouteRoute = AuthenticatedCmsRouteRouteImport.update({
-  id: '/cms',
-  path: '/cms',
+  id: "/cms",
+  path: "/cms",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
-  id: '/users/',
-  path: '/users/',
+  id: "/users/",
+  path: "/users/",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
+  id: "/tasks/",
+  path: "/tasks/",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
+    id: "/",
+    path: "/",
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
-    id: '/help-center/',
-    path: '/help-center/',
+    id: "/help-center/",
+    path: "/help-center/",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexRouteImport.update({
-  id: '/chats/',
-  path: '/chats/',
+  id: "/chats/",
+  path: "/chats/",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexRouteImport.update({
-  id: '/apps/',
-  path: '/apps/',
+  id: "/apps/",
+  path: "/apps/",
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
+    id: "/notifications",
+    path: "/notifications",
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsAppearanceRoute =
   AuthenticatedSettingsAppearanceRouteImport.update({
-    id: '/appearance',
-    path: '/appearance',
+    id: "/appearance",
+    path: "/appearance",
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsAccountRoute =
   AuthenticatedSettingsAccountRouteImport.update({
-    id: '/account',
-    path: '/account',
+    id: "/account",
+    path: "/account",
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedErrorsErrorRoute =
   AuthenticatedErrorsErrorRouteImport.update({
-    id: '/errors/$error',
-    path: '/errors/$error',
+    id: "/errors/$error",
+    path: "/errors/$error",
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedCmsTagsRouteRoute =
   AuthenticatedCmsTagsRouteRouteImport.update({
-    id: '/tags',
-    path: '/tags',
+    id: "/tags",
+    path: "/tags",
     getParentRoute: () => AuthenticatedCmsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedCmsElementsRouteRoute =
   AuthenticatedCmsElementsRouteRouteImport.update({
-    id: '/elements',
-    path: '/elements',
+    id: "/elements",
+    path: "/elements",
     getParentRoute: () => AuthenticatedCmsRouteRoute,
-  } as any)
+  } as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
-  '/login': typeof LoginRoute
-  '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
-  '/contacts': typeof AuthenticatedContactsRouteRoute
-  '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
-  '/contracts': typeof AuthenticatedContractsRouteRoute
-  '/customer-rules': typeof AuthenticatedCustomerRulesRouteRoute
-  '/customers': typeof AuthenticatedCustomersRouteRoute
-  '/departments': typeof AuthenticatedDepartmentsRouteRoute
-  '/invoices': typeof AuthenticatedInvoicesRouteRoute
-  '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
-  '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
-  '/payments': typeof AuthenticatedPaymentsRouteRoute
-  '/permissions': typeof AuthenticatedPermissionsRouteRoute
-  '/products': typeof AuthenticatedProductsRouteRoute
-  '/roles': typeof AuthenticatedRolesRouteRoute
-  '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
-  '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/social-media': typeof AuthenticatedSocialMediaRouteRoute
-  '/system-logs': typeof AuthenticatedSystemLogsRouteRoute
-  '/401': typeof errors401Route
-  '/403': typeof errors403Route
-  '/404': typeof errors404Route
-  '/500': typeof errors500Route
-  '/503': typeof errors503Route
-  '/webhooks': typeof AuthenticatedWebhooksRoute
-  '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
-  '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
-  '/errors/$error': typeof AuthenticatedErrorsErrorRoute
-  '/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/apps/': typeof AuthenticatedAppsIndexRoute
-  '/chats/': typeof AuthenticatedChatsIndexRoute
-  '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
-  '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/tasks/': typeof AuthenticatedTasksIndexRoute
-  '/users/': typeof AuthenticatedUsersIndexRoute
+  "/": typeof AuthenticatedIndexRoute;
+  "/login": typeof LoginRoute;
+  "/cms": typeof AuthenticatedCmsRouteRouteWithChildren;
+  "/contacts": typeof AuthenticatedContactsRouteRoute;
+  "/contract-templates": typeof AuthenticatedContractTemplatesRouteRoute;
+  "/contracts": typeof AuthenticatedContractsRouteRoute;
+  "/customer-rules": typeof AuthenticatedCustomerRulesRouteRoute;
+  "/customers": typeof AuthenticatedCustomersRouteRoute;
+  "/departments": typeof AuthenticatedDepartmentsRouteRoute;
+  "/invoices": typeof AuthenticatedInvoicesRouteRoute;
+  "/login-logs": typeof AuthenticatedLoginLogsRouteRoute;
+  "/operation-logs": typeof AuthenticatedOperationLogsRouteRoute;
+  "/payments": typeof AuthenticatedPaymentsRouteRoute;
+  "/permissions": typeof AuthenticatedPermissionsRouteRoute;
+  "/products": typeof AuthenticatedProductsRouteRoute;
+  "/roles": typeof AuthenticatedRolesRouteRoute;
+  "/service-teams": typeof AuthenticatedServiceTeamsRouteRoute;
+  "/settings": typeof AuthenticatedSettingsRouteRouteWithChildren;
+  "/social-media": typeof AuthenticatedSocialMediaRouteRoute;
+  "/system-logs": typeof AuthenticatedSystemLogsRouteRoute;
+  "/401": typeof errors401Route;
+  "/403": typeof errors403Route;
+  "/404": typeof errors404Route;
+  "/500": typeof errors500Route;
+  "/503": typeof errors503Route;
+  "/webhooks": typeof AuthenticatedWebhooksRoute;
+  "/cms/elements": typeof AuthenticatedCmsElementsRouteRoute;
+  "/cms/tags": typeof AuthenticatedCmsTagsRouteRoute;
+  "/errors/$error": typeof AuthenticatedErrorsErrorRoute;
+  "/settings/account": typeof AuthenticatedSettingsAccountRoute;
+  "/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
+  "/settings/notifications": typeof AuthenticatedSettingsNotificationsRoute;
+  "/apps/": typeof AuthenticatedAppsIndexRoute;
+  "/chats/": typeof AuthenticatedChatsIndexRoute;
+  "/help-center/": typeof AuthenticatedHelpCenterIndexRoute;
+  "/settings/": typeof AuthenticatedSettingsIndexRoute;
+  "/tasks/": typeof AuthenticatedTasksIndexRoute;
+  "/users/": typeof AuthenticatedUsersIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
-  '/contacts': typeof AuthenticatedContactsRouteRoute
-  '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
-  '/contracts': typeof AuthenticatedContractsRouteRoute
-  '/customer-rules': typeof AuthenticatedCustomerRulesRouteRoute
-  '/customers': typeof AuthenticatedCustomersRouteRoute
-  '/departments': typeof AuthenticatedDepartmentsRouteRoute
-  '/invoices': typeof AuthenticatedInvoicesRouteRoute
-  '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
-  '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
-  '/payments': typeof AuthenticatedPaymentsRouteRoute
-  '/permissions': typeof AuthenticatedPermissionsRouteRoute
-  '/products': typeof AuthenticatedProductsRouteRoute
-  '/roles': typeof AuthenticatedRolesRouteRoute
-  '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
-  '/social-media': typeof AuthenticatedSocialMediaRouteRoute
-  '/system-logs': typeof AuthenticatedSystemLogsRouteRoute
-  '/401': typeof errors401Route
-  '/403': typeof errors403Route
-  '/404': typeof errors404Route
-  '/500': typeof errors500Route
-  '/503': typeof errors503Route
-  '/webhooks': typeof AuthenticatedWebhooksRoute
-  '/': typeof AuthenticatedIndexRoute
-  '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
-  '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
-  '/errors/$error': typeof AuthenticatedErrorsErrorRoute
-  '/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/apps': typeof AuthenticatedAppsIndexRoute
-  '/chats': typeof AuthenticatedChatsIndexRoute
-  '/help-center': typeof AuthenticatedHelpCenterIndexRoute
-  '/settings': typeof AuthenticatedSettingsIndexRoute
-  '/tasks': typeof AuthenticatedTasksIndexRoute
-  '/users': typeof AuthenticatedUsersIndexRoute
+  "/login": typeof LoginRoute;
+  "/cms": typeof AuthenticatedCmsRouteRouteWithChildren;
+  "/contacts": typeof AuthenticatedContactsRouteRoute;
+  "/contract-templates": typeof AuthenticatedContractTemplatesRouteRoute;
+  "/contracts": typeof AuthenticatedContractsRouteRoute;
+  "/customer-rules": typeof AuthenticatedCustomerRulesRouteRoute;
+  "/customers": typeof AuthenticatedCustomersRouteRoute;
+  "/departments": typeof AuthenticatedDepartmentsRouteRoute;
+  "/invoices": typeof AuthenticatedInvoicesRouteRoute;
+  "/login-logs": typeof AuthenticatedLoginLogsRouteRoute;
+  "/operation-logs": typeof AuthenticatedOperationLogsRouteRoute;
+  "/payments": typeof AuthenticatedPaymentsRouteRoute;
+  "/permissions": typeof AuthenticatedPermissionsRouteRoute;
+  "/products": typeof AuthenticatedProductsRouteRoute;
+  "/roles": typeof AuthenticatedRolesRouteRoute;
+  "/service-teams": typeof AuthenticatedServiceTeamsRouteRoute;
+  "/social-media": typeof AuthenticatedSocialMediaRouteRoute;
+  "/system-logs": typeof AuthenticatedSystemLogsRouteRoute;
+  "/401": typeof errors401Route;
+  "/403": typeof errors403Route;
+  "/404": typeof errors404Route;
+  "/500": typeof errors500Route;
+  "/503": typeof errors503Route;
+  "/webhooks": typeof AuthenticatedWebhooksRoute;
+  "/": typeof AuthenticatedIndexRoute;
+  "/cms/elements": typeof AuthenticatedCmsElementsRouteRoute;
+  "/cms/tags": typeof AuthenticatedCmsTagsRouteRoute;
+  "/errors/$error": typeof AuthenticatedErrorsErrorRoute;
+  "/settings/account": typeof AuthenticatedSettingsAccountRoute;
+  "/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
+  "/settings/notifications": typeof AuthenticatedSettingsNotificationsRoute;
+  "/apps": typeof AuthenticatedAppsIndexRoute;
+  "/chats": typeof AuthenticatedChatsIndexRoute;
+  "/help-center": typeof AuthenticatedHelpCenterIndexRoute;
+  "/settings": typeof AuthenticatedSettingsIndexRoute;
+  "/tasks": typeof AuthenticatedTasksIndexRoute;
+  "/users": typeof AuthenticatedUsersIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/login': typeof LoginRoute
-  '/_authenticated/cms': typeof AuthenticatedCmsRouteRouteWithChildren
-  '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
-  '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
-  '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
-  '/_authenticated/customer-rules': typeof AuthenticatedCustomerRulesRouteRoute
-  '/_authenticated/customers': typeof AuthenticatedCustomersRouteRoute
-  '/_authenticated/departments': typeof AuthenticatedDepartmentsRouteRoute
-  '/_authenticated/invoices': typeof AuthenticatedInvoicesRouteRoute
-  '/_authenticated/login-logs': typeof AuthenticatedLoginLogsRouteRoute
-  '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
-  '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
-  '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
-  '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
-  '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
-  '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/_authenticated/social-media': typeof AuthenticatedSocialMediaRouteRoute
-  '/_authenticated/system-logs': typeof AuthenticatedSystemLogsRouteRoute
-  '/(errors)/401': typeof errors401Route
-  '/(errors)/403': typeof errors403Route
-  '/(errors)/404': typeof errors404Route
-  '/(errors)/500': typeof errors500Route
-  '/(errors)/503': typeof errors503Route
-  '/_authenticated/webhooks': typeof AuthenticatedWebhooksRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
-  '/_authenticated/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
-  '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
-  '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
-  '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
-  '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
-  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
-  '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  __root__: typeof rootRouteImport;
+  "/_authenticated": typeof AuthenticatedRouteRouteWithChildren;
+  "/login": typeof LoginRoute;
+  "/_authenticated/cms": typeof AuthenticatedCmsRouteRouteWithChildren;
+  "/_authenticated/contacts": typeof AuthenticatedContactsRouteRoute;
+  "/_authenticated/contract-templates": typeof AuthenticatedContractTemplatesRouteRoute;
+  "/_authenticated/contracts": typeof AuthenticatedContractsRouteRoute;
+  "/_authenticated/customer-rules": typeof AuthenticatedCustomerRulesRouteRoute;
+  "/_authenticated/customers": typeof AuthenticatedCustomersRouteRoute;
+  "/_authenticated/departments": typeof AuthenticatedDepartmentsRouteRoute;
+  "/_authenticated/invoices": typeof AuthenticatedInvoicesRouteRoute;
+  "/_authenticated/login-logs": typeof AuthenticatedLoginLogsRouteRoute;
+  "/_authenticated/operation-logs": typeof AuthenticatedOperationLogsRouteRoute;
+  "/_authenticated/payments": typeof AuthenticatedPaymentsRouteRoute;
+  "/_authenticated/permissions": typeof AuthenticatedPermissionsRouteRoute;
+  "/_authenticated/products": typeof AuthenticatedProductsRouteRoute;
+  "/_authenticated/roles": typeof AuthenticatedRolesRouteRoute;
+  "/_authenticated/service-teams": typeof AuthenticatedServiceTeamsRouteRoute;
+  "/_authenticated/settings": typeof AuthenticatedSettingsRouteRouteWithChildren;
+  "/_authenticated/social-media": typeof AuthenticatedSocialMediaRouteRoute;
+  "/_authenticated/system-logs": typeof AuthenticatedSystemLogsRouteRoute;
+  "/(errors)/401": typeof errors401Route;
+  "/(errors)/403": typeof errors403Route;
+  "/(errors)/404": typeof errors404Route;
+  "/(errors)/500": typeof errors500Route;
+  "/(errors)/503": typeof errors503Route;
+  "/_authenticated/webhooks": typeof AuthenticatedWebhooksRoute;
+  "/_authenticated/": typeof AuthenticatedIndexRoute;
+  "/_authenticated/cms/elements": typeof AuthenticatedCmsElementsRouteRoute;
+  "/_authenticated/cms/tags": typeof AuthenticatedCmsTagsRouteRoute;
+  "/_authenticated/errors/$error": typeof AuthenticatedErrorsErrorRoute;
+  "/_authenticated/settings/account": typeof AuthenticatedSettingsAccountRoute;
+  "/_authenticated/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
+  "/_authenticated/settings/notifications": typeof AuthenticatedSettingsNotificationsRoute;
+  "/_authenticated/apps/": typeof AuthenticatedAppsIndexRoute;
+  "/_authenticated/chats/": typeof AuthenticatedChatsIndexRoute;
+  "/_authenticated/help-center/": typeof AuthenticatedHelpCenterIndexRoute;
+  "/_authenticated/settings/": typeof AuthenticatedSettingsIndexRoute;
+  "/_authenticated/tasks/": typeof AuthenticatedTasksIndexRoute;
+  "/_authenticated/users/": typeof AuthenticatedUsersIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/login'
-    | '/cms'
-    | '/contacts'
-    | '/contract-templates'
-    | '/contracts'
-    | '/customer-rules'
-    | '/customers'
-    | '/departments'
-    | '/invoices'
-    | '/login-logs'
-    | '/operation-logs'
-    | '/payments'
-    | '/permissions'
-    | '/products'
-    | '/roles'
-    | '/service-teams'
-    | '/settings'
-    | '/social-media'
-    | '/system-logs'
-    | '/401'
-    | '/403'
-    | '/404'
-    | '/500'
-    | '/503'
-    | '/webhooks'
-    | '/cms/elements'
-    | '/cms/tags'
-    | '/errors/$error'
-    | '/settings/account'
-    | '/settings/appearance'
-    | '/settings/notifications'
-    | '/apps/'
-    | '/chats/'
-    | '/help-center/'
-    | '/settings/'
-    | '/tasks/'
-    | '/users/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/login"
+    | "/cms"
+    | "/contacts"
+    | "/contract-templates"
+    | "/contracts"
+    | "/customer-rules"
+    | "/customers"
+    | "/departments"
+    | "/invoices"
+    | "/login-logs"
+    | "/operation-logs"
+    | "/payments"
+    | "/permissions"
+    | "/products"
+    | "/roles"
+    | "/service-teams"
+    | "/settings"
+    | "/social-media"
+    | "/system-logs"
+    | "/401"
+    | "/403"
+    | "/404"
+    | "/500"
+    | "/503"
+    | "/webhooks"
+    | "/cms/elements"
+    | "/cms/tags"
+    | "/errors/$error"
+    | "/settings/account"
+    | "/settings/appearance"
+    | "/settings/notifications"
+    | "/apps/"
+    | "/chats/"
+    | "/help-center/"
+    | "/settings/"
+    | "/tasks/"
+    | "/users/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/login'
-    | '/cms'
-    | '/contacts'
-    | '/contract-templates'
-    | '/contracts'
-    | '/customer-rules'
-    | '/customers'
-    | '/departments'
-    | '/invoices'
-    | '/login-logs'
-    | '/operation-logs'
-    | '/payments'
-    | '/permissions'
-    | '/products'
-    | '/roles'
-    | '/service-teams'
-    | '/social-media'
-    | '/system-logs'
-    | '/401'
-    | '/403'
-    | '/404'
-    | '/500'
-    | '/503'
-    | '/webhooks'
-    | '/'
-    | '/cms/elements'
-    | '/cms/tags'
-    | '/errors/$error'
-    | '/settings/account'
-    | '/settings/appearance'
-    | '/settings/notifications'
-    | '/apps'
-    | '/chats'
-    | '/help-center'
-    | '/settings'
-    | '/tasks'
-    | '/users'
+    | "/login"
+    | "/cms"
+    | "/contacts"
+    | "/contract-templates"
+    | "/contracts"
+    | "/customer-rules"
+    | "/customers"
+    | "/departments"
+    | "/invoices"
+    | "/login-logs"
+    | "/operation-logs"
+    | "/payments"
+    | "/permissions"
+    | "/products"
+    | "/roles"
+    | "/service-teams"
+    | "/social-media"
+    | "/system-logs"
+    | "/401"
+    | "/403"
+    | "/404"
+    | "/500"
+    | "/503"
+    | "/webhooks"
+    | "/"
+    | "/cms/elements"
+    | "/cms/tags"
+    | "/errors/$error"
+    | "/settings/account"
+    | "/settings/appearance"
+    | "/settings/notifications"
+    | "/apps"
+    | "/chats"
+    | "/help-center"
+    | "/settings"
+    | "/tasks"
+    | "/users";
   id:
-    | '__root__'
-    | '/_authenticated'
-    | '/login'
-    | '/_authenticated/cms'
-    | '/_authenticated/contacts'
-    | '/_authenticated/contract-templates'
-    | '/_authenticated/contracts'
-    | '/_authenticated/customer-rules'
-    | '/_authenticated/customers'
-    | '/_authenticated/departments'
-    | '/_authenticated/invoices'
-    | '/_authenticated/login-logs'
-    | '/_authenticated/operation-logs'
-    | '/_authenticated/payments'
-    | '/_authenticated/permissions'
-    | '/_authenticated/products'
-    | '/_authenticated/roles'
-    | '/_authenticated/service-teams'
-    | '/_authenticated/settings'
-    | '/_authenticated/social-media'
-    | '/_authenticated/system-logs'
-    | '/(errors)/401'
-    | '/(errors)/403'
-    | '/(errors)/404'
-    | '/(errors)/500'
-    | '/(errors)/503'
-    | '/_authenticated/webhooks'
-    | '/_authenticated/'
-    | '/_authenticated/cms/elements'
-    | '/_authenticated/cms/tags'
-    | '/_authenticated/errors/$error'
-    | '/_authenticated/settings/account'
-    | '/_authenticated/settings/appearance'
-    | '/_authenticated/settings/notifications'
-    | '/_authenticated/apps/'
-    | '/_authenticated/chats/'
-    | '/_authenticated/help-center/'
-    | '/_authenticated/settings/'
-    | '/_authenticated/tasks/'
-    | '/_authenticated/users/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/_authenticated"
+    | "/login"
+    | "/_authenticated/cms"
+    | "/_authenticated/contacts"
+    | "/_authenticated/contract-templates"
+    | "/_authenticated/contracts"
+    | "/_authenticated/customer-rules"
+    | "/_authenticated/customers"
+    | "/_authenticated/departments"
+    | "/_authenticated/invoices"
+    | "/_authenticated/login-logs"
+    | "/_authenticated/operation-logs"
+    | "/_authenticated/payments"
+    | "/_authenticated/permissions"
+    | "/_authenticated/products"
+    | "/_authenticated/roles"
+    | "/_authenticated/service-teams"
+    | "/_authenticated/settings"
+    | "/_authenticated/social-media"
+    | "/_authenticated/system-logs"
+    | "/(errors)/401"
+    | "/(errors)/403"
+    | "/(errors)/404"
+    | "/(errors)/500"
+    | "/(errors)/503"
+    | "/_authenticated/webhooks"
+    | "/_authenticated/"
+    | "/_authenticated/cms/elements"
+    | "/_authenticated/cms/tags"
+    | "/_authenticated/errors/$error"
+    | "/_authenticated/settings/account"
+    | "/_authenticated/settings/appearance"
+    | "/_authenticated/settings/notifications"
+    | "/_authenticated/apps/"
+    | "/_authenticated/chats/"
+    | "/_authenticated/help-center/"
+    | "/_authenticated/settings/"
+    | "/_authenticated/tasks/"
+    | "/_authenticated/users/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  errors401Route: typeof errors401Route
-  errors403Route: typeof errors403Route
-  errors404Route: typeof errors404Route
-  errors500Route: typeof errors500Route
-  errors503Route: typeof errors503Route
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren;
+  LoginRoute: typeof LoginRoute;
+  errors401Route: typeof errors401Route;
+  errors403Route: typeof errors403Route;
+  errors404Route: typeof errors404Route;
+  errors500Route: typeof errors500Route;
+  errors503Route: typeof errors503Route;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/webhooks': {
-      id: '/_authenticated/webhooks'
-      path: '/webhooks'
-      fullPath: '/webhooks'
-      preLoaderRoute: typeof AuthenticatedWebhooksRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/(errors)/503': {
-      id: '/(errors)/503'
-      path: '/503'
-      fullPath: '/503'
-      preLoaderRoute: typeof errors503RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/500': {
-      id: '/(errors)/500'
-      path: '/500'
-      fullPath: '/500'
-      preLoaderRoute: typeof errors500RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/404': {
-      id: '/(errors)/404'
-      path: '/404'
-      fullPath: '/404'
-      preLoaderRoute: typeof errors404RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/403': {
-      id: '/(errors)/403'
-      path: '/403'
-      fullPath: '/403'
-      preLoaderRoute: typeof errors403RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/401': {
-      id: '/(errors)/401'
-      path: '/401'
-      fullPath: '/401'
-      preLoaderRoute: typeof errors401RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/system-logs': {
-      id: '/_authenticated/system-logs'
-      path: '/system-logs'
-      fullPath: '/system-logs'
-      preLoaderRoute: typeof AuthenticatedSystemLogsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/social-media': {
-      id: '/_authenticated/social-media'
-      path: '/social-media'
-      fullPath: '/social-media'
-      preLoaderRoute: typeof AuthenticatedSocialMediaRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/service-teams': {
-      id: '/_authenticated/service-teams'
-      path: '/service-teams'
-      fullPath: '/service-teams'
-      preLoaderRoute: typeof AuthenticatedServiceTeamsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/roles': {
-      id: '/_authenticated/roles'
-      path: '/roles'
-      fullPath: '/roles'
-      preLoaderRoute: typeof AuthenticatedRolesRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/products': {
-      id: '/_authenticated/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof AuthenticatedProductsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/permissions': {
-      id: '/_authenticated/permissions'
-      path: '/permissions'
-      fullPath: '/permissions'
-      preLoaderRoute: typeof AuthenticatedPermissionsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/payments': {
-      id: '/_authenticated/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof AuthenticatedPaymentsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/operation-logs': {
-      id: '/_authenticated/operation-logs'
-      path: '/operation-logs'
-      fullPath: '/operation-logs'
-      preLoaderRoute: typeof AuthenticatedOperationLogsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/login-logs': {
-      id: '/_authenticated/login-logs'
-      path: '/login-logs'
-      fullPath: '/login-logs'
-      preLoaderRoute: typeof AuthenticatedLoginLogsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/invoices': {
-      id: '/_authenticated/invoices'
-      path: '/invoices'
-      fullPath: '/invoices'
-      preLoaderRoute: typeof AuthenticatedInvoicesRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/departments': {
-      id: '/_authenticated/departments'
-      path: '/departments'
-      fullPath: '/departments'
-      preLoaderRoute: typeof AuthenticatedDepartmentsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/customers': {
-      id: '/_authenticated/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof AuthenticatedCustomersRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/customer-rules': {
-      id: '/_authenticated/customer-rules'
-      path: '/customer-rules'
-      fullPath: '/customer-rules'
-      preLoaderRoute: typeof AuthenticatedCustomerRulesRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contracts': {
-      id: '/_authenticated/contracts'
-      path: '/contracts'
-      fullPath: '/contracts'
-      preLoaderRoute: typeof AuthenticatedContractsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contract-templates': {
-      id: '/_authenticated/contract-templates'
-      path: '/contract-templates'
-      fullPath: '/contract-templates'
-      preLoaderRoute: typeof AuthenticatedContractTemplatesRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contacts': {
-      id: '/_authenticated/contacts'
-      path: '/contacts'
-      fullPath: '/contacts'
-      preLoaderRoute: typeof AuthenticatedContactsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cms': {
-      id: '/_authenticated/cms'
-      path: '/cms'
-      fullPath: '/cms'
-      preLoaderRoute: typeof AuthenticatedCmsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/users/': {
-      id: '/_authenticated/users/'
-      path: '/users'
-      fullPath: '/users/'
-      preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tasks/': {
-      id: '/_authenticated/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks/'
-      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings/': {
-      id: '/_authenticated/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/help-center/': {
-      id: '/_authenticated/help-center/'
-      path: '/help-center'
-      fullPath: '/help-center/'
-      preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/chats/': {
-      id: '/_authenticated/chats/'
-      path: '/chats'
-      fullPath: '/chats/'
-      preLoaderRoute: typeof AuthenticatedChatsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/apps/': {
-      id: '/_authenticated/apps/'
-      path: '/apps'
-      fullPath: '/apps/'
-      preLoaderRoute: typeof AuthenticatedAppsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings/notifications': {
-      id: '/_authenticated/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/settings/appearance': {
-      id: '/_authenticated/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/settings/account': {
-      id: '/_authenticated/settings/account'
-      path: '/account'
-      fullPath: '/settings/account'
-      preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/errors/$error': {
-      id: '/_authenticated/errors/$error'
-      path: '/errors/$error'
-      fullPath: '/errors/$error'
-      preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cms/tags': {
-      id: '/_authenticated/cms/tags'
-      path: '/tags'
-      fullPath: '/cms/tags'
-      preLoaderRoute: typeof AuthenticatedCmsTagsRouteRouteImport
-      parentRoute: typeof AuthenticatedCmsRouteRoute
-    }
-    '/_authenticated/cms/elements': {
-      id: '/_authenticated/cms/elements'
-      path: '/elements'
-      fullPath: '/cms/elements'
-      preLoaderRoute: typeof AuthenticatedCmsElementsRouteRouteImport
-      parentRoute: typeof AuthenticatedCmsRouteRoute
-    }
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_authenticated": {
+      id: "/_authenticated";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_authenticated/": {
+      id: "/_authenticated/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/webhooks": {
+      id: "/_authenticated/webhooks";
+      path: "/webhooks";
+      fullPath: "/webhooks";
+      preLoaderRoute: typeof AuthenticatedWebhooksRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/(errors)/503": {
+      id: "/(errors)/503";
+      path: "/503";
+      fullPath: "/503";
+      preLoaderRoute: typeof errors503RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/(errors)/500": {
+      id: "/(errors)/500";
+      path: "/500";
+      fullPath: "/500";
+      preLoaderRoute: typeof errors500RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/(errors)/404": {
+      id: "/(errors)/404";
+      path: "/404";
+      fullPath: "/404";
+      preLoaderRoute: typeof errors404RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/(errors)/403": {
+      id: "/(errors)/403";
+      path: "/403";
+      fullPath: "/403";
+      preLoaderRoute: typeof errors403RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/(errors)/401": {
+      id: "/(errors)/401";
+      path: "/401";
+      fullPath: "/401";
+      preLoaderRoute: typeof errors401RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_authenticated/system-logs": {
+      id: "/_authenticated/system-logs";
+      path: "/system-logs";
+      fullPath: "/system-logs";
+      preLoaderRoute: typeof AuthenticatedSystemLogsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/social-media": {
+      id: "/_authenticated/social-media";
+      path: "/social-media";
+      fullPath: "/social-media";
+      preLoaderRoute: typeof AuthenticatedSocialMediaRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/settings": {
+      id: "/_authenticated/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/service-teams": {
+      id: "/_authenticated/service-teams";
+      path: "/service-teams";
+      fullPath: "/service-teams";
+      preLoaderRoute: typeof AuthenticatedServiceTeamsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/roles": {
+      id: "/_authenticated/roles";
+      path: "/roles";
+      fullPath: "/roles";
+      preLoaderRoute: typeof AuthenticatedRolesRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/products": {
+      id: "/_authenticated/products";
+      path: "/products";
+      fullPath: "/products";
+      preLoaderRoute: typeof AuthenticatedProductsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/permissions": {
+      id: "/_authenticated/permissions";
+      path: "/permissions";
+      fullPath: "/permissions";
+      preLoaderRoute: typeof AuthenticatedPermissionsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/payments": {
+      id: "/_authenticated/payments";
+      path: "/payments";
+      fullPath: "/payments";
+      preLoaderRoute: typeof AuthenticatedPaymentsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/operation-logs": {
+      id: "/_authenticated/operation-logs";
+      path: "/operation-logs";
+      fullPath: "/operation-logs";
+      preLoaderRoute: typeof AuthenticatedOperationLogsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/login-logs": {
+      id: "/_authenticated/login-logs";
+      path: "/login-logs";
+      fullPath: "/login-logs";
+      preLoaderRoute: typeof AuthenticatedLoginLogsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/invoices": {
+      id: "/_authenticated/invoices";
+      path: "/invoices";
+      fullPath: "/invoices";
+      preLoaderRoute: typeof AuthenticatedInvoicesRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/departments": {
+      id: "/_authenticated/departments";
+      path: "/departments";
+      fullPath: "/departments";
+      preLoaderRoute: typeof AuthenticatedDepartmentsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/customers": {
+      id: "/_authenticated/customers";
+      path: "/customers";
+      fullPath: "/customers";
+      preLoaderRoute: typeof AuthenticatedCustomersRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/customer-rules": {
+      id: "/_authenticated/customer-rules";
+      path: "/customer-rules";
+      fullPath: "/customer-rules";
+      preLoaderRoute: typeof AuthenticatedCustomerRulesRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/contracts": {
+      id: "/_authenticated/contracts";
+      path: "/contracts";
+      fullPath: "/contracts";
+      preLoaderRoute: typeof AuthenticatedContractsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/contract-templates": {
+      id: "/_authenticated/contract-templates";
+      path: "/contract-templates";
+      fullPath: "/contract-templates";
+      preLoaderRoute: typeof AuthenticatedContractTemplatesRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/contacts": {
+      id: "/_authenticated/contacts";
+      path: "/contacts";
+      fullPath: "/contacts";
+      preLoaderRoute: typeof AuthenticatedContactsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/cms": {
+      id: "/_authenticated/cms";
+      path: "/cms";
+      fullPath: "/cms";
+      preLoaderRoute: typeof AuthenticatedCmsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/users/": {
+      id: "/_authenticated/users/";
+      path: "/users";
+      fullPath: "/users/";
+      preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/tasks/": {
+      id: "/_authenticated/tasks/";
+      path: "/tasks";
+      fullPath: "/tasks/";
+      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/settings/": {
+      id: "/_authenticated/settings/";
+      path: "/";
+      fullPath: "/settings/";
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    "/_authenticated/help-center/": {
+      id: "/_authenticated/help-center/";
+      path: "/help-center";
+      fullPath: "/help-center/";
+      preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/chats/": {
+      id: "/_authenticated/chats/";
+      path: "/chats";
+      fullPath: "/chats/";
+      preLoaderRoute: typeof AuthenticatedChatsIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/apps/": {
+      id: "/_authenticated/apps/";
+      path: "/apps";
+      fullPath: "/apps/";
+      preLoaderRoute: typeof AuthenticatedAppsIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/settings/notifications": {
+      id: "/_authenticated/settings/notifications";
+      path: "/notifications";
+      fullPath: "/settings/notifications";
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    "/_authenticated/settings/appearance": {
+      id: "/_authenticated/settings/appearance";
+      path: "/appearance";
+      fullPath: "/settings/appearance";
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    "/_authenticated/settings/account": {
+      id: "/_authenticated/settings/account";
+      path: "/account";
+      fullPath: "/settings/account";
+      preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    "/_authenticated/errors/$error": {
+      id: "/_authenticated/errors/$error";
+      path: "/errors/$error";
+      fullPath: "/errors/$error";
+      preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    "/_authenticated/cms/tags": {
+      id: "/_authenticated/cms/tags";
+      path: "/tags";
+      fullPath: "/cms/tags";
+      preLoaderRoute: typeof AuthenticatedCmsTagsRouteRouteImport;
+      parentRoute: typeof AuthenticatedCmsRouteRoute;
+    };
+    "/_authenticated/cms/elements": {
+      id: "/_authenticated/cms/elements";
+      path: "/elements";
+      fullPath: "/cms/elements";
+      preLoaderRoute: typeof AuthenticatedCmsElementsRouteRouteImport;
+      parentRoute: typeof AuthenticatedCmsRouteRoute;
+    };
   }
 }
 
 interface AuthenticatedCmsRouteRouteChildren {
-  AuthenticatedCmsElementsRouteRoute: typeof AuthenticatedCmsElementsRouteRoute
-  AuthenticatedCmsTagsRouteRoute: typeof AuthenticatedCmsTagsRouteRoute
+  AuthenticatedCmsElementsRouteRoute: typeof AuthenticatedCmsElementsRouteRoute;
+  AuthenticatedCmsTagsRouteRoute: typeof AuthenticatedCmsTagsRouteRoute;
 }
 
 const AuthenticatedCmsRouteRouteChildren: AuthenticatedCmsRouteRouteChildren = {
   AuthenticatedCmsElementsRouteRoute: AuthenticatedCmsElementsRouteRoute,
   AuthenticatedCmsTagsRouteRoute: AuthenticatedCmsTagsRouteRoute,
-}
+};
 
 const AuthenticatedCmsRouteRouteWithChildren =
   AuthenticatedCmsRouteRoute._addFileChildren(
     AuthenticatedCmsRouteRouteChildren,
-  )
+  );
 
 interface AuthenticatedSettingsRouteRouteChildren {
-  AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
-  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
-  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
-  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+  AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute;
+  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute;
+  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute;
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute;
 }
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
@@ -829,40 +829,40 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
-  }
+  };
 
 const AuthenticatedSettingsRouteRouteWithChildren =
   AuthenticatedSettingsRouteRoute._addFileChildren(
     AuthenticatedSettingsRouteRouteChildren,
-  )
+  );
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRouteWithChildren
-  AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
-  AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute
-  AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
-  AuthenticatedCustomerRulesRouteRoute: typeof AuthenticatedCustomerRulesRouteRoute
-  AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute
-  AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute
-  AuthenticatedInvoicesRouteRoute: typeof AuthenticatedInvoicesRouteRoute
-  AuthenticatedLoginLogsRouteRoute: typeof AuthenticatedLoginLogsRouteRoute
-  AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
-  AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
-  AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
-  AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
-  AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
-  AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
-  AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
-  AuthenticatedSocialMediaRouteRoute: typeof AuthenticatedSocialMediaRouteRoute
-  AuthenticatedSystemLogsRouteRoute: typeof AuthenticatedSystemLogsRouteRoute
-  AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
-  AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
-  AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
-  AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
-  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
-  AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
+  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRouteWithChildren;
+  AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute;
+  AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute;
+  AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute;
+  AuthenticatedCustomerRulesRouteRoute: typeof AuthenticatedCustomerRulesRouteRoute;
+  AuthenticatedCustomersRouteRoute: typeof AuthenticatedCustomersRouteRoute;
+  AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute;
+  AuthenticatedInvoicesRouteRoute: typeof AuthenticatedInvoicesRouteRoute;
+  AuthenticatedLoginLogsRouteRoute: typeof AuthenticatedLoginLogsRouteRoute;
+  AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute;
+  AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute;
+  AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute;
+  AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute;
+  AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute;
+  AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute;
+  AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren;
+  AuthenticatedSocialMediaRouteRoute: typeof AuthenticatedSocialMediaRouteRoute;
+  AuthenticatedSystemLogsRouteRoute: typeof AuthenticatedSystemLogsRouteRoute;
+  AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRoute;
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute;
+  AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute;
+  AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute;
+  AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute;
+  AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute;
+  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute;
+  AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute;
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -893,10 +893,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
-}
+};
 
 const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -906,7 +906,7 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
