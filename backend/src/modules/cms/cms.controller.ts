@@ -104,6 +104,12 @@ export class CmsController {
     return this.cmsService.getProfiles(query);
   }
 
+  @Get("page-elements")
+  @ApiOperation({ summary: "获取页面元素列表" })
+  getPageElements(@Query() query: QueryCmsContentDto) {
+    return this.cmsService.getPageElements(query);
+  }
+
   // ==================== 标签管理 ====================
 
   @Get("tags")

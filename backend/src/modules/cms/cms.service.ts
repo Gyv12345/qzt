@@ -379,6 +379,36 @@ export class CmsService {
     return this.findAllContents({ ...query, contentType: "PROFILE" });
   }
 
+  async getPageElements(query: QueryCmsContentDto) {
+    return this.findAllContents({ ...query, contentType: "PAGE_ELEMENT" });
+  }
+
+  async getPageElementBySlug(slug: string) {
+    const content = await this.prisma.cmsContent.findFirst({
+      where: {
+        slug,
+        contentType: "PAGE_ELEMENT",
+        status: "PUBLISHED",
+      },
+      include: {
+        author: {
+          select: { id: true, name: true },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    if (!content) {
+      throw new NotFoundException("Page element not found");
+    }
+
+    return this.formatContentResponse(content);
+  }
+
   // ==================== 标签管理 ====================
 
   async createTag(createCmsTagDto: CreateCmsTagDto) {
@@ -527,6 +557,7 @@ export class CmsService {
         break;
       case "ARTICLE":
       case "CASE_STUDY":
+      case "PAGE_ELEMENT":
         if (productId) {
           throw new BadRequestException(
             `${contentType} 类型不应指定关联的产品`,
