@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Outlet } from "@tanstack/react-router";
-import { Bell, Palette, Wrench, UserCog } from "lucide-react";
+import { Bell, Palette, UserCog } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Main } from "@/components/layout/main";
 import { SidebarNav } from "./components/sidebar-nav";
@@ -13,11 +13,6 @@ export function Settings() {
       title: t("accountSettings.sidebar.profile"),
       href: "/settings",
       icon: <UserCog size={18} />,
-    },
-    {
-      title: t("accountSettings.sidebar.account"),
-      href: "/settings/account",
-      icon: <Wrench size={18} />,
     },
     {
       title: t("accountSettings.sidebar.appearance"),

@@ -1,10 +1,9 @@
-import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 import { z } from "zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "@tanstack/react-router";
-import { showSubmittedData } from "@/lib/show-submitted-data";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
+import { getScrmApi } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,75 +15,100 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const profileFormSchema = z.object({
-  username: z
-    .string()
-    .min(2, "accountSettings.profile.validation.usernameMin")
-    .max(30, "accountSettings.profile.validation.usernameMax"),
-  email: z.email({
-    error: () => "accountSettings.profile.validation.emailRequired",
-  }),
-  bio: z.string().max(160).min(4),
-  urls: z
-    .array(
-      z.object({
-        value: z.url("accountSettings.profile.validation.invalidUrl"),
-      }),
-    )
-    .optional(),
+  username: z.string().min(1, "用户名不能为空").max(50, "用户名最多50个字符"),
+  name: z.string().min(1, "姓名不能为空").max(50, "姓名最多50个字符"),
+  email: z.string().email("请输入有效的邮箱地址").optional().or(z.literal("")),
+  phone: z.string().max(20, "手机号最多20个字符").optional().or(z.literal("")),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// This can come from your database or API.
-const defaultValues: Partial<ProfileFormValues> = {
-  bio: "I own a computer.",
-  urls: [
-    { value: "https://shadcn.com" },
-    { value: "http://twitter.com/shadcn" },
-  ],
-};
-
 export function ProfileForm() {
-  const { t } = useTranslation();
+  const { user, refreshUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: {
+      username: "",
+      name: "",
+      email: "",
+      phone: "",
+    },
     mode: "onChange",
   });
 
-  const { fields, append } = useFieldArray({
-    name: "urls",
-    control: form.control,
-  });
+  // 当用户信息加载后填充表单
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        username: user.username || "",
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      });
+    }
+  }, [user, form]);
+
+  const onSubmit = async (data: ProfileFormValues) => {
+    if (!user?.id) return;
+
+    setIsLoading(true);
+    try {
+      const { usersControllerUpdate } = getScrmApi();
+      await usersControllerUpdate(user.id, {
+        username: data.username,
+        name: data.name,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+      });
+
+      // 刷新用户信息
+      await refreshUser();
+      toast.success("个人资料更新成功");
+    } catch (error: any) {
+      console.error("更新个人资料失败:", error);
+      const message =
+        error.response?.data?.message || error.message || "更新失败";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit((data) => showSubmittedData(data))}
-        className="space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>姓名</FormLabel>
+              <FormControl>
+                <Input placeholder="请输入姓名" {...field} />
+              </FormControl>
+              <FormDescription>
+                这是将显示在您的个人资料和邮件中的姓名
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("accountSettings.profile.username")}</FormLabel>
+              <FormLabel>用户名</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input placeholder="请输入用户名" {...field} />
               </FormControl>
-              <FormDescription>
-                {t("accountSettings.profile.usernameDescription")}
-              </FormDescription>
+              <FormDescription>用户名用于登录系统</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -94,85 +118,32 @@ export function ProfileForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("accountSettings.profile.email")}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={t("accountSettings.profile.selectEmail")}
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                {t("accountSettings.profile.emailDescription")}
-                <Link to="/settings">
-                  {t("accountSettings.profile.emailSettings")}
-                </Link>
-              </FormDescription>
+              <FormLabel>邮箱</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="请输入邮箱" {...field} />
+              </FormControl>
+              <FormDescription>用于接收通知和重要信息</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="bio"
+          name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("accountSettings.profile.bio")}</FormLabel>
+              <FormLabel>手机号</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder={t("accountSettings.profile.bioPlaceholder")}
-                  className="resize-none"
-                  {...field}
-                />
+                <Input placeholder="请输入手机号" {...field} />
               </FormControl>
-              <FormDescription>
-                {t("accountSettings.profile.bioDescription")}
-              </FormDescription>
+              <FormDescription>用于接收短信通知</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`urls.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    {t("accountSettings.profile.urls")}
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    {t("accountSettings.profile.urlsDescription")}
-                  </FormDescription>
-                  <FormControl className={cn(index !== 0 && "mt-1.5")}>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => append({ value: "" })}
-          >
-            {t("accountSettings.profile.addUrl")}
-          </Button>
-        </div>
-        <Button type="submit">
-          {t("accountSettings.profile.updateProfile")}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          保存更改
         </Button>
       </form>
     </Form>
