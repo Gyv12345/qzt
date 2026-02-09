@@ -115,7 +115,7 @@ export const sidebarData: SidebarData = {
       items: [
         {
           title: "文章管理",
-          url: "/cms/articles",
+          url: "/cms",
           icon: FileText,
         },
         {
