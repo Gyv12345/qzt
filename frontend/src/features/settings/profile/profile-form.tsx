@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,19 +15,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const profileFormSchema = z.object({
-  username: z
-    .string()
-    .min(1, "用户名不能为空")
-    .max(50, "用户名最多50个字符"),
-  name: z
-    .string()
-    .min(1, "姓名不能为空")
-    .max(50, "姓名最多50个字符"),
+  username: z.string().min(1, "用户名不能为空").max(50, "用户名最多50个字符"),
+  name: z.string().min(1, "姓名不能为空").max(50, "姓名最多50个字符"),
   email: z.string().email("请输入有效的邮箱地址").optional().or(z.literal("")),
   phone: z.string().max(20, "手机号最多20个字符").optional().or(z.literal("")),
 });
@@ -36,7 +28,6 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function ProfileForm() {
-  const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -81,7 +72,8 @@ export function ProfileForm() {
       toast.success("个人资料更新成功");
     } catch (error: any) {
       console.error("更新个人资料失败:", error);
-      const message = error.response?.data?.message || error.message || "更新失败";
+      const message =
+        error.response?.data?.message || error.message || "更新失败";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -116,9 +108,7 @@ export function ProfileForm() {
               <FormControl>
                 <Input placeholder="请输入用户名" {...field} />
               </FormControl>
-              <FormDescription>
-                用户名用于登录系统
-              </FormDescription>
+              <FormDescription>用户名用于登录系统</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -132,9 +122,7 @@ export function ProfileForm() {
               <FormControl>
                 <Input type="email" placeholder="请输入邮箱" {...field} />
               </FormControl>
-              <FormDescription>
-                用于接收通知和重要信息
-              </FormDescription>
+              <FormDescription>用于接收通知和重要信息</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -148,9 +136,7 @@ export function ProfileForm() {
               <FormControl>
                 <Input placeholder="请输入手机号" {...field} />
               </FormControl>
-              <FormDescription>
-                用于接收短信通知
-              </FormDescription>
+              <FormDescription>用于接收短信通知</FormDescription>
               <FormMessage />
             </FormItem>
           )}
