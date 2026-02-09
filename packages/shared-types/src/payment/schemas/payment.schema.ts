@@ -5,7 +5,7 @@ import { z } from 'zod'
  * 1: 银行转账, 2: 微信, 3: 支付宝, 4: 现金
  */
 export const paymentMethodSchema = z.enum(['BANK_TRANSFER', 'WECHAT', 'ALIPAY', 'CASH'], {
-  errorMap: () => ({ message: '收款方式必须是 BANK_TRANSFER、WECHAT、ALIPAY 或 CASH' }),
+  message: '收款方式必须是 BANK_TRANSFER、WECHAT、ALIPAY 或 CASH',
 })
 
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>
@@ -14,7 +14,7 @@ export type PaymentMethod = z.infer<typeof paymentMethodSchema>
  * 收款状态枚举（字符串版本）
  */
 export const paymentStatusSchema = z.enum(['PENDING', 'CONFIRMED', 'CANCELLED'], {
-  errorMap: () => ({ message: '收款状态必须是 PENDING、CONFIRMED 或 CANCELLED' }),
+  message: '收款状态必须是 PENDING、CONFIRMED 或 CANCELLED',
 })
 
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>

@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 跟进类型枚举（字符串版本）
  */
 export const followTypeSchema = z.enum(['PHONE', 'WECHAT', 'VISIT', 'EMAIL', 'OTHER'], {
-  errorMap: () => ({ message: '跟进类型必须是 PHONE、WECHAT、VISIT、EMAIL 或 OTHER' }),
+  message: '跟进类型必须是 PHONE、WECHAT、VISIT、EMAIL 或 OTHER',
 })
 
 export type FollowType = z.infer<typeof followTypeSchema>

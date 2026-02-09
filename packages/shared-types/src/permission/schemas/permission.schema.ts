@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 权限类型枚举
  */
 export const permissionTypeSchema = z.enum(['MENU', 'BUTTON', 'DATA'], {
-  errorMap: () => ({ message: '权限类型必须是 MENU、BUTTON 或 DATA' }),
+  message: '权限类型必须是 MENU、BUTTON 或 DATA',
 })
 
 export type PermissionType = z.infer<typeof permissionTypeSchema>

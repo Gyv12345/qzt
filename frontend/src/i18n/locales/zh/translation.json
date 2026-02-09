@@ -666,5 +666,127 @@
       "print": "打印",
       "sampleDataNote": "示例数据已应用，实际使用时将替换为真实数据"
     }
+  },
+  "socialMedia": {
+    "title": "新媒体管理",
+    "description": "统一管理抖音、小红书、微信视频号等平台内容发布",
+    "accountSettings": "账号设置",
+    "calendarView": "日历视图",
+    "configured": "已配置",
+    "notConfigured": "未配置",
+    "postsList": "内容列表",
+    "accountManagement": "账号管理",
+    "newPost": "新建内容",
+    "confirmDeleteAccount": "确认删除账号？",
+    "confirmDeletePost": "确认删除内容？",
+    "deleteAccountWarning": "删除后将无法恢复，且与此账号相关的定时发布任务可能会失败。",
+    "deletePostWarning": "删除后将无法恢复，已发布到各平台的内容不会被删除。",
+    "columns": {
+      "platform": "平台",
+      "accountName": "账号名称",
+      "accountId": "平台账号ID",
+      "tokenExpiry": "令牌过期时间",
+      "status": "状态",
+      "title": "标题",
+      "content": "内容",
+      "scheduledAt": "定时发布",
+      "publishedAt": "发布时间",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "scheduled": "定时中",
+      "publishing": "发布中",
+      "published": "已发布",
+      "failed": "失败",
+      "active": "启用",
+      "disabled": "禁用"
+    },
+    "actions": {
+      "publish": "立即发布",
+      "schedule": "定时发布",
+      "cancelSchedule": "取消定时",
+      "refreshToken": "刷新令牌",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "form": {
+      "selectAccount": "选择发布账号",
+      "title": "标题",
+      "titlePlaceholder": "输入内容标题",
+      "content": "内容",
+      "contentPlaceholder": "输入内容文案，支持话题标签 #话题名",
+      "topics": "话题标签",
+      "topicsPlaceholder": "输入话题标签（如 #干货分享）",
+      "location": "位置信息",
+      "locationPlaceholder": "添加位置信息",
+      "visibility": "可见性",
+      "visibilityPublic": "公开",
+      "visibilityFriends": "好友可见",
+      "visibilityPrivate": "私密",
+      "scheduledAt": "定时发布",
+      "scheduledAtPlaceholder": "选择发布时间",
+      "platform": "平台",
+      "accountName": "账号名称",
+      "accountNamePlaceholder": "输入账号昵称/名称",
+      "appId": "App ID / 应用ID",
+      "appSecret": "App Secret / 应用密钥",
+      "appSecretPlaceholder": "应用密钥（将加密存储）",
+      "accessToken": "Access Token",
+      "accessTokenPlaceholder": "已有令牌可直接填入",
+      "openId": "OpenID",
+      "openIdPlaceholder": "微信 OpenID"
+    },
+    "messages": {
+      "createSuccess": "创建成功",
+      "updateSuccess": "更新成功",
+      "deleteSuccess": "删除成功",
+      "publishSuccess": "发布成功",
+      "scheduleSuccess": "定时发布设置成功",
+      "cancelScheduleSuccess": "已取消定时发布",
+      "refreshTokenSuccess": "令牌刷新成功",
+      "noAccounts": "暂无账号数据",
+      "noPosts": "暂无内容数据",
+      "addAccount": "添加账号",
+      "addFirstAccount": "添加第一个账号",
+      "createPost": "创建内容"
+    }
+  },
+  "validation": {
+    "_invalid": "格式不正确",
+    "_required": "此字段为必填项",
+    "string": {
+      "invalid": "必须是字符串",
+      "min": "至少需要 {{min}} 个字符",
+      "max": "最多 {{max}} 个字符",
+      "email": "请输入有效的邮箱地址",
+      "url": "请输入有效的网址",
+      "uuid": "请输入有效的 UUID",
+      "cuid": "请输入有效的 CUID",
+      "phone": "手机号格式不正确",
+      "regex": "格式不匹配"
+    },
+    "number": {
+      "invalid": "必须是数字",
+      "min": "不能小于 {{min}}",
+      "max": "不能大于 {{max}}",
+      "int": "必须是整数",
+      "positive": "必须大于 0",
+      "nonnegative": "必须大于等于 0"
+    },
+    "boolean": {
+      "invalid": "必须是布尔值"
+    },
+    "date": {
+      "invalid": "请输入有效的日期"
+    },
+    "array": {
+      "min": "至少需要 {{min}} 项",
+      "max": "最多 {{max}} 项"
+    },
+    "enum": {
+      "invalid": "请选择有效选项"
+    }
   }
 }

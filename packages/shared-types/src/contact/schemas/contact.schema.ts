@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 联系人状态枚举（字符串版本）
  */
 export const contactStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
-  errorMap: () => ({ message: '联系人状态必须是 ACTIVE 或 INACTIVE' }),
+  message: '联系人状态必须是 ACTIVE 或 INACTIVE',
 })
 
 export type ContactStatus = z.infer<typeof contactStatusSchema>

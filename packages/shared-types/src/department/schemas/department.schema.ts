@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 部门状态枚举（字符串版本）
  */
 export const departmentStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
-  errorMap: () => ({ message: '部门状态必须是 ACTIVE 或 INACTIVE' }),
+  message: '部门状态必须是 ACTIVE 或 INACTIVE',
 })
 
 export type DepartmentStatus = z.infer<typeof departmentStatusSchema>

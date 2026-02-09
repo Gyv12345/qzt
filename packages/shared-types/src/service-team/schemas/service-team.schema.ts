@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 服务团队角色枚举
  */
 export const serviceRoleCodeSchema = z.enum(['SALE', 'FINANCE', 'OUTWORK'], {
-  errorMap: () => ({ message: '角色代码必须是 SALE、FINANCE 或 OUTWORK' }),
+  message: '角色代码必须是 SALE、FINANCE 或 OUTWORK',
 })
 
 export type ServiceRoleCode = z.infer<typeof serviceRoleCodeSchema>

@@ -4,9 +4,14 @@ import { z } from 'zod'
  * Zod Schema 错误类型
  */
 export class ZodValidationError extends Error {
-  constructor(public errors: z.ZodError['errors']) {
+  constructor(public issues: z.ZodError['issues']) {
     super('Validation failed')
     this.name = 'ZodValidationError'
+  }
+
+  /** @deprecated Use `issues` instead */
+  get errors() {
+    return this.issues
   }
 }
 
@@ -26,7 +31,7 @@ export function createZodDto<T extends z.ZodTypeAny>(schema: T) {
     static validate(obj: unknown): z.infer<T> {
       const result = schema.safeParse(obj)
       if (!result.success) {
-        throw new ZodValidationError(result.error.errors)
+        throw new ZodValidationError(result.error.issues)
       }
       return result.data
     }
@@ -37,13 +42,16 @@ export function createZodDto<T extends z.ZodTypeAny>(schema: T) {
     static safeValidate(obj: unknown): {
       success: boolean
       data?: z.infer<T>
-      errors?: z.ZodError['errors']
+      issues?: z.ZodError['issues']
+      /** @deprecated Use `issues` instead */
+      errors?: z.ZodError['issues']
     } {
       const result = schema.safeParse(obj)
       if (result.success) {
         return { success: true, data: result.data }
       }
-      return { success: false, errors: result.error.errors }
+      const issues = result.error.issues
+      return { success: false, issues, errors: issues }
     }
   }
 
@@ -79,7 +87,7 @@ export function ZodValidate(schema: z.ZodTypeAny) {
       const [dto] = args
       const result = schema.safeParse(dto)
       if (!result.success) {
-        throw new ZodValidationError(result.error.errors)
+        throw new ZodValidationError(result.error.issues)
       }
       return originalMethod.apply(this, args)
     }

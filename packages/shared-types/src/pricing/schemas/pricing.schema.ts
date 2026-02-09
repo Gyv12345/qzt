@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 定价规则类型枚举
  */
 export const pricingRuleTypeSchema = z.enum(['AMOUNT_TIER', 'COUNT_TIER', 'ZERO_DECLARATION'], {
-  errorMap: () => ({ message: '定价规则类型必须是 AMOUNT_TIER、COUNT_TIER 或 ZERO_DECLARATION' }),
+  message: '定价规则类型必须是 AMOUNT_TIER、COUNT_TIER 或 ZERO_DECLARATION',
 })
 
 export type PricingRuleType = z.infer<typeof pricingRuleTypeSchema>

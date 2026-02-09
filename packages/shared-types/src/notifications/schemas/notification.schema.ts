@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 通知类型枚举
  */
 export const notificationTypeSchema = z.enum(['SYSTEM', 'REMINDER', 'ALERT', 'MESSAGE'], {
-  errorMap: () => ({ message: '通知类型必须是 SYSTEM、REMINDER、ALERT 或 MESSAGE' }),
+  message: '通知类型必须是 SYSTEM、REMINDER、ALERT 或 MESSAGE',
 })
 
 export type NotificationType = z.infer<typeof notificationTypeSchema>
@@ -13,7 +13,7 @@ export type NotificationType = z.infer<typeof notificationTypeSchema>
  * 通知状态枚举
  */
 export const notificationStatusSchema = z.enum(['UNREAD', 'READ', 'ARCHIVED'], {
-  errorMap: () => ({ message: '通知状态必须是 UNREAD、READ 或 ARCHIVED' }),
+  message: '通知状态必须是 UNREAD、READ 或 ARCHIVED',
 })
 
 export type NotificationStatus = z.infer<typeof notificationStatusSchema>

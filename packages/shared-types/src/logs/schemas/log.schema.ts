@@ -51,7 +51,7 @@ export const systemLogSchema = z.object({
   id: z.string().cuid(),
   level: z.enum(['INFO', 'WARN', 'ERROR', 'DEBUG']),
   message: z.string(),
-  context: z.record(z.any()).optional(),
+  context: z.record(z.string(), z.unknown()).optional(),
   timestamp: z.coerce.date(),
 })
 

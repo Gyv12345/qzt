@@ -5,7 +5,7 @@ import { z } from 'zod'
  * 0: 线索公司, 1: 意向客户, 2: 正式客户, 3: VIP客户
  */
 export const customerLevelSchema = z.enum(['LEAD', 'PROSPECT', 'CUSTOMER', 'VIP'], {
-  errorMap: () => ({ message: '客户等级必须是 LEAD, PROSPECT, CUSTOMER 或 VIP' }),
+  message: '客户等级必须是 LEAD, PROSPECT, CUSTOMER 或 VIP',
 })
 
 export type CustomerLevel = z.infer<typeof customerLevelSchema>
@@ -15,7 +15,7 @@ export type CustomerLevel = z.infer<typeof customerLevelSchema>
  * 1: 启用, 0: 禁用
  */
 export const customerStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
-  errorMap: () => ({ message: '客户状态必须是 ACTIVE 或 INACTIVE' }),
+  message: '客户状态必须是 ACTIVE 或 INACTIVE',
 })
 
 export type CustomerStatus = z.infer<typeof customerStatusSchema>
@@ -30,7 +30,7 @@ export const companyScaleSchema = z.enum([
   '201-500人',
   '500人以上',
 ], {
-  errorMap: () => ({ message: '请选择有效的公司规模' }),
+  message: '请选择有效的公司规模',
 })
 
 export type CompanyScale = z.infer<typeof companyScaleSchema>

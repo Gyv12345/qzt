@@ -4,7 +4,7 @@ import { z } from 'zod'
  * Webhook 平台枚举
  */
 export const webhookPlatformSchema = z.enum(['WECOM', 'FEISHU', 'DINGTALK'], {
-  errorMap: () => ({ message: 'Webhook 平台必须是 WECOM、FEISHU 或 DINGTALK' }),
+  message: 'Webhook 平台必须是 WECOM、FEISHU 或 DINGTALK',
 })
 
 export type WebhookPlatform = z.infer<typeof webhookPlatformSchema>

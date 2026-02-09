@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 用户状态枚举（字符串版本）
  */
 export const userStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
-  errorMap: () => ({ message: '用户状态必须是 ACTIVE 或 INACTIVE' }),
+  message: '用户状态必须是 ACTIVE 或 INACTIVE',
 })
 
 export type UserStatus = z.infer<typeof userStatusSchema>
