@@ -58,21 +58,15 @@ export function ProfileDropdown() {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <Link to="/settings/account">
+              <Link to="/settings">
                 {t("profile.profile")}
                 <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/settings/billing">
-                {t("profile.billing")}
-                <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings">
-                {t("profile.settings")}
-                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+              <Link to="/settings/notifications">
+                {t("profile.notifications")}
+                <DropdownMenuShortcut>⌘N</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>{t("profile.newTeam")}</DropdownMenuItem>

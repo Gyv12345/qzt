@@ -4,7 +4,6 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Sparkles,
 } from "lucide-react";
@@ -105,15 +104,9 @@ export function NavUser() {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link to="/settings/account">
-                    <BadgeCheck />
-                    {t("nav.user.account")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link to="/settings">
-                    <CreditCard />
-                    {t("nav.user.billing")}
+                    <BadgeCheck />
+                    {t("nav.user.profile")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
