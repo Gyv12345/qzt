@@ -39,7 +39,9 @@ curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/in
 - Configure firewall
 - Create directory structure `/opt/qzt/{backend,frontend,website}`
 - Generate SSH keys
-- Create environment template `/opt/qzt/backend/.env`
+- **Auto-generate Redis password** (saved to `/root/.redis_password`)
+- **Auto-generate JWT secret key**
+- Create environment file `/opt/qzt/backend/.env`
 
 ### 2. Configure Environment Variables
 
@@ -48,25 +50,48 @@ ssh root@your-server-ip
 vim /opt/qzt/backend/.env
 ```
 
-**Required Configuration**:
+**Required Configuration** (only modify database and domain):
 ```bash
 # === Database (2C2G RDS) ===
 DATABASE_PROVIDER=mysql
-DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
+DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com  # Change to your RDS address
 DB_PORT=3306
-DB_USERNAME=your_db_username
-DB_PASSWORD=your_db_password
-DB_DATABASE=database_name
+DB_USERNAME=your_db_username            # Change to your username
+DB_PASSWORD=your_db_password            # Change to your password
+DB_DATABASE=database_name                # Database name (auto-created on first run)
+
+# === Redis (auto-generated, no change needed) ===
+REDIS_ENABLED=true
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=auto-generated-password
+
+# === JWT (auto-generated, no change needed) ===
+JWT_SECRET=auto-generated-secret-key
 
 # === Domain ===
-DOMAIN_NAME=your-domain.com
-ADMIN_DOMAIN=admin.your-domain.com
+DOMAIN_NAME=yourdomain.com               # Change to your domain
+ADMIN_DOMAIN=admin.yourdomain.com        # Change to admin.yourdomain.com
+```
 
-# === JWT (generate with: openssl rand -hex 32) ===
-JWT_SECRET=your-jwt-secret-key
+**Configuration Reference**:
+| Config | Auto-generated | Description |
+|--------|----------------|-------------|
+| `DB_DATABASE` | ❌ | Database name, **auto-created** on first run (ensure user has CREATE permission) |
+| `REDIS_PASSWORD` | ✅ | Auto-generated, saved in `/root/.redis_password` |
+| `JWT_SECRET` | ✅ | Auto-generated, used for JWT token signing |
+| `DOMAIN_NAME` | ❌ | Your main domain |
+| `ADMIN_DOMAIN` | ❌ | Your admin panel domain |
 
-# === PM2 Cluster (recommended for 2C4G) ===
-PM2_CLUSTER_ENABLED=true
+**How to change passwords**:
+```bash
+# Change Redis password
+echo "new-password" > /root/.redis_password
+# Then update REDIS_PASSWORD in .env
+
+# Regenerate JWT secret
+openssl rand -hex 32
+# Update JWT_SECRET in .env with the result
 ```
 
 ### 3. Configure GitHub Actions (Automated Deployment)

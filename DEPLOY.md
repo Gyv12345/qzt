@@ -39,7 +39,9 @@ curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/in
 - 配置防火墙
 - 创建目录结构 `/opt/qzt/{backend,frontend,website}`
 - 生成 SSH 密钥
-- 创建环境变量模板 `/opt/qzt/backend/.env`
+- **自动生成 Redis 密码**（保存到 `/root/.redis_password`）
+- **自动生成 JWT 密钥**
+- 创建环境变量文件 `/opt/qzt/backend/.env`
 
 ### 2. 配置环境变量
 
@@ -48,25 +50,48 @@ ssh root@你的服务器IP
 vim /opt/qzt/backend/.env
 ```
 
-**必填配置**：
+**必填配置**（只需修改数据库和域名部分）：
 ```bash
 # === 数据库（2C2G RDS）===
 DATABASE_PROVIDER=mysql
-DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
+DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com  # 改成你的 RDS 地址
 DB_PORT=3306
-DB_USERNAME=你的数据库用户名
-DB_PASSWORD=你的数据库密码
-DB_DATABASE=数据库名
+DB_USERNAME=你的数据库用户名            # 改成你的用户名
+DB_PASSWORD=你的数据库密码              # 改成你的密码
+DB_DATABASE=数据库名                    # 改成数据库名（会自动创建）
+
+# === Redis（已自动生成，无需修改）===
+REDIS_ENABLED=true
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=自动生成的密码
+
+# === JWT（已自动生成，无需修改）===
+JWT_SECRET=自动生成的密钥
 
 # === 域名 ===
-DOMAIN_NAME=你的域名
-ADMIN_DOMAIN=admin.你的域名
+DOMAIN_NAME=yourdomain.com              # 改成你的域名
+ADMIN_DOMAIN=admin.yourdomain.com       # 改成 admin.你的域名
+```
 
-# === JWT（用 openssl rand -hex 32 生成）===
-JWT_SECRET=生成的JWT密钥
+**配置说明**：
+| 配置项 | 是否自动生成 | 说明 |
+|--------|-------------|------|
+| `DB_DATABASE` | ❌ | 数据库名，**会自动创建**（确保数据库用户有 CREATE 权限） |
+| `REDIS_PASSWORD` | ✅ | 自动生成，保存在 `/root/.redis_password` |
+| `JWT_SECRET` | ✅ | 自动生成，用于签名 JWT Token |
+| `DOMAIN_NAME` | ❌ | 需手动填写主域名 |
+| `ADMIN_DOMAIN` | ❌ | 需手动填写管理后台域名 |
 
-# === PM2 集群（2C4G 推荐启用）===
-PM2_CLUSTER_ENABLED=true
+**修改密码的方法**：
+```bash
+# 修改 Redis 密码
+echo "新密码" > /root/.redis_password
+# 然后更新 .env 中的 REDIS_PASSWORD
+
+# 重新生成 JWT 密钥
+openssl rand -hex 32
+# 将结果填入 .env 的 JWT_SECRET
 ```
 
 ### 3. 配置 GitHub Actions（自动化部署）

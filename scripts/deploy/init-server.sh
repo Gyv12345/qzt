@@ -272,10 +272,13 @@ if [ "$CREATE_ENV" = "1" ]; then
     JWT_SECRET=$(openssl rand -hex 32)
     cat > "$ENV_FILE" << EOF
 # ============================================
-# 请填写以下配置
+# 企智通 QZT - 环境变量配置
 # ============================================
+# 说明：Redis 密码和 JWT 密钥已自动生成，无需修改
+# 只需填写数据库信息和域名即可
 
-# === 数据库（必填，支持特殊字符密码）===
+# === 数据库配置（必填）===
+# 注意：数据库会在首次部署时自动创建（确保用户有 CREATE 权限）
 DATABASE_PROVIDER=mysql
 DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
 DB_PORT=3306
@@ -283,16 +286,17 @@ DB_USERNAME=你的数据库用户名
 DB_PASSWORD=你的数据库密码
 DB_DATABASE=数据库名
 
-# === Redis（已自动生成密码）===
+# === Redis 配置（已自动生成）===
 REDIS_ENABLED=true
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=$REDIS_PASSWORD
 
-# === JWT（已自动生成）===
+# === JWT 配置（已自动生成）===
+# 如需重新生成，运行: openssl rand -hex 32
 JWT_SECRET=$JWT_SECRET
 
-# === 域名（必填）===
+# === 域名配置（必填）===
 DOMAIN_NAME=yourdomain.com
 ADMIN_DOMAIN=admin.yourdomain.com
 
