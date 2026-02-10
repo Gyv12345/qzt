@@ -353,49 +353,110 @@ EOF
 fi
 
 # ============================================
-# SSL 证书配置（可选）
+# 保存 SSL 配置脚本到服务器
 # ============================================
-echo ""
-echo -e "${YELLOW}是否现在配置 SSL 证书？${NC}"
-echo "  1) 跳过（稍后手动配置）"
-echo "  2) 自签名证书（测试用）"
-echo "  3) Let's Encrypt（需要域名已解析）"
-echo ""
-read -p "请选择 (1-3, 默认:1): " SSL_CHOICE
-SSL_CHOICE=${SSL_CHOICE:-1}
+echo -e "${YELLOW}保存 SSL 配置脚本...${NC}"
 
-if [ "$SSL_CHOICE" != "1" ]; then
-    # 读取域名
-    source "$ENV_FILE" 2>/dev/null || true
-    DOMAIN="${DOMAIN_NAME:-yourdomain.com}"
-    CERT_DIR="/etc/nginx/ssl/$DOMAIN"
-    mkdir -p "$CERT_DIR"
+# 创建 SSL 配置脚本目录
+mkdir -p /opt/qzt/scripts
 
-    if [ "$SSL_CHOICE" = "2" ]; then
+# 保存 SSL 配置脚本
+cat > /opt/qzt/scripts/setup-ssl.sh << 'SSLEOF'
+#!/bin/bash
+# ============================================================
+# SSL 证书配置脚本
+# ============================================================
+
+set -e
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# 读取域名
+source /opt/qzt/backend/.env 2>/dev/null || true
+DOMAIN="${DOMAIN_NAME:-}"
+
+if [ -z "$DOMAIN" ] || [ "$DOMAIN" = "yourdomain.com" ]; then
+    echo -e "${RED}✗ 请先在 /opt/qzt/backend/.env 中配置 DOMAIN_NAME${NC}"
+    exit 1
+fi
+
+CERT_DIR="/etc/nginx/ssl/$DOMAIN"
+mkdir -p "$CERT_DIR"
+
+echo ""
+echo -e "${CYAN}========================================${NC}"
+echo -e "${CYAN}   SSL 证书配置 - $DOMAIN${NC}"
+echo -e "${CYAN}========================================${NC}"
+echo ""
+echo -e "${YELLOW}请选择证书方式：${NC}"
+echo "  1) 自签名证书 - 适合快速测试，浏览器会警告"
+echo "  2) 上传证书 - 你已有 .crt 和 .key 文件"
+echo "  3) Let's Encrypt - 需要域名已解析到服务器"
+echo ""
+read -p "请选择 (1-3): " CHOICE
+
+case $CHOICE in
+    1)
         echo -e "${YELLOW}生成自签名证书...${NC}"
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout "$CERT_DIR/key.pem" \
             -out "$CERT_DIR/cert.pem" \
-            -subj "/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=$DOMAIN" 2>/dev/null
+            -subj "/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=$DOMAIN"
+
         chmod 600 "$CERT_DIR/key.pem"
         chmod 644 "$CERT_DIR/cert.pem"
-        echo -e "${GREEN}✓ 自签名证书已生成: $CERT_DIR${NC}"
+        echo -e "${GREEN}✓ 自签名证书已生成${NC}"
+        echo -e "${CYAN}证书路径: $CERT_DIR${NC}"
         echo -e "${YELLOW}⚠️ 浏览器会显示安全警告，这是正常的${NC}"
-    elif [ "$SSL_CHOICE" = "3" ]; then
-        echo -e "${YELLOW}配置 Let's Encrypt...${NC}"
-        echo -e "${YELLOW}确保域名已正确解析到当前服务器${NC}"
+        ;;
 
-        # 安装 certbot
-        if ! command -v certbot &> /dev/null; then
-            if [ "$PKG_MANAGER" = "apt" ]; then
-                $INSTALL_CMD certbot
-            else
-                $INSTALL_CMD certbot python3-certbot-nginx
-            fi
+    2)
+        echo ""
+        echo -e "${YELLOW}请粘贴证书内容 (.crt/.pem 文件内容):${NC}"
+        echo "  (粘贴后按回车，然后输入 Ctrl+D 结束)"
+        cat > "$CERT_DIR/cert.pem"
+
+        echo ""
+        echo -e "${YELLOW}请粘贴私钥内容 (.key 文件内容):${NC}"
+        echo "  (粘贴后按回车，然后输入 Ctrl+D 结束)"
+        cat > "$CERT_DIR/key.pem"
+
+        chmod 600 "$CERT_DIR/key.pem"
+        chmod 644 "$CERT_DIR/cert.pem"
+
+        # 验证
+        if openssl x509 -in "$CERT_DIR/cert.pem" -noout >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ 证书格式正确${NC}"
+        else
+            echo -e "${RED}✗ 证书格式错误，请检查${NC}"
+            rm -f "$CERT_DIR/cert.pem" "$CERT_DIR/key.pem"
+            exit 1
+        fi
+        echo -e "${GREEN}✓ 证书已保存到: $CERT_DIR${NC}"
+        ;;
+
+    3)
+        echo -e "${YELLOW}使用 Let's Encrypt...${NC}"
+        echo -e "${YELLOW}确保域名已正确解析到当前服务器${NC}"
+        echo ""
+
+        # 检测包管理器并安装 certbot
+        if command -v apt-get >/dev/null 2>&1; then
+            apt-get install -y certbot
+        elif command -v yum >/dev/null 2>&1; then
+            yum install -y certbot python3-certbot-nginx
+        else
+            echo -e "${RED}✗ 无法安装 certbot${NC}"
+            exit 1
         fi
 
         # HTTP 验证
         mkdir -p /var/www/certbot
+
         certbot certonly --webroot \
             --webroot-path=/var/www/certbot \
             --email "admin@$DOMAIN" \
@@ -407,9 +468,26 @@ if [ "$SSL_CHOICE" != "1" ]; then
             ln -sf "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$CERT_DIR/cert.pem"
             ln -sf "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$CERT_DIR/key.pem"
             echo -e "${GREEN}✓ Let's Encrypt 证书已获取${NC}"
-        } || echo -e "${RED}✗ 证书获取失败，请稍后手动配置${NC}"
-    fi
-fi
+            echo -e "${CYAN}证书路径: $CERT_DIR${NC}"
+        } || {
+            echo -e "${RED}✗ 证书获取失败${NC}"
+            echo -e "${YELLOW}请检查：${NC}"
+            echo "  1. 域名是否正确解析到服务器"
+            echo "  2. 防火墙是否开放 80 端口"
+            echo "  3. 80 端口是否被其他服务占用"
+            exit 1
+        }
+        ;;
+esac
+
+echo ""
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}✓ SSL 证书配置完成${NC}"
+echo -e "${GREEN}========================================${NC}"
+SSLEOF
+
+chmod +x /opt/qzt/scripts/setup-ssl.sh
+echo -e "${GREEN}✓ SSL 配置脚本已保存: /opt/qzt/scripts/setup-ssl.sh${NC}"
 
 # ============================================
 # 完成
@@ -432,10 +510,14 @@ echo ""
 echo -e "${CYAN}1. 编辑环境变量，填写数据库和域名：${NC}"
 echo "   vim /opt/qzt/backend/.env"
 echo ""
-echo -e "${CYAN}2. 完成 GitHub 配置（上面已显示详细步骤）：${NC}"
+echo -e "${CYAN}2. 配置 SSL 证书（部署前必须配置）：${NC}"
+echo "   bash /opt/qzt/scripts/setup-ssl.sh"
+echo "   支持三种方式：自签名证书、上传证书、Let's Encrypt"
+echo ""
+echo -e "${CYAN}3. 完成 GitHub 配置（上面已显示详细步骤）：${NC}"
 echo "   - 添加公钥到 GitHub Deploy Keys"
 echo "   - 配置 GitHub Actions Secrets"
 echo ""
-echo -e "${CYAN}3. 推送代码触发部署：${NC}"
+echo -e "${CYAN}4. 推送代码触发部署：${NC}"
 echo "   git push origin main"
 echo ""
