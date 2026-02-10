@@ -149,8 +149,8 @@ else
     if [ "$PKG_MANAGER" = "apt" ]; then
         $INSTALL_CMD nginx
     else
-        # CentOS/RHEL 需要先安装 EPEL
-        if ! rpm -q epel-release &> /dev/null; then
+        # CentOS/RHEL/Alinux 需要先安装 EPEL
+        if ! rpm -q epel-release &> /dev/null && ! rpm -q epel-aliyuncs-release &> /dev/null; then
             if [ "$OS" = "centos" ] || [ "$OS" = "rhel" ]; then
                 yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
             else
