@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Open_Sans } from "next/font/google";
+import { Agentation } from "agentation";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -32,6 +33,7 @@ export default function RootLayout({
         className={`${poppins.variable} ${openSans.variable} font-body antialiased`}
       >
         {children}
+        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   );
