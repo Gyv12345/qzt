@@ -26,10 +26,14 @@
 
 ### 第一步：初始化服务器
 
-登录你的服务器，复制粘贴这行命令：
+登录你的服务器，复制粘贴以下命令（**分两步执行**）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
+# 1. 下载脚本
+curl -o /tmp/init-server.sh https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh
+
+# 2. 执行脚本（支持交互输入）
+bash /tmp/init-server.sh
 ```
 
 这会自动安装所有需要的东西（Node.js、Nginx、Redis 等），大约 2-3 分钟。
