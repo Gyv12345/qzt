@@ -254,32 +254,42 @@ if [ ! -f /opt/qzt/backend/.env ]; then
 # 请填写以下配置
 # ============================================
 
-# 数据库（必填）
-DATABASE_URL="mysql://用户名:密码@RDS地址:3306/数据库名"
+# === 数据库（必填，支持特殊字符密码）===
+DATABASE_PROVIDER=mysql
+DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
+DB_PORT=3306
+DB_USERNAME=你的数据库用户名
+DB_PASSWORD=你的数据库密码
+DB_DATABASE=数据库名
 
-# Redis（密码在 /root/.redis_password 或自行生成）
+# === Redis（密码在 /root/.redis_password 或自行生成）===
+REDIS_ENABLED=true
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=
 
-# JWT（用 openssl rand -hex 32 生成）
+# === JWT（用 openssl rand -hex 32 生成）===
 JWT_SECRET=
 
-# 域名（必填）
+# === 域名（必填）===
 DOMAIN_NAME=
 ADMIN_DOMAIN=
 
-# 应用 URL
+# === 应用 URL ===
 APP_URL=
 API_URL=
 FRONTEND_URL=
 
-# 可选配置
-OSS_REGION=
+# === PM2 集群（2C4G 推荐启用）===
+PM2_CLUSTER_ENABLED=true
+
+# === 可选配置（OSS 文件上传）===
+OSS_REGION=oss-cn-hangzhou
 OSS_ACCESS_KEY_ID=
 OSS_ACCESS_KEY_SECRET=
 OSS_BUCKET=
 
+# === e签宝（可选）===
 ESIGN_APP_ID=
 ESIGN_APP_SECRET=
 EOF
