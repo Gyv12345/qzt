@@ -127,6 +127,26 @@ pnpm add -F backend|shadcn-admin|website|shared-types <package>@<version>
 | 13 | Tailwind v4 类型错误 | darkMode 配置变化 | 改为字符串：`darkMode: "class"` |
 | 14 | Fragment 语法错误 | 标签不匹配 | 成对使用 `<Fragment>...</Fragment>` 或 `<>...</>` |
 | 15 | IDE 无法识别项目 | `.idea/` 被删除 | `git restore .idea/` |
+| 16 | `Zod3Type` 类型错误 | @hookform/resolvers 与 Zod v4 不兼容 | 见下方「Zod v4 兼容性」 |
+
+---
+
+## Zod v4 兼容性
+
+**问题**：`@hookform/resolvers@5.2.2` 对 Zod v4 的类型定义支持不完整，导致 `zodResolver` 报 TypeScript 类型错误。
+
+**短期解决方案**（添加类型断言）：
+```typescript
+const form = useForm<CustomerFormValues>({
+  resolver: zodResolver(customerFormSchema) as any,  // 绕过 TS 检查
+  defaultValues: { ... },
+});
+```
+
+**说明**：
+- 仅绕过编译时类型检查，运行时验证完全正常
+- 追踪问题：[react-hook-form/resolvers#813](https://github.com/react-hook-form/resolvers/issues/813)
+- 清理时机：等待 `@hookform/resolvers` 发布 Zod v4 兼容版本后移除 `as any`
 
 ---
 

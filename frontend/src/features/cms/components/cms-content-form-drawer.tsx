@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { useEffect } from "react";
 import {
@@ -35,7 +35,6 @@ import { useCreateContent, useUpdateContent } from "../hooks/use-cms-contents";
 import { useProducts } from "@/features/products/hooks/use-products";
 import { useUsers } from "@/features/users/hooks/use-users";
 import type { CmsContent, ContentType } from "../types/cms";
-import { CONTENT_TYPE_CONFIG } from "../types/cms";
 
 const cmsContentFormSchema = z.object({
   title: z.string().min(1, "标题不能为空"),

@@ -5,7 +5,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { CmsPageEditor } from "../components/cms-page-editor";
+import { CmsPageEditor } from "@/features/cms/components";
 import { useCmsPage } from "../hooks/use-cms-pages";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";

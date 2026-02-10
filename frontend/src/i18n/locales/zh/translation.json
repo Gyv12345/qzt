@@ -21,7 +21,8 @@
     "goToPage": "跳转到第 {{page}} 页",
     "goToNextPage": "跳转到下一页",
     "goToLastPage": "跳转到最后一页",
-    "view": "查看"
+    "view": "查看",
+    "tip": "提示"
   },
   "auth": {
     "login": "登录",
@@ -40,6 +41,21 @@
     "createDescription": "填写客户基本信息",
     "editDescription": "修改客户信息",
     "searchPlaceholder": "搜索客户名称...",
+    "batchAssign": {
+      "title": "批量分配跟进人",
+      "description": "将选中的 {{count}} 个客户分配给指定的跟进人",
+      "selectUser": "请选择跟进人",
+      "loadingUsers": "加载用户列表...",
+      "reason": "分配原因",
+      "reasonPlaceholder": "请输入分配原因（选填）",
+      "hint": "分配后，原跟进人将无法继续管理这些客户。分配历史将被记录。",
+      "selectUserRequired": "请选择跟进人",
+      "assigning": "分配中...",
+      "confirmAssign": "确认分配",
+      "success": "批量分配成功",
+      "failed": "批量分配失败",
+      "fetchUsersFailed": "获取用户列表失败"
+    },
     "columns": {
       "name": "公司名称",
       "shortName": "简称",
@@ -788,6 +804,19 @@
     },
     "enum": {
       "invalid": "请选择有效选项"
+    }
+  },
+  "cms": {
+    "content": {
+      "columns": {
+        "title": "标题",
+        "type": "类型",
+        "status": "状态",
+        "author": "作者",
+        "excerpt": "摘要",
+        "publishedAt": "发布日期",
+        "actions": "操作"
+      }
     }
   }
 }

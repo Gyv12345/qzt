@@ -39,7 +39,6 @@ export function BatchAssignDialog({
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [reason, setReason] = useState("");
   const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(false);
 
@@ -53,8 +52,8 @@ export function BatchAssignDialog({
   const fetchUsers = async () => {
     setIsUsersLoading(true);
     try {
-      const { userControllerFindAll } = getScrmApi();
-      const response = (await userControllerFindAll({
+      const { usersControllerFindAll } = getScrmApi();
+      const response = (await usersControllerFindAll({
         page: 1,
         pageSize: 100,
       })) as any;
@@ -64,7 +63,7 @@ export function BatchAssignDialog({
       }
     } catch (error) {
       console.error("获取用户列表失败:", error);
-      toast.error("获取用户列表失败");
+      toast.error(t("customer.batchAssign.fetchUsersFailed"));
     } finally {
       setIsUsersLoading(false);
     }
@@ -72,7 +71,7 @@ export function BatchAssignDialog({
 
   const handleAssign = async () => {
     if (!selectedUserId) {
-      toast.error("请选择跟进人");
+      toast.error(t("customer.batchAssign.selectUserRequired"));
       return;
     }
 
@@ -82,17 +81,17 @@ export function BatchAssignDialog({
       const response = (await customerControllerBatchAssign({
         customerIds,
         newFollowUserId: selectedUserId,
-        reason: reason || "批量分配",
+        reason: reason || t("customer.batchAssign.reason") || "批量分配",
       })) as any;
 
-      toast.success(response.message || "批量分配成功");
+      toast.success(response.message || t("customer.batchAssign.success"));
       onSuccess();
       onOpenChange(false);
       // 重置表单
       setSelectedUserId("");
       setReason("");
     } catch (error: any) {
-      toast.error(error.message || "批量分配失败");
+      toast.error(error.message || t("customer.batchAssign.failed"));
     } finally {
       setIsAssigning(false);
     }
@@ -104,10 +103,12 @@ export function BatchAssignDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserCheck className="h-5 w-5" />
-            批量分配跟进人
+            {t("customer.batchAssign.title")}
           </DialogTitle>
           <DialogDescription>
-            将选中的 {customerIds.length} 个客户分配给指定的跟进人
+            {t("customer.batchAssign.description", {
+              count: customerIds.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,19 +116,22 @@ export function BatchAssignDialog({
           {/* 选择跟进人 */}
           <div className="space-y-2">
             <Label htmlFor="follow-user">
-              跟进人 <span className="text-destructive">*</span>
+              {t("customer.batchAssign.selectUser")}{" "}
+              <span className="text-destructive">*</span>
             </Label>
             {isUsersLoading ? (
               <div className="flex items-center justify-center py-4 border rounded-lg">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 <span className="ml-2 text-sm text-muted-foreground">
-                  加载用户列表...
+                  {t("customer.batchAssign.loadingUsers")}
                 </span>
               </div>
             ) : (
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger id="follow-user">
-                  <SelectValue placeholder="请选择跟进人" />
+                  <SelectValue
+                    placeholder={t("customer.batchAssign.selectUser")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {users.map((user) => (
@@ -142,10 +146,10 @@ export function BatchAssignDialog({
 
           {/* 分配原因 */}
           <div className="space-y-2">
-            <Label htmlFor="reason">分配原因</Label>
+            <Label htmlFor="reason">{t("customer.batchAssign.reason")}</Label>
             <Textarea
               id="reason"
-              placeholder="请输入分配原因（选填）"
+              placeholder={t("customer.batchAssign.reasonPlaceholder")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
@@ -155,8 +159,8 @@ export function BatchAssignDialog({
           {/* 提示信息 */}
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
             <p className="text-sm text-blue-700">
-              <span className="font-medium">提示：</span>
-              分配后，原跟进人将无法继续管理这些客户。分配历史将被记录。
+              <span className="font-medium">{t("common.tip")}：</span>
+              {t("customer.batchAssign.hint")}
             </p>
           </div>
         </div>
@@ -168,7 +172,7 @@ export function BatchAssignDialog({
             onClick={() => onOpenChange(false)}
             disabled={isAssigning}
           >
-            取消
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -178,12 +182,12 @@ export function BatchAssignDialog({
             {isAssigning ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                分配中...
+                {t("customer.batchAssign.assigning")}
               </>
             ) : (
               <>
                 <UserCheck className="h-4 w-4 mr-2" />
-                确认分配
+                {t("customer.batchAssign.confirmAssign")}
               </>
             )}
           </Button>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useNavigate } from "@tanstack/react-router";
 import { Lock, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
