@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Setup2faRouteImport } from './routes/setup-2fa'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedWebhooksRouteImport } from './routes/_authenticated/webhooks'
@@ -50,9 +52,19 @@ import { Route as AuthenticatedCmsTagsRouteRouteImport } from './routes/_authent
 import { Route as AuthenticatedCmsPagesRouteRouteImport } from './routes/_authenticated/cms/pages/route'
 import { Route as AuthenticatedCmsElementsRouteRouteImport } from './routes/_authenticated/cms/elements/route'
 
+const Setup2faRoute = Setup2faRouteImport.update({
+  id: '/setup-2fa',
+  path: '/setup-2fa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -276,7 +288,9 @@ const AuthenticatedCmsElementsRouteRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
+  '/setup-2fa': typeof Setup2faRoute
   '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
@@ -316,7 +330,9 @@ export interface FileRoutesByFullPath {
   '/users/': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesByTo {
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
+  '/setup-2fa': typeof Setup2faRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -357,7 +373,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
+  '/setup-2fa': typeof Setup2faRoute
   '/_authenticated/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
   '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
@@ -401,7 +419,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/change-password'
     | '/login'
+    | '/setup-2fa'
     | '/cms'
     | '/contacts'
     | '/contract-templates'
@@ -441,7 +461,9 @@ export interface FileRouteTypes {
     | '/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/change-password'
     | '/login'
+    | '/setup-2fa'
     | '/contacts'
     | '/contract-templates'
     | '/contracts'
@@ -481,7 +503,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/change-password'
     | '/login'
+    | '/setup-2fa'
     | '/_authenticated/cms'
     | '/_authenticated/contacts'
     | '/_authenticated/contract-templates'
@@ -524,7 +548,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ChangePasswordRoute: typeof ChangePasswordRoute
   LoginRoute: typeof LoginRoute
+  Setup2faRoute: typeof Setup2faRoute
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
   errors404Route: typeof errors404Route
@@ -534,11 +560,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup-2fa': {
+      id: '/setup-2fa'
+      path: '/setup-2fa'
+      fullPath: '/setup-2fa'
+      preLoaderRoute: typeof Setup2faRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -918,7 +958,9 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ChangePasswordRoute: ChangePasswordRoute,
   LoginRoute: LoginRoute,
+  Setup2faRoute: Setup2faRoute,
   errors401Route: errors401Route,
   errors403Route: errors403Route,
   errors404Route: errors404Route,

@@ -2,8 +2,8 @@
  * 认证信息存储工具
  */
 
-const ACCESS_TOKEN_KEY = "access_token";
-const USER_INFO_KEY = "user_info";
+const ACCESS_TOKEN_KEY = "auth_accessToken";
+const USER_INFO_KEY = "auth_user";
 
 export interface StoredUser {
   id: string; // 兼容后端返回的 userId

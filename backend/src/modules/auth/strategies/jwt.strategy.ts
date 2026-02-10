@@ -19,6 +19,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<UserInfo> {
+    console.log("[JwtStrategy] Validating token:", {
+      sub: payload.sub,
+      username: payload.username,
+    });
+
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: {
@@ -30,7 +35,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
+    console.log("[JwtStrategy] User found:", {
+      found: !!user,
+      status: user?.status,
+    });
+
     if (!user || user.status !== "ACTIVE") {
+      console.log("[JwtStrategy] User validation failed");
       throw new UnauthorizedException("账号无效或已被禁用");
     }
 

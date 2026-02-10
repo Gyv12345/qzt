@@ -7,10 +7,11 @@ import axios, {
 // 从 localStorage 或 sessionStorage 获取 token
 const getToken = (): string | null => {
   if (typeof window === "undefined") return null;
-  // 优先从 localStorage 获取，如果没有则从 sessionStorage 获取（用于 2FA 设置流程）
+  // 优先从 localStorage 获取，如果没有则从 sessionStorage 获取（用于密码修改和 2FA 设置流程）
   return (
-    localStorage.getItem("access_token") ||
-    sessionStorage.getItem("pending_2fa_setup_token")
+    localStorage.getItem("auth_accessToken") ||
+    sessionStorage.getItem("auth_temp_token") ||
+    sessionStorage.getItem("auth_temp_password_change")
   );
 };
 
@@ -28,6 +29,14 @@ const axiosInstance: AxiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getToken();
+    console.log("[api-client] Request:", {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+      tokenLength: token?.length,
+      tokenPreview: token?.substring(0, 20) + "...",
+      authHeader: config.headers?.Authorization,
+    });
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -83,8 +92,13 @@ axiosInstance.interceptors.response.use(
     // 401 未授权：清除 token 并跳转登录
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("user_info");
+        localStorage.removeItem("auth_accessToken");
+        localStorage.removeItem("auth_user");
+        // 清除临时存储的 token（用于密码修改和 2FA 设置流程）
+        sessionStorage.removeItem("auth_temp_token");
+        sessionStorage.removeItem("auth_temp_user");
+        sessionStorage.removeItem("auth_temp_password_change");
+        sessionStorage.removeItem("auth_temp_requires2FA");
         // 不直接跳转，由 AuthContext 处理
         window.dispatchEvent(new CustomEvent("unauthorized"));
       }

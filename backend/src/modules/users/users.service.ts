@@ -334,6 +334,7 @@ export class UsersService {
         id: true,
         password: true,
         twoFactorEnabled: true,
+        hasCompletedFirstLogin: true,
       },
     });
 
@@ -350,8 +351,9 @@ export class UsersService {
       throw new UnauthorizedException("当前密码错误");
     }
 
-    // 如果用户启用了 2FA，验证 2FA token
-    if (user.twoFactorEnabled) {
+    // 如果用户启用了 2FA 且不是首次登录，验证 2FA token
+    // 首次登录修改密码时跳过 2FA 检查（因为还没设置 2FA）
+    if (user.twoFactorEnabled && user.hasCompletedFirstLogin) {
       if (!twoFactorToken) {
         throw new UnauthorizedException("需要双因素认证验证码");
       }
@@ -369,11 +371,24 @@ export class UsersService {
     // 哈希新密码
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    // 检查是否是首次登录，如果是则标记为已完成
+    const userFull = await this.prisma.user.findUnique({
+      where: { id },
+      select: { hasCompletedFirstLogin: true },
+    });
+
+    const updateData: any = {
+      password: hashedPassword,
+    };
+
+    // 首次登录修改密码后，标记首次登录完成
+    if (userFull && !userFull.hasCompletedFirstLogin) {
+      updateData.hasCompletedFirstLogin = true;
+    }
+
     await this.prisma.user.update({
       where: { id },
-      data: {
-        password: hashedPassword,
-      },
+      data: updateData,
     });
 
     return { message: "密码修改成功" };

@@ -37,6 +37,7 @@ interface TotpSetupDialogProps {
   ) => Promise<{ backupCodes: string[] }>;
   onComplete: () => void;
   isLoading?: boolean;
+  allowClose?: boolean; // 是否允许关闭（首次登录强制设置时不允许）
 }
 
 export function TotpSetupDialog({
@@ -46,6 +47,7 @@ export function TotpSetupDialog({
   onVerify,
   onComplete,
   isLoading,
+  allowClose = true,
 }: TotpSetupDialogProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [verifyLoading, setVerifyLoading] = useState(false);
@@ -87,8 +89,16 @@ export function TotpSetupDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={allowClose ? onOpenChange : undefined}>
+      <DialogContent
+        className="sm:max-w-md"
+        {...(!allowClose && {
+          // 阻止点击外部关闭
+          onPointerDownOutside: (e) => e.preventDefault(),
+          // 阻止 ESC 键关闭
+          onEscapeKeyDown: (e) => e.preventDefault(),
+        })}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
