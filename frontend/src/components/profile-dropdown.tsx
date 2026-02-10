@@ -63,12 +63,6 @@ export function ProfileDropdown() {
                 <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings/notifications">
-                {t("profile.notifications")}
-                <DropdownMenuShortcut>⌘N</DropdownMenuShortcut>
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuItem>{t("profile.newTeam")}</DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

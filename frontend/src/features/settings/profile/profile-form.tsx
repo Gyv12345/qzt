@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/auth-context";
 import { getScrmApi } from "@/services/api";
+import { getUserId } from "@/lib/auth-storage";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -31,6 +32,8 @@ export function ProfileForm() {
   const { user, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
+  console.log("ProfileForm render, user:", user);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -44,6 +47,7 @@ export function ProfileForm() {
 
   // 当用户信息加载后填充表单
   useEffect(() => {
+    console.log("ProfileForm useEffect, user:", user);
     if (user) {
       form.reset({
         username: user.username || "",
@@ -55,17 +59,25 @@ export function ProfileForm() {
   }, [user, form]);
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!user?.id) return;
+    console.log("ProfileForm onSubmit called:", data);
+    const userId = getUserId(user);
+    if (!userId) {
+      console.log("No user id");
+      return;
+    }
 
     setIsLoading(true);
     try {
+      console.log("Calling API...");
       const { usersControllerUpdate } = getScrmApi();
-      await usersControllerUpdate(user.id, {
+      await usersControllerUpdate(userId, {
         username: data.username,
         name: data.name,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
+        // 空字符串传递 null 以清空字段
+        email: data.email === "" ? null : data.email || undefined,
+        phone: data.phone === "" ? null : data.phone || undefined,
       });
+      console.log("API call success");
 
       // 刷新用户信息
       await refreshUser();
@@ -80,9 +92,16 @@ export function ProfileForm() {
     }
   };
 
+  const handleError = (errors: any) => {
+    console.log("Form validation errors:", errors);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, handleError)}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="name"

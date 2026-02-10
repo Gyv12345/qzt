@@ -183,7 +183,8 @@ export class UsersService {
    * 更新用户
    */
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const { username, password, roleIds, email, ...userData } = updateUserDto;
+    const { username, password, roleIds, email, phone, ...userData } =
+      updateUserDto;
 
     // 检查用户是否存在
     const existingUser = await this.prisma.user.findUnique({
@@ -204,13 +205,17 @@ export class UsersService {
       }
     }
 
-    // 如果更新邮箱，检查是否冲突
-    if (email && email !== existingUser.email) {
-      const conflictEmail = await this.prisma.user.findUnique({
-        where: { email },
-      });
-      if (conflictEmail) {
-        throw new ConflictException("邮箱已被使用");
+    // 如果更新邮箱（包括清空），检查是否冲突
+    // email !== undefined 确保我们区分"未提供"和"清空"两种情况
+    if (email !== undefined && email !== existingUser.email) {
+      // 只有非空时才检查冲突
+      if (email) {
+        const conflictEmail = await this.prisma.user.findUnique({
+          where: { email },
+        });
+        if (conflictEmail) {
+          throw new ConflictException("邮箱已被使用");
+        }
       }
     }
 
@@ -237,8 +242,9 @@ export class UsersService {
       where: { id },
       data: {
         ...userData,
-        ...(username && { username }),
-        ...(email && { email }),
+        ...(username !== undefined && { username }),
+        ...(email !== undefined && { email: email || null }), // 允许清空邮箱
+        ...(phone !== undefined && { phone: phone || null }), // 允许清空手机号
         ...(hashedPassword && { password: hashedPassword }),
         ...(roleIds && {
           roles: {

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Outlet } from "@tanstack/react-router";
-import { Bell, Palette, UserCog } from "lucide-react";
+import { ShieldCheck, UserCog } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Main } from "@/components/layout/main";
 import { SidebarNav } from "./components/sidebar-nav";
@@ -15,14 +15,9 @@ export function Settings() {
       icon: <UserCog size={18} />,
     },
     {
-      title: t("accountSettings.sidebar.appearance"),
-      href: "/settings/appearance",
-      icon: <Palette size={18} />,
-    },
-    {
-      title: t("accountSettings.sidebar.notifications"),
-      href: "/settings/notifications",
-      icon: <Bell size={18} />,
+      title: "安全设置",
+      href: "/settings/security",
+      icon: <ShieldCheck size={18} />,
     },
   ];
 

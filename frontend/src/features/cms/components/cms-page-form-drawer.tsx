@@ -440,13 +440,14 @@ export function CmsPageFormDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh]">
-        <div className="mx-auto w-full max-w-2xl">
-          <DrawerHeader className="px-6">
+      <DrawerContent className="max-h-[90vh] flex flex-col">
+        <div className="mx-auto w-full max-w-2xl flex flex-col flex-1 overflow-hidden">
+          <DrawerHeader className="px-6 flex-shrink-0">
             <DrawerTitle>{title}</DrawerTitle>
           </DrawerHeader>
 
-          <div className="px-6 pb-6">
+          {/* 可滚动内容区域 */}
+          <div className="px-6 flex-1 overflow-y-auto">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(handleSubmit)}
@@ -719,30 +720,36 @@ export function CmsPageFormDrawer({
                     </div>
                   )}
                 </div>
-
-                {/* 提交按钮 */}
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onOpenChange(false)}
-                    disabled={isSubmitting}
-                  >
-                    取消
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        保存中...
-                      </>
-                    ) : (
-                      "保存"
-                    )}
-                  </Button>
-                </div>
               </form>
             </Form>
+          </div>
+
+          {/* 固定底部按钮 */}
+          <div className="px-6 pb-6 flex-shrink-0 border-t bg-background">
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                取消
+              </Button>
+              <Button
+                type="button"
+                onClick={form.handleSubmit(handleSubmit)}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    保存中...
+                  </>
+                ) : (
+                  "保存"
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </DrawerContent>

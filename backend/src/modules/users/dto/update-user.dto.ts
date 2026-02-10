@@ -40,16 +40,21 @@ export class UpdateUserDto implements UpdateUserBase {
   @ApiPropertyOptional({
     description: "邮箱",
     example: "zhangsan@example.com",
+    nullable: true,
   })
   @IsOptional()
-  @IsEmail({}, { message: "请输入有效的邮箱地址" })
-  email?: string;
+  // 允许 null 用于清空，空字符串将由前端转换为 undefined
+  email?: string | null;
 
-  @ApiPropertyOptional({ description: "手机号", example: "13800138000" })
+  @ApiPropertyOptional({
+    description: "手机号",
+    example: "13800138000",
+    nullable: true,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(20, { message: "手机号最多20个字符" })
-  phone?: string;
+  phone?: string | null;
 
   @ApiPropertyOptional({ description: "部门ID", example: "clxxx" })
   @IsOptional()

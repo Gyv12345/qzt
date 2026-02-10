@@ -1,12 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  LogOut,
-  Sparkles,
-} from "lucide-react";
+import { BadgeCheck, ChevronsUpDown, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import useDialogState from "@/hooks/use-dialog-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -107,12 +101,6 @@ export function NavUser() {
                   <Link to="/settings">
                     <BadgeCheck />
                     {t("nav.user.profile")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings/notifications">
-                    <Bell />
-                    {t("nav.user.notifications")}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>

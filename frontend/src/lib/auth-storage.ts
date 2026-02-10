@@ -6,16 +6,25 @@ const ACCESS_TOKEN_KEY = "access_token";
 const USER_INFO_KEY = "user_info";
 
 export interface StoredUser {
-  id: string;
+  id: string; // 兼容后端返回的 userId
+  userId: string; // 后端实际返回的字段名
   username: string;
   name: string;
   email?: string;
   phone?: string;
   avatar?: string;
+  status?: string;
+  isAdmin?: boolean;
+  departmentId?: string;
+  createdAt?: string;
+  updatedAt?: string;
   roles: Array<{
     id: string;
     name: string;
     code: string;
+    type?: string;
+    dataScope?: string;
+    dataScopeDeptIds?: string | null;
   }>;
 }
 
@@ -99,4 +108,11 @@ export const setAuth = (response: LoginResponse): void => {
  */
 export const isAuthenticated = (): boolean => {
   return !!getToken();
+};
+
+/**
+ * 获取用户 ID（兼容 id 和 userId 字段）
+ */
+export const getUserId = (user: StoredUser | null): string | undefined => {
+  return user?.userId || user?.id;
 };
