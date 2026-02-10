@@ -454,9 +454,38 @@ case $CHOICE in
             exit 1
         fi
 
-        # HTTP 验证
+        # 创建临时 Nginx 配置用于验证
+        echo -e "${YELLOW}配置临时 Nginx 用于域名验证...${NC}"
         mkdir -p /var/www/certbot
 
+        # 为每个域名创建临时配置
+        for d in "$DOMAIN" "www.$DOMAIN" "admin.$DOMAIN"; do
+            cat > "/etc/nginx/conf.d/${d}.conf" << NGINXEOF
+server {
+    listen 80;
+    server_name $d;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 200 "Temporary page for Let's Encrypt validation";
+        add_header Content-Type text/plain;
+    }
+}
+NGINXEOF
+        done
+
+        # 测试并重载 Nginx
+        nginx -t >/dev/null 2>&1 && systemctl reload nginx || {
+            echo -e "${RED}✗ Nginx 配置错误${NC}"
+            exit 1
+        }
+
+        echo -e "${GREEN}✓ Nginx 已配置，开始申请证书...${NC}"
+
+        # HTTP 验证
         certbot certonly --webroot \
             --webroot-path=/var/www/certbot \
             --email "admin@$DOMAIN" \
@@ -469,12 +498,21 @@ case $CHOICE in
             ln -sf "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$CERT_DIR/key.pem"
             echo -e "${GREEN}✓ Let's Encrypt 证书已获取${NC}"
             echo -e "${CYAN}证书路径: $CERT_DIR${NC}"
+
+            # 清理临时配置
+            rm -f /etc/nginx/conf.d/$DOMAIN.conf /etc/nginx/conf.d/www.$DOMAIN.conf /etc/nginx/conf.d/admin.$DOMAIN.conf
+            nginx -t >/dev/null 2>&1 && systemctl reload nginx || true
         } || {
             echo -e "${RED}✗ 证书获取失败${NC}"
             echo -e "${YELLOW}请检查：${NC}"
-            echo "  1. 域名是否正确解析到服务器"
+            echo "  1. 域名是否正确解析到服务器: $(curl -s ifconfig.me)"
             echo "  2. 防火墙是否开放 80 端口"
-            echo "  3. 80 端口是否被其他服务占用"
+            echo "  3. 域名解析是否已生效（可能需要等待几分钟）"
+            echo ""
+            echo -e "${YELLOW}测试域名解析：${NC}"
+            for d in "$DOMAIN" "www.$DOMAIN" "admin.$DOMAIN"; do
+                echo "  nslookup $d"
+            done
             exit 1
         }
         ;;
