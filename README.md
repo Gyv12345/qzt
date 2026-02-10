@@ -383,7 +383,12 @@ bash /opt/qzt/scripts/deploy/setup-ssl.sh
 git push origin main
 ```
 
-详细部署文档请查看 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+#### 部署文档
+
+| 文档 | 说明 |
+|------|------|
+| [DEPLOY.md](./DEPLOY.md) | 裸机部署完整指南（中文） |
+| [DEPLOY.en.md](./DEPLOY.en.md) | Bare-metal deployment guide (English) |
 
 ---
 
