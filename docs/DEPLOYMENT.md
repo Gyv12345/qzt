@@ -1,103 +1,69 @@
-# 企智通 QZT - 生产环境部署文档
+# 企智通 QZT - 部署指南
 
-## 目录
-
-- [系统要求](#系统要求)
-- [快速开始](#快速开始)
-- [详细步骤](#详细步骤)
-- [GitHub 配置](#github-配置)
-- [常见问题](#常见问题)
-- [无域名开发场景](#无域名开发场景)
+> 快速部署到阿里云 ECS，适合非专业人士操作
 
 ---
 
-## 系统要求
+## 前置准备
 
-### 服务器
+### 需要什么
 
-- **操作系统**: Ubuntu 20.04+ / Debian 11+ / CentOS 8+ / AlmaLinux 8+
-- **CPU**: 2 核或以上
-- **内存**: 4GB 或以上
-- **磁盘**: 20GB 或以上
-- **网络**: 公网 IP，开放 80/443 端口
+| 项目 | 要求 |
+|------|------|
+| **服务器** | 阿里云 ECS，2核4G，系统选 Ubuntu |
+| **数据库** | 阿里云 RDS MySQL，2核2G |
+| **域名** | 有域名最好，没有也能用 IP 访问 |
 
-### 外部服务
+### 费用参考（按年）
 
-- MySQL RDS（或其他托管 MySQL）
-- 域名（生产环境推荐，开发环境可选）
-
----
-
-## 部署场景
-
-| 场景 | 域名 | SSL 证书 | 适用 |
-|------|------|----------|------|
-| **生产环境** | 有 | 正式证书 / Let's Encrypt | 正式上线 |
-| **开发测试** | 无 | 自签名证书 | 开发调试 |
-| **演示环境** | IP 地址 | 自签名证书 | 客户演示 |
+- ECS 2C4G：约 ¥1000-1500/年
+- RDS 2C2G：约 ¥500-800/年
+- 域名：约 ¥50-100/年
 
 ---
 
-## 快速开始
+## 快速部署（5 分钟）
 
-### 选择部署模式
+### 第一步：初始化服务器
 
-| 模式 | 域名要求 | SSL 证书 | 访问方式 |
-|------|---------|----------|----------|
-| **生产模式** | 有域名 | Let's Encrypt / 正式证书 | `https://domain.com` |
-| **开发模式** | 无 | 自签名证书 | `https://IP地址` |
-
-### 第一步：服务器初始化
+登录你的服务器，复制粘贴这行命令：
 
 ```bash
-# 下载并运行初始化脚本
 curl -fsSL https://raw.githubusercontent.com/你的用户名/qzt/main/scripts/deploy/init-server.sh | bash
 ```
 
-### 第二步：配置环境变量
+这会自动安装所有需要的东西（Node.js、Nginx、Redis 等），大约 2-3 分钟。
+
+### 第二步：配置数据库
 
 ```bash
 vim /opt/qzt/backend/.env
 ```
 
-**生产模式**（有域名）：
-```bash
-DOMAIN_NAME=yourdomain.com
-ADMIN_DOMAIN=admin.yourdomain.com
-APP_URL=https://yourdomain.com
-API_URL=https://yourdomain.com/api
-FRONTEND_URL=https://admin.yourdomain.com
-```
+填写以下信息（**必填**）：
 
-**开发模式**（无域名/IP 访问）：
 ```bash
-DOMAIN_NAME=123.456.789.0        # 服务器 IP
-ADMIN_DOMAIN=123.456.789.0        # 同上
-APP_URL=https://123.456.789.0
-API_URL=https://123.456.789.0/api
-FRONTEND_URL=https://123.456.789.0
-```
-
-**必填配置**：
-```bash
-# 数据库（支持拆分配置，密码含特殊字符时推荐）
-DB_HOST=rm-xxx.mysql.rds.aliyuncs.com
+# === 数据库（在阿里云 RDS 控制台查看）===
+DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
 DB_PORT=3306
-DB_USERNAME=qzt_user
-DB_PASSWORD=YourP@ssw0rd!#$  # 支持特殊字符
-DB_DATABASE=qzt_prod
+DB_USERNAME=你的数据库用户名
+DB_PASSWORD=你的数据库密码
+DB_DATABASE=数据库名
 DATABASE_PROVIDER=mysql
 
-# Redis（密码在 /root/.redis_password）
-REDIS_ENABLED=true
-REDIS_HOST=localhost
-REDIS_PASSWORD=
+# === Redis 密码 ===
+REDIS_PASSWORD=复制 /root/.redis_password 里的内容
 
-# JWT（用 openssl rand -hex 32 生成）
-JWT_SECRET=
+# === JWT 密钥（生成一个随机字符串）===
+JWT_SECRET=随便写一串很长的随机字符至少32位
 
-# PM2 集群模式（2C4G 推荐启用）
-PM2_CLUSTER_ENABLED=true
+# === 如果有域名 ===
+DOMAIN_NAME=yourdomain.com
+ADMIN_DOMAIN=admin.yourdomain.com
+
+# === 如果没有域名，用 IP 地址 ===
+DOMAIN_NAME=你的服务器IP
+ADMIN_DOMAIN=你的服务器IP
 ```
 
 ### 第三步：配置 SSL 证书
@@ -106,647 +72,157 @@ PM2_CLUSTER_ENABLED=true
 bash /opt/qzt/scripts/deploy/setup-ssl.sh
 ```
 
-| 选项 | 适用场景 | 浏览器警告 |
-|------|---------|-----------|
-| `1` 自签名 | 开发测试、无域名 | 有（可忽略） |
-| `2` 上传证书 | 已有证书文件 | 无 |
-| `3` Let's Encrypt | 有域名、已解析 | 无 |
+**选择证书类型**：
 
-### 第四步：配置 GitHub Secrets
+| 选项 | 什么时候选 | 浏览器会警告吗 |
+|------|-----------|--------------|
+| 1 自签名 | 没有域名、只是测试 | 会，但可以点「继续访问」 |
+| 2 上传证书 | 你已经有证书文件 | 不会 |
+| 3 Let's Encrypt | 有域名且已解析 | 不会（免费） |
 
-在 GitHub 仓库设置中添加以下 Secrets：
+### 第四步：配置 GitHub 自动部署
 
-| Secret | 说明 | 示例 |
-|--------|------|------|
-| `SERVER_HOST` | 服务器 IP | `123.456.789.0` |
-| `SERVER_USER` | SSH 用户名 | `root` |
-| `SSH_PRIVATE_KEY` | SSH 私钥 | 见下方说明 |
-| `SSH_PORT` | SSH 端口 | `22` |
+1. 打开你的 GitHub 仓库
+2. 点击 **Settings** → **Secrets and variables** → **Actions**
+3. 点击 **New repository secret**，添加以下内容：
 
-**获取 SSH 私钥**（服务器上执行）：
-
-```bash
-cat ~/.ssh/id_ed25519
-```
-
-### 第五步：触发部署
-
-```bash
-# 推送代码到 main 分支
-git push origin main
-```
-
-或在 GitHub: **Actions** → **Deploy to Production** → **Run workflow**
-
----
-
-## 详细步骤
-
-### 1. 服务器初始化
-
-脚本会自动检测系统类型并安装相应依赖：
-
-**支持系统**：
-- Ubuntu / Debian
-- CentOS / AlmaLinux / Rocky Linux
-- Fedora
-
-**安装内容**：
-- Node.js 20
-- pnpm
-- PM2
-- Redis
-- Nginx
-- 防火墙配置
-
-### 2. 环境变量配置
-
-完整的环境变量示例：
-
-```bash
-# ============================================
-# 必填配置
-# ============================================
-# 数据库（推荐使用拆分配置）
-DATABASE_PROVIDER=mysql
-DB_HOST=rm-xxx.mysql.rds.aliyuncs.com
-DB_PORT=3306
-DB_USERNAME=qzt_user
-DB_PASSWORD=YourPassword123!
-DB_DATABASE=qzt_prod
-
-# Redis
-REDIS_ENABLED=true
-REDIS_HOST=localhost
-REDIS_PASSWORD="从 /root/.redis_password 获取"
-
-# JWT
-JWT_SECRET="用 openssl rand -hex 32 生成"
-
-# 域名
-DOMAIN_NAME="example.com"
-ADMIN_DOMAIN="admin.example.com"
-
-# 应用 URL
-APP_URL="https://example.com"
-API_URL="https://example.com/api"
-FRONTEND_URL="https://admin.example.com"
-
-# PM2 集群（2C4G 推荐启用）
-PM2_CLUSTER_ENABLED=true
-
-# ============================================
-# 可选配置
-# ============================================
-# 阿里云 OSS
-OSS_REGION="oss-cn-hangzhou"
-OSS_ACCESS_KEY_ID="your-key-id"
-OSS_ACCESS_KEY_SECRET="your-key-secret"
-OSS_BUCKET="your-bucket"
-
-# e签宝
-ESIGN_APP_ID="your-app-id"
-ESIGN_APP_SECRET="your-app-secret"
-```
-
-### 3. SSL 证书配置
-
-**方案一：自签名证书**（快速测试）
-```bash
-# 自动生成，浏览器会警告
-bash /opt/qzt/scripts/deploy/setup-ssl.sh
-# 选择 1
-```
-
-**方案二：上传证书**（已有证书）
-```bash
-bash /opt/qzt/scripts/deploy/setup-ssl.sh
-# 选择 2，然后粘贴证书和私钥
-```
-
-**方案三：Let's Encrypt**（免费 CA）
-```bash
-# 前提：域名已解析到服务器
-bash /opt/qzt/scripts/deploy/setup-ssl.sh
-# 选择 3
-```
-
-### 4. GitHub Secrets 配置
-
-1. 打开 GitHub 仓库
-2. **Settings** → **Secrets and variables** → **Actions**
-3. 点击 **New repository secret**
-
-添加以下 Secrets：
-
-| Name | Value |
-|------|-------|
+| Name | 填什么 |
+|------|--------|
 | `SERVER_HOST` | 服务器 IP 地址 |
-| `SERVER_USER` | `root`（或其他用户） |
-| `SSH_PRIVATE_KEY` | 服务器私钥内容 |
-| `SSH_PORT` | `22`（或其他端口） |
+| `SERVER_USER` | `root` |
+| `SSH_PRIVATE_KEY` | 见下方说明 |
+| `SSH_PORT` | `22` |
 
-**获取私钥**（在服务器上）：
+**获取 SSH 私钥**（在服务器上执行）：
+
 ```bash
 cat ~/.ssh/id_ed25519
 ```
 
-复制完整输出，包括 `-----BEGIN OPENSSH PRIVATE KEY-----` 和 `-----END OPENSSH PRIVATE KEY-----`
+把显示的内容（包括开头和结尾的那几行）全部复制，粘贴到 GitHub。
 
-**添加公钥到服务器**（如果还没配置）：
-```bash
-# 在服务器上
-cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
-```
-
----
-
-## 部署流程
-
-### 自动部署
-
-推送代码到 `main` 分支自动触发：
+### 第五步：开始部署
 
 ```bash
-git add .
-git commit -m "feat: 新功能"
+# 在你的电脑上，推送代码到 main 分支
 git push origin main
 ```
 
-### 手动部署
+或者在 GitHub：**Actions** → **Deploy to Production** → **Run workflow**
 
-1. 打开 GitHub 仓库
-2. **Actions** 标签页
-3. 选择 **Deploy to Production**
-4. 点击 **Run workflow** → **Run workflow**
+---
 
-### 查看部署状态
+## 部署完成后
 
-在 GitHub Actions 页面查看实时日志。
+### 检查服务状态
+
+```bash
+pm2 status
+```
+
+正常应该看到：
+
+```
+┌────┬───────────────┬─────┬─────────┐
+│ id │ name          │ mode│ status  │
+├────┼───────────────┼─────┼─────────┤
+│ 0  │ qzt-backend   │ cluster│ online│
+│ 1  │ qzt-backend   │ cluster│ online│
+│ 2  │ qzt-website   │ fork  │ online│
+└────┴───────────────┴─────┴─────────┘
+```
+
+### 访问你的网站
+
+- 有域名：`https://yourdomain.com`
+- 没有域名：`https://你的服务器IP`
+
+如果浏览器提示「不安全」，点击「高级」→「继续访问」即可（自签名证书）。
 
 ---
 
 ## 常见问题
 
-### Q1: 脚本提示 "command not found"
-
-**原因**: 系统缺少基础工具
-
-**解决**:
-```bash
-# Ubuntu/Debian
-apt-get update && apt-get install -y curl wget git
-
-# CentOS/RHEL
-yum install -y curl wget git
-```
-
-### Q2: Node.js 安装失败
-
-**原因**: 网络问题
-
-**解决**: 脚本已使用国内镜像，如果仍失败可手动安装：
+### Q: 怎么看日志？
 
 ```bash
-# Ubuntu/Debian
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
-
-# CentOS/RHEL
-curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-yum install -y nodejs
-```
-
-### Q3: PM2 无法开机自启
-
-**解决**:
-```bash
-pm2 unstartup
-pm2 startup
-# 按提示执行输出的命令
-pm2 save
-```
-
-### Q4: SSL 证书申请失败
-
-**原因**: 域名未解析或 80 端口未开放
-
-**解决**:
-```bash
-# 检查域名解析
-ping yourdomain.com
-
-# 检查防火墙
-ufw status
-
-# 确保 80 端口开放
-ufw allow 80/tcp
-```
-
-### Q5: 部署后无法访问
-
-**排查步骤**:
-```bash
-# 1. 检查服务状态
-pm2 status
-
-# 2. 检查 Nginx 状态
-systemctl status nginx
-
-# 3. 检查端口监听
-netstat -tlnp | grep -E '80|443|7890|5180'
-
-# 4. 查看日志
 pm2 logs
-tail -f /var/log/nginx/*.log
 ```
 
-### Q6: 数据库连接失败
+### Q: 服务没起来？
 
-**检查**:
 ```bash
-# 测试 RDS 连接
-mysql -h 你的RDS地址 -u 用户名 -p
+# 1. 检查配置是否填对
+cat /opt/qzt/backend/.env
 
-# 检查防火墙是否放行数据库端口
-# （如果是阿里云 RDS，需要在控制台添加白名单）
+# 2. 查看错误信息
+pm2 logs qzt-backend --lines 50
 ```
 
----
+### Q: 数据库连不上？
 
-## 维护命令
+1. 检查 RDS 白名单是否添加了服务器 IP
+2. 在阿里云 RDS 控制台 → 数据安全性 → 白名单设置
+3. 添加服务器的公网 IP
 
-### 服务管理
+### Q: 怎么重启服务？
 
 ```bash
-# PM2
-pm2 list                  # 查看所有服务
-pm2 logs qzt-backend      # 查看后端日志
-pm2 logs qzt-website      # 查看网站日志
-pm2 restart all           # 重启所有服务
-pm2 reload qzt-backend    # 零停机重载
-pm2 monit                 # 监控面板
-
-# Nginx
-nginx -t                  # 测试配置
-systemctl reload nginx    # 重载配置
-systemctl status nginx    # 查看状态
-
-# Redis
-redis-cli                 # 连接 Redis
-AUTH "你的密码"            # 认证
-INFO                      # 查看信息
+pm2 restart all
 ```
 
-### 日志查看
+### Q: 怎么回滚到之前的版本？
 
 ```bash
-# 应用日志
-pm2 logs
-
-# Nginx 日志
-tail -f /var/log/nginx/domain.com-access.log
-tail -f /var/log/nginx/domain.com-error.log
-
-# 系统日志
-journalctl -u nginx -f
-journalctl -u redis-server -f
-```
-
-### 更新部署
-
-```bash
-# 只需推送代码
-git push origin main
-
-# 或手动触发
-# GitHub Actions → Run workflow
-```
-
-### 回滚版本
-
-```bash
-# 查看备份
 ls -la /opt/qzt-backup/
+# 找到一个之前的备份，比如 20250110_120000
 
-# 回滚到指定版本
-cp -r /opt/qzt-backup/20250108_120000/dist /opt/qzt/backend/
-pm2 reload qzt-backend
+# 恢复后端
+cp -r /opt/qzt-backup/20250110_120000/dist /opt/qzt/backend/
+pm2 restart qzt-backend
 ```
 
 ---
 
-## 目录结构
+## 日常维护
 
-### 服务器文件布局
+### 更新代码
 
+只需要推送代码，自动部署：
+
+```bash
+git push origin main
 ```
-/opt/qzt/                      # 应用目录
-├── backend/
-│   ├── dist/                  # 后端编译产物
-│   ├── node_modules/          # 生产依赖
-│   ├── prisma/                # Prisma schema 和客户端
-│   ├── pm2.config.cjs         # PM2 配置
-│   └── .env                   # 环境变量
-├── website/
-│   ├── .next/                 # Next.js 产物
-│   └── public/                # 静态资源
-└── config/                    # 配置文件
 
-/var/www/qzt/                  # 前端静态文件
-└── frontend/
-    └── dist/
+### 备份数据库
 
-/opt/qzt-backup/               # 版本备份
-/opt/qzt-deploy/               # 临时部署目录
+```bash
+# 导出数据库
+mysqldump -h 你的RDS地址 -u 用户名 -p 数据库名 > backup.sql
+
+# 导入数据库
+mysql -h 你的RDS地址 -u 用户名 -p 数据库名 < backup.sql
+```
+
+### 查看服务器资源
+
+```bash
+# 内存使用
+free -h
+
+# 磁盘使用
+df -h
+
+# CPU 使用
+top
 ```
 
 ---
 
-## 安全建议
+## 获取帮助
 
-1. **SSH 密钥**: 使用密钥登录，禁用密码登录
-2. **防火墙**: 只开放必要端口（22, 80, 443）
-3. **更新**: 定期更新系统补丁
-4. **备份**: 定期备份数据库
-5. **监控**: 配置日志监控和告警
+如果遇到问题：
 
-```bash
-# 禁用 SSH 密码登录
-vim /etc/ssh/sshd_config
-# 设置: PasswordAuthentication no
-systemctl restart sshd
-```
-
----
-
-## 无域名开发场景
-
-### 使用场景
-
-- 本地开发测试
-- 客户演示环境
-- 临时调试环境
-
-### 配置方式
-
-**环境变量配置**（`/opt/qzt/backend/.env`）：
-
-```bash
-# 使用 IP 地址代替域名
-DOMAIN_NAME=你的服务器IP
-ADMIN_DOMAIN=你的服务器IP
-
-# 或者使用任意自定义域名（仅本地测试）
-DOMAIN_NAME=local.test
-ADMIN_DOMAIN=admin.local.test
-```
-
-### 访问方式
-
-```bash
-# 使用 IP + 端口直接访问
-http://你的服务器IP:80          # 网站
-https://你的服务器IP           # 网站（SSL）
-http://你的服务器IP:80          # 管理后台
-https://你的服务器IP           # 管理后台（SSL）
-```
-
-### SSL 证书选择
-
-```bash
-bash /opt/qzt/scripts/deploy/setup-ssl.sh
-# 选择 1) 自签名证书
-```
-
-**浏览器警告处理**：
-- Chrome: 点击「高级」→「继续访问」
-- Firefox: 点击「高级」→「接受风险并继续」
-
-### 本地 Hosts 映射（可选）
-
-如果想用自定义域名，在本地电脑修改 hosts：
-
-**Windows**:
-```
-C:\Windows\System32\drivers\etc\hosts
-```
-
-**Mac/Linux**:
-```
-/etc/hosts
-```
-
-添加：
-```
-你的服务器IP  local.test
-你的服务器IP  admin.local.test
-```
-
-然后可以用 `http://local.test` 访问。
-
-### API 调用说明
-
-使用自签名证书时，API 请求需要忽略证书错误：
-
-```bash
-# curl
-curl -k https://你的服务器IP/api/xxx
-
-# axios
-axios.get('https://你的服务器IP/api/xxx', { httpsAgent: new https.Agent({ rejectUnauthorized: false }) })
-```
-
----
-
-## 软件安装位置
-
-### Node.js / pnpm
-
-| 项目 | 位置 | 说明 |
-|------|------|------|
-| Node.js | `/usr/local/bin/node` | 二进制文件 |
-| npm | `/usr/local/bin/npm` | 包管理器 |
-| pnpm | 通过 Corepack 管理 | 自动管理版本 |
-| PM2 | `/usr/local/lib/node_modules/pm2` | 全局安装 |
-
-### Redis
-
-| 项目 | 位置 |
-|------|------|
-| 可执行文件 | `/usr/bin/redis-server` |
-| 配置文件 | `/etc/redis/redis.conf` |
-| 数据目录 | `/var/lib/redis` |
-| 日志文件 | `/var/log/redis/redis-server.log` |
-| 密码文件 | `/root/.redis_password` |
-
-### Nginx
-
-| 项目 | 位置 |
-|------|------|
-| 可执行文件 | `/usr/sbin/nginx` |
-| 主配置 | `/etc/nginx/nginx.conf` |
-| 站点配置 | `/etc/nginx/conf.d/*.conf` |
-| SSL 配置 | `/etc/nginx/conf.d/ssl.conf` |
-| 证书目录 | `/etc/nginx/ssl/域名/` |
-| 日志目录 | `/var/log/nginx/` |
-| 静态文件 | `/var/www/qzt/frontend/` |
-
-### 应用
-
-| 项目 | 位置 |
-|------|------|
-| 后端代码 | `/opt/qzt/backend/` |
-| 后端日志 | `/opt/qzt/backend/logs/` |
-| 网站代码 | `/opt/qzt/website/` |
-| 环境变量 | `/opt/qzt/backend/.env` |
-| PM2 配置 | `/opt/qzt/backend/pm2.config.cjs` |
-| 备份目录 | `/opt/qzt-backup/` |
-
----
-
-## 日志查看完整指南
-
-### PM2 日志
-
-```bash
-# 查看所有日志
-pm2 logs
-
-# 查看特定服务
-pm2 logs qzt-backend
-pm2 logs qzt-website
-
-# 实时查看
-pm2 logs qzt-backend --lines 100
-
-# 日志文件位置
-tail -f /opt/qzt/backend/logs/pm2-combined.log
-tail -f /opt/qzt/backend/logs/pm2-error.log
-tail -f /opt/qzt/backend/logs/pm2-out.log
-```
-
-### Nginx 日志
-
-```bash
-# 查看所有日志
-ls -la /var/log/nginx/
-
-# 实时查看访问日志
-tail -f /var/log/nginx/domain.com-access.log
-tail -f /var/log/nginx/admin.domain.com-access.log
-
-# 实时查看错误日志
-tail -f /var/log/nginx/domain.com-error.log
-tail -f /var/log/nginx/admin.domain.com-error.log
-
-# 查看最近 100 行
-tail -n 100 /var/log/nginx/*.log
-
-# 搜索特定内容
-grep "error" /var/log/nginx/*.log
-```
-
-### 系统服务日志
-
-```bash
-# Nginx 服务日志
-journalctl -u nginx -f
-journalctl -u nginx -n 50
-
-# Redis 服务日志
-journalctl -u redis-server -f
-journalctl -u redis -n 50
-
-# 查看所有服务状态
-systemctl status nginx
-systemctl status redis-server
-```
-
-### 日志轮转
-
-日志自动轮转配置：
-
-```bash
-# PM2 日志轮转（保留 30 天）
-cat /opt/qzt/config/logrotate/pm2
-
-# Nginx 日志轮转（保留 30 天）
-cat /etc/logrotate.d/nginx-custom
-
-# 手动触发轮转
-logrotate -f /etc/logrotate.d/nginx-custom
-```
-
----
-
-## 数据库管理
-
-### 自动同步
-
-部署时自动执行 `prisma db push`，无需手动同步数据库结构：
-
-- GitHub Actions 构建阶段：只生成 Prisma Client
-- 服务器部署阶段：自动同步 schema 变更到 RDS
-- 幂等操作：无变化时不执行任何操作
-
-### 手动同步
-
-如需手动同步：
-
-```bash
-cd /opt/qzt/backend
-npx prisma db push
-```
-
-### 连接池配置
-
-当前配置（2C4G ECS + 2C2G RDS）：
-
-| 配置项 | 值 | 说明 |
-|--------|-----|------|
-| `connection_limit` | 20 | 每实例最大连接数 |
-| 实例数 | 2 | PM2 集群模式 |
-| 总连接 | 40 | 2 × 20 |
-| RDS 上限 | 1000 | 剩余 960 给其他用途 |
-
-修改连接池：编辑 `prisma/schema.prisma` 后执行 `npx prisma generate`。
-
----
-
-## 部署验证
-
-首次部署或重大变更后，请参考 [DEPLOYMENT_VERIFY.md](../DEPLOYMENT_VERIFY.md) 进行验证：
-
-```bash
-# 查看验证指南
-cat /opt/qzt/DEPLOYMENT_VERIFY.md
-```
-
-**关键检查项**：
-
-```bash
-# 1. 进程状态
-pm2 status
-
-# 2. 内存使用
-pm2 monit
-
-# 3. 健康检查
-curl http://localhost:7890/health
-curl -I http://localhost:5180
-
-# 4. 数据库连接
-mysql -h 你的RDS地址 -u qzt_user -p -e "SHOW PROCESSLIST;"
-```
-
-**资源分配参考**：
-
-| 服务 | 内存限制 |
-|------|----------|
-| Backend | 700MB × 2 = 1.4GB |
-| Website | 500MB |
-| 系统/Redis/Frontend | ~1.3GB |
-| **总计** | ~3.2GB / 4GB |
-
-
+1. 查看 [部署验证指南](../DEPLOYMENT_VERIFY.md)
+2. 检查日志：`pm2 logs`
+3. 联系技术支持
