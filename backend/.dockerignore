@@ -1,0 +1,55 @@
+# 依赖
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# 构建产物
+dist
+build
+.next
+out
+
+# 环境变量（敏感）
+.env
+.env.*
+!.env.example
+
+# 数据库
+*.db
+*.db-journal
+dev.db
+prisma/migrations
+
+# 日志
+logs
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 测试
+coverage
+.nyc_output
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 其他
+README.md
+*.md
+.editorconfig

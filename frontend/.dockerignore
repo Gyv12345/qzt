@@ -1,0 +1,59 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+dist-ssr
+*.local
+
+# Development files
+.vscode
+.idea
+*.log
+*.iml
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+coverage
+test-results
+playwright-report
+
+# Cache
+.vite
+.cache
+.eslintcache
+*.tsbuildinfo
+
+# Git
+.git
+.gitignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Documentation
+README.md
+README.en.md
+CHANGELOG.md
+.DOC.md
+
+# Config files (not needed in container)
+eslint.config.js
+prettier.config.*
+tsconfig*.json
+vite.config.ts
+tailwind.config.*
+playwright.config.ts
+orval.config.ts
+cz.yaml
+knip.config.ts
+netlify.toml
+components.json
+check-api-consistency.sh
