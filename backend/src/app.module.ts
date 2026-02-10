@@ -3,7 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bullmq";
 import * as Joi from "joi";
-import { HealthController } from "./health/health.controller";
+import { HealthModule } from "./health/health.module";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ContactModule } from "./modules/contact/contact.module";
@@ -170,8 +170,8 @@ const envSchema = Joi.object({
     CustomerRuleModule,
     EsignModule,
     SystemLogsModule,
+    HealthModule,
   ],
-  controllers: [HealthController],
   providers: [
     {
       provide: "APP_REFLECTOR",
