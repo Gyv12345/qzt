@@ -247,9 +247,27 @@ fi
 # ============================================
 echo -e "${YELLOW}创建环境变量模板...${NC}"
 
-if [ ! -f /opt/qzt/backend/.env ]; then
+ENV_FILE="/opt/qzt/backend/.env"
+if [ -f "$ENV_FILE" ]; then
+    echo -e "${YELLOW}⚠ 环境变量文件已存在: $ENV_FILE${NC}"
+    echo -n "是否覆盖？[y/N] "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        BACKUP_FILE="${ENV_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
+        cp "$ENV_FILE" "$BACKUP_FILE"
+        echo -e "${CYAN}已备份到: $BACKUP_FILE${NC}"
+        CREATE_ENV=1
+    else
+        echo -e "${GREEN}✓ 保留现有环境变量${NC}"
+        CREATE_ENV=0
+    fi
+else
+    CREATE_ENV=1
+fi
+
+if [ "$CREATE_ENV" = "1" ]; then
     mkdir -p /opt/qzt/backend
-    cat > /opt/qzt/backend/.env << 'EOF'
+    cat > "$ENV_FILE" << 'EOF'
 # ============================================
 # 请填写以下配置
 # ============================================
@@ -294,8 +312,6 @@ ESIGN_APP_ID=
 ESIGN_APP_SECRET=
 EOF
     echo -e "${GREEN}✓ 环境变量模板已创建${NC}"
-else
-    echo -e "${GREEN}✓ 环境变量已存在${NC}"
 fi
 
 # ============================================
