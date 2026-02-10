@@ -80,14 +80,24 @@ FRONTEND_URL=https://123.456.789.0
 
 **必填配置**：
 ```bash
-# 数据库
-DATABASE_URL="mysql://用户名:密码@RDS地址:3306/数据库名"
+# 数据库（支持拆分配置，密码含特殊字符时推荐）
+DB_HOST=rm-xxx.mysql.rds.aliyuncs.com
+DB_PORT=3306
+DB_USERNAME=qzt_user
+DB_PASSWORD=YourP@ssw0rd!#$  # 支持特殊字符
+DB_DATABASE=qzt_prod
+DATABASE_PROVIDER=mysql
 
 # Redis（密码在 /root/.redis_password）
+REDIS_ENABLED=true
+REDIS_HOST=localhost
 REDIS_PASSWORD=
 
 # JWT（用 openssl rand -hex 32 生成）
 JWT_SECRET=
+
+# PM2 集群模式（2C4G 推荐启用）
+PM2_CLUSTER_ENABLED=true
 ```
 
 ### 第三步：配置 SSL 证书
@@ -157,16 +167,33 @@ git push origin main
 # ============================================
 # 必填配置
 # ============================================
-DATABASE_URL="mysql://qzt_user:password@rm-xxx.mysql.rds.aliyuncs.com:3306/qzt_prod"
+# 数据库（推荐使用拆分配置）
+DATABASE_PROVIDER=mysql
+DB_HOST=rm-xxx.mysql.rds.aliyuncs.com
+DB_PORT=3306
+DB_USERNAME=qzt_user
+DB_PASSWORD=YourPassword123!
+DB_DATABASE=qzt_prod
+
+# Redis
+REDIS_ENABLED=true
+REDIS_HOST=localhost
 REDIS_PASSWORD="从 /root/.redis_password 获取"
+
+# JWT
 JWT_SECRET="用 openssl rand -hex 32 生成"
 
+# 域名
 DOMAIN_NAME="example.com"
 ADMIN_DOMAIN="admin.example.com"
 
+# 应用 URL
 APP_URL="https://example.com"
 API_URL="https://example.com/api"
 FRONTEND_URL="https://admin.example.com"
+
+# PM2 集群（2C4G 推荐启用）
+PM2_CLUSTER_ENABLED=true
 
 # ============================================
 # 可选配置
@@ -418,7 +445,8 @@ pm2 reload qzt-backend
 ├── backend/
 │   ├── dist/                  # 后端编译产物
 │   ├── node_modules/          # 生产依赖
-│   ├── ecosystem.config.cjs   # PM2 配置
+│   ├── prisma/                # Prisma schema 和客户端
+│   ├── pm2.config.cjs         # PM2 配置
 │   └── .env                   # 环境变量
 ├── website/
 │   ├── .next/                 # Next.js 产物
@@ -572,7 +600,7 @@ axios.get('https://你的服务器IP/api/xxx', { httpsAgent: new https.Agent({ r
 | 后端日志 | `/opt/qzt/backend/logs/` |
 | 网站代码 | `/opt/qzt/website/` |
 | 环境变量 | `/opt/qzt/backend/.env` |
-| PM2 配置 | `/opt/qzt/backend/ecosystem.config.cjs` |
+| PM2 配置 | `/opt/qzt/backend/pm2.config.cjs` |
 | 备份目录 | `/opt/qzt-backup/` |
 
 ---
@@ -649,5 +677,76 @@ cat /etc/logrotate.d/nginx-custom
 # 手动触发轮转
 logrotate -f /etc/logrotate.d/nginx-custom
 ```
+
+---
+
+## 数据库管理
+
+### 自动同步
+
+部署时自动执行 `prisma db push`，无需手动同步数据库结构：
+
+- GitHub Actions 构建阶段：只生成 Prisma Client
+- 服务器部署阶段：自动同步 schema 变更到 RDS
+- 幂等操作：无变化时不执行任何操作
+
+### 手动同步
+
+如需手动同步：
+
+```bash
+cd /opt/qzt/backend
+npx prisma db push
+```
+
+### 连接池配置
+
+当前配置（2C4G ECS + 2C2G RDS）：
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| `connection_limit` | 20 | 每实例最大连接数 |
+| 实例数 | 2 | PM2 集群模式 |
+| 总连接 | 40 | 2 × 20 |
+| RDS 上限 | 1000 | 剩余 960 给其他用途 |
+
+修改连接池：编辑 `prisma/schema.prisma` 后执行 `npx prisma generate`。
+
+---
+
+## 部署验证
+
+首次部署或重大变更后，请参考 [DEPLOYMENT_VERIFY.md](../DEPLOYMENT_VERIFY.md) 进行验证：
+
+```bash
+# 查看验证指南
+cat /opt/qzt/DEPLOYMENT_VERIFY.md
+```
+
+**关键检查项**：
+
+```bash
+# 1. 进程状态
+pm2 status
+
+# 2. 内存使用
+pm2 monit
+
+# 3. 健康检查
+curl http://localhost:7890/health
+curl -I http://localhost:5180
+
+# 4. 数据库连接
+mysql -h 你的RDS地址 -u qzt_user -p -e "SHOW PROCESSLIST;"
+```
+
+**资源分配参考**：
+
+| 服务 | 内存限制 |
+|------|----------|
+| Backend | 700MB × 2 = 1.4GB |
+| Website | 500MB |
+| 系统/Redis/Frontend | ~1.3GB |
+| **总计** | ~3.2GB / 4GB |
 
 
