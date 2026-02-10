@@ -374,8 +374,8 @@ git push origin main
 
 | Document | Description |
 |----------|-------------|
-| [DEPLOY.md](./DEPLOY.md) | Bare-metal deployment guide (2C4G ECS + 2C2G RDS) |
-| [DOCKER.md](./DOCKER.md) | Docker development environment guide |
+| [DEPLOY.en.md](./DEPLOY.en.md) | Bare-metal deployment guide (English) |
+| [DEPLOY.md](./DEPLOY.md) | 裸机部署完整指南（中文） |
 
 ---
 
