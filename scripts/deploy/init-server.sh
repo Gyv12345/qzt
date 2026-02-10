@@ -258,7 +258,10 @@ echo -e "${YELLOW}步骤 1/2: 添加公钥到 GitHub Deploy Keys${NC}"
 echo ""
 echo "  1. 打开: https://github.com/Gyv12345/qzt/settings/keys"
 echo "  2. 点击 \"Add deploy key\""
-echo "  3. 粘贴以下公钥："
+echo "  3. 填写以下信息："
+echo ""
+echo "     Title: qzt-server (任意名称，用于标识)"
+echo "     Key:  （粘贴下面完整的公钥内容）"
 echo ""
 
 if [ -f ~/.ssh/id_ed25519.pub ]; then
