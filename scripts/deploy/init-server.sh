@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 # 服务器初始化脚本（只需运行一次）
-# 支持: Ubuntu/Debian, CentOS/RHEL/AlmaLinux/Rocky, Fedora
+# 支持: Ubuntu/Debian, CentOS/RHEL/AlmaLinux/Rocky, Fedora, Alibaba Cloud Linux
 # ============================================================
 
 set -e
@@ -49,7 +49,7 @@ if [[ "$OS" =~ ^(ubuntu|debian)$ ]]; then
     UPDATE_CMD="apt-get update -y"
     INSTALL_CMD="apt-get install -y"
     NGINX_SERVICE="nginx"
-elif [[ "$OS" =~ ^(centos|rhel|almalinux|rocky)$ ]]; then
+elif [[ "$OS" =~ ^(centos|rhel|almalinux|rocky|alinux)$ ]]; then
     PKG_MANAGER="yum"
     UPDATE_CMD="yum update -y"
     INSTALL_CMD="yum install -y"
