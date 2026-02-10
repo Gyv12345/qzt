@@ -1,29 +1,29 @@
 // ============================================================
-// PM2 配置 - 企智通 Backend (NestJS)
+// PM2 配置 - 企智通 Website (Next.js 15 Standalone)
 // ============================================================
-// 适配 ECS 2C4G + RDS 2C2G (最大连接数 1000)
+// 适配 ECS 2C4G 部署
 
 module.exports = {
   apps: [{
-    name: 'qzt-backend',
-    script: './dist/main.js',
+    name: 'qzt-website',
+    script: './node_modules/.bin/next',
+    args: 'start',
 
-    // === 集群配置（2C4G 优化）===
-    instances: process.env.PM2_CLUSTER_ENABLED === 'true'
-      ? 2  // 2C4G 用 2 个实例
-      : 1, // 单实例模式
-    exec_mode: process.env.PM2_CLUSTER_ENABLED === 'true' ? 'cluster' : 'fork',
+    // 单实例即可（SSR 不适合多实例，除非有 session affinity）
+    instances: 1,
+    exec_mode: 'fork',
 
-    // === 内存配置（关键）===
-    // 2实例 × 700MB = 1.4GB，留 2.6GB 给系统、Frontend、Website
-    max_memory_restart: '700M',
+    // === 内存配置 ===
+    max_memory_restart: '500M',
 
     env: {
       NODE_ENV: 'production',
-      PORT: 7890,
-      // Node.js 堆内存限制（防止 V8 堆内存无限增长）
-      // 略低于 max_memory_restart，确保触发 PM2 重启前先触发 GC
-      NODE_OPTIONS: '--max-old-space-size=640',
+      PORT: 5180,
+      HOSTNAME: '0.0.0.0',
+      // Next.js 运行时内存限制
+      NODE_OPTIONS: '--max-old-space-size=448',
+      // 禁用 Telemetry
+      NEXT_TELEMETRY_DISABLED: 1,
     },
 
     // === 日志配置 ===

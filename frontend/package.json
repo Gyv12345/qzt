@@ -106,6 +106,7 @@
     "orval": "^8.2.0",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "terser": "^5.46.0",
     "tsx": "^4.19.2",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.49.0",
