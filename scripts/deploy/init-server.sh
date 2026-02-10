@@ -283,13 +283,13 @@ REDIS_PASSWORD=
 JWT_SECRET=
 
 # === 域名（必填）===
-DOMAIN_NAME=
-ADMIN_DOMAIN=
+DOMAIN_NAME=yourdomain.com
+ADMIN_DOMAIN=admin.yourdomain.com
 
-# === 应用 URL ===
-APP_URL=
-API_URL=
-FRONTEND_URL=
+# === 应用 URL（根据域名自动生成，无需修改）===
+APP_URL=https://yourdomain.com
+API_URL=https://admin.yourdomain.com/api
+FRONTEND_URL=https://admin.yourdomain.com
 
 # === PM2 集群（2C4G 推荐启用）===
 PM2_CLUSTER_ENABLED=true
