@@ -137,6 +137,15 @@ else
     echo -e "${GREEN}✓ Redis 安装完成${NC}"
 fi
 
+# 生成 Redis 密码并保存
+REDIS_PASSWORD_FILE="/root/.redis_password"
+if [ ! -f "$REDIS_PASSWORD_FILE" ]; then
+    openssl rand -hex 16 > "$REDIS_PASSWORD_FILE"
+    chmod 600 "$REDIS_PASSWORD_FILE"
+    echo -e "${GREEN}✓ Redis 密码已生成${NC}"
+fi
+REDIS_PASSWORD=$(cat "$REDIS_PASSWORD_FILE")
+
 # ============================================
 # 4. 安装 Nginx
 # ============================================
@@ -260,7 +269,8 @@ fi
 
 if [ "$CREATE_ENV" = "1" ]; then
     mkdir -p /opt/qzt/backend
-    cat > "$ENV_FILE" << 'EOF'
+    JWT_SECRET=$(openssl rand -hex 32)
+    cat > "$ENV_FILE" << EOF
 # ============================================
 # 请填写以下配置
 # ============================================
@@ -273,14 +283,14 @@ DB_USERNAME=你的数据库用户名
 DB_PASSWORD=你的数据库密码
 DB_DATABASE=数据库名
 
-# === Redis（密码在 /root/.redis_password 或自行生成）===
+# === Redis（已自动生成密码）===
 REDIS_ENABLED=true
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
-REDIS_PASSWORD=
+REDIS_PASSWORD=$REDIS_PASSWORD
 
-# === JWT（用 openssl rand -hex 32 生成）===
-JWT_SECRET=
+# === JWT（已自动生成）===
+JWT_SECRET=$JWT_SECRET
 
 # === 域名（必填）===
 DOMAIN_NAME=yourdomain.com
