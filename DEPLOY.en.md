@@ -29,9 +29,8 @@
 ### 1. Server Initialization (Run Once)
 
 ```bash
-# Upload and run initialization script
-scp scripts/deploy/init-server.sh root@your-server-ip:/tmp/
-ssh root@your-server-ip "bash /tmp/init-server.sh"
+# One-click install dependencies (Ubuntu/Debian/CentOS/RHEL)
+curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
 ```
 
 **The initialization script will**:

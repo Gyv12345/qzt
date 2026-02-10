@@ -29,9 +29,8 @@
 ### 1. 服务器初始化（只需运行一次）
 
 ```bash
-# 上传并运行初始化脚本
-scp scripts/deploy/init-server.sh root@你的服务器IP:/tmp/
-ssh root@你的服务器IP "bash /tmp/init-server.sh"
+# 一键安装依赖（支持 Ubuntu/Debian/CentOS/RHEL）
+curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
 ```
 
 **初始化脚本会**：
