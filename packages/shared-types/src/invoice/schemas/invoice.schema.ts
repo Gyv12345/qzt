@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 发票状态枚举（字符串版本）
  */
 export const invoiceStatusSchema = z.enum(['PENDING', 'ISSUED', 'CANCELLED'], {
-  errorMap: () => ({ message: '发票状态必须是 PENDING、ISSUED 或 CANCELLED' }),
+  message: '发票状态必须是 PENDING、ISSUED 或 CANCELLED',
 })
 
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>

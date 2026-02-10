@@ -92,4 +92,22 @@ export class ProductService {
 
     return { message: "Product deleted successfully" };
   }
+
+  async findByCode(code: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { code, status: "ACTIVE" },
+      include: {
+        pricingRules: {
+          orderBy: { effectiveDate: "desc" },
+        },
+        image: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product ${code} not found`);
+    }
+
+    return product;
+  }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, MinLength } from "class-validator";
+import { IsString, MinLength, IsOptional } from "class-validator";
 
 /**
  * 修改密码 DTO（需要 2FA 验证）
@@ -18,6 +18,7 @@ export class UpdatePasswordDto {
     description: "2FA 验证码（已启用 2FA 的用户需要提供）",
     required: false,
   })
+  @IsOptional()
   @IsString()
   twoFactorToken?: string;
 }

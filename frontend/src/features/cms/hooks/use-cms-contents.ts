@@ -46,6 +46,11 @@ export function useCmsContentsByType(
           return getScrmApi().cmsControllerGetProductShowcases(query);
         case "PROFILE":
           return getScrmApi().cmsControllerGetProfiles(query);
+        case "PAGE_ELEMENT":
+          return getScrmApi().cmsControllerFindAllContents({
+            ...query,
+            contentType: "PAGE_ELEMENT",
+          });
       }
     },
     select: (data) => {

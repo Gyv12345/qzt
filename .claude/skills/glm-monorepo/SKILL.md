@@ -19,6 +19,8 @@ description: 企智通项目全栈开发。后端 NestJS + Prisma，前端 React
 2. `cd frontend && pnpm run generate:api`
 3. 前端使用生成的 API 和类型
 
+**注意**：前端禁止手写 API 调用代码！必须使用 Orval 生成的类型安全 API。
+
 ## 核心约定（强制）
 
 ### 后端
@@ -139,3 +141,54 @@ pnpm add -F backend|shadcn-admin|website|shared-types <package>@<version>
 | [contacts-crud-template.md](./references/contacts-crud-template.md) | CRUD 完整模板 |
 | [pagination-response-standard.md](./references/pagination-response-standard.md) | 分页响应规范 |
 | [troubleshooting.md](./references/troubleshooting.md) | 故障排除 |
+
+## Zod v4 关键知识
+
+项目使用 Zod ^4.3.6，shared-types 包中的 schema 必须遵循 v4 语法：
+
+### 枚举验证消息
+
+```typescript
+// ✅ Zod v4
+export const statusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
+  message: '状态必须是 ACTIVE 或 INACTIVE',
+})
+
+// ❌ Zod v3（已废弃）
+export const statusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
+  errorMap: () => ({ message: '状态必须是 ACTIVE 或 INACTIVE' }),
+})
+```
+
+### ZodError API
+
+```typescript
+// ✅ Zod v4
+result.error.issues  // 错误列表
+
+// ❌ Zod v3（已废弃）
+result.error.errors
+```
+
+### record() 必须指定两个参数
+
+```typescript
+// ✅ Zod v4
+context: z.record(z.string(), z.unknown()).optional()
+
+// ❌ Zod v3（已废弃）
+context: z.record(z.any()).optional()
+```
+
+### shared-types 构建失败时
+
+```bash
+cd packages/shared-types && pnpm build
+```
+
+如果构建失败，通常是因为：
+1. schema 文件中存在 `errorMap` 语法
+2. `z.record()` 只有一个参数
+3. `z.ZodError.errors` 被使用
+
+修复后需重启：`./start-dev.sh restart`

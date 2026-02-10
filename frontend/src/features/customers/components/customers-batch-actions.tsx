@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Trash2, Edit, Tag } from "lucide-react";
+import { Trash2, Edit, Tag, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
 import { BatchUpdateDrawer } from "./batch-update-drawer";
+import { BatchAssignDialog } from "./batch-assign-dialog";
 
 interface CustomersBatchActionsProps {
   selectedIds: string[];
@@ -30,6 +31,7 @@ export function CustomersBatchActions({
   const { t } = useTranslation();
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleBatchUpdate = () => {
@@ -83,6 +85,15 @@ export function CustomersBatchActions({
           <Button
             size="sm"
             variant="outline"
+            onClick={() => setIsAssignDialogOpen(true)}
+            className="h-8"
+          >
+            <UserCheck className="h-3.5 w-3.5 mr-1" />
+            批量分配
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setIsDeleteDialogOpen(true)}
             className="h-8 text-destructive hover:text-destructive"
           >
@@ -130,6 +141,20 @@ export function CustomersBatchActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 批量分配对话框 */}
+      <BatchAssignDialog
+        open={isAssignDialogOpen}
+        onOpenChange={(open) => {
+          setIsAssignDialogOpen(open);
+          if (!open) onClearSelection();
+        }}
+        customerIds={selectedIds}
+        onSuccess={() => {
+          onSuccess();
+          onClearSelection();
+        }}
+      />
     </>
   );
 }

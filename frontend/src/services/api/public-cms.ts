@@ -7,6 +7,7 @@
  */
 import type {
   CmsPublicControllerFindPublishedContentsParams,
+  CmsPublicControllerGetPageElementsParams,
   CmsPublicControllerGetPublishedArticlesParams,
   CmsPublicControllerGetPublishedCasesParams,
   CmsPublicControllerGetPublishedProfilesParams,
@@ -86,10 +87,58 @@ export const getPublicCms = () => {
     });
   };
   /**
+   * @summary Get published page elements
+   */
+  const cmsPublicControllerGetPageElements = (
+    params?: CmsPublicControllerGetPageElementsParams,
+  ) => {
+    return customInstance<void>({
+      url: `/public/cms/page-elements`,
+      method: "GET",
+      params,
+    });
+  };
+  /**
+   * @summary Get page element by slug
+   */
+  const cmsPublicControllerGetPageElementBySlug = (slug: string) => {
+    return customInstance<void>({
+      url: `/public/cms/page-elements/${slug}`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary Get published page by slug
+   */
+  const cmsPublicControllerFindPageBySlug = (slug: string) => {
+    return customInstance<void>({
+      url: `/public/cms/pages/${slug}`,
+      method: "GET",
+    });
+  };
+  /**
    * @summary Get all tags
    */
   const cmsPublicControllerFindAllTags = () => {
     return customInstance<void>({ url: `/public/cms/tags`, method: "GET" });
+  };
+  /**
+   * @summary Get content preview by token
+   */
+  const cmsPublicControllerGetContentPreview = (token: string) => {
+    return customInstance<void>({
+      url: `/public/cms/preview/contents/${token}`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary Get page preview by token
+   */
+  const cmsPublicControllerGetPagePreview = (token: string) => {
+    return customInstance<void>({
+      url: `/public/cms/preview/pages/${token}`,
+      method: "GET",
+    });
   };
   return {
     cmsPublicControllerFindPublishedContents,
@@ -98,7 +147,12 @@ export const getPublicCms = () => {
     cmsPublicControllerGetPublishedCases,
     cmsPublicControllerGetPublishedShowcases,
     cmsPublicControllerGetPublishedProfiles,
+    cmsPublicControllerGetPageElements,
+    cmsPublicControllerGetPageElementBySlug,
+    cmsPublicControllerFindPageBySlug,
     cmsPublicControllerFindAllTags,
+    cmsPublicControllerGetContentPreview,
+    cmsPublicControllerGetPagePreview,
   };
 };
 export type CmsPublicControllerFindPublishedContentsResult = NonNullable<
@@ -147,10 +201,45 @@ export type CmsPublicControllerGetPublishedProfilesResult = NonNullable<
     >
   >
 >;
+export type CmsPublicControllerGetPageElementsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetPageElements"]
+    >
+  >
+>;
+export type CmsPublicControllerGetPageElementBySlugResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetPageElementBySlug"]
+    >
+  >
+>;
+export type CmsPublicControllerFindPageBySlugResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerFindPageBySlug"]
+    >
+  >
+>;
 export type CmsPublicControllerFindAllTagsResult = NonNullable<
   Awaited<
     ReturnType<
       ReturnType<typeof getPublicCms>["cmsPublicControllerFindAllTags"]
+    >
+  >
+>;
+export type CmsPublicControllerGetContentPreviewResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetContentPreview"]
+    >
+  >
+>;
+export type CmsPublicControllerGetPagePreviewResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetPagePreview"]
     >
   >
 >;

@@ -1,13 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react";
+import { BadgeCheck, ChevronsUpDown, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import useDialogState from "@/hooks/use-dialog-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -105,21 +98,9 @@ export function NavUser() {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link to="/settings/account">
-                    <BadgeCheck />
-                    {t("nav.user.account")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link to="/settings">
-                    <CreditCard />
-                    {t("nav.user.billing")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings/notifications">
-                    <Bell />
-                    {t("nav.user.notifications")}
+                    <BadgeCheck />
+                    {t("nav.user.profile")}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>

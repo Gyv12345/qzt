@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 文件类型枚举
  */
 export const fileTypeSchema = z.enum(['IMAGE', 'DOCUMENT', 'VIDEO', 'OTHER'], {
-  errorMap: () => ({ message: '文件类型必须是 IMAGE、DOCUMENT、VIDEO 或 OTHER' }),
+  message: '文件类型必须是 IMAGE、DOCUMENT、VIDEO 或 OTHER',
 })
 
 export type FileType = z.infer<typeof fileTypeSchema>

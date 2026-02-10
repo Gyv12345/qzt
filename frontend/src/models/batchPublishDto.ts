@@ -7,8 +7,6 @@
  */
 
 export interface BatchPublishDto {
-  /** 内容ID列表 */
+  /** 要操作的 ID 列表 */
   ids: string[];
-  /** 目标平台 */
-  platforms?: string[];
 }

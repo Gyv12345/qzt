@@ -4,8 +4,9 @@ import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { Building2, Users, Heart, Headphones } from "lucide-react";
+import type { CmsPage } from "@/lib/api";
 
-const stats = [
+const defaultStats = [
   {
     id: 1,
     name: "服务企业",
@@ -75,11 +76,46 @@ function AnimatedValue({ end, suffix }: { end: number; suffix: string }) {
   );
 }
 
-export function StatsSection() {
+interface StatsSectionProps {
+  pageData?: CmsPage | null;
+}
+
+// 从页面数据解析统计内容
+function parsePageData(pageData: CmsPage | null | undefined) {
+  if (!pageData?.elements) return null;
+
+  const statsElements = pageData.elements
+    .filter((el) => el.sectionType === "STATS" && el.elementType === "statistic" && el.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (statsElements.length === 0) return null;
+
+  return statsElements.map((el, index) => {
+    try {
+      const content = el.content ? JSON.parse(el.content) : {};
+      return {
+        id: el.id,
+        name: content.label || "统计数据",
+        value: content.value || 0,
+        suffix: content.suffix || "",
+        icon: Building2, // 简化处理，实际可根据 content.icon 映射
+        color: content.color || "from-blue-500 to-cyan-500",
+        bgColor: content.bgColor || "bg-blue-50",
+      };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+}
+
+export function StatsSection({ pageData }: StatsSectionProps) {
   const shouldReduceMotion = useReducedMotion();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [hasAnimated, setHasAnimated] = useState(false);
+
+  // 优先使用页面数据，回退到默认值
+  const stats = parsePageData(pageData) || defaultStats;
 
   useEffect(() => {
     if (isInView && !hasAnimated) {

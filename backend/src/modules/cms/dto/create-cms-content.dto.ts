@@ -51,12 +51,27 @@ export class CreateCmsContentDto {
 
   @ApiProperty({
     description: "内容类型",
-    enum: ["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE"],
+    enum: [
+      "ARTICLE",
+      "CASE_STUDY",
+      "PRODUCT_SHOWCASE",
+      "PROFILE",
+      "PAGE_ELEMENT",
+    ],
   })
-  @IsEnum(["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE"], {
-    message: "内容类型必须是 ARTICLE、CASE_STUDY、PRODUCT_SHOWCASE 或 PROFILE",
-  })
-  contentType: "ARTICLE" | "CASE_STUDY" | "PRODUCT_SHOWCASE" | "PROFILE";
+  @IsEnum(
+    ["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE", "PAGE_ELEMENT"],
+    {
+      message:
+        "内容类型必须是 ARTICLE、CASE_STUDY、PRODUCT_SHOWCASE、PROFILE 或 PAGE_ELEMENT",
+    },
+  )
+  contentType:
+    | "ARTICLE"
+    | "CASE_STUDY"
+    | "PRODUCT_SHOWCASE"
+    | "PROFILE"
+    | "PAGE_ELEMENT";
 
   @ApiPropertyOptional({
     description: "关联产品ID（仅PRODUCT_SHOWCASE类型使用）",
@@ -69,6 +84,13 @@ export class CreateCmsContentDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
+  @ApiPropertyOptional({
+    description: "关联合同ID（仅CASE_STUDY类型使用，展示客户案例）",
+  })
+  @IsOptional()
+  @IsString()
+  contractId?: string;
 
   @ApiPropertyOptional({ description: "SEO标题" })
   @IsOptional()

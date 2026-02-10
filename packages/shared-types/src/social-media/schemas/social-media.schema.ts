@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 社交媒体平台枚举
  */
 export const socialMediaPlatformSchema = z.enum(['DOUYIN', 'XIAOHONGSHU', 'WECHAT'], {
-  errorMap: () => ({ message: '平台必须是 DOUYIN、XIAOHONGSHU 或 WECHAT' }),
+  message: '平台必须是 DOUYIN、XIAOHONGSHU 或 WECHAT',
 })
 
 export type SocialMediaPlatform = z.infer<typeof socialMediaPlatformSchema>
@@ -13,7 +13,7 @@ export type SocialMediaPlatform = z.infer<typeof socialMediaPlatformSchema>
  * 社交媒体账号状态枚举
  */
 export const socialMediaAccountStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
-  errorMap: () => ({ message: '账号状态必须是 ACTIVE 或 INACTIVE' }),
+  message: '账号状态必须是 ACTIVE 或 INACTIVE',
 })
 
 export type SocialMediaAccountStatus = z.infer<typeof socialMediaAccountStatusSchema>
@@ -22,7 +22,7 @@ export type SocialMediaAccountStatus = z.infer<typeof socialMediaAccountStatusSc
  * 社交媒体帖子状态枚举
  */
 export const socialMediaPostStatusSchema = z.enum(['DRAFT', 'SCHEDULED', 'PUBLISHING', 'PUBLISHED', 'FAILED'], {
-  errorMap: () => ({ message: '帖子状态必须是 DRAFT、SCHEDULED、PUBLISHING、PUBLISHED 或 FAILED' }),
+  message: '帖子状态必须是 DRAFT、SCHEDULED、PUBLISHING、PUBLISHED 或 FAILED',
 })
 
 export type SocialMediaPostStatus = z.infer<typeof socialMediaPostStatusSchema>
@@ -31,7 +31,7 @@ export type SocialMediaPostStatus = z.infer<typeof socialMediaPostStatusSchema>
  * 可见性枚举
  */
 export const visibilitySchema = z.enum(['PUBLIC', 'FRIENDS', 'PRIVATE'], {
-  errorMap: () => ({ message: '可见性必须是 PUBLIC、FRIENDS 或 PRIVATE' }),
+  message: '可见性必须是 PUBLIC、FRIENDS 或 PRIVATE',
 })
 
 export type Visibility = z.infer<typeof visibilitySchema>

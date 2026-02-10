@@ -56,7 +56,7 @@ export function ContractProductTable({
     queryFn: async () => {
       const { productControllerFindAll } = getScrmApi();
       const result = (await productControllerFindAll({ pageSize: 100 })) as any;
-      return result?.items || [];
+      return result?.data || [];
     },
   });
 

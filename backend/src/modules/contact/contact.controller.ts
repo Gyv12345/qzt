@@ -18,6 +18,7 @@ import { CreateContactDto } from "./dto/create-contact.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { QueryContactDto } from "./dto/query-contact.dto";
 import { LinkCompanyDto } from "./dto/link-company.dto";
+import { SubmitContactDto } from "./dto/submit-contact.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { DataScopeGuard } from "../permission/guards/data-scope.guard";
 import { DataScope } from "../permission/decorators/data-scope.decorator";
@@ -95,5 +96,19 @@ export class ContactController {
     @Request() req,
   ) {
     return this.contactService.unlinkCompany(id, customerId, req.dataScope);
+  }
+}
+
+// 公开 API - 不需要认证
+@ApiTags("public-contact")
+@Controller("public/contact")
+export class PublicContactController {
+  constructor(private readonly contactService: ContactService) {}
+
+  @Post("submit")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "提交联系表单（公开接口）" })
+  async submit(@Body() submitContactDto: SubmitContactDto) {
+    return this.contactService.submitContactForm(submitContactDto);
   }
 }

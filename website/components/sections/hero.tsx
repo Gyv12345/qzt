@@ -3,9 +3,114 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, TrendingUp } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import type { CmsPage } from "@/lib/api";
 
-export function HeroSection() {
+// CMS 内容接口
+interface HeroContent {
+  title?: string;
+  subtitle?: string;
+  badge?: string;
+  description?: string;
+  ctaPrimaryText?: string;
+  ctaPrimaryUrl?: string;
+  ctaSecondaryText?: string;
+  ctaSecondaryUrl?: string;
+}
+
+interface HeroSectionProps {
+  cmsContent?: {
+    content?: string;
+    excerpt?: string;
+    title?: string;
+  } | null;
+  pageData?: CmsPage | null;
+}
+
+// 默认内容
+const defaultHero: HeroContent = {
+  badge: "全新升级 · 智能 CRM 系统",
+  title: "企业客户管理",
+  subtitle: "新时代的智能选择",
+  description: "企智通为您提供一站式企业客户关系管理解决方案，助力企业实现数字化转型，提升运营效率。",
+  ctaPrimaryText: "免费试用 30 天",
+  ctaPrimaryUrl: "#contact",
+  ctaSecondaryText: "观看演示",
+  ctaSecondaryUrl: "/demo",
+};
+
+// 解析 CMS 内容（content 字段存储 JSON）
+function parseHeroContent(cmsContent: HeroSectionProps["cmsContent"]): HeroContent {
+  if (!cmsContent?.content) return defaultHero;
+
+  try {
+    const parsed = JSON.parse(cmsContent.content);
+    return {
+      badge: parsed.badge || defaultHero.badge,
+      title: parsed.title || defaultHero.title,
+      subtitle: parsed.subtitle || defaultHero.subtitle,
+      description: parsed.description || defaultHero.description,
+      ctaPrimaryText: parsed.ctaPrimaryText || defaultHero.ctaPrimaryText,
+      ctaPrimaryUrl: parsed.ctaPrimaryUrl || defaultHero.ctaPrimaryUrl,
+      ctaSecondaryText: parsed.ctaSecondaryText || defaultHero.ctaSecondaryText,
+      ctaSecondaryUrl: parsed.ctaSecondaryUrl || defaultHero.ctaSecondaryUrl,
+    };
+  } catch {
+    return defaultHero;
+  }
+}
+
+// 从页面数据解析 Hero 内容
+function parsePageData(pageData: CmsPage | null | undefined): HeroContent | null {
+  if (!pageData?.elements) return null;
+
+  // 查找 HERO 区域的元素
+  const heroElements = pageData.elements
+    .filter((el) => el.sectionType === "HERO" && el.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (heroElements.length === 0) return null;
+
+  const result: HeroContent = {};
+
+  for (const element of heroElements) {
+    try {
+      const content = element.content ? JSON.parse(element.content) : {};
+
+      switch (element.elementType) {
+        case "heading":
+          if (content.text) {
+            if (!result.title) result.title = content.text;
+            else if (!result.subtitle) result.subtitle = content.text;
+          }
+          break;
+        case "text":
+          if (content.text && !result.description) {
+            result.description = content.text;
+          }
+          break;
+        case "button":
+          if (content.isPrimary && !result.ctaPrimaryText) {
+            result.ctaPrimaryText = content.text;
+            result.ctaPrimaryUrl = content.url;
+          } else if (!content.isPrimary && !result.ctaSecondaryText) {
+            result.ctaSecondaryText = content.text;
+            result.ctaSecondaryUrl = content.url;
+          }
+          break;
+      }
+    } catch {
+      // 忽略解析错误
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+export function HeroSection({ cmsContent, pageData }: HeroSectionProps) {
   const shouldReduceMotion = useReducedMotion();
+  // 优先使用页面数据，回退到旧的 PAGE_ELEMENT 方式
+  const pageHero = parsePageData(pageData);
+  const hero = pageHero || parseHeroContent(cmsContent);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-blue-50/30 py-20 md:py-28 lg:py-36">
@@ -65,23 +170,25 @@ export function HeroSection() {
             className="text-center lg:text-left"
           >
             {/* 徽章 */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.5, delay: 0.1 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2 text-sm font-medium text-blue-700 ring-1 ring-blue-200/50"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
-              </span>
-              全新升级 · 智能 CRM 系统
-            </motion.div>
+            {hero.badge && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.5, delay: 0.1 }}
+                className="mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2 text-sm font-medium text-blue-700 ring-1 ring-blue-200/50"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+                </span>
+                {hero.badge}
+              </motion.div>
+            )}
 
             <h1 className="text-4xl font-heading font-bold tracking-tight text-slate-900 md:text-5xl lg:text-6xl xl:text-7xl">
-              企业客户管理
+              {hero.title}
               <span className="mt-2 block bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 bg-clip-text text-transparent">
-                新时代的智能选择
+                {hero.subtitle}
               </span>
             </h1>
 
@@ -91,9 +198,7 @@ export function HeroSection() {
               transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.2 }}
               className="mt-6 text-lg leading-relaxed text-slate-600 md:text-xl"
             >
-              企智通为您提供一站式企业客户关系管理解决方案，
-              <br className="hidden md:block" />
-              助力企业实现数字化转型，提升运营效率。
+              {hero.description}
             </motion.p>
 
             <motion.div
@@ -107,8 +212,8 @@ export function HeroSection() {
                 className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105"
                 asChild
               >
-                <a href="#contact">
-                  <span className="relative z-10">免费试用 30 天</span>
+                <a href={hero.ctaPrimaryUrl || "#contact"}>
+                  <span className="relative z-10">{hero.ctaPrimaryText || "免费试用 30 天"}</span>
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-cyan-500 opacity-0 transition-opacity group-hover:opacity-100" />
                 </a>
@@ -119,9 +224,9 @@ export function HeroSection() {
                 className="group border-slate-300 bg-white/80 text-slate-700 backdrop-blur-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
                 asChild
               >
-                <a href="/demo">
+                <a href={hero.ctaSecondaryUrl || "/demo"}>
                   <Play className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
-                  观看演示
+                  {hero.ctaSecondaryText || "观看演示"}
                 </a>
               </Button>
             </motion.div>

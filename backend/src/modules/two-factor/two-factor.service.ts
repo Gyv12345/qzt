@@ -268,10 +268,24 @@ export class TwoFactorService {
       return false;
     }
 
-    // 系统用户(admin)首次登录且未启用 2FA 时需要强制设置
+    // 系统用户首次登录且未启用 2FA 时需要强制设置
+    // 注意：只有在完成密码修改后才会检查这个
     return (
       user.isSystem && !user.hasCompletedFirstLogin && !user.twoFactorEnabled
     );
+  }
+
+  /**
+   * 检查用户是否需要强制修改密码
+   * 条件：isSystem=true && hasCompletedFirstLogin=false
+   */
+  async checkRequiresPasswordChange(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isSystem: true, hasCompletedFirstLogin: true },
+    });
+
+    return user?.isSystem === true && user?.hasCompletedFirstLogin === false;
   }
 
   /**

@@ -3,7 +3,54 @@ import { ContactFormDrawer } from "./contact-form-drawer";
 import { ContactDetailDrawer } from "./contact-detail-drawer";
 import { LinkCustomerDialog } from "./link-customer-dialog";
 import { ContactDeleteDialog } from "./contact-delete-dialog";
+import { CustomerFormDrawer } from "@/features/customers/components/customer-form-drawer";
+import { useLinkCustomer } from "../hooks/use-contacts";
 import type { Contact } from "../types/contact";
+
+// 从联系人创建客户的包装组件
+interface CreateCustomerFromContactProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  contact: Contact;
+  onSuccess: () => void;
+}
+
+function CreateCustomerFromContact({
+  open,
+  onOpenChange,
+  contact,
+  onSuccess,
+}: CreateCustomerFromContactProps) {
+  const linkMutation = useLinkCustomer();
+
+  const handleCustomerCreated = async (customerId?: string) => {
+    if (customerId) {
+      try {
+        await linkMutation.mutateAsync({
+          contactId: contact.id,
+          data: {
+            customerId,
+            isPrimary: true,
+          },
+        });
+        onSuccess();
+      } catch (error) {
+        console.error("自动关联联系人失败:", error);
+        onSuccess(); // 即使关联失败也关闭
+      }
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <CustomerFormDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      onSuccess={handleCustomerCreated}
+    />
+  );
+}
 
 interface ContactsDialogsContextValue {
   openCreateDialog: () => void;
@@ -28,6 +75,8 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
   const [linkingContact, setLinkingContact] = useState<Contact | null>(null);
   const [detailContact, setDetailContact] = useState<Contact | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [creatingCustomerFromContact, setCreatingCustomerFromContact] =
+    useState<Contact | null>(null);
 
   const openCreateDialog = () => setIsCreateDialogOpen(true);
   const openEditDialog = (contact: Contact) => setEditingContact(contact);
@@ -37,8 +86,12 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
   const openLinkCustomerDialog = (contact: Contact) =>
     setLinkingContact(contact);
   const openCreateCustomerDialog = (contact: Contact) => {
-    // TODO: 打开创建客户对话框，并预填联系人信息
-    console.log("创建客户，从联系人:", contact);
+    setCreatingCustomerFromContact(contact);
+  };
+
+  const handleCreateAndLinkSuccess = () => {
+    setCreatingCustomerFromContact(null);
+    onRefresh();
   };
 
   return (
@@ -113,6 +166,18 @@ export function ContactsDialogs({ children, onRefresh }: ContactsDialogsProps) {
             setDeletingContact(null);
             onRefresh();
           }}
+        />
+      )}
+
+      {/* 从联系人创建客户抽屉 */}
+      {creatingCustomerFromContact && (
+        <CreateCustomerFromContact
+          open={!!creatingCustomerFromContact}
+          onOpenChange={(open) => {
+            if (!open) setCreatingCustomerFromContact(null);
+          }}
+          contact={creatingCustomerFromContact}
+          onSuccess={handleCreateAndLinkSuccess}
         />
       )}
     </ContactsDialogsContext.Provider>

@@ -6,7 +6,8 @@ export type CmsContentType =
   | "ARTICLE"
   | "CASE_STUDY"
   | "PRODUCT_SHOWCASE"
-  | "PROFILE";
+  | "PROFILE"
+  | "PAGE_ELEMENT";
 
 // CMS 内容接口
 export interface CmsContent {
@@ -26,6 +27,37 @@ export interface CmsContent {
   updatedAt: string;
   tags?: Array<{ id: string; name: string; color?: string }>;
   author?: { id: string; username: string; avatar?: string };
+
+  // === 关联数据 ===
+  // 产品展示关联的 CRM 产品
+  product?: {
+    id: string;
+    name: string;
+    code: string;
+    description?: string;
+    price?: number;
+  };
+
+  // 人员介绍关联的用户信息
+  userProfile?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    email?: string;
+    phone?: string;
+  };
+
+  // 案例关联合同信息
+  contract?: {
+    id: string;
+    contractNo: string;
+    totalAmount?: number;
+    customer?: {
+      id: string;
+      name: string;
+      shortName?: string;
+    };
+  };
 }
 
 // 分页响应（与后端保持一致）
@@ -108,6 +140,24 @@ export async function getProfiles(params?: {
   return getPublishedContents({ ...params, contentType: "PROFILE" });
 }
 
+// 便捷函数：获取页面元素
+export async function getPageElements(params?: {
+  page?: number;
+  pageSize?: number;
+}) {
+  return getPublishedContents({ ...params, contentType: "PAGE_ELEMENT" });
+}
+
+// 根据 slug 获取页面元素
+export async function getPageElement(slug: string): Promise<CmsContent> {
+  const res = await fetch(`${API_BASE_URL}/public/cms/page-elements/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) return null as any; // 允许返回 null，组件可以处理
+  return res.json();
+}
+
 // 获取所有标签
 export async function getTags(): Promise<
   Array<{ id: string; name: string; color?: string }>
@@ -117,5 +167,109 @@ export async function getTags(): Promise<
   });
 
   if (!res.ok) throw new Error("Failed to fetch tags");
+  return res.json();
+}
+
+// ==================== 页面管理 API ====================
+
+// 页面元素接口
+export interface CmsPageElement {
+  id: string;
+  sectionType: "HERO" | "STATS" | "FEATURES" | "CTA" | "TESTIMONIALS" | "PARTNERS" | "CONTACT";
+  elementType: "heading" | "text" | "button" | "image" | "card" | "list" | "statistic" | "testimonial";
+  sortOrder: number;
+  content?: string;
+  styleConfig?: string;
+  visible: boolean;
+}
+
+// CMS 页面接口
+export interface CmsPage {
+  id: string;
+  name: string;
+  title: string;
+  slug: string;
+  description?: string;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  elements: CmsPageElement[];
+}
+
+// 根据 slug 获取页面
+export async function getPageBySlug(slug: string): Promise<CmsPage | null> {
+  const res = await fetch(`${API_BASE_URL}/public/cms/pages/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) return null;
+
+  const json = await res.json();
+  // 后端响应格式：{ success, data }
+  return json.data || null;
+}
+
+// ==================== 产品 API ====================
+
+// 产品定价类型
+export type PricingType = "FIXED" | "TIER_AMOUNT" | "TIER_COUNT" | "ZERO_DECLARATION";
+
+// 定价规则
+export interface PricingRule {
+  id: string;
+  minQuantity: number;
+  maxQuantity: number | null;
+  price: number;
+}
+
+// 产品接口
+export interface Product {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  price: number;
+  pricingType: PricingType;
+  status: "ACTIVE" | "INACTIVE";
+  timeline?: string; // JSON 字符串
+  createdAt: string;
+  updatedAt: string;
+  // 关联数据
+  image?: {
+    id: string;
+    url: string;
+    filename: string;
+  };
+  pricingRules?: PricingRule[];
+}
+
+// 获取 CRM 产品列表（与 CMS 产品展示内容区分）
+export async function getCrProducts(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+}): Promise<PaginatedResponse<Product>> {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set("page", params.page.toString());
+  if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
+  if (params?.keyword) queryParams.set("keyword", params.keyword);
+
+  const res = await fetch(
+    `${API_BASE_URL}/public/products?${queryParams}`,
+    { next: { revalidate: 7200 } } // 产品缓存 2 小时
+  );
+
+  if (!res.ok) throw new Error("Failed to fetch products");
+  return res.json();
+}
+
+// 根据 code 获取产品详情
+export async function getProductByCode(code: string): Promise<Product> {
+  const res = await fetch(`${API_BASE_URL}/public/products/${code}`, {
+    next: { revalidate: 7200 },
+  });
+
+  if (!res.ok) throw new Error("Product not found");
   return res.json();
 }

@@ -65,9 +65,9 @@ export function getCmsContentsColumns({
     },
     {
       accessorKey: "title",
-      header: () => "标题",
+      header: () => t("cms.content.columns.title"),
       meta: {
-        displayName: "标题",
+        displayName: t("cms.content.columns.title"),
         className: "w-[200px]",
       },
       cell: ({ row }) => (
@@ -76,9 +76,9 @@ export function getCmsContentsColumns({
     },
     {
       accessorKey: "contentType",
-      header: () => "类型",
+      header: () => t("cms.content.columns.type"),
       meta: {
-        displayName: "类型",
+        displayName: t("cms.content.columns.type"),
         className: "w-[100px]",
       },
       cell: ({ row }) => {
@@ -88,9 +88,9 @@ export function getCmsContentsColumns({
     },
     {
       accessorKey: "status",
-      header: () => "状态",
+      header: () => t("cms.content.columns.status"),
       meta: {
-        displayName: "状态",
+        displayName: t("cms.content.columns.status"),
         className: "w-[100px]",
       },
       cell: ({ row }) => {
@@ -104,9 +104,9 @@ export function getCmsContentsColumns({
     },
     {
       accessorKey: "author",
-      header: () => "作者",
+      header: () => t("cms.content.columns.author"),
       meta: {
-        displayName: "作者",
+        displayName: t("cms.content.columns.author"),
         className: "w-[120px]",
       },
       cell: ({ row }) => {
@@ -118,9 +118,9 @@ export function getCmsContentsColumns({
     },
     {
       accessorKey: "excerpt",
-      header: () => "摘要",
+      header: () => t("cms.content.columns.excerpt"),
       meta: {
-        displayName: "摘要",
+        displayName: t("cms.content.columns.excerpt"),
         className: "w-[250px]",
       },
       cell: ({ row }) => {
@@ -134,9 +134,9 @@ export function getCmsContentsColumns({
     },
     {
       accessorKey: "publishedAt",
-      header: () => "发布日期",
+      header: () => t("cms.content.columns.publishedAt"),
       meta: {
-        displayName: "发布日期",
+        displayName: t("cms.content.columns.publishedAt"),
         className: "w-[120px]",
       },
       cell: ({ row }) => {
@@ -154,7 +154,7 @@ export function getCmsContentsColumns({
       cell: DataTableRowActions,
       enableHiding: false,
       meta: {
-        displayName: "操作",
+        displayName: t("cms.content.columns.actions"),
         className: "w-[150px]",
       },
     },

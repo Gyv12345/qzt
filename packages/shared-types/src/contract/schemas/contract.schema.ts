@@ -7,7 +7,7 @@ import { z } from "zod";
 export const contractStatusSchema = z.enum(
   ["UNPAID", "PARTIAL", "PAID"],
   {
-    errorMap: () => ({ message: "合同状态必须是 UNPAID、PARTIAL 或 PAID" }),
+    message: "合同状态必须是 UNPAID、PARTIAL 或 PAID",
   },
 );
 

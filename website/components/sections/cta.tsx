@@ -3,16 +3,57 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Rocket, Check } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import type { CmsPage } from "@/lib/api";
 
-const benefits = [
+const defaultBenefits = [
   "无需信用卡",
   "5分钟快速部署",
   "24/7技术支持",
   "随时取消",
 ];
 
-export function CtaSection() {
+interface CtaSectionProps {
+  pageData?: CmsPage | null;
+}
+
+// 从页面数据解析 CTA 内容
+function parsePageData(pageData: CmsPage | null | undefined) {
+  if (!pageData?.elements) return null;
+
+  const ctaElements = pageData.elements
+    .filter((el) => el.sectionType === "CTA" && el.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (ctaElements.length === 0) return null;
+
+  const result: { heading?: string; benefits?: string[]; buttonText?: string; buttonUrl?: string } = {};
+
+  for (const element of ctaElements) {
+    try {
+      const content = element.content ? JSON.parse(element.content) : {};
+
+      if (element.elementType === "heading" && !result.heading) {
+        result.heading = content.text;
+      } else if (element.elementType === "text" && content.text) {
+        if (!result.benefits) result.benefits = [];
+        result.benefits.push(content.text);
+      } else if (element.elementType === "button" && !result.buttonText) {
+        result.buttonText = content.text;
+        result.buttonUrl = content.url;
+      }
+    } catch {
+      // 忽略解析错误
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+export function CtaSection({ pageData }: CtaSectionProps) {
   const shouldReduceMotion = useReducedMotion();
+
+  // 优先使用页面数据，回退到默认值
+  const ctaData = parsePageData(pageData);
 
   return (
     <section className="relative overflow-hidden py-24">
@@ -57,7 +98,7 @@ export function CtaSection() {
 
             {/* 优势列表 */}
             <div className="mt-8 grid grid-cols-2 gap-4">
-              {benefits.map((benefit, index) => (
+              {(ctaData?.benefits || defaultBenefits).map((benefit, index) => (
                 <motion.div
                   key={benefit}
                   initial={{ opacity: 0, y: 10 }}
@@ -81,8 +122,8 @@ export function CtaSection() {
                 className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105"
                 asChild
               >
-                <a href="/signup">
-                  <span className="relative z-10">免费开始使用</span>
+                <a href={ctaData?.buttonUrl || "/signup"}>
+                  <span className="relative z-10">{ctaData?.buttonText || "免费开始使用"}</span>
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </a>
               </Button>

@@ -6,7 +6,8 @@ export type ContentType =
   | "ARTICLE"
   | "CASE_STUDY"
   | "PRODUCT_SHOWCASE"
-  | "PROFILE";
+  | "PROFILE"
+  | "PAGE_ELEMENT";
 
 export type ContentStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
@@ -117,6 +118,11 @@ export const CONTENT_TYPE_CONFIG: Record<
     description: "产品详细介绍",
   },
   PROFILE: { label: "人员介绍", icon: "Users", description: "团队成员介绍" },
+  PAGE_ELEMENT: {
+    label: "页面元素",
+    icon: "Layout",
+    description: "网站页面可编辑元素",
+  },
 };
 
 export const CONTENT_STATUS_CONFIG: Record<

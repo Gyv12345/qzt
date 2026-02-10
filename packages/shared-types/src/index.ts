@@ -24,4 +24,7 @@ export * from './notifications'
 export * from './webhooks'
 export * from './social-media'
 
+// 验证工具
+export * from './common/validation'
+
 // 所有模块迁移完成！

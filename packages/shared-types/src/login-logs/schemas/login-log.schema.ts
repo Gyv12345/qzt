@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 登录状态枚举
  */
 export const loginStatusSchema = z.enum(['SUCCESS', 'FAILED'], {
-  errorMap: () => ({ message: '登录状态必须是 SUCCESS 或 FAILED' }),
+  message: '登录状态必须是 SUCCESS 或 FAILED',
 })
 
 export type LoginStatus = z.infer<typeof loginStatusSchema>

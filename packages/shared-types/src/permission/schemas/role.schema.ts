@@ -4,7 +4,7 @@ import { z } from 'zod'
  * 角色类型枚举
  */
 export const roleTypeSchema = z.enum(['SYSTEM', 'TEAM'], {
-  errorMap: () => ({ message: '角色类型必须是 SYSTEM 或 TEAM' }),
+  message: '角色类型必须是 SYSTEM 或 TEAM',
 })
 
 export type RoleType = z.infer<typeof roleTypeSchema>
@@ -15,7 +15,7 @@ export type RoleType = z.infer<typeof roleTypeSchema>
 export const dataScopeTypeSchema = z.enum(
   ['ALL', 'DEPARTMENT', 'DEPARTMENT_AND_SUB', 'CUSTOM', 'SELF'],
   {
-    errorMap: () => ({ message: '数据范围类型无效' }),
+    message: '数据范围类型无效',
   },
 )
 

@@ -42,6 +42,8 @@ export type LoginUser = z.infer<typeof loginUserSchema>
 export const loginResponseSchema = z.object({
   access_token: z.string(),
   user: loginUserSchema,
+  requiresPasswordChange: z.boolean().optional(),
+  requiresTwoFactorSetup: z.boolean().optional(),
 })
 
 export type LoginResponse = z.infer<typeof loginResponseSchema>

@@ -3,10 +3,7 @@ import { ProfileForm } from "./profile-form";
 
 export function SettingsProfile() {
   return (
-    <ContentSection
-      title="settings.profile.title"
-      desc="settings.profile.description"
-    >
+    <ContentSection title="个人资料" desc="管理您的个人信息">
       <ProfileForm />
     </ContentSection>
   );

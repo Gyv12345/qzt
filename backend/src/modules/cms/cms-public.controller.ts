@@ -59,9 +59,44 @@ export class CmsPublicController {
     });
   }
 
+  @Get("page-elements")
+  @ApiOperation({ summary: "Get published page elements" })
+  getPageElements(@Query() query: QueryCmsContentDto) {
+    return this.cmsService.getPageElements({
+      ...query,
+      status: "PUBLISHED",
+    });
+  }
+
+  @Get("page-elements/:slug")
+  @ApiOperation({ summary: "Get page element by slug" })
+  getPageElementBySlug(@Param("slug") slug: string) {
+    return this.cmsService.getPageElementBySlug(slug);
+  }
+
+  @Get("pages/:slug")
+  @ApiOperation({ summary: "Get published page by slug" })
+  findPageBySlug(@Param("slug") slug: string) {
+    return this.cmsService.findPageBySlug(slug);
+  }
+
   @Get("tags")
   @ApiOperation({ summary: "Get all tags" })
   findAllTags() {
     return this.cmsService.findAllTags();
+  }
+
+  // ==================== 预览功能 ====================
+
+  @Get("preview/contents/:token")
+  @ApiOperation({ summary: "Get content preview by token" })
+  getContentPreview(@Param("token") token: string) {
+    return this.cmsService.getContentByPreviewToken(token);
+  }
+
+  @Get("preview/pages/:token")
+  @ApiOperation({ summary: "Get page preview by token" })
+  getPagePreview(@Param("token") token: string) {
+    return this.cmsService.getPageByPreviewToken(token);
   }
 }

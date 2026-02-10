@@ -404,6 +404,7 @@ model Contract {
   payments        Payment[]
   items           ContractItem[]  // 合同产品明细
   esignRecord     EsignRecord?    // e签宝签署记录
+  cmsCases        CmsContent[]    @relation("CmsContractCase")  // 客户案例
 
   @@index([customerId])
   @@index([status])
@@ -848,12 +849,13 @@ model CmsContent {
   excerpt     String?     // 摘要
   coverImage  String?     // 封面图 URL
   status      String      @default("DRAFT") // SQLite 不支持枚举，改用 String: DRAFT, PUBLISHED, ARCHIVED
-  contentType String      // SQLite 不支持枚举，改用 String: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE
+  contentType String      // SQLite 不支持枚举，改用 String: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE, PAGE_ELEMENT
   authorId    String
 
   // 关联引用（可选）
   productId   String?     // 引用现有产品（仅产品展示类型使用）
   userId      String?     // 引用现有用户（仅人员介绍类型使用）
+  contractId  String?     // 引用已签合同（仅案例类型使用，展示客户案例）
 
   // SEO 字段
   metaTitle   String?
@@ -865,10 +867,13 @@ model CmsContent {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  author      User        @relation("CmsContentAuthor", fields: [authorId], references: [id])
-  product     Product?    @relation("CmsProductShowcase", fields: [productId], references: [id])
-  userProfile User?       @relation("CmsUserProfile", fields: [userId], references: [id])
-  tags        CmsContentTag[]
+  author         User                  @relation("CmsContentAuthor", fields: [authorId], references: [id])
+  product        Product?              @relation("CmsProductShowcase", fields: [productId], references: [id])
+  userProfile    User?                 @relation("CmsUserProfile", fields: [userId], references: [id])
+  contract       Contract?             @relation("CmsContractCase", fields: [contractId], references: [id])
+  tags           CmsContentTag[]
+  previewTokens  CmsContentPreviewToken[] @relation("ContentPreviewTokens")
+  versions       CmsContentVersion[]     @relation("ContentVersions")
 
   @@index([status])
   @@index([contentType])
@@ -909,8 +914,133 @@ model CmsContentTag {
 }
 
 // 注意：SQLite 不支持枚举类型，已在 CmsContent 模型中使用 String 类型代替
-// ContentType: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE
+// ContentType: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE, PAGE_ELEMENT
 // ContentStatus: DRAFT, PUBLISHED, ARCHIVED
+
+// ==================== CMS 页面管理 ====================
+// 用于管理 Website 首页等可配置页面
+
+// CMS 页面主表
+model CmsPage {
+  id          String   @id @default(cuid())
+  name        String   // 页面名称（内部标识）
+  title       String   // 页面标题
+  slug        String   @unique // URL 路径 (如: homepage, about)
+  description String?  // 页面描述
+  status      String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // SEO 字段
+  metaTitle   String?
+  metaDesc    String?
+  keywords    String?
+  ogImage     String?
+
+  // 模板字段
+  template    String?  // homepage, about, contact, custom
+
+  elements       CmsPageElement[]        @relation("CmsPageElements")
+  previewTokens  CmsPagePreviewToken[]   @relation("PagePreviewTokens")
+
+  @@index([status])
+  @@index([slug])
+  @@map("cms_pages")
+}
+
+// CMS 页面元素表（用于存储页面各区域内容）
+model CmsPageElement {
+  id          String   @id @default(cuid())
+  pageId      String   // 所属页面ID
+  sectionType String   // 区域类型: HERO, STATS, FEATURES, CTA, TESTIMONIALS, PARTNERS, CONTACT
+  elementType String   // 元素类型: heading, text, button, image, card, list, statistic, testimonial
+  sortOrder   Int      @default(0) // 排序
+  content     String?  // 元素内容（JSON 格式，存储动态数据）
+  styleConfig String?  // 样式配置（JSON 格式，存储颜色、布局等）
+  visible     Boolean  @default(true) // 是否显示
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  page        CmsPage  @relation("CmsPageElements", fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@index([sectionType])
+  @@index([sortOrder])
+  @@map("cms_page_elements")
+}
+
+// ==================== CMS 内容预览令牌 ====================
+
+model CmsContentPreviewToken {
+  id        String   @id @default(cuid())
+  contentId String
+  token     String   @unique
+  expiresAt DateTime // 30分钟后过期
+  createdAt DateTime @default(now())
+
+  content   CmsContent @relation("ContentPreviewTokens", fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("cms_content_preview_tokens")
+}
+
+model CmsPagePreviewToken {
+  id        String   @id @default(cuid())
+  pageId    String
+  token     String   @unique
+  expiresAt DateTime // 30分钟后过期
+  createdAt DateTime @default(now())
+
+  page      CmsPage @relation("PagePreviewTokens", fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("cms_page_preview_tokens")
+}
+
+// ==================== CMS 内容版本历史 ====================
+
+model CmsContentVersion {
+  id          String   @id @default(cuid())
+  contentId   String
+  version     Int      // 版本号
+
+  // 内容快照
+  title       String
+  slug        String
+  content     String
+  excerpt     String?
+  coverImage  String?
+  status      String
+  contentType String
+
+  // 关联快照
+  productId   String?
+  userId      String?
+  contractId  String?
+
+  // SEO 快照
+  metaTitle   String?
+  metaDesc    String?
+  keywords    String?
+
+  // 标签快照（JSON 存储）
+  tagSnapshot String?  // JSON 数组，存储当时的标签
+
+  // 元数据
+  createdAt   DateTime @default(now())
+  createdBy   String   // 创建版本的用户 ID
+  changeNote  String?  // 变更说明
+
+  contentRelation  CmsContent @relation("ContentVersions", fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, version])
+  @@index([contentId])
+  @@index([createdAt])
+  @@map("cms_content_versions")
+}
 
 // ==================== 客户规则 ====================
 

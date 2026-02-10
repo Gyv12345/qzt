@@ -7,7 +7,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginComponent() {
-  const { isAuthenticated, isLoading, isPendingTwoFactorSetup } = useAuth();
+  const { isAuthenticated, isLoading, requires2FA } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,10 +17,16 @@ function LoginComponent() {
     );
   }
 
-  // 如果已经认证且不是待处理 2FA 设置状态，跳转到首页
-  if (isAuthenticated && !isPendingTwoFactorSetup) {
+  // 如果已经认证且需要设置 2FA，跳转到设置页
+  if (isAuthenticated && requires2FA) {
+    return <Navigate to="/setup-2fa" replace />;
+  }
+
+  // 如果已经认证且不需要设置 2FA，跳转到首页
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
+  // 显示登录页面
   return <Login />;
 }

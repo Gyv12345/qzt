@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Setup2faRouteImport } from './routes/setup-2fa'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedWebhooksRouteImport } from './routes/_authenticated/webhooks'
@@ -40,16 +42,33 @@ import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
+import { Route as AuthenticatedCmsIndexRouteImport } from './routes/_authenticated/cms/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
-import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
-import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
+import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
+import { Route as AuthenticatedCmsTagsRouteRouteImport } from './routes/_authenticated/cms/tags/route'
+import { Route as AuthenticatedCmsPagesRouteRouteImport } from './routes/_authenticated/cms/pages/route'
+import { Route as AuthenticatedCmsNewRouteRouteImport } from './routes/_authenticated/cms/new/route'
+import { Route as AuthenticatedCmsElementsRouteRouteImport } from './routes/_authenticated/cms/elements/route'
+import { Route as AuthenticatedCmsPagesNewRouteRouteImport } from './routes/_authenticated/cms/pages/new/route'
+import { Route as AuthenticatedCmsEditIdRouteRouteImport } from './routes/_authenticated/cms/edit/$id/route'
+import { Route as AuthenticatedCmsPagesEditPageIdRouteRouteImport } from './routes/_authenticated/cms/pages/edit/$pageId/route'
 
+const Setup2faRoute = Setup2faRouteImport.update({
+  id: '/setup-2fa',
+  path: '/setup-2fa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -219,6 +238,11 @@ const AuthenticatedHelpCenterIndexRoute =
     path: '/help-center/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCmsIndexRoute = AuthenticatedCmsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedCmsRouteRoute,
+} as any)
 const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexRouteImport.update({
   id: '/chats/',
   path: '/chats/',
@@ -229,16 +253,10 @@ const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexRouteImport.update({
   path: '/apps/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSettingsNotificationsRoute =
-  AuthenticatedSettingsNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-const AuthenticatedSettingsAppearanceRoute =
-  AuthenticatedSettingsAppearanceRouteImport.update({
-    id: '/appearance',
-    path: '/appearance',
+const AuthenticatedSettingsSecurityRoute =
+  AuthenticatedSettingsSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
 const AuthenticatedSettingsAccountRoute =
@@ -253,11 +271,55 @@ const AuthenticatedErrorsErrorRoute =
     path: '/errors/$error',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCmsTagsRouteRoute =
+  AuthenticatedCmsTagsRouteRouteImport.update({
+    id: '/tags',
+    path: '/tags',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsPagesRouteRoute =
+  AuthenticatedCmsPagesRouteRouteImport.update({
+    id: '/pages',
+    path: '/pages',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsNewRouteRoute =
+  AuthenticatedCmsNewRouteRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsElementsRouteRoute =
+  AuthenticatedCmsElementsRouteRouteImport.update({
+    id: '/elements',
+    path: '/elements',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsPagesNewRouteRoute =
+  AuthenticatedCmsPagesNewRouteRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedCmsPagesRouteRoute,
+  } as any)
+const AuthenticatedCmsEditIdRouteRoute =
+  AuthenticatedCmsEditIdRouteRouteImport.update({
+    id: '/edit/$id',
+    path: '/edit/$id',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsPagesEditPageIdRouteRoute =
+  AuthenticatedCmsPagesEditPageIdRouteRouteImport.update({
+    id: '/edit/$pageId',
+    path: '/edit/$pageId',
+    getParentRoute: () => AuthenticatedCmsPagesRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
-  '/cms': typeof AuthenticatedCmsRouteRoute
+  '/setup-2fa': typeof Setup2faRoute
+  '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -281,20 +343,28 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/webhooks': typeof AuthenticatedWebhooksRoute
+  '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
+  '/cms/new': typeof AuthenticatedCmsNewRouteRoute
+  '/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
+  '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/apps/': typeof AuthenticatedAppsIndexRoute
   '/chats/': typeof AuthenticatedChatsIndexRoute
+  '/cms/': typeof AuthenticatedCmsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
+  '/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRoutesByTo {
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
-  '/cms': typeof AuthenticatedCmsRouteRoute
+  '/setup-2fa': typeof Setup2faRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -318,22 +388,31 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/webhooks': typeof AuthenticatedWebhooksRoute
   '/': typeof AuthenticatedIndexRoute
+  '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
+  '/cms/new': typeof AuthenticatedCmsNewRouteRoute
+  '/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
+  '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/cms': typeof AuthenticatedCmsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
+  '/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
-  '/_authenticated/cms': typeof AuthenticatedCmsRouteRoute
+  '/setup-2fa': typeof Setup2faRoute
+  '/_authenticated/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
   '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteRoute
@@ -358,22 +437,31 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/_authenticated/webhooks': typeof AuthenticatedWebhooksRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
+  '/_authenticated/cms/new': typeof AuthenticatedCmsNewRouteRoute
+  '/_authenticated/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
+  '/_authenticated/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
-  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
+  '/_authenticated/cms/': typeof AuthenticatedCmsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
+  '/_authenticated/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/_authenticated/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/change-password'
     | '/login'
+    | '/setup-2fa'
     | '/cms'
     | '/contacts'
     | '/contract-templates'
@@ -398,20 +486,28 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/webhooks'
+    | '/cms/elements'
+    | '/cms/new'
+    | '/cms/pages'
+    | '/cms/tags'
     | '/errors/$error'
     | '/settings/account'
-    | '/settings/appearance'
-    | '/settings/notifications'
+    | '/settings/security'
     | '/apps/'
     | '/chats/'
+    | '/cms/'
     | '/help-center/'
     | '/settings/'
     | '/tasks/'
     | '/users/'
+    | '/cms/edit/$id'
+    | '/cms/pages/new'
+    | '/cms/pages/edit/$pageId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/change-password'
     | '/login'
-    | '/cms'
+    | '/setup-2fa'
     | '/contacts'
     | '/contract-templates'
     | '/contracts'
@@ -435,20 +531,29 @@ export interface FileRouteTypes {
     | '/503'
     | '/webhooks'
     | '/'
+    | '/cms/elements'
+    | '/cms/new'
+    | '/cms/pages'
+    | '/cms/tags'
     | '/errors/$error'
     | '/settings/account'
-    | '/settings/appearance'
-    | '/settings/notifications'
+    | '/settings/security'
     | '/apps'
     | '/chats'
+    | '/cms'
     | '/help-center'
     | '/settings'
     | '/tasks'
     | '/users'
+    | '/cms/edit/$id'
+    | '/cms/pages/new'
+    | '/cms/pages/edit/$pageId'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/change-password'
     | '/login'
+    | '/setup-2fa'
     | '/_authenticated/cms'
     | '/_authenticated/contacts'
     | '/_authenticated/contract-templates'
@@ -474,21 +579,30 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/webhooks'
     | '/_authenticated/'
+    | '/_authenticated/cms/elements'
+    | '/_authenticated/cms/new'
+    | '/_authenticated/cms/pages'
+    | '/_authenticated/cms/tags'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
-    | '/_authenticated/settings/appearance'
-    | '/_authenticated/settings/notifications'
+    | '/_authenticated/settings/security'
     | '/_authenticated/apps/'
     | '/_authenticated/chats/'
+    | '/_authenticated/cms/'
     | '/_authenticated/help-center/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
+    | '/_authenticated/cms/edit/$id'
+    | '/_authenticated/cms/pages/new'
+    | '/_authenticated/cms/pages/edit/$pageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ChangePasswordRoute: typeof ChangePasswordRoute
   LoginRoute: typeof LoginRoute
+  Setup2faRoute: typeof Setup2faRoute
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
   errors404Route: typeof errors404Route
@@ -498,11 +612,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup-2fa': {
+      id: '/setup-2fa'
+      path: '/setup-2fa'
+      fullPath: '/setup-2fa'
+      preLoaderRoute: typeof Setup2faRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -715,6 +843,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cms/': {
+      id: '/_authenticated/cms/'
+      path: '/'
+      fullPath: '/cms/'
+      preLoaderRoute: typeof AuthenticatedCmsIndexRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
     '/_authenticated/chats/': {
       id: '/_authenticated/chats/'
       path: '/chats'
@@ -729,18 +864,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings/notifications': {
-      id: '/_authenticated/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/settings/appearance': {
-      id: '/_authenticated/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport
+    '/_authenticated/settings/security': {
+      id: '/_authenticated/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
     '/_authenticated/settings/account': {
@@ -757,22 +885,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cms/tags': {
+      id: '/_authenticated/cms/tags'
+      path: '/tags'
+      fullPath: '/cms/tags'
+      preLoaderRoute: typeof AuthenticatedCmsTagsRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/pages': {
+      id: '/_authenticated/cms/pages'
+      path: '/pages'
+      fullPath: '/cms/pages'
+      preLoaderRoute: typeof AuthenticatedCmsPagesRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/new': {
+      id: '/_authenticated/cms/new'
+      path: '/new'
+      fullPath: '/cms/new'
+      preLoaderRoute: typeof AuthenticatedCmsNewRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/elements': {
+      id: '/_authenticated/cms/elements'
+      path: '/elements'
+      fullPath: '/cms/elements'
+      preLoaderRoute: typeof AuthenticatedCmsElementsRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/pages/new': {
+      id: '/_authenticated/cms/pages/new'
+      path: '/new'
+      fullPath: '/cms/pages/new'
+      preLoaderRoute: typeof AuthenticatedCmsPagesNewRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsPagesRouteRoute
+    }
+    '/_authenticated/cms/edit/$id': {
+      id: '/_authenticated/cms/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/cms/edit/$id'
+      preLoaderRoute: typeof AuthenticatedCmsEditIdRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/pages/edit/$pageId': {
+      id: '/_authenticated/cms/pages/edit/$pageId'
+      path: '/edit/$pageId'
+      fullPath: '/cms/pages/edit/$pageId'
+      preLoaderRoute: typeof AuthenticatedCmsPagesEditPageIdRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsPagesRouteRoute
+    }
   }
 }
 
+interface AuthenticatedCmsPagesRouteRouteChildren {
+  AuthenticatedCmsPagesNewRouteRoute: typeof AuthenticatedCmsPagesNewRouteRoute
+  AuthenticatedCmsPagesEditPageIdRouteRoute: typeof AuthenticatedCmsPagesEditPageIdRouteRoute
+}
+
+const AuthenticatedCmsPagesRouteRouteChildren: AuthenticatedCmsPagesRouteRouteChildren =
+  {
+    AuthenticatedCmsPagesNewRouteRoute: AuthenticatedCmsPagesNewRouteRoute,
+    AuthenticatedCmsPagesEditPageIdRouteRoute:
+      AuthenticatedCmsPagesEditPageIdRouteRoute,
+  }
+
+const AuthenticatedCmsPagesRouteRouteWithChildren =
+  AuthenticatedCmsPagesRouteRoute._addFileChildren(
+    AuthenticatedCmsPagesRouteRouteChildren,
+  )
+
+interface AuthenticatedCmsRouteRouteChildren {
+  AuthenticatedCmsElementsRouteRoute: typeof AuthenticatedCmsElementsRouteRoute
+  AuthenticatedCmsNewRouteRoute: typeof AuthenticatedCmsNewRouteRoute
+  AuthenticatedCmsPagesRouteRoute: typeof AuthenticatedCmsPagesRouteRouteWithChildren
+  AuthenticatedCmsTagsRouteRoute: typeof AuthenticatedCmsTagsRouteRoute
+  AuthenticatedCmsIndexRoute: typeof AuthenticatedCmsIndexRoute
+  AuthenticatedCmsEditIdRouteRoute: typeof AuthenticatedCmsEditIdRouteRoute
+}
+
+const AuthenticatedCmsRouteRouteChildren: AuthenticatedCmsRouteRouteChildren = {
+  AuthenticatedCmsElementsRouteRoute: AuthenticatedCmsElementsRouteRoute,
+  AuthenticatedCmsNewRouteRoute: AuthenticatedCmsNewRouteRoute,
+  AuthenticatedCmsPagesRouteRoute: AuthenticatedCmsPagesRouteRouteWithChildren,
+  AuthenticatedCmsTagsRouteRoute: AuthenticatedCmsTagsRouteRoute,
+  AuthenticatedCmsIndexRoute: AuthenticatedCmsIndexRoute,
+  AuthenticatedCmsEditIdRouteRoute: AuthenticatedCmsEditIdRouteRoute,
+}
+
+const AuthenticatedCmsRouteRouteWithChildren =
+  AuthenticatedCmsRouteRoute._addFileChildren(
+    AuthenticatedCmsRouteRouteChildren,
+  )
+
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
-  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
-  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
     AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
-    AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
-    AuthenticatedSettingsNotificationsRoute:
-      AuthenticatedSettingsNotificationsRoute,
+    AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
@@ -782,7 +996,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRoute
+  AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRouteWithChildren
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
   AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute
   AuthenticatedContractsRouteRoute: typeof AuthenticatedContractsRouteRoute
@@ -811,7 +1025,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedCmsRouteRoute: AuthenticatedCmsRouteRoute,
+  AuthenticatedCmsRouteRoute: AuthenticatedCmsRouteRouteWithChildren,
   AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
   AuthenticatedContractTemplatesRouteRoute:
     AuthenticatedContractTemplatesRouteRoute,
@@ -845,7 +1059,9 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ChangePasswordRoute: ChangePasswordRoute,
   LoginRoute: LoginRoute,
+  Setup2faRoute: Setup2faRoute,
   errors401Route: errors401Route,
   errors403Route: errors403Route,
   errors404Route: errors404Route,

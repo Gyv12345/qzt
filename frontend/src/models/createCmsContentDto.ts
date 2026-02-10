@@ -27,6 +27,8 @@ export interface CreateCmsContentDto {
   productId?: string;
   /** 关联用户ID（仅PROFILE类型使用） */
   userId?: string;
+  /** 关联合同ID（仅CASE_STUDY类型使用，展示客户案例） */
+  contractId?: string;
   /** SEO标题 */
   metaTitle?: string;
   /** SEO描述 */

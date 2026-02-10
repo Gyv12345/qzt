@@ -102,12 +102,21 @@ export class AuthService {
       username: user.username,
     };
 
-    // 检查是否需要强制设置 2FA
-    const requiresTwoFactorSetup =
-      await this.twoFactorService.checkRequiresTwoFactorSetup(user.id);
+    // 检查是否需要强制修改密码（仅系统用户首次登录）
+    const requiresPasswordChange =
+      await this.twoFactorService.checkRequiresPasswordChange(user.id);
 
-    // 标记首次登录完成
-    await this.twoFactorService.markFirstLoginComplete(user.id);
+    // 检查是否需要强制设置 2FA
+    // 只有在不需要改密码的情况下才检查（即改密码完成后）
+    let requiresTwoFactorSetup = false;
+    if (!requiresPasswordChange) {
+      requiresTwoFactorSetup =
+        await this.twoFactorService.checkRequiresTwoFactorSetup(user.id);
+      // 标记首次登录开始（进入 2FA 设置流程）
+      if (requiresTwoFactorSetup) {
+        await this.twoFactorService.markFirstLoginComplete(user.id);
+      }
+    }
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -124,6 +133,7 @@ export class AuthService {
           code: ur.role.code,
         })),
       },
+      requiresPasswordChange,
       requiresTwoFactorSetup,
     };
   }

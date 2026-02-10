@@ -198,29 +198,50 @@ This is the ultimate form of Vibe Coding:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Phase 1: Foundation         ✅ Completed                        │
-│  ├── CRM Core                 ✅ Customers, Contacts, Contracts  │
-│  ├── CMS Content Management   ✅ Articles, Cases, Products       │
+│  Phase 1: Foundation         🚧 In Progress                      │
+│  ├── CRM Core                 🚧 Customers, Contacts, Contracts (Basic CRUD) │
+│  ├── CMS Content Management   🚧 Articles, Cases (Backend done)  │
 │  └── Official Website         ✅ Next.js Marketing Site          │
 ├─────────────────────────────────────────────────────────────────┤
-│  Phase 2: Customer Acquisition 🚧 Planned                        │
-│  ├── Social Media Management  📝 WeChat, Douyin, Xiaohongshu     │
-│  ├── Content Publishing       📝 Multi-platform distribution    │
+│  Phase 2: Feature Complete   📋 Upcoming                         │
+│  ├── CRM Improvements         📝 Follow-ups, Tasks, Analytics     │
+│  ├── CMS Improvements         📝 Admin UI, Media Library          │
+│  └── Granular Permissions     📝 Field-level, Data permissions    │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 3: Social Media        📝 Planned                          │
+│  ├── Account Management       📝 WeChat, Douyin, Xiaohongshu       │
+│  ├── Content Publishing       📝 Multi-platform distribution     │
 │  └── Audience Management       📝 Fan profiles, interaction       │
 ├─────────────────────────────────────────────────────────────────┤
-│  Phase 3: Smart Acquisition   📋 Upcoming                         │
+│  Phase 4: Smart Acquisition   🔮 Future                           │
 │  ├── Company Search           🔍 Tianyancha/QCC API integration   │
 │  ├── Smart Filtering          🎯 Region, industry, size filters   │
 │  └── Batch Import             📊 One-click import to CRM          │
 ├─────────────────────────────────────────────────────────────────┤
-│  Phase 4: Automation          🔮 Future                           │
+│  Phase 5: Automation          🔮 Future                           │
 │  ├── Marketing Automation     🤧 Email/SMS automation            │
 │  ├── Data Analytics           📊 Customer behavior, funnels      │
 │  └── AI Assistance            🤖 AI writing, smart support       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Phase 2: Social Media Management Module
+### Phase 2: Feature Completion Module
+
+**Goal**: Complete core business features for CRM and CMS to make them production-ready.
+
+**Features**:
+
+| Module | Features | Description |
+|--------|----------|-------------|
+| **CRM Improvements** | Follow-ups | Customer communication records, task reminders |
+| **CRM Improvements** | Analytics | Customer growth, sales funnel, conversion analysis |
+| **CRM Improvements** | Import/Export | Excel bulk import customer data |
+| **CMS Improvements** | Admin UI | Backend API ready, need frontend admin pages |
+| **CMS Improvements** | Media Library | Image/video upload and management |
+| **Granular Permissions** | Field Permissions | Control user visible/editable fields |
+| **Granular Permissions** | Data Permissions | Isolate data by department/team |
+
+### Phase 3: Social Media Management Module
 
 **Background**: Modern B2B customer acquisition relies heavily on social media operations. Need a unified management platform.
 
@@ -235,7 +256,7 @@ This is the ultimate form of Vibe Coding:
 | **Audience Engagement** | Message management | Comments, DMs, fan profiles |
 | **Publishing Schedule** | Scheduled posting | Preset publish time, auto-push |
 
-### Phase 3: Smart Customer Acquisition Module
+### Phase 4: Smart Customer Acquisition Module
 
 **Background**: B2B business targets enterprise customers. Need to precisely find target companies.
 
@@ -256,6 +277,18 @@ Find: Beijing + Software/IT Industry + 50-200 employees + 3+ years
      + Funding/Hiring activity in last 6 months
 → Export: 500 qualified companies → Assign to sales team
 ```
+
+### Phase 5: Automation Module
+
+**Background**: Automate repetitive tasks and leverage AI for efficiency.
+
+**Features**:
+
+| Module | Features | Description |
+|--------|----------|-------------|
+| **Marketing Automation** | Email/SMS | Automated drip campaigns, follow-ups |
+| **Data Analytics** | Behavior Analysis | Customer behavior tracking, funnel analysis |
+| **AI Assistance** | Content Generation | AI-powered writing, smart customer support |
 
 ---
 

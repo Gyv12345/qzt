@@ -183,7 +183,8 @@ export class UsersService {
    * 更新用户
    */
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const { username, password, roleIds, email, ...userData } = updateUserDto;
+    const { username, password, roleIds, email, phone, ...userData } =
+      updateUserDto;
 
     // 检查用户是否存在
     const existingUser = await this.prisma.user.findUnique({
@@ -204,13 +205,17 @@ export class UsersService {
       }
     }
 
-    // 如果更新邮箱，检查是否冲突
-    if (email && email !== existingUser.email) {
-      const conflictEmail = await this.prisma.user.findUnique({
-        where: { email },
-      });
-      if (conflictEmail) {
-        throw new ConflictException("邮箱已被使用");
+    // 如果更新邮箱（包括清空），检查是否冲突
+    // email !== undefined 确保我们区分"未提供"和"清空"两种情况
+    if (email !== undefined && email !== existingUser.email) {
+      // 只有非空时才检查冲突
+      if (email) {
+        const conflictEmail = await this.prisma.user.findUnique({
+          where: { email },
+        });
+        if (conflictEmail) {
+          throw new ConflictException("邮箱已被使用");
+        }
       }
     }
 
@@ -237,8 +242,9 @@ export class UsersService {
       where: { id },
       data: {
         ...userData,
-        ...(username && { username }),
-        ...(email && { email }),
+        ...(username !== undefined && { username }),
+        ...(email !== undefined && { email: email || null }), // 允许清空邮箱
+        ...(phone !== undefined && { phone: phone || null }), // 允许清空手机号
         ...(hashedPassword && { password: hashedPassword }),
         ...(roleIds && {
           roles: {
@@ -328,6 +334,7 @@ export class UsersService {
         id: true,
         password: true,
         twoFactorEnabled: true,
+        hasCompletedFirstLogin: true,
       },
     });
 
@@ -344,8 +351,9 @@ export class UsersService {
       throw new UnauthorizedException("当前密码错误");
     }
 
-    // 如果用户启用了 2FA，验证 2FA token
-    if (user.twoFactorEnabled) {
+    // 如果用户启用了 2FA 且不是首次登录，验证 2FA token
+    // 首次登录修改密码时跳过 2FA 检查（因为还没设置 2FA）
+    if (user.twoFactorEnabled && user.hasCompletedFirstLogin) {
       if (!twoFactorToken) {
         throw new UnauthorizedException("需要双因素认证验证码");
       }
@@ -363,11 +371,24 @@ export class UsersService {
     // 哈希新密码
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    // 检查是否是首次登录，如果是则标记为已完成
+    const userFull = await this.prisma.user.findUnique({
+      where: { id },
+      select: { hasCompletedFirstLogin: true },
+    });
+
+    const updateData: any = {
+      password: hashedPassword,
+    };
+
+    // 首次登录修改密码后，标记首次登录完成
+    if (userFull && !userFull.hasCompletedFirstLogin) {
+      updateData.hasCompletedFirstLogin = true;
+    }
+
     await this.prisma.user.update({
       where: { id },
-      data: {
-        password: hashedPassword,
-      },
+      data: updateData,
     });
 
     return { message: "密码修改成功" };

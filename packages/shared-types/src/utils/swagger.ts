@@ -25,11 +25,14 @@ function extractSwaggerConfig(zodType: z.ZodTypeAny): ApiPropertyOptions {
   // 处理字符串
   if (zodType instanceof z.ZodString) {
     config.type = String
-    // 检查是否有 URL 验证
-    const checks = zodType._def.checks || []
-    for (const check of checks) {
-      if (check.kind === 'url') {
-        config.format = 'url'
+    // 检查是否有 URL 验证（Zod v4 兼容）
+    const def = (zodType as any)._def
+    if (def && def.checks) {
+      const checks = def.checks
+      for (const check of checks) {
+        if (check.kind === 'url' || check.kind === 'url' as string) {
+          config.format = 'url'
+        }
       }
     }
     return config
@@ -55,24 +58,27 @@ function extractSwaggerConfig(zodType: z.ZodTypeAny): ApiPropertyOptions {
 
   // 处理数组
   if (zodType instanceof z.ZodArray) {
-    config.type = extractSwaggerConfig(zodType.element).type
+    const element = (zodType as any).element || (zodType as any)._def?.type
+    config.type = extractSwaggerConfig(element as z.ZodTypeAny).type
     config.isArray = true
     return config
   }
 
   // 处理可选
   if (zodType instanceof z.ZodOptional) {
-    return extractSwaggerConfig(zodType._def.innerType)
+    return extractSwaggerConfig((zodType as any)._def.innerType as z.ZodTypeAny)
   }
 
   // 处理默认值
   if (zodType instanceof z.ZodDefault) {
-    return extractSwaggerConfig(zodType._def.innerType)
+    return extractSwaggerConfig((zodType as any)._def.innerType as z.ZodTypeAny)
   }
 
   // 处理 coerce（类型转换）
-  if (zodType instanceof z.ZodEffects) {
-    return extractSwaggerConfig(zodType._def.schema)
+  // Zod v4: ZodEffects 被重命名为 ZodTransformer，使用类型名检查
+  if ((zodType as any)._def?.typeName === 'ZodTransformer' ||
+      (zodType as any)._def?.typeName === 'ZodEffects') {
+    return extractSwaggerConfig((zodType as any)._def.schema)
   }
 
   // 处理对象
@@ -175,7 +181,7 @@ export function createDtoWithSwagger(
     static validate(obj: unknown) {
       const result = schema.safeParse(obj)
       if (!result.success) {
-        throw new Error(JSON.stringify(result.error.errors))
+        throw new Error(JSON.stringify(result.error.issues))
       }
       return result.data
     }
@@ -188,7 +194,7 @@ export function createDtoWithSwagger(
       if (result.success) {
         return { success: true, data: result.data }
       }
-      return { success: false, errors: result.error.errors }
+      return { success: false, errors: result.error.issues }
     }
   }
 

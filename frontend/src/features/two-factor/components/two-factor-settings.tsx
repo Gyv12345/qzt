@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Shield, ShieldCheck, ShieldAlert, Loader2 } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

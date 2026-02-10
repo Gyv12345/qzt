@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import {
@@ -34,6 +34,25 @@ import { useDirection } from "@/context/direction-provider";
 import { useCreateCustomer, useUpdateCustomer } from "../hooks/use-customers";
 import type { Customer } from "../types/customer";
 
+// 公司规模选项
+const SCALE_OPTIONS = [
+  { value: "1-10人", label: "1-10人" },
+  { value: "11-50人", label: "11-50人" },
+  { value: "51-200人", label: "51-200人" },
+  { value: "201-500人", label: "201-500人" },
+  { value: "500人以上", label: "500人以上" },
+] as const;
+
+// 来源渠道选项
+const SOURCE_CHANNEL_OPTIONS = [
+  { value: "线上推广", label: "线上推广" },
+  { value: "线下活动", label: "线下活动" },
+  { value: "客户介绍", label: "客户介绍" },
+  { value: "合作伙伴", label: "合作伙伴" },
+  { value: "直接咨询", label: "直接咨询" },
+  { value: "其他", label: "其他" },
+] as const;
+
 // 客户等级枚举
 const customerLevelEnum = z.enum(["LEAD", "PROSPECT", "CUSTOMER", "VIP"], {
   errorMap: () => ({ message: "请选择有效的客户等级" }),
@@ -60,7 +79,7 @@ interface CustomerFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer?: Customer;
-  onSuccess: () => void;
+  onSuccess: (customerId?: string) => void;
 }
 
 export function CustomerFormDrawer({
@@ -96,11 +115,11 @@ export function CustomerFormDrawer({
           shortName: "",
           code: "",
           industry: "",
-          scale: "",
+          scale: undefined,
           address: "",
           website: "",
           customerLevel: "LEAD",
-          sourceChannel: "",
+          sourceChannel: undefined,
           tags: "",
           remark: "",
         },
@@ -117,12 +136,21 @@ export function CustomerFormDrawer({
 
   const onSubmit = async (values: CustomerFormValues) => {
     try {
+      // 过滤掉空字符串和 undefined，只保留有值的字段
+      const cleanData = Object.fromEntries(
+        Object.entries(values).filter(
+          ([_, value]) => value !== "" && value !== undefined,
+        ),
+      );
+
       if (isEdit && customer) {
-        await updateMutation.mutateAsync({ id: customer.id, data: values });
+        await updateMutation.mutateAsync({ id: customer.id, data: cleanData });
+        onSuccess(customer.id);
       } else {
-        await createMutation.mutateAsync(values as any);
+        const result = await createMutation.mutateAsync(cleanData as any);
+        // 返回创建的客户 ID
+        onSuccess((result as any)?.id);
       }
-      onSuccess();
       onOpenChange(false);
     } catch (error) {
       console.error("提交失败:", error);
@@ -289,14 +317,24 @@ export function CustomerFormDrawer({
                     <FormLabel>
                       {t("customer.fields.scale") || "规模"}
                     </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={
-                          t("customer.placeholders.scale") || "请输入规模"
-                        }
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              t("customer.placeholders.scale") || "请选择规模"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SCALE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -354,15 +392,25 @@ export function CustomerFormDrawer({
                     <FormLabel>
                       {t("customer.fields.sourceChannel") || "来源渠道"}
                     </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={
-                          t("customer.placeholders.sourceChannel") ||
-                          "请输入来源渠道"
-                        }
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              t("customer.placeholders.sourceChannel") ||
+                              "请选择来源渠道"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SOURCE_CHANNEL_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

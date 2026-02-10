@@ -9,6 +9,7 @@ import {
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { handleServerError } from "@/lib/handle-server-error";
+import { Agentation } from "agentation";
 import { DirectionProvider } from "./context/direction-provider";
 import { FontProvider } from "./context/font-provider";
 import { ThemeProvider } from "./context/theme-provider";
@@ -99,6 +100,7 @@ if (!rootElement.innerHTML) {
             <FontProvider>
               <DirectionProvider>
                 <RouterProvider router={router} />
+                {import.meta.env.DEV && <Agentation />}
               </DirectionProvider>
             </FontProvider>
           </ThemeProvider>

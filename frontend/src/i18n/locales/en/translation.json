@@ -244,6 +244,7 @@
     "profile": "Profile",
     "billing": "Billing",
     "settings": "Settings",
+    "notifications": "Notifications",
     "newTeam": "New Team",
     "signOut": "Sign out"
   },
@@ -396,6 +397,128 @@
       "send": "Send",
       "save": "Save",
       "create": "Create"
+    }
+  },
+  "socialMedia": {
+    "title": "Social Media Management",
+    "description": "Manage content publishing across Douyin, Xiaohongshu, WeChat Channels and more",
+    "accountSettings": "Account Settings",
+    "calendarView": "Calendar View",
+    "configured": "Configured",
+    "notConfigured": "Not Configured",
+    "postsList": "Posts List",
+    "accountManagement": "Account Management",
+    "newPost": "New Post",
+    "confirmDeleteAccount": "Confirm Delete Account?",
+    "confirmDeletePost": "Confirm Delete Post?",
+    "deleteAccountWarning": "This action cannot be undone. Scheduled posts associated with this account may fail.",
+    "deletePostWarning": "This action cannot be undone. Content already published to platforms will not be deleted.",
+    "columns": {
+      "platform": "Platform",
+      "accountName": "Account Name",
+      "accountId": "Platform Account ID",
+      "tokenExpiry": "Token Expiry",
+      "status": "Status",
+      "title": "Title",
+      "content": "Content",
+      "scheduledAt": "Scheduled At",
+      "publishedAt": "Published At",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "publishing": "Publishing",
+      "published": "Published",
+      "failed": "Failed",
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "publish": "Publish Now",
+      "schedule": "Schedule",
+      "cancelSchedule": "Cancel Schedule",
+      "refreshToken": "Refresh Token",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "selectAccount": "Select publishing account",
+      "title": "Title",
+      "titlePlaceholder": "Enter content title",
+      "content": "Content",
+      "contentPlaceholder": "Enter content text, supports hashtags #topic",
+      "topics": "Topics",
+      "topicsPlaceholder": "Enter topic tag (e.g. #tips)",
+      "location": "Location",
+      "locationPlaceholder": "Add location information",
+      "visibility": "Visibility",
+      "visibilityPublic": "Public",
+      "visibilityFriends": "Friends Only",
+      "visibilityPrivate": "Private",
+      "scheduledAt": "Schedule Publish",
+      "scheduledAtPlaceholder": "Select publish time",
+      "platform": "Platform",
+      "accountName": "Account Name",
+      "accountNamePlaceholder": "Enter account nickname/name",
+      "appId": "App ID / Client ID",
+      "appSecret": "App Secret",
+      "appSecretPlaceholder": "App secret (will be encrypted)",
+      "accessToken": "Access Token",
+      "accessTokenPlaceholder": "Enter existing token if available",
+      "openId": "OpenID",
+      "openIdPlaceholder": "WeChat OpenID"
+    },
+    "messages": {
+      "createSuccess": "Created successfully",
+      "updateSuccess": "Updated successfully",
+      "deleteSuccess": "Deleted successfully",
+      "publishSuccess": "Published successfully",
+      "scheduleSuccess": "Scheduled successfully",
+      "cancelScheduleSuccess": "Schedule cancelled",
+      "refreshTokenSuccess": "Token refreshed successfully",
+      "noAccounts": "No account data",
+      "noPosts": "No post data",
+      "addAccount": "Add Account",
+      "addFirstAccount": "Add first account",
+      "createPost": "Create Post"
+    }
+  },
+  "validation": {
+    "_invalid": "Invalid format",
+    "_required": "This field is required",
+    "string": {
+      "invalid": "Must be a string",
+      "min": "Must be at least {{min}} characters",
+      "max": "Must be at most {{max}} characters",
+      "email": "Please enter a valid email address",
+      "url": "Please enter a valid URL",
+      "uuid": "Please enter a valid UUID",
+      "cuid": "Please enter a valid CUID",
+      "phone": "Invalid phone number format",
+      "regex": "Format does not match"
+    },
+    "number": {
+      "invalid": "Must be a number",
+      "min": "Must be at least {{min}}",
+      "max": "Must be at most {{max}}",
+      "int": "Must be an integer",
+      "positive": "Must be greater than 0",
+      "nonnegative": "Must be greater than or equal to 0"
+    },
+    "boolean": {
+      "invalid": "Must be a boolean"
+    },
+    "date": {
+      "invalid": "Please enter a valid date"
+    },
+    "array": {
+      "min": "At least {{min}} items required",
+      "max": "At most {{max}} items"
+    },
+    "enum": {
+      "invalid": "Please select a valid option"
     }
   }
 }

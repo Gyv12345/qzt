@@ -24,6 +24,7 @@ import {
   Layout,
   Tag,
   Terminal,
+  Share2,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -115,18 +116,23 @@ export const sidebarData: SidebarData = {
       items: [
         {
           title: "文章管理",
-          url: "/cms/articles",
+          url: "/cms",
           icon: FileText,
         },
         {
-          title: "页面元素管理",
-          url: "/cms/elements",
+          title: "页面管理",
+          url: "/cms/pages",
           icon: Layout,
         },
         {
           title: "标签管理",
           url: "/cms/tags",
           icon: Tag,
+        },
+        {
+          title: "新媒体管理",
+          url: "/social-media",
+          icon: Share2,
         },
       ],
     },

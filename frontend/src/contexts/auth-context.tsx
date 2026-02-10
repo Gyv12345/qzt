@@ -11,6 +11,7 @@ import * as authStorage from "@/lib/auth-storage";
 import type { StoredUser } from "@/lib/auth-storage";
 
 interface LoginResult {
+  requiresPasswordChange?: boolean;
   requiresTwoFactorSetup?: boolean;
 }
 
@@ -18,7 +19,7 @@ interface AuthContextType {
   user: StoredUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  isPendingTwoFactorSetup: boolean; // 新增：等待 2FA 设置状态
+  requires2FA: boolean; // 是否需要强制设置 2FA
   login: (username: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -41,16 +42,25 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<StoredUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPendingTwoFactorSetup, setIsPendingTwoFactorSetup] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
 
   // 初始化：从 localStorage 恢复用户信息
   useEffect(() => {
     const storedUser = authStorage.getUserInfo();
     const token = authStorage.getToken();
 
+    // 检查是否有临时的 2FA 设置标记
+    const tempRequires2FA = sessionStorage.getItem("auth_temp_requires2FA");
+
     if (storedUser && token) {
       setUser(storedUser);
     }
+
+    // 设置 requires2FA 状态
+    if (tempRequires2FA === "true") {
+      setRequires2FA(true);
+    }
+
     setIsLoading(false);
 
     // 监听未授权事件
@@ -58,10 +68,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast.error("登录已过期，请重新登录");
       authStorage.clearAuth();
       setUser(null);
-      setIsPendingTwoFactorSetup(false);
-      sessionStorage.removeItem("pending_2fa_setup_token");
-      sessionStorage.removeItem("pending_2fa_setup_user");
-      // 使用 window.location 跳转
+      setRequires2FA(false);
+      // 清除临时存储
+      sessionStorage.removeItem("auth_temp_requires2FA");
+      sessionStorage.removeItem("auth_temp_token");
+      sessionStorage.removeItem("auth_temp_user");
       window.location.href = "/login";
     };
 
@@ -71,27 +82,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
-    console.log("[login] 开始登录请求", { username, password: "***" });
     try {
       const { authControllerLogin } = getScrmApi();
-      console.log("[login] authControllerLogin 函数已获取");
 
-      // customInstance 已自动提取 response.data，返回的就是 { access_token, user }
       const data = (await authControllerLogin({ username, password })) as any;
-      console.log("[login] 收到响应:", data);
 
       if (data?.access_token && data?.user) {
+        // 检查是否需要强制修改密码（系统用户首次登录）
+        if (data.requiresPasswordChange) {
+          // 需要修改密码，临时存储 token
+          sessionStorage.setItem(
+            "auth_temp_password_change",
+            data.access_token,
+          );
+          sessionStorage.setItem("auth_temp_user", JSON.stringify(data.user));
+          setIsLoading(false);
+          return { requiresPasswordChange: true };
+        }
+
         // 检查是否需要强制设置 2FA
         if (data.requiresTwoFactorSetup) {
-          // 需要设置 2FA，暂不保存认证信息，避免自动跳转
-          // 临时存储 token，用于设置 2FA
-          sessionStorage.setItem("pending_2fa_setup_token", data.access_token);
-          sessionStorage.setItem(
-            "pending_2fa_setup_user",
-            JSON.stringify(data.user),
-          );
-          // 设置待处理 2FA 状态，防止路由跳转
-          setIsPendingTwoFactorSetup(true);
+          // 临时存储 token 和用户信息
+          sessionStorage.setItem("auth_temp_token", data.access_token);
+          sessionStorage.setItem("auth_temp_user", JSON.stringify(data.user));
+          sessionStorage.setItem("auth_temp_requires2FA", "true");
+          setRequires2FA(true);
           setIsLoading(false);
           return { requiresTwoFactorSetup: true };
         }
@@ -101,13 +116,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
 
         toast.success("登录成功");
-        return { requiresTwoFactorSetup: false };
+        return { requiresPasswordChange: false, requiresTwoFactorSetup: false };
       } else {
-        console.error("[login] 登录响应格式错误. 完整响应:", data);
         throw new Error("登录响应格式错误");
       }
     } catch (error: any) {
-      console.error("[login] 登录失败:", error);
       const message =
         error.response?.data?.message || error.message || "登录失败";
       toast.error(message);
@@ -120,9 +133,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(() => {
     authStorage.clearAuth();
     setUser(null);
-    setIsPendingTwoFactorSetup(false);
-    sessionStorage.removeItem("pending_2fa_setup_token");
-    sessionStorage.removeItem("pending_2fa_setup_user");
+    setRequires2FA(false);
+    // 清除临时存储
+    sessionStorage.removeItem("auth_temp_requires2FA");
+    sessionStorage.removeItem("auth_temp_token");
+    sessionStorage.removeItem("auth_temp_user");
+    sessionStorage.removeItem("auth_temp_password_change");
     window.location.href = "/login";
   }, []);
 
@@ -140,8 +156,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     isLoading,
-    isAuthenticated: !!user || isPendingTwoFactorSetup,
-    isPendingTwoFactorSetup,
+    isAuthenticated: !!user || requires2FA,
+    requires2FA,
     login,
     logout,
     refreshUser,
