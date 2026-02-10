@@ -7,6 +7,7 @@
  */
 import type { CreatePageElementDto } from "./createPageElementDto";
 import type { UpdateCmsPageDtoStatus } from "./updateCmsPageDtoStatus";
+import type { UpdateCmsPageDtoTemplate } from "./updateCmsPageDtoTemplate";
 
 export interface UpdateCmsPageDto {
   /** 页面名称（内部标识） */
@@ -19,6 +20,22 @@ export interface UpdateCmsPageDto {
   description?: string;
   /** 状态 */
   status?: UpdateCmsPageDtoStatus;
+  /**
+   * SEO 标题
+   * @maxLength 60
+   */
+  metaTitle?: string;
+  /**
+   * SEO 描述
+   * @maxLength 160
+   */
+  metaDesc?: string;
+  /** 关键词 */
+  keywords?: string;
+  /** OG 图片 URL */
+  ogImage?: string;
+  /** 页面模板 */
+  template?: UpdateCmsPageDtoTemplate;
   /** 页面元素 */
   elements?: CreatePageElementDto[];
 }

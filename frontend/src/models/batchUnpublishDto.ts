@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface BatchPublishDto {
+export interface BatchUnpublishDto {
   /** 要操作的 ID 列表 */
   ids: string[];
 }

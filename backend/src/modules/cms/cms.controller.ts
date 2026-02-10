@@ -21,6 +21,13 @@ import { UpdateCmsTagDto } from "./dto/update-cms-tag.dto";
 import { CreateCmsPageDto } from "./dto/create-cms-page.dto";
 import { UpdateCmsPageDto } from "./dto/update-cms-page.dto";
 import { QueryCmsPageDto } from "./dto/query-cms-page.dto";
+import {
+  BatchPublishDto,
+  BatchUnpublishDto,
+  BatchDeleteDto,
+  BatchArchiveDto,
+} from "./dto/batch-operation.dto";
+import { RestoreVersionDto } from "./dto/batch-operation.dto";
 
 @ApiTags("cms") // 使用英文标签，避免跨平台问题
 @Controller("cms")
@@ -190,5 +197,97 @@ export class CmsController {
   @ApiOperation({ summary: "取消发布页面" })
   unpublishPage(@Param("id") id: string) {
     return this.cmsService.unpublishPage(id);
+  }
+
+  // ==================== 预览功能 ====================
+
+  @Post("contents/:id/preview-token")
+  @ApiOperation({ summary: "生成内容预览令牌" })
+  generateContentPreviewToken(@Param("id") id: string) {
+    return this.cmsService.generateContentPreviewToken(id);
+  }
+
+  @Post("pages/:id/preview-token")
+  @ApiOperation({ summary: "生成页面预览令牌" })
+  generatePagePreviewToken(@Param("id") id: string) {
+    return this.cmsService.generatePagePreviewToken(id);
+  }
+
+  // ==================== 版本控制 ====================
+
+  @Get("contents/:id/versions")
+  @ApiOperation({ summary: "获取内容版本历史" })
+  getContentVersions(@Param("id") id: string) {
+    return this.cmsService.getContentVersions(id);
+  }
+
+  @Get("contents/:id/versions/:versionId")
+  @ApiOperation({ summary: "获取特定版本详情" })
+  getContentVersionDetail(
+    @Param("id") id: string,
+    @Param("versionId") versionId: string,
+  ) {
+    return this.cmsService.getContentVersionDetail(versionId);
+  }
+
+  @Post("contents/:id/restore/:versionId")
+  @ApiOperation({ summary: "恢复到指定版本" })
+  restoreContentVersion(
+    @Param("id") id: string,
+    @Param("versionId") versionId: string,
+    @Body() restoreDto: RestoreVersionDto,
+    @Request() req,
+  ) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.cmsService.restoreContentVersion(
+      id,
+      versionId,
+      userId,
+      restoreDto.changeNote,
+    );
+  }
+
+  // ==================== 批量操作 ====================
+
+  @Post("contents/batch/publish")
+  @ApiOperation({ summary: "批量发布内容" })
+  batchPublishContents(@Body() dto: BatchPublishDto) {
+    return this.cmsService.batchPublishContents(dto.ids);
+  }
+
+  @Post("contents/batch/unpublish")
+  @ApiOperation({ summary: "批量取消发布内容" })
+  batchUnpublishContents(@Body() dto: BatchUnpublishDto) {
+    return this.cmsService.batchUnpublishContents(dto.ids);
+  }
+
+  @Post("contents/batch/delete")
+  @ApiOperation({ summary: "批量删除内容" })
+  batchDeleteContents(@Body() dto: BatchDeleteDto) {
+    return this.cmsService.batchDeleteContents(dto.ids);
+  }
+
+  @Post("contents/batch/archive")
+  @ApiOperation({ summary: "批量归档内容" })
+  batchArchiveContents(@Body() dto: BatchArchiveDto) {
+    return this.cmsService.batchArchiveContents(dto.ids);
+  }
+
+  @Post("pages/batch/publish")
+  @ApiOperation({ summary: "批量发布页面" })
+  batchPublishPages(@Body() dto: BatchPublishDto) {
+    return this.cmsService.batchPublishPages(dto.ids);
+  }
+
+  @Post("pages/batch/unpublish")
+  @ApiOperation({ summary: "批量取消发布页面" })
+  batchUnpublishPages(@Body() dto: BatchUnpublishDto) {
+    return this.cmsService.batchUnpublishPages(dto.ids);
+  }
+
+  @Post("pages/batch/delete")
+  @ApiOperation({ summary: "批量删除页面" })
+  batchDeletePages(@Body() dto: BatchDeleteDto) {
+    return this.cmsService.batchDeletePages(dto.ids);
   }
 }

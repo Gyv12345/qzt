@@ -2,73 +2,59 @@
  * CMS 页面管理
  */
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Main } from "@/components/layout/main";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { CmsPagesTable } from "./components/cms-pages-table";
-import { CmsPageFormDrawer } from "./components/cms-page-form-drawer";
-import { PagePreviewDialog } from "./components/page-preview-dialog";
 import {
   useCmsPages,
-  useCreatePage,
-  useUpdatePage,
   useDeletePage,
   usePublishPage,
   useUnpublishPage,
 } from "./hooks/use-cms-pages";
 import { toast } from "sonner";
-import type { CmsPageFormData } from "./components/cms-page-form-drawer";
 
 export function CmsPagesPage() {
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [editingPage, setEditingPage] = useState<any | null>(null);
-  const [previewPage, setPreviewPage] = useState<any | null>(null);
+  const navigate = useNavigate();
 
   // 获取页面列表
   const { data, isLoading } = useCmsPages({ page: 1, pageSize: 100 });
 
   // Mutations
-  const createPage = useCreatePage();
-  const updatePage = useUpdatePage();
   const deletePage = useDeletePage();
   const publishPage = usePublishPage();
   const unpublishPage = useUnpublishPage();
 
-  const handleRefresh = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
-  }, []);
-
+  // 跳转到新建页面
   const handleCreate = useCallback(() => {
-    setEditingPage(null);
-    setDrawerOpen(true);
-  }, []);
+    navigate({ to: "/cms/pages/new" });
+  }, [navigate]);
 
-  const handleEdit = useCallback((page: any) => {
-    setEditingPage(page);
-    setDrawerOpen(true);
-  }, []);
-
-  const handlePreview = useCallback((page: any) => {
-    setPreviewPage(page);
-    setPreviewOpen(true);
-  }, []);
+  // 跳转到编辑页面
+  const handleEdit = useCallback(
+    (page: any) => {
+      navigate({ to: "/cms/pages/edit/$pageId", params: { pageId: page.id } });
+    },
+    [navigate],
+  );
 
   const handleDelete = useCallback(
     (id: string) => {
       deletePage.mutate(id, {
         onSuccess: () => {
           toast.success("删除成功");
-          handleRefresh();
         },
-        onError: () => {
-          toast.error("删除失败");
+        onError: (error: any) => {
+          console.error("删除页面失败:", error);
+          const message =
+            error.response?.data?.message || error.message || "删除失败";
+          toast.error(`删除失败: ${message}`);
         },
       });
     },
-    [deletePage, handleRefresh],
+    [deletePage],
   );
 
   const handlePublish = useCallback(
@@ -76,14 +62,16 @@ export function CmsPagesPage() {
       publishPage.mutate(id, {
         onSuccess: () => {
           toast.success("发布成功");
-          handleRefresh();
         },
-        onError: () => {
-          toast.error("发布失败");
+        onError: (error: any) => {
+          console.error("发布页面失败:", error);
+          const message =
+            error.response?.data?.message || error.message || "发布失败";
+          toast.error(`发布失败: ${message}`);
         },
       });
     },
-    [publishPage, handleRefresh],
+    [publishPage],
   );
 
   const handleUnpublish = useCallback(
@@ -91,46 +79,16 @@ export function CmsPagesPage() {
       unpublishPage.mutate(id, {
         onSuccess: () => {
           toast.success("已取消发布");
-          handleRefresh();
         },
-        onError: () => {
-          toast.error("操作失败");
+        onError: (error: any) => {
+          console.error("取消发布失败:", error);
+          const message =
+            error.response?.data?.message || error.message || "操作失败";
+          toast.error(`操作失败: ${message}`);
         },
       });
     },
-    [unpublishPage, handleRefresh],
-  );
-
-  const handleSubmit = useCallback(
-    (formData: CmsPageFormData) => {
-      if (editingPage) {
-        updatePage.mutate(
-          { id: editingPage.id, data: formData },
-          {
-            onSuccess: () => {
-              toast.success("更新成功");
-              setDrawerOpen(false);
-              handleRefresh();
-            },
-            onError: () => {
-              toast.error("更新失败");
-            },
-          },
-        );
-      } else {
-        createPage.mutate(formData, {
-          onSuccess: () => {
-            toast.success("创建成功");
-            setDrawerOpen(false);
-            handleRefresh();
-          },
-          onError: () => {
-            toast.error("创建失败");
-          },
-        });
-      }
-    },
-    [editingPage, createPage, updatePage, handleRefresh],
+    [unpublishPage],
   );
 
   return (
@@ -149,7 +107,6 @@ export function CmsPagesPage() {
 
       {/* 页面表格 */}
       <CmsPagesTable
-        key={refreshKey}
         data={data?.data || []}
         total={data?.total || 0}
         isLoading={isLoading}
@@ -157,24 +114,6 @@ export function CmsPagesPage() {
         onDelete={handleDelete}
         onPublish={handlePublish}
         onUnpublish={handleUnpublish}
-        onPreview={handlePreview}
-      />
-
-      {/* 表单抽屉 */}
-      <CmsPageFormDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        onSubmit={handleSubmit}
-        initialData={editingPage || undefined}
-        isSubmitting={createPage.isPending || updatePage.isPending}
-        title={editingPage ? "编辑页面" : "新建页面"}
-      />
-
-      {/* 预览对话框 */}
-      <PagePreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        page={previewPage}
       />
     </Main>
   );

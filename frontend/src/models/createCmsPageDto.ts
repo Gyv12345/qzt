@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { CreateCmsPageDtoStatus } from "./createCmsPageDtoStatus";
+import type { CreateCmsPageDtoTemplate } from "./createCmsPageDtoTemplate";
 import type { CreatePageElementDto } from "./createPageElementDto";
 
 export interface CreateCmsPageDto {
@@ -19,6 +20,22 @@ export interface CreateCmsPageDto {
   description?: string;
   /** 状态 */
   status?: CreateCmsPageDtoStatus;
+  /**
+   * SEO 标题
+   * @maxLength 60
+   */
+  metaTitle?: string;
+  /**
+   * SEO 描述
+   * @maxLength 160
+   */
+  metaDesc?: string;
+  /** 关键词 */
+  keywords?: string;
+  /** OG 图片 URL */
+  ogImage?: string;
+  /** 页面模板 */
+  template?: CreateCmsPageDtoTemplate;
   /** 页面元素 */
   elements?: CreatePageElementDto[];
 }

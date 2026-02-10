@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/footer";
 import { getContentBySlug, getCases } from "@/lib/api";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Calendar, Building2, Tag } from "lucide-react";
+import { Calendar, Building2, Tag, FileText, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export const revalidate = 3600;
@@ -120,6 +120,39 @@ export default async function CasePage({
                 alt={caseStudy.title}
                 className="h-full w-full object-cover"
               />
+            </div>
+          )}
+
+          {/* 项目信息区块 - 仅当有关联合同时显示 */}
+          {caseStudy.contract && (
+            <div className="my-8 rounded-xl border bg-muted/30 p-6">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                <FileText className="h-5 w-5" />
+                项目信息
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                {caseStudy.contract.customer && (
+                  <div>
+                    <span className="text-sm text-muted-foreground">客户名称</span>
+                    <p className="font-medium">{caseStudy.contract.customer.name}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-sm text-muted-foreground">合同编号</span>
+                  <p className="font-medium">{caseStudy.contract.contractNo}</p>
+                </div>
+                {caseStudy.contract.totalAmount && (
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <span className="text-sm text-muted-foreground">合同金额</span>
+                      <p className="font-medium">
+                        ¥{caseStudy.contract.totalAmount.toLocaleString("zh-CN")}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

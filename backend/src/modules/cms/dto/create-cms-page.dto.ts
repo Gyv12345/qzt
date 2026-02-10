@@ -117,6 +117,40 @@ export class CreateCmsPageDto {
   })
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
+  // SEO 字段
+  @ApiPropertyOptional({ description: "SEO 标题", maxLength: 60 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(60, { message: "SEO 标题最多60个字符" })
+  metaTitle?: string;
+
+  @ApiPropertyOptional({ description: "SEO 描述", maxLength: 160 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(160, { message: "SEO 描述最多160个字符" })
+  metaDesc?: string;
+
+  @ApiPropertyOptional({ description: "关键词" })
+  @IsOptional()
+  @IsString()
+  keywords?: string;
+
+  @ApiPropertyOptional({ description: "OG 图片 URL" })
+  @IsOptional()
+  @IsString()
+  ogImage?: string;
+
+  // 模板字段
+  @ApiPropertyOptional({
+    description: "页面模板",
+    enum: ["homepage", "about", "contact", "custom"],
+  })
+  @IsOptional()
+  @IsEnum(["homepage", "about", "contact", "custom"], {
+    message: "模板必须是 homepage、about、contact 或 custom",
+  })
+  template?: "homepage" | "about" | "contact" | "custom";
+
   @ApiPropertyOptional({
     description: "页面元素",
     type: [CreatePageElementDto],

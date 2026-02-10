@@ -122,6 +122,24 @@ export const getPublicCms = () => {
   const cmsPublicControllerFindAllTags = () => {
     return customInstance<void>({ url: `/public/cms/tags`, method: "GET" });
   };
+  /**
+   * @summary Get content preview by token
+   */
+  const cmsPublicControllerGetContentPreview = (token: string) => {
+    return customInstance<void>({
+      url: `/public/cms/preview/contents/${token}`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary Get page preview by token
+   */
+  const cmsPublicControllerGetPagePreview = (token: string) => {
+    return customInstance<void>({
+      url: `/public/cms/preview/pages/${token}`,
+      method: "GET",
+    });
+  };
   return {
     cmsPublicControllerFindPublishedContents,
     cmsPublicControllerFindContentBySlug,
@@ -133,6 +151,8 @@ export const getPublicCms = () => {
     cmsPublicControllerGetPageElementBySlug,
     cmsPublicControllerFindPageBySlug,
     cmsPublicControllerFindAllTags,
+    cmsPublicControllerGetContentPreview,
+    cmsPublicControllerGetPagePreview,
   };
 };
 export type CmsPublicControllerFindPublishedContentsResult = NonNullable<
@@ -206,6 +226,20 @@ export type CmsPublicControllerFindAllTagsResult = NonNullable<
   Awaited<
     ReturnType<
       ReturnType<typeof getPublicCms>["cmsPublicControllerFindAllTags"]
+    >
+  >
+>;
+export type CmsPublicControllerGetContentPreviewResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetContentPreview"]
+    >
+  >
+>;
+export type CmsPublicControllerGetPagePreviewResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPublicCms>["cmsPublicControllerGetPagePreview"]
     >
   >
 >;

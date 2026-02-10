@@ -68,7 +68,6 @@ interface CmsPagesTableProps {
   onDelete?: (id: string) => void;
   onPublish?: (id: string) => void;
   onUnpublish?: (id: string) => void;
-  onPreview?: (page: Page) => void;
 }
 
 // 状态显示配置
@@ -90,7 +89,6 @@ export function CmsPagesTable({
   onDelete,
   onPublish,
   onUnpublish,
-  onPreview,
 }: CmsPagesTableProps) {
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
@@ -170,10 +168,6 @@ export function CmsPagesTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onPreview?.(page)}>
-                <Eye className="mr-2 h-4 w-4" />
-                预览
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit?.(page)}>
                 <Edit className="mr-2 h-4 w-4" />
                 编辑

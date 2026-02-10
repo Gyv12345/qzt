@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+import { randomBytes } from "crypto";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { CreateCmsContentDto } from "./dto/create-cms-content.dto";
 import { UpdateCmsContentDto } from "./dto/update-cms-content.dto";
@@ -11,6 +12,9 @@ import { CreateCmsTagDto } from "./dto/create-cms-tag.dto";
 import { UpdateCmsTagDto } from "./dto/update-cms-tag.dto";
 import { CreateCmsPageDto } from "./dto/create-cms-page.dto";
 import { UpdateCmsPageDto } from "./dto/update-cms-page.dto";
+
+// 预览令牌有效期（30分钟）
+const PREVIEW_TOKEN_EXPIRY_MINUTES = 30;
 
 @Injectable()
 export class CmsService {
@@ -858,5 +862,529 @@ export class CmsService {
         publishedAt: null,
       },
     });
+  }
+
+  // ==================== 预览功能 ====================
+
+  /**
+   * 生成内容预览令牌
+   */
+  async generateContentPreviewToken(contentId: string) {
+    const content = await this.prisma.cmsContent.findUnique({
+      where: { id: contentId },
+    });
+
+    if (!content) {
+      throw new NotFoundException(`Content #${contentId} not found`);
+    }
+
+    // 生成随机令牌
+    const token = randomBytes(32).toString("hex");
+
+    // 计算过期时间（30分钟后）
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + PREVIEW_TOKEN_EXPIRY_MINUTES);
+
+    // 清理该内容的旧令牌
+    await this.prisma.cmsContentPreviewToken.deleteMany({
+      where: { contentId },
+    });
+
+    // 创建新令牌
+    const previewToken = await this.prisma.cmsContentPreviewToken.create({
+      data: {
+        contentId,
+        token,
+        expiresAt,
+      },
+    });
+
+    return {
+      token: previewToken.token,
+      previewUrl: `/public/cms/preview/contents/${previewToken.token}`,
+      expiresAt: previewToken.expiresAt.toISOString(),
+      expiresAtTimestamp: previewToken.expiresAt.getTime(),
+    };
+  }
+
+  /**
+   * 生成页面预览令牌
+   */
+  async generatePagePreviewToken(pageId: string) {
+    const page = await this.prisma.cmsPage.findUnique({
+      where: { id: pageId },
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page #${pageId} not found`);
+    }
+
+    // 生成随机令牌
+    const token = randomBytes(32).toString("hex");
+
+    // 计算过期时间（30分钟后）
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + PREVIEW_TOKEN_EXPIRY_MINUTES);
+
+    // 清理该页面的旧令牌
+    await this.prisma.cmsPagePreviewToken.deleteMany({
+      where: { pageId },
+    });
+
+    // 创建新令牌
+    const previewToken = await this.prisma.cmsPagePreviewToken.create({
+      data: {
+        pageId,
+        token,
+        expiresAt,
+      },
+    });
+
+    return {
+      token: previewToken.token,
+      previewUrl: `/public/cms/preview/pages/${previewToken.token}`,
+      expiresAt: previewToken.expiresAt.toISOString(),
+      expiresAtTimestamp: previewToken.expiresAt.getTime(),
+    };
+  }
+
+  /**
+   * 通过令牌获取内容预览
+   */
+  async getContentByPreviewToken(token: string) {
+    const previewToken = await this.prisma.cmsContentPreviewToken.findUnique({
+      where: { token },
+      include: {
+        content: {
+          include: {
+            author: {
+              select: { id: true, name: true },
+            },
+            product: true,
+            userProfile: {
+              select: { id: true, name: true, avatar: true },
+            },
+            contract: {
+              select: {
+                id: true,
+                contractNo: true,
+                customer: {
+                  select: { id: true, name: true, shortName: true },
+                },
+              },
+            },
+            tags: {
+              include: {
+                tag: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!previewToken) {
+      throw new NotFoundException("Invalid preview token");
+    }
+
+    // 检查是否过期
+    if (previewToken.expiresAt < new Date()) {
+      throw new BadRequestException("Preview token has expired");
+    }
+
+    return this.formatContentResponse(previewToken.content);
+  }
+
+  /**
+   * 通过令牌获取页面预览
+   */
+  async getPageByPreviewToken(token: string) {
+    const previewToken = await this.prisma.cmsPagePreviewToken.findUnique({
+      where: { token },
+      include: {
+        page: {
+          include: {
+            elements: {
+              where: { visible: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        },
+      },
+    });
+
+    if (!previewToken) {
+      throw new NotFoundException("Invalid preview token");
+    }
+
+    // 检查是否过期
+    if (previewToken.expiresAt < new Date()) {
+      throw new BadRequestException("Preview token has expired");
+    }
+
+    return previewToken.page;
+  }
+
+  // ==================== 版本控制 ====================
+
+  /**
+   * 创建内容版本快照
+   */
+  async createContentVersion(
+    contentId: string,
+    userId: string,
+    changeNote?: string,
+  ) {
+    const content = await this.prisma.cmsContent.findUnique({
+      where: { id: contentId },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    if (!content) {
+      throw new NotFoundException(`Content #${contentId} not found`);
+    }
+
+    // 获取当前最大版本号
+    const latestVersion = await this.prisma.cmsContentVersion.findFirst({
+      where: { contentId },
+      orderBy: { version: "desc" },
+    });
+
+    const newVersionNumber = (latestVersion?.version || 0) + 1;
+
+    // 创建新版本
+    const newVersion = await this.prisma.cmsContentVersion.create({
+      data: {
+        contentId,
+        version: newVersionNumber,
+        title: content.title,
+        slug: content.slug,
+        content: content.content,
+        excerpt: content.excerpt,
+        coverImage: content.coverImage,
+        status: content.status,
+        contentType: content.contentType,
+        productId: content.productId,
+        userId: content.userId,
+        contractId: content.contractId,
+        metaTitle: content.metaTitle,
+        metaDesc: content.metaDesc,
+        keywords: content.keywords,
+        tagSnapshot: JSON.stringify(
+          content.tags.map((ct) => ({
+            id: ct.tag.id,
+            name: ct.tag.name,
+            slug: ct.tag.slug,
+            color: ct.tag.color,
+          })),
+        ),
+        createdBy: userId,
+        changeNote,
+      },
+    });
+
+    // 清理旧版本（保留最近50个）
+    const allVersions = await this.prisma.cmsContentVersion.findMany({
+      where: { contentId },
+      orderBy: { version: "desc" },
+    });
+
+    if (allVersions.length > 50) {
+      const toDelete = allVersions.slice(50);
+      await this.prisma.cmsContentVersion.deleteMany({
+        where: {
+          id: { in: toDelete.map((v) => v.id) },
+        },
+      });
+    }
+
+    return newVersion;
+  }
+
+  /**
+   * 获取内容版本历史
+   */
+  async getContentVersions(contentId: string) {
+    const versions = await this.prisma.cmsContentVersion.findMany({
+      where: { contentId },
+      orderBy: { version: "desc" },
+      take: 50,
+    });
+
+    return versions.map((v) => ({
+      id: v.id,
+      version: v.version,
+      title: v.title,
+      createdAt: v.createdAt,
+      createdBy: v.createdBy,
+      changeNote: v.changeNote,
+      status: v.status,
+    }));
+  }
+
+  /**
+   * 获取特定版本详情
+   */
+  async getContentVersionDetail(versionId: string) {
+    const version = await this.prisma.cmsContentVersion.findUnique({
+      where: { id: versionId },
+    });
+
+    if (!version) {
+      throw new NotFoundException(`Version #${versionId} not found`);
+    }
+
+    return {
+      ...version,
+      tagSnapshot: version.tagSnapshot ? JSON.parse(version.tagSnapshot) : [],
+    };
+  }
+
+  /**
+   * 恢复到指定版本
+   */
+  async restoreContentVersion(
+    contentId: string,
+    versionId: string,
+    userId: string,
+    changeNote?: string,
+  ) {
+    // 验证版本存在且属于该内容
+    const version = await this.prisma.cmsContentVersion.findFirst({
+      where: {
+        id: versionId,
+        contentId,
+      },
+    });
+
+    if (!version) {
+      throw new NotFoundException(
+        `Version #${versionId} not found for content #${contentId}`,
+      );
+    }
+
+    // 先创建当前状态的版本快照
+    await this.createContentVersion(
+      contentId,
+      userId,
+      `恢复前快照: ${changeNote || ""}`,
+    );
+
+    // 恢复内容
+    const updatedContent = await this.prisma.cmsContent.update({
+      where: { id: contentId },
+      data: {
+        title: version.title,
+        slug: version.slug,
+        content: version.content,
+        excerpt: version.excerpt,
+        coverImage: version.coverImage,
+        status: "DRAFT", // 恢复后自动设为草稿
+        productId: version.productId,
+        userId: version.userId,
+        contractId: version.contractId,
+        metaTitle: version.metaTitle,
+        metaDesc: version.metaDesc,
+        keywords: version.keywords,
+      },
+      include: {
+        author: {
+          select: { id: true, name: true },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    return this.formatContentResponse(updatedContent);
+  }
+
+  // ==================== 批量操作 ====================
+
+  /**
+   * 批量发布内容
+   */
+  async batchPublishContents(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.publishContent(id);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量发布完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
+  }
+
+  /**
+   * 批量取消发布内容
+   */
+  async batchUnpublishContents(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.unpublishContent(id);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量取消发布完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
+  }
+
+  /**
+   * 批量删除内容
+   */
+  async batchDeleteContents(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.deleteContent(id);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量删除完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
+  }
+
+  /**
+   * 批量归档内容
+   */
+  async batchArchiveContents(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.prisma.cmsContent.update({
+          where: { id },
+          data: { status: "ARCHIVED" },
+        });
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量归档完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
+  }
+
+  /**
+   * 批量发布页面
+   */
+  async batchPublishPages(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.publishPage(id);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量发布完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
+  }
+
+  /**
+   * 批量取消发布页面
+   */
+  async batchUnpublishPages(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.unpublishPage(id);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量取消发布完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
+  }
+
+  /**
+   * 批量删除页面
+   */
+  async batchDeletePages(ids: string[]) {
+    const results = {
+      success: 0,
+      failed: 0,
+      failedIds: [] as string[],
+      message: "",
+    };
+
+    for (const id of ids) {
+      try {
+        await this.deletePage(id);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.failedIds.push(id);
+      }
+    }
+
+    results.message = `批量删除完成: 成功 ${results.success}，失败 ${results.failed}`;
+    return results;
   }
 }

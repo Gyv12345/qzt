@@ -85,4 +85,18 @@ export class CmsPublicController {
   findAllTags() {
     return this.cmsService.findAllTags();
   }
+
+  // ==================== 预览功能 ====================
+
+  @Get("preview/contents/:token")
+  @ApiOperation({ summary: "Get content preview by token" })
+  getContentPreview(@Param("token") token: string) {
+    return this.cmsService.getContentByPreviewToken(token);
+  }
+
+  @Get("preview/pages/:token")
+  @ApiOperation({ summary: "Get page preview by token" })
+  getPagePreview(@Param("token") token: string) {
+    return this.cmsService.getPageByPreviewToken(token);
+  }
 }

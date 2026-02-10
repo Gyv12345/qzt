@@ -6,6 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  BatchArchiveDto,
+  BatchDeleteDto,
+  BatchPublishDto,
+  BatchUnpublishDto,
   CmsControllerFindAllContentsParams,
   CmsControllerFindAllPagesParams,
   CmsControllerGetArticlesParams,
@@ -16,6 +20,7 @@ import type {
   CreateCmsContentDto,
   CreateCmsPageDto,
   CreateCmsTagDto,
+  RestoreVersionDto,
   UpdateCmsContentDto,
   UpdateCmsPageDto,
   UpdateCmsTagDto,
@@ -256,6 +261,145 @@ export const getCms = () => {
       method: "POST",
     });
   };
+  /**
+   * @summary 生成内容预览令牌
+   */
+  const cmsControllerGenerateContentPreviewToken = (id: string) => {
+    return customInstance<void>({
+      url: `/cms/contents/${id}/preview-token`,
+      method: "POST",
+    });
+  };
+  /**
+   * @summary 生成页面预览令牌
+   */
+  const cmsControllerGeneratePagePreviewToken = (id: string) => {
+    return customInstance<void>({
+      url: `/cms/pages/${id}/preview-token`,
+      method: "POST",
+    });
+  };
+  /**
+   * @summary 获取内容版本历史
+   */
+  const cmsControllerGetContentVersions = (id: string) => {
+    return customInstance<void>({
+      url: `/cms/contents/${id}/versions`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary 获取特定版本详情
+   */
+  const cmsControllerGetContentVersionDetail = (
+    id: string,
+    versionId: string,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/contents/${id}/versions/${versionId}`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary 恢复到指定版本
+   */
+  const cmsControllerRestoreContentVersion = (
+    id: string,
+    versionId: string,
+    restoreVersionDto: RestoreVersionDto,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/contents/${id}/restore/${versionId}`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: restoreVersionDto,
+    });
+  };
+  /**
+   * @summary 批量发布内容
+   */
+  const cmsControllerBatchPublishContents = (
+    batchPublishDto: BatchPublishDto,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/contents/batch/publish`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchPublishDto,
+    });
+  };
+  /**
+   * @summary 批量取消发布内容
+   */
+  const cmsControllerBatchUnpublishContents = (
+    batchUnpublishDto: BatchUnpublishDto,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/contents/batch/unpublish`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchUnpublishDto,
+    });
+  };
+  /**
+   * @summary 批量删除内容
+   */
+  const cmsControllerBatchDeleteContents = (batchDeleteDto: BatchDeleteDto) => {
+    return customInstance<void>({
+      url: `/cms/contents/batch/delete`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchDeleteDto,
+    });
+  };
+  /**
+   * @summary 批量归档内容
+   */
+  const cmsControllerBatchArchiveContents = (
+    batchArchiveDto: BatchArchiveDto,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/contents/batch/archive`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchArchiveDto,
+    });
+  };
+  /**
+   * @summary 批量发布页面
+   */
+  const cmsControllerBatchPublishPages = (batchPublishDto: BatchPublishDto) => {
+    return customInstance<void>({
+      url: `/cms/pages/batch/publish`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchPublishDto,
+    });
+  };
+  /**
+   * @summary 批量取消发布页面
+   */
+  const cmsControllerBatchUnpublishPages = (
+    batchUnpublishDto: BatchUnpublishDto,
+  ) => {
+    return customInstance<void>({
+      url: `/cms/pages/batch/unpublish`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchUnpublishDto,
+    });
+  };
+  /**
+   * @summary 批量删除页面
+   */
+  const cmsControllerBatchDeletePages = (batchDeleteDto: BatchDeleteDto) => {
+    return customInstance<void>({
+      url: `/cms/pages/batch/delete`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: batchDeleteDto,
+    });
+  };
   return {
     cmsControllerCreateContent,
     cmsControllerFindAllContents,
@@ -281,6 +425,18 @@ export const getCms = () => {
     cmsControllerDeletePage,
     cmsControllerPublishPage,
     cmsControllerUnpublishPage,
+    cmsControllerGenerateContentPreviewToken,
+    cmsControllerGeneratePagePreviewToken,
+    cmsControllerGetContentVersions,
+    cmsControllerGetContentVersionDetail,
+    cmsControllerRestoreContentVersion,
+    cmsControllerBatchPublishContents,
+    cmsControllerBatchUnpublishContents,
+    cmsControllerBatchDeleteContents,
+    cmsControllerBatchArchiveContents,
+    cmsControllerBatchPublishPages,
+    cmsControllerBatchUnpublishPages,
+    cmsControllerBatchDeletePages,
   };
 };
 export type CmsControllerCreateContentResult = NonNullable<
@@ -358,4 +514,70 @@ export type CmsControllerPublishPageResult = NonNullable<
 >;
 export type CmsControllerUnpublishPageResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getCms>["cmsControllerUnpublishPage"]>>
+>;
+export type CmsControllerGenerateContentPreviewTokenResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCms>["cmsControllerGenerateContentPreviewToken"]
+    >
+  >
+>;
+export type CmsControllerGeneratePagePreviewTokenResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCms>["cmsControllerGeneratePagePreviewToken"]
+    >
+  >
+>;
+export type CmsControllerGetContentVersionsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerGetContentVersions"]>
+  >
+>;
+export type CmsControllerGetContentVersionDetailResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getCms>["cmsControllerGetContentVersionDetail"]
+    >
+  >
+>;
+export type CmsControllerRestoreContentVersionResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerRestoreContentVersion"]>
+  >
+>;
+export type CmsControllerBatchPublishContentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchPublishContents"]>
+  >
+>;
+export type CmsControllerBatchUnpublishContentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchUnpublishContents"]>
+  >
+>;
+export type CmsControllerBatchDeleteContentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchDeleteContents"]>
+  >
+>;
+export type CmsControllerBatchArchiveContentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchArchiveContents"]>
+  >
+>;
+export type CmsControllerBatchPublishPagesResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchPublishPages"]>
+  >
+>;
+export type CmsControllerBatchUnpublishPagesResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchUnpublishPages"]>
+  >
+>;
+export type CmsControllerBatchDeletePagesResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getCms>["cmsControllerBatchDeletePages"]>
+  >
 >;

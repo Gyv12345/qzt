@@ -29,18 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
-import {
-  useCreateContent,
-  useUpdateContent,
-  useCmsTags,
-} from "../hooks/use-cms-contents";
+import { useCreateContent, useUpdateContent } from "../hooks/use-cms-contents";
 import { useProducts } from "@/features/products/hooks/use-products";
 import { useUsers } from "@/features/users/hooks/use-users";
-import type { CmsContent, ContentType, CmsTag } from "../types/cms";
+import type { CmsContent, ContentType } from "../types/cms";
 import { CONTENT_TYPE_CONFIG } from "../types/cms";
 
 const cmsContentFormSchema = z.object({
@@ -59,7 +53,6 @@ const cmsContentFormSchema = z.object({
   metaTitle: z.string().optional(),
   metaDesc: z.string().optional(),
   keywords: z.string().optional(),
-  tagIds: z.array(z.string()).optional(),
 });
 
 type CmsContentFormValues = z.infer<typeof cmsContentFormSchema>;
@@ -71,11 +64,6 @@ interface CmsContentFormDrawerProps {
   defaultContentType?: ContentType;
   onSuccess: () => void;
 }
-
-// TODO(human): 实现标签选择组件
-// 当用户选择标签时，标签会添加到 tagIds 数组中
-// 用户可以通过点击标签上的 X 按钮来移除标签
-// 当前使用简单的多选实现，未来可以改进为带搜索的下拉选择器
 
 export function CmsContentFormDrawer({
   open,
@@ -91,8 +79,6 @@ export function CmsContentFormDrawer({
 
   const { data: products } = useProducts({ page: 1, pageSize: 100 });
   const { data: users } = useUsers({ page: 1, pageSize: 100 });
-  const { data: tagsData } = useCmsTags();
-  const tags = tagsData || [];
 
   const form = useForm<CmsContentFormValues>({
     resolver: zodResolver(cmsContentFormSchema),
@@ -110,7 +96,6 @@ export function CmsContentFormDrawer({
           metaTitle: content.metaTitle || "",
           metaDesc: content.metaDesc || "",
           keywords: content.keywords || "",
-          tagIds: content.tags?.map((t) => t.id) || [],
         }
       : {
           title: "",
@@ -125,14 +110,12 @@ export function CmsContentFormDrawer({
           metaTitle: "",
           metaDesc: "",
           keywords: "",
-          tagIds: [],
         },
   });
 
   const createMutation = useCreateContent();
   const updateMutation = useUpdateContent();
 
-  const selectedTagIds = form.watch("tagIds") || [];
   const currentContentType = form.watch("contentType");
 
   const onSubmit = async (values: CmsContentFormValues) => {
@@ -165,19 +148,6 @@ export function CmsContentFormDrawer({
     }
   };
 
-  // 切换标签选中状态
-  const toggleTag = (tagId: string) => {
-    const currentTagIds = form.getValues("tagIds") || [];
-    if (currentTagIds.includes(tagId)) {
-      form.setValue(
-        "tagIds",
-        currentTagIds.filter((id) => id !== tagId),
-      );
-    } else {
-      form.setValue("tagIds", [...currentTagIds, tagId]);
-    }
-  };
-
   // 监听抽屉关闭，重置表单
   useEffect(() => {
     if (!open) {
@@ -207,44 +177,6 @@ export function CmsContentFormDrawer({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 px-4 pb-6 overflow-y-auto max-h-[calc(100vh-180px)]"
           >
-            {/* 内容类型 */}
-            <FormField
-              control={form.control}
-              name="contentType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>内容类型 *</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      // 切换类型时清空关联字段
-                      form.setValue("productId", "");
-                      form.setValue("userId", "");
-                    }}
-                    defaultValue={field.value}
-                    disabled={isEdit}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择内容类型" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.entries(CONTENT_TYPE_CONFIG).map(
-                        ([key, config]) => (
-                          <SelectItem key={key} value={key}>
-                            {config.label} - {config.description}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>内容类型创建后不能修改</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* 标题 */}
             <FormField
               control={form.control}
@@ -431,39 +363,6 @@ export function CmsContentFormDrawer({
                 )}
               />
             )}
-
-            {/* 标签 */}
-            <div className="space-y-2">
-              <FormLabel>标签</FormLabel>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag: CmsTag) => (
-                  <Badge
-                    key={tag.id}
-                    variant={
-                      selectedTagIds.includes(tag.id) ? "default" : "outline"
-                    }
-                    className="cursor-pointer"
-                    style={{
-                      backgroundColor:
-                        selectedTagIds.includes(tag.id) && tag.color
-                          ? tag.color
-                          : undefined,
-                    }}
-                    onClick={() => toggleTag(tag.id)}
-                  >
-                    {tag.name}
-                    {selectedTagIds.includes(tag.id) && (
-                      <X className="ml-1 h-3 w-3" />
-                    )}
-                  </Badge>
-                ))}
-              </div>
-              {tags.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  暂无标签，请先在标签管理中创建
-                </p>
-              )}
-            </div>
 
             {/* SEO 设置 */}
             <div className="space-y-3 border-t pt-4">

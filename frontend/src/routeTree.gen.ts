@@ -50,7 +50,11 @@ import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_auth
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedCmsTagsRouteRouteImport } from './routes/_authenticated/cms/tags/route'
 import { Route as AuthenticatedCmsPagesRouteRouteImport } from './routes/_authenticated/cms/pages/route'
+import { Route as AuthenticatedCmsNewRouteRouteImport } from './routes/_authenticated/cms/new/route'
 import { Route as AuthenticatedCmsElementsRouteRouteImport } from './routes/_authenticated/cms/elements/route'
+import { Route as AuthenticatedCmsPagesNewRouteRouteImport } from './routes/_authenticated/cms/pages/new/route'
+import { Route as AuthenticatedCmsEditIdRouteRouteImport } from './routes/_authenticated/cms/edit/$id/route'
+import { Route as AuthenticatedCmsPagesEditPageIdRouteRouteImport } from './routes/_authenticated/cms/pages/edit/$pageId/route'
 
 const Setup2faRoute = Setup2faRouteImport.update({
   id: '/setup-2fa',
@@ -279,11 +283,35 @@ const AuthenticatedCmsPagesRouteRoute =
     path: '/pages',
     getParentRoute: () => AuthenticatedCmsRouteRoute,
   } as any)
+const AuthenticatedCmsNewRouteRoute =
+  AuthenticatedCmsNewRouteRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
 const AuthenticatedCmsElementsRouteRoute =
   AuthenticatedCmsElementsRouteRouteImport.update({
     id: '/elements',
     path: '/elements',
     getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsPagesNewRouteRoute =
+  AuthenticatedCmsPagesNewRouteRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedCmsPagesRouteRoute,
+  } as any)
+const AuthenticatedCmsEditIdRouteRoute =
+  AuthenticatedCmsEditIdRouteRouteImport.update({
+    id: '/edit/$id',
+    path: '/edit/$id',
+    getParentRoute: () => AuthenticatedCmsRouteRoute,
+  } as any)
+const AuthenticatedCmsPagesEditPageIdRouteRoute =
+  AuthenticatedCmsPagesEditPageIdRouteRouteImport.update({
+    id: '/edit/$pageId',
+    path: '/edit/$pageId',
+    getParentRoute: () => AuthenticatedCmsPagesRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -316,7 +344,8 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/webhooks': typeof AuthenticatedWebhooksRoute
   '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
-  '/cms/pages': typeof AuthenticatedCmsPagesRouteRoute
+  '/cms/new': typeof AuthenticatedCmsNewRouteRoute
+  '/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
   '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -328,6 +357,9 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
+  '/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
@@ -357,7 +389,8 @@ export interface FileRoutesByTo {
   '/webhooks': typeof AuthenticatedWebhooksRoute
   '/': typeof AuthenticatedIndexRoute
   '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
-  '/cms/pages': typeof AuthenticatedCmsPagesRouteRoute
+  '/cms/new': typeof AuthenticatedCmsNewRouteRoute
+  '/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
   '/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -369,6 +402,9 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
+  '/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -402,7 +438,8 @@ export interface FileRoutesById {
   '/_authenticated/webhooks': typeof AuthenticatedWebhooksRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
-  '/_authenticated/cms/pages': typeof AuthenticatedCmsPagesRouteRoute
+  '/_authenticated/cms/new': typeof AuthenticatedCmsNewRouteRoute
+  '/_authenticated/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
   '/_authenticated/cms/tags': typeof AuthenticatedCmsTagsRouteRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -414,6 +451,9 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
+  '/_authenticated/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/_authenticated/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -447,6 +487,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/webhooks'
     | '/cms/elements'
+    | '/cms/new'
     | '/cms/pages'
     | '/cms/tags'
     | '/errors/$error'
@@ -459,6 +500,9 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/tasks/'
     | '/users/'
+    | '/cms/edit/$id'
+    | '/cms/pages/new'
+    | '/cms/pages/edit/$pageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/change-password'
@@ -488,6 +532,7 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/'
     | '/cms/elements'
+    | '/cms/new'
     | '/cms/pages'
     | '/cms/tags'
     | '/errors/$error'
@@ -500,6 +545,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/users'
+    | '/cms/edit/$id'
+    | '/cms/pages/new'
+    | '/cms/pages/edit/$pageId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -532,6 +580,7 @@ export interface FileRouteTypes {
     | '/_authenticated/webhooks'
     | '/_authenticated/'
     | '/_authenticated/cms/elements'
+    | '/_authenticated/cms/new'
     | '/_authenticated/cms/pages'
     | '/_authenticated/cms/tags'
     | '/_authenticated/errors/$error'
@@ -544,6 +593,9 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
+    | '/_authenticated/cms/edit/$id'
+    | '/_authenticated/cms/pages/new'
+    | '/_authenticated/cms/pages/edit/$pageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -847,6 +899,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCmsPagesRouteRouteImport
       parentRoute: typeof AuthenticatedCmsRouteRoute
     }
+    '/_authenticated/cms/new': {
+      id: '/_authenticated/cms/new'
+      path: '/new'
+      fullPath: '/cms/new'
+      preLoaderRoute: typeof AuthenticatedCmsNewRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
     '/_authenticated/cms/elements': {
       id: '/_authenticated/cms/elements'
       path: '/elements'
@@ -854,21 +913,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCmsElementsRouteRouteImport
       parentRoute: typeof AuthenticatedCmsRouteRoute
     }
+    '/_authenticated/cms/pages/new': {
+      id: '/_authenticated/cms/pages/new'
+      path: '/new'
+      fullPath: '/cms/pages/new'
+      preLoaderRoute: typeof AuthenticatedCmsPagesNewRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsPagesRouteRoute
+    }
+    '/_authenticated/cms/edit/$id': {
+      id: '/_authenticated/cms/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/cms/edit/$id'
+      preLoaderRoute: typeof AuthenticatedCmsEditIdRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsRouteRoute
+    }
+    '/_authenticated/cms/pages/edit/$pageId': {
+      id: '/_authenticated/cms/pages/edit/$pageId'
+      path: '/edit/$pageId'
+      fullPath: '/cms/pages/edit/$pageId'
+      preLoaderRoute: typeof AuthenticatedCmsPagesEditPageIdRouteRouteImport
+      parentRoute: typeof AuthenticatedCmsPagesRouteRoute
+    }
   }
 }
 
+interface AuthenticatedCmsPagesRouteRouteChildren {
+  AuthenticatedCmsPagesNewRouteRoute: typeof AuthenticatedCmsPagesNewRouteRoute
+  AuthenticatedCmsPagesEditPageIdRouteRoute: typeof AuthenticatedCmsPagesEditPageIdRouteRoute
+}
+
+const AuthenticatedCmsPagesRouteRouteChildren: AuthenticatedCmsPagesRouteRouteChildren =
+  {
+    AuthenticatedCmsPagesNewRouteRoute: AuthenticatedCmsPagesNewRouteRoute,
+    AuthenticatedCmsPagesEditPageIdRouteRoute:
+      AuthenticatedCmsPagesEditPageIdRouteRoute,
+  }
+
+const AuthenticatedCmsPagesRouteRouteWithChildren =
+  AuthenticatedCmsPagesRouteRoute._addFileChildren(
+    AuthenticatedCmsPagesRouteRouteChildren,
+  )
+
 interface AuthenticatedCmsRouteRouteChildren {
   AuthenticatedCmsElementsRouteRoute: typeof AuthenticatedCmsElementsRouteRoute
-  AuthenticatedCmsPagesRouteRoute: typeof AuthenticatedCmsPagesRouteRoute
+  AuthenticatedCmsNewRouteRoute: typeof AuthenticatedCmsNewRouteRoute
+  AuthenticatedCmsPagesRouteRoute: typeof AuthenticatedCmsPagesRouteRouteWithChildren
   AuthenticatedCmsTagsRouteRoute: typeof AuthenticatedCmsTagsRouteRoute
   AuthenticatedCmsIndexRoute: typeof AuthenticatedCmsIndexRoute
+  AuthenticatedCmsEditIdRouteRoute: typeof AuthenticatedCmsEditIdRouteRoute
 }
 
 const AuthenticatedCmsRouteRouteChildren: AuthenticatedCmsRouteRouteChildren = {
   AuthenticatedCmsElementsRouteRoute: AuthenticatedCmsElementsRouteRoute,
-  AuthenticatedCmsPagesRouteRoute: AuthenticatedCmsPagesRouteRoute,
+  AuthenticatedCmsNewRouteRoute: AuthenticatedCmsNewRouteRoute,
+  AuthenticatedCmsPagesRouteRoute: AuthenticatedCmsPagesRouteRouteWithChildren,
   AuthenticatedCmsTagsRouteRoute: AuthenticatedCmsTagsRouteRoute,
   AuthenticatedCmsIndexRoute: AuthenticatedCmsIndexRoute,
+  AuthenticatedCmsEditIdRouteRoute: AuthenticatedCmsEditIdRouteRoute,
 }
 
 const AuthenticatedCmsRouteRouteWithChildren =

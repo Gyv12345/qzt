@@ -14,10 +14,16 @@ export interface UpdateUserDto {
   password?: string;
   /** 姓名 */
   name?: string;
-  /** 邮箱 */
-  email?: string;
-  /** 手机号 */
-  phone?: string;
+  /**
+   * 邮箱
+   * @nullable
+   */
+  email?: string | null;
+  /**
+   * 手机号
+   * @nullable
+   */
+  phone?: string | null;
   /** 部门ID */
   departmentId?: string;
   /** 角色ID列表 */
