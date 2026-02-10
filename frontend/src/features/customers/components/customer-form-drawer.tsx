@@ -117,11 +117,16 @@ export function CustomerFormDrawer({
 
   const onSubmit = async (values: CustomerFormValues) => {
     try {
+      // 过滤掉空字符串，只保留有值的字段
+      const cleanData = Object.fromEntries(
+        Object.entries(values).filter(([_, value]) => value !== ""),
+      );
+
       if (isEdit && customer) {
-        await updateMutation.mutateAsync({ id: customer.id, data: values });
+        await updateMutation.mutateAsync({ id: customer.id, data: cleanData });
         onSuccess(customer.id);
       } else {
-        const result = await createMutation.mutateAsync(values as any);
+        const result = await createMutation.mutateAsync(cleanData as any);
         // 返回创建的客户 ID
         onSuccess((result as any)?.id);
       }

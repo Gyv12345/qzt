@@ -6,7 +6,14 @@ import {
   MinLength,
   IsUrl,
   IsIn,
+  ValidateIf,
 } from "class-validator";
+
+/**
+ * 自定义验证条件：仅当值存在且不为空字符串时才验证
+ */
+const validateIfPresent = (o: any, v: any) =>
+  v !== "" && v !== undefined && v !== null;
 
 /**
  * 创建客户 DTO - 添加自定义 Swagger 描述
@@ -40,8 +47,12 @@ export class CreateCustomerDto {
 
   @ApiPropertyOptional({ description: "公司规模", example: "11-50人" })
   @IsOptional()
+  @ValidateIf(validateIfPresent)
   @IsString()
-  @IsIn(["1-10人", "11-50人", "51-200人", "201-500人", "500人以上"])
+  @IsIn(["1-10人", "11-50人", "51-200人", "201-500人", "500人以上"], {
+    message:
+      "公司规模必须是：1-10人、11-50人、51-200人、201-500人、500人以上之一",
+  })
   scale?: string;
 
   @ApiPropertyOptional({ description: "公司地址" })
@@ -55,6 +66,7 @@ export class CreateCustomerDto {
     example: "https://example.com",
   })
   @IsOptional()
+  @ValidateIf(validateIfPresent)
   @IsUrl({}, { message: "请输入有效的网址" })
   website?: string;
 
@@ -64,6 +76,7 @@ export class CreateCustomerDto {
     enum: ["LEAD", "PROSPECT", "CUSTOMER", "VIP"],
   })
   @IsOptional()
+  @ValidateIf(validateIfPresent)
   @IsString()
   @IsIn(["LEAD", "PROSPECT", "CUSTOMER", "VIP"])
   customerLevel?: string;
