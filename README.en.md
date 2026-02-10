@@ -312,6 +312,73 @@ pnpm install
 
 ---
 
+## Production Deployment
+
+QZT uses **GitHub Actions CI/CD** for automated deployment. Only compiled artifacts run on the server, no source code required.
+
+### Deployment Architecture
+
+```
+GitHub (push) → Actions (build) → Server (deploy)
+```
+
+### First-Time Deployment
+
+**1. Initialize Server**
+
+```bash
+# One-click install dependencies (Ubuntu/Debian/CentOS/RHEL)
+curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
+```
+
+**2. Configure Environment Variables**
+
+```bash
+vim /opt/qzt/backend/.env
+```
+
+Required fields:
+```bash
+# Database
+DATABASE_URL="mysql://user:pass@rds-host:3306/dbname"
+
+# Redis (password in /root/.redis_password)
+REDIS_PASSWORD=
+
+# JWT (generate with: openssl rand -hex 32)
+JWT_SECRET=
+
+# Domain (production) or IP (development)
+DOMAIN_NAME=yourdomain.com
+ADMIN_DOMAIN=admin.yourdomain.com
+```
+
+**3. Configure GitHub Secrets**
+
+In repository `Settings` → `Secrets and variables` → `Actions`:
+
+| Secret | Value |
+|--------|-------|
+| `SERVER_HOST` | Server IP |
+| `SERVER_USER` | `root` |
+| `SSH_PRIVATE_KEY` | Server private key (`cat ~/.ssh/id_ed25519`) |
+| `SSH_PORT` | `22` |
+
+**4. Trigger Deployment**
+
+```bash
+git push origin main
+```
+
+### Deployment Documentation
+
+| Document | Description |
+|----------|-------------|
+| [DEPLOY.md](./DEPLOY.md) | Bare-metal deployment guide (2C4G ECS + 2C2G RDS) |
+| [DOCKER.md](./DOCKER.md) | Docker development environment guide |
+
+---
+
 ## Feature Modules
 
 - 👥 **User Management**: User CRUD, role assignment, department management

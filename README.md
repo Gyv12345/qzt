@@ -383,7 +383,12 @@ bash /opt/qzt/scripts/deploy/setup-ssl.sh
 git push origin main
 ```
 
-详细部署文档请查看 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+#### 部署文档
+
+| 文档 | 说明 |
+|------|------|
+| [DEPLOY.md](./DEPLOY.md) | 裸机部署完整指南（2C4G ECS + 2C2G RDS） |
+| [DOCKER.md](./DOCKER.md) | Docker 开发环境指南 |
 
 ---
 
