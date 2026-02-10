@@ -57,6 +57,12 @@ REDIS_PASSWORD=复制 /root/.redis_password 里的内容
 # === JWT 密钥（生成一个随机字符串）===
 JWT_SECRET=随便写一串很长的随机字符至少32位
 
+# === 阿里云 OSS（文件上传，按需配置）===
+OSS_REGION=oss-cn-hangzhou
+OSS_ACCESS_KEY_ID=在阿里云控制台获取
+OSS_ACCESS_KEY_SECRET=在阿里云控制台获取
+OSS_BUCKET=你的存储桶名称
+
 # === 如果有域名 ===
 DOMAIN_NAME=yourdomain.com
 ADMIN_DOMAIN=admin.yourdomain.com
