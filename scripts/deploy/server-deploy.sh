@@ -93,6 +93,14 @@ pnpm install --prod --frozen-lockfile
 # 生成 Prisma Client
 npx prisma generate
 
+# 同步数据库结构（生产环境）
+# prisma db push 会自动检测变更，仅在有变化时执行
+echo -e "${CYAN}同步数据库结构...${NC}"
+npx prisma db push --skip-generate || {
+    echo -e "${YELLOW}⚠ 数据库同步失败，请检查 RDS 连接${NC}"
+    echo -e "${YELLOW}继续部署（可能是无变更或暂时性问题）${NC}"
+}
+
 echo -e "${GREEN}✓ 后端更新完成${NC}"
 
 # ============================================

@@ -17,9 +17,11 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 7890,
+        // Node.js 堆内存限制（防止 V8 堆内存无限增长）
+        NODE_OPTIONS: '--max-old-space-size=640',
       },
-      // 内存限制，超过自动重启
-      max_memory_restart: '1G',
+      // 内存限制，超过自动重启（2实例 × 700MB = 1.4GB）
+      max_memory_restart: '700M',
       // 日志配置（完整日志）
       error_file: './logs/pm2-error.log',
       out_file: './logs/pm2-out.log',
@@ -33,10 +35,13 @@ module.exports = {
       watch: false,
       max_restarts: 10,
       min_uptime: '10s',
+      restart_delay: 4000,
       // 进程管理
       kill_timeout: 5000,
       wait_ready: true,
       listen_timeout: 10000,
+      // 定时重启（清理内存泄漏）
+      cron_restart: '0 3 * * *',
       // 环境变量文件
       env_file: '/opt/qzt/backend/.env',
     },
@@ -53,6 +58,10 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 5180,
         HOSTNAME: '0.0.0.0',
+        // Next.js 运行时内存限制
+        NODE_OPTIONS: '--max-old-space-size=448',
+        // 禁用 Telemetry
+        NEXT_TELEMETRY_DISABLED: 1,
       },
       // 内存限制
       max_memory_restart: '500M',
@@ -68,8 +77,13 @@ module.exports = {
       watch: false,
       max_restarts: 10,
       min_uptime: '10s',
+      restart_delay: 4000,
       // 进程管理
       kill_timeout: 5000,
+      wait_ready: true,
+      listen_timeout: 10000,
+      // 定时重启（清理内存泄漏）
+      cron_restart: '0 3 * * *',
     },
   ],
 };

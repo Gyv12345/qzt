@@ -10,8 +10,9 @@ datasource db {
   // directUrl = env("DIRECT_DATABASE_URL") // 连接池专用URL（生产环境MySQL使用，需要时取消注释）
 
   // 连接池配置（仅 MySQL 生效，SQLite 不需要）
-  // connection_limit = 20  // 每个实例的最大连接数（2实例 × 20 = 40总连接）
-  // pool_timeout      = 30  // 连接超时时间(秒)
+  // 适配 RDS 2C2G（最大连接数 1000）：2实例 × 20 = 40总连接
+  connection_limit = 20  // 每个实例的最大连接数
+  pool_timeout      = 30  // 连接超时时间(秒)
 }
 
 // ==================== 用户和权限 ====================
