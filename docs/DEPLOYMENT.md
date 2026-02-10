@@ -29,7 +29,7 @@
 登录你的服务器，复制粘贴这行命令：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/你的用户名/qzt/main/scripts/deploy/init-server.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
 ```
 
 这会自动安装所有需要的东西（Node.js、Nginx、Redis 等），大约 2-3 分钟。
