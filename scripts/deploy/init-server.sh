@@ -230,26 +230,62 @@ mkdir -p /opt/qzt-deploy/scripts
 echo -e "${GREEN}✓ 目录创建完成${NC}"
 
 # ============================================
-# 生成 SSH 密钥（用于 GitHub）
+# 生成 SSH 密钥（用于 GitHub Actions 部署）
 # ============================================
-echo -e "${YELLOW}配置 SSH...${NC}"
+echo -e "${YELLOW}配置 SSH 密钥...${NC}"
 
+SSH_KEY_TYPE=""
 if [ ! -f ~/.ssh/id_ed25519 ]; then
-    ssh-keygen -t ed25519 -C "qzt-server" -N "" -f ~/.ssh/id_ed25519 2>/dev/null || \
-    ssh-keygen -t rsa -b 4096 -C "qzt-server" -N "" -f ~/.ssh/id_rsa
+    ssh-keygen -t ed25519 -C "qzt-server" -N "" -f ~/.ssh/id_ed25519 2>/dev/null
+    SSH_KEY_TYPE="ed25519"
     echo -e "${GREEN}✓ SSH 密钥已生成${NC}"
-    echo ""
-    echo -e "${CYAN}请将以下公钥添加到 GitHub Deploy Keys:${NC}"
-    if [ -f ~/.ssh/id_ed25519.pub ]; then
-        cat ~/.ssh/id_ed25519.pub
-    else
-        cat ~/.ssh/id_rsa.pub
-    fi
-    echo ""
-    echo -e "${CYAN}GitHub 路径: Settings → Deploy keys${NC}"
+elif [ ! -f ~/.ssh/id_rsa ]; then
+    ssh-keygen -t rsa -b 4096 -C "qzt-server" -N "" -f ~/.ssh/id_rsa 2>/dev/null
+    SSH_KEY_TYPE="rsa"
+    echo -e "${GREEN}✓ SSH 密钥已生成${NC}"
 else
     echo -e "${GREEN}✓ SSH 密钥已存在${NC}"
+    SSH_KEY_TYPE="existing"
 fi
+
+# 显示配置指引
+echo ""
+echo -e "${CYAN}========================================${NC}"
+echo -e "${CYAN}   GitHub Actions 配置步骤${NC}"
+echo -e "${CYAN}========================================${NC}"
+echo ""
+echo -e "${YELLOW}步骤 1/2: 添加公钥到 GitHub Deploy Keys${NC}"
+echo ""
+echo "  1. 打开: https://github.com/Gyv12345/qzt/settings/keys"
+echo "  2. 点击 \"Add deploy key\""
+echo "  3. 粘贴以下公钥："
+echo ""
+
+if [ -f ~/.ssh/id_ed25519.pub ]; then
+    cat ~/.ssh/id_ed25519.pub
+    PRIVATE_KEY_FILE="id_ed25519"
+else
+    cat ~/.ssh/id_rsa.pub
+    PRIVATE_KEY_FILE="id_rsa"
+fi
+
+echo ""
+echo "  4. 勾选 \"Allow write access\"（允许部署写入）"
+echo "  5. 点击 \"Add key\""
+echo ""
+echo -e "${YELLOW}步骤 2/2: 配置 GitHub Actions Secrets${NC}"
+echo ""
+echo "  在仓库 Settings → Secrets and variables → Actions 添加："
+echo ""
+echo "  名称                    值"
+echo "  ───────────────────────────────────────────────"
+echo "  SERVER_HOST             $(curl -s ifconfig.me || echo '你的服务器IP')"
+echo "  SERVER_USER             root"
+echo "  SSH_PRIVATE_KEY         $(echo "~/.ssh/$PRIVATE_KEY_FILE")"
+echo "  SSH_PORT                22"
+echo ""
+echo "  获取私钥命令：cat ~/.ssh/$PRIVATE_KEY_FILE"
+echo ""
 
 # ============================================
 # 创建环境变量模板
@@ -396,20 +432,10 @@ echo ""
 echo -e "${CYAN}1. 编辑环境变量，填写数据库和域名：${NC}"
 echo "   vim /opt/qzt/backend/.env"
 echo ""
-echo -e "${CYAN}2. 如跳过 SSL 配置，稍后可手动配置：${NC}"
-echo "   自签名证书（测试）："
-echo "   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\"
-echo "     -keyout /etc/nginx/ssl/域名/key.pem \\"
-echo "     -out /etc/nginx/ssl/域名/cert.pem \\"
-echo "     -subj '/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=域名'"
+echo -e "${CYAN}2. 完成 GitHub 配置（上面已显示详细步骤）：${NC}"
+echo "   - 添加公钥到 GitHub Deploy Keys"
+echo "   - 配置 GitHub Actions Secrets"
 echo ""
-echo -e "${CYAN}3. 配置 GitHub Secrets：${NC}"
-echo "   在仓库 Settings → Secrets and variables → Actions 添加："
-echo "   SERVER_HOST     = 服务器 IP"
-echo "   SERVER_USER     = root"
-echo "   SSH_PRIVATE_KEY = $(echo ~/.ssh/id_*.pub | sed 's/\.pub$//')"
-echo "   SSH_PORT        = 22"
-echo ""
-echo -e "${CYAN}4. 推送代码触发部署：${NC}"
+echo -e "${CYAN}3. 推送代码触发部署：${NC}"
 echo "   git push origin main"
 echo ""
