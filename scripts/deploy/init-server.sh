@@ -317,10 +317,63 @@ EOF
 fi
 
 # ============================================
-# 复制部署脚本到服务器
+# SSL 证书配置（可选）
 # ============================================
-# 注意：这些脚本需要从项目复制，或者用 curl 下载
-# init-server.sh 只负责初始化环境，部署脚本在 CI/CD 时上传
+echo ""
+echo -e "${YELLOW}是否现在配置 SSL 证书？${NC}"
+echo "  1) 跳过（稍后手动配置）"
+echo "  2) 自签名证书（测试用）"
+echo "  3) Let's Encrypt（需要域名已解析）"
+echo ""
+read -p "请选择 (1-3, 默认:1): " SSL_CHOICE
+SSL_CHOICE=${SSL_CHOICE:-1}
+
+if [ "$SSL_CHOICE" != "1" ]; then
+    # 读取域名
+    source "$ENV_FILE" 2>/dev/null || true
+    DOMAIN="${DOMAIN_NAME:-yourdomain.com}"
+    CERT_DIR="/etc/nginx/ssl/$DOMAIN"
+    mkdir -p "$CERT_DIR"
+
+    if [ "$SSL_CHOICE" = "2" ]; then
+        echo -e "${YELLOW}生成自签名证书...${NC}"
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout "$CERT_DIR/key.pem" \
+            -out "$CERT_DIR/cert.pem" \
+            -subj "/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=$DOMAIN" 2>/dev/null
+        chmod 600 "$CERT_DIR/key.pem"
+        chmod 644 "$CERT_DIR/cert.pem"
+        echo -e "${GREEN}✓ 自签名证书已生成: $CERT_DIR${NC}"
+        echo -e "${YELLOW}⚠️ 浏览器会显示安全警告，这是正常的${NC}"
+    elif [ "$SSL_CHOICE" = "3" ]; then
+        echo -e "${YELLOW}配置 Let's Encrypt...${NC}"
+        echo -e "${YELLOW}确保域名已正确解析到当前服务器${NC}"
+
+        # 安装 certbot
+        if ! command -v certbot &> /dev/null; then
+            if [ "$PKG_MANAGER" = "apt" ]; then
+                $INSTALL_CMD certbot
+            else
+                $INSTALL_CMD certbot python3-certbot-nginx
+            fi
+        fi
+
+        # HTTP 验证
+        mkdir -p /var/www/certbot
+        certbot certonly --webroot \
+            --webroot-path=/var/www/certbot \
+            --email "admin@$DOMAIN" \
+            --agree-tos \
+            --no-eff-email \
+            -d "$DOMAIN" \
+            -d "www.$DOMAIN" \
+            -d "admin.$DOMAIN" && {
+            ln -sf "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$CERT_DIR/cert.pem"
+            ln -sf "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$CERT_DIR/key.pem"
+            echo -e "${GREEN}✓ Let's Encrypt 证书已获取${NC}"
+        } || echo -e "${RED}✗ 证书获取失败，请稍后手动配置${NC}"
+    fi
+fi
 
 # ============================================
 # 完成
@@ -340,29 +393,23 @@ echo "  Nginx: $(nginx -v 2>&1)"
 echo ""
 echo -e "${YELLOW}下一步：${NC}"
 echo ""
-echo -e "${CYAN}1. 配置环境变量：${NC}"
+echo -e "${CYAN}1. 编辑环境变量，填写数据库和域名：${NC}"
 echo "   vim /opt/qzt/backend/.env"
 echo ""
-echo -e "${CYAN}2. 获取 Redis 密码（如果需要）：${NC}"
-if [ -f /root/.redis_password ]; then
-    echo "   cat /root/.redis_password"
-else
-    echo "   openssl rand -hex 16  # 生成新密码"
-fi
+echo -e "${CYAN}2. 如跳过 SSL 配置，稍后可手动配置：${NC}"
+echo "   自签名证书（测试）："
+echo "   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\"
+echo "     -keyout /etc/nginx/ssl/域名/key.pem \\"
+echo "     -out /etc/nginx/ssl/域名/cert.pem \\"
+echo "     -subj '/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=域名'"
 echo ""
-echo -e "${CYAN}3. 配置 SSL 证书：${NC}"
-echo "   选择一种方式："
-echo "   a) 自签名证书（测试用）"
-echo "   b) 上传已有证书"
-echo "   c) Let's Encrypt（需要域名解析）"
-echo ""
-echo -e "${CYAN}4. 配置 GitHub Secrets：${NC}"
+echo -e "${CYAN}3. 配置 GitHub Secrets：${NC}"
 echo "   在仓库 Settings → Secrets and variables → Actions 添加："
 echo "   SERVER_HOST     = 服务器 IP"
-echo "   SERVER_USER     = 用户名（通常是 root）"
-echo "   SSH_PRIVATE_KEY = 服务器私钥"
+echo "   SERVER_USER     = root"
+echo "   SSH_PRIVATE_KEY = $(echo ~/.ssh/id_*.pub | sed 's/\.pub$//')"
 echo "   SSH_PORT        = 22"
 echo ""
-echo -e "${CYAN}5. 推送代码触发部署：${NC}"
+echo -e "${CYAN}4. 推送代码触发部署：${NC}"
 echo "   git push origin main"
 echo ""
