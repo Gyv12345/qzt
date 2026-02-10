@@ -3,7 +3,6 @@
  * 提供沉浸式页面编辑体验
  */
 
-import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { CmsPageEditor } from "@/features/cms/components";
 import { useCmsPage } from "../hooks/use-cms-pages";

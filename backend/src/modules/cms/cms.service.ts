@@ -28,17 +28,25 @@ export class CmsService {
   ) {
     const { tagIds, ...data } = createCmsContentDto;
 
+    // 将空字符串转换为 null（处理外键约束）
+    const cleanData = {
+      ...data,
+      productId: data.productId || null,
+      userId: data.userId || null,
+      contractId: data.contractId || null,
+    };
+
     // 验证内容类型与关联字段的一致性
     this.validateContentTypeRelations(
-      data.contentType,
-      data.productId,
-      data.userId,
-      data.contractId,
+      cleanData.contentType,
+      cleanData.productId,
+      cleanData.userId,
+      cleanData.contractId,
     );
 
     // 检查 slug 是否重复
     const existing = await this.prisma.cmsContent.findUnique({
-      where: { slug: data.slug },
+      where: { slug: cleanData.slug },
     });
     if (existing) {
       throw new BadRequestException("URL别名已存在");
@@ -47,7 +55,7 @@ export class CmsService {
     // 创建内容
     const content = await this.prisma.cmsContent.create({
       data: {
-        ...data,
+        ...cleanData,
         authorId,
         ...(tagIds && {
           tags: {
@@ -243,10 +251,15 @@ export class CmsService {
     // 验证内容类型与关联字段的一致性
     const contentType = data.contentType || existing.contentType;
     const productId =
-      data.productId !== undefined ? data.productId : existing.productId;
-    const userId = data.userId !== undefined ? data.userId : existing.userId;
+      data.productId !== undefined
+        ? data.productId || null
+        : existing.productId;
+    const userId =
+      data.userId !== undefined ? data.userId || null : existing.userId;
     const contractId =
-      data.contractId !== undefined ? data.contractId : existing.contractId;
+      data.contractId !== undefined
+        ? data.contractId || null
+        : existing.contractId;
     this.validateContentTypeRelations(
       contentType,
       productId,
@@ -267,10 +280,22 @@ export class CmsService {
       };
     }
 
+    // 将空字符串转换为 null
+    const updateData = {
+      ...data,
+      ...(data.productId !== undefined && {
+        productId: data.productId || null,
+      }),
+      ...(data.userId !== undefined && { userId: data.userId || null }),
+      ...(data.contractId !== undefined && {
+        contractId: data.contractId || null,
+      }),
+    };
+
     const content = await this.prisma.cmsContent.update({
       where: { id },
       data: {
-        ...data,
+        ...updateData,
         ...(updateTags && { tags: updateTags }),
       },
       include: {

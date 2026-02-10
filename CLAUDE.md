@@ -128,6 +128,8 @@ pnpm add -F backend|shadcn-admin|website|shared-types <package>@<version>
 | 14 | Fragment 语法错误 | 标签不匹配 | 成对使用 `<Fragment>...</Fragment>` 或 `<>...</>` |
 | 15 | IDE 无法识别项目 | `.idea/` 被删除 | `git restore .idea/` |
 | 16 | `Zod3Type` 类型错误 | @hookform/resolvers 与 Zod v4 不兼容 | 见下方「Zod v4 兼容性」 |
+| 17 | `userControllerFindAll does not exist` | API 方法名单复数错误 | 使用 `usersControllerFindAll`（复数），非 `userController` |
+| 18 | `TS6133: 't' is never read` | i18n 的 `t` 未使用 | 用 `t()` 替换硬编码文本，**不要移除** `t` |
 
 ---
 
@@ -135,18 +137,37 @@ pnpm add -F backend|shadcn-admin|website|shared-types <package>@<version>
 
 **问题**：`@hookform/resolvers@5.2.2` 对 Zod v4 的类型定义支持不完整，导致 `zodResolver` 报 TypeScript 类型错误。
 
-**短期解决方案**（添加类型断言）：
+**解决方案**（使用统一兼容层）：
 ```typescript
-const form = useForm<CustomerFormValues>({
-  resolver: zodResolver(customerFormSchema) as any,  // 绕过 TS 检查
-  defaultValues: { ... },
+// ✅ 使用项目兼容层
+import { zodResolver } from "@/lib/zod-resolver";
+
+const form = useForm({
+  resolver: zodResolver(schema),  // 无需 as any
 });
 ```
 
+**兼容层实现** (`frontend/src/lib/zod-resolver.ts`)：
+```typescript
+import { zodResolver as baseZodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function zodResolver<TInput extends z.ZodTypeAny, TContext = unknown>(
+  schema: TInput,
+  ...args: Parameters<typeof baseZodResolver>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return baseZodResolver(schema as any, ...args) as any;
+}
+```
+
 **说明**：
+- 统一封装类型断言，避免在每个表单中重复
 - 仅绕过编译时类型检查，运行时验证完全正常
 - 追踪问题：[react-hook-form/resolvers#813](https://github.com/react-hook-form/resolvers/issues/813)
-- 清理时机：等待 `@hookform/resolvers` 发布 Zod v4 兼容版本后移除 `as any`
+- 清理时机：等待 `@hookform/resolvers` 发布 Zod v4 兼容版本后删除兼容层
 
 ---
 
@@ -176,6 +197,61 @@ import type { User } from "@/types";
 type: feat | fix | refactor | chore | docs | test | style
 例: feat(users): add user export functionality
 ```
+
+---
+
+## i18n 国际化
+
+### 基本原则
+- **所有用户可见文本必须 i18n 化**，禁止硬编码中文
+- 使用 `react-i18next` 的 `useTranslation` Hook
+- 翻译文件位于 `src/i18n/locales/{lang}/translation.json`
+
+### 使用方式
+```tsx
+import { useTranslation } from "react-i18next";
+
+function Component() {
+  const { t } = useTranslation();
+
+  return (
+    <div>
+      <h1>{t("module.key")}</h1>
+      <p>{t("module.key.withParam", { count: 5 })}</p>
+    </div>
+  );
+}
+```
+
+### 翻译 Key 命名规范
+```json
+{
+  "module": {
+    "title": "模块标题",
+    "columns": {
+      "name": "名称",
+      "status": "状态"
+    },
+    "actions": {
+      "create": "新建",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "messages": {
+      "success": "操作成功",
+      "failed": "操作失败"
+    }
+  }
+}
+```
+
+### 常见错误处理
+
+| 错误 | 原因 | 解决方案 |
+|------|------|----------|
+| `TS6133: 't' is declared but its value is never read` | 引入了 `t` 但未使用 | 用 `t()` 替换所有硬编码文本，**不要**移除 `t` |
+| 翻译 key 拼写错误 | 无 IDE 自动补全 | 先查看现有翻译文件，保持命名一致性 |
+| 插值变量缺失 | 使用 `{{var}}` 但未传值 | `t("key", { var: value })` |
 
 ---
 
