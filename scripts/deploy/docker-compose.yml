@@ -2,9 +2,14 @@
 # 企智通 QZT - Docker Compose 编排配置
 # ============================================================
 # 说明：
-# - 适用于有本地数据库的场景
-# - 如需使用 RDS，请使用 docker-compose.rds.yml
-# - 资源限制标记为 ${RESOURCE_*}，由部署脚本自动替换
+# - 本文件整合了本地 MySQL 和 RDS 两种部署模式
+# - 通过 USE_RDS 环境变量控制是否启动 MySQL 容器
+# - USE_RDS=false 时启动本地 MySQL（需要 --profile local-db）
+# - USE_RDS=true 时使用外部 RDS（MySQL 容器不启动）
+#
+# 使用方法：
+#   本地 MySQL: docker compose --profile local-db up -d
+#   RDS 模式:   docker compose up -d
 # ============================================================
 
 services:
@@ -13,7 +18,7 @@ services:
   # ============================================
   backend:
     build:
-      context: .
+      context: ../..
       dockerfile: backend/Dockerfile
     container_name: qzt-backend
     restart: unless-stopped
@@ -22,13 +27,13 @@ services:
     environment:
       NODE_ENV: production
       PORT: 7890
-      # 数据库配置
+      # 数据库配置（根据 USE_RDS 选择）
       DATABASE_PROVIDER: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USERNAME: qzt_user
-      DB_PASSWORD: ${DB_PASSWORD:-qzt_password_change_me}
-      DB_DATABASE: qzt_db
+      DB_HOST: ${RDS_HOST:-mysql}
+      DB_PORT: ${RDS_PORT:-3306}
+      DB_USERNAME: ${RDS_USERNAME:-qzt_user}
+      DB_PASSWORD: ${RDS_PASSWORD:-${DB_PASSWORD:-qzt_password_change_me}}
+      DB_DATABASE: ${RDS_DATABASE:-qzt_db}
       # Redis 配置
       REDIS_ENABLED: "true"
       REDIS_HOST: redis
@@ -44,6 +49,7 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
       redis:
         condition: service_started
     healthcheck:
@@ -52,7 +58,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # 资源限制（由部署脚本根据服务器配置自动调整）
     deploy:
       resources:
         limits:
@@ -63,7 +68,6 @@ services:
           memory: ${BACKEND_MEM_RESERVE:-256m}
     volumes:
       - backend-logs:/app/backend/logs
-    # 日志配置
     logging:
       driver: "json-file"
       options:
@@ -75,7 +79,7 @@ services:
   # ============================================
   frontend:
     build:
-      context: .
+      context: ../..
       dockerfile: frontend/Dockerfile
     container_name: qzt-frontend
     restart: unless-stopped
@@ -88,13 +92,14 @@ services:
       ENABLE_HTTPS: ${ENABLE_HTTPS:-true}
     volumes:
       # SSL 证书挂载（如果启用 HTTPS）
-      - ${SSL_CERT_PATH:-./scripts/deploy/ssl/cert.pem}:/etc/nginx/ssl/cert.pem:ro
-      - ${SSL_KEY_PATH:-./scripts/deploy/ssl/key.pem}:/etc/nginx/ssl/key.pem:ro
+      - ${SSL_CERT_PATH:-./ssl/cert.pem}:/etc/nginx/ssl/cert.pem:ro
+      - ${SSL_KEY_PATH:-./ssl/key.pem}:/etc/nginx/ssl/key.pem:ro
     networks:
       - qzt-network
     depends_on:
       backend:
         condition: service_healthy
+        required: false
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -119,7 +124,7 @@ services:
   # ============================================
   website:
     build:
-      context: .
+      context: ../..
       dockerfile: website/Dockerfile
     container_name: qzt-website
     restart: unless-stopped
@@ -190,12 +195,14 @@ services:
         max-file: "3"
 
   # ============================================
-  # MySQL 服务
+  # MySQL 服务 (本地模式，可选启动)
   # ============================================
   mysql:
     image: mysql:8.0
     container_name: qzt-mysql
     restart: unless-stopped
+    profiles:
+      - local-db    # 只有在 --profile local-db 时才启动
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-qzt_root_password_change_me}
       MYSQL_DATABASE: qzt_db
@@ -205,7 +212,7 @@ services:
       - qzt-network
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ../../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-qzt_root_password_change_me}"]
       interval: 10s
