@@ -5,9 +5,8 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Code, Layout } from "lucide-react";
+import { Layout } from "lucide-react";
 import type { CmsPageEditorValues, PageElementData } from "./cms-page-editor";
 
 interface CmsPageEditorMainProps {
@@ -250,8 +249,7 @@ function SectionPreview({
 export function CmsPageEditorMain({
   form,
   showPreview,
-  onPreviewChange,
-}: CmsPageEditorMainProps) {
+}: Omit<CmsPageEditorMainProps, "onPreviewChange">) {
   const elements = form.watch("elements") || [];
   const pageTitle = form.watch("title") || "未命名页面";
   const pageDescription = form.watch("description") || "";

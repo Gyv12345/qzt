@@ -8,8 +8,9 @@
 import { customInstance } from "../api-client";
 
 export const getDefault = () => {
-  const healthControllerCheck = () => {
-    return customInstance<void>({ url: `/health`, method: "GET" });
+  return {
+    healthControllerCheck: () => {
+      return customInstance<void>({ url: `/health`, method: "GET" });
+    },
   };
-  return {};
 };

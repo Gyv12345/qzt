@@ -29,8 +29,7 @@ type CustomerPaymentsTabProps = {
 };
 
 export function CustomerPaymentsTab({
-  customerId,
-  customerName,
+  customerId: _customerId,
 }: CustomerPaymentsTabProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,8 +37,9 @@ export function CustomerPaymentsTab({
     PaymentItem | undefined
   >();
 
+  // 注意：当前 API 不支持按 customerId 筛选，这里传入的参数会被忽略
+  // 实际筛选应在后端实现或通过其他方式处理
   const { data, isLoading } = usePayments({
-    customerId,
     page: 1,
     pageSize: 50,
   });

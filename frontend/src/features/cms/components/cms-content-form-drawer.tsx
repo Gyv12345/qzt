@@ -46,7 +46,13 @@ const cmsContentFormSchema = z.object({
   excerpt: z.string().optional(),
   coverImage: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
-  contentType: z.enum(["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE"]),
+  contentType: z.enum([
+    "ARTICLE",
+    "CASE_STUDY",
+    "PRODUCT_SHOWCASE",
+    "PROFILE",
+    "PAGE_ELEMENT",
+  ]),
   productId: z.string().optional(),
   userId: z.string().optional(),
   metaTitle: z.string().optional(),
@@ -350,7 +356,7 @@ export function CmsContentFormDrawer({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {users?.items?.map((user: any) => (
+                        {users?.data?.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>

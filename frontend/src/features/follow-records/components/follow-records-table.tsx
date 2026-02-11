@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
@@ -55,7 +54,6 @@ export function FollowRecordsTable({
   onEdit,
   onDelete,
 }: DataTableProps) {
-  const { t } = useTranslation();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});

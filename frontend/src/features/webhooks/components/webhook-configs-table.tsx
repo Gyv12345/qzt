@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -59,7 +58,6 @@ import { WebhookConfigFormDrawer } from "./webhook-config-form-drawer";
 import type { TestWebhookDto } from "@/models";
 
 export function WebhookConfigsTable() {
-  const { t } = useTranslation();
   const { data: configs, isLoading } = useWebhookConfigs();
   const deleteMutation = useDeleteWebhookConfig();
   const updateMutation = useUpdateWebhookConfig();
@@ -71,7 +69,6 @@ export function WebhookConfigsTable() {
   );
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [deleteConfigId, setDeleteConfigId] = useState<string | null>(null);
-  const [testConfig, setTestConfig] = useState<WebhookConfig | null>(null);
 
   const handleEdit = (config: WebhookConfig) => {
     setEditingConfig(config);

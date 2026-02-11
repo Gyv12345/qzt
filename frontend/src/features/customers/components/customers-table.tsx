@@ -36,7 +36,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getCustomersColumns } from "./customers-columns";
-import { DataTableRowActions } from "./data-table-row-actions";
 import { CustomersBatchActions } from "./customers-batch-actions";
 import {
   CustomerAdvancedFilter,
@@ -99,13 +98,13 @@ export function CustomersTable({
   });
 
   // 构建查询参数
-  const queryParams = {
+  const queryParams: Record<string, any> = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
     // 基础搜索（来自 URL 的 name 参数）
-    name: columnFilters.find((f) => f.id === "name")?.value as string,
+    keyword: columnFilters.find((f) => f.id === "name")?.value as string,
     // 高级筛选的等级
-    customerLevel: advancedFilters.customerLevels?.join(","),
+    customerLevel: advancedFilters.customerLevels?.join(",") as any,
   };
 
   const { data, isLoading, error } = useCustomers(queryParams);
@@ -135,22 +134,11 @@ export function CustomersTable({
 
   // 创建带有回调的列定义
   const columns = useMemo(() => {
-    return getCustomersColumns({ t, onOpenDetail: onRowClick }).map((col) => {
-      if (col.id === "actions") {
-        return {
-          ...col,
-          cell: (props: { row: { original: Customer } }) => {
-            return (
-              <DataTableRowActions
-                row={props.row}
-                onEdit={onEdit}
-                onDelete={handleDeleteClick}
-              />
-            );
-          },
-        };
-      }
-      return col;
+    return getCustomersColumns({
+      t,
+      onOpenDetail: onRowClick,
+      onEdit,
+      onDelete: handleDeleteClick,
     });
   }, [onEdit, handleDeleteClick, onRowClick, t]);
 
@@ -193,7 +181,9 @@ export function CustomersTable({
 
   // 获取选中的客户ID列表 - 必须在所有条件返回之前调用
   const selectedCustomerIds = useMemo(() => {
-    return Object.keys(rowSelection).filter((key) => rowSelection[key]);
+    return Object.keys(rowSelection).filter(
+      (key) => (rowSelection as any)[key],
+    );
   }, [rowSelection]);
 
   const handleClearSelection = useCallback(() => {

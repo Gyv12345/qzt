@@ -14,9 +14,17 @@ const route = getRouteApi("/_authenticated/contracts");
 function ContractsContent() {
   const { t } = useTranslation();
   const search = route.useSearch();
-  const navigate = route.useNavigate();
+  const routerNavigate = route.useNavigate();
   const queryClient = useQueryClient();
   const { openCreateDialog, openEditDialog } = useContractsDialogs();
+
+  // 将 TanStack Router 的 navigate 转换为 NavigateFn 类型
+  const navigate: import("@/hooks/use-table-url-state").NavigateFn = (opts) => {
+    routerNavigate({
+      search: opts.search as any,
+      replace: opts.replace,
+    });
+  };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["contracts"] });

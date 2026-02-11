@@ -45,8 +45,7 @@ export function ContractFormDrawer({
   const isMobile = useIsMobile();
   const { dir } = useDirection();
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
-  const [showCustomerAdvancedSearch, setShowCustomerAdvancedSearch] =
-    useState(false);
+  const [, setShowCustomerAdvancedSearch] = useState(false);
 
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractFormSchema),

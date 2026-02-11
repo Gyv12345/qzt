@@ -28,10 +28,7 @@ type CustomerInvoicesTabProps = {
   customerName?: string;
 };
 
-export function CustomerInvoicesTab({
-  customerId,
-  customerName,
-}: CustomerInvoicesTabProps) {
+export function CustomerInvoicesTab({ customerId }: CustomerInvoicesTabProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<

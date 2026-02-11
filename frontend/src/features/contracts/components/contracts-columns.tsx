@@ -1,4 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
+import { DataTableRowActions } from "./data-table-row-actions";
 import { ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -9,15 +10,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DataTableRowActions } from "./data-table-row-actions";
 import type { Contract } from "../types/contract";
 
 type GetContractsColumnsOptions = {
   t: (key: string) => string;
+  onEdit?: (contract: Contract) => void;
+  onDelete?: (contract: Contract) => void;
+  onUpdatePaymentStatus?: (contract: Contract) => void;
 };
 
 export function getContractsColumns({
   t,
+  onEdit,
+  onDelete,
+  onUpdatePaymentStatus,
 }: GetContractsColumnsOptions): ColumnDef<Contract>[] {
   // 金额格式化
   function formatAmount(amount: number) {
@@ -212,7 +218,15 @@ export function getContractsColumns({
     },
     {
       id: "actions",
-      cell: DataTableRowActions,
+      cell: (props) =>
+        onEdit && onDelete ? (
+          <DataTableRowActions
+            row={props.row}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onUpdatePaymentStatus={onUpdatePaymentStatus}
+          />
+        ) : null,
       enableHiding: false,
       meta: {
         displayName: t("contract.columns.actions"),

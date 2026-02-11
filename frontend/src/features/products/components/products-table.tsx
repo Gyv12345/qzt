@@ -25,10 +25,9 @@ import {
 } from "@/components/ui/table";
 import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
 import { getProductsColumns } from "./products-columns";
-import { DataTableRowActions } from "./data-table-row-actions";
 import { ProductDeleteDialog } from "./product-delete-dialog";
 import { ProductDetailDrawer } from "./product-detail-drawer";
-import { useProducts, useDeleteProduct } from "../hooks/use-products";
+import { useProducts } from "../hooks/use-products";
 import type { Product } from "../types/product";
 
 type DataTableProps = {
@@ -56,8 +55,6 @@ export function ProductsTable({
   // 详情抽屉状态
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [productToView, setProductToView] = useState<string | undefined>();
-
-  const deleteMutation = useDeleteProduct();
 
   const {
     columnFilters,
@@ -87,45 +84,18 @@ export function ProductsTable({
     setDeleteDialogOpen(true);
   }, []);
 
-  const handleDeleteConfirm = useCallback(async () => {
-    if (!productToDelete) return;
-
-    try {
-      await deleteMutation.mutateAsync(productToDelete.id);
-      setDeleteDialogOpen(false);
-      setProductToDelete(null);
-      onRefresh();
-    } catch (error) {
-      console.error("删除失败:", error);
-    }
-  }, [productToDelete, deleteMutation, onRefresh]);
-
   const handleViewDetail = useCallback((productId: string) => {
     setProductToView(productId);
     setDetailDrawerOpen(true);
   }, []);
 
   const columns = useMemo(() => {
-    return getProductsColumns({ t, onViewDetail: handleViewDetail }).map(
-      (col) => {
-        if (col.id === "actions") {
-          return {
-            ...col,
-            cell: (props: any) => {
-              return (
-                <DataTableRowActions
-                  row={props.row}
-                  onEdit={onEdit}
-                  onDelete={handleDeleteClick}
-                  onViewDetail={handleViewDetail}
-                />
-              );
-            },
-          };
-        }
-        return col;
-      },
-    );
+    return getProductsColumns({
+      t,
+      onViewDetail: handleViewDetail,
+      onEdit,
+      onDelete: handleDeleteClick,
+    });
   }, [onEdit, handleDeleteClick, handleViewDetail, t]);
 
   const table = useReactTable({
@@ -268,12 +238,14 @@ export function ProductsTable({
       )}
 
       {/* 详情抽屉 */}
-      <ProductDetailDrawer
-        open={detailDrawerOpen}
-        onOpenChange={setDetailDrawerOpen}
-        productId={productToView}
-        onEdit={onEdit}
-      />
+      {productToView && (
+        <ProductDetailDrawer
+          open={detailDrawerOpen}
+          onOpenChange={setDetailDrawerOpen}
+          productId={productToView}
+          onEdit={onEdit}
+        />
+      )}
     </Fragment>
   );
 }

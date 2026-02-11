@@ -22,13 +22,9 @@ import type { Contact } from "../types/contact";
 
 type CustomerContactsTabProps = {
   customerId: string;
-  customerName?: string;
 };
 
-export function CustomerContactsTab({
-  customerId,
-  customerName,
-}: CustomerContactsTabProps) {
+export function CustomerContactsTab({ customerId }: CustomerContactsTabProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | undefined>();

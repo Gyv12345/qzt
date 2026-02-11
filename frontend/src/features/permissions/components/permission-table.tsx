@@ -37,6 +37,9 @@ export function PermissionTable() {
   const { data, isLoading, error, refetch } = usePermissions();
   const deleteMutation = useDeletePermission();
 
+  // 类型断言：API 返回的数据应该是 Permission[] 类型
+  const permissions = (data as unknown as Permission[]) ?? [];
+
   const columns = useMemo(() => createColumns(handleEdit, handleDelete), []);
 
   const handleCreate = () => {
@@ -65,7 +68,7 @@ export function PermissionTable() {
   };
 
   const table = useReactTable({
-    data: data || [],
+    data: permissions,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -172,7 +175,7 @@ export function PermissionTable() {
 
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="text-muted-foreground flex-1 text-sm">
-            共 {data?.length || 0} 条记录
+            共 {permissions.length} 条记录
           </div>
           <div className="space-x-2">
             <Button

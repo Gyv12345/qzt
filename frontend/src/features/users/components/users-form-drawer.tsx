@@ -53,8 +53,7 @@ export function UsersFormDrawer({
 
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
-  const { data: departmentsData, isLoading: departmentsLoading } =
-    useDepartments();
+  const { data: departmentsData } = useDepartments();
 
   // 部门数据处理
   const departments = departmentsData || [];

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Shield, Copy, Check, Loader2 } from "lucide-react";
+import { Shield, Copy, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +46,7 @@ export function TotpSetupDialog({
   setupData,
   onVerify,
   onComplete,
-  isLoading,
+  isLoading: _isLoading,
   allowClose = true,
 }: TotpSetupDialogProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);

@@ -48,17 +48,29 @@ export function OperationLogsTable() {
     error,
   } = useQuery({
     queryKey: ["operation-logs", pageIndex, pageSize],
-    queryFn: () => getScrmApi().logsControllerFindOperationLogs(queryParams),
+    queryFn: () =>
+      getScrmApi().logsControllerFindOperationLogs(queryParams) as any,
   });
 
   // 从响应中提取数据
-  const data = response?.data || [];
-  const total = response?.total || 0;
+  const data = (response as any)?.data || [];
+  const total = (response as any)?.total || 0;
 
   // 处理分页变化
-  const onPaginationChange = useCallback((newPagination: PaginationState) => {
-    setPagination(newPagination);
-  }, []);
+  const onPaginationChange = useCallback(
+    (
+      newPagination:
+        | PaginationState
+        | ((prev: PaginationState) => PaginationState),
+    ) => {
+      setPagination(
+        typeof newPagination === "function"
+          ? newPagination({ pageIndex, pageSize })
+          : newPagination,
+      );
+    },
+    [pageIndex, pageSize],
+  );
 
   // 操作类型中文映射
   const actionMap: Record<string, string> = {

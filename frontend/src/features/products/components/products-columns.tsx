@@ -6,11 +6,15 @@ import type { Product } from "../types/product";
 type GetProductsColumnsOptions = {
   t: (key: string) => string;
   onViewDetail?: (productId: string) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
 };
 
 export function getProductsColumns({
   t,
   onViewDetail,
+  onEdit,
+  onDelete,
 }: GetProductsColumnsOptions): ColumnDef<Product>[] {
   // 金额格式化
   function formatAmount(amount: number) {
@@ -107,7 +111,15 @@ export function getProductsColumns({
     },
     {
       id: "actions",
-      cell: DataTableRowActions,
+      cell: (props) =>
+        onEdit && onDelete ? (
+          <DataTableRowActions
+            row={props.row}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onViewDetail={onViewDetail}
+          />
+        ) : null,
       enableHiding: false,
       meta: {
         displayName: t("product.columns.actions"),

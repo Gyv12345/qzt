@@ -78,7 +78,7 @@ export function CustomerAdvancedSearch({
   }, [filters, pagination]);
 
   // 查询客户列表
-  const { data, isLoading } = useCustomers(queryParams);
+  const { data, isLoading } = useCustomers(queryParams as any);
 
   const customers = data?.data || [];
   const total = data?.total || 0;
@@ -128,22 +128,38 @@ export function CustomerAdvancedSearch({
   };
 
   // 获取等级标签
-  const getLevelLabel = (level: string) => {
-    return CUSTOMER_LEVELS.find((l) => l.value === level)?.label || level;
+  const getLevelLabel = (level: string | number) => {
+    // 将数字枚举转换为字符串值
+    const levelMap: Record<number, string> = {
+      0: "LEAD",
+      1: "PROSPECT",
+      2: "CUSTOMER",
+      3: "VIP",
+    };
+    const levelValue = typeof level === "number" ? levelMap[level] : level;
+    return (
+      CUSTOMER_LEVELS.find((l) => l.value === levelValue)?.label ||
+      String(level)
+    );
   };
 
   // 获取等级徽章样式
   const getLevelVariant = (
-    level: string,
+    level: string | number,
   ): "default" | "secondary" | "outline" | "destructive" => {
+    // 支持数字枚举和字符串枚举
     switch (level) {
       case "LEAD":
+      case 0:
         return "secondary";
       case "PROSPECT":
+      case 1:
         return "outline";
       case "CUSTOMER":
+      case 2:
         return "default";
       case "VIP":
+      case 3:
         return "destructive";
       default:
         return "outline";
@@ -219,7 +235,7 @@ export function CustomerAdvancedSearch({
             </div>
           ) : (
             <div className="divide-y">
-              {customers.map((customer) => {
+              {customers.map((customer: Customer) => {
                 const isSelected = selectedCustomer?.id === customer.id;
                 return (
                   <div
@@ -245,11 +261,7 @@ export function CustomerAdvancedSearch({
                           工商编码: {customer.code}
                         </div>
                       )}
-                      {customer.contact && (
-                        <div className="text-sm text-muted-foreground">
-                          联系人: {customer.contact}
-                        </div>
-                      )}
+                      {/* contact 属性在 Legacy Customer 类型中不存在，暂不显示 */}
                     </div>
                     {isSelected && (
                       <div className="text-primary">

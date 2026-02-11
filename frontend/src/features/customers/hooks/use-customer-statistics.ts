@@ -19,6 +19,7 @@ export function useCustomerConversionRate(months: number = 6) {
     queryKey: ["customer-statistics", "conversion-rate", months],
     queryFn: async () => {
       const { customerControllerGetConversionRate } = getScrmApi();
+      // @ts-expect-error - 后端 API 缺少 @ApiQuery 装饰器，Orval 未正确生成查询参数类型
       return (await customerControllerGetConversionRate({ months })) as any;
     },
     refetchOnWindowFocus: false,
@@ -31,6 +32,7 @@ export function useCustomerGrowthTrend(months: number = 6) {
     queryKey: ["customer-statistics", "growth-trend", months],
     queryFn: async () => {
       const { customerControllerGetGrowthTrend } = getScrmApi();
+      // @ts-expect-error - 后端 API 缺少 @ApiQuery 装饰器，Orval 未正确生成查询参数类型
       return (await customerControllerGetGrowthTrend({ months })) as any;
     },
     refetchOnWindowFocus: false,

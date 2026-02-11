@@ -10,13 +10,14 @@ import {
   useCustomersDialogs,
 } from "./components/customers-dialogs";
 import type { Customer } from "./types/customer";
+import type { NavigateFn } from "@/hooks/use-table-url-state";
 
 const route = getRouteApi("/_authenticated/customers");
 
 function CustomersContent() {
   const { t } = useTranslation();
   const search = route.useSearch();
-  const navigate = route.useNavigate();
+  const routerNavigate = route.useNavigate();
   const queryClient = useQueryClient();
   const {
     openCreateDialog,
@@ -25,6 +26,13 @@ function CustomersContent() {
     openImportDialog,
     openExportDialog,
   } = useCustomersDialogs();
+
+  // 将 TanStack Router 的 navigate 转换为 NavigateFn 类型
+  const navigate: NavigateFn = (opts) => {
+    routerNavigate({
+      search: opts.search === true ? (prev) => prev : (opts.search as any),
+    });
+  };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -75,8 +83,7 @@ export function Customers() {
   // 提取当前筛选条件用于导出
   const currentFilters = {
     keyword: search.name as string | undefined,
-    customerLevel: search.customerLevel as string | undefined,
-    followUserId: search.followUserId as string | undefined,
+    customerLevel: search.customerLevel?.join(",") as string | undefined,
   };
 
   return (

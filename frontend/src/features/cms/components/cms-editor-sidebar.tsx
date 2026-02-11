@@ -26,7 +26,6 @@ import { Separator } from "@/components/ui/separator";
 import { UseFormReturn } from "react-hook-form";
 import { useProducts } from "@/features/products/hooks/use-products";
 import { useUsers } from "@/features/users/hooks/use-users";
-import { CONTENT_TYPE_CONFIG } from "../types/cms";
 import type { CmsEditorValues } from "./cms-content-editor";
 
 interface CmsEditorSidebarProps {
@@ -34,7 +33,9 @@ interface CmsEditorSidebarProps {
   isEdit: boolean;
 }
 
-export function CmsEditorSidebar({ form, isEdit }: CmsEditorSidebarProps) {
+export function CmsEditorSidebar({
+  form,
+}: Omit<CmsEditorSidebarProps, "isEdit">) {
   const { data: products } = useProducts({ page: 1, pageSize: 100 });
   const { data: users } = useUsers({ page: 1, pageSize: 100 });
 
@@ -187,7 +188,7 @@ export function CmsEditorSidebar({ form, isEdit }: CmsEditorSidebarProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {users?.items?.map((user: any) => (
+                        {users?.data?.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>

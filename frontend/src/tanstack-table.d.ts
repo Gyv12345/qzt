@@ -6,5 +6,6 @@ declare module "@tanstack/react-table" {
     className?: string; // apply to both th and td
     tdClassName?: string;
     thClassName?: string;
+    displayName?: string; // 列显示名称，用于表格视图切换
   }
 }

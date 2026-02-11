@@ -26,10 +26,10 @@ export function getCmsContentsColumns({
   };
 
   const getStatusColor = (status: ContentStatus) => {
-    const colorMap: Record<ContentStatus, "default" | "success" | "secondary"> =
+    const colorMap: Record<ContentStatus, "default" | "outline" | "secondary"> =
       {
         DRAFT: "default",
-        PUBLISHED: "success",
+        PUBLISHED: "outline",
         ARCHIVED: "secondary",
       };
     return colorMap[status] || "default";
@@ -151,7 +151,7 @@ export function getCmsContentsColumns({
     },
     {
       id: "actions",
-      cell: DataTableRowActions,
+      cell: DataTableRowActions as any,
       enableHiding: false,
       meta: {
         displayName: t("cms.content.columns.actions"),

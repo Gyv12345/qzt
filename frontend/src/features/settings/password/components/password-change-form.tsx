@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock, Shield } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useChangePassword } from "../hooks/use-change-password";
 import { PasswordChangeDialog } from "./password-change-dialog";
 import { useTwoFactor } from "@/features/two-factor";
 import type { TwoFactorStatus } from "@/features/two-factor";
@@ -17,7 +16,6 @@ export function PasswordChangeForm() {
   const [showDialog, setShowDialog] = useState(false);
   const [twoFactorStatus, setTwoFactorStatus] =
     useState<TwoFactorStatus | null>(null);
-  const { changePassword } = useChangePassword();
   const { getStatus } = useTwoFactor();
 
   // 加载 2FA 状态

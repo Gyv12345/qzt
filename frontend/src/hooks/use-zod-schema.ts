@@ -104,9 +104,9 @@ export const validators = {
 
   enum: <T extends readonly [string, ...string[]]>(
     values: T,
-    message: string,
-    t: (key: string, params?: Record<string, unknown>) => string,
-  ) => z.enum(values, { message }),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _t: (key: string, params?: Record<string, unknown>) => string,
+  ) => z.enum(values, { error: "请选择有效的选项" }),
 };
 
 /**

@@ -54,9 +54,7 @@ const SOURCE_CHANNEL_OPTIONS = [
 ] as const;
 
 // 客户等级枚举
-const customerLevelEnum = z.enum(["LEAD", "PROSPECT", "CUSTOMER", "VIP"], {
-  errorMap: () => ({ message: "请选择有效的客户等级" }),
-});
+const customerLevelEnum = z.enum(["LEAD", "PROSPECT", "CUSTOMER", "VIP"]);
 
 // 客户表单验证 schema
 const customerFormSchema = z.object({
@@ -105,7 +103,7 @@ export function CustomerFormDrawer({
           scale: customer.scale || "",
           address: customer.address || "",
           website: customer.website || "",
-          customerLevel: customer.customerLevel || "LEAD",
+          customerLevel: (customer.customerLevel as any) || "LEAD",
           sourceChannel: customer.sourceChannel || "",
           tags: customer.tags || "",
           remark: customer.remark || "",

@@ -8,15 +8,21 @@ import {
   ProductsDrawers,
   useProductsDrawers,
 } from "./components/products-drawers";
+import type { NavigateFn } from "@/hooks/use-table-url-state";
 
 const route = getRouteApi("/_authenticated/products");
 
 function ProductsContent() {
   const { t } = useTranslation();
   const search = route.useSearch();
-  const navigate = route.useNavigate();
+  const routeNavigate = route.useNavigate();
   const queryClient = useQueryClient();
   const { openCreateDrawer, openEditDrawer } = useProductsDrawers();
+
+  // 将 TanStack Router 的 navigate 适配为 NavigateFn
+  const navigate: NavigateFn = (opts) => {
+    routeNavigate({ search: opts.search as any });
+  };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["products"] });

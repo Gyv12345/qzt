@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Trash2, Edit, Tag, UserCheck } from "lucide-react";
+import { Trash2, Edit, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -28,7 +27,6 @@ export function CustomersBatchActions({
   onClearSelection,
   onSuccess,
 }: CustomersBatchActionsProps) {
-  const { t } = useTranslation();
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);

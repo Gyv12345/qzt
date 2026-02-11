@@ -11,13 +11,24 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import type { CmsPage } from "@/features/cms/hooks/use-cms-pages";
-import { Eye, Code } from "lucide-react";
+import { Eye } from "lucide-react";
 
 interface PagePreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  page: CmsPage | null;
+  page: {
+    id: string;
+    title: string;
+    slug: string;
+    elements: Array<{
+      id: string;
+      sectionType: string;
+      elementType: string;
+      content: string;
+      sortOrder: number;
+      visible: boolean;
+    }>;
+  } | null;
 }
 
 export function PagePreviewDialog({
@@ -31,7 +42,7 @@ export function PagePreviewDialog({
 
   // 按区域分组元素
   const elementsBySection = page.elements.reduce(
-    (acc, el) => {
+    (acc: Record<string, typeof page.elements>, el) => {
       if (!acc[el.sectionType]) {
         acc[el.sectionType] = [];
       }

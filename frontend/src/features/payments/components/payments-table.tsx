@@ -57,25 +57,22 @@ export function PaymentsTable({
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
-    ensurePageInRange,
   } = useTableUrlState({
     search,
     navigate,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      { columnId: "customerName", searchKey: "customerName", type: "string" },
+      // 注意：API 不支持 customerName 和 status 筛选
+      // 这些筛子保留在 UI 中但不会发送到 API
       { columnId: "status", searchKey: "status", type: "array" },
     ],
   });
 
-  // 构建查询参数
+  // 构建查询参数（仅使用 API 支持的参数）
   const queryParams = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-    customerName: columnFilters.find((f) => f.id === "customerName")
-      ?.value as string,
-    status: columnFilters.find((f) => f.id === "status")?.value as string,
   };
 
   const { data, isLoading, error } = usePayments(queryParams);

@@ -15,7 +15,7 @@ export function useWebhookConfigs() {
     queryKey: ["webhook-configs"],
     queryFn: async () => {
       const response = await getScrmApi().webhooksControllerFindConfigs();
-      return response as WebhookConfig[];
+      return (response ?? []) as WebhookConfig[];
     },
   });
 }

@@ -31,19 +31,29 @@ const ROLE_CONFIG = [
 
 // API 返回的分组数据类型
 interface GroupedServiceTeams {
-  SALE: any[];
-  FINANCE: any[];
-  OUTWORK: any[];
+  SALE: Array<{
+    id: string;
+    user?: { avatar?: string; realName?: string; username?: string };
+    createdAt: string;
+  }>;
+  FINANCE: Array<{
+    id: string;
+    user?: { avatar?: string; realName?: string; username?: string };
+    createdAt: string;
+  }>;
+  OUTWORK: Array<{
+    id: string;
+    user?: { avatar?: string; realName?: string; username?: string };
+    createdAt: string;
+  }>;
 }
 
 interface CustomerServiceTeamTabProps {
   customerId: string;
-  customerName: string;
 }
 
 export function CustomerServiceTeamTab({
   customerId,
-  customerName,
 }: CustomerServiceTeamTabProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
@@ -83,7 +93,14 @@ export function CustomerServiceTeamTab({
 
   // 将分组数据展平为成员列表，同时保留角色信息
   const allMembers = ROLE_CONFIG.flatMap((role) =>
-    (groupedTeams[role.code] || []).map((member) => ({
+    (
+      (
+        groupedTeams as unknown as Record<
+          string,
+          GroupedServiceTeams[keyof GroupedServiceTeams]
+        >
+      )[role.code] || []
+    ).map((member) => ({
       ...member,
       roleLabel: role.label,
       roleVariant: role.variant,

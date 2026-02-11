@@ -27,7 +27,6 @@ import {
 import { DataTablePagination, DataTableToolbar } from "@/components/data-table";
 import { getUsersColumns } from "./users-columns";
 import { useUsers } from "../hooks/use-users";
-import type { User } from "../types/user";
 
 type DataTableProps = {
   search: Record<string, unknown>;
@@ -46,7 +45,6 @@ export function UsersTable({ search, navigate }: DataTableProps) {
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
-    ensurePageInRange,
   } = useTableUrlState({
     search,
     navigate,
@@ -74,7 +72,7 @@ export function UsersTable({ search, navigate }: DataTableProps) {
 
   // 获取选中的用户 ID
   const selectedIds = Object.keys(rowSelection)
-    .filter((key) => rowSelection[key])
+    .filter((key) => rowSelection[key as keyof typeof rowSelection])
     .map((index) => users[Number(index)]?.id)
     .filter(Boolean) as string[];
 

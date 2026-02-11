@@ -32,7 +32,7 @@ import type { CreateWebhookConfigDto } from "@/models";
 const webhookConfigSchema = z.object({
   name: z.string().min(1, "配置名称不能为空").max(100, "配置名称最多100个字符"),
   platform: z.enum(["wecom", "feishu", "dingtalk"], {
-    required_error: "请选择平台",
+    error: "请选择平台",
   }),
   webhookUrl: z.string().url("请输入有效的 Webhook URL"),
   enabled: z.boolean().default(true),
@@ -55,7 +55,7 @@ export function WebhookCreateDrawer() {
   });
 
   const handleSubmit = form.handleSubmit((data) => {
-    createMutation.mutate(data as CreateWebhookConfigDto, {
+    createMutation.mutate(data as unknown as CreateWebhookConfigDto, {
       onSuccess: () => {
         setOpen(false);
         form.reset();

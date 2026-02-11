@@ -13,13 +13,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp } from "lucide-react";
 import { useCustomerGrowthTrend } from "../hooks/use-dashboard-stats";
 
+// 客户增长数据项类型
+interface GrowthDataItem {
+  date: string;
+  count: number;
+}
+
+// 图表数据类型
+interface ChartDataItem {
+  date: string;
+  count: number;
+}
+
 export function CustomerGrowthChart() {
   const { data, isLoading, error } = useCustomerGrowthTrend({ days: 30 });
 
   // 处理数据格式
-  const chartData = data
+  const chartData: ChartDataItem[] = data
     ? Array.isArray(data)
-      ? data.map((item: any) => ({
+      ? (data as any).map((item: GrowthDataItem) => ({
           date: new Date(item.date).toLocaleDateString("zh-CN", {
             month: "short",
             day: "numeric",
@@ -29,7 +41,10 @@ export function CustomerGrowthChart() {
       : []
     : [];
 
-  const totalCount = chartData.reduce((sum, item) => sum + item.count, 0);
+  const totalCount = chartData.reduce(
+    (sum: number, item: ChartDataItem) => sum + item.count,
+    0,
+  );
 
   if (isLoading) {
     return (

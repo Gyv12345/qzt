@@ -10,6 +10,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Plus, Palette } from "lucide-react";
 import { useForm } from "react-hook-form";
+import type { Resolver } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import {
@@ -74,7 +76,7 @@ export function CmsTagsManager({
   const [editingTag, setEditingTag] = useState<CmsTag | undefined>();
 
   const form = useForm<TagFormValues>({
-    resolver: zodResolver(tagFormSchema),
+    resolver: zodResolver(tagFormSchema) as Resolver<TagFormValues>,
     defaultValues: {
       name: "",
       slug: "",
@@ -135,8 +137,8 @@ export function CmsTagsManager({
     }
   };
 
-  const sortedTags = tags
-    ? [...tags].sort((a, b) => a.sortOrder - b.sortOrder)
+  const sortedTags = Array.isArray(tags)
+    ? [...tags].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
     : [];
 
   return (

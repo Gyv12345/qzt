@@ -4,15 +4,46 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCms } from "@/services/api";
-import type { CmsControllerFindAllPagesParams } from "@/services/api";
+
+// 定义页面查询参数类型
+interface CmsPageQueryParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+}
+
+// 定义页面响应类型
+interface CmsPage {
+  id: string;
+  name: string;
+  title: string;
+  slug: string;
+  description?: string;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  elements?: any[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CmsPagesResponse {
+  data: CmsPage[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 
 // 获取页面列表
-export function useCmsPages(params?: CmsControllerFindAllPagesParams) {
+export function useCmsPages(params?: CmsPageQueryParams) {
   const { cmsControllerFindAllPages } = getCms();
 
-  return useQuery({
+  return useQuery<CmsPagesResponse>({
     queryKey: ["cms-pages", params],
-    queryFn: () => cmsControllerFindAllPages(params),
+    queryFn: async () => {
+      const result = await cmsControllerFindAllPages(params);
+      return result as unknown as CmsPagesResponse;
+    },
   });
 }
 
@@ -20,12 +51,18 @@ export function useCmsPages(params?: CmsControllerFindAllPagesParams) {
 export function useCmsPage(id: string) {
   const { cmsControllerFindOnePage } = getCms();
 
-  return useQuery({
+  return useQuery<CmsPage>({
     queryKey: ["cms-page", id],
-    queryFn: () => cmsControllerFindOnePage(id),
+    queryFn: async () => {
+      const result = await cmsControllerFindOnePage(id);
+      return result as unknown as CmsPage;
+    },
     enabled: !!id,
   });
 }
+
+// 导出类型供外部使用
+export type { CmsPage, CmsPagesResponse, CmsPageQueryParams };
 
 // 创建页面
 export function useCreatePage() {

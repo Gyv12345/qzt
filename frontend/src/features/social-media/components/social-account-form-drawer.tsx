@@ -40,7 +40,7 @@ import { PLATFORM_CONFIG } from "../types/social-media";
 
 const formSchema = z.object({
   platform: z.enum(["douyin", "xiaohongshu", "wechat"], {
-    required_error: "请选择平台",
+    error: "请选择平台",
   }),
   accountName: z.string().min(1, "请输入账号名称"),
   appId: z.string().optional(),

@@ -42,7 +42,7 @@ export const FOLLOW_TYPE_OPTIONS = [
 export const followRecordSchema = z.object({
   id: z.string().optional(),
   customerId: z.string().min(1, "请选择客户"),
-  type: z.nativeEnum(FollowType, { required_error: "请选择跟进类型" }),
+  type: z.nativeEnum(FollowType, { error: "请选择跟进类型" }),
   content: z.string().min(1, "请输入跟进内容"),
   nextTime: z.string().optional(),
   images: z.string().optional(),
@@ -52,7 +52,7 @@ export type FollowRecord = z.infer<typeof followRecordSchema>;
 
 /** 跟进记录列表响应 */
 export interface FollowRecordListResponse {
-  items: FollowRecordItem[];
+  data: FollowRecordItem[];
   total: number;
   page: number;
   pageSize: number;

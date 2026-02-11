@@ -48,7 +48,7 @@ const serviceTeamFormSchema = z.object({
   customerId: z.string().min(1, "请选择客户"),
   userId: z.string().min(1, "请选择用户"),
   roleCode: z.enum(["SALE", "FINANCE", "OUTWORK"], {
-    required_error: "请选择角色",
+    error: "请选择角色",
   }),
 });
 

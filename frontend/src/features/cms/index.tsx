@@ -47,6 +47,7 @@ export function Cms() {
       onEdit={handleEdit}
       refreshKey={refreshKey}
       onRefresh={handleRefresh}
+      navigate={navigate}
     />
   );
 }
@@ -62,6 +63,7 @@ interface CmsContentManagerProps {
   onEdit: (content: { id: string }) => void;
   refreshKey: number;
   onRefresh: () => void;
+  navigate: ReturnType<typeof route.useNavigate>;
 }
 
 function CmsContentManager({
@@ -72,7 +74,18 @@ function CmsContentManager({
   onEdit,
   refreshKey,
   onRefresh,
+  navigate,
 }: CmsContentManagerProps) {
+  // 将 TanStack Router 的 navigate 转换为 NavigateFn 类型
+  const tableNavigate: import("@/hooks/use-table-url-state").NavigateFn = (
+    opts,
+  ) => {
+    navigate({
+      search: opts.search as any,
+      replace: opts.replace,
+    });
+  };
+
   return (
     <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
       {/* 页面标题 */}
@@ -98,7 +111,7 @@ function CmsContentManager({
         total={allContents?.total || 0}
         isLoading={contentsLoading}
         search={search}
-        navigate={route.navigate}
+        navigate={tableNavigate}
         onEdit={onEdit}
         onRefresh={onRefresh}
       />

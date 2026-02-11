@@ -52,7 +52,6 @@ export function InvoicesTable({
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
-    ensurePageInRange,
   } = useTableUrlState({
     search,
     navigate,

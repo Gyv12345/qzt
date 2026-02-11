@@ -26,6 +26,7 @@ import {
   useDeletePermission,
 } from "../hooks/use-permissions";
 import { PermissionFormDrawer } from "./permission-form-drawer";
+import type { Permission } from "../data/schema";
 
 interface PermissionNode {
   id: string;
@@ -106,7 +107,7 @@ export function PermissionTreeTable() {
           setDeleteDialogOpen(false);
           setDeletingPermission(null);
         },
-        onError: (error: any) => {
+        onError: () => {
           // 错误已在 hook 中处理
         },
       });
@@ -348,7 +349,14 @@ export function PermissionTreeTable() {
       <PermissionFormDrawer
         open={drawerOpen}
         onOpenChange={handleDialogClose}
-        permission={editingPermission}
+        permission={
+          editingPermission
+            ? ({
+                ...editingPermission,
+                parentId: editingPermission.parentId ?? undefined,
+              } as Permission)
+            : undefined
+        }
         onSuccess={handleDialogClose}
       />
 

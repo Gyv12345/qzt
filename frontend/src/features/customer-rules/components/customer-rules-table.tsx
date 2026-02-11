@@ -51,7 +51,7 @@ export function CustomerRulesTable({ onRefresh }: CustomerRulesTableProps) {
     async (id: number, enabled: boolean) => {
       try {
         await updateMutation.mutateAsync({
-          id: String(id),
+          id,
           data: { enabled },
         });
         onRefresh();

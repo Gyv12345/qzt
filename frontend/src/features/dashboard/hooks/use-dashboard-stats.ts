@@ -15,12 +15,15 @@ export function useDashboardStats() {
 
 // 客户增长趋势
 export function useCustomerGrowthTrend(params?: { days?: number }) {
-  return useQuery({
+  return useQuery<any>({
     queryKey: ["customer-growth", params],
     queryFn: async () => {
       const { statisticsControllerGetCustomerGrowthTrend } = getScrmApi();
       // API 拦截器已自动提取 response.data
-      return await statisticsControllerGetCustomerGrowthTrend(params);
+      return await statisticsControllerGetCustomerGrowthTrend(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        params as any,
+      );
     },
   });
 }

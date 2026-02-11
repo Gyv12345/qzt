@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
+import type { CreateServiceTeamDto, UpdateServiceTeamDto } from "@/models";
 
 // 分页参数类型
 export interface ServiceTeamParams {
@@ -11,15 +12,48 @@ export interface ServiceTeamParams {
   roleCode?: string;
 }
 
+// 服务团队成员类型
+export interface ServiceTeamItem {
+  id: string;
+  customerId: string;
+  userId: string;
+  roleCode: string;
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+  };
+  user?: {
+    id: string;
+    username: string;
+    realName?: string;
+    avatar?: string;
+  };
+}
+
+// 服务团队列表响应类型
+export interface ServiceTeamListResponse {
+  data: ServiceTeamItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 // 获取服务团队列表
 export function useServiceTeams(params?: ServiceTeamParams) {
-  return useQuery({
+  return useQuery<ServiceTeamListResponse>({
     queryKey: ["service-teams", params],
     queryFn: async () => {
       const { serviceTeamControllerFindAll } = getScrmApi();
-      const response = await serviceTeamControllerFindAll(params || {});
-      return response;
+      // 只传递 API 支持的参数
+      const response = await serviceTeamControllerFindAll({
+        customerId: params?.customerId || "",
+      });
+      return response as unknown as ServiceTeamListResponse;
     },
+    enabled: !params?.customerId || params.customerId.length > 0,
   });
 }
 
@@ -52,11 +86,7 @@ export function useCreateServiceTeam() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: {
-      customerId: string;
-      userId: string;
-      roleCode: string;
-    }) => {
+    mutationFn: async (data: CreateServiceTeamDto) => {
       const { serviceTeamControllerCreate } = getScrmApi();
       return await serviceTeamControllerCreate(data);
     },
@@ -80,7 +110,7 @@ export function useUpdateServiceTeam() {
       data,
     }: {
       id: string;
-      data: { customerId?: string; userId?: string; roleCode?: string };
+      data: UpdateServiceTeamDto;
     }) => {
       const { serviceTeamControllerUpdate } = getScrmApi();
       return await serviceTeamControllerUpdate(id, data);

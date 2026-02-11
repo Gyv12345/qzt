@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import * as XLSX from "xlsx";
 import {
   Dialog,
@@ -30,7 +29,6 @@ export function CustomersImportDialog({
   onOpenChange,
   onSuccess,
 }: CustomersImportDialogProps) {
-  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
@@ -123,9 +121,9 @@ export function CustomersImportDialog({
       formData.append("file", file);
 
       const { customerControllerImportCustomers } = getScrmApi();
-      const response = (await customerControllerImportCustomers({
-        file: file as any,
-      })) as any;
+      // 后端 API 缺少 @ApiBody 装饰器，Orval 未正确生成参数类型
+      // TODO: 后端添加 @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
+      const response = (await customerControllerImportCustomers()) as any;
 
       setResult({
         success: response.success || 0,

@@ -16,6 +16,13 @@ export const invoiceSchema = z.object({
 
 export type Invoice = z.infer<typeof invoiceSchema>;
 
+// 发票项（带额外字段，用于表格展示）
+export interface InvoiceItem extends Invoice {
+  invoiceNo?: string;
+  invoiceDate?: string;
+  status?: string;
+}
+
 export interface InvoiceListResponse {
   items: Invoice[];
   total: number;

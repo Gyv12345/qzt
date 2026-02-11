@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -51,7 +50,6 @@ const RULE_CONFIG: Record<
 };
 
 export function CustomerRulesCards(_props: CustomerRulesCardsProps) {
-  const { t } = useTranslation();
   const { data, isLoading, error } = useCustomerRules();
   const updateMutation = useUpdateCustomerRule();
 
@@ -59,7 +57,7 @@ export function CustomerRulesCards(_props: CustomerRulesCardsProps) {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   // 内联编辑状态
-  const [inlineEditRuleId, setInlineEditRuleId] = useState<string | null>(null);
+  const [inlineEditRuleId, setInlineEditRuleId] = useState<number | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState<number>(0);
 
   const isMobile = useIsMobile();
@@ -339,7 +337,6 @@ function CustomerRuleEditForm({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useTranslation();
   const updateMutation = useUpdateCustomerRule();
   const [title, setTitle] = useState(rule.title);
   const [description, setDescription] = useState(rule.description || "");

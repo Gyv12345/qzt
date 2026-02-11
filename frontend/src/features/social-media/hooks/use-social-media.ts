@@ -5,13 +5,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
-import type {
-  SocialMediaAccount,
-  SocialMediaPost,
-  SocialMediaPublishLog,
-  SocialMediaPlatform,
-  SocialMediaPostStatus,
-} from "../types/social-media";
 
 // ==================== 账号管理 ====================
 

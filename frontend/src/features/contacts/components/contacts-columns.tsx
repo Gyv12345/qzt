@@ -1,5 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -194,9 +193,10 @@ export function getContactsColumns({
               <Badge variant="secondary" className="text-xs">
                 {birthDay === now.getDate()
                   ? t("contact.birthdate.today")
-                  : t("contact.birthdate.inDays", {
-                      count: birthDay - now.getDate(),
-                    })}
+                  : t("contact.birthdate.inDays").replace(
+                      "{count}",
+                      String(birthDay - now.getDate()),
+                    )}
               </Badge>
             )}
           </div>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Main } from "@/components/layout/main";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +9,9 @@ import { CustomerGrowthChart } from "./components/customer-growth-chart";
 import { useDashboardStats } from "./hooks/use-dashboard-stats";
 
 export function Dashboard() {
-  const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data: stats, isLoading, error, refetch } = useDashboardStats();
+  const { data: stats, isLoading, refetch } = useDashboardStats();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import {
   Sheet,
   SheetContent,
@@ -18,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Upload, Download, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,7 +47,6 @@ export function UsersBatchAddDrawer({
   onOpenChange,
   onSuccess,
 }: BatchAddDrawerProps) {
-  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [parsedUsers, setParsedUsers] = useState<ParsedUser[]>([]);
   const [defaultDepartmentId, setDefaultDepartmentId] = useState<string>("");
@@ -75,7 +72,7 @@ export function UsersBatchAddDrawer({
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-        const users: ParsedUser[] = jsonData.map((row, index) => {
+        const users: ParsedUser[] = jsonData.map((row) => {
           const username = row["用户名"] || row["username"] || "";
           const name = row["姓名"] || row["name"] || "";
           const email = row["邮箱"] || row["email"] || "";
@@ -388,10 +385,9 @@ export function UsersBatchAddDrawer({
                           {user.valid ? (
                             <CheckCircle className="h-4 w-4 text-green-500 inline-block ml-1" />
                           ) : (
-                            <XCircle
-                              className="h-4 w-4 text-destructive inline-block ml-1"
-                              title={user.error}
-                            />
+                            <span title={user.error}>
+                              <XCircle className="h-4 w-4 text-destructive inline-block ml-1" />
+                            </span>
                           )}
                         </td>
                       </tr>

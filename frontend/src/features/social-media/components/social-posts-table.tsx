@@ -10,6 +10,9 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  flexRender,
+  type SortingState,
+  type ColumnFiltersState,
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
@@ -74,8 +77,8 @@ export function SocialPostsTable({
   onSchedule,
   onCancelSchedule,
 }: SocialPostsTableProps) {
-  const [sorting, setSorting] = useState([]);
-  const [columnFilters, setColumnFilters] = useState([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -321,9 +324,10 @@ export function SocialPostsTable({
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : header.column.columnDef.header?.(
+                        : flexRender(
+                            header.column.columnDef.header,
                             header.getContext(),
-                          ) || header.column.columnDef.header}
+                          )}
                     </TableHead>
                   );
                 })}
@@ -387,9 +391,4 @@ export function SocialPostsTable({
       </div>
     </div>
   );
-}
-
-function flexRender<T>(comp: any, props: T) {
-  if (typeof comp === "function") return comp(props);
-  return comp;
 }

@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
-import type { CreatePaymentDto, UpdatePaymentDto } from "@/models";
+import type {
+  CreatePaymentDto,
+  UpdatePaymentDto,
+  PaymentControllerFindAllParams,
+} from "@/models";
 
-export function usePayments(params?: {
-  page?: number;
-  pageSize?: number;
-  contractId?: string;
-}) {
+export function usePayments(params?: PaymentControllerFindAllParams) {
   return useQuery({
     queryKey: ["payments", params],
     queryFn: async () => {

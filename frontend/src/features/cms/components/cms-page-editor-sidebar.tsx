@@ -3,7 +3,6 @@
  * 包含页面基本信息和元素管理
  */
 
-import { useState } from "react";
 import {
   Form,
   FormControl,
@@ -28,12 +27,10 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { cn } from "@/lib/utils";
 import type { CmsPageEditorValues, PageElementData } from "./cms-page-editor";
 
 interface CmsPageEditorSidebarProps {
   form: UseFormReturn<CmsPageEditorValues>;
-  isEdit: boolean;
 }
 
 // 区域类型显示名称
@@ -275,10 +272,7 @@ function ElementContentEditor({
   }
 }
 
-export function CmsPageEditorSidebar({
-  form,
-  isEdit,
-}: CmsPageEditorSidebarProps) {
+export function CmsPageEditorSidebar({ form }: CmsPageEditorSidebarProps) {
   const elements = form.watch("elements") || [];
 
   // 添加元素

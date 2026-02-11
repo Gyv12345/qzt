@@ -32,11 +32,8 @@ import {
   FOLLOW_TYPE_OPTIONS,
   type FollowRecord,
 } from "../types/follow-record";
-import {
-  useCreateFollowRecord,
-  useUpdateFollowRecord,
-} from "../hooks/use-follow-records";
-import type { CreateFollowRecordDto, UpdateFollowRecordDto } from "@/models";
+import { useCreateFollowRecord } from "../hooks/use-follow-records";
+import type { CreateFollowRecordDto } from "@/models";
 
 type FollowRecordInlineFormProps = {
   customerId: string;

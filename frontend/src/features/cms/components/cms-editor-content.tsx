@@ -23,17 +23,10 @@ import {
   Undo,
   Redo,
   Link as LinkIcon,
-  Image,
   Minus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator as SeparatorComponent } from "@/components/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 
@@ -46,8 +39,7 @@ interface CmsEditorContentProps {
 export function CmsEditorContent({
   content,
   onChange,
-  wordCount,
-}: CmsEditorContentProps) {
+}: Omit<CmsEditorContentProps, "wordCount">) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -105,7 +97,9 @@ export function CmsEditorContent({
     if (url === null) return;
 
     if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+      // Note: setImage requires Image extension to be configured
+      // For now, insert as an image tag in HTML
+      editor.chain().focus().insertContent(`<img src="${url}" alt="">`).run();
     }
   }, [editor]);
 
@@ -275,7 +269,10 @@ export function CmsEditorContent({
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton onClick={insertImage} title="插入图片">
-          <Image className="h-4 w-4" />
+          {/* Placeholder icon for image insertion */}
+          <span className="h-4 w-4 flex items-center justify-center text-xs font-bold">
+            IMG
+          </span>
         </ToolbarButton>
       </div>
 

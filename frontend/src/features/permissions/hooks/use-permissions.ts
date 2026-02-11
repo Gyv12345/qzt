@@ -14,7 +14,10 @@ export function usePermissions(
     queryKey: ["permissions", params],
     queryFn: async () => {
       const { permissionControllerFindAllPermissions } = getScrmApi();
-      return await permissionControllerFindAllPermissions(params);
+      // 当 params 未定义时，使用默认值
+      return await permissionControllerFindAllPermissions(
+        params ?? { type: "" },
+      );
     },
   });
 }

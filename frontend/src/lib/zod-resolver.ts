@@ -9,7 +9,7 @@
  */
 
 import { zodResolver as baseZodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import type { Resolver } from "react-hook-form";
 
 /**
  * Zod v4 兼容的 zodResolver
@@ -23,12 +23,21 @@ import { z } from "zod";
  * });
  * ```
  */
+import type { FieldValues } from "react-hook-form";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function zodResolver<TInput extends z.ZodTypeAny, TContext = unknown>(
-  schema: TInput,
-  ...args: Parameters<typeof baseZodResolver>
+export function zodResolver<
+  T extends FieldValues = FieldValues,
+  TContext = any,
+  TOutput = any,
+>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any {
+  schema: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return baseZodResolver(schema as any, ...args) as any;
+  schemaOptions?: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resolverOptions?: any,
+): Resolver<T, TContext, TOutput> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return baseZodResolver(schema as any, schemaOptions, resolverOptions) as any;
 }

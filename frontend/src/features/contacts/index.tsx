@@ -10,15 +10,24 @@ import {
   useContactsDialogs,
 } from "./components/contacts-dialogs";
 import { CustomerContactsTab } from "./components/customer-contacts-tab";
+import type { Contact } from "./types/contact";
 
 const route = getRouteApi("/_authenticated/contacts");
 
 function ContactsContent() {
   const { t } = useTranslation();
   const search = route.useSearch();
-  const navigate = route.useNavigate();
+  const routerNavigate = route.useNavigate();
   const queryClient = useQueryClient();
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
+
+  // 将 TanStack Router 的 navigate 转换为 NavigateFn 类型
+  const navigate: import("@/hooks/use-table-url-state").NavigateFn = (opts) => {
+    routerNavigate({
+      search: opts.search as any,
+      replace: opts.replace,
+    });
+  };
   const {
     openCreateDialog,
     openEditDialog,

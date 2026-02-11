@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
@@ -29,7 +28,7 @@ import type { WebhookConfig } from "../hooks/use-webhooks";
 const webhookConfigSchema = z.object({
   name: z.string().min(1, "配置名称不能为空").max(100, "配置名称最多100个字符"),
   platform: z.enum(["wecom", "feishu", "dingtalk"], {
-    required_error: "请选择平台",
+    error: "请选择平台",
   }),
   webhookUrl: z.string().url("请输入有效的 Webhook URL"),
   enabled: z.boolean().default(true),
@@ -52,7 +51,6 @@ export function WebhookConfigFormDrawer({
   onSubmit,
   isSubmitting,
 }: WebhookConfigFormDrawerProps) {
-  const { t } = useTranslation();
   const form = useForm<WebhookConfigFormValues>({
     resolver: zodResolver(webhookConfigSchema),
     defaultValues: {
@@ -82,7 +80,7 @@ export function WebhookConfigFormDrawer({
   }, [editingConfig, form, open]);
 
   const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data);
+    onSubmit(data as WebhookConfigFormValues);
   });
 
   return (

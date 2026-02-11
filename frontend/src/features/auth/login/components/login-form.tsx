@@ -12,7 +12,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import { useAuth } from "@/contexts/auth-context";

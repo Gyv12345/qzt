@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useDepartments } from "../hooks/use-departments";
+import { useDepartments, type DepartmentNode } from "../hooks/use-departments";
 import { columns } from "../data/columns";
 
 export function DepartmentTable() {
@@ -28,13 +28,30 @@ export function DepartmentTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-  const { data, isLoading, error } = useDepartments({
-    page: pagination.pageIndex + 1,
-    pageSize: pagination.pageSize,
-  });
+  const { data, isLoading, error } = useDepartments();
+
+  // 将树形数据展平为列表
+  const flattenTreeData = (
+    nodes: DepartmentNode[] | undefined,
+  ): DepartmentNode[] => {
+    if (!nodes) return [];
+    const result: DepartmentNode[] = [];
+    const traverse = (nodeList: DepartmentNode[]) => {
+      nodeList.forEach((node) => {
+        result.push(node);
+        if (node.children && node.children.length > 0) {
+          traverse(node.children);
+        }
+      });
+    };
+    traverse(nodes);
+    return result;
+  };
+
+  const flatData = flattenTreeData(data);
 
   const table = useReactTable({
-    data: data?.data || [],
+    data: flatData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -140,7 +157,7 @@ export function DepartmentTable() {
 
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          共 {data?.total || 0} 条记录
+          共 {flatData.length} 条记录
         </div>
         <div className="space-x-2">
           <Button

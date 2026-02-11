@@ -44,7 +44,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import type { CmsPageFormData } from "./cms-page-form-drawer";
 
 interface Page {
   id: string;
@@ -82,14 +81,12 @@ const statusConfig: Record<
 
 export function CmsPagesTable({
   data,
-  total,
   isLoading = false,
   onEdit,
-  onRefresh,
   onDelete,
   onPublish,
   onUnpublish,
-}: CmsPagesTableProps) {
+}: Omit<CmsPagesTableProps, "total" | "onRefresh">) {
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     id?: string;

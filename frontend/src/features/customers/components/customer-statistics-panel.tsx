@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -6,7 +5,6 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip,
   LineChart,
   Line,
@@ -34,7 +32,6 @@ const LEVEL_LABELS: Record<string, string> = {
 };
 
 export function CustomerStatisticsPanel() {
-  const { t } = useTranslation();
   const { levelDistribution, conversionRate, growthTrend, isLoading } =
     useCustomerStatistics();
 
@@ -118,7 +115,7 @@ export function CustomerStatisticsPanel() {
                 paddingAngle={2}
                 dataKey="value"
               >
-                {pieData.map((entry, index) => (
+                {pieData.map((_entry: any, index: number) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={
@@ -132,10 +129,14 @@ export function CustomerStatisticsPanel() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number, name: string) => [
-                  `${value} (${pieData.find((d) => d.name === name)?.percentage.toFixed(1)}%)`,
-                  name,
-                ]}
+                // @ts-expect-error - Recharts Tooltip formatter 类型定义不匹配
+                formatter={(value: number, name: string) => {
+                  const item = pieData.find((d: any) => d.name === name);
+                  return [
+                    `${value} (${item?.percentage.toFixed(1) || 0}%)`,
+                    name,
+                  ];
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -144,7 +145,10 @@ export function CustomerStatisticsPanel() {
               <div key={d.level} className="flex items-center gap-1 text-xs">
                 <div
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: LEVEL_COLORS[d.level] }}
+                  style={{
+                    backgroundColor:
+                      LEVEL_COLORS[d.level as keyof typeof LEVEL_COLORS],
+                  }}
                 />
                 <span>
                   {LEVEL_LABELS[d.level]}: {d.count}
@@ -247,7 +251,8 @@ export function CustomerStatisticsPanel() {
                 domain={[0, 100]}
               />
               <Tooltip
-                formatter={(value: number) => [`${value}%`, "转化率"]}
+                // @ts-expect-error - Recharts Tooltip formatter 类型定义不匹配
+                formatter={(value: number) => [`${value}%`, "转化率"] as any}
                 contentStyle={{
                   backgroundColor: "hsl(var(--background))",
                   border: "1px solid hsl(var(--border))",

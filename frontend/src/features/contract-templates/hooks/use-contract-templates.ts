@@ -35,7 +35,9 @@ export function useContractTemplateVariables(id: string) {
     queryKey: ["contract-template-variables", id],
     queryFn: async () => {
       const { contractTemplateControllerGetVariables } = getScrmApi();
-      return (await contractTemplateControllerGetVariables(id)) as any[];
+      return (await contractTemplateControllerGetVariables(
+        id,
+      )) as unknown as any[];
     },
     enabled: !!id,
   });

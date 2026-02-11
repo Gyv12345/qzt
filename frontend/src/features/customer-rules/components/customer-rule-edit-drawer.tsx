@@ -148,7 +148,7 @@ export function CustomerRuleEditDrawer({
             <FormField
               control={form.control}
               name="daysValue"
-              render={({ field }) => (
+              render={({ field: _field }) => (
                 <FormItem>
                   <FormLabel>{t("customerRule.fields.daysValue")}</FormLabel>
                   <FormControl>

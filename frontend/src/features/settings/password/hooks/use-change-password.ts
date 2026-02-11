@@ -18,11 +18,9 @@ export function useChangePassword() {
       const { usersControllerUpdatePassword } = getScrmApi();
 
       try {
-        const result = (await usersControllerUpdatePassword(
-          params,
-        )) as ChangePasswordResult;
+        await usersControllerUpdatePassword(params);
         toast.success("密码修改成功");
-        return result;
+        return { message: "密码修改成功" };
       } catch (error: any) {
         const message =
           error.response?.data?.message || error.message || "密码修改失败";

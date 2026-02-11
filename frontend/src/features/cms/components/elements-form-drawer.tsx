@@ -74,7 +74,6 @@ export function ElementsFormDrawer({
   templates = [],
 }: ElementsFormDrawerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showJsonEditor, setShowJsonEditor] = useState(true);
   const createMutation = useCreateContent();
   const updateMutation = useUpdateContent();
 

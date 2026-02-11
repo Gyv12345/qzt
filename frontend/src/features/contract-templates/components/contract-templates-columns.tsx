@@ -115,7 +115,7 @@ export function getContractTemplatesColumns({
     },
     {
       id: "actions",
-      cell: DataTableRowActions,
+      cell: DataTableRowActions as any,
       enableHiding: false,
       meta: {
         displayName: t("contractTemplate.columns.actions"),

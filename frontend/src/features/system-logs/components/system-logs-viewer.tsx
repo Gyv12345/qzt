@@ -24,15 +24,13 @@ interface LogsResponse {
 
 export function SystemLogsViewer() {
   const [activeTab, setActiveTab] = useState<"pm2" | "nginx" | "redis">("pm2");
-  const [logLevel, setLogLevel] = useState<"all" | "error" | "warn" | "info">(
-    "all",
-  );
+  const [logLevel] = useState<"all" | "error" | "warn" | "info">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [autoScroll, setAutoScroll] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [lineCount, setLineCount] = useState(100);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // 获取日志
   const { data, isLoading, refetch } = useQuery<LogsResponse>({
@@ -274,7 +272,7 @@ function LogContent({
   logs: string[];
   isLoading: boolean;
   getLogColor: (line: string) => string;
-  scrollRef: React.RefObject<HTMLDivElement>;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
   // 复制日志到剪贴板
   const copyLogs = () => {

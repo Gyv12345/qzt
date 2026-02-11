@@ -19,6 +19,10 @@ export interface SocialMediaAccount {
   accountName: string;
   accountId?: string;
   appId?: string;
+  appSecret?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  openId?: string;
   expiresAt?: string;
   status: number;
   createdAt: string;

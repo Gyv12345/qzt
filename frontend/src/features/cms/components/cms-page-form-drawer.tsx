@@ -32,7 +32,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, GripVertical, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 
 // 页面元素 schema
 const pageElementSchema = z.object({
@@ -410,6 +409,11 @@ export function CmsPageFormDrawer({
     onSubmit({ ...data, elements });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmitAny = (data: any) => {
+    handleSubmit(data as CmsPageFormData);
+  };
+
   // 添加元素
   const addElement = () => {
     const newElement: PageElementData = {
@@ -450,7 +454,7 @@ export function CmsPageFormDrawer({
           <div className="px-6 flex-1 overflow-y-auto">
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(handleSubmit)}
+                onSubmit={form.handleSubmit(handleSubmitAny)}
                 className="space-y-6"
               >
                 {/* 基本信息 */}
@@ -459,7 +463,7 @@ export function CmsPageFormDrawer({
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
@@ -473,7 +477,7 @@ export function CmsPageFormDrawer({
                     />
 
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="slug"
                       render={({ field }) => (
                         <FormItem>
@@ -488,7 +492,7 @@ export function CmsPageFormDrawer({
                   </div>
 
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="title"
                     render={({ field }) => (
                       <FormItem>
@@ -502,7 +506,7 @@ export function CmsPageFormDrawer({
                   />
 
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
@@ -521,7 +525,7 @@ export function CmsPageFormDrawer({
                   />
 
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="status"
                     render={({ field }) => (
                       <FormItem>
@@ -737,7 +741,7 @@ export function CmsPageFormDrawer({
               </Button>
               <Button
                 type="button"
-                onClick={form.handleSubmit(handleSubmit)}
+                onClick={form.handleSubmit(handleSubmitAny)}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

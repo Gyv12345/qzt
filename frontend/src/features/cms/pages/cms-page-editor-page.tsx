@@ -5,7 +5,7 @@
 
 import { useNavigate } from "@tanstack/react-router";
 import { CmsPageEditor } from "@/features/cms/components";
-import { useCmsPage } from "../hooks/use-cms-pages";
+import { useCmsPage, type CmsPage } from "../hooks/use-cms-pages";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -60,7 +60,7 @@ export function CmsPageEditorPage({ mode, pageId }: CmsPageEditorPageProps) {
     <div className="flex h-screen flex-col bg-background">
       <CmsPageEditor
         mode={mode}
-        page={page}
+        page={page as CmsPage | undefined}
         onBack={handleBack}
         onSuccess={handleSuccess}
       />

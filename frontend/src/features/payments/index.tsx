@@ -9,13 +9,14 @@ import {
   usePaymentsDialogs,
 } from "./components/payments-dialogs";
 import { CustomerPaymentsTab } from "./components/customer-payments-tab";
+import type { NavigateFn } from "@/hooks/use-table-url-state";
 
 const route = getRouteApi("/_authenticated/payments");
 
 function PaymentsContent() {
   const { t } = useTranslation();
   const search = route.useSearch();
-  const navigate = route.useNavigate();
+  const navigate = route.useNavigate() as unknown as NavigateFn;
   const queryClient = useQueryClient();
   const { openCreateDialog, openEditDialog } = usePaymentsDialogs();
 

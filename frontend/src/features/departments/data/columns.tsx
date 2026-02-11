@@ -1,9 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { type Department } from "./schema";
 
-export const columns: ColumnDef<Department>[] = [
+export const columns: ColumnDef<any>[] = [
   {
     id: "select",
     header: ({ table }) => (

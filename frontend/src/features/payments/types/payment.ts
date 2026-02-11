@@ -17,6 +17,9 @@ export const paymentSchema = z.object({
 
 export type Payment = z.infer<typeof paymentSchema>;
 
+// PaymentItem 用于列表项（与 Payment 相同，但保留别名以区分使用场景）
+export type PaymentItem = Payment;
+
 export interface PaymentListResponse {
   items: Payment[];
   total: number;

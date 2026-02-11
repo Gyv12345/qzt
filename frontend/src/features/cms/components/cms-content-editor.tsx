@@ -28,7 +28,13 @@ const cmsEditorSchema = z.object({
   excerpt: z.string().optional(),
   coverImage: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
-  contentType: z.enum(["ARTICLE", "CASE_STUDY", "PRODUCT_SHOWCASE", "PROFILE"]),
+  contentType: z.enum([
+    "ARTICLE",
+    "CASE_STUDY",
+    "PRODUCT_SHOWCASE",
+    "PROFILE",
+    "PAGE_ELEMENT",
+  ]),
   productId: z.string().optional(),
   userId: z.string().optional(),
   metaTitle: z.string().optional(),
@@ -230,17 +236,13 @@ export function CmsContentEditor({
               "flex flex-col overflow-hidden",
             )}
           >
-            <CmsEditorSidebar form={form} isEdit={isEdit} />
+            <CmsEditorSidebar form={form as any} />
           </aside>
         )}
 
         {/* 主编辑区域 */}
         <main className="flex-1 overflow-hidden">
-          <CmsEditorMain
-            form={form}
-            showPreview={showPreview}
-            onPreviewChange={setShowPreview}
-          />
+          <CmsEditorMain form={form as any} showPreview={showPreview} />
         </main>
       </div>
     </div>

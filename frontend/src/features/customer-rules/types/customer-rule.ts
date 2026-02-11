@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // 客户规则 Schema
 export const customerRuleSchema = z.object({
-  id: z.string(),
+  id: z.number(), // 后端返回的 id 是 number 类型
   code: z.string(),
   title: z.string(),
   description: z.string().optional(),

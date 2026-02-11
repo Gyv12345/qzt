@@ -3,16 +3,29 @@ import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
 import type { CreateDepartmentDto, UpdateDepartmentDto } from "@/models";
 
-// 部门列表查询
+// 部门节点类型
+export interface DepartmentNode {
+  id: string;
+  name: string;
+  parentId: string | null;
+  sort: number;
+  status: "ACTIVE" | "INACTIVE";
+  isSystem?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  children?: DepartmentNode[];
+}
+
+// 部门列表查询（树形结构）
 export function useDepartments(params?: {
   page?: number;
   pageSize?: number;
   keyword?: string;
 }) {
-  return useQuery({
+  return useQuery<DepartmentNode[]>({
     queryKey: ["departments", params],
     queryFn: async () => {
-      return await getScrmApi().departmentControllerFindTree();
+      return (await getScrmApi().departmentControllerFindTree()) as unknown as DepartmentNode[];
     },
   });
 }

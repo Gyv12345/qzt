@@ -1,15 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
-import type { CreateCustomerDto, UpdateCustomerDto } from "@/models";
+import type {
+  CreateCustomerDto,
+  UpdateCustomerDto,
+  CustomerControllerFindAllParams,
+} from "@/models";
 
 // 客户列表查询
-export function useCustomers(params?: {
-  page?: number;
-  pageSize?: number;
-  name?: string;
-  customerLevel?: string;
-}) {
+export function useCustomers(params?: CustomerControllerFindAllParams) {
   return useQuery({
     queryKey: ["customers", params],
     queryFn: async () => {

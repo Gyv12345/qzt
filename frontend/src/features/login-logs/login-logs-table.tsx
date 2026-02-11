@@ -48,17 +48,29 @@ export function LoginLogsTable() {
     error,
   } = useQuery({
     queryKey: ["login-logs", pageIndex, pageSize],
-    queryFn: () => getScrmApi().loginLogsControllerFindLoginLogs(queryParams),
+    queryFn: () =>
+      getScrmApi().loginLogsControllerFindLoginLogs(queryParams) as any,
   });
 
   // 从响应中提取数据
-  const data = response?.data || [];
-  const total = response?.total || 0;
+  const data = (response as any)?.data || [];
+  const total = (response as any)?.total || 0;
 
   // 处理分页变化
-  const onPaginationChange = useCallback((newPagination: PaginationState) => {
-    setPagination(newPagination);
-  }, []);
+  const onPaginationChange = useCallback(
+    (
+      newPagination:
+        | PaginationState
+        | ((prev: PaginationState) => PaginationState),
+    ) => {
+      setPagination(
+        typeof newPagination === "function"
+          ? newPagination({ pageIndex, pageSize })
+          : newPagination,
+      );
+    },
+    [pageIndex, pageSize],
+  );
 
   const columns: ColumnDef<LoginLog>[] = [
     {

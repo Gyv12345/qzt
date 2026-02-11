@@ -21,20 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDepartments, useDeleteDepartment } from "../hooks/use-departments";
+import {
+  useDepartments,
+  useDeleteDepartment,
+  type DepartmentNode,
+} from "../hooks/use-departments";
 import { DepartmentDialog } from "./department-dialog";
-
-interface DepartmentNode {
-  id: string;
-  name: string;
-  parentId: string | null;
-  sort: number;
-  status: "ACTIVE" | "INACTIVE";
-  isSystem: boolean;
-  createdAt: string;
-  updatedAt: string;
-  children?: DepartmentNode[];
-}
 
 export function DepartmentTreeTable() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -109,7 +101,10 @@ export function DepartmentTreeTable() {
   // 根据搜索关键词过滤部门树（使用 useMemo 优化性能）
   const { filteredTreeData, autoExpandedIds } = useMemo(() => {
     if (!searchKeyword.trim()) {
-      return { filteredTreeData: treeData, autoExpandedIds: new Set<string>() };
+      return {
+        filteredTreeData: treeData || [],
+        autoExpandedIds: new Set<string>(),
+      };
     }
 
     const filterNodes = (
@@ -125,14 +120,14 @@ export function DepartmentTreeTable() {
           .includes(searchKeyword.toLowerCase());
         const filteredChildren = node.children
           ? filterNodes(node.children)
-          : [];
+          : { nodes: [], expandedIds: new Set<string>() };
 
-        if (isMatch || filteredChildren.length > 0) {
-          nodeCopy.children = filteredChildren;
+        if (isMatch || filteredChildren.nodes.length > 0) {
+          nodeCopy.children = filteredChildren.nodes;
           filtered.push(nodeCopy);
 
           // 如果有匹配的子节点，标记需要展开
-          if (filteredChildren.length > 0) {
+          if (filteredChildren.nodes.length > 0) {
             expandedIds.add(node.id);
           }
         }

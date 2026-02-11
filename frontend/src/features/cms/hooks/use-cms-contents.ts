@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getScrmApi } from "@/services/api";
 import type {
-  CmsContent,
   CmsContentsResponse,
   CmsContentFormData,
   CmsContentQuery,
@@ -74,9 +73,12 @@ export function useCmsContent(id: string) {
  * 获取所有标签
  */
 export function useCmsTags() {
-  return useQuery({
+  return useQuery<CmsTag[]>({
     queryKey: ["cms-tags"],
-    queryFn: () => getScrmApi().cmsControllerFindAllTags(),
+    queryFn: async () => {
+      const result = await getScrmApi().cmsControllerFindAllTags();
+      return result as unknown as CmsTag[];
+    },
   });
 }
 
@@ -152,10 +154,10 @@ export function usePublishContent() {
 
   return useMutation({
     mutationFn: (id: string) => getScrmApi().cmsControllerPublishContent(id),
-    onSuccess: (_, variables) => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["cms-contents"] });
       queryClient.invalidateQueries({
-        queryKey: ["cms-content", variables.id],
+        queryKey: ["cms-content", id],
       });
       toast.success("内容发布成功");
     },
@@ -173,10 +175,10 @@ export function useUnpublishContent() {
 
   return useMutation({
     mutationFn: (id: string) => getScrmApi().cmsControllerUnpublishContent(id),
-    onSuccess: (_, variables) => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["cms-contents"] });
       queryClient.invalidateQueries({
-        queryKey: ["cms-content", variables.id],
+        queryKey: ["cms-content", id],
       });
       toast.success("已取消发布");
     },

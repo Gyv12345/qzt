@@ -20,7 +20,7 @@ export function CmsPagesPage() {
   const navigate = useNavigate();
 
   // 获取页面列表
-  const { data, isLoading } = useCmsPages({ page: 1, pageSize: 100 });
+  const { data, isLoading, refetch } = useCmsPages({ page: 1, pageSize: 100 });
 
   // Mutations
   const deletePage = useDeletePage();
@@ -45,6 +45,7 @@ export function CmsPagesPage() {
       deletePage.mutate(id, {
         onSuccess: () => {
           toast.success("删除成功");
+          refetch();
         },
         onError: (error: any) => {
           console.error("删除页面失败:", error);
@@ -54,7 +55,7 @@ export function CmsPagesPage() {
         },
       });
     },
-    [deletePage],
+    [deletePage, refetch],
   );
 
   const handlePublish = useCallback(
@@ -62,6 +63,7 @@ export function CmsPagesPage() {
       publishPage.mutate(id, {
         onSuccess: () => {
           toast.success("发布成功");
+          refetch();
         },
         onError: (error: any) => {
           console.error("发布页面失败:", error);
@@ -71,7 +73,7 @@ export function CmsPagesPage() {
         },
       });
     },
-    [publishPage],
+    [publishPage, refetch],
   );
 
   const handleUnpublish = useCallback(
@@ -79,6 +81,7 @@ export function CmsPagesPage() {
       unpublishPage.mutate(id, {
         onSuccess: () => {
           toast.success("已取消发布");
+          refetch();
         },
         onError: (error: any) => {
           console.error("取消发布失败:", error);
@@ -88,7 +91,7 @@ export function CmsPagesPage() {
         },
       });
     },
-    [unpublishPage],
+    [unpublishPage, refetch],
   );
 
   return (
@@ -107,8 +110,7 @@ export function CmsPagesPage() {
 
       {/* 页面表格 */}
       <CmsPagesTable
-        data={data?.data || []}
-        total={data?.total || 0}
+        data={data?.data ?? []}
         isLoading={isLoading}
         onEdit={handleEdit}
         onDelete={handleDelete}

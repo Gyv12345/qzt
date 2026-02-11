@@ -76,7 +76,10 @@ export function CmsElementsPage() {
   const [editingElement, setEditingElement] = useState<CmsContent | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { data, isLoading, error } = useCmsContentsByType("PAGE_ELEMENT", {
+  // 使用 refreshKey 来强制重新渲染
+  void refreshKey;
+
+  const { data, isLoading } = useCmsContentsByType("PAGE_ELEMENT", {
     ...search,
     pageSize: 100,
   });

@@ -5,10 +5,7 @@ import { Main } from "@/components/layout/main";
 import { Button } from "@/components/ui/button";
 import { FollowRecordsTable } from "./components/follow-records-table";
 import { FollowRecordFormDialog } from "./components/follow-record-form-dialog";
-import {
-  useFollowRecords,
-  useDeleteFollowRecord,
-} from "./hooks/use-follow-records";
+import { useDeleteFollowRecord } from "./hooks/use-follow-records";
 import { followRecordsKeys } from "./hooks/use-follow-records";
 import type { FollowRecordItem } from "./types/follow-record";
 import { CustomerFollowRecordsTab } from "./components/customer-follow-records-tab";

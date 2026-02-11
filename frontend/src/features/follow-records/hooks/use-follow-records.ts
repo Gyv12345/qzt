@@ -30,7 +30,7 @@ export function useFollowRecords(params: FollowRecordQueryParams = {}) {
         page,
         pageSize,
       });
-      return result as FollowRecordListResponse;
+      return result as unknown as FollowRecordListResponse;
     },
     enabled: !!customerId,
   });
@@ -43,7 +43,7 @@ export function useFollowRecord(id: string) {
     queryFn: async () => {
       const api = getScrmApi();
       const result = await api.followRecordControllerFindOne(id);
-      return result as FollowRecordItem;
+      return result as unknown as FollowRecordItem;
     },
     enabled: !!id,
   });

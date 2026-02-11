@@ -27,7 +27,7 @@ export function useMenuTree() {
     queryKey: ["menu-tree"],
     queryFn: async () => {
       const { permissionControllerGetMenuTree } = getScrmApi();
-      const result = await permissionControllerGetMenuTree();
+      const result = (await permissionControllerGetMenuTree()) as any;
       return result as MenuNode[];
     },
   });

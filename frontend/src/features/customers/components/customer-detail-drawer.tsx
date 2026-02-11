@@ -17,10 +17,8 @@ import { CustomerContactsTab } from "@/features/contacts";
 import { CustomerPaymentsTab } from "@/features/payments";
 import { CustomerInvoicesTab } from "@/features/invoices";
 import { useCustomer } from "../hooks/use-customers";
-import type { Customer } from "../types/customer";
 import {
   Phone,
-  Mail,
   Building2,
   User,
   Users,
@@ -263,10 +261,7 @@ export function CustomerDetailDrawer({
             value="contacts"
             className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
           >
-            <CustomerContactsTab
-              customerId={customerId}
-              customerName={customerData.name}
-            />
+            <CustomerContactsTab customerId={customerId} />
           </TabsContent>
 
           {/* 收款 */}
@@ -296,10 +291,7 @@ export function CustomerDetailDrawer({
             value="service-team"
             className="mt-4 overflow-auto max-h-[calc(85vh-400px)]"
           >
-            <CustomerServiceTeamTab
-              customerId={customerId}
-              customerName={customerData.name}
-            />
+            <CustomerServiceTeamTab customerId={customerId} />
           </TabsContent>
         </Tabs>
       </SheetContent>

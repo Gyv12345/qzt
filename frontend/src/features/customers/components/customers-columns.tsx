@@ -1,5 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { DataTableRowActions } from "./data-table-row-actions";
@@ -8,11 +7,15 @@ import type { Customer } from "../types/customer";
 type CustomersColumnsOptions = {
   t: (key: string) => string;
   onOpenDetail?: (customer: Customer) => void;
+  onEdit?: (customer: Customer) => void;
+  onDelete?: (customer: Customer) => void;
 };
 
 export function getCustomersColumns({
   t,
   onOpenDetail,
+  onEdit,
+  onDelete,
 }: CustomersColumnsOptions): ColumnDef<Customer>[] {
   // 客户等级映射配置
   const customerLevelConfig: Record<
@@ -141,7 +144,9 @@ export function getCustomersColumns({
     },
     {
       id: "actions",
-      cell: DataTableRowActions,
+      cell: ({ row }: any) => (
+        <DataTableRowActions row={row} onEdit={onEdit!} onDelete={onDelete!} />
+      ),
       enableHiding: false,
       meta: {
         displayName: t("customer.columns.actions"),

@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useProduct } from "../hooks/use-products";
-import { getScrmApi } from "@/services/api";
+import { getOss } from "@/services/api";
 import type { Product } from "../types/product";
 import {
   Package,
@@ -47,7 +47,7 @@ export function ProductDetailDrawer({
   // 加载产品图片
   useEffect(() => {
     if (product?.imageId) {
-      const { ossControllerFindOne } = getScrmApi().oss;
+      const { ossControllerFindOne } = getOss();
       ossControllerFindOne(product.imageId)
         .then((result: any) => {
           setImageUrl(result?.fileUrl);

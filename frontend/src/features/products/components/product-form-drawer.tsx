@@ -1,7 +1,7 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -33,7 +33,7 @@ const productFormSchema = z.object({
   code: z.string().min(1, "产品代码不能为空"),
   description: z.string().optional(),
   price: z.number().min(0, "价格必须大于等于0"),
-  timeline: z.array(z.string()).optional(),
+  timeline: z.string().optional(), // 后端存储为 JSON 字符串
   imageId: z.string().optional(),
 });
 
@@ -57,6 +57,11 @@ export function ProductFormDrawer({
   const { dir } = useDirection();
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
+  // 本地管理时间轴数组，提交时转换为 JSON 字符串
+  const [timelineItems, setTimelineItems] = useState<string[]>(
+    product?.timeline || [],
+  );
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: product
@@ -65,7 +70,9 @@ export function ProductFormDrawer({
           code: product.code,
           description: product.description || "",
           price: product.price,
-          timeline: product.timeline || [],
+          timeline: Array.isArray(product.timeline)
+            ? JSON.stringify(product.timeline)
+            : product.timeline || "",
           imageId: product.imageId,
         }
       : {
@@ -73,14 +80,9 @@ export function ProductFormDrawer({
           code: "",
           description: "",
           price: 0,
-          timeline: [],
+          timeline: "",
           imageId: undefined,
         },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "timeline",
   });
 
   const createMutation = useCreateProduct();
@@ -88,10 +90,19 @@ export function ProductFormDrawer({
 
   const onSubmit = async (values: ProductFormValues) => {
     try {
+      // 将 timeline 数组转换为 JSON 字符串发送给后端
+      const submitData = {
+        ...values,
+        timeline:
+          timelineItems.length > 0 ? JSON.stringify(timelineItems) : undefined,
+      };
       if (isEdit && product) {
-        await updateMutation.mutateAsync({ id: product.id, data: values });
+        await updateMutation.mutateAsync({
+          id: product.id,
+          data: submitData as any,
+        });
       } else {
-        await createMutation.mutateAsync(values as any);
+        await createMutation.mutateAsync(submitData as any);
       }
       onSuccess();
     } catch (error) {
@@ -99,18 +110,36 @@ export function ProductFormDrawer({
     }
   };
 
-  // 监听抽屉关闭，重置表单
+  // 监听抽屉关闭，重置表单和时间轴
   useEffect(() => {
     if (!open) {
       form.reset();
+      setTimelineItems([]);
+    } else if (product) {
+      setTimelineItems(product.timeline || []);
     }
-  }, [open, form]);
+  }, [open, product, form]);
+
+  const addTimelineItem = () => {
+    setTimelineItems([...timelineItems, ""]);
+  };
+
+  const updateTimelineItem = (index: number, value: string) => {
+    const newItems = [...timelineItems];
+    newItems[index] = value;
+    setTimelineItems(newItems);
+  };
+
+  const removeTimelineItem = (index: number) => {
+    setTimelineItems(timelineItems.filter((_, i) => i !== index));
+  };
 
   return (
     <Sheet
       open={open}
       onOpenChange={(state) => {
         form.reset();
+        setTimelineItems([]);
         onOpenChange(state);
       }}
     >
@@ -222,11 +251,14 @@ export function ProductFormDrawer({
             <div className="space-y-3">
               <FormLabel>产品时间轴</FormLabel>
               <div className="space-y-2">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex gap-2 items-start">
+                {timelineItems.map((item, index) => (
+                  <div key={index} className="flex gap-2 items-start">
                     <div className="flex-1">
                       <Textarea
-                        {...form.register(`timeline.${index}`)}
+                        value={item}
+                        onChange={(e) =>
+                          updateTimelineItem(index, e.target.value)
+                        }
                         placeholder="请输入节点描述"
                         rows={2}
                         className="resize-none"
@@ -236,7 +268,7 @@ export function ProductFormDrawer({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => remove(index)}
+                      onClick={() => removeTimelineItem(index)}
                       className="mt-1"
                     >
                       <XIcon className="h-4 w-4" />
@@ -247,7 +279,7 @@ export function ProductFormDrawer({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => append("")}
+                onClick={addTimelineItem}
                 className="w-full"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />

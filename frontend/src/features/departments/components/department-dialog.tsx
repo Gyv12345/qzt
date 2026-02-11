@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
-import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Form,
@@ -57,7 +55,6 @@ export function DepartmentDialog({
   onOpenChange,
   editingDepartment,
 }: DepartmentDialogProps) {
-  const { t } = useTranslation();
   const { data: departments } = useDepartments();
   const isEdit = !!editingDepartment;
 

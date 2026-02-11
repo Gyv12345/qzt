@@ -18,12 +18,12 @@ export function useCustomerRules() {
 }
 
 // 获取单个规则
-export function useCustomerRule(id: string) {
+export function useCustomerRule(id: number) {
   return useQuery({
     queryKey: ["customer-rule", id],
     queryFn: async () => {
       const { customerRuleControllerFindOne } = getScrmApi();
-      return await customerRuleControllerFindOne(id);
+      return await customerRuleControllerFindOne(String(id));
     },
     enabled: !!id,
   });
@@ -38,11 +38,11 @@ export function useUpdateCustomerRule() {
       id,
       data,
     }: {
-      id: string;
+      id: number;
       data: UpdateCustomerRuleDto;
     }) => {
       const { customerRuleControllerUpdate } = getScrmApi();
-      return await customerRuleControllerUpdate(id, data);
+      return await customerRuleControllerUpdate(String(id), data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customer-rules"] });

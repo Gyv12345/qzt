@@ -6,6 +6,7 @@
 
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import type { Resolver } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -94,7 +95,7 @@ export function CmsPageEditor({
 
   // 表单初始化
   const form = useForm<CmsPageEditorValues>({
-    resolver: zodResolver(cmsPageEditorSchema),
+    resolver: zodResolver(cmsPageEditorSchema) as Resolver<CmsPageEditorValues>,
     defaultValues: page
       ? {
           name: page.name,
@@ -246,17 +247,13 @@ export function CmsPageEditor({
               "flex flex-col overflow-hidden",
             )}
           >
-            <CmsPageEditorSidebar form={form} isEdit={isEdit} />
+            <CmsPageEditorSidebar form={form as any} />
           </aside>
         )}
 
         {/* 主编辑区域 */}
         <main className="flex-1 overflow-hidden">
-          <CmsPageEditorMain
-            form={form}
-            showPreview={showPreview}
-            onPreviewChange={setShowPreview}
-          />
+          <CmsPageEditorMain form={form as any} showPreview={showPreview} />
         </main>
       </div>
     </div>

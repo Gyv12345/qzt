@@ -9,15 +9,21 @@ import {
   useInvoicesDialogs,
 } from "./components/invoices-dialogs";
 import { CustomerInvoicesTab } from "./components/customer-invoices-tab";
+import type { NavigateFn } from "@/hooks/use-table-url-state";
 
 const route = getRouteApi("/_authenticated/invoices");
 
 function InvoicesContent() {
   const { t } = useTranslation();
   const search = route.useSearch();
-  const navigate = route.useNavigate();
+  const routeNavigate = route.useNavigate();
   const queryClient = useQueryClient();
   const { openCreateDialog, openEditDialog } = useInvoicesDialogs();
+
+  // 将 TanStack Router 的 navigate 适配为 NavigateFn
+  const navigate = ((opts: any) => {
+    routeNavigate({ search: opts.search as any });
+  }) as NavigateFn;
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["invoices"] });
