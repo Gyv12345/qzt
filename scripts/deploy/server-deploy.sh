@@ -93,11 +93,21 @@ mkdir -p "$QZT_DIR/packages/shared-types"
 cp -r "$DEPLOY_DIR/packages/shared-types/dist" "$QZT_DIR/packages/shared-types/"
 cp "$DEPLOY_DIR/packages/shared-types/package.json" "$QZT_DIR/packages/shared-types/"
 
+# 创建 pnpm-workspace.yaml（服务器上需要）
+cat > "$QZT_DIR/pnpm-workspace.yaml" << 'EOF'
+packages:
+  - 'packages/*'
+EOF
+
 # 不复制 lockfile，让服务器根据 package.json 重新生成
 # 这样可以避免 workspace lockfile 与子项目 package.json 不匹配的问题
 
-# 安装生产依赖
+# 安装生产依赖（从根目录，确保 workspace 正确）
+cd "$QZT_DIR"
 pnpm install --prod --no-frozen-lockfile
+
+# 切换到后端目录
+cd "$QZT_DIR/backend"
 
 # 生成 Prisma Client
 npx prisma generate
