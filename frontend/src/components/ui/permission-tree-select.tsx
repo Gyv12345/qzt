@@ -17,7 +17,7 @@ interface PermissionTreeProps {
   nodes: PermissionTreeNode[];
   selectedIds: Set<string>;
   onToggle: (id: string, checked: boolean) => void;
-  onToggleMenu: (menuId: string, checked: boolean, childIds: string[]) => void;
+  onToggleMenu: (_menuId: string, checked: boolean, childIds: string[]) => void;
   level?: number;
 }
 
@@ -54,7 +54,7 @@ function PermissionTreeNodeItem({
   node: PermissionTreeNode;
   selectedIds: Set<string>;
   onToggle: (id: string, checked: boolean) => void;
-  onToggleMenu: (menuId: string, checked: boolean, childIds: string[]) => void;
+  onToggleMenu: (_menuId: string, checked: boolean, childIds: string[]) => void;
   level: number;
 }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -208,7 +208,7 @@ export function PermissionTreeSelect({
   };
 
   const handleToggleMenu = (
-    menuId: string,
+    _menuId: string,
     checked: boolean,
     childIds: string[],
   ) => {

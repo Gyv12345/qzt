@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { z } from "zod";
+import { z } from "zod";
 
 /**
  * Zod v4 i18n 验证消息工厂

@@ -9,7 +9,7 @@
  */
 
 import { zodResolver as baseZodResolver } from "@hookform/resolvers/zod";
-import type { z } from "zod";
+import { z } from "zod";
 
 /**
  * Zod v4 兼容的 zodResolver

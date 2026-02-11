@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks"; // 需要安装这个包
 import { useQuery } from "@tanstack/react-query";
@@ -19,7 +19,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { DialogTrigger } from "@/components/ui/dialog";
 import { CustomerAdvancedSearch } from "./CustomerAdvancedSearch";
 import type { Customer } from "@/features/customers/types/customer";
 

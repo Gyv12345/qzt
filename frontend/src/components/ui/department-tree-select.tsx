@@ -176,17 +176,3 @@ function findDepartmentById(
   }
   return undefined;
 }
-
-function flattenDepartments(departments: Department[]): Department[] {
-  const result: Department[] = [];
-  function flatten(list: Department[]) {
-    for (const dept of list) {
-      result.push(dept);
-      if (dept.children) {
-        flatten(dept.children);
-      }
-    }
-  }
-  flatten(departments);
-  return result;
-}

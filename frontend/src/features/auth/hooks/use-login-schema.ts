@@ -5,7 +5,7 @@
  */
 
 import { useZodSchema, validators } from "@/hooks/use-zod-schema";
-import type { z } from "zod";
+import { z } from "zod";
 
 // 示例 1: 登录表单 Schema
 export function useLoginSchema() {
@@ -25,7 +25,7 @@ export function useLoginSchema() {
 // 示例 2: 客户表单 Schema（使用 validators 工厂）
 export function useCustomerFormSchema() {
   return useZodSchema((t) => ({
-    name: validators.requiredString(t, 1, 200),
+    name: validators.requiredString(t, 200),
     shortName: z
       .string()
       .max(100, { error: t("validation.string.max", { max: 100 }) })
@@ -42,7 +42,7 @@ export function useCustomerFormSchema() {
 // 示例 3: 联系人表单 Schema
 export function useContactFormSchema() {
   return useZodSchema((t) => ({
-    name: validators.requiredString(t, 1, 50),
+    name: validators.requiredString(t, 50),
     phone: validators.phone(t),
     email: validators.email(t).optional(),
     customerId: validators.cuid(t),

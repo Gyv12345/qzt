@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -41,8 +40,6 @@ export function CustomerAdvancedSearch({
   onOpenChange,
   onSelect,
 }: CustomerAdvancedSearchProps) {
-  const queryClient = useQueryClient();
-
   // 筛选条件
   const [filters, setFilters] = useState({
     name: "",
@@ -62,7 +59,12 @@ export function CustomerAdvancedSearch({
 
   // 构建查询参数
   const queryParams = useMemo(() => {
-    const params: any = {
+    const params: {
+      page: number;
+      pageSize: number;
+      name?: string;
+      customerLevel?: string;
+    } = {
       page: pagination.page,
       pageSize: pagination.pageSize,
     };

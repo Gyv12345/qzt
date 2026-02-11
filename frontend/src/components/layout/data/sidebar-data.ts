@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  Command,
   Building,
   BarChart3,
   UserCircle,
@@ -14,10 +13,8 @@ import {
   Archive,
   FileText,
   FileCheck,
-  Settings,
   FileSignature,
   Webhook,
-  FileCode,
   History,
   ClipboardList,
   Sliders,
