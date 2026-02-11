@@ -146,6 +146,15 @@ if systemctl is-active --quiet $REDIS_SERVICE 2>/dev/null; then
     print_success "Redis 已运行"
 else
     print_info "安装 Redis..."
+
+    # CentOS/RHEL 需要 EPEL
+    if [ "$PKG_MANAGER" = "yum" ] && [ "$OS" != "alinux" ]; then
+        if ! rpm -q epel-release &> /dev/null; then
+            print_info "安装 EPEL 仓库..."
+            yum install -y epel-release > /dev/null 2>&1 || true
+        fi
+    fi
+
     $INSTALL_CMD $REDIS_SERVICE
     systemctl enable $REDIS_SERVICE
     systemctl start $REDIS_SERVICE
