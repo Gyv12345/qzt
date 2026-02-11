@@ -293,8 +293,9 @@ echo "请选择 SSL 证书方式："
 echo "  1) 不启用 HTTPS - 仅 HTTP（开发测试）"
 echo "  2) 自签名证书 - 快速测试 HTTPS，浏览器会警告"
 echo "  3) 上传证书 - 你已有 .crt 和 .key 文件"
+echo "  4) Let's Encrypt - 自动申请免费证书（支持泛域名）"
 echo ""
-read -p "请选择 (1-3) [默认: 1]: " SSL_CHOICE
+read -p "请选择 (1-4) [默认: 1]: " SSL_CHOICE
 SSL_CHOICE=${SSL_CHOICE:-1}
 
 SSL_DIR="./scripts/deploy/ssl"
@@ -343,6 +344,184 @@ case $SSL_CHOICE in
             echo -e "${RED}✗ 证书格式错误，请检查${NC}"
             exit 1
         fi
+        ;;
+    4)
+        # Let's Encrypt
+        echo -e "${YELLOW}使用 Let's Encrypt 申请证书...${NC}"
+        echo ""
+
+        # 检查是否安装了 certbot
+        if ! command -v certbot &> /dev/null; then
+            echo -e "${YELLOW}安装 Certbot...${NC}"
+            apt-get update -qq && apt-get install -y certbot
+        fi
+
+        # 询问是否需要泛域名证书
+        echo ""
+        read -p "是否需要泛域名证书 (*.$DOMAIN_NAME)? [y/N]: " WILDCARD
+        WILDCARD=${WILDCARD:-n}
+
+        if [[ "$WILDCARD" =~ ^[Yy]$ ]]; then
+            # 泛域名证书 - DNS 验证
+            echo -e "${YELLOW}泛域名证书需要 DNS 验证${NC}"
+            echo ""
+            echo "请选择你的 DNS 服务商："
+            echo "  1) 阿里云"
+            echo "  2) 腾讯云"
+            echo "  3) Cloudflare"
+            echo "  4) 其他 (手动配置)"
+            echo ""
+            read -p "请选择 (1-4): " DNS_PROVIDER
+
+            case $DNS_PROVIDER in
+                1)
+                    # 阿里云
+                    echo -e "${YELLOW}阿里云 DNS 验证...${NC}"
+                    echo ""
+                    echo "请按以下步骤操作："
+                    echo "  1. 登录阿里云控制台 → DNS → DNS 解析设置"
+                    echo "  2. 找到域名 $DOMAIN_NAME"
+                    echo "  3. 添加 TXT 记录："
+                    echo "     主机记录: _acme-challenge"
+                    echo "     记录值: <certbot 将显示>"
+                    echo ""
+                    read -p "按 Enter 添加 TXT 记录后，再次按 Enter 继续..."
+
+                    certbot certonly --manual --preferred-challenges dns \
+                        -d "*.$DOMAIN_NAME" -d "$DOMAIN_NAME" \
+                        --email "admin@$DOMAIN_NAME" \
+                        --agree-tos --no-eff-email \
+                        --manual-public-ip-logging-ok
+
+                    # 复制证书到项目目录
+                    if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ]; then
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" "$SSL_DIR/cert.pem"
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem" "$SSL_DIR/key.pem"
+                        chmod 600 "$SSL_DIR/key.pem"
+                        chmod 644 "$SSL_DIR/cert.pem"
+                        ENABLE_HTTPS="true"
+                        SSL_CERT_PATH="$SSL_DIR/cert.pem"
+                        SSL_KEY_PATH="$SSL_DIR/key.pem"
+                        echo -e "${GREEN}✓ 证书已复制到项目目录${NC}"
+                    fi
+                    ;;
+                2)
+                    # 腾讯云
+                    echo -e "${YELLOW}腾讯云 DNS 验证...${NC}"
+                    certbot certonly --manual --preferred-challenges dns \
+                        --dns-dnspod \
+                        -d "*.$DOMAIN_NAME" -d "$DOMAIN_NAME" \
+                        --email "admin@$DOMAIN_NAME" \
+                        --agree-tos --no-eff-email \
+                        --manual-public-ip-logging-ok
+
+                    if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ]; then
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" "$SSL_DIR/cert.pem"
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem" "$SSL_DIR/key.pem"
+                        chmod 600 "$SSL_DIR/key.pem"
+                        chmod 644 "$SSL_DIR/cert.pem"
+                        ENABLE_HTTPS="true"
+                        SSL_CERT_PATH="$SSL_DIR/cert.pem"
+                        SSL_KEY_PATH="$SSL_DIR/key.pem"
+                        echo -e "${GREEN}✓ 证书已复制到项目目录${NC}"
+                    fi
+                    ;;
+                3)
+                    # Cloudflare
+                    echo -e "${YELLOW}Cloudflare DNS 验证...${NC}"
+                    echo "请先安装 Cloudflare 插件:"
+                    echo "  pip install certbot-dns-cloudflare"
+                    echo ""
+                    echo "然后创建 API Token 并保存到 /root/.secrets/certbot-cloudflare.ini"
+                    read -p "配置完成后按 Enter 继续..."
+
+                    certbot certonly --manual --preferred-challenges dns \
+                        --dns-cloudflare \
+                        --dns-cloudflare-credentials /root/.secrets/certbot-cloudflare.ini \
+                        -d "*.$DOMAIN_NAME" -d "$DOMAIN_NAME" \
+                        --email "admin@$DOMAIN_NAME" \
+                        --agree-tos --no-eff-email \
+                        --manual-public-ip-logging-ok
+
+                    if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ]; then
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" "$SSL_DIR/cert.pem"
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem" "$SSL_DIR/key.pem"
+                        chmod 600 "$SSL_DIR/key.pem"
+                        chmod 644 "$SSL_DIR/cert.pem"
+                        ENABLE_HTTPS="true"
+                        SSL_CERT_PATH="$SSL_DIR/cert.pem"
+                        SSL_KEY_PATH="$SSL_DIR/key.pem"
+                        echo -e "${GREEN}✓ 证书已复制到项目目录${NC}"
+                    fi
+                    ;;
+                4)
+                    # 手动 DNS 验证
+                    echo -e "${YELLOW}手动 DNS 验证模式${NC}"
+                    certbot certonly --manual --preferred-challenges dns \
+                        -d "*.$DOMAIN_NAME" -d "$DOMAIN_NAME" \
+                        --email "admin@$DOMAIN_NAME" \
+                        --agree-tos --no-eff-email \
+                        --manual-public-ip-logging-ok
+
+                    if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ]; then
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" "$SSL_DIR/cert.pem"
+                        cp "/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem" "$SSL_DIR/key.pem"
+                        chmod 600 "$SSL_DIR/key.pem"
+                        chmod 644 "$SSL_DIR/cert.pem"
+                        ENABLE_HTTPS="true"
+                        SSL_CERT_PATH="$SSL_DIR/cert.pem"
+                        SSL_KEY_PATH="$SSL_DIR/key.pem"
+                        echo -e "${GREEN}✓ 证书已复制到项目目录${NC}"
+                    fi
+                    ;;
+            esac
+
+            # 配置自动续期
+            echo ""
+            echo -e "${YELLOW}配置证书自动续期...${NC}"
+            (crontab -l 2>/dev/null; echo "0 0,12 * * * certbot renew --quiet && cp /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem $SSL_DIR/cert.pem && cp /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem $SSL_DIR/key.pem && docker compose -f scripts/deploy/$COMPOSE_FILE restart frontend") | crontab -
+            echo -e "${GREEN}✓ 自动续期已配置 (每天 00:00 和 12:00)${NC}"
+        else
+            # 单域名证书 - HTTP 验证
+            echo -e "${YELLOW}单域名证书 (HTTP 验证)...${NC}"
+
+            # 临时启动 nginx 用于验证
+            mkdir -p /var/www/certbot
+            docker compose -f scripts/deploy/$COMPOSE_FILE up -d frontend
+            sleep 3
+
+            certbot certonly --webroot \
+                --webroot-path=/var/www/certbot \
+                -d "$DOMAIN_NAME" \
+                -d "www.$DOMAIN_NAME" \
+                -d "admin.$DOMAIN_NAME" \
+                --email "admin@$DOMAIN_NAME" \
+                --agree-tos --no-eff-email
+
+            if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ]; then
+                cp "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" "$SSL_DIR/cert.pem"
+                cp "/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem" "$SSL_DIR/key.pem"
+                chmod 600 "$SSL_DIR/key.pem"
+                chmod 644 "$SSL_DIR/cert.pem"
+                ENABLE_HTTPS="true"
+                SSL_CERT_PATH="$SSL_DIR/cert.pem"
+                SSL_KEY_PATH="$SSL_DIR/key.pem"
+                echo -e "${GREEN}✓ 证书已复制到项目目录${NC}"
+            fi
+
+            # 配置自动续期
+            echo ""
+            echo -e "${YELLOW}配置证书自动续期...${NC}"
+            (crontab -l 2>/dev/null; echo "0 0,12 * * * certbot renew --quiet && cp /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem $SSL_DIR/cert.pem && cp /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem $SSL_DIR/key.pem && docker compose -f scripts/deploy/$COMPOSE_FILE restart frontend") | crontab -
+            echo -e "${GREEN}✓ 自动续期已配置 (每天 00:00 和 12:00)${NC}"
+        fi
+        ;;
+    *)
+        # 不启用 HTTPS
+        ENABLE_HTTPS="false"
+        echo -e "${YELLOW}不启用 HTTPS，仅使用 HTTP${NC}"
+        ;;
+esac
         ;;
     *)
         # 不启用 HTTPS
