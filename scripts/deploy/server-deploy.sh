@@ -102,14 +102,14 @@ EOF
 # 不复制 lockfile，让服务器根据 package.json 重新生成
 # 这样可以避免 workspace lockfile 与子项目 package.json 不匹配的问题
 
-# 安装生产依赖（从根目录，确保 workspace 正确）
+# 安装所有依赖（包括 devDependencies，因为 prisma 是开发依赖）
 cd "$QZT_DIR"
-pnpm install --prod --no-frozen-lockfile
+pnpm install --no-frozen-lockfile
 
 # 切换到后端目录
 cd "$QZT_DIR/backend"
 
-# 生成 Prisma Client
+# 生成 Prisma Client（使用项目中的 prisma）
 npx prisma generate
 
 # 同步数据库结构（生产环境）
