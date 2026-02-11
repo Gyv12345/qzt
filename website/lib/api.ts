@@ -149,13 +149,18 @@ export async function getPageElements(params?: {
 }
 
 // 根据 slug 获取页面元素
-export async function getPageElement(slug: string): Promise<CmsContent> {
-  const res = await fetch(`${API_BASE_URL}/public/cms/page-elements/${slug}`, {
-    next: { revalidate: 3600 },
-  });
+export async function getPageElement(slug: string): Promise<CmsContent | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/cms/page-elements/${slug}`, {
+      next: { revalidate: 3600 },
+    });
 
-  if (!res.ok) return null as any; // 允许返回 null，组件可以处理
-  return res.json();
+    if (!res.ok) return null; // 允许返回 null，组件可以处理
+    return res.json();
+  } catch {
+    // 构建时后端可能不可用，返回 null 让组件使用默认内容
+    return null;
+  }
 }
 
 // 获取所有标签
@@ -199,15 +204,20 @@ export interface CmsPage {
 
 // 根据 slug 获取页面
 export async function getPageBySlug(slug: string): Promise<CmsPage | null> {
-  const res = await fetch(`${API_BASE_URL}/public/cms/pages/${slug}`, {
-    next: { revalidate: 3600 },
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/cms/pages/${slug}`, {
+      next: { revalidate: 3600 },
+    });
 
-  if (!res.ok) return null;
+    if (!res.ok) return null;
 
-  const json = await res.json();
-  // 后端响应格式：{ success, data }
-  return json.data || null;
+    const json = await res.json();
+    // 后端响应格式：{ success, data }
+    return json.data || null;
+  } catch {
+    // 构建时后端可能不可用，返回 null 让组件使用默认内容
+    return null;
+  }
 }
 
 // ==================== 产品 API ====================
