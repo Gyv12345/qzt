@@ -50,6 +50,8 @@ jobs:
         run: |
           cd packages/shared-types
           pnpm build
+          # 验证构建产物
+          ls -la dist/
 
       # ============================================
       # 构建后端
@@ -90,10 +92,17 @@ jobs:
           cp backend/package.json artifact/backend/
           # 不复制 lockfile，让服务器根据 package.json 重新生成
           cp backend/.env.production.template artifact/backend/
+
           # 共享类型包（workspace 依赖）
-          mkdir -p artifact/packages
-          cp -r packages/shared-types/dist artifact/packages/shared-types/
-          cp packages/shared-types/package.json artifact/packages/shared-types/
+          if [ -d packages/shared-types/dist ]; then
+            mkdir -p artifact/packages/shared-types
+            cp -r packages/shared-types/dist artifact/packages/shared-types/
+            cp packages/shared-types/package.json artifact/packages/shared-types/
+            echo "✓ shared-types 已打包"
+          else
+            echo "✗ shared-types/dist 不存在，跳过"
+            exit 1
+          fi
 
           # 前端产物
           mkdir -p artifact/frontend
