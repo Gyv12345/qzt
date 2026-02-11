@@ -87,7 +87,9 @@ jobs:
           mkdir -p artifact/backend
           cp -r backend/dist artifact/backend/
           cp -r backend/prisma artifact/backend/
-          cp backend/package.json backend/pnpm-lock.yaml artifact/backend/
+          cp backend/package.json artifact/backend/
+          # pnpm-lock.yaml 在根目录（workspace 模式）
+          cp pnpm-lock.yaml artifact/backend/
           cp backend/.env.production.template artifact/backend/
 
           # 前端产物
