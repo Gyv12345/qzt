@@ -4,7 +4,7 @@
 # ============================================
 # 阶段 1: 依赖安装
 # ============================================
-FROM node:22-alpine AS deps
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS deps
 
 # 安装 pnpm
 RUN npm install -g pnpm@latest
@@ -20,7 +20,7 @@ RUN pnpm install --frozen-lockfile --prod=false
 # ============================================
 # 阶段 2: 构建
 # ============================================
-FROM node:22-alpine AS builder
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS builder
 
 RUN npm install -g pnpm@latest
 
@@ -40,7 +40,7 @@ RUN pnpm build
 # ============================================
 # 阶段 3: 运行时镜像
 # ============================================
-FROM node:22-alpine AS runner
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS runner
 
 WORKDIR /app
 

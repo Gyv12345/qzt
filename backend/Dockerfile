@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Dependencies
 # ==========================================
-FROM node:22-alpine AS deps
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS deps
 
 RUN apk add --no-cache libc6-compat openssl
 

@@ -1,5 +1,5 @@
 # 多阶段构建 - 第一阶段：构建
-FROM node:22-alpine AS builder
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS builder
 
 # 设置工作目录
 WORKDIR /app
