@@ -12,7 +12,7 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-QZT_DIR="/opt/qzt"
+QZT_DIR="/opt/qzt/qzt"
 DEPLOY_DIR="/opt/qzt-deploy"
 BACKUP_DIR="/opt/qzt-backup"
 
