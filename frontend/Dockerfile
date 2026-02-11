@@ -7,17 +7,17 @@ WORKDIR /app
 # 安装 pnpm
 RUN npm install -g pnpm@latest
 
-# 复制依赖文件
-COPY package.json pnpm-lock.yaml ./
+# 复制依赖文件（context 是项目根目录）
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
 
 # 安装依赖（使用 pnpm 的 --frozen-lockfile 确保依赖一致性）
 RUN pnpm install --frozen-lockfile
 
 # 复制项目文件
-COPY . .
+COPY frontend/ .
 
 # 复制 workspace 共享包
-COPY ../packages/shared-types ./packages/shared-types
+COPY packages/shared-types ../packages/shared-types
 
 # 构建项目
 RUN pnpm build
@@ -35,7 +35,7 @@ RUN apk add --no-cache tzdata && \
 RUN rm /etc/nginx/conf.d/default.conf
 
 # 复制自定义 nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/
+COPY frontend/nginx.conf /etc/nginx/conf.d/
 
 # 从构建阶段复制构建产物到 nginx 目录
 COPY --from=builder /app/dist /usr/share/nginx/html

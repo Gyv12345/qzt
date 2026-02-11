@@ -26,7 +26,7 @@ RUN pnpm install --frozen-lockfile
 # ==========================================
 # Stage 2: Build shared-types
 # ==========================================
-FROM node:22-alpine AS shared-types-builder
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS shared-types-builder
 
 WORKDIR /app
 
@@ -48,7 +48,7 @@ RUN pnpm build
 # ==========================================
 # Stage 3: Build Backend
 # ==========================================
-FROM node:22-alpine AS builder
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS builder
 
 WORKDIR /app
 
@@ -82,7 +82,7 @@ RUN pnpm build
 # ==========================================
 # Stage 4: Runner
 # ==========================================
-FROM node:22-alpine AS runner
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS runner
 
 WORKDIR /app
 

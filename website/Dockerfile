@@ -11,8 +11,8 @@ RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
-# 复制 package 文件
-COPY package.json pnpm-lock.yaml* ./
+# 复制 package 文件（context 是项目根目录）
+COPY website/package.json website/pnpm-lock.yaml* ./
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile --prod=false
@@ -28,7 +28,7 @@ WORKDIR /app
 
 # 复制依赖
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY website/ .
 
 # 设置构建时环境变量
 ENV NEXT_TELEMETRY_DISABLED=1
