@@ -338,10 +338,8 @@ fi
 # 生成其他配置
 # ============================================
 
-# 生成 Redis 密码
-if [ -z "$REDIS_PASSWORD" ]; then
-    REDIS_PASSWORD=$(openssl rand -hex 16 2>/dev/null || echo "redis_$(date +%s)")
-fi
+# 生成 Redis 密码（无论 RDS 还是本地 MySQL 都需要）
+REDIS_PASSWORD=$(openssl rand -hex 16 2>/dev/null || echo "redis_$(date +%s)")
 
 # 生成 JWT 密钥
 if [ -z "$JWT_SECRET" ]; then
