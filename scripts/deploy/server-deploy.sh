@@ -104,7 +104,7 @@ EOF
 
 # 安装所有依赖（包括 devDependencies，因为 prisma 是开发依赖）
 cd "$QZT_DIR"
-pnpm install --no-frozen-lockfile
+CI=true pnpm install --no-frozen-lockfile
 
 # 切换到后端目录
 cd "$QZT_DIR/backend"
