@@ -77,32 +77,42 @@ export async function getPublishedContents(params?: {
   keyword?: string;
   tagId?: string;
 }): Promise<PaginatedResponse<CmsContent>> {
-  const queryParams = new URLSearchParams();
-  if (params?.contentType) queryParams.set("contentType", params.contentType);
-  if (params?.page) queryParams.set("page", params.page.toString());
-  if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
-  if (params?.keyword) queryParams.set("keyword", params.keyword);
-  if (params?.tagId) queryParams.set("tagId", params.tagId);
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.contentType) queryParams.set("contentType", params.contentType);
+    if (params?.page) queryParams.set("page", params.page.toString());
+    if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
+    if (params?.keyword) queryParams.set("keyword", params.keyword);
+    if (params?.tagId) queryParams.set("tagId", params.tagId);
 
-  const res = await fetch(
-    `${API_BASE_URL}/public/cms/contents?${queryParams}`,
-    {
-      next: { revalidate: 3600 }, // ISR: 每小时重新生成
-    }
-  );
+    const res = await fetch(
+      `${API_BASE_URL}/public/cms/contents?${queryParams}`,
+      {
+        next: { revalidate: 3600 }, // ISR: 每小时重新生成
+      }
+    );
 
-  if (!res.ok) throw new Error("Failed to fetch contents");
-  return res.json();
+    if (!res.ok) throw new Error("Failed to fetch contents");
+    return res.json();
+  } catch {
+    // 构建时后端可能不可用，返回空数据
+    return { data: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+  }
 }
 
 // 根据 slug 获取内容详情
 export async function getContentBySlug(slug: string): Promise<CmsContent> {
-  const res = await fetch(`${API_BASE_URL}/public/cms/contents/${slug}`, {
-    next: { revalidate: 3600 },
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/cms/contents/${slug}`, {
+      next: { revalidate: 3600 },
+    });
 
-  if (!res.ok) throw new Error("Content not found");
-  return res.json();
+    if (!res.ok) throw new Error("Content not found");
+    return res.json();
+  } catch {
+    // 构建时后端可能不可用，抛出错误让页面处理
+    throw new Error("Content not found");
+  }
 }
 
 // 便捷函数：获取文章
@@ -167,12 +177,17 @@ export async function getPageElement(slug: string): Promise<CmsContent | null> {
 export async function getTags(): Promise<
   Array<{ id: string; name: string; color?: string }>
 > {
-  const res = await fetch(`${API_BASE_URL}/public/cms/tags`, {
-    next: { revalidate: 86400 }, // 标签变更较少，缓存 24 小时
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/cms/tags`, {
+      next: { revalidate: 86400 }, // 标签变更较少，缓存 24 小时
+    });
 
-  if (!res.ok) throw new Error("Failed to fetch tags");
-  return res.json();
+    if (!res.ok) throw new Error("Failed to fetch tags");
+    return res.json();
+  } catch {
+    // 构建时后端可能不可用，返回空数组
+    return [];
+  }
 }
 
 // ==================== 页面管理 API ====================
@@ -260,26 +275,36 @@ export async function getCrProducts(params?: {
   pageSize?: number;
   keyword?: string;
 }): Promise<PaginatedResponse<Product>> {
-  const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.set("page", params.page.toString());
-  if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
-  if (params?.keyword) queryParams.set("keyword", params.keyword);
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.set("page", params.page.toString());
+    if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
+    if (params?.keyword) queryParams.set("keyword", params.keyword);
 
-  const res = await fetch(
-    `${API_BASE_URL}/public/products?${queryParams}`,
-    { next: { revalidate: 7200 } } // 产品缓存 2 小时
-  );
+    const res = await fetch(
+      `${API_BASE_URL}/public/products?${queryParams}`,
+      { next: { revalidate: 7200 } } // 产品缓存 2 小时
+    );
 
-  if (!res.ok) throw new Error("Failed to fetch products");
-  return res.json();
+    if (!res.ok) throw new Error("Failed to fetch products");
+    return res.json();
+  } catch {
+    // 构建时后端可能不可用，返回空数据
+    return { data: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+  }
 }
 
 // 根据 code 获取产品详情
 export async function getProductByCode(code: string): Promise<Product> {
-  const res = await fetch(`${API_BASE_URL}/public/products/${code}`, {
-    next: { revalidate: 7200 },
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/products/${code}`, {
+      next: { revalidate: 7200 },
+    });
 
-  if (!res.ok) throw new Error("Product not found");
-  return res.json();
+    if (!res.ok) throw new Error("Product not found");
+    return res.json();
+  } catch {
+    // 构建时后端可能不可用，抛出错误让页面处理
+    throw new Error("Product not found");
+  }
 }
