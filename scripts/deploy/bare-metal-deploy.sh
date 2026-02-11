@@ -90,7 +90,7 @@ fi
 
 if [ "$INSTALL_NODE" = true ]; then
     print_info "下载 Node.js 20..."
-    NODE_VERSION="20.18.2"
+    NODE_VERSION="22.14.0"
     ARCH=$(uname -m)
     if [ "$ARCH" = "x86_64" ]; then
         ARCH_SUFFIX="x64"

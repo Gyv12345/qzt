@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Dependencies
 # ==========================================
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 RUN apk add --no-cache libc6-compat openssl
 
@@ -26,7 +26,7 @@ RUN pnpm install --frozen-lockfile
 # ==========================================
 # Stage 2: Build shared-types
 # ==========================================
-FROM node:20-alpine AS shared-types-builder
+FROM node:22-alpine AS shared-types-builder
 
 WORKDIR /app
 
@@ -48,7 +48,7 @@ RUN pnpm build
 # ==========================================
 # Stage 3: Build Backend
 # ==========================================
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -82,7 +82,7 @@ RUN pnpm build
 # ==========================================
 # Stage 4: Runner
 # ==========================================
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
