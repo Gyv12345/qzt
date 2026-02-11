@@ -44,6 +44,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # ============================================
+      # 构建共享类型包
+      # ============================================
+      - name: Build Shared Types
+        run: |
+          cd packages/shared-types
+          pnpm build
+
+      # ============================================
       # 构建后端
       # ============================================
       - name: Build Backend
