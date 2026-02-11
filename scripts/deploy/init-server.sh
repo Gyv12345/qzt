@@ -9,11 +9,16 @@
 # - 指引用户选择部署方式
 #
 # 使用方法：
-#   方式1（交互式）: curl -fsSL ... -o init.sh && bash init.sh
-#   方式2（快速）  : bash <(curl -fsSL ...)
+#   bash init-server.sh [选项]
+#
+# 选项：
+#   -h, --help     显示帮助信息
+#   -y, --yes      自动确认（非交互模式）
+#   --skip-git      跳过 Git 安装
+#   --skip-download  跳过项目下载
 # ============================================================
 
-set -e
+set -euo pipefail
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -32,6 +37,70 @@ print_header() {
     echo -e "${CYAN}========================================${NC}"
     echo ""
 }
+
+# ============================================
+# ============================================
+# 显示帮助
+# ============================================
+show_help() {
+    cat << EOF
+${CYAN}企智通 QZT - 服务器初始化脚本${NC}
+
+${YELLOW}用法:${NC}
+    bash init-server.sh [选项]
+
+${YELLOW}选项:${NC}
+    -h, --help       显示此帮助信息
+    -y, --yes        自动确认所有提示（非交互模式）
+    --skip-git        跳过 Git 安装
+    --skip-download    跳过项目下载
+
+${YELLOW}示例:${NC}
+    bash init-server.sh              # 交互式安装
+    bash init-server.sh -y           # 自动确认安装
+    bash init-server.sh --skip-git    # 跳过 Git 安装
+
+${YELLOW}支持的系统:${NC}
+    Ubuntu 20.04+, Debian 11+, CentOS 7+, RHEL 8+, Fedora 35+
+
+${YELLOW}下一步:${NC}
+    安装完成后，选择部署方式（裸机/Docker）
+
+EOF
+}
+
+# ============================================
+# 解析参数
+# ============================================
+AUTO_YES=false
+SKIP_GIT=false
+SKIP_DOWNLOAD=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -y|--yes)
+            AUTO_YES=true
+            shift
+            ;;
+        --skip-git)
+            SKIP_GIT=true
+            shift
+            ;;
+        --skip-download)
+            SKIP_DOWNLOAD=true
+            shift
+            ;;
+        *)
+            echo "未知选项: $1"
+            echo "使用 --help 查看帮助"
+            exit 1
+            ;;
+    esac
+done
 
 # ============================================
 # 检查 root
@@ -84,7 +153,9 @@ fi
 # ============================================
 print_header "1/2 安装 Git"
 
-if command -v git &> /dev/null; then
+if [ "$SKIP_GIT" = true ]; then
+    print_info "跳过 Git 安装 (--skip-git)"
+elif command -v git &> /dev/null; then
     print_success "Git 已安装: $(git --version)"
 else
     print_info "正在安装 Git..."
@@ -101,21 +172,39 @@ print_header "2/2 下载项目"
 mkdir -p /opt/qzt
 cd /opt/qzt
 
-if [ -d "/opt/qzt/qzt" ]; then
+if [ "$SKIP_DOWNLOAD" = true ]; then
+    print_info "跳过项目下载 (--skip-download)"
+    if [ -d "/opt/qzt/qzt" ]; then
+        cd /opt/qzt/qzt
+    else
+        print_error "项目目录不存在，不能跳过下载"
+        exit 1
+    fi
+elif [ -d "/opt/qzt/qzt" ]; then
     print_warning "项目目录已存在: /opt/qzt/qzt"
     echo ""
     echo "  1) 更新项目 (git pull)"
     echo "  2) 删除并重新下载"
     echo "  3) 使用现有项目（不更新）"
     echo ""
-    read -p "请选择 [1/2/3, 默认: 1]: " RE_DOWNLOAD
-    RE_DOWNLOAD=${RE_DOWNLOAD:-1}
+
+    if [ "$AUTO_YES" = true ]; then
+        RE_DOWNLOAD=1
+        print_info "自动选择: 更新项目"
+    else
+        read -p "请选择 [1/2/3, 默认: 1]: " RE_DOWNLOAD
+        RE_DOWNLOAD=${RE_DOWNLOAD:-1}
+    fi
 
     case "$RE_DOWNLOAD" in
         1)
             print_info "正在更新项目..."
             cd /opt/qzt/qzt
-            git pull origin main
+            git pull origin main 2>/dev/null || {
+                print_error "Git pull 失败，尝试使用 fetch + reset"
+                git fetch origin
+                git reset --hard origin/main
+            }
             print_success "项目已更新"
             ;;
         2)
@@ -130,7 +219,12 @@ fi
 
 if [ ! -d "/opt/qzt/qzt" ]; then
     print_info "正在下载项目..."
-    git clone https://github.com/Gyv12345/qzt.git
+    print_info "源: https://github.com/Gyv12345/qzt.git"
+    git clone https://github.com/Gyv12345/qzt.git --progress || {
+        print_error "Git clone 失败"
+        print_info "解决方案: 检查网络连接或 GitHub 访问"
+        exit 1
+    }
     print_success "项目已下载到: /opt/qzt/qzt"
 fi
 
@@ -152,21 +246,31 @@ echo "     - 安装: Docker, Docker Compose"
 echo "     - 适合: 快速部署，环境隔离，易于维护"
 echo ""
 
-read -p "请选择 (1/2): " DEPLOY_MODE
+if [ "$AUTO_YES" = true ]; then
+    DEPLOY_MODE=2
+    print_info "自动选择: Docker 部署"
+else
+    read -p "请选择 (1/2, 默认: 2): " DEPLOY_MODE
+    DEPLOY_MODE=${DEPLOY_MODE:-2}
+fi
 
 case "$DEPLOY_MODE" in
     1)
         echo ""
         print_info "即将执行裸机部署..."
         echo ""
-        read -p "按 Enter 键继续，或 Ctrl+C 取消..."
+        if [ "$AUTO_YES" = false ]; then
+            read -p "按 Enter 键继续，或 Ctrl+C 取消..."
+        fi
         bash scripts/deploy/bare-metal-deploy.sh
         ;;
     2)
         echo ""
         print_info "即将执行 Docker 部署..."
         echo ""
-        read -p "按 Enter 键继续，或 Ctrl+C 取消..."
+        if [ "$AUTO_YES" = false ]; then
+            read -p "按 Enter 键继续，或 Ctrl+C 取消..."
+        fi
         bash scripts/deploy/docker-deploy.sh
         ;;
     *)

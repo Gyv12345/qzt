@@ -8,7 +8,7 @@
 # 3. Let's Encrypt - 支持泛域名证书 *.domain.com (DNS验证)
 # ============================================================
 
-set -e
+set -euo pipefail
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -26,6 +26,83 @@ print_header() {
     echo -e "${CYAN}   $1${NC}"
     echo -e "${CYAN}========================================${NC}"
     echo ""
+}
+
+# ============================================
+# 证书验证函数
+# ============================================
+verify_certificate() {
+    local cert_file="$1"
+    local key_file="$2"
+    local domain="$3"
+
+    print_info "验证证书..."
+
+    # 1. 验证证书格式是否有效
+    if ! openssl x509 -in "$cert_file" -noout >/dev/null 2>&1; then
+        print_error "证书格式无效或已损坏"
+        return 1
+    fi
+    print_success "证书格式有效"
+
+    # 2. 验证私钥格式是否有效
+    if ! openssl rsa -in "$key_file" -check -noout >/dev/null 2>&1; then
+        print_error "私钥格式无效或已损坏"
+        return 1
+    fi
+    print_success "私钥格式有效"
+
+    # 3. 验证私钥与证书是否匹配
+    local cert_mod=$(openssl x509 -noout -modulus -in "$cert_file" 2>/dev/null | openssl md5 | awk '{print $2}')
+    local key_mod=$(openssl rsa -noout -modulus -in "$key_file" 2>/dev/null | openssl md5 | awk '{print $2}')
+
+    if [ "$cert_mod" != "$key_mod" ]; then
+        print_error "私钥与证书不匹配"
+        return 1
+    fi
+    print_success "私钥与证书匹配"
+
+    # 4. 验证证书有效期（至少还有 30 天有效）
+    if ! openssl x509 -in "$cert_file" -checkend 2592000 -noout >/dev/null 2>&1; then
+        print_warning "证书将在 30 天内过期，请考虑更新"
+    else
+        print_success "证书有效期正常"
+    fi
+
+    # 5. 验证证书域名（支持泛域名）
+    local cert_cn=$(openssl x509 -in "$cert_file" -noout -subject | sed 's/.*CN=\([^/]*\).*/\1/' | sed 's/^\*\.//')
+    local cert_san=$(openssl x509 -in "$cert_file" -noout -text | grep -A1 "Subject Alternative Name" | tail -1 | sed 's/DNS://g' | tr ',' '\n' | xargs)
+
+    # 检查域名是否匹配（支持通配符）
+    local domain_matched=false
+    local base_domain=$(echo "$domain" | sed 's/^*\.//')
+
+    # 检查 CN
+    if [[ "$cert_cn" == "*.$base_domain" ]] || [[ "$cert_cn" == "$domain" ]] || [[ "$cert_cn" == "$base_domain" ]]; then
+        domain_matched=true
+    fi
+
+    # 检查 SAN
+    if [ "$domain_matched" = false ] && [ -n "$cert_san" ]; then
+        for san in $cert_san; do
+            san_clean=$(echo "$san" | sed 's/^\*\.//' | xargs)
+            if [[ "$san_clean" == "$domain" ]] || [[ "$san_clean" == "$base_domain" ]] || [[ "$san" == "*.$base_domain" ]]; then
+                domain_matched=true
+                break
+            fi
+        done
+    fi
+
+    if [ "$domain_matched" = false ]; then
+        print_warning "证书域名 ($cert_cn) 与配置域名 ($domain) 可能不匹配"
+        print_info "证书 SAN: $cert_san"
+        read -p "是否继续? [y/N]: " CONTINUE
+        [[ ! "$CONTINUE" =~ ^[Yy]$ ]] && return 1
+    else
+        print_success "证书域名匹配"
+    fi
+
+    return 0
 }
 
 # 获取主域名
@@ -74,13 +151,15 @@ case $CHOICE in
         echo "  (粘贴后按回车，然后输入 Ctrl+D 结束)"
         cat > "$CERT_DIR/key.pem"
 
-        # 验证
-        if openssl x509 -in "$CERT_DIR/cert.pem" -noout >/dev/null 2>&1; then
+        # 使用增强验证函数
+        if verify_certificate "$CERT_DIR/cert.pem" "$CERT_DIR/key.pem" "$DOMAIN"; then
             chmod 600 "$CERT_DIR/key.pem"
             chmod 644 "$CERT_DIR/cert.pem"
-            print_success "证书格式正确，已保存"
+            # 确保证书目录权限安全
+            chmod 700 "$CERT_DIR"
+            print_success "证书验证通过，已保存"
         else
-            print_error "证书格式错误，请检查"
+            print_error "证书验证失败"
             rm -f "$CERT_DIR/cert.pem" "$CERT_DIR/key.pem"
             exit 1
         fi
@@ -145,10 +224,8 @@ case $CHOICE in
                     echo ""
                     read -p "按 Enter 添加 TXT 记录后，再次按 Enter 继续..."
 
-                    # 申请证书
+                    # 申请证书（阿里云手动 DNS 验证）
                     certbot certonly --manual --preferred-challenges dns \
-                        --dns-cloudflare \
-                        --dns-cloudflare-credentials /root/.secrets/certbot-cloudflare.ini \
                         -d "*.$DOMAIN" -d "$DOMAIN" \
                         --email "admin@$DOMAIN" \
                         --agree-tos --no-eff-email \

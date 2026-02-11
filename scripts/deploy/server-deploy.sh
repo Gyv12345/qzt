@@ -45,7 +45,54 @@ if [ ! -f "$QZT_DIR/backend/.env" ]; then
     exit 1
 fi
 
-source "$QZT_DIR/backend/.env"
+# ============================================
+# 安全读取环境变量（白名单模式，防止命令注入）
+# ============================================
+# 允许的环境变量白名单（仅大写字母、数字、下划线）
+ALLOWED_VARS=(
+    "DOMAIN_NAME"
+    "ADMIN_DOMAIN"
+    "DB_HOST"
+    "DB_PORT"
+    "DB_USERNAME"
+    "DB_PASSWORD"
+    "DB_DATABASE"
+    "REDIS_HOST"
+    "REDIS_PORT"
+    "REDIS_PASSWORD"
+    "JWT_SECRET"
+    "JWT_EXPIRES_IN"
+    "NODE_ENV"
+    "PORT"
+    "RDS_HOST"
+    "RDS_PORT"
+    "RDS_USERNAME"
+    "RDS_PASSWORD"
+    "RDS_DATABASE"
+)
+
+# 安全读取 .env 文件，仅加载白名单变量
+if [ -f "$QZT_DIR/backend/.env" ]; then
+    while IFS='=' read -r key value; do
+        # 跳过注释和空行
+        [[ "$key" =~ ^#.*$ ]] && continue
+        [[ -z "$key" ]] && continue
+        # 去除 key 的前后空格
+        key=$(echo "$key" | xargs)
+        # 验证 key 格式（仅允许大写字母、数字、下划线）
+        if [[ "$key" =~ ^[A-Z_][A-Z0-9_]*$ ]]; then
+            # 检查是否在白名单中
+            for allowed in "${ALLOWED_VARS[@]}"; do
+                if [ "$key" = "$allowed" ]; then
+                    # 去除 value 的引号和前后空格，然后导出
+                    value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed 's/^["\x27]//;s/["\x27]$//')
+                    export "$key=$value"
+                    break
+                fi
+            done
+        fi
+    done < "$QZT_DIR/backend/.env"
+fi
 
 # 检查必填项
 if [ -z "$DOMAIN_NAME" ] || [ -z "$ADMIN_DOMAIN" ]; then

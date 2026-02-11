@@ -8,9 +8,19 @@
 # - 根据配置自动分配资源
 # - 生成 .env 文件
 # - 一键启动所有服务
+#
+# 使用方法：
+#   bash docker-deploy.sh [选项]
+#
+# 选项：
+#   -h, --help       显示帮助信息
+#   -d, --dry-run     预览模式（不实际执行）
+#   -y, --yes         自动确认所有提示
+#   --use-rds         强制使用 RDS
+#   --no-rds          强制使用本地 MySQL
 # ============================================================
 
-set -e
+set -euo pipefail
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,6 +28,71 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 BLUE='\033[0;34m'
 NC='\033[0m'
+
+# 解析参数
+DRY_RUN=false
+AUTO_YES=false
+FORCE_RDS=""
+SKIP_CONFIG=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            cat << EOF
+${CYAN}企智通 QZT - Docker 部署脚本${NC}
+
+${YELLOW}用法:${NC}
+    bash docker-deploy.sh [选项]
+
+${YELLOW}选项:${NC}
+    -h, --help       显示此帮助信息
+    -d, --dry-run     预览模式（不实际执行部署）
+    -y, --yes         自动确认所有提示
+    --use-rds         强制使用 RDS 数据库
+    --no-rds          强制使用本地 MySQL 容器
+
+${YELLOW}示例:${NC}
+    bash docker-deploy.sh              # 交互式部署
+    bash docker-deploy.sh --dry-run     # 预览部署配置
+    bash docker-deploy.sh -y            # 自动确认部署
+    bash docker-deploy.sh --use-rds     # 使用 RDS
+
+${YELLOW}资源分配:${NC}
+    2C2G   (低配)  - 后端:512m 前端:128m 网站:256m
+    2C4G   (中配)  - 后端:1g   前端:256m 网站:512m
+    4C8G+  (高配)  - 后端:2g   前端:512m 网站:1g
+
+EOF
+            exit 0
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        -y|--yes)
+            AUTO_YES=true
+            shift
+            ;;
+        --use-rds)
+            FORCE_RDS=true
+            shift
+            ;;
+        --no-rds)
+            FORCE_RDS=false
+            shift
+            ;;
+        *)
+            echo "未知选项: $1"
+            echo "使用 --help 查看帮助"
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$DRY_RUN" = true ]; then
+    echo -e "${YELLOW}预览模式: 不会实际执行部署${NC}"
+    echo ""
+fi
 
 echo -e "${CYAN}========================================${NC}"
 echo -e "${CYAN}   企智通 QZT - Docker 部署${NC}"
@@ -522,13 +597,6 @@ case $SSL_CHOICE in
         echo -e "${YELLOW}不启用 HTTPS，仅使用 HTTP${NC}"
         ;;
 esac
-        ;;
-    *)
-        # 不启用 HTTPS
-        ENABLE_HTTPS="false"
-        echo -e "${YELLOW}不启用 HTTPS，仅使用 HTTP${NC}"
-        ;;
-esac
 
 # ============================================
 # 生成 .env 文件
@@ -715,10 +783,26 @@ echo "  删除服务: docker compose -f scripts/deploy/$COMPOSE_FILE down"
 echo ""
 
 if [ "$USE_RDS" = false ]; then
+    # 保存密码到安全文件
+    CREDENTIALS_DIR="./scripts/deploy/credentials"
+    mkdir -p "$CREDENTIALS_DIR"
+    CREDENTIALS_FILE="$CREDENTIALS_DIR/$(date +%Y%m%d_%H%M%S).txt"
+
+    cat > "$CREDENTIALS_FILE" << EOF
+# 企智通 QZT - 部署凭据
+# 生成时间: $(date)
+# 请妥善保管此文件，建议部署完成后删除或移动到安全位置
+
+MySQL root 密码: $MYSQL_ROOT_PASSWORD
+MySQL 用户密码: $DB_PASSWORD
+Redis 密码: $REDIS_PASSWORD
+EOF
+
+    chmod 600 "$CREDENTIALS_FILE"
+
     echo -e "${YELLOW}重要信息（请妥善保管）:${NC}"
-    echo "  MySQL root 密码: $MYSQL_ROOT_PASSWORD"
-    echo "  MySQL 用户密码: $DB_PASSWORD"
-    echo "  Redis 密码: $REDIS_PASSWORD"
+    echo "  凭据已保存到: $CREDENTIALS_FILE"
+    echo "  查看命令: cat $CREDENTIALS_FILE"
     echo ""
 fi
 
