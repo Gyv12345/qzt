@@ -2,7 +2,11 @@
 node_modules/
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# 只忽略子项目的 pnpm-lock.yaml，根目录的需要提交
+frontend/pnpm-lock.yaml
+backend/pnpm-lock.yaml
+website/pnpm-lock.yaml
+packages/*/pnpm-lock.yaml
 
 # Build
 dist/
