@@ -108,9 +108,12 @@ jobs:
 
           # 配置文件
           mkdir -p artifact/config
-          cp -r config/pm2 artifact/config/
-          cp -r config/logrotate artifact/config/
-          cp -r config/nginx artifact/config/
+          if [ -d config/pm2 ]; then
+            cp -r config/pm2 artifact/config/
+          fi
+          if [ -d config/logrotate ]; then
+            cp -r config/logrotate artifact/config/
+          fi
 
           # 服务器部署脚本
           cp scripts/deploy/server-deploy.sh artifact/
