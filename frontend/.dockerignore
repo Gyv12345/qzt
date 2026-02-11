@@ -1,0 +1,48 @@
+# 依赖目录
+node_modules
+.pnp
+.pnp.js
+
+# 构建产物
+dist
+build
+.tanstack
+
+# 测试
+coverage
+*.log
+tests
+playwright-report
+test-results
+
+# 开发文件
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.github
+
+# Docker
+Dockerfile
+.dockerignore
+nginx.conf
+
+# 文档
+*.md
+LICENSE
+netlify.toml
+
+# 缓存
+*.tsbuildinfo
+.eslintcache

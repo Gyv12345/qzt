@@ -1,7 +1,11 @@
 #!/bin/bash
 # ============================================================
-# 服务器初始化脚本（只需运行一次）
+# 企智通 QZT - 服务器初始化脚本（一键安装）
 # 支持: Ubuntu/Debian, CentOS/RHEL/AlmaLinux/Rocky, Fedora, Alibaba Cloud Linux
+#
+# 功能：
+# - 安装所有必要环境（git, node.js, pnpm, docker）
+# - 支持裸机部署和 Docker 部署两种模式
 # ============================================================
 
 set -e
@@ -10,23 +14,65 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${CYAN}========================================${NC}"
-echo -e "${CYAN}   企智通 QZT - 服务器初始化${NC}"
-echo -e "${CYAN}========================================${NC}"
+# 打印带颜色的消息
+print_info() { echo -e "${CYAN}[INFO]${NC} $1"; }
+print_success() { echo -e "${GREEN}[✓]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[!]${NC} $1"; }
+print_error() { echo -e "${RED}[✗]${NC} $1"; }
+print_header() {
+    echo ""
+    echo -e "${CYAN}========================================${NC}"
+    echo -e "${CYAN}   $1${NC}"
+    echo -e "${CYAN}========================================${NC}"
+    echo ""
+}
+
+# ============================================
+# 欢迎信息
+# ============================================
+clear
+print_header "企智通 QZT - 服务器初始化"
+
+echo -e "${YELLOW}此脚本将安装以下环境：${NC}"
+echo "  • Git (版本控制)"
+echo "  • Node.js 20 (运行时)"
+echo "  • pnpm (包管理器)"
+echo "  • Docker & Docker Compose (容器化)"
 echo ""
+echo -e "${YELLOW}请选择部署模式：${NC}"
+echo "  1) 裸机部署 - 使用 PM2 + Nginx 直接运行"
+echo "  2) Docker 部署 - 使用 Docker 容器运行 (推荐)"
+echo ""
+read -p "请选择 (1/2) [默认: 2]: " DEPLOY_MODE
+DEPLOY_MODE=${DEPLOY_MODE:-2}
+
+if [ "$DEPLOY_MODE" = "1" ]; then
+    print_info "选择裸机部署模式"
+    NEED_NGINX="true"
+    NEED_PM2="true"
+    NEED_REDIS="true"
+else
+    print_info "选择 Docker 部署模式"
+    NEED_DOCKER="true"
+    NEED_NGINX="false"
+    NEED_PM2="false"
+    NEED_REDIS="false"
+fi
 
 # 检查 root
 if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}请使用 root 用户或 sudo 运行${NC}"
+    print_error "请使用 root 用户或 sudo 运行"
+    echo "运行命令: sudo bash $0"
     exit 1
 fi
 
 # ============================================
 # 检测 Linux 发行版
 # ============================================
-echo -e "${YELLOW}检测系统类型...${NC}"
+print_header "1/7 检测系统类型"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -37,11 +83,11 @@ elif [ -f /etc/redhat-release ]; then
 elif [ -f /etc/debian_version ]; then
     OS="debian"
 else
-    echo -e "${RED}无法检测系统类型${NC}"
+    print_error "无法检测系统类型"
     exit 1
 fi
 
-echo -e "${GREEN}检测到系统: $OS $OS_VERSION${NC}"
+print_success "检测到系统: $OS $OS_VERSION"
 
 # 包管理器选择
 if [[ "$OS" =~ ^(ubuntu|debian)$ ]]; then
@@ -60,126 +106,224 @@ elif [ "$OS" = "fedora" ]; then
     INSTALL_CMD="dnf install -y"
     NGINX_SERVICE="nginx"
 else
-    echo -e "${RED}不支持的系统: $OS${NC}"
+    print_error "不支持的系统: $OS"
     exit 1
 fi
 
 # ============================================
-# 1. 安装基础工具
+# 更新系统并安装基础工具
 # ============================================
-echo -e "${YELLOW}[1/5] 安装基础工具...${NC}"
+print_header "2/7 安装基础工具"
 
-$UPDATE_CMD
-$INSTALL_CMD curl wget git vim build-essential software-properties-common ca-certificates gnupg lsb-release 2>/dev/null || \
-$INSTALL_CMD curl wget git vim make gcc ca-certificates gnupg
+print_info "更新软件包列表..."
+$UPDATE_CMD > /dev/null 2>&1
 
-echo -e "${GREEN}✓ 基础工具安装完成${NC}"
+print_info "安装基础工具 (curl, wget, git, vim, ca-certificates)..."
 
-# ============================================
-# 2. 安装 Node.js 20
-# ============================================
-echo -e "${YELLOW}[2/5] 安装 Node.js 20...${NC}"
+# 安装基础工具
+$INSTALL_CMD curl wget git vim ca-certificates gnupg lsb-release > /dev/null 2>&1
 
-if command -v node &> /dev/null && [ "$(node -v | cut -d'.' -f1)" = "v20" ]; then
-    echo -e "${GREEN}Node.js 20 已安装: $(node -v)${NC}"
+# 根据系统类型安装编译工具（可能需要）
+if [ "$PKG_MANAGER" = "apt" ]; then
+    $INSTALL_CMD build-essential software-properties-common > /dev/null 2>&1 || true
 else
-    # 使用国内镜像下载
-    NODE_VERSION="20.11.1"
-    echo -e "${CYAN}从淘宝镜像下载 Node.js...${NC}"
-    curl -fsSL https://npmmirror.com/mirrors/node/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz -o /tmp/node.tar.xz
+    $INSTALL_CMD make gcc gcc-c++ > /dev/null 2>&1 || true
+fi
+
+print_success "基础工具安装完成"
+echo "  • Git: $(git --version 2>/dev/null | head -1)"
+echo "  • Vim: $(vim --version | head -1)"
+echo "  • Curl: $(curl --version | head -1)"
+
+# ============================================
+# 安装 Node.js 20
+# ============================================
+print_header "3/7 安装 Node.js 20"
+
+if command -v node &> /dev/null; then
+    NODE_VERSION=$(node -v)
+    NODE_MAJOR=$(node -v | cut -d'.' -f1 | sed 's/v//')
+    if [ "$NODE_MAJOR" = "20" ]; then
+        print_success "Node.js 20 已安装: $NODE_VERSION"
+    else
+        print_warning "检测到 Node.js $NODE_VERSION，将安装 Node.js 20"
+        INSTALL_NODE=true
+    fi
+else
+    INSTALL_NODE=true
+fi
+
+if [ "$INSTALL_NODE" = true ]; then
+    print_info "从淘宝镜像下载 Node.js 20..."
+    NODE_VERSION="20.18.2"
 
     # 检测系统架构
     ARCH=$(uname -m)
-    if [ "$ARCH" != "x86_64" ] && [ "$ARCH" != "aarch64" ]; then
-        echo -e "${RED}不支持的架构: $ARCH${NC}"
+    if [ "$ARCH" = "x86_64" ]; then
+        ARCH_SUFFIX="x64"
+    elif [ "$ARCH" = "aarch64" ]; then
+        ARCH_SUFFIX="arm64"
+    else
+        print_error "不支持的架构: $ARCH"
         exit 1
     fi
 
+    # 下载并解压
+    curl -fsSL "https://npmmirror.com/mirrors/node/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH_SUFFIX}.tar.xz" -o /tmp/node.tar.xz
     tar -xf /tmp/node.tar.xz -C /usr/local --strip-components=1
     rm -f /tmp/node.tar.xz
 
     # 配置 npm 国内镜像
     npm config set registry https://registry.npmmirror.com
 
-    echo -e "${GREEN}✓ Node.js $(node -v) 安装完成${NC}"
+    print_success "Node.js $(node -v) 安装完成"
 fi
 
-# 安装 pnpm 和 PM2
+# 安装 pnpm
 if ! command -v pnpm &> /dev/null; then
+    print_info "安装 pnpm..."
     corepack enable
     corepack prepare pnpm@latest --activate
-fi
-
-if ! command -v pm2 &> /dev/null; then
-    npm install -g pm2
-fi
-
-echo -e "${GREEN}✓ pnpm $(pnpm -v), PM2 $(pm2 -v)${NC}"
-
-# ============================================
-# 3. 安装 Redis
-# ============================================
-echo -e "${YELLOW}[3/5] 安装 Redis...${NC}"
-
-if systemctl is-active --quiet redis-server 2>/dev/null || \
-   systemctl is-active --quiet redis 2>/dev/null; then
-    echo -e "${GREEN}Redis 已运行${NC}"
+    print_success "pnpm $(pnpm -v) 安装完成"
 else
-    if [ "$PKG_MANAGER" = "apt" ]; then
-        $INSTALL_CMD redis-server
-        systemctl enable redis-server
-        systemctl start redis-server
+    print_success "pnpm $(pnpm -v) 已安装"
+fi
+
+# 裸机部署需要 PM2
+if [ "$NEED_PM2" = "true" ]; then
+    if ! command -v pm2 &> /dev/null; then
+        print_info "安装 PM2..."
+        npm install -g pm2 > /dev/null 2>&1
+        print_success "PM2 $(pm2 -v) 安装完成"
     else
-        $INSTALL_CMD redis
-        systemctl enable redis
-        systemctl start redis
+        print_success "PM2 $(pm2 -v) 已安装"
     fi
-    echo -e "${GREEN}✓ Redis 安装完成${NC}"
 fi
 
-# 生成 Redis 密码并保存
-REDIS_PASSWORD_FILE="/root/.redis_password"
-if [ ! -f "$REDIS_PASSWORD_FILE" ]; then
-    openssl rand -hex 16 > "$REDIS_PASSWORD_FILE"
-    chmod 600 "$REDIS_PASSWORD_FILE"
-    echo -e "${GREEN}✓ Redis 密码已生成${NC}"
-fi
-REDIS_PASSWORD=$(cat "$REDIS_PASSWORD_FILE")
-
 # ============================================
-# 4. 安装 Nginx
+# 安装 Docker (Docker 部署模式)
 # ============================================
-echo -e "${YELLOW}[4/5] 安装 Nginx...${NC}"
+if [ "$NEED_DOCKER" = "true" ]; then
+    print_header "4/7 安装 Docker"
 
-if systemctl is-active --quiet nginx 2>/dev/null || \
-   systemctl is-active --quiet $NGINX_SERVICE 2>/dev/null; then
-    echo -e "${GREEN}Nginx 已运行${NC}"
-else
-    if [ "$PKG_MANAGER" = "apt" ]; then
-        $INSTALL_CMD nginx
+    if command -v docker &> /dev/null; then
+        print_success "Docker $(docker --version | head -1) 已安装"
     else
-        # alinux 系统已有 EPEL (epel-aliyuncs-release)，跳过安装
-        # 其他系统需要安装 EPEL
-        if [ "$OS" != "alinux" ]; then
-            if ! rpm -q epel-release &> /dev/null; then
-                if [ "$OS" = "centos" ] || [ "$OS" = "rhel" ]; then
-                    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
-                else
-                    $INSTALL_CMD epel-release
+        print_info "安装 Docker..."
+
+        if [ "$PKG_MANAGER" = "apt" ]; then
+            # Ubuntu/Debian
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
+            # 更新并安装
+            apt-get update > /dev/null 2>&1
+            $INSTALL_CMD docker-ce docker-ce-cli containerd.io docker-compose-plugin > /dev/null 2>&1
+
+        elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
+            # CentOS/RHEL/Fedora
+            yum install -y yum-utils > /dev/null 2>&1
+            yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
+            $INSTALL_CMD docker-ce docker-ce-cli containerd.io docker-compose-plugin > /dev/null 2>&1
+        fi
+
+        # 启动 Docker
+        systemctl start docker
+        systemctl enable docker > /dev/null 2>&1
+
+        print_success "Docker $(docker --version | head -1) 安装完成"
+        print_success "Docker Compose $(docker compose version) 安装完成"
+    fi
+
+    # 配置 Docker 镜像加速（国内用户）
+    print_info "配置 Docker 镜像加速..."
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json << 'EOF'
+{
+  "registry-mirrors": [
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com",
+    "https://mirror.ccs.tencentyun.com"
+  ],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+    systemctl daemon-reload > /dev/null 2>&1
+    systemctl restart docker > /dev/null 2>&1
+    print_success "Docker 镜像加速配置完成"
+fi
+
+# ============================================
+# 安装 Redis (裸机部署模式)
+# ============================================
+if [ "$NEED_REDIS" = "true" ]; then
+    print_header "5/7 安装 Redis"
+
+    if systemctl is-active --quiet redis-server 2>/dev/null || \
+       systemctl is-active --quiet redis 2>/dev/null; then
+        print_success "Redis 已运行"
+    else
+        print_info "安装 Redis..."
+        if [ "$PKG_MANAGER" = "apt" ]; then
+            $INSTALL_CMD redis-server > /dev/null 2>&1
+            systemctl enable redis-server > /dev/null 2>&1
+            systemctl start redis-server > /dev/null 2>&1
+        else
+            $INSTALL_CMD redis > /dev/null 2>&1
+            systemctl enable redis > /dev/null 2>&1
+            systemctl start redis > /dev/null 2>&1
+        fi
+        print_success "Redis 安装完成"
+    fi
+
+    # 生成 Redis 密码
+    REDIS_PASSWORD_FILE="/root/.redis_password"
+    if [ ! -f "$REDIS_PASSWORD_FILE" ]; then
+        openssl rand -hex 16 > "$REDIS_PASSWORD_FILE" 2>/dev/null || echo "change_redis_password" > "$REDIS_PASSWORD_FILE"
+        chmod 600 "$REDIS_PASSWORD_FILE"
+    fi
+    REDIS_PASSWORD=$(cat "$REDIS_PASSWORD_FILE")
+    print_success "Redis 密码已生成并保存"
+fi
+
+# ============================================
+# 安装 Nginx (裸机部署模式)
+# ============================================
+if [ "$NEED_NGINX" = "true" ]; then
+    print_header "6/7 安装 Nginx"
+
+    if systemctl is-active --quiet nginx 2>/dev/null || \
+       systemctl is-active --quiet $NGINX_SERVICE 2>/dev/null; then
+        print_success "Nginx 已运行"
+    else
+        print_info "安装 Nginx..."
+
+        if [ "$PKG_MANAGER" = "apt" ]; then
+            $INSTALL_CMD nginx > /dev/null 2>&1
+        else
+            # 安装 EPEL
+            if [ "$OS" != "alinux" ]; then
+                if ! rpm -q epel-release &> /dev/null; then
+                    if [ "$OS" = "centos" ] || [ "$OS" = "rhel" ]; then
+                        yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm > /dev/null 2>&1
+                    else
+                        $INSTALL_CMD epel-release > /dev/null 2>&1
+                    fi
                 fi
             fi
+            $INSTALL_CMD nginx > /dev/null 2>&1
         fi
-        $INSTALL_CMD nginx
-    fi
 
-    systemctl enable nginx 2>/dev/null || systemctl enable $NGINX_SERVICE
-    systemctl start nginx 2>/dev/null || systemctl start $NGINX_SERVICE
-    echo -e "${GREEN}✓ Nginx 安装完成${NC}"
-fi
+        systemctl enable nginx > /dev/null 2>&1
+        systemctl start nginx > /dev/null 2>&1
 
-# 创建 SSL 配置
-mkdir -p /etc/nginx/conf.d 2>/dev/null || mkdir -p /etc/nginx/conf.d
-cat > /etc/nginx/conf.d/ssl.conf << 'EOF'
+        # 创建 SSL 配置
+        mkdir -p /etc/nginx/conf.d 2>/dev/null || true
+        cat > /etc/nginx/conf.d/ssl.conf << 'EOF'
 ssl_session_timeout 1d;
 ssl_session_cache shared:SSL:10m;
 ssl_protocols TLSv1.2 TLSv1.3;
@@ -187,381 +331,128 @@ ssl_ciphers HIGH:!aNULL:!MD5;
 add_header Strict-Transport-Security "max-age=63072000" always;
 EOF
 
+        print_success "Nginx 安装完成"
+    fi
+fi
+
 # ============================================
-# 5. 配置防火墙
+# 配置防火墙
 # ============================================
-echo -e "${YELLOW}[5/5] 配置防火墙...${NC}"
+print_header "7/7 配置防火墙"
 
 if command -v ufw &> /dev/null; then
-    # Ubuntu/Debian 使用 ufw
-    ufw --force reset
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw allow 22/tcp
-    ufw allow 80/tcp
-    ufw allow 443/tcp
-    ufw --force enable
-    echo -e "${GREEN}✓ UFW 防火墙配置完成${NC}"
-elif command -v firewall-cmd &> /dev/null; then
-    # CentOS/RHEL 使用 firewalld
-    if ! systemctl is-active --quiet firewalld; then
-        systemctl start firewalld
-        systemctl enable firewalld
+    print_info "配置 UFW 防火墙..."
+    ufw --force reset > /dev/null 2>&1
+    ufw default deny incoming > /dev/null 2>&1
+    ufw default allow outgoing > /dev/null 2>&1
+    ufw allow 22/tcp > /dev/null 2>&1
+    ufw allow 80/tcp > /dev/null 2>&1
+    ufw allow 443/tcp > /dev/null 2>&1
+    if [ "$NEED_DOCKER" = "true" ]; then
+        ufw allow 7890/tcp > /dev/null 2>&1  # Backend API
+        ufw allow 5180/tcp > /dev/null 2>&1  # Website
     fi
-    firewall-cmd --permanent --add-service=ssh
-    firewall-cmd --permanent --add-service=http
-    firewall-cmd --permanent --add-service=https
-    firewall-cmd --reload
-    echo -e "${GREEN}✓ Firewalld 防火墙配置完成${NC}"
+    ufw --force enable > /dev/null 2>&1
+    print_success "UFW 防火墙配置完成"
+elif command -v firewall-cmd &> /dev/null; then
+    print_info "配置 Firewalld 防火墙..."
+    if ! systemctl is-active --quiet firewalld; then
+        systemctl start firewalld > /dev/null 2>&1
+        systemctl enable firewalld > /dev/null 2>&1
+    fi
+    firewall-cmd --permanent --add-service=ssh > /dev/null 2>&1
+    firewall-cmd --permanent --add-service=http > /dev/null 2>&1
+    firewall-cmd --permanent --add-service=https > /dev/null 2>&1
+    if [ "$NEED_DOCKER" = "true" ]; then
+        firewall-cmd --permanent --add-port=7890/tcp > /dev/null 2>&1
+        firewall-cmd --permanent --add-port=5180/tcp > /dev/null 2>&1
+    fi
+    firewall-cmd --reload > /dev/null 2>&1
+    print_success "Firewalld 防火墙配置完成"
 else
-    echo -e "${YELLOW}未检测到防火墙，请手动配置${NC}"
+    print_warning "未检测到防火墙，请手动配置"
 fi
 
 # ============================================
 # 创建目录结构
-# ============================================
-echo -e "${YELLOW}创建目录结构...${NC}"
-
+# ==========================================
 mkdir -p /opt/qzt/{backend,frontend,website}
 mkdir -p /var/www/qzt
 mkdir -p /opt/qzt-backup
-mkdir -p /opt/qzt-deploy/scripts
-
-echo -e "${GREEN}✓ 目录创建完成${NC}"
+print_success "目录结构创建完成"
 
 # ============================================
-# 生成 SSH 密钥（用于 GitHub Actions 部署）
-# ============================================
-echo -e "${YELLOW}配置 SSH 密钥...${NC}"
+# 生成密钥和配置
+# ==========================================
 
-SSH_KEY_TYPE=""
-if [ ! -f ~/.ssh/id_ed25519 ]; then
-    ssh-keygen -t ed25519 -C "qzt-server" -N "" -f ~/.ssh/id_ed25519 2>/dev/null
-    SSH_KEY_TYPE="ed25519"
-    echo -e "${GREEN}✓ SSH 密钥已生成${NC}"
-elif [ ! -f ~/.ssh/id_rsa ]; then
-    ssh-keygen -t rsa -b 4096 -C "qzt-server" -N "" -f ~/.ssh/id_rsa 2>/dev/null
-    SSH_KEY_TYPE="rsa"
-    echo -e "${GREEN}✓ SSH 密钥已生成${NC}"
-else
-    echo -e "${GREEN}✓ SSH 密钥已存在${NC}"
-    SSH_KEY_TYPE="existing"
+# 生成 JWT 密钥
+JWT_SECRET=$(openssl rand -hex 32 2>/dev/null || echo "change_jwt_secret")
+
+# 获取服务器 IP
+SERVER_IP=$(curl -s4 ifconfig.me 2>/dev/null || curl -s4 ip.sb 2>/dev/null || echo "你的服务器IP")
+
+# ============================================
+# 完成信息
+# ==========================================
+print_header "✓ 初始化完成"
+
+echo -e "${CYAN}已安装组件：${NC}"
+echo "  • Git: $(git --version | head -1)"
+echo "  • Node.js: $(node -v)"
+echo "  • pnpm: $(pnpm -v)"
+if [ "$NEED_PM2" = "true" ]; then
+    echo "  • PM2: $(pm2 -v)"
 fi
-
-# 显示配置指引
-echo ""
-echo -e "${CYAN}========================================${NC}"
-echo -e "${CYAN}   GitHub Actions 配置步骤${NC}"
-echo -e "${CYAN}========================================${NC}"
-echo ""
-echo -e "${YELLOW}步骤 1/2: 添加公钥到 GitHub Deploy Keys${NC}"
-echo ""
-echo "  1. 打开: https://github.com/Gyv12345/qzt/settings/keys"
-echo "  2. 点击 \"Add deploy key\""
-echo "  3. 填写以下信息："
-echo ""
-echo "     Title: qzt-server (任意名称，用于标识)"
-echo "     Key:  （粘贴下面完整的公钥内容）"
-echo ""
-
-if [ -f ~/.ssh/id_ed25519.pub ]; then
-    cat ~/.ssh/id_ed25519.pub
-    PRIVATE_KEY_FILE="id_ed25519"
-else
-    cat ~/.ssh/id_rsa.pub
-    PRIVATE_KEY_FILE="id_rsa"
+if [ "$NEED_DOCKER" = "true" ]; then
+    echo "  • Docker: $(docker --version | head -1)"
+    echo "  • Docker Compose: $(docker compose version)"
+fi
+if [ "$NEED_REDIS" = "true" ]; then
+    echo "  • Redis: 已安装"
+    echo "  • Redis 密码: $(cat /root/.redis_password)"
+fi
+if [ "$NEED_NGINX" = "true" ]; then
+    echo "  • Nginx: $(nginx -v 2>&1 | head -1)"
 fi
 
 echo ""
-echo "  4. 勾选 \"Allow write access\"（允许部署写入）"
-echo "  5. 点击 \"Add key\""
-echo ""
-echo -e "${YELLOW}步骤 2/2: 配置 GitHub Actions Secrets${NC}"
-echo ""
-echo "  在仓库 Settings → Secrets and variables → Actions 添加："
-echo ""
-echo "  名称                    值"
-echo "  ───────────────────────────────────────────────"
-echo "  SERVER_HOST             $(curl -s ifconfig.me || echo '你的服务器IP')"
-echo "  SERVER_USER             root"
-echo "  SSH_PRIVATE_KEY         $(echo "~/.ssh/$PRIVATE_KEY_FILE")"
-echo "  SSH_PORT                22"
-echo ""
-echo "  获取私钥命令：cat ~/.ssh/$PRIVATE_KEY_FILE"
-echo ""
-
-# ============================================
-# 创建环境变量模板
-# ============================================
-echo -e "${YELLOW}创建环境变量模板...${NC}"
-
-ENV_FILE="/opt/qzt/backend/.env"
-if [ -f "$ENV_FILE" ]; then
-    # 自动备份现有环境变量文件
-    BACKUP_FILE="${ENV_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
-    cp "$ENV_FILE" "$BACKUP_FILE"
-    echo -e "${YELLOW}⚠ 环境变量文件已存在，已备份到: $BACKUP_FILE${NC}"
-    CREATE_ENV=1
-else
-    CREATE_ENV=1
+if [ "$NEED_REDIS" = "true" ]; then
+    echo -e "${CYAN}重要信息：${NC}"
+    echo "  • Redis 密码已保存到: /root/.redis_password"
 fi
-
-if [ "$CREATE_ENV" = "1" ]; then
-    mkdir -p /opt/qzt/backend
-    JWT_SECRET=$(openssl rand -hex 32)
-    cat > "$ENV_FILE" << EOF
-# ============================================
-# 企智通 QZT - 环境变量配置
-# ============================================
-# 说明：Redis 密码和 JWT 密钥已自动生成，无需修改
-# 只需填写数据库信息和域名即可
-
-# === 数据库配置（必填，分参数配置）===
-# 数据库会在首次部署时自动创建（确保用户有 CREATE 权限）
-DATABASE_PROVIDER=mysql
-DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
-DB_PORT=3306
-DB_USERNAME=你的数据库用户名
-DB_PASSWORD=你的数据库密码
-DB_DATABASE=数据库名
-
-# 连接池参数（可选，适配 2C2G RDS）
-# 直接拼接在连接字符串中，参数：connection_limit=20&pool_timeout=30
-
-# === Redis 配置（已自动生成）===
-REDIS_ENABLED=true
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_PASSWORD=$REDIS_PASSWORD
-
-# === JWT 配置（已自动生成）===
-# 如需重新生成，运行: openssl rand -hex 32
-JWT_SECRET=$JWT_SECRET
-
-# === 域名配置（必填）===
-DOMAIN_NAME=yourdomain.com
-ADMIN_DOMAIN=admin.yourdomain.com
-
-# === PM2 集群（2C4G 推荐启用）===
-PM2_CLUSTER_ENABLED=true
-
-# === 可选配置（OSS 文件上传）===
-OSS_REGION=oss-cn-hangzhou
-OSS_ACCESS_KEY_ID=
-OSS_ACCESS_KEY_SECRET=
-OSS_BUCKET=
-
-# === e签宝（可选）===
-ESIGN_APP_ID=
-ESIGN_APP_SECRET=
-EOF
-    echo -e "${GREEN}✓ 环境变量模板已创建${NC}"
-fi
-
-# ============================================
-# 保存 SSL 配置脚本到服务器
-# ============================================
-echo -e "${YELLOW}保存 SSL 配置脚本...${NC}"
-
-# 创建 SSL 配置脚本目录
-mkdir -p /opt/qzt/scripts
-
-# 保存 SSL 配置脚本
-cat > /opt/qzt/scripts/setup-ssl.sh << 'SSLEOF'
-#!/bin/bash
-# ============================================================
-# SSL 证书配置脚本
-# ============================================================
-
-set -e
-
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
-# 读取域名
-source /opt/qzt/backend/.env 2>/dev/null || true
-DOMAIN="${DOMAIN_NAME:-}"
-
-if [ -z "$DOMAIN" ] || [ "$DOMAIN" = "yourdomain.com" ]; then
-    echo -e "${RED}✗ 请先在 /opt/qzt/backend/.env 中配置 DOMAIN_NAME${NC}"
-    exit 1
-fi
-
-CERT_DIR="/etc/nginx/ssl/$DOMAIN"
-mkdir -p "$CERT_DIR"
-
 echo ""
-echo -e "${CYAN}========================================${NC}"
-echo -e "${CYAN}   SSL 证书配置 - $DOMAIN${NC}"
-echo -e "${CYAN}========================================${NC}"
-echo ""
-echo -e "${YELLOW}请选择证书方式：${NC}"
-echo "  1) 自签名证书 - 适合快速测试，浏览器会警告"
-echo "  2) 上传证书 - 你已有 .crt 和 .key 文件"
-echo "  3) Let's Encrypt - 需要域名已解析到服务器"
-echo ""
-read -p "请选择 (1-3): " CHOICE
 
-case $CHOICE in
-    1)
-        echo -e "${YELLOW}生成自签名证书...${NC}"
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-            -keyout "$CERT_DIR/key.pem" \
-            -out "$CERT_DIR/cert.pem" \
-            -subj "/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=$DOMAIN"
-
-        chmod 600 "$CERT_DIR/key.pem"
-        chmod 644 "$CERT_DIR/cert.pem"
-        echo -e "${GREEN}✓ 自签名证书已生成${NC}"
-        echo -e "${CYAN}证书路径: $CERT_DIR${NC}"
-        echo -e "${YELLOW}⚠️ 浏览器会显示安全警告，这是正常的${NC}"
-        ;;
-
-    2)
-        echo ""
-        echo -e "${YELLOW}请粘贴证书内容 (.crt/.pem 文件内容):${NC}"
-        echo "  (粘贴后按回车，然后输入 Ctrl+D 结束)"
-        cat > "$CERT_DIR/cert.pem"
-
-        echo ""
-        echo -e "${YELLOW}请粘贴私钥内容 (.key 文件内容):${NC}"
-        echo "  (粘贴后按回车，然后输入 Ctrl+D 结束)"
-        cat > "$CERT_DIR/key.pem"
-
-        chmod 600 "$CERT_DIR/key.pem"
-        chmod 644 "$CERT_DIR/cert.pem"
-
-        # 验证
-        if openssl x509 -in "$CERT_DIR/cert.pem" -noout >/dev/null 2>&1; then
-            echo -e "${GREEN}✓ 证书格式正确${NC}"
-        else
-            echo -e "${RED}✗ 证书格式错误，请检查${NC}"
-            rm -f "$CERT_DIR/cert.pem" "$CERT_DIR/key.pem"
-            exit 1
-        fi
-        echo -e "${GREEN}✓ 证书已保存到: $CERT_DIR${NC}"
-        ;;
-
-    3)
-        echo -e "${YELLOW}使用 Let's Encrypt...${NC}"
-        echo -e "${YELLOW}确保域名已正确解析到当前服务器${NC}"
-        echo ""
-
-        # 检测包管理器并安装 certbot
-        if command -v apt-get >/dev/null 2>&1; then
-            apt-get install -y certbot
-        elif command -v yum >/dev/null 2>&1; then
-            yum install -y certbot python3-certbot-nginx
-        else
-            echo -e "${RED}✗ 无法安装 certbot${NC}"
-            exit 1
-        fi
-
-        # 创建临时 Nginx 配置用于验证
-        echo -e "${YELLOW}配置临时 Nginx 用于域名验证...${NC}"
-        mkdir -p /var/www/certbot
-
-        # 为每个域名创建临时配置
-        for d in "$DOMAIN" "www.$DOMAIN" "admin.$DOMAIN"; do
-            cat > "/etc/nginx/conf.d/${d}.conf" << NGINXEOF
-server {
-    listen 80;
-    server_name $d;
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    location / {
-        return 200 "Temporary page for Let's Encrypt validation";
-        add_header Content-Type text/plain;
-    }
-}
-NGINXEOF
-        done
-
-        # 测试并重载 Nginx
-        nginx -t >/dev/null 2>&1 && systemctl reload nginx || {
-            echo -e "${RED}✗ Nginx 配置错误${NC}"
-            exit 1
-        }
-
-        echo -e "${GREEN}✓ Nginx 已配置，开始申请证书...${NC}"
-
-        # HTTP 验证
-        certbot certonly --webroot \
-            --webroot-path=/var/www/certbot \
-            --email "admin@$DOMAIN" \
-            --agree-tos \
-            --no-eff-email \
-            -d "$DOMAIN" \
-            -d "www.$DOMAIN" \
-            -d "admin.$DOMAIN" && {
-            ln -sf "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$CERT_DIR/cert.pem"
-            ln -sf "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$CERT_DIR/key.pem"
-            echo -e "${GREEN}✓ Let's Encrypt 证书已获取${NC}"
-            echo -e "${CYAN}证书路径: $CERT_DIR${NC}"
-
-            # 清理临时配置
-            rm -f /etc/nginx/conf.d/$DOMAIN.conf /etc/nginx/conf.d/www.$DOMAIN.conf /etc/nginx/conf.d/admin.$DOMAIN.conf
-            nginx -t >/dev/null 2>&1 && systemctl reload nginx || true
-        } || {
-            echo -e "${RED}✗ 证书获取失败${NC}"
-            echo -e "${YELLOW}请检查：${NC}"
-            echo "  1. 域名是否正确解析到服务器: $(curl -s ifconfig.me)"
-            echo "  2. 防火墙是否开放 80 端口"
-            echo "  3. 域名解析是否已生效（可能需要等待几分钟）"
-            echo ""
-            echo -e "${YELLOW}测试域名解析：${NC}"
-            for d in "$DOMAIN" "www.$DOMAIN" "admin.$DOMAIN"; do
-                echo "  nslookup $d"
-            done
-            exit 1
-        }
-        ;;
-esac
-
-echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}✓ SSL 证书配置完成${NC}"
-echo -e "${GREEN}========================================${NC}"
-SSLEOF
-
-chmod +x /opt/qzt/scripts/setup-ssl.sh
-echo -e "${GREEN}✓ SSL 配置脚本已保存: /opt/qzt/scripts/setup-ssl.sh${NC}"
-
-# ============================================
-# 完成
-# ============================================
-echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}✓ 服务器初始化完成${NC}"
-echo -e "${GREEN}========================================${NC}"
-echo ""
-echo -e "${CYAN}系统信息：${NC}"
-echo "  OS: $OS $OS_VERSION"
-echo "  Node.js: $(node -v)"
-echo "  pnpm: $(pnpm -v)"
-echo "  PM2: $(pm2 -v)"
-echo "  Redis: $(redis-cli --version 2>/dev/null | head -1 || echo '已安装')"
-echo "  Nginx: $(nginx -v 2>&1)"
-echo ""
 echo -e "${YELLOW}下一步：${NC}"
 echo ""
-echo -e "${CYAN}1. 编辑环境变量，填写数据库和域名：${NC}"
-echo "   vim /opt/qzt/backend/.env"
+
+if [ "$DEPLOY_MODE" = "2" ]; then
+    # Docker 部署模式
+    echo -e "${GREEN}🐳 Docker 部署模式${NC}"
+    echo ""
+    echo -e "${CYAN}下一步操作：${NC}"
+    echo ""
+    echo "  1. 克隆项目:"
+    echo "     git clone https://github.com/Gyv12345/qzt.git"
+    echo "     cd qzt"
+    echo ""
+    echo "  2. 运行部署脚本:"
+    echo "     bash scripts/deploy/docker-deploy.sh"
+    echo ""
+    echo -e "${YELLOW}提示：${NC}部署脚本会自动检测服务器配置并分配资源"
+else
+    # 裸机部署模式
+    echo -e "${GREEN}⚙️ 裸机部署模式${NC}"
+    echo ""
+    echo -e "${CYAN}下一步操作：${NC}"
+    echo ""
+    echo "  1. 编辑环境变量:"
+    echo "     vim /opt/qzt/backend/.env"
+    echo ""
+    echo "  2. 部署代码"
+    echo ""
+    echo -e "${YELLOW}提示：${NC}裸机部署需要手动配置 PM2 和 Nginx"
+fi
+
 echo ""
-echo -e "${CYAN}2. 配置 SSL 证书（部署前必须配置）：${NC}"
-echo "   bash /opt/qzt/scripts/setup-ssl.sh"
-echo "   支持三种方式：自签名证书、上传证书、Let's Encrypt"
-echo ""
-echo -e "${CYAN}3. 完成 GitHub 配置（上面已显示详细步骤）：${NC}"
-echo "   - 添加公钥到 GitHub Deploy Keys"
-echo "   - 配置 GitHub Actions Secrets"
-echo ""
-echo -e "${CYAN}4. 推送代码触发部署：${NC}"
-echo "   git push origin main"
+print_success "初始化脚本执行完成！"
 echo ""

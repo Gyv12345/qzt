@@ -383,7 +383,33 @@ bash /opt/qzt/scripts/deploy/setup-ssl.sh
 git push origin main
 ```
 
-#### 部署文档
+#### 部署方式
+
+| 方式 | 说明 | 推荐场景 |
+|------|------|----------|
+| **Docker 部署** | 使用 Docker Compose 一键部署 | ✅ 推荐：快速部署、环境一致 |
+| **裸机部署** | 传统方式，直接在服务器安装依赖 | 生产环境、已有服务器 |
+
+#### Docker 部署（推荐）
+
+```bash
+# 克隆项目
+git clone https://github.com/Gyv12345/qzt.git
+cd qzt
+
+# 一键部署（交互式脚本）
+bash scripts/deploy/docker-deploy.sh
+```
+
+**Docker 部署优势**：
+- 🐳 环境隔离，避免依赖冲突
+- 🚀 一键部署，自动检测配置分配资源
+- 🔄 支持 RDS 或本地数据库两种模式
+- 📦 多阶段构建，镜像体积小
+
+详细文档：[DEPLOY.DOCKER.md](./DEPLOY.DOCKER.md)
+
+#### 裸机部署
 
 | 文档 | 说明 |
 |------|------|

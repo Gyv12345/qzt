@@ -109,13 +109,13 @@ CI=true pnpm install --no-frozen-lockfile
 # 切换到后端目录
 cd "$QZT_DIR/backend"
 
-# 生成 Prisma Client（使用项目中的 prisma）
-npx prisma generate
+# 生成 Prisma Client（使用 pnpm exec 确保使用项目版本）
+pnpm exec prisma generate
 
 # 同步数据库结构（生产环境）
 # prisma db push 会自动检测变更，仅在有变化时执行
 echo -e "${CYAN}同步数据库结构...${NC}"
-npx prisma db push --skip-generate || {
+pnpm exec prisma db push --skip-generate || {
     echo -e "${YELLOW}⚠ 数据库同步失败，请检查 RDS 连接${NC}"
     echo -e "${YELLOW}继续部署（可能是无变更或暂时性问题）${NC}"
 }

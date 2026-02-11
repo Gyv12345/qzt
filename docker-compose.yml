@@ -1,0 +1,246 @@
+# ============================================================
+# 企智通 QZT - Docker Compose 编排配置
+# ============================================================
+# 说明：
+# - 适用于有本地数据库的场景
+# - 如需使用 RDS，请使用 docker-compose.rds.yml
+# - 资源限制标记为 ${RESOURCE_*}，由部署脚本自动替换
+# ============================================================
+
+services:
+  # ============================================
+  # 后端服务 (NestJS API)
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: qzt-backend
+    restart: unless-stopped
+    ports:
+      - "7890:7890"
+    environment:
+      NODE_ENV: production
+      PORT: 7890
+      # 数据库配置
+      DATABASE_PROVIDER: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: qzt_user
+      DB_PASSWORD: ${DB_PASSWORD:-qzt_password_change_me}
+      DB_DATABASE: qzt_db
+      # Redis 配置
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-qzt_redis_password_change_me}
+      # JWT 配置
+      JWT_SECRET: ${JWT_SECRET:-change-this-to-a-random-secret}
+      # 域名配置
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:-admin.localhost}
+    networks:
+      - qzt-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:7890/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # 资源限制（由部署脚本根据服务器配置自动调整）
+    deploy:
+      resources:
+        limits:
+          cpus: '${BACKEND_CPU_LIMIT:-1}'
+          memory: ${BACKEND_MEM_LIMIT:-1g}
+        reservations:
+          cpus: '${BACKEND_CPU_RESERVE:-0.25}'
+          memory: ${BACKEND_MEM_RESERVE:-256m}
+    volumes:
+      - backend-logs:/app/backend/logs
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # 前端服务 (React + Nginx)
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: qzt-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      # API 地址（容器内访问）
+      VITE_API_URL: http://backend:7890
+    networks:
+      - qzt-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '${FRONTEND_CPU_LIMIT:-0.5}'
+          memory: ${FRONTEND_MEM_LIMIT:-256m}
+        reservations:
+          cpus: '${FRONTEND_CPU_RESERVE:-0.1}'
+          memory: ${FRONTEND_MEM_RESERVE:-64m}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # 网站服务 (Next.js)
+  # ============================================
+  website:
+    build:
+      context: .
+      dockerfile: website/Dockerfile
+    container_name: qzt-website
+    restart: unless-stopped
+    ports:
+      - "5180:5180"
+    environment:
+      NODE_ENV: production
+      PORT: 5180
+      HOSTNAME: "0.0.0.0"
+    networks:
+      - qzt-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5180/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '${WEBSITE_CPU_LIMIT:-0.5}'
+          memory: ${WEBSITE_MEM_LIMIT:-512m}
+        reservations:
+          cpus: '${WEBSITE_CPU_RESERVE:-0.1}'
+          memory: ${WEBSITE_MEM_RESERVE:-128m}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Redis 服务
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: qzt-redis
+    restart: unless-stopped
+    command: >
+      sh -c '
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-qzt_redis_password_change_me}
+      --maxmemory ${REDIS_MAX_MEMORY:-256mb}
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      '
+    networks:
+      - qzt-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '${REDIS_CPU_LIMIT:-0.5}'
+          memory: ${REDIS_MEM_LIMIT:-256m}
+        reservations:
+          cpus: '${REDIS_CPU_RESERVE:-0.1}'
+          memory: ${REDIS_MEM_RESERVE:-64m}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # MySQL 服务
+  # ============================================
+  mysql:
+    image: mysql:8.0
+    container_name: qzt-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-qzt_root_password_change_me}
+      MYSQL_DATABASE: qzt_db
+      MYSQL_USER: qzt_user
+      MYSQL_PASSWORD: ${DB_PASSWORD:-qzt_password_change_me}
+    networks:
+      - qzt-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-qzt_root_password_change_me}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '${MYSQL_CPU_LIMIT:-1}'
+          memory: ${MYSQL_MEM_LIMIT:-1g}
+        reservations:
+          cpus: '${MYSQL_CPU_RESERVE:-0.25}'
+          memory: ${MYSQL_MEM_RESERVE:-256m}
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=200
+      --innodb_buffer_pool_size=${MYSQL_INNODB_BUFFER_POOL_SIZE:-256M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ============================================
+# 网络配置
+# ============================================
+networks:
+  qzt-network:
+    name: qzt-network
+    driver: bridge
+
+# ============================================
+# 数据卷配置
+# ============================================
+volumes:
+  backend-logs:
+    name: qzt-backend-logs
+  redis-data:
+    name: qzt-redis-data
+  mysql-data:
+    name: qzt-mysql-data
