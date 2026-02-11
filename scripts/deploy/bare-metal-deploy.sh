@@ -123,8 +123,7 @@ print_header "2/5 安装包管理器和进程管理器"
 
 if ! command -v pnpm &> /dev/null; then
     print_info "安装 pnpm..."
-    corepack enable
-    corepack prepare pnpm@latest --activate
+    npm install -g pnpm
     print_success "pnpm $(pnpm -v) 安装完成"
 else
     print_success "pnpm $(pnpm -v) 已安装"
