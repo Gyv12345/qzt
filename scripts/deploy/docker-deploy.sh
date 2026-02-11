@@ -180,15 +180,40 @@ echo "  MySQL:   ${MYSQL_CPU} CPU, ${MYSQL_MEM} 内存"
 echo ""
 
 # ============================================
+# 检查是否已有 .env 文件
+# ============================================
+if [ -f ".env" ]; then
+    echo -e "${YELLOW}检测到已存在 .env 配置文件${NC}"
+    read -p "是否使用现有配置跳过询问? [Y/n]: " USE_EXISTING
+    USE_EXISTING=${USE_EXISTING:-Y}
+
+    if [[ "$USE_EXISTING" =~ ^[Yy]$ ]]; then
+        echo -e "${GREEN}使用现有配置...${NC}"
+        source .env
+        # 根据 RDS_HOST 判断使用哪个 compose 文件
+        if [ -n "$RDS_HOST" ]; then
+            COMPOSE_FILE="docker-compose.rds.yml"
+            USE_RDS=true
+        else
+            COMPOSE_FILE="docker-compose.yml"
+            USE_RDS=false
+        fi
+        SKIP_CONFIG=true
+    fi
+fi
+
+# ============================================
 # 询问数据库配置
 # ============================================
-echo -e "${YELLOW}数据库配置${NC}"
-echo ""
-echo "请选择数据库配置方式："
-echo "  1) 使用阿里云 RDS MySQL（推荐）"
-echo "  2) 使用本地 MySQL 容器"
-echo ""
-read -p "请选择 (1-2): " DB_CHOICE
+if [ "$SKIP_CONFIG" != "true" ]; then
+    echo -e "${YELLOW}数据库配置${NC}"
+    echo ""
+    echo "请选择数据库配置方式："
+    echo "  1) 使用阿里云 RDS MySQL（推荐）"
+    echo "  2) 使用本地 MySQL 容器"
+    echo ""
+    read -p "请选择 (1-2): " DB_CHOICE
+fi
 
 if [ "$DB_CHOICE" = "1" ]; then
     # 使用 RDS
@@ -239,18 +264,24 @@ fi
 # ============================================
 
 # 生成 Redis 密码
-REDIS_PASSWORD=$(openssl rand -hex 16 2>/dev/null || echo "redis_$(date +%s)")
+if [ -z "$REDIS_PASSWORD" ]; then
+    REDIS_PASSWORD=$(openssl rand -hex 16 2>/dev/null || echo "redis_$(date +%s)")
+fi
 
 # 生成 JWT 密钥
-JWT_SECRET=$(openssl rand -hex 32 2>/dev/null || echo "jwt_$(date +%s)_secret")
+if [ -z "$JWT_SECRET" ]; then
+    JWT_SECRET=$(openssl rand -hex 32 2>/dev/null || echo "jwt_$(date +%s)_secret")
+fi
 
 # 域名配置
-echo ""
-read -p "前端域名 [localhost]: " DOMAIN_NAME
-DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+if [ "$SKIP_CONFIG" != "true" ]; then
+    echo ""
+    read -p "前端域名 [localhost]: " DOMAIN_NAME
+    DOMAIN_NAME=${DOMAIN_NAME:-localhost}
 
-read -p "管理后台域名 [admin.localhost]: " ADMIN_DOMAIN
-ADMIN_DOMAIN=${ADMIN_DOMAIN:-admin.localhost}
+    read -p "管理后台域名 [admin.localhost]: " ADMIN_DOMAIN
+    ADMIN_DOMAIN=${ADMIN_DOMAIN:-admin.localhost}
+fi
 
 # ============================================
 # 生成 .env 文件

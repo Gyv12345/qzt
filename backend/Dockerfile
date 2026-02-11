@@ -3,7 +3,7 @@
 # ==========================================
 FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS deps
 
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update && apt-get install -y libc6-dev openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -53,7 +53,7 @@ FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS builder
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache libc6-compat openssl python3 make g++
+RUN apt-get update && apt-get install -y libc6-dev openssl python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
 RUN npm install -g pnpm@9
@@ -87,14 +87,14 @@ FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS runner
 WORKDIR /app
 
 # Install runtime dependencies only
-RUN apk add --no-cache openssl tini
+RUN apt-get update && apt-get install -y openssl tini && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
 RUN npm install -g pnpm@9
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001 -G nodejs
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/bash nestjs
 
 # Copy necessary files
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -124,7 +124,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:7890/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Use tini for signal handling
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 # Start application
 CMD ["node", "dist/main"]

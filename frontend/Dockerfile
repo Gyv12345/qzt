@@ -23,13 +23,14 @@ COPY packages/shared-types ../packages/shared-types
 RUN pnpm build
 
 # 多阶段构建 - 第二阶段：运行时
-FROM nginx:alpine
+FROM nginx:bookworm
 
 # 安装 tzdata 设置时区为上海
-RUN apk add --no-cache tzdata && \
+RUN apt-get update && apt-get install -y tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
-    apk del tzdata
+    apt-get remove -y tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
 # 删除默认 nginx 配置
 RUN rm /etc/nginx/conf.d/default.conf
