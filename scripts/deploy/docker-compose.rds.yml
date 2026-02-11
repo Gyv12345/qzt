@@ -90,9 +90,15 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     environment:
       # API 地址（容器内访问）
       VITE_API_URL: http://backend:7890
+      ENABLE_HTTPS: ${ENABLE_HTTPS:-true}
+    volumes:
+      # SSL 证书挂载（如果启用 HTTPS）
+      - ${SSL_CERT_PATH:-./scripts/deploy/ssl/cert.pem}:/etc/nginx/ssl/cert.pem:ro
+      - ${SSL_KEY_PATH:-./scripts/deploy/ssl/key.pem}:/etc/nginx/ssl/key.pem:ro
     networks:
       - qzt-network
     depends_on:

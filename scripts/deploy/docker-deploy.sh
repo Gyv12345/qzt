@@ -284,6 +284,74 @@ if [ "$SKIP_CONFIG" != "true" ]; then
 fi
 
 # ============================================
+# HTTPS/SSL 配置
+# ============================================
+echo ""
+echo -e "${YELLOW}HTTPS/SSL 配置${NC}"
+echo ""
+echo "请选择 SSL 证书方式："
+echo "  1) 不启用 HTTPS - 仅 HTTP（开发测试）"
+echo "  2) 自签名证书 - 快速测试 HTTPS，浏览器会警告"
+echo "  3) 上传证书 - 你已有 .crt 和 .key 文件"
+echo ""
+read -p "请选择 (1-3) [默认: 1]: " SSL_CHOICE
+SSL_CHOICE=${SSL_CHOICE:-1}
+
+SSL_DIR="./scripts/deploy/ssl"
+mkdir -p "$SSL_DIR"
+
+case $SSL_CHOICE in
+    2)
+        # 自签名证书
+        echo -e "${YELLOW}生成自签名证书...${NC}"
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout "$SSL_DIR/key.pem" \
+            -out "$SSL_DIR/cert.pem" \
+            -subj "/C=CN/ST=Shanghai/L=Shanghai/O=QZT/CN=$DOMAIN_NAME"
+        chmod 600 "$SSL_DIR/key.pem"
+        chmod 644 "$SSL_DIR/cert.pem"
+        ENABLE_HTTPS="true"
+        SSL_CERT_PATH="$SSL_DIR/cert.pem"
+        SSL_KEY_PATH="$SSL_DIR/key.pem"
+        echo -e "${GREEN}✓ 自签名证书已生成${NC}"
+        echo -e "${YELLOW}⚠️ 浏览器会显示安全警告，这是正常的${NC}"
+        ;;
+    3)
+        # 上传证书
+        echo ""
+        echo -e "${YELLOW}请输入证书内容${NC}"
+        echo "证书文件 (.crt 或 .pem):"
+        echo "(粘贴内容后按 Ctrl+D 结束)"
+        CERT_CONTENT=$(cat)
+        echo "$CERT_CONTENT" > "$SSL_DIR/cert.pem"
+
+        echo ""
+        echo "私钥文件 (.key):"
+        echo "(粘贴内容后按 Ctrl+D 结束)"
+        KEY_CONTENT=$(cat)
+        echo "$KEY_CONTENT" > "$SSL_DIR/key.pem"
+
+        # 验证证书
+        if openssl x509 -in "$SSL_DIR/cert.pem" -noout >/dev/null 2>&1; then
+            chmod 600 "$SSL_DIR/key.pem"
+            chmod 644 "$SSL_DIR/cert.pem"
+            ENABLE_HTTPS="true"
+            SSL_CERT_PATH="$SSL_DIR/cert.pem"
+            SSL_KEY_PATH="$SSL_DIR/key.pem"
+            echo -e "${GREEN}✓ 证书已保存${NC}"
+        else
+            echo -e "${RED}✗ 证书格式错误，请检查${NC}"
+            exit 1
+        fi
+        ;;
+    *)
+        # 不启用 HTTPS
+        ENABLE_HTTPS="false"
+        echo -e "${YELLOW}不启用 HTTPS，仅使用 HTTP${NC}"
+        ;;
+esac
+
+# ============================================
 # 生成 .env 文件
 # ============================================
 echo ""
@@ -308,6 +376,11 @@ JWT_SECRET=$JWT_SECRET
 # 域名配置
 DOMAIN_NAME=$DOMAIN_NAME
 ADMIN_DOMAIN=$ADMIN_DOMAIN
+
+# HTTPS/SSL 配置
+ENABLE_HTTPS=${ENABLE_HTTPS:-false}
+SSL_CERT_PATH=${SSL_CERT_PATH:-}
+SSL_KEY_PATH=${SSL_KEY_PATH:-}
 
 # 资源限制
 BACKEND_MEM_LIMIT=$BACKEND_MEM
@@ -335,6 +408,11 @@ JWT_SECRET=$JWT_SECRET
 # 域名配置
 DOMAIN_NAME=$DOMAIN_NAME
 ADMIN_DOMAIN=$ADMIN_DOMAIN
+
+# HTTPS/SSL 配置
+ENABLE_HTTPS=${ENABLE_HTTPS:-false}
+SSL_CERT_PATH=${SSL_CERT_PATH:-}
+SSL_KEY_PATH=${SSL_KEY_PATH:-}
 
 # 资源限制
 BACKEND_MEM_LIMIT=$BACKEND_MEM
@@ -434,10 +512,20 @@ docker compose -f scripts/deploy/$COMPOSE_FILE ps
 
 echo ""
 echo -e "${CYAN}访问地址:${NC}"
-echo "  前端:     http://${DOMAIN_NAME}"
-echo "  管理后台: http://${ADMIN_DOMAIN}"
-echo "  网站:     http://${DOMAIN_NAME}:5180"
-echo "  API:      http://${DOMAIN_NAME}:7890"
+
+# 根据是否启用 HTTPS 显示不同协议
+if [ "$ENABLE_HTTPS" = "true" ]; then
+    PROTOCOL="https"
+    echo -e "${GREEN}✓ HTTPS 已启用${NC}"
+else
+    PROTOCOL="http"
+    echo -e "${YELLOW}⚠️ 仅 HTTP 模式${NC}"
+fi
+
+echo "  前端:     ${PROTOCOL}://${DOMAIN_NAME}"
+echo "  管理后台: ${PROTOCOL}://${ADMIN_DOMAIN}"
+echo "  网站:     ${PROTOCOL}://${DOMAIN_NAME}:5180"
+echo "  API:      ${PROTOCOL}://${DOMAIN_NAME}:7890"
 echo ""
 
 echo -e "${CYAN}常用命令:${NC}"

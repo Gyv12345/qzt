@@ -35,14 +35,21 @@ RUN apt-get update && apt-get install -y tzdata && \
 # 删除默认 nginx 配置
 RUN rm /etc/nginx/conf.d/default.conf
 
-# 复制自定义 nginx 配置
-COPY frontend/nginx.conf /etc/nginx/conf.d/
+# 复制自定义 nginx 配置（支持 HTTPS 的版本）
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# 复制仅 HTTP 的备用配置
+COPY frontend/nginx.http.conf /etc/nginx/conf.d/nginx.http.conf.template
+
+# 启动脚本 - 根据证书是否存在选择配置
+COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # 从构建阶段复制构建产物到 nginx 目录
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 暴露 80 端口
-EXPOSE 80
+# 暴露 80 和 443 端口
+EXPOSE 80 443
 
 # 启动 nginx（前台运行）
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/docker-entrypoint.sh"]
