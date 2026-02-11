@@ -86,6 +86,13 @@ cp -r "$DEPLOY_DIR/backend/dist" ./
 cp -r "$DEPLOY_DIR/backend/prisma" ./
 cp "$DEPLOY_DIR/backend/package.json" ./
 
+# 安装共享类型包（workspace 依赖）
+mkdir -p "$QZT_DIR/packages"
+rm -rf "$QZT_DIR/packages/shared-types"
+mkdir -p "$QZT_DIR/packages/shared-types"
+cp -r "$DEPLOY_DIR/packages/shared-types/dist" "$QZT_DIR/packages/shared-types/"
+cp "$DEPLOY_DIR/packages/shared-types/package.json" "$QZT_DIR/packages/shared-types/"
+
 # 不复制 lockfile，让服务器根据 package.json 重新生成
 # 这样可以避免 workspace lockfile 与子项目 package.json 不匹配的问题
 
