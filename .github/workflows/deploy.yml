@@ -204,10 +204,15 @@ jobs:
             echo -e "${GREEN}✓ 前端已恢复${NC}"
           fi
 
-          # 重启服务
-          cd "$QZT_DIR/backend"
-          pm2 reload ecosystem.config.cjs --update-env
-          pm2 save
+          # 重启服务（如果 PM2 配置存在）
+          if [ -f "$QZT_DIR/backend/ecosystem.config.cjs" ]; then
+            cd "$QZT_DIR/backend"
+            pm2 reload ecosystem.config.cjs --update-env 2>/dev/null || pm2 start ecosystem.config.cjs
+            pm2 save
+            echo -e "${GREEN}✓ 服务已重启${NC}"
+          else
+            echo -e "${YELLOW}⚠ PM2 配置不存在，请手动重启服务${NC}"
+          fi
 
           echo -e "${GREEN}回滚完成${NC}"
           EOF

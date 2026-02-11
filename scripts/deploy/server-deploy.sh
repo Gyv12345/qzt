@@ -135,20 +135,29 @@ echo -e "${GREEN}✓ 网站更新完成${NC}"
 echo -e "${YELLOW}[6/6] 重启服务...${NC}"
 
 # 更新 PM2 配置
-cp "$DEPLOY_DIR/config/pm2/ecosystem.config.cjs" "$QZT_DIR/backend/"
+if [ -f "$DEPLOY_DIR/config/pm2/ecosystem.config.cjs" ]; then
+    cp "$DEPLOY_DIR/config/pm2/ecosystem.config.cjs" "$QZT_DIR/backend/"
+    echo -e "${GREEN}✓ PM2 配置已更新${NC}"
+else
+    echo -e "${YELLOW}⚠ PM2 配置文件不存在，跳过${NC}"
+fi
 
 cd "$QZT_DIR/backend"
 
 # 启动/重载服务
-if pm2 describe qzt-backend >/dev/null 2>&1; then
-    pm2 reload ecosystem.config.cjs --update-env
-    echo -e "${GREEN}✓ 服务已重载（零停机）${NC}"
+if [ -f ecosystem.config.cjs ]; then
+    if pm2 describe qzt-backend >/dev/null 2>&1; then
+        pm2 reload ecosystem.config.cjs --update-env
+        echo -e "${GREEN}✓ 服务已重载（零停机）${NC}"
+    else
+        pm2 start ecosystem.config.cjs
+        echo -e "${GREEN}✓ 服务已启动${NC}"
+    fi
+    pm2 save
 else
-    pm2 start ecosystem.config.cjs
-    echo -e "${GREEN}✓ 服务已启动${NC}"
+    echo -e "${RED}✗ PM2 配置文件不存在，无法启动服务${NC}"
+    exit 1
 fi
-
-pm2 save
 
 # 清理旧备份（保留最近 5 个）
 ls -t "$BACKUP_DIR" 2>/dev/null | tail -n +6 | while read dir; do
