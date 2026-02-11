@@ -6,6 +6,7 @@
 # 功能：
 # - 安装所有必要环境（git, node.js, pnpm, docker）
 # - 支持裸机部署和 Docker 部署两种模式
+# - 自动下载项目到正确目录
 # ============================================================
 
 set -e
@@ -286,7 +287,7 @@ if [ "$NEED_REDIS" = "true" ]; then
         openssl rand -hex 16 > "$REDIS_PASSWORD_FILE" 2>/dev/null || echo "change_redis_password" > "$REDIS_PASSWORD_FILE"
         chmod 600 "$REDIS_PASSWORD_FILE"
     fi
-    REDIS_PASSWORD=$(cat "$REDIS_PASSWORD_FILE")
+    REDIS_PASSWORD=$(cat "$REDIS_PASSWORD_FILE)
     print_success "Redis 密码已生成并保存"
 fi
 
@@ -376,10 +377,8 @@ fi
 # ============================================
 # 创建目录结构
 # ==========================================
-mkdir -p /opt/qzt/{backend,frontend,website}
-mkdir -p /var/www/qzt
-mkdir -p /opt/qzt-backup
-print_success "目录结构创建完成"
+mkdir -p /opt/qzt
+print_success "目录结构创建完成: /opt/qzt"
 
 # ============================================
 # 生成密钥和配置
@@ -409,7 +408,6 @@ if [ "$NEED_DOCKER" = "true" ]; then
 fi
 if [ "$NEED_REDIS" = "true" ]; then
     echo "  • Redis: 已安装"
-    echo "  • Redis 密码: $(cat /root/.redis_password)"
 fi
 if [ "$NEED_NGINX" = "true" ]; then
     echo "  • Nginx: $(nginx -v 2>&1 | head -1)"
@@ -422,35 +420,85 @@ if [ "$NEED_REDIS" = "true" ]; then
 fi
 echo ""
 
-echo -e "${YELLOW}下一步：${NC}"
+# ============================================
+# 询问是否下载项目
+# ============================================
+echo -e "${YELLOW}是否立即下载项目？${NC}"
+echo "  y) 是 - 自动下载项目到 /opt/qzt"
+echo "  n) 否 - 稍后手动下载"
 echo ""
+read -p "请选择 [y/n]: " DOWNLOAD_PROJECT
 
-if [ "$DEPLOY_MODE" = "2" ]; then
-    # Docker 部署模式
-    echo -e "${GREEN}🐳 Docker 部署模式${NC}"
+if [ "$DOWNLOAD_PROJECT" = "y" ] || [ "$DOWNLOAD_PROJECT" = "Y" ]; then
+    print_info "下载项目到 /opt/qzt..."
+
+    # 检查是否已存在项目目录
+    if [ -d "/opt/qzt/qzt" ]; then
+        print_warning "项目目录已存在: /opt/qzt/qzt"
+        read -p "是否删除并重新下载? [y/n]: " RE_DOWNLOAD
+        if [ "$RE_DOWNLOAD" = "y" ] || [ "$RE_DOWNLOAD" = "Y" ]; then
+            rm -rf /opt/qzt/qzt
+        else
+            print_info "使用现有项目目录"
+            cd /opt/qzt/qzt
+        fi
+    fi
+
+    # 下载项目
+    if [ ! -d "/opt/qzt/qzt" ]; then
+        cd /opt
+        git clone https://github.com/Gyv12345/qzt.git
+        cd qzt
+        print_success "项目已下载到: /opt/qzt/qzt"
+    fi
+
+    # 显示下一步
     echo ""
-    echo -e "${CYAN}下一步操作：${NC}"
-    echo ""
-    echo "  1. 克隆项目:"
-    echo "     git clone https://github.com/Gyv12345/qzt.git"
-    echo "     cd qzt"
-    echo ""
-    echo "  2. 运行部署脚本:"
-    echo "     bash scripts/deploy/docker-deploy.sh"
-    echo ""
-    echo -e "${YELLOW}提示：${NC}部署脚本会自动检测服务器配置并分配资源"
+    if [ "$DEPLOY_MODE" = "2" ]; then
+        # Docker 部署模式 - 直接运行部署脚本
+        print_header "🐳 开始 Docker 部署"
+        echo ""
+        echo -e "${CYAN}部署脚本将会：${NC}"
+        echo "  • 检测服务器配置（CPU/内存）"
+        echo "  • 询问数据库选择（RDS 或本地 MySQL）"
+        echo "  • 自动分配资源限制"
+        echo "  • 构建并启动所有服务"
+        echo ""
+        read -p "按 Enter 键继续，或 Ctrl+C 取消..."
+
+        bash scripts/deploy/docker-deploy.sh
+    else
+        # 裸机部署模式
+        print_header "⚙️ 下一步操作"
+        echo ""
+        echo -e "${YELLOW}1. 编辑环境变量文件：${NC}"
+        echo "     vim /opt/qzt/backend/.env"
+        echo ""
+        echo -e "${YELLOW}2. 配置数据库连接信息：${NC}"
+        echo "     DB_HOST=你的RDS地址"
+        echo "     DB_USERNAME=用户名"
+        echo "     DB_PASSWORD=密码"
+        echo ""
+        echo -e "${CYAN}保存后，手动部署或配置 CI/CD${NC}"
+    fi
 else
-    # 裸机部署模式
-    echo -e "${GREEN}⚙️ 裸机部署模式${NC}"
+    # 用户选择稍后手动下载
     echo ""
-    echo -e "${CYAN}下一步操作：${NC}"
+    echo -e "${YELLOW}稍后下载项目，请使用以下命令：${NC}"
     echo ""
-    echo "  1. 编辑环境变量:"
-    echo "     vim /opt/qzt/backend/.env"
+    echo "  mkdir -p /opt/qzt"
+    echo "  cd /opt/qzt"
+    echo "  git clone https://github.com/Gyv12345/qzt.git"
+    echo "  cd qzt"
     echo ""
-    echo "  2. 部署代码"
-    echo ""
-    echo -e "${YELLOW}提示：${NC}裸机部署需要手动配置 PM2 和 Nginx"
+
+    if [ "$DEPLOY_MODE" = "2" ]; then
+        echo -e "${CYAN}下载项目后，运行部署脚本：${NC}"
+        echo "  bash scripts/deploy/docker-deploy.sh"
+    else
+        echo -e "${CYAN}下载项目后，配置环境变量：${NC}"
+        echo "  vim /opt/qzt/backend/.env"
+    fi
 fi
 
 echo ""
