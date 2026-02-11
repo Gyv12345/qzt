@@ -2,11 +2,8 @@
 node_modules/
 package-lock.json
 yarn.lock
-# 只忽略子项目的 pnpm-lock.yaml，根目录的需要提交
-frontend/pnpm-lock.yaml
-backend/pnpm-lock.yaml
-website/pnpm-lock.yaml
-packages/*/pnpm-lock.yaml
+# pnpm-lock.yaml 需要提交，确保构建一致性
+# 不忽略任何 pnpm-lock.yaml
 
 # Build
 dist/
