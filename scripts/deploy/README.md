@@ -1,257 +1,343 @@
 # 企智通 (QZT) 裸机部署指南
 
+> 在 Linux 服务器上直接运行服务，使用 PM2 管理 Node.js 进程
+
+---
+
 ## 部署架构
 
-- **ECS**: 2C4G（阿里云 ECS）
-- **RDS**: MySQL 8.0, 2C2G, 最大连接数 1000
-- **服务**: Backend (NestJS + PM2), Frontend (Nginx), Website (Next.js + PM2)
+```
+┌───────────────────────────────────────────────────┐
+│                   Linux 服务器                      │
+│                                                       │
+│  ┌──────────────┐  ┌──────────────┐                 │
+│  │   Nginx      │  │   PM2        │                 │
+│  │  :80/:443   │  │  (进程管理)   │                 │
+│  └──────┬───────┘  └──────┬───────┘                 │
+│         │                │                        │
+│         │    ┌───────────┴────────────┐          │
+│         │    │                        │          │
+│         │    │  Backend (2实例)          │          │
+│         │    │  Website (1实例)          │          │
+│         │    └────────────────────────┘          │
+│         │                                        │
+│  ┌──────┴───────────┐  ┌──────────┐             │
+│  │     Redis        │  │   MySQL   │ (RDS)       │
+│  │     :6379        │  │   :3306   │             │
+│  └──────────────────┘  └──────────┘             │
+└───────────────────────────────────────────────┘
+```
 
 ---
 
-## 资源分配
+## 前置要求
 
-| 服务 | 内存限制 | 说明 |
+| 软件 | 版本要求 | 说明 |
 |------|----------|------|
-| **Backend** | 700MB × 2 = 1.4GB | PM2 集群 2 实例 |
-| **Website** | 500MB | Next.js SSR |
-| **Frontend** | ~50MB | Nginx 静态托管 |
-| **系统预留** | ~1.5GB | OS + Nginx + 缓冲 |
-| **总计** | ~3.4GB / 4GB | 留有余量 |
+| Node.js | 22 LTS | 后端运行时 |
+| pnpm | >= 8 | 包管理器 |
+| Redis | 6+ | 缓存和会话 |
+| MySQL | 8.0+ | 数据库 |
+| Nginx | 1.18+ | Web 服务器 |
 
-**数据库连接分配**：
-- Backend: 40 个连接（2 实例 × 20）
-- 剩余: 960 个连接（RDS 总共 1000）
+**服务器配置**：建议 2C4G 或更高
 
 ---
 
-## 快速部署
+## 快速开始
 
-### 1. 服务器初始化（只需运行一次）
+### 从空服务器开始部署
 
 ```bash
-# 一键安装依赖（支持 Ubuntu/Debian/CentOS/RHEL）
-curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
+# 1. 一键初始化并部署
+bash <(curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh)
+
+# 脚本会自动：
+# - 安装 Git
+# - 下载项目到 /opt/qzt/qzt
+# - 询问部署方式（裸机 / Docker）
 ```
 
-**初始化脚本会**：
-- 安装 Node.js 20, pnpm, PM2
-- 安装 Redis, Nginx
-- 配置防火墙
-- 创建目录结构 `/opt/qzt/{backend,frontend,website}`
-- 生成 SSH 密钥
-- **自动生成 Redis 密码**（保存到 `/root/.redis_password`）
-- **自动生成 JWT 密钥**
-- 创建环境变量文件 `/opt/qzt/backend/.env`
-
-### 2. 配置环境变量
+### 已有项目的情况
 
 ```bash
-ssh root@你的服务器IP
-vim /opt/qzt/backend/.env
+# 1. 进入项目目录
+cd /opt/qzt/qzt
+
+# 2. 运行裸机部署脚本
+bash scripts/deploy/bare-metal-deploy.sh
+
+# 3. 配置环境变量
+vim /opt/qzt/qzt/backend/.env
+
+# 4. 运行服务部署
+bash scripts/deploy/server-deploy.sh
 ```
 
-**必填配置**（只需修改数据库和域名部分）：
+---
+
+## 脚本功能说明
+
+### init-server.sh - 服务器初始化
+
+从空服务器开始，完成以下步骤：
+
+1. **检查操作系统** - 支持 Ubuntu/Debian/CentOS/RHEL/Alibaba Cloud Linux
+2. **安装 Git** - 用于下载项目代码
+3. **下载项目** - 克隆到 `/opt/qzt/qzt`
+4. **询问部署方式** - 选择裸机部署或 Docker 部署
+
+### bare-metal-deploy.sh - 裸机部署
+
+自动安装和配置：
+
+| 组件 | 安装内容 |
+|------|----------|
+| Node.js | 22.14.0（使用阿里云镜像） |
+| pnpm | 通过 npm 安装 |
+| PM2 | 进程管理器 |
+| Redis | CentOS/RHEL 使用 valkey，其他使用 redis |
+| Nginx | Web 服务器 |
+
+### server-deploy.sh - 服务部署
+
+- 检查环境变量文件
+- 运行数据库迁移
+- 配置 Nginx
+- 启动 PM2 服务
+
+---
+
+## 手动配置步骤
+
+### 1. 安装 Node.js 22
+
 ```bash
-# === 数据库（2C2G RDS）===
+# 下载并安装 Node.js 22
+NODE_VERSION="22.14.0"
+ARCH=$(uname -m)
+
+if [ "$ARCH" = "x86_64" ]; then
+    ARCH_SUFFIX="x64"
+elif [ "$ARCH" = "aarch64" ]; then
+    ARCH_SUFFIX="arm64"
+fi
+
+curl -fsSL --retry 3 \
+    "https://npmmirror.com/mirrors/node/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH_SUFFIX}.tar.xz" \
+    -o /tmp/node.tar.xz
+
+tar -xf /tmp/node.tar.xz -C /usr/local --strip-components=1
+npm config set registry https://registry.npmmirror.com
+
+# 验证安装
+node -v  # 应显示 v22.14.0
+```
+
+### 2. 安装 pnpm 和 PM2
+
+```bash
+# 安装 pnpm
+npm install -g pnpm
+
+# 安装 PM2
+npm install -g pm2
+
+# 验证安装
+pnpm -v
+pm2 -v
+```
+
+### 3. 安装 Redis
+
+```bash
+# Ubuntu/Debian
+apt-get install -y redis-server
+systemctl enable redis-server
+systemctl start redis-server
+
+# CentOS/RHEL (8+)
+yum install -y valkey  # 或 redis
+systemctl enable redis
+systemctl start redis
+```
+
+### 4. 安装 Nginx
+
+```bash
+# Ubuntu/Debian
+apt-get install -y nginx
+systemctl enable nginx
+systemctl start nginx
+
+# CentOS/RHEL
+yum install -y nginx
+systemctl enable nginx
+systemctl start nginx
+```
+
+### 5. 配置环境变量
+
+创建 `/opt/qzt/qzt/backend/.env`：
+
+```bash
+# === 数据库配置 ===
 DATABASE_PROVIDER=mysql
-DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com  # 改成你的 RDS 地址
+DB_HOST=your_mysql_host
 DB_PORT=3306
-DB_USERNAME=你的数据库用户名            # 改成你的用户名
-DB_PASSWORD=你的数据库密码              # 改成你的密码
-DB_DATABASE=数据库名                    # 改成数据库名（会自动创建）
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+DB_DATABASE=qzt_db
 
-# === Redis（已自动生成，无需修改）===
+# === Redis 配置 ===
 REDIS_ENABLED=true
-REDIS_HOST=127.0.0.1
+REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_PASSWORD=自动生成的密码
+REDIS_PASSWORD=your_redis_password
 
-# === JWT（已自动生成，无需修改）===
-JWT_SECRET=自动生成的密钥
+# === JWT 配置 ===
+JWT_SECRET=$(openssl rand -hex 32)
 
-# === 域名 ===
-DOMAIN_NAME=yourdomain.com              # 改成你的域名
-ADMIN_DOMAIN=admin.yourdomain.com       # 改成 admin.你的域名
+# === 域名配置 ===
+DOMAIN_NAME=yourdomain.com
+ADMIN_DOMAIN=admin.yourdomain.com
 ```
 
-**配置说明**：
-| 配置项 | 是否自动生成 | 说明 |
-|--------|-------------|------|
-| `DB_DATABASE` | ❌ | 数据库名，**会自动创建**（确保数据库用户有 CREATE 权限） |
-| `REDIS_PASSWORD` | ✅ | 自动生成，保存在 `/root/.redis_password` |
-| `JWT_SECRET` | ✅ | 自动生成，用于签名 JWT Token |
-| `DOMAIN_NAME` | ❌ | 需手动填写主域名 |
-| `ADMIN_DOMAIN` | ❌ | 需手动填写管理后台域名 |
-
-**修改密码的方法**：
-```bash
-# 修改 Redis 密码
-echo "新密码" > /root/.redis_password
-# 然后更新 .env 中的 REDIS_PASSWORD
-
-# 重新生成 JWT 密钥
-openssl rand -hex 32
-# 将结果填入 .env 的 JWT_SECRET
-```
-
-### 3. 配置 GitHub Actions（自动化部署）
-
-在仓库 **Settings → Secrets and variables → Actions** 添加：
-
-| Secret | 说明 |
-|--------|------|
-| `SERVER_HOST` | 服务器 IP |
-| `SERVER_USER` | 用户名（通常是 root） |
-| `SSH_PRIVATE_KEY` | 服务器私钥（`cat ~/.ssh/id_rsa`） |
-| `SSH_PORT` | SSH 端口（默认 22） |
-
-### 4. 触发部署
+### 6. 安装依赖并启动
 
 ```bash
-git push origin main
-```
+# 进入后端目录
+cd /opt/qzt/qzt/backend
 
-GitHub Actions 会自动：
-1. 构建 Backend, Frontend, Website
-2. 通过 SSH 上传到服务器
-3. 重启 PM2 服务
-4. 重新加载 Nginx
+# 安装依赖
+pnpm install
 
----
-
-## 手动部署
-
-如果 GitHub Actions 不可用，可手动部署：
-
-### Backend
-
-```bash
-# 在服务器上
-cd /opt/qzt/backend
-pnpm install --prod
+# 生成 Prisma Client
 pnpm prisma generate
-pnpm prisma db push  # 首次部署时执行
+
+# 运行数据库迁移
+pnpm prisma db push
+
+# 启动后端
 pm2 start pm2.config.cjs
+
+# 保存 PM2 进程列表
 pm2 save
+
+# 设置开机自启
+pm2 startup
 ```
 
-### Frontend
+### 7. 配置 SSL 证书
 
 ```bash
-# 本地构建
-cd frontend
-pnpm build
-scp -r dist/* root@服务器:/var/www/qzt/
-
-# 服务器上 Nginx 已配置好，无需额外操作
+# 运行 SSL 配置脚本
+bash scripts/deploy/setup-ssl.sh
 ```
 
-### Website
+**SSL 证书选项**：
 
-```bash
-# 在服务器上
-cd /opt/qzt/website
-pnpm build
-pm2 start ecosystem.config.cjs
-pm2 save
-```
+| 选项 | 说明 | 适用场景 |
+|------|------|----------|
+| 1 | 自签名证书 | 快速测试 |
+| 2 | 上传证书 | 已有证书 |
+| 3 | Let's Encrypt | 自动申请（支持泛域名） |
 
 ---
 
-## 验证步骤
+## 服务管理
 
-### 1. 检查服务状态
+### PM2 命令
 
 ```bash
-# PM2 状态
+# 查看服务状态
 pm2 status
+
+# 实时监控
 pm2 monit
 
-# 预期输出：
-# ┌─────┬─────────────┬───────────┬─────────┐
-# │ id  │ name        │ status    │ memory  │
-# ├─────┼─────────────┼───────────┼─────────┤
-# │ 0   │ qzt-backend │ online    │ 650MB   │
-# │ 1   │ qzt-backend │ online    │ 640MB   │
-# │ 2   │ qzt-website │ online    │ 420MB   │
-# └─────┴─────────────┴───────────┴─────────┘
+# 查看日志
+pm2 logs qzt-backend
+pm2 logs qzt-website
+
+# 重启服务
+pm2 restart qzt-backend
+pm2 restart qzt-website
+
+# 停止服务
+pm2 stop qzt-backend
+pm2 stop qzt-website
+
+# 重载配置（零停机）
+pm2 reload qzt-backend
 ```
 
-### 2. 健康检查
+### 系统服务
 
 ```bash
-# Backend 健康检查
-curl http://localhost:7890/health
+# Nginx 状态
+systemctl status nginx
 
-# Website
-curl http://localhost:5180
+# 重启 Nginx
+systemctl reload nginx
 
-# Nginx
-curl http://localhost
-```
-
-### 3. 数据库连接数
-
-在 RDS 控制台查看当前连接数，应在 **40 以内**。
-
----
-
-## PM2 配置说明
-
-### Backend (`backend/pm2.config.cjs`)
-
-```javascript
-{
-  instances: 2,              // 2C4G 用 2 个实例
-  max_memory_restart: '700M', // 2实例 × 700MB = 1.4GB
-  env: {
-    NODE_OPTIONS: '--max-old-space-size=640', // 堆内存限制
-  },
-  cron_restart: '0 3 * * *', // 每天凌晨 3 点重启
-}
-```
-
-### Website (`website/ecosystem.config.cjs`)
-
-```javascript
-{
-  instances: 1,              // SSR 不适合多实例
-  max_memory_restart: '500M',
-  env: {
-    NODE_OPTIONS: '--max-old-space-size=448',
-  },
-  cron_restart: '0 3 * * *',
-}
-```
-
----
-
-## Prisma 连接池配置
-
-适配 **2C2G RDS**（最大连接数 1000）：
-
-在 `.env` 的 `DATABASE_URL` 中配置连接池参数：
-
-```bash
-DATABASE_URL="mysql://user:pass@host:3306/dbname?connection_limit=20&pool_timeout=30"
+# Redis 状态
+systemctl status redis-server
+systemctl status redis
 ```
 
 ---
 
 ## 日志管理
 
+### 日志位置
+
+| 服务 | 日志路径 |
+|------|----------|
+| 后端应用 | `/opt/qzt/qzt/backend/logs/` |
+| 网站应用 | `/opt/qzt/qzt/website/logs/` |
+| Nginx 主站 | `/var/log/nginx/域名-access.log` |
+| Nginx 错误 | `/var/log/nginx/error.log` |
+
+### 查看实时日志
+
 ```bash
-# 查看实时日志
-pm2 logs qzt-backend
-pm2 logs qzt-website
+# 后端日志
+pm2 logs qzt-backend -f
 
-# 日志文件位置
-backend/logs/pm2-error.log
-backend/logs/pm2-out.log
-website/logs/pm2-error.log
-website/logs/pm2-out.log
+# 网站日志
+pm2 logs qzt-website -f
 
-# 日志轮转：每个文件最大 10MB
+# Nginx 访问日志
+tail -f /var/log/nginx/access.log
+```
+
+---
+
+## HTTPS 配置
+
+### 使用 setup-ssl.sh 配置证书
+
+```bash
+cd /opt/qzt/qzt
+bash scripts/deploy/setup-ssl.sh
+```
+
+**支持的证书类型**：
+
+1. **自签名证书** - 快速测试，浏览器会警告
+2. **上传证书** - 使用已有的 `.crt` 和 `.key` 文件
+3. **Let's Encrypt** - 自动申请免费证书
+
+**泛域名证书申请**：
+
+```bash
+# 脚本会询问是否需要泛域名证书 (*.domain.com)
+# 选择 DNS 服务商并按提示完成验证
+
+# 自动续期已配置 cron 任务
+crontab -l
+# 0 0,12 * * * certbot renew --quiet --deploy-hook 'nginx -s reload'
 ```
 
 ---
@@ -275,21 +361,16 @@ pm2 startup
 # 检查内存使用
 free -h
 
-# 如果持续 OOM，可降低 max_memory_restart
-# backend: 700M → 600M
-# website: 500M → 400M
+# 调整 PM2 内存限制
+vim /opt/qzt/qzt/backend/pm2.config.cjs
+# 修改 max_memory_restart 值
 ```
 
-### 3. 数据库连接过多
+### 3. 端口被占用
 
 ```bash
-# 检查当前连接数
-# 在 RDS 控制台查看
-
-# 如需减少连接，修改 .env 中 DATABASE_URL 的 connection_limit 参数
-# 重新生成 Prisma Client
-cd backend && pnpm prisma generate
-pm2 restart qzt-backend
+# 检查端口占用
+netstat -tlnp | grep -E '80|443|7890|5180|3306|6379'
 ```
 
 ### 4. Nginx 502 错误
@@ -305,98 +386,59 @@ netstat -tlnp | grep 7890
 tail -f /var/log/nginx/error.log
 ```
 
----
-
-## 性能监控
-
-### 推荐工具
-
-- **PM2 Plus**: https://app.keymetrics.io/
-- **阿里云云监控**: ECS + RDS 监控面板
-- **Grafana + Prometheus**: 自建监控
-
-### 监控指标
-
-| 指标 | 预警阈值 |
-|------|----------|
-| CPU 使用率 | > 80% |
-| 内存使用率 | > 85% |
-| RDS 连接数 | > 50 |
-| API 响应时间 | > 1s |
-
----
-
-## 深度优化（可选）
-
-当前配置已满足 2C4G + 2C2G RDS 的基本需求。如需进一步优化：
-
-### 1. 增加 PM2 实例数
-
-如果 CPU 利用率低（< 50%）：
-```javascript
-// backend/pm2.config.cjs
-instances: 4,  // 从 2 增加到 4
-```
-
-### 2. 启用 Redis 缓存
+### 5. Redis 连接失败
 
 ```bash
-# .env 已配置 Redis，确保启用
-REDIS_ENABLED=true
-```
+# 检查 Redis 状态
+systemctl status redis
 
-### 3. 日志聚合
+# 检查 Redis 密码（保存在 /root/.redis_password）
+cat /root/.redis_password
 
-使用阿里云 SLS 收集日志：
-```bash
-# 安装 Logtail
-# 配置日志路径：/opt/qzt/*/logs/*.log
-```
-
-### 4. CDN 加速
-
-静态资源（Frontend build）可通过 CDN 加速。
-
----
-
-## 备份策略
-
-### 数据库备份
-
-- RDS 自动备份：默认开启，保留 7 天
-- 手动备份：在 RDS 控制台创建快照
-
-### 文件备份
-
-```bash
-# 备份环境变量
-cp /opt/qzt/backend/.env /opt/qzt-backup/.env.$(date +%Y%m%d)
-
-# 备份 PM2 配置
-pm2 save
-cp ~/.pm2/dump.pm2 /opt/qzt-backup/dump.pm2.$(date +%Y%m%d)
+# 测试连接
+redis-cli
+AUTH your_password
+PING
 ```
 
 ---
 
-## 升级部署
+## 更新部署
+
+### 通过 GitHub Actions（推荐）
 
 ```bash
-# 方式1: GitHub Actions（推荐）
 git push origin main
+```
 
-# 方式2: 手动升级
-cd /opt/qzt/backend
-git pull
+### 手动更新
+
+```bash
+cd /opt/qzt/qzt
+git pull origin main
+
+# 更新后端
+cd backend
 pnpm install --prod
 pnpm prisma generate
 pm2 restart qzt-backend
 
-cd /opt/qzt/website
-git pull
+# 更新网站
+cd website
 pnpm build
 pm2 restart qzt-website
 ```
+
+---
+
+## 安全建议
+
+1. ✅ **定期更新系统**：`apt-get update && apt-get upgrade`
+2. ✅ **配置防火墙**：仅开放必要端口（80, 443, 22）
+3. ✅ **使用强密码**：数据库、Redis、JWT 密钥
+4. ✅ **启用 HTTPS**：使用 SSL 证书
+5. ✅ **配置 fail2ban**：防止 SSH 暴力破解
+6. ✅ **定期备份**：数据库和重要文件
 
 ---
 
@@ -408,38 +450,64 @@ pm2 restart qzt-website
 # 查看崩溃日志
 pm2 logs qzt-backend --lines 100
 
-# 重启
+# 重启服务
 pm2 restart qzt-backend
 
-# 如果持续崩溃，检查内存
+# 持续崩溃时检查内存
 pm2 monit
 ```
 
-### RDS 连接失败
+### 数据库连接失败
 
 ```bash
 # 测试连接
-mysql -h rm-xxxxx.mysql.rds.aliyuncs.com -u 用户名 -p
+mysql -h your_host -u your_user -p
 
-# 检查安全组白名单
-# 确保服务器 IP 在 RDS 白名单中
+# 检查 .env 配置
+cat /opt/qzt/qzt/backend/.env | grep DB_
 ```
 
 ---
 
-## 安全建议
+## 性能优化
 
-1. **定期更新系统**: `yum update -y` 或 `apt-get update -y`
-2. **配置 fail2ban**: 防止 SSH 暴力破解
-3. **使用强密码**: 数据库、Redis、JWT 密钥
-4. **启用 HTTPS**: 配置 SSL 证书（Let's Encrypt 或购买）
-5. **限制 SSH 访问**: 仅允许特定 IP 或密钥登录
+### PM2 集群模式
+
+```javascript
+// backend/pm2.config.cjs
+module.exports = {
+  apps: [{
+    name: 'qzt-backend',
+    instances: 2,              // 根据 CPU 核心数调整
+    max_memory_restart: '1G',
+    exec_mode: 'cluster',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 7890,
+    },
+  }],
+}
+```
+
+### Redis 优化
+
+```bash
+# 编辑 Redis 配置
+vim /etc/redis/redis.conf
+
+# 设置最大内存
+maxmemory 256mb
+maxmemory-policy allkeys-lru
+
+# 重启 Redis
+systemctl restart redis
+```
 
 ---
 
-## 联系支持
+## 技术支持
 
 如遇部署问题，请检查：
-1. GitHub Actions 运行日志
-2. PM2 日志：`pm2 logs`
-3. Nginx 日志：`/var/log/nginx/error.log`
+1. PM2 日志：`pm2 logs`
+2. Nginx 日志：`/var/log/nginx/error.log`
+3. 系统日志：`journalctl -xe`
