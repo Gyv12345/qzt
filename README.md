@@ -328,8 +328,14 @@ GitHub (推送) → Actions (构建) → 服务器 (部署)
 **1. 服务器初始化**
 
 ```bash
-# 一键安装依赖（支持 Ubuntu/Debian/CentOS/RHEL）
-curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh | bash
+# 方式1：先下载再执行（推荐，支持交互）
+curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh -o init.sh && bash init.sh
+
+# 方式2：进程替换（支持交互）
+bash <(curl -fsSL https://raw.githubusercontent.com/Gyv12345/qzt/main/scripts/deploy/init-server.sh)
+
+# ⚠️ 以下方式不支持交互（无法选择部署方式）
+# curl ... | bash
 ```
 
 **2. 配置环境变量**
