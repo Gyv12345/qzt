@@ -23,7 +23,7 @@ COPY packages/shared-types ../packages/shared-types
 RUN pnpm build
 
 # 多阶段构建 - 第二阶段：运行时
-FROM nginx:bookworm
+FROM nginx:latest
 
 # 安装 tzdata 设置时区为上海
 RUN apt-get update && apt-get install -y tzdata && \

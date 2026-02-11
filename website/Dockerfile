@@ -15,7 +15,7 @@ WORKDIR /app
 COPY website/package.json website/pnpm-lock.yaml* ./
 
 # 安装依赖
-RUN pnpm install --frozen-lockfile --prod=false
+RUN pnpm install --prod=false
 
 # ============================================
 # 阶段 2: 构建
@@ -45,8 +45,8 @@ FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS runner
 WORKDIR /app
 
 # 创建非 root 用户
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs nextjs
 
 # 设置环境变量
 ENV NODE_ENV=production
