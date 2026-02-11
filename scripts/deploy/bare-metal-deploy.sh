@@ -3,7 +3,7 @@
 # 企智通 QZT - 裸机部署脚本
 # ============================================================
 # 功能：
-# - 安装 Node.js 20
+# - 安装 Node.js 22
 # - 安装 pnpm, PM2
 # - 安装 Nginx
 # - 安装 Redis
@@ -72,16 +72,16 @@ fi
 print_header "企智通 QZT - 裸机部署"
 
 # ============================================
-# 1. 安装 Node.js 20
+# 1. 安装 Node.js 22
 # ============================================
-print_header "1/5 安装 Node.js 20"
+print_header "1/5 安装 Node.js 22"
 
 if command -v node &> /dev/null; then
     NODE_MAJOR=$(node -v | cut -d'.' -f1 | sed 's/v//')
-    if [ "$NODE_MAJOR" = "20" ]; then
-        print_success "Node.js 20 已安装: $(node -v)"
+    if [ "$NODE_MAJOR" = "22" ]; then
+        print_success "Node.js 22 已安装: $(node -v)"
     else
-        print_warning "检测到 Node.js $(node -v)，将升级到 20"
+        print_warning "检测到 Node.js $(node -v)，将升级到 22"
         INSTALL_NODE=true
     fi
 else
@@ -89,7 +89,7 @@ else
 fi
 
 if [ "$INSTALL_NODE" = true ]; then
-    print_info "下载 Node.js 20..."
+    print_info "下载 Node.js 22..."
     NODE_VERSION="22.14.0"
     ARCH=$(uname -m)
     if [ "$ARCH" = "x86_64" ]; then
