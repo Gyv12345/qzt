@@ -77,7 +77,7 @@ export function ProductsContent({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
-                      <ArticleCard article={product} />
+                      <ArticleCard article={product as any} />
                     </motion.div>
                   ))}
                 </motion.div>

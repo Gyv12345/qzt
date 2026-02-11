@@ -157,7 +157,7 @@ export function StatsSection({ pageData }: StatsSectionProps) {
           variants={containerVariants}
           className="grid grid-cols-2 gap-6 lg:grid-cols-4"
         >
-          {stats.map((stat) => (
+          {stats.filter((s): s is NonNullable<typeof s> => Boolean(s)).map((stat) => (
             <motion.div
               key={stat.id}
               variants={itemVariants}

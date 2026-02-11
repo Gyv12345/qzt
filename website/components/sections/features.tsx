@@ -165,7 +165,7 @@ export function FeaturesSection({ pageData }: FeaturesSectionProps) {
           variants={containerVariants}
           className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
-          {features.map((feature, index) => (
+          {features.filter((f): f is NonNullable<typeof f> => Boolean(f)).map((feature, index) => (
             <motion.div key={feature.title} variants={itemVariants}>
               <Card className="group relative h-full border-slate-200/60 bg-white/80 p-1 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-xl hover:shadow-blue-500/10">
                 {/* 渐变边框效果 */}
