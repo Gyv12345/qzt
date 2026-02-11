@@ -25,23 +25,68 @@ echo -e "${CYAN}========================================${NC}"
 echo ""
 
 # ============================================
-# 检查 Docker 和 Docker Compose
+# 检查并安装 Docker
 # ============================================
-echo -e "${YELLOW}检查环境...${NC}"
+echo -e "${YELLOW}检查 Docker 环境...${NC}"
 
 if ! command -v docker &> /dev/null; then
-    echo -e "${RED}✗ Docker 未安装${NC}"
-    echo -e "${YELLOW}请先安装 Docker: https://docs.docker.com/engine/install/${NC}"
-    exit 1
+    echo -e "${YELLOW}Docker 未安装，开始安装...${NC}"
+
+    # 检测系统
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+    else
+        echo -e "${RED}无法检测系统类型${NC}"
+        exit 1
+    fi
+
+    if [[ "$OS" =~ ^(ubuntu|debian)$ ]]; then
+        # Ubuntu/Debian
+        apt-get update
+        apt-get install -y ca-certificates curl gnupg
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
+        apt-get update
+        apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    elif [[ "$OS" =~ ^(centos|rhel|almalinux|rocky|alinux)$ ]] || [ "$OS" = "fedora" ]; then
+        # CentOS/RHEL/Fedora
+        yum install -y yum-utils
+        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    else
+        echo -e "${RED}不支持的系统: $OS${NC}"
+        exit 1
+    fi
+
+    systemctl start docker
+    systemctl enable docker
+
+    # 配置镜像加速
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json << 'EOF'
+{
+  "registry-mirrors": [
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com"
+  ]
+}
+EOF
+    systemctl daemon-reload
+    systemctl restart docker
+
+    echo -e "${GREEN}✓ Docker 安装完成${NC}"
+else
+    echo -e "${GREEN}✓ Docker $(docker --version | awk '{print $3}')${NC}"
 fi
 
 if ! docker compose version &> /dev/null; then
-    echo -e "${RED}✗ Docker Compose 未安装${NC}"
-    echo -e "${YELLOW}请先安装 Docker Compose${NC}"
+    echo -e "${RED}✗ Docker Compose 插件未安装${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Docker $(docker --version | awk '{print $3}')${NC}"
 echo -e "${GREEN}✓ Docker Compose $(docker compose version --short)${NC}"
 echo ""
 
