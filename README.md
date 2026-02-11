@@ -413,14 +413,14 @@ bash scripts/deploy/docker-deploy.sh
 - 🔄 支持 RDS 或本地数据库两种模式
 - 📦 多阶段构建，镜像体积小
 
-详细文档：[DEPLOY.DOCKER.md](./DEPLOY.DOCKER.md)
+详细文档：[scripts/deploy/docker.md](./scripts/deploy/docker.md)
 
 #### 裸机部署
 
 | 文档 | 说明 |
 |------|------|
-| [DEPLOY.md](./DEPLOY.md) | 裸机部署完整指南（中文） |
-| [DEPLOY.en.md](./DEPLOY.en.md) | Bare-metal deployment guide (English) |
+| [scripts/deploy/README.md](./scripts/deploy/README.md) | 裸机部署完整指南（中文） |
+| [scripts/deploy/README.en.md](./scripts/deploy/README.en.md) | Bare-metal deployment guide (English) |
 
 ---
 

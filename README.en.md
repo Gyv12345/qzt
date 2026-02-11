@@ -374,8 +374,8 @@ git push origin main
 
 | Document | Description |
 |----------|-------------|
-| [DEPLOY.en.md](./DEPLOY.en.md) | Bare-metal deployment guide (English) |
-| [DEPLOY.md](./DEPLOY.md) | 裸机部署完整指南（中文） |
+| [scripts/deploy/README.en.md](./scripts/deploy/README.en.md) | Deployment guide (English) |
+| [scripts/deploy/README.md](./scripts/deploy/README.md) | 部署指南（中文） |
 
 ---
 

@@ -360,7 +360,7 @@ echo ""
 echo -e "${YELLOW}构建 Docker 镜像...${NC}"
 echo -e "${CYAN}这可能需要几分钟...${NC}"
 
-docker compose -f "$COMPOSE_FILE" build
+docker compose -f scripts/deploy/$COMPOSE_FILE build
 
 echo -e "${GREEN}✓ 镜像构建完成${NC}"
 
@@ -370,7 +370,7 @@ echo -e "${GREEN}✓ 镜像构建完成${NC}"
 echo ""
 echo -e "${YELLOW}启动服务...${NC}"
 
-docker compose -f "$COMPOSE_FILE" up -d
+docker compose -f scripts/deploy/$COMPOSE_FILE up -d
 
 echo -e "${GREEN}✓ 服务已启动${NC}"
 
@@ -385,7 +385,7 @@ sleep 10
 # 等待后端服务
 echo -n "  后端服务: "
 for i in {1..30}; do
-    if docker compose -f "$COMPOSE_FILE" exec -T backend curl -sf http://localhost:7890/api/health > /dev/null 2>&1; then
+    if docker compose -f scripts/deploy/$COMPOSE_FILE exec -T backend curl -sf http://localhost:7890/api/health > /dev/null 2>&1; then
         echo -e "${GREEN}✓ 就绪${NC}"
         break
     fi
@@ -398,7 +398,7 @@ done
 # 等待前端服务
 echo -n "  前端服务: "
 for i in {1..15}; do
-    if docker compose -f "$COMPOSE_FILE" exec -T frontend wget -q -O /dev/null http://localhost/health 2>/dev/null; then
+    if docker compose -f scripts/deploy/$COMPOSE_FILE exec -T frontend wget -q -O /dev/null http://localhost/health 2>/dev/null; then
         echo -e "${GREEN}✓ 就绪${NC}"
         break
     fi
@@ -411,7 +411,7 @@ done
 # 等待网站服务
 echo -n "  网站服务: "
 for i in {1..15}; do
-    if docker compose -f "$COMPOSE_FILE" exec -T website curl -sf http://localhost:5180/health > /dev/null 2>&1; then
+    if docker compose -f scripts/deploy/$COMPOSE_FILE exec -T website curl -sf http://localhost:5180/health > /dev/null 2>&1; then
         echo -e "${GREEN}✓ 就绪${NC}"
         break
     fi
@@ -430,7 +430,7 @@ echo -e "${GREEN}✓ 部署完成${NC}"
 echo -e "${CYAN}========================================${NC}"
 echo ""
 
-docker compose -f "$COMPOSE_FILE" ps
+docker compose -f scripts/deploy/$COMPOSE_FILE ps
 
 echo ""
 echo -e "${CYAN}访问地址:${NC}"
@@ -441,10 +441,10 @@ echo "  API:      http://${DOMAIN_NAME}:7890"
 echo ""
 
 echo -e "${CYAN}常用命令:${NC}"
-echo "  查看日志: docker compose -f $COMPOSE_FILE logs -f"
-echo "  停止服务: docker compose -f $COMPOSE_FILE stop"
-echo "  重启服务: docker compose -f $COMPOSE_FILE restart"
-echo "  删除服务: docker compose -f $COMPOSE_FILE down"
+echo "  查看日志: docker compose -f scripts/deploy/$COMPOSE_FILE logs -f"
+echo "  停止服务: docker compose -f scripts/deploy/$COMPOSE_FILE stop"
+echo "  重启服务: docker compose -f scripts/deploy/$COMPOSE_FILE restart"
+echo "  删除服务: docker compose -f scripts/deploy/$COMPOSE_FILE down"
 echo ""
 
 if [ "$USE_RDS" = false ]; then
@@ -456,5 +456,5 @@ if [ "$USE_RDS" = false ]; then
 fi
 
 echo -e "${YELLOW}提示: 首次部署需要运行数据库迁移${NC}"
-echo "  docker compose -f $COMPOSE_FILE exec backend npx prisma db push"
+echo "  docker compose -f scripts/deploy/$COMPOSE_FILE exec backend npx prisma db push"
 echo ""
