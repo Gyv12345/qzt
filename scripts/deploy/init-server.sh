@@ -99,12 +99,29 @@ cd /opt/qzt
 
 if [ -d "/opt/qzt/qzt" ]; then
     print_warning "项目目录已存在: /opt/qzt/qzt"
-    read -p "是否删除并重新下载? [y/N]: " RE_DOWNLOAD
-    if [[ "$RE_DOWNLOAD" =~ ^[Yy]$ ]]; then
-        rm -rf /opt/qzt/qzt
-    else
-        print_info "使用现有项目"
-    fi
+    echo ""
+    echo "  1) 更新项目 (git pull)"
+    echo "  2) 删除并重新下载"
+    echo "  3) 使用现有项目（不更新）"
+    echo ""
+    read -p "请选择 [1/2/3, 默认: 1]: " RE_DOWNLOAD
+    RE_DOWNLOAD=${RE_DOWNLOAD:-1}
+
+    case "$RE_DOWNLOAD" in
+        1)
+            print_info "正在更新项目..."
+            cd /opt/qzt/qzt
+            git pull origin main
+            print_success "项目已更新"
+            ;;
+        2)
+            print_info "删除并重新下载..."
+            rm -rf /opt/qzt/qzt
+            ;;
+        *)
+            print_info "使用现有项目（不更新）"
+            ;;
+    esac
 fi
 
 if [ ! -d "/opt/qzt/qzt" ]; then
