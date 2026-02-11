@@ -85,10 +85,12 @@ rm -rf dist prisma
 cp -r "$DEPLOY_DIR/backend/dist" ./
 cp -r "$DEPLOY_DIR/backend/prisma" ./
 cp "$DEPLOY_DIR/backend/package.json" ./
-cp "$DEPLOY_DIR/backend/pnpm-lock.yaml" ./
+
+# 不复制 lockfile，让服务器根据 package.json 重新生成
+# 这样可以避免 workspace lockfile 与子项目 package.json 不匹配的问题
 
 # 安装生产依赖
-pnpm install --prod --frozen-lockfile
+pnpm install --prod --no-frozen-lockfile
 
 # 生成 Prisma Client
 npx prisma generate
