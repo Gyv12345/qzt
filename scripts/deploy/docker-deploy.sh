@@ -65,13 +65,14 @@ if ! command -v docker &> /dev/null; then
     systemctl start docker
     systemctl enable docker
 
-    # 配置镜像加速
+    # 配置镜像加速（阿里云镜像源）
     mkdir -p /etc/docker
     cat > /etc/docker/daemon.json << 'EOF'
 {
   "registry-mirrors": [
-    "https://docker.mirrors.ustc.edu.cn",
-    "https://hub-mirror.c.163.com"
+    "https://mirror.ccs.tencentyun.com",
+    "https://hub-mirror.c.163.com",
+    "https://docker.mirrors.ustc.edu.cn"
   ]
 }
 EOF
