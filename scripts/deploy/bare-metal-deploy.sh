@@ -155,7 +155,15 @@ else
         fi
     fi
 
-    $INSTALL_CMD $REDIS_SERVICE
+    # CentOS/RHEL 8+ 使用 redis 或 valkey，尝试安装
+    if [ "$PKG_MANAGER" = "yum" ]; then
+        $INSTALL_CMD redis 2>/dev/null || $INSTALL_CMD valkey 2>/dev/null || {
+            print_error "无法安装 Redis，请手动安装"
+            exit 1
+        }
+    else
+        $INSTALL_CMD $REDIS_SERVICE
+    fi
     systemctl enable $REDIS_SERVICE
     systemctl start $REDIS_SERVICE
     print_success "Redis 安装完成"
