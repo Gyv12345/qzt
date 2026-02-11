@@ -42,19 +42,20 @@ if ! command -v docker &> /dev/null; then
     fi
 
     if [[ "$OS" =~ ^(ubuntu|debian)$ ]]; then
-        # Ubuntu/Debian
+        # Ubuntu/Debian - 使用阿里云镜像源
         apt-get update
-        apt-get install -y ca-certificates curl gnupg
-        install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-        chmod a+r /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
+        apt-get install -y ca-certificates curl gnupg lsb-release
+
+        # 添加阿里云 Docker 镜像源
+        curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
         apt-get update
         apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
     elif [[ "$OS" =~ ^(centos|rhel|almalinux|rocky|alinux)$ ]] || [ "$OS" = "fedora" ]; then
-        # CentOS/RHEL/Fedora
+        # CentOS/RHEL/Fedora - 使用阿里云镜像源
         yum install -y yum-utils
-        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
         yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
     else
         echo -e "${RED}不支持的系统: $OS${NC}"
