@@ -230,15 +230,10 @@ curl http://localhost
 
 适配 **2C2G RDS**（最大连接数 1000）：
 
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+在 `.env` 的 `DATABASE_URL` 中配置连接池参数：
 
-  // 2 个 PM2 实例 × 20 = 40 总连接
-  connection_limit = 20
-  pool_timeout      = 30
-}
+```bash
+DATABASE_URL="mysql://user:pass@host:3306/dbname?connection_limit=20&pool_timeout=30"
 ```
 
 ---
@@ -291,7 +286,7 @@ free -h
 # 检查当前连接数
 # 在 RDS 控制台查看
 
-# 如需减少连接，修改 schema.prisma 的 connection_limit
+# 如需减少连接，修改 .env 中 DATABASE_URL 的 connection_limit 参数
 # 重新生成 Prisma Client
 cd backend && pnpm prisma generate
 pm2 restart qzt-backend

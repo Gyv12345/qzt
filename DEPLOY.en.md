@@ -230,15 +230,10 @@ Check current connections in RDS console, should be **under 40**.
 
 Optimized for **2C2G RDS** (max connections 1000):
 
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+Configure connection pool parameters in `.env` `DATABASE_URL`:
 
-  // 2 PM2 instances × 20 = 40 total connections
-  connection_limit = 20
-  pool_timeout      = 30
-}
+```bash
+DATABASE_URL="mysql://user:pass@host:3306/dbname?connection_limit=20&pool_timeout=30"
 ```
 
 ---

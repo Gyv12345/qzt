@@ -316,14 +316,17 @@ if [ "$CREATE_ENV" = "1" ]; then
 # 说明：Redis 密码和 JWT 密钥已自动生成，无需修改
 # 只需填写数据库信息和域名即可
 
-# === 数据库配置（必填）===
-# 注意：数据库会在首次部署时自动创建（确保用户有 CREATE 权限）
+# === 数据库配置（必填，分参数配置）===
+# 数据库会在首次部署时自动创建（确保用户有 CREATE 权限）
 DATABASE_PROVIDER=mysql
 DB_HOST=rm-xxxxx.mysql.rds.aliyuncs.com
 DB_PORT=3306
 DB_USERNAME=你的数据库用户名
 DB_PASSWORD=你的数据库密码
 DB_DATABASE=数据库名
+
+# 连接池参数（可选，适配 2C2G RDS）
+# 直接拼接在连接字符串中，参数：connection_limit=20&pool_timeout=30
 
 # === Redis 配置（已自动生成）===
 REDIS_ENABLED=true
