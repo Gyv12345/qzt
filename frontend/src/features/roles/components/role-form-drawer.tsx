@@ -279,7 +279,7 @@ export function RoleFormDrawer({
                       <PermissionTreeSelect
                         value={field.value || []}
                         onChange={field.onChange}
-                        menuTree={menuTree || []}
+                        menuTree={(menuTree as any) || []}
                         placeholder="请选择角色权限"
                       />
                     )}

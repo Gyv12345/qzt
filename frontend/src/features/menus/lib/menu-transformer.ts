@@ -45,9 +45,10 @@ function transformMenuItem(item: MenuItem): NavItem {
     icon,
   };
 
-  // 如果有徽章数据，添加徽章
+  // 如果有徽章数据，添加徽章（number 转为 string）
   if (item.badge) {
-    baseItem.badge = item.badge;
+    baseItem.badge =
+      typeof item.badge === "number" ? String(item.badge) : item.badge;
   }
 
   // 如果有子菜单，递归转换

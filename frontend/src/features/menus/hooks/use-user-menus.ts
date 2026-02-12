@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getScrmApi } from "@/services/api";
-import type { MenuGroupDto, MenuItemDto } from "@/components/layout/types";
+import type { MenuGroupDto } from "@/components/layout/types";
 
 /**
  * 获取当前用户的菜单分组

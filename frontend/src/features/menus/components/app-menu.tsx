@@ -56,7 +56,7 @@ export function AppMenu() {
   // 渲染菜单分组
   return (
     <>
-      {menuGroups.map((group) => (
+      {(menuGroups as any[]).map((group) => (
         <NavGroupComponent key={group.title} {...group} />
       ))}
     </>

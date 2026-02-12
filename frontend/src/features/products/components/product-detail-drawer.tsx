@@ -12,14 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useProduct } from "../hooks/use-products";
 import { getOss } from "@/services/api";
 import type { Product } from "../types/product";
-import {
-  DollarSign,
-  Edit,
-  Calendar,
-  Clock,
-  FileText,
-  Package,
-} from "lucide-react";
+import { Edit, Calendar, Clock, FileText, Package } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
 
@@ -164,7 +157,7 @@ export function ProductDetailDrawer({
               产品时间轴
             </h3>
             <div className="space-y-2">
-              {timelineItems.map((item, index) => (
+              {timelineItems.map((item: string, index: number) => (
                 <div key={index} className="flex gap-3">
                   <div className="flex flex-col items-center pt-0.5">
                     <div className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">

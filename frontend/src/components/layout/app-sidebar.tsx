@@ -9,7 +9,7 @@ import { sidebarData } from "./data/sidebar-data";
 import { NavGroup } from "./nav-group";
 import { TeamSwitcher } from "./team-switcher";
 import { useUserMenus } from "@/features/menus/hooks/use-user-menus";
-import type { MenuGroupDto } from "./types";
+import type { MenuGroupDto, MenuItemDto } from "./types";
 import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
@@ -110,7 +110,7 @@ function getGroupVariant(title: string): string | undefined {
 /**
  * 将单个菜单项转换为 NavItem 格式（使用 i18n 翻译）
  */
-function convertToNavItem(item: MenuGroupDto, t: (key: string) => string) {
+function convertToNavItem(item: MenuItemDto, t: (key: string) => string) {
   const Icon = getIconComponent(item.icon);
 
   return {

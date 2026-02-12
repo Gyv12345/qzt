@@ -28,12 +28,6 @@ import {
 } from "@/features/menus/hooks/use-menu-tree";
 import { roleFormSchema, type RoleFormValues } from "../data/schema";
 
-interface PermissionGroup {
-  id: string;
-  name: string;
-  permissions: PermissionTreeNode[];
-}
-
 interface PermissionTreeNode {
   id: string;
   name: string;
@@ -79,20 +73,6 @@ function collectNodePermissionIds(node: PermissionTreeNode): string[] {
   }
 
   return ids;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// 按分组归类权限树节点（备用函数，暂未使用）
-function _groupPermissionsByCategory(
-  nodes: PermissionTreeNode[],
-): PermissionGroup[] {
-  // 这里可以根据业务需求进行分组，例如：业务、内容、系统等
-  // 暂时使用顶层菜单作为分组
-  return nodes.map((node) => ({
-    id: node.id,
-    name: node.name,
-    permissions: node.children?.length ? [node, ...node.children] : [node],
-  }));
 }
 
 interface PermissionTreeNodeItemProps {
@@ -330,7 +310,7 @@ export function RolePermissionsContent({
 
   const permissionTree = useMemo(() => {
     if (!menuTree) return [];
-    return convertToPermissionTree(menuTree);
+    return convertToPermissionTree(menuTree as any);
   }, [menuTree]);
 
   if (menuTreeLoading || roleLoading) {
