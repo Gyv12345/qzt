@@ -6,10 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getScrmApi } from "@/services/api";
 import type { MenuGroup, MenuItem } from "../types/menu";
-import {
-  transformMenuGroups,
-  flattenMenuGroups,
-} from "../lib/menu-transformer";
+import { flattenMenuGroups } from "../lib/menu-transformer";
 
 /**
  * 获取当前用户的菜单树
@@ -82,6 +79,9 @@ export interface MenuNode {
   name: string;
   path: string;
   parentId: string | null;
+  icon?: string;
+  sort?: number;
+  status?: number;
   permissions?: Array<{
     id: string;
     name: string;

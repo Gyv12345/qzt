@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useMenuTree } from "@/features/menus/hooks/use-menu-tree";
@@ -35,6 +35,47 @@ import { useDirection } from "@/context/direction-provider";
 import { useCreateRole, useUpdateRole } from "../hooks/use-roles";
 import { roleFormSchema, type RoleFormValues } from "../data/schema";
 import type { Role } from "../data/schema";
+import type { MenuGroup } from "@/features/menus/types/menu";
+import type { MenuNode } from "@/features/menus/hooks/use-menu-tree";
+
+/**
+ * 将 MenuGroup[] 转换为 MenuNode[]（用于权限选择器）
+ */
+function convertMenuGroupsToMenuNodes(menuGroups: MenuGroup[]): MenuNode[] {
+  const nodes: MenuNode[] = [];
+
+  menuGroups.forEach((group) => {
+    group.items.forEach((item) => {
+      const node: MenuNode = {
+        id: item.id,
+        name: item.title,
+        path: item.path,
+        parentId: null,
+        icon: item.icon,
+        sort: item.sort,
+        status: item.enabled ? 1 : 0,
+        permissions: [],
+      };
+
+      if (item.children && item.children.length > 0) {
+        node.children = item.children.map((child) => ({
+          id: child.id,
+          name: child.title,
+          path: child.path,
+          parentId: item.id,
+          icon: child.icon,
+          sort: child.sort,
+          status: child.enabled ? 1 : 0,
+          permissions: [],
+        }));
+      }
+
+      nodes.push(node);
+    });
+  });
+
+  return nodes;
+}
 
 interface RoleFormDrawerProps {
   open: boolean;
@@ -67,7 +108,13 @@ export function RoleFormDrawer({
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   // 获取菜单树数据用于权限选择
-  const { data: menuTree, isLoading: menuTreeLoading } = useMenuTree();
+  const { data: menuGroups, isLoading: menuTreeLoading } = useMenuTree();
+
+  // 转换为 MenuNode 格式
+  const menuTree = useMemo(() => {
+    if (!menuGroups) return [];
+    return convertMenuGroupsToMenuNodes(menuGroups);
+  }, [menuGroups]);
 
   const form = useForm<RoleFormValues>({
     // @ts-ignore - Zod version compatibility issue (project-wide, not specific to this file)

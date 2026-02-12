@@ -22,16 +22,51 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getScrmApi } from "@/services/api";
-import {
-  useMenuTree,
-  type MenuNode,
-} from "@/features/menus/hooks/use-menu-tree";
+import { useMenuTree } from "@/features/menus/hooks/use-menu-tree";
+import type { MenuNode } from "@/features/menus/hooks/use-menu-tree";
 import { roleFormSchema, type RoleFormValues } from "../data/schema";
+import type { MenuGroup } from "@/features/menus/types/menu";
 
-interface PermissionGroup {
-  id: string;
-  name: string;
-  permissions: PermissionTreeNode[];
+/**
+ * 将 MenuGroup[] 转换为 MenuNode[]（用于权限选择器）
+ * 这是一个适配函数，因为 useMenuTree 返回的是 MenuGroup[]，
+ * 但 PermissionTreeSelect 需要的是 MenuNode[]
+ */
+function convertMenuGroupsToMenuNodes(menuGroups: MenuGroup[]): MenuNode[] {
+  const nodes: MenuNode[] = [];
+
+  menuGroups.forEach((group) => {
+    group.items.forEach((item) => {
+      const node: MenuNode = {
+        id: item.id,
+        name: item.title,
+        path: item.path,
+        parentId: null,
+        icon: item.icon,
+        sort: item.sort,
+        status: item.enabled ? 1 : 0,
+        permissions: [],
+      };
+
+      // 递归处理子菜单
+      if (item.children && item.children.length > 0) {
+        node.children = item.children.map((child) => ({
+          id: child.id,
+          name: child.title,
+          path: child.path,
+          parentId: item.id,
+          icon: child.icon,
+          sort: child.sort,
+          status: child.enabled ? 1 : 0,
+          permissions: [],
+        }));
+      }
+
+      nodes.push(node);
+    });
+  });
+
+  return nodes;
 }
 
 interface PermissionTreeNode {
@@ -79,20 +114,6 @@ function collectNodePermissionIds(node: PermissionTreeNode): string[] {
   }
 
   return ids;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// 按分组归类权限树节点（备用函数，暂未使用）
-function _groupPermissionsByCategory(
-  nodes: PermissionTreeNode[],
-): PermissionGroup[] {
-  // 这里可以根据业务需求进行分组，例如：业务、内容、系统等
-  // 暂时使用顶层菜单作为分组
-  return nodes.map((node) => ({
-    id: node.id,
-    name: node.name,
-    permissions: node.children?.length ? [node, ...node.children] : [node],
-  }));
 }
 
 interface PermissionTreeNodeItemProps {
@@ -261,7 +282,6 @@ export function RolePermissionsContent({
       code: "",
       description: "",
       dataScope: "all",
-      dataScopeDeptIds: "",
       permissionIds: [],
     },
   });
@@ -274,7 +294,6 @@ export function RolePermissionsContent({
         code: roleData.code || "",
         description: roleData.description || "",
         dataScope: roleData.dataScope || "all",
-        dataScopeDeptIds: roleData.dataScopeDeptIds || "",
         permissionIds: roleData.permissionIds || [],
       });
     }
@@ -330,7 +349,8 @@ export function RolePermissionsContent({
 
   const permissionTree = useMemo(() => {
     if (!menuTree) return [];
-    return convertToPermissionTree(menuTree);
+    const menuNodes = convertMenuGroupsToMenuNodes(menuTree);
+    return convertToPermissionTree(menuNodes);
   }, [menuTree]);
 
   if (menuTreeLoading || roleLoading) {

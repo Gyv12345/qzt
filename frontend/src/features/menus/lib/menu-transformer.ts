@@ -3,7 +3,13 @@
  * 将后端返回的菜单数据转换为前端组件可用的格式
  */
 
-import type { MenuGroup, MenuItem, NavGroup, NavItem } from "../types/menu";
+import type { MenuGroup, MenuItem } from "../types/menu";
+import type {
+  NavGroup,
+  NavItem,
+  NavLink,
+  NavCollapsible,
+} from "@/components/layout/types";
 import { getIconComponent } from "./icon-mapper";
 
 /**
@@ -30,16 +36,50 @@ export function transformMenuGroups(menuGroups: MenuGroup[]): NavGroup[] {
 }
 
 /**
- * 将后端返回的 MenuItem 转换为前端 NavItem
+ * 将后端返回的 MenuItem 转换为前端 NavItem (NavLink | NavCollapsible)
  *
  * @param item - 后端菜单项
- * @returns 前端 NavItem 格式
+ * @returns 前端 NavItem 格式 (NavLink 或 NavCollapsible)
  */
 function transformMenuItem(item: MenuItem): NavItem {
   const icon = getIconComponent(item.icon);
 
-  // 基础菜单项
-  const baseItem: NavItem = {
+  // 如果有子菜单，返回 NavCollapsible 类型
+  if (item.children && item.children.length > 0) {
+    // 子菜单项必须是 NavLink（必须有 url）
+    const subItems = item.children.map((child) => {
+      const subLink: NavLink = {
+        title: child.title,
+        url: child.path,
+        icon: getIconComponent(child.icon),
+      };
+
+      // 如果有徽章数据，添加徽章
+      if (child.badge) {
+        subLink.badge =
+          typeof child.badge === "number" ? String(child.badge) : child.badge;
+      }
+
+      return subLink;
+    });
+
+    const collapsible: NavCollapsible = {
+      title: item.title,
+      icon,
+      items: subItems,
+    };
+
+    // 如果有徽章数据，添加徽章
+    if (item.badge) {
+      collapsible.badge =
+        typeof item.badge === "number" ? String(item.badge) : item.badge;
+    }
+
+    return collapsible;
+  }
+
+  // 没有子菜单，返回 NavLink 类型
+  const link: NavLink = {
     title: item.title,
     url: item.path,
     icon,
@@ -47,16 +87,11 @@ function transformMenuItem(item: MenuItem): NavItem {
 
   // 如果有徽章数据，添加徽章
   if (item.badge) {
-    baseItem.badge = item.badge;
+    link.badge =
+      typeof item.badge === "number" ? String(item.badge) : item.badge;
   }
 
-  // 如果有子菜单，递归转换
-  if (item.children && item.children.length > 0) {
-    baseItem.url = undefined; // 有子菜单时，url 应该由第一个子菜单决定或无 url
-    baseItem.items = item.children.map(transformMenuItem);
-  }
-
-  return baseItem;
+  return link;
 }
 
 /**

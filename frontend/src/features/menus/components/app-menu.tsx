@@ -9,6 +9,7 @@ import { NavGroup as NavGroupComponent } from "@/components/layout/nav-group";
 import { MenuSkeleton } from "./menu-skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { transformMenuGroups } from "../lib/menu-transformer";
 
 /**
  * 应用菜单主组件
@@ -53,10 +54,13 @@ export function AppMenu() {
     );
   }
 
+  // 将 MenuGroup[] 转换为 NavGroup[] 以兼容 NavGroupComponent
+  const navGroups = transformMenuGroups(menuGroups);
+
   // 渲染菜单分组
   return (
     <>
-      {menuGroups.map((group) => (
+      {navGroups.map((group) => (
         <NavGroupComponent key={group.title} {...group} />
       ))}
     </>
