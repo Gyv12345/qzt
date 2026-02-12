@@ -7,9 +7,8 @@ export const roleFormSchema = z.object({
   description: z.string().optional(),
   type: z.enum(["system", "team"]).optional(),
   dataScope: z
-    .enum(["all", "department", "department_and_sub", "custom", "self"])
+    .enum(["all", "department", "department_and_sub", "self"])
     .optional(),
-  dataScopeDeptIds: z.string().optional(),
   permissionIds: z.array(z.string()).optional(),
 });
 
@@ -23,7 +22,7 @@ export const roleSchema = z.object({
   description: z.string().optional(),
   type: z.string(),
   dataScope: z.string().optional(),
-  dataScopeDeptIds: z.string().optional(),
+  permissionIds: z.array(z.string()).optional(),
   status: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),

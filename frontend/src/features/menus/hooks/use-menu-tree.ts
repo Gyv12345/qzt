@@ -1,8 +1,82 @@
+/**
+ * 菜单数据获取 Hook
+ * 从后端 API 获取用户的菜单树，并转换为前端可用格式
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { getScrmApi } from "@/services/api";
+import type { MenuGroup, MenuItem } from "../types/menu";
+import {
+  transformMenuGroups,
+  flattenMenuGroups,
+} from "../lib/menu-transformer";
+
+/**
+ * 获取当前用户的菜单树
+ *
+ * @returns TanStack Query 的结果，包含菜单数据、加载状态、错误信息等
+ *
+ * @example
+ * ```tsx
+ * function AppSidebar() {
+ *   const { data: menuGroups, isLoading, error } = useMenuTree();
+ *
+ *   if (isLoading) return <MenuSkeleton />;
+ *   if (error) return <ErrorMessage />;
+ *
+ *   return menuGroups.map(group => <NavGroup key={group.title} {...group} />);
+ * }
+ * ```
+ */
+export function useMenuTree() {
+  return useQuery<MenuGroup[]>({
+    queryKey: ["menu-tree"],
+    queryFn: async (): Promise<MenuGroup[]> => {
+      const { menuControllerGetUserMenus } = getScrmApi();
+      const result = await menuControllerGetUserMenus();
+      // TODO: 根据实际 API 响应结构调整类型解析
+      return (result as any)?.groups || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 分钟内不重新请求
+    gcTime: 10 * 60 * 1000, // 10 分钟后垃圾回收
+    retry: 1, // 失败时重试一次
+  });
+}
+
+/**
+ * 获取展平的菜单列表（用于搜索）
+ *
+ * @returns 展平的菜单项数组
+ *
+ * @example
+ * ```tsx
+ * function MenuSearch() {
+ *   const flatMenus = useFlatMenus();
+ *   const [query, setQuery] = useState("");
+ *
+ *   const results = flatMenus.filter(menu =>
+ *     menu.title.toLowerCase().includes(query.toLowerCase())
+ *   );
+ * }
+ * ```
+ */
+export function useFlatMenus(): MenuItem[] {
+  const { data: menuGroups } = useMenuTree();
+
+  if (!menuGroups || menuGroups.length === 0) {
+    return [];
+  }
+
+  return flattenMenuGroups(menuGroups);
+}
+
+// ========== 以下是兼容旧权限系统的函数，暂时保留 ==========
+
 import type { PermissionTreeNode } from "@/features/permissions/data/schema";
 
-// 菜单树节点类型（从 API 返回）
+/**
+ * @deprecated 旧版菜单树节点类型，仅为兼容保留
+ */
 export interface MenuNode {
   id: string;
   name: string;
@@ -20,21 +94,7 @@ export interface MenuNode {
 }
 
 /**
- * 获取菜单树 Hook
- */
-export function useMenuTree() {
-  return useQuery<MenuNode[]>({
-    queryKey: ["menu-tree"],
-    queryFn: async () => {
-      const { permissionControllerGetMenuTree } = getScrmApi();
-      const result = (await permissionControllerGetMenuTree()) as any;
-      return result as MenuNode[];
-    },
-  });
-}
-
-/**
- * 将菜单树转换为权限树节点格式
+ * @deprecated 兼容旧的权限树转换函数
  */
 export function convertToPermissionTree(
   menus: MenuNode[],
@@ -58,7 +118,7 @@ export function convertToPermissionTree(
 }
 
 /**
- * 收集树中所有权限 ID
+ * @deprecated 兼容旧的权限 ID 收集函数
  */
 export function collectPermissionIds(nodes: PermissionTreeNode[]): string[] {
   const ids: string[] = [];
@@ -77,7 +137,7 @@ export function collectPermissionIds(nodes: PermissionTreeNode[]): string[] {
 }
 
 /**
- * 查找节点及其所有子权限 ID
+ * @deprecated 兼容旧的节点权限收集函数
  */
 export function collectNodePermissionIds(node: PermissionTreeNode): string[] {
   const ids: string[] = [];

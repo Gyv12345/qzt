@@ -11,7 +11,23 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { MenuNode } from "@/features/menus/hooks/use-menu-tree";
 import type { PermissionTreeNode } from "@/features/permissions/data/schema";
-import { collectNodePermissionIds } from "@/features/menus/hooks/use-menu-tree";
+
+// 本地实现：收集节点的所有权限 ID
+function collectNodePermissionIds(node: PermissionTreeNode): string[] {
+  const ids: string[] = [];
+
+  if (node.permissions) {
+    node.permissions.forEach((p) => ids.push(p.id));
+  }
+
+  if (node.children) {
+    node.children.forEach((child) => {
+      ids.push(...collectNodePermissionIds(child));
+    });
+  }
+
+  return ids;
+}
 
 interface PermissionTreeProps {
   nodes: PermissionTreeNode[];

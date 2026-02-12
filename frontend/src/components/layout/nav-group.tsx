@@ -33,12 +33,20 @@ import {
   type NavGroup as NavGroupProps,
 } from "./types";
 
-export function NavGroup({ title, items }: NavGroupProps) {
+export function NavGroup({ title, items, variant }: NavGroupProps) {
   const { state, isMobile } = useSidebar();
   const href = useLocation({ select: (location) => location.href });
+
+  // 根据 variant 应用对应的 CSS 类
+  const groupClassName = variant === "customer" ? "sidebar-group-customer" : "";
+
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+    <SidebarGroup className={groupClassName}>
+      <SidebarGroupLabel
+        className={variant === "customer" ? "sidebar-group-label" : ""}
+      >
+        {title}
+      </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const key = `${item.title}-${item.url}`;
@@ -58,12 +66,31 @@ export function NavGroup({ title, items }: NavGroupProps) {
   );
 }
 
-function NavBadge({ children }: { children: ReactNode }) {
-  return <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>;
+function NavBadge({
+  children,
+  variant,
+}: {
+  children: ReactNode;
+  variant?: string;
+}) {
+  // 处理 "prospect" 变体
+  if (variant === "prospect") {
+    return <span className="badge-prospect">{String(children)}</span>;
+  }
+  return (
+    <Badge className="rounded-full px-1 py-0 text-xs">{String(children)}</Badge>
+  );
 }
 
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar();
+
+  // 处理 badge 的对象形式
+  const badgeText =
+    typeof item.badge === "object" ? item.badge.text : item.badge;
+  const badgeVariant =
+    typeof item.badge === "object" ? item.badge.variant : undefined;
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -74,7 +101,9 @@ function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
           {item.icon && <item.icon />}
           <span>{item.title}</span>
-          {item.badge && <NavBadge>{item.badge}</NavBadge>}
+          {item.badge && (
+            <NavBadge variant={badgeVariant}>{badgeText}</NavBadge>
+          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -89,6 +118,13 @@ function SidebarMenuCollapsible({
   href: string;
 }) {
   const { setOpenMobile } = useSidebar();
+
+  // 处理 badge 的对象形式
+  const badgeText =
+    typeof item.badge === "object" ? item.badge.text : item.badge;
+  const badgeVariant =
+    typeof item.badge === "object" ? item.badge.variant : undefined;
+
   return (
     <Collapsible
       asChild
@@ -100,7 +136,9 @@ function SidebarMenuCollapsible({
           <SidebarMenuButton tooltip={item.title}>
             {item.icon && <item.icon />}
             <span>{item.title}</span>
-            {item.badge && <NavBadge>{item.badge}</NavBadge>}
+            {item.badge && (
+              <NavBadge variant={badgeVariant}>{badgeText}</NavBadge>
+            )}
             <ChevronRight className="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
@@ -115,7 +153,13 @@ function SidebarMenuCollapsible({
                   <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
                     {subItem.icon && <subItem.icon />}
                     <span>{subItem.title}</span>
-                    {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
+                    {subItem.badge && (
+                      <NavBadge>
+                        {typeof subItem.badge === "object"
+                          ? subItem.badge.text
+                          : subItem.badge}
+                      </NavBadge>
+                    )}
                   </Link>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
@@ -134,6 +178,10 @@ function SidebarMenuCollapsedDropdown({
   item: NavCollapsible;
   href: string;
 }) {
+  // 处理 badge 的对象形式
+  const badgeText =
+    typeof item.badge === "object" ? item.badge.text : item.badge;
+
   return (
     <SidebarMenuItem>
       <DropdownMenu>
@@ -144,13 +192,13 @@ function SidebarMenuCollapsedDropdown({
           >
             {item.icon && <item.icon />}
             <span>{item.title}</span>
-            {item.badge && <NavBadge>{item.badge}</NavBadge>}
+            {item.badge && <NavBadge>{badgeText}</NavBadge>}
             <ChevronRight className="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={4}>
           <DropdownMenuLabel>
-            {item.title} {item.badge ? `(${item.badge})` : ""}
+            {item.title} {badgeText ? `(${badgeText})` : ""}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {item.items.map((sub) => (
@@ -162,7 +210,9 @@ function SidebarMenuCollapsedDropdown({
                 {sub.icon && <sub.icon />}
                 <span className="max-w-52 text-wrap">{sub.title}</span>
                 {sub.badge && (
-                  <span className="ms-auto text-xs">{sub.badge}</span>
+                  <span className="ms-auto text-xs">
+                    {typeof sub.badge === "object" ? sub.badge.text : sub.badge}
+                  </span>
                 )}
               </Link>
             </DropdownMenuItem>

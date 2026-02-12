@@ -1,208 +1,141 @@
-# Task Plan: Docker 化部署方案
+# Task Plan: 菜单重构与权限系统升级
 <!--
-  WHAT: 将现有裸机部署改造为 Docker 部署方案
-  WHY: 裸机部署依赖复杂、环境不一致、难以维护，Docker 可以解决这些问题
+  WHAT: 重构菜单 UI/UX + 实现动态菜单权限管理
+  WHY: 现有菜单体验差，权限数据需后台管理，菜单初始化数据应从后端获取
   WHEN: 2026-02-11
 -->
 
 ## Goal
-设计并实现一个生产级的 Docker 部署方案，支持：
-- 使用 docker-compose 编排所有服务
-- 支持外部 RDS 数据库（可选本地数据库）
-- 根据宿主机配置自动调整资源限制
-- 支持一键部署和回滚
+打造一个现代化、用户友好的菜单系统，实现：
+- 重新设计菜单 UI/UX（视觉 + 交互）
+- 客户模块放在合适位置（联系人是客户的潜质，先有联系人后有客户）
+- 菜单数据完全由后台管理（初始化数据从数据库获取）
+- 角色与权限完全关联（菜单权限 + 数据权限）
+- 支持灵活的权限配置
 
 ## Current Phase
-Phase 5: 部署脚本（已完成 Phase 0-5）
+Phase 1: 后端动态菜单 API 开发（Phase 0 已完成）
 
 ## Team Structure
 | 角色 | 负责项目 | 职责 | 状态 |
 |------|----------|------|------|
-| 后端工程师 | backend | Dockerfile、Prisma 迁移、环境变量 | ✅ 完成 |
-| 前端工程师 | frontend | Dockerfile、Nginx 配置 | ✅ 完成 |
-| 前端工程师 | website | Dockerfile、Next.js 配置 | ✅ 完成 |
-| DevOps | 协调 | docker-compose、CI/CD 集成 | ✅ 完成 |
+| UI/UX 工程师 | 菜单设计 | 视觉设计、交互方案、组件设计 | ⏸️ 待启动 |
+| 产品工程师 | 需求分析 | 业务流程、用户故事、优先级 | ⏸️ 待启动 |
+| 后端工程师 | backend | 菜单 API、权限 API、数据权限 | ⏸️ 待启动 |
+| 前端工程师 A | frontend | 菜单组件、权限组件 | ⏸️ 待启动 |
+| 前端工程师 B | frontend | 客户/联系人模块调整 | ⏸️ 待启动 |
 
 ## Phases
 
 ### Phase 0: 需求分析与方案设计
-- [x] 分析当前部署架构和痛点
-- [x] 设计 Docker 镜像分层策略
-- [x] 设计 docker-compose 服务编排
-- [x] 设计资源分配策略（根据宿主机配置）
-- [x] 设计环境变量管理方案
-- [x] 设计网络架构（前端/后端/网站/Redis）
+- [x] 分析当前菜单痛点和用户体验问题
+- [x] 设计新的菜单信息架构（客户模块位置）
+- [x] 设计菜单 UI/UX 方案（视觉 + 交互）
+- [x] 设计动态菜单数据模型
+- [x] 设计权限关联方案（角色-权限-菜单）
+- [x] 设计数据权限实现方案
 - **Status:** complete
 
-### Phase 1: 后端 Docker 化（Backend Engineer 负责）
-- [x] 编写 backend/Dockerfile
-- [x] 处理 workspace 依赖（@qzt/shared-types）
-- [x] 配置 Prisma 迁移脚本
-- [x] 配置 PM2 集群模式（改为直接 node 运行，更适合容器）
-- [x] 健康检查端点
-- **Status:** complete
-
-### Phase 2: 前端 Docker 化（Frontend Engineer 负责）
-- [x] 编写 frontend/Dockerfile
-- [x] 配置 Nginx 静态文件服务
-- [x] 多阶段构建优化镜像大小
-- **Status:** complete
-
-### Phase 3: 网站 Docker 化（Website Engineer 负责）
-- [x] 编写 website/Dockerfile
-- [x] 配置 Next.js standalone 输出
-- [x] 处理 ISR/SSR 构建产物
-- **Status:** complete
-
-### Phase 4: Docker Compose 编排
-- [x] 编写 docker-compose.yml（本地数据库版本）
-- [x] 编写 docker-compose.rds.yml（RDS 版本）
-- [x] 配置服务网络（qzt-network）
-- [x] 配置数据卷（redis-data、mysql-data、backend-logs）
-- [x] 配置环境变量覆盖
-- [x] 配置健康检查和重启策略
-- **Status:** complete
-
-### Phase 5: 部署脚本（支持 RDS 选择）
-- [x] 服务器检测脚本（CPU/内存）
-- [x] 交互式数据库选择（RDS / 本地 MySQL）
-- [x] 资源限制自动计算
-- [x] 一键部署脚本
-- [ ] 回滚脚本（待实现）
-- **Status:** complete (除回滚脚本)
-
-### Phase 6: CI/CD 集成
-- [ ] 更新 GitHub Actions 构建 Docker 镜像
-- [ ] 推送到镜像仓库（Docker Hub / ACR）
-- [ ] 服务器端拉取镜像部署
+### Phase 1: 后端动态菜单 API（Backend Engineer 负责）
+- [ ] 创建菜单管理 CRUD API
+- [ ] 创建菜单初始化数据种子
+- [ ] 创建角色-菜单关联 API
+- [ ] 创建数据权限 API
+- [ ] 实现菜单权限过滤逻辑
 - **Status:** pending
 
-### Phase 7: 文档与验证
-- [x] 编写部署文档
-- [ ] 本地测试部署
-- [ ] 服务器测试部署
-- **Status:** in_progress (文档完成，待测试)
+### Phase 2: 菜单 UI/UX 重构（Frontend Engineer A + UI/UX 负责）
+- [ ] 实现新菜单组件（视觉设计）
+- [ ] 实现菜单交互逻辑（展开/收起/搜索）
+- [ ] 实现菜单主题适配
+- [ ] 实现菜单响应式布局
+- **Status:** pending
+
+### Phase 3: 权限管理后台（Frontend Engineer B 负责）
+- [ ] 创建菜单管理页面
+- [ ] 创建角色权限配置页面
+- [ ] 创建数据权限配置页面
+- [ ] 实现权限树选择组件
+- **Status:** pending
+
+### Phase 4: 客户/联系人模块调整（Frontend Engineer B 负责）
+- [ ] 调整客户模块菜单位置
+- [ ] 优化联系人 → 客户转化流程
+- [ ] 更新路由和面包屑
+- **Status:** pending
+
+### Phase 5: 集成测试与优化
+- [ ] 端到端测试（登录 → 菜单 → 权限）
+- [ ] 性能优化（菜单懒加载）
+- [ ] 无障碍访问测试
+- **Status:** pending
 
 ## Key Questions
-1. **是否使用多阶段构建？**
-   - 是：减少镜像大小，构建分离
-   - Node.js 基础镜像选择：alpine vs slim
+1. **菜单信息架构如何调整？**
+   - 客户应该放在哪里？（工作台快捷入口？独立顶级菜单？）
+   - 联系人如何体现是"客户的潜质"？
+   - 菜单分组是否需要重新命名？
 
-2. **如何处理 workspace 依赖？**
-   - 在 backend Dockerfile 中先构建 shared-types
-   - 或者使用多阶段构建共享层
+2. **动态菜单数据如何管理？**
+   - 菜单是否需要支持启用/禁用？
+   - 菜单是否需要支持排序？
+   - 是否需要支持菜单的国际化 Key？
 
-3. **数据库选择策略？**
-   - 交互式脚本询问用户是否有 RDS
-   - 有 RDS：配置连接字符串
-   - 无 RDS：启动 MySQL 容器
+3. **权限粒度如何控制？**
+   - 菜单级权限（能否访问某个页面）
+   - 按钮级权限（增删改查按钮）
+   - 数据级权限（查看范围）
 
-4. **资源分配策略？**
-   | 服务器配置 | 后端 | 前端 | 网站 | Redis | MySQL |
-   |------------|------|------|------|-------|-------|
-   | 2C2G | 512MB | 128MB | 256MB | 128MB | 512MB |
-   | 2C4G | 1GB | 256MB | 512MB | 256MB | 1GB |
-   | 4C8G | 2GB | 512MB | 1GB | 512MB | 2GB |
+4. **数据权限如何实现？**
+   - 全部数据
+   - 本部门数据
+   - 本部门及下级部门数据
+   - 自定义部门数据
+   - 仅本人数据
 
-5. **网络架构？**
-   ```
-   ┌─────────────────────────────────────────┐
-   │              Nginx (80/443)              │
-   │  ┌──────────┬──────────┬──────────────┐ │
-   │  │ frontend │ website  │  backend API │ │
-   │  │  :3000   │  :5180   │    :7890     │ │
-   │  └──────────┴──────────┴──────────────┘ │
-   └─────────────────────────────────────────┘
-         │             │            │
-         └─────────────┴────────────┴───────┐ qzt-network
-                                               │
-                        ┌──────────────────────┼──────────────┐
-                        │                      │              │
-                   backend:7890           redis:6379    mysql:3306
-                        │                      │              │
-                   ┌────┴────┐             ┌──┴──┐        ┌──┴──┐
-                   │ backend │             │Redis │        │MySQL│
-                   └─────────┘             └─────┘        └─────┘
-   ```
+5. **UI/UX 风格选择？**
+   - 扁平化 / 拟物化 / 新拟态
+   - 暗色模式支持
+   - 动画效果（展开/收起/切换）
 
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|
-| 使用多阶段构建 | 减少最终镜像大小，分离构建和运行时依赖 |
-| Node.js 20 Alpine 基础镜像 | 最小化镜像体积 |
-| 单一 docker-compose 文件 | 简化部署，所有服务一键启动 |
-| 交互式数据库选择 | 支持 RDS 用户跳过本地数据库 |
-| 环境变量覆盖优先级 | .env → docker-compose.yml → 运行时 |
+| （待决策） | - |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
 |-------|---------|------------|
-| (暂无) | - | - |
+| （暂无） | - | - |
 
 ## Created Files
 | 文件 | 描述 |
 |------|------|
-| backend/Dockerfile | 后端多阶段构建 Dockerfile |
-| frontend/Dockerfile | 前端 Nginx Dockerfile |
-| frontend/nginx.conf | Nginx SPA 配置 |
-| website/Dockerfile | 网站 Next.js standalone Dockerfile |
-| docker-compose.yml | 本地数据库版本编排文件 |
-| docker-compose.rds.yml | RDS 版本编排文件 |
-| .env.rds.example | RDS 环境变量模板 |
-| .env.local.example | 本地环境变量模板 |
-| scripts/deploy/docker-deploy.sh | 一键部署脚本 |
+| （待创建） | - |
 
-## Docker 镜像分层设计
+## Business Logic Notes
 
-### backend
-```dockerfile
-# Stage 1: 依赖层（缓存友好）
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY packages/shared-types/package.json ./packages/shared-types/
-COPY backend/package.json ./backend/
-RUN cd backend && pnpm install --prod
+### 客户与联系人关系
+- **联系人是客户的潜质**：先有联系人信息，经过跟进后转化为正式客户
+- **客户是最重要的概念**：应该放在菜单的显著位置
+- **转化流程**：联系人 → 跟进记录 → 转化为客户
 
-# Stage 2: 构建层
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN cd packages/shared-types && pnpm build
-RUN cd backend && pnpm prisma generate && pnpm build
-
-# Stage 3: 运行时
-FROM node:20-alpine AS runner
-WORKDIR /app
-COPY --from=deps /app/backend/node_modules ./node_modules
-COPY --from=builder /app/backend/dist ./dist
-COPY --from=builder /app/backend/node_modules/.prisma ./node_modules/.prisma
-COPY backend/package.json ./
-CMD ["node", "dist/main"]
+### 现有菜单结构（待重构）
+```
+业务
+├── 工作台
+├── 销售管理
+│   ├── 联系人管理    ← 潜质客户
+│   ├── 客户管理      ← 核心概念
+│   ├── 合同管理
+│   └── 服务团队
+├── 财务管理
+│   ├── 发票管理
+│   └── 收款管理
+...
 ```
 
-### frontend
-```dockerfile
-# Stage 1: 构建层
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY frontend/package.json frontend/
-RUN cd frontend && pnpm install
-COPY frontend/ ./
-RUN cd frontend && pnpm build
-
-# Stage 2: Nginx 运行时
-FROM nginx:alpine AS runner
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-### website
-```dockerfile
-# 类似 frontend，但使用 Next.js standalone 输出
-```
-
-## Notes
-- 现有部署脚本：`scripts/deploy/` 目录
-- 需要保留与现有 CI/CD 的兼容性
-- 考虑使用 Docker BuildKit 加速构建
+## Resources
+- 现有菜单配置: `frontend/src/components/layout/data/sidebar-data.ts`
+- 权限数据模型: `backend/prisma/schema.prisma`
+- 菜单组件: `frontend/src/components/ui/sidebar.tsx`

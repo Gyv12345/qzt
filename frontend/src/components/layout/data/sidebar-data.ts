@@ -1,10 +1,8 @@
 import {
   LayoutDashboard,
   Building,
-  BarChart3,
   UserCircle,
   UsersRound,
-  PieChart,
   Receipt,
   Wallet,
   Users,
@@ -40,72 +38,71 @@ export const sidebarData: SidebarData = {
   ],
   navGroups: [
     {
-      title: "业务",
+      title: "工作台",
       items: [
         {
           title: "工作台",
           url: "/",
           icon: LayoutDashboard,
         },
+      ],
+    },
+    {
+      title: "客户中心",
+      variant: "customer",
+      items: [
         {
-          title: "销售管理",
-          icon: BarChart3,
-          items: [
-            {
-              title: "联系人管理",
-              url: "/contacts",
-              icon: UserCircle,
-            },
-            {
-              title: "客户管理",
-              url: "/customers",
-              icon: Building,
-            },
-            {
-              title: "合同管理",
-              url: "/contracts",
-              icon: FileCheck,
-            },
-            {
-              title: "服务团队",
-              url: "/service-teams",
-              icon: UsersRound,
-            },
-          ],
+          title: "客户管理",
+          url: "/customers",
+          icon: Building,
+          variant: "primary",
         },
         {
-          title: "财务管理",
-          icon: PieChart,
-          items: [
-            {
-              title: "发票管理",
-              url: "/invoices",
-              icon: Receipt,
-            },
-            {
-              title: "收款管理",
-              url: "/payments",
-              icon: Wallet,
-            },
-          ],
+          title: "联系人管理",
+          url: "/contacts",
+          icon: UserCircle,
+          badge: { text: "潜质", variant: "prospect" },
         },
-        // 隐藏的任务、应用、聊天菜单
-        // {
-        //   title: '任务',
-        //   url: '/tasks',
-        //   icon: ListTodo,
-        // },
-        // {
-        //   title: '应用',
-        //   url: '/apps',
-        //   icon: Package,
-        // },
-        // {
-        //   title: '聊天',
-        //   url: '/chats',
-        //   badge: '3',
-        //   icon: MessagesSquare,
-        // },
+        {
+          title: "跟进记录",
+          url: "/follow-records",
+          icon: ClipboardList,
+        },
+        {
+          title: "服务团队",
+          url: "/service-teams",
+          icon: UsersRound,
+        },
+      ],
+    },
+    {
+      title: "合同",
+      items: [
+        {
+          title: "合同管理",
+          url: "/contracts",
+          icon: FileCheck,
+        },
+        {
+          title: "合同模板设置",
+          url: "/contract-templates",
+          icon: FileSignature,
+        },
+      ],
+    },
+    {
+      title: "财务",
+      items: [
+        {
+          title: "发票管理",
+          url: "/invoices",
+          icon: Receipt,
+        },
+        {
+          title: "收款管理",
+          url: "/payments",
+          icon: Wallet,
+        },
       ],
     },
     {
@@ -140,11 +137,6 @@ export const sidebarData: SidebarData = {
           title: "产品管理",
           url: "/products",
           icon: Archive,
-        },
-        {
-          title: "合同模板设置",
-          url: "/contract-templates",
-          icon: FileSignature,
         },
         {
           title: "客户规则",

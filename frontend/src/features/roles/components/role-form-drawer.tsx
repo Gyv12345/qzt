@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
+import { useMenuTree } from "@/features/menus/hooks/use-menu-tree";
+import { PermissionTreeSelect } from "@/components/ui/permission-tree-select";
+import { Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -49,7 +52,6 @@ const dataScopeOptions = [
   { value: "all", label: "全部数据" },
   { value: "department", label: "本部门数据" },
   { value: "department_and_sub", label: "本部门及下级部门数据" },
-  { value: "custom", label: "自定义部门" },
   { value: "self", label: "仅本人数据" },
 ];
 
@@ -64,6 +66,9 @@ export function RoleFormDrawer({
   const { dir } = useDirection();
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
+  // 获取菜单树数据用于权限选择
+  const { data: menuTree, isLoading: menuTreeLoading } = useMenuTree();
+
   const form = useForm<RoleFormValues>({
     // @ts-ignore - Zod version compatibility issue (project-wide, not specific to this file)
     resolver: zodResolver(roleFormSchema),
@@ -77,11 +82,9 @@ export function RoleFormDrawer({
             | "all"
             | "department"
             | "department_and_sub"
-            | "custom"
             | "self"
             | undefined,
-          dataScopeDeptIds: role.dataScopeDeptIds || "",
-          permissionIds: [],
+          permissionIds: role.permissionIds || [],
         }
       : {
           name: "",
@@ -89,7 +92,6 @@ export function RoleFormDrawer({
           description: "",
           type: "system",
           dataScope: "all",
-          dataScopeDeptIds: "",
           permissionIds: [],
         },
   });
@@ -99,6 +101,34 @@ export function RoleFormDrawer({
       form.reset();
     }
   }, [open, form]);
+
+  // 当 role 对象变化时，重置表单值
+  useEffect(() => {
+    if (role) {
+      form.reset({
+        name: role.name,
+        code: role.code,
+        description: role.description || "",
+        type: role.type as "system" | "team" | undefined,
+        dataScope: role.dataScope as
+          | "all"
+          | "department"
+          | "department_and_sub"
+          | "self"
+          | undefined,
+        permissionIds: role.permissionIds || [],
+      });
+    } else if (open) {
+      form.reset({
+        name: "",
+        code: "",
+        description: "",
+        type: "system",
+        dataScope: "all",
+        permissionIds: [],
+      });
+    }
+  }, [role, open, form]);
 
   const createMutation = useCreateRole();
   const updateMutation = useUpdateRole();
@@ -110,6 +140,7 @@ export function RoleFormDrawer({
         description: values.description || undefined,
         type: values.type || "system",
         dataScope: values.dataScope || "all",
+        permissionIds: values.permissionIds || [],
       };
 
       if (isEdit && role) {
@@ -231,9 +262,32 @@ export function RoleFormDrawer({
               />
             </div>
 
-            {/* TODO(human): 权限选择功能 */}
-            {/* 当实现权限选择时，添加权限多选组件 */}
-            {/* 参考：需要调用权限列表API，实现树形选择或复选框 */}
+            {/* 权限选择 */}
+            <FormField
+              control={form.control}
+              name="permissionIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>权限配置</FormLabel>
+                  <FormControl>
+                    {menuTreeLoading ? (
+                      <div className="flex items-center gap-2 h-10 px-3 py-2 border rounded-md text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>加载权限列表...</span>
+                      </div>
+                    ) : (
+                      <PermissionTreeSelect
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        menuTree={menuTree || []}
+                        placeholder="请选择角色权限"
+                      />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
