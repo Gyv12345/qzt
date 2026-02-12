@@ -1,0 +1,136 @@
+# ============================================================
+# GitHub Actions - 后端部署 (Backend)
+# ============================================================
+
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'packages/shared-types/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  DEPLOY_DIR: /var/www/qzt/backend
+  PM2_APP_NAME: qzt-backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: |
+          cd backend
+          pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build Backend
+        run: |
+          cd backend
+          pnpm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+
+      - name: Create deployment package
+        run: |
+          cd backend
+          tar -czf ../backend-dist.tar.gz \
+            dist node_modules package.json prisma
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          # 上传部署包
+          scp -o StrictHostKeyChecking=no backend-dist.tar.gz \
+            root@${{ secrets.SERVER_HOST }}:/tmp/
+
+          # 执行远程部署脚本
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            set -e
+
+            DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+            BACKUP_DIR="/var/www/qzt/backups"
+
+            # 创建目录
+            mkdir -p $DEPLOY_DIR $BACKUP_DIR
+            cd $DEPLOY_DIR
+
+            # 备份当前版本
+            if [ -d "dist" ]; then
+              tar -czf $BACKUP_DIR/backend-backup-$(date +%Y%m%d_%H%M%S).tar.gz \
+                dist node_modules 2>/dev/null || \
+                tar -czf $BACKUP_DIR/backend-backup-$(date +%Y%m%d_%H%M%S).tar.gz dist
+              echo "备份已创建"
+            fi
+
+            # 解压新版本
+            rm -rf dist node_modules
+            tar -xzf /tmp/backend-dist.tar.gz -C ./
+            rm /tmp/backend-dist.tar.gz
+
+            # 生成 Prisma Client
+            cd $DEPLOY_DIR
+            pnpm prisma generate
+
+            # 重启 PM2 服务
+            pm2 restart ${{ env.PM2_APP_NAME }} || \
+              pm2 start $DEPLOY_DIR/dist/main.js --name ${{ env.PM2_APP_NAME }}
+
+            # 保存 PM2 配置
+            pm2 save
+
+            echo "后端部署成功！"
+          ENDSSH
+
+      - name: Health check
+        run: |
+          sleep 10
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            curl -f http://localhost:7890/api/health || exit 1
+            echo "健康检查通过！"
+          ENDSSH
