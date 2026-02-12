@@ -109,18 +109,31 @@
 
 ## 初始化服务器
 
-### 第一步：克隆代码
+### 第一步：上传脚本到服务器
+
+**方法 A：使用 SCP 上传**（推荐）
 
 ```bash
-# 如果服务器上还没克隆代码
-git clone <your-repo-url> /root/qzt
-cd /root/qzt
+# 在本地执行，上传初始化脚本
+scp scripts/server-init.sh root@your-server:/root/
+```
+
+**方法 B：手动创建脚本文件**
+
+```bash
+# SSH 登录服务器
+ssh root@your-server
+
+# 创建并编辑脚本
+cat > /root/server-init.sh
+# (粘贴 scripts/server-init.sh 的内容)
 ```
 
 ### 第二步：运行初始化脚本
 
 ```bash
-bash scripts/server-init.sh
+# 在服务器上运行
+ssh root@your-server "bash /root/server-init.sh"
 ```
 
 脚本会自动安装以下组件：
