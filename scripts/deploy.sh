@@ -65,6 +65,13 @@ deploy_backend() {
     # 本地构建
     echo -e "${YELLOW}1. 本地构建...${NC}"
     pnpm install
+    # 先构建 shared-types
+    echo -e "${YELLOW}   构建共享类型...${NC}"
+    cd packages/shared-types
+    pnpm run build
+    cd ../..
+    # 再构建 backend
+    echo -e "${YELLOW}   构建后端...${NC}"
     cd backend
     pnpm prisma generate
     pnpm run build
