@@ -251,6 +251,93 @@ log_error() { log_message "ERROR" "$@"; }
 log_warning() { log_message "WARN" "$@"; }
 
 # ============================================
+# 配置清单显示
+# ============================================
+show_docker_config_checklist() {
+    cat << 'EOF'
+
+========================================
+   📋 配置准备清单
+========================================
+
+在开始配置前，请准备以下信息：
+
+【数据库配置 - 选其一】
+  □ 阿里云 RDS MySQL（推荐）
+     - RDS 地址 (如: rm-xxxxx.mysql.rds.aliyuncs.com)
+     - RDS 端口 (默认: 3306)
+     - 数据库用户名
+     - 数据库密码
+     - 数据库名称 (默认: qzt_db)
+
+  □ 本地 MySQL 容器
+     - 脚本会自动生成随机密码，请妥善保管
+
+【域名配置】
+  □ 前端域名 (如: devlovecode.com)
+  □ 管理后台域名 (如: admin.devlovecode.com)
+
+【SSL 证书配置 - 选其一】
+  □ 不启用 HTTPS（仅 HTTP，开发测试）
+  □ 自签名证书（快速测试，浏览器会警告）
+  □ 上传已有证书（.crt 和 .key 文件）
+  □ Let's Encrypt 免费证书
+     - 需要先配置域名解析到当前服务器
+     - 泛域名证书需通过 DNS 验证
+
+【Let's Encrypt DNS 验证准备】
+  □ 阿里云 DNS - 登录控制台添加 TXT 记录
+  □ 腾讯云 DNS - 需要安装 certbot-dns-dnspod 插件
+  □ Cloudflare - 需要创建 API Token
+  □ 其他 DNS 服务商 - 手动添加 TXT 记录
+
+按 Enter 继续...
+EOF
+    read
+}
+
+# ============================================
+# SSL 证书辅助函数
+# ============================================
+# 复制 Let's Encrypt 证书到项目目录
+copy_letsencrypt_cert() {
+    local domain="$1"
+    local cert_dir="$2"
+
+    if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
+        cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$cert_dir/cert.pem"
+        cp "/etc/letsencrypt/live/$domain/privkey.pem" "$cert_dir/key.pem"
+        chmod 600 "$cert_dir/key.pem"
+        chmod 644 "$cert_dir/cert.pem"
+        export ENABLE_HTTPS="true"
+        export SSL_CERT_PATH="$cert_dir/cert.pem"
+        export SSL_KEY_PATH="$cert_dir/key.pem"
+        print_success "证书已复制到项目目录"
+        return 0
+    else
+        print_error "证书申请失败，请检查日志"
+        return 1
+    fi
+}
+
+# 配置证书自动续期
+setup_cert_renewal() {
+    local domain="$1"
+    local cert_dir="$2"
+
+    echo ""
+    echo -e "${YELLOW}配置证书自动续期...${NC}"
+
+    # 移除旧的 cron 任务（如果存在）
+    crontab -l 2>/dev/null | grep -v "certbot renew.*$domain" | crontab - 2>/dev/null || true
+
+    # 添加新的 cron 任务
+    (crontab -l 2>/dev/null; echo "0 0,12 * * * certbot renew --quiet && cp /etc/letsencrypt/live/$domain/fullchain.pem $cert_dir/cert.pem && cp /etc/letsencrypt/live/$domain/privkey.pem $cert_dir/key.pem && docker compose -f $cert_dir/../docker-compose.yml restart frontend 2>/dev/null || true") | crontab -
+
+    print_success "自动续期已配置 (每天 00:00 和 12:00)"
+}
+
+# ============================================
 # 子命令帮助信息
 # ============================================
 show_help() {
@@ -834,6 +921,11 @@ cmd_docker() {
     echo -e "${CYAN}========================================${NC}"
     echo ""
 
+    # 如果是首次配置且没有 .env 文件，显示配置清单
+    if [ ! -f "$SCRIPT_DIR/.env" ] && [ "$auto_yes" != true ]; then
+        show_docker_config_checklist
+    fi
+
     # 检查并安装 Docker
     echo -e "${YELLOW}检查 Docker 环境...${NC}"
 
@@ -1309,6 +1401,72 @@ cmd_ssl() {
 
     print_header "SSL 证书配置"
 
+    # 首先检查 .env 中是否已配置 SSL
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        source "$SCRIPT_DIR/.env"
+        # 如果 .env 中已配置 SSL 且证书文件存在
+        if [ "${ENABLE_HTTPS:-false}" = "true" ] && [ -n "${SSL_CERT_PATH:-}" ] && [ -n "${SSL_KEY_PATH:-}" ]; then
+            if [ -f "$SSL_CERT_PATH" ] && [ -f "$SSL_KEY_PATH" ]; then
+                # 验证证书有效性
+                if openssl x509 -in "$SSL_CERT_PATH" -noout >/dev/null 2>&1; then
+                    # 检查证书是否过期
+                    if openssl x509 -in "$SSL_CERT_PATH" -checkend 0 >/dev/null 2>&1; then
+                        local expiry_date=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate | cut -d= -f2)
+                        print_success "检测到 .env 中已配置的有效 SSL 证书"
+                        echo -e "${GREEN}证书路径:${NC} $SSL_CERT_PATH"
+                        echo -e "${GREEN}过期时间:${NC} $expiry_date"
+                        echo ""
+                        read -p "是否使用现有 SSL 配置? [Y/n]: " USE_EXISTING
+                        USE_EXISTING=${USE_EXISTING:-y}
+                        if [[ "$USE_EXISTING" =~ ^[Yy]$ ]]; then
+                            # 导出变量供父脚本使用
+                            export ENABLE_HTTPS
+                            export SSL_CERT_PATH
+                            export SSL_KEY_PATH
+                            return 0
+                        fi
+                    else
+                        print_warning ".env 中配置的证书已过期"
+                    fi
+                else
+                    print_warning ".env 中配置的证书文件无效"
+                fi
+            fi
+        fi
+    fi
+
+    # 检测 ssl 目录中是否已存在有效的证书
+    if [ -f "$CERT_DIR/cert.pem" ] && [ -f "$CERT_DIR/key.pem" ]; then
+        # 验证证书有效性
+        if openssl x509 -in "$CERT_DIR/cert.pem" -noout >/dev/null 2>&1; then
+            # 检查证书是否过期
+            if openssl x509 -in "$CERT_DIR/cert.pem" -checkend 0 >/dev/null 2>&1; then
+                ENABLE_HTTPS="true"
+                SSL_CERT_PATH="$CERT_DIR/cert.pem"
+                SSL_KEY_PATH="$CERT_DIR/key.pem"
+                print_success "检测到已有的有效 SSL 证书"
+                echo -e "${GREEN}证书路径:${NC} $CERT_DIR"
+                # 显示证书过期时间
+                local expiry_date=$(openssl x509 -in "$CERT_DIR/cert.pem" -noout -enddate | cut -d= -f2)
+                echo -e "${GREEN}过期时间:${NC} $expiry_date"
+                echo ""
+                read -p "是否使用现有证书? [Y/n]: " USE_EXISTING
+                USE_EXISTING=${USE_EXISTING:-y}
+                if [[ "$USE_EXISTING" =~ ^[Yy]$ ]]; then
+                    # 导出变量供父脚本使用
+                    export ENABLE_HTTPS
+                    export SSL_CERT_PATH
+                    export SSL_KEY_PATH
+                    return 0
+                fi
+            else
+                print_warning "检测到证书已过期，需要重新申请"
+            fi
+        else
+            print_warning "检测到证书文件但格式无效，需要重新配置"
+        fi
+    fi
+
     echo -e "${YELLOW}请选择证书获取方式：${NC}"
     echo "  1) 不启用 HTTPS - 仅 HTTP（开发测试）"
     echo "  2) 自签名证书 - 快速测试 HTTPS，浏览器会警告"
@@ -1419,17 +1577,7 @@ cmd_ssl() {
                             --email "admin@$domain" \
                             --agree-tos --no-eff-email
 
-                        # 复制证书到项目目录
-                        if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
-                            cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
-                            cp "/etc/letsencrypt/live/$domain/privkey.pem" "$CERT_DIR/key.pem"
-                            chmod 600 "$CERT_DIR/key.pem"
-                            chmod 644 "$CERT_DIR/cert.pem"
-                            ENABLE_HTTPS="true"
-                            SSL_CERT_PATH="$CERT_DIR/cert.pem"
-                            SSL_KEY_PATH="$CERT_DIR/key.pem"
-                            print_success "证书已复制到项目目录"
-                        fi
+                        copy_letsencrypt_cert "$domain" "$CERT_DIR"
                         ;;
                     2)
                         # 腾讯云
@@ -1440,16 +1588,7 @@ cmd_ssl() {
                             --email "admin@$domain" \
                             --agree-tos --no-eff-email
 
-                        if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
-                            cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
-                            cp "/etc/letsencrypt/live/$domain/privkey.pem" "$CERT_DIR/key.pem"
-                            chmod 600 "$CERT_DIR/key.pem"
-                            chmod 644 "$CERT_DIR/cert.pem"
-                            ENABLE_HTTPS="true"
-                            SSL_CERT_PATH="$CERT_DIR/cert.pem"
-                            SSL_KEY_PATH="$CERT_DIR/key.pem"
-                            print_success "证书已复制到项目目录"
-                        fi
+                        copy_letsencrypt_cert "$domain" "$CERT_DIR"
                         ;;
                     3)
                         # Cloudflare
@@ -1467,16 +1606,7 @@ cmd_ssl() {
                             --email "admin@$domain" \
                             --agree-tos --no-eff-email
 
-                        if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
-                            cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
-                            cp "/etc/letsencrypt/live/$domain/privkey.pem" "$CERT_DIR/key.pem"
-                            chmod 600 "$CERT_DIR/key.pem"
-                            chmod 644 "$CERT_DIR/cert.pem"
-                            ENABLE_HTTPS="true"
-                            SSL_CERT_PATH="$CERT_DIR/cert.pem"
-                            SSL_KEY_PATH="$CERT_DIR/key.pem"
-                            print_success "证书已复制到项目目录"
-                        fi
+                        copy_letsencrypt_cert "$domain" "$CERT_DIR"
                         ;;
                     4)
                         # 手动 DNS 验证
@@ -1486,24 +1616,12 @@ cmd_ssl() {
                             --email "admin@$domain" \
                             --agree-tos --no-eff-email
 
-                        if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
-                            cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
-                            cp "/etc/letsencrypt/live/$domain/privkey.pem" "$CERT_DIR/key.pem"
-                            chmod 600 "$CERT_DIR/key.pem"
-                            chmod 644 "$CERT_DIR/cert.pem"
-                            ENABLE_HTTPS="true"
-                            SSL_CERT_PATH="$CERT_DIR/cert.pem"
-                            SSL_KEY_PATH="$CERT_DIR/key.pem"
-                            print_success "证书已复制到项目目录"
-                        fi
+                        copy_letsencrypt_cert "$domain" "$CERT_DIR"
                         ;;
                 esac
 
                 # 配置自动续期
-                echo ""
-                echo -e "${YELLOW}配置证书自动续期...${NC}"
-                (crontab -l 2>/dev/null; echo "0 0,12 * * * certbot renew --quiet && cp /etc/letsencrypt/live/$domain/fullchain.pem $CERT_DIR/cert.pem && cp /etc/letsencrypt/live/$domain/privkey.pem $CERT_DIR/key.pem && docker compose -f $SCRIPT_DIR/docker-compose.yml restart frontend") | crontab -
-                print_success "自动续期已配置 (每天 00:00 和 12:00)"
+                setup_cert_renewal "$domain" "$CERT_DIR"
             else
                 # 单域名证书 - HTTP 验证
                 echo -e "${YELLOW}单域名证书 (HTTP 验证)...${NC}"
@@ -1520,22 +1638,10 @@ cmd_ssl() {
                     --email "admin@$domain" \
                     --agree-tos --no-eff-email
 
-                if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
-                    cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
-                    cp "/etc/letsencrypt/live/$domain/privkey.pem" "$CERT_DIR/key.pem"
-                    chmod 600 "$CERT_DIR/key.pem"
-                    chmod 644 "$CERT_DIR/cert.pem"
-                    ENABLE_HTTPS="true"
-                    SSL_CERT_PATH="$CERT_DIR/cert.pem"
-                    SSL_KEY_PATH="$CERT_DIR/key.pem"
-                    print_success "证书已复制到项目目录"
-                fi
+                copy_letsencrypt_cert "$domain" "$CERT_DIR"
 
                 # 配置自动续期
-                echo ""
-                echo -e "${YELLOW}配置证书自动续期...${NC}"
-                (crontab -l 2>/dev/null; echo "0 0,12 * * * certbot renew --quiet && cp /etc/letsencrypt/live/$domain/fullchain.pem $CERT_DIR/cert.pem && cp /etc/letsencrypt/live/$domain/privkey.pem $CERT_DIR/key.pem && docker compose -f $SCRIPT_DIR/docker-compose.yml restart frontend") | crontab -
-                print_success "自动续期已配置 (每天 00:00 和 12:00)"
+                setup_cert_renewal "$domain" "$CERT_DIR"
             fi
             ;;
         *)
