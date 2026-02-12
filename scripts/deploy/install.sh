@@ -1417,8 +1417,7 @@ cmd_ssl() {
                         certbot certonly --manual --preferred-challenges dns \
                             -d "*.$domain" -d "$domain" \
                             --email "admin@$domain" \
-                            --agree-tos --no-eff-email \
-                            --manual-public-ip-logging-ok
+                            --agree-tos --no-eff-email
 
                         # 复制证书到项目目录
                         if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
@@ -1439,8 +1438,7 @@ cmd_ssl() {
                             --dns-dnspod \
                             -d "*.$domain" -d "$domain" \
                             --email "admin@$domain" \
-                            --agree-tos --no-eff-email \
-                            --manual-public-ip-logging-ok
+                            --agree-tos --no-eff-email
 
                         if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
                             cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
@@ -1467,8 +1465,7 @@ cmd_ssl() {
                             --dns-cloudflare-credentials /root/.secrets/certbot-cloudflare.ini \
                             -d "*.$domain" -d "$domain" \
                             --email "admin@$domain" \
-                            --agree-tos --no-eff-email \
-                            --manual-public-ip-logging-ok
+                            --agree-tos --no-eff-email
 
                         if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
                             cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
@@ -1487,8 +1484,7 @@ cmd_ssl() {
                         certbot certonly --manual --preferred-challenges dns \
                             -d "*.$domain" -d "$domain" \
                             --email "admin@$domain" \
-                            --agree-tos --no-eff-email \
-                            --manual-public-ip-logging-ok
+                            --agree-tos --no-eff-email
 
                         if [ -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]; then
                             cp "/etc/letsencrypt/live/$domain/fullchain.pem" "$CERT_DIR/cert.pem"
