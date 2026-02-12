@@ -75,7 +75,9 @@ deploy_backend() {
     cp -r backend/prisma $PROJECT_DIR/backend/
 
     # 安装依赖（确保 node_modules 完整）
-    cd $PROJECT_DIR/backend
+    cd $PROJECT_DIR
+    pnpm install --filter=@qzt/shared-types
+    cd backend
     pnpm install --prod
 
     # 生成 Prisma Client
