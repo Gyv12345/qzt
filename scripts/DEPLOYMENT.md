@@ -156,37 +156,15 @@ redis-cli --version
 git --version
 ```
 
-脚本会自动安装以下组件：
-
-- Node.js 22.x LTS
-- pnpm 10.x
-- PM2 (进程管理器)
-- Nginx (最新版)
-- Redis (缓存/会话存储)
-- certbot (SSL 证书申请工具)
-
-### 第三步：验证安装
+**第三步：克隆项目代码**
 
 ```bash
-# 检查 Node.js
-node -v  # 应该显示 v22.x.x
-
-# 检查 pnpm
-pnpm -v  # 应该显示 10.x.x
-
-# 检查 PM2
-pm2 -v
-
-# 检查 Nginx
-nginx -v
-
-# 检查 Redis
-redis-cli --version
-systemctl status redis-server
-
-# 检查目录是否创建
-ls -la /var/www/qzt/
+cd /root
+git clone <your-repo-url> qzt
+cd qzt
 ```
+
+**代码位置**：`/root/qzt/`（或你指定的其他目录）
 
 ---
 
