@@ -275,39 +275,30 @@ chmod 600 ~/.ssh/authorized_keys
 
 ## 首次部署
 
-### 方法一：服务器端直接构建（推荐）
+### 服务器端直接构建（推荐）
 
-代码已在服务器上，直接在服务器上操作：
+代码已在服务器上，直接构建部署：
 
 ```bash
 # 登录服务器
 ssh root@your-server
 cd /root/qzt
 
-# 运行部署脚本
-bash scripts/deploy-server.sh all
+# 运行极简部署脚本
+bash scripts/deploy-simple.sh all
 
 # 或分别部署
-bash scripts/deploy-server.sh backend
-bash scripts/deploy-server.sh frontend
-bash scripts/deploy-server.sh website
+bash scripts/deploy-simple.sh backend
+bash scripts/deploy-simple.sh frontend
+bash scripts/deploy-simple.sh website
 ```
 
-**优点**：
-- 无需本地构建
-- 无需传输大文件
-- 适合服务器网络较慢的情况
+**原理**：
+1. 在源码目录使用 `pnpm run build:xxx` 构建
+2. 将 `dist/` 复制到 `/var/www/qzt/`
+3. 重启 PM2 服务
 
-### 方法二：本地构建后部署（传统方式）
-
-如果需要在本地构建：
-
-```bash
-# 在本地项目根目录运行
-SERVER_HOST=your-server-ip bash scripts/deploy.sh all
-```
-
-### 方法二：配置后端环境变量
+### 配置后端环境变量
 
 在服务器上创建 `.env` 文件：
 
@@ -546,4 +537,6 @@ healthy
 ## 更新日志
 
 - 2025-02-12: 创建 Ubuntu 版部署指南
+  - 新增极简部署脚本 `deploy-simple.sh`
+  - 简化部署流程，利用 monorepo 根目录构建
 - 支持 Ubuntu 22.04/24.04 裸机部署 + GitHub Actions 自动化
