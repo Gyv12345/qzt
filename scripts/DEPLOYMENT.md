@@ -205,28 +205,22 @@ scp devlovecode.com.key root@your-server:/etc/nginx/ssl/
 
 ## 配置 Nginx
 
-### 方法一：直接上传配置文件
+代码已在服务器上，直接操作：
 
 ```bash
-# 上传配置到服务器
-scp scripts/nginx-prod.conf root@your-server:/etc/nginx/sites-available/qzt
-
-# 登录服务器启用站点
+# 登录服务器
 ssh root@your-server
-ln -sf /etc/nginx/sites-available/qzt /etc/nginx/sites-enabled/qzt
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && nginx -s reload
-```
+cd /root/qzt
 
-### 方法二：一条命令完成（推荐）
-
-```bash
-# 直接在本地执行（SSH 远程操作）
-ssh root@your-server << 'ENDSSH'
+# 启用站点配置
+ln -sf /root/qzt/scripts/nginx-prod.conf /etc/nginx/sites-available/qzt
 ln -sf /etc/nginx/sites-available/qzt /etc/nginx/sites-enabled/qzt
+
+# 删除默认站点（避免端口冲突）
 rm -f /etc/nginx/sites-enabled/default
+
+# 测试并重载 Nginx
 nginx -t && nginx -s reload
-ENDSSH
 ```
 
 ---
