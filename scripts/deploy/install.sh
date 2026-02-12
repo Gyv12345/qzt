@@ -1249,16 +1249,71 @@ EOF
         COMPOSE_PROFILE="--profile local-db"
     fi
 
-    # 构建镜像
+    # 创建 app 目录结构
     echo ""
-    echo -e "${YELLOW}构建 Docker 镜像...${NC}"
-    echo -e "${CYAN}这可能需要几分钟...${NC}"
+    echo -e "${YELLOW}创建部署目录结构...${NC}"
+    mkdir -p "$SCRIPT_DIR/app/backend"
+    mkdir -p "$SCRIPT_DIR/app/frontend"
+    mkdir -p "$SCRIPT_DIR/app/website"
+    mkdir -p "$SCRIPT_DIR/app/packages/shared-types"
+    mkdir -p "$SCRIPT_DIR/ssl"
+    mkdir -p "$SCRIPT_DIR/nginx"
 
-    cd "$PROJECT_DIR"
+    # 检查构建产物是否存在
+    echo ""
+    echo -e "${YELLOW}检查构建产物...${NC}"
 
-    docker compose -f "$COMPOSE_FILE" build
+    MISSING_BUILDS=()
 
-    print_success "镜像构建完成"
+    # 检查 backend
+    if [ ! -d "$PROJECT_DIR/backend/dist" ]; then
+        MISSING_BUILDS+=("backend/dist")
+    else
+        echo -e "${GREEN}✓${NC} backend/dist"
+    fi
+
+    # 检查 frontend
+    if [ ! -d "$PROJECT_DIR/frontend/dist" ]; then
+        MISSING_BUILDS+=("frontend/dist")
+    else
+        echo -e "${GREEN}✓${NC} frontend/dist"
+    fi
+
+    # 检查 website
+    if [ ! -d "$PROJECT_DIR/website/.next/standalone" ]; then
+        MISSING_BUILDS+=("website/.next/standalone")
+    else
+        echo -e "${GREEN}✓${NC} website/.next/standalone"
+    fi
+
+    # 检查 shared-types
+    if [ ! -d "$PROJECT_DIR/packages/shared-types/dist" ]; then
+        MISSING_BUILDS+=("packages/shared-types/dist")
+    else
+        echo -e "${GREEN}✓${NC} packages/shared-types/dist"
+    fi
+
+    # 如果缺少构建产物，显示提示
+    if [ ${#MISSING_BUILDS[@]} -gt 0 ]; then
+        echo ""
+        echo -e "${RED}缺少以下构建产物:${NC}"
+        for build in "${MISSING_BUILDS[@]}"; do
+            echo -e "${RED}  - $build${NC}"
+        done
+        echo ""
+        echo -e "${CYAN}请在本地执行以下命令构建:${NC}"
+        echo -e "${CYAN}  pnpm -F @qzt/frontend build${NC}"
+        echo -e "${CYAN}  pnpm -F @qzt/backend build${NC}"
+        echo -e "${CYAN}  pnpm -F @qzt/website build${NC}"
+        echo ""
+        echo -e "${CYAN}然后将构建产物复制到服务器:${NC}"
+        echo -e "${CYAN}  frontend/dist/  → 服务器:$SCRIPT_DIR/app/frontend/${NC}"
+        echo -e "${CYAN}  backend/dist/   → 服务器:$SCRIPT_DIR/app/backend/${NC}"
+        echo -e "${CYAN}  website/.next/  → 服务器:$SCRIPT_DIR/app/website/${NC}"
+        echo -e "${CYAN}  packages/shared-types/dist/ → 服务器:$SCRIPT_DIR/app/packages/shared-types/${NC}"
+        echo ""
+        read -p "准备完成后按 Enter 继续..."
+    fi
 
     # 启动服务
     echo ""
