@@ -109,31 +109,51 @@
 
 ## 初始化服务器
 
-### 第一步：上传脚本到服务器
+### 前提条件
 
-**方法 A：使用 SCP 上传**（推荐）
+- 服务器已安装 Ubuntu 22.04/24.04
+- 你有服务器的 root 权限
+- 服务器可以通过 SSH 访问
+
+### 初始化步骤
+
+**第一步：上传并运行初始化脚本**
 
 ```bash
-# 在本地执行，上传初始化脚本
+# 方法 1：直接运行远程脚本（推荐）
+cat scripts/server-init.sh | ssh root@your-server 'bash -s'
+
+# 方法 2：SCP 上传后执行
 scp scripts/server-init.sh root@your-server:/root/
+ssh root@your-server "bash /root/server-init.sh"
+
+# 方法 3：手动复制内容
+# 打开 scripts/server-init.sh，复制全部内容
+# 然后粘贴到服务器的文件中执行
 ```
 
-**方法 B：手动创建脚本文件**
+脚本会自动安装：
+- Node.js 22.x LTS
+- pnpm 10.x
+- PM2
+- Nginx
+- Redis
+- certbot
+- Git（如果未安装）
+
+**第二步：验证安装结果**
 
 ```bash
 # SSH 登录服务器
 ssh root@your-server
 
-# 创建并编辑脚本
-cat > /root/server-init.sh
-# (粘贴 scripts/server-init.sh 的内容)
-```
-
-### 第二步：运行初始化脚本
-
-```bash
-# 在服务器上运行
-ssh root@your-server "bash /root/server-init.sh"
+# 检查版本
+node -v    # v22.x.x
+pnpm -v    # 10.x.x
+pm2 -v
+nginx -v
+redis-cli --version
+git --version
 ```
 
 脚本会自动安装以下组件：
