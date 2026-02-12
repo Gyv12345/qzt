@@ -11,39 +11,20 @@ URL="$2"
 while read LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     # 只在推送到 main/master 分支时执行
     if [[ "$REMOTE_REF" == *"refs/heads/main"* ]] || [[ "$REMOTE_REF" == *"refs/heads/master"* ]]; then
-        echo "🔄 推送到 main 分支，检查 lockfile..."
+        echo "🔄 推送到 main 分支，更新 workspace lockfile..."
 
-        # 更新 frontend lockfile
-        if [ -f "frontend/package.json" ]; then
-            echo "📦 更新 frontend/pnpm-lock.yaml..."
-            cd frontend
-            pnpm install --no-frozen-lockfile 2>/dev/null || pnpm install
-            cd ..
-            git add frontend/pnpm-lock.yaml
-        fi
+        # 在根目录运行 pnpm install 更新 lockfile
+        # 这会更新所有 workspace 项目的依赖
+        echo "📦 更新 pnpm-lock.yaml (workspace)..."
+        pnpm install --no-frozen-lockfile 2>/dev/null || pnpm install
 
-        # 更新 backend lockfile
-        if [ -f "backend/package.json" ]; then
-            echo "📦 更新 backend/pnpm-lock.yaml..."
-            cd backend
-            pnpm install --no-frozen-lockfile 2>/dev/null || pnpm install
-            cd ..
-            git add backend/pnpm-lock.yaml
-        fi
+        # 添加根 lockfile
+        git add pnpm-lock.yaml
 
-        # 更新 website lockfile
-        if [ -f "website/package.json" ]; then
-            echo "📦 更新 website/pnpm-lock.yaml..."
-            cd website
-            pnpm install --no-frozen-lockfile 2>/dev/null || pnpm install
-            cd ..
-            git add website/pnpm-lock.yaml
-        fi
-
-        # 如果有 lockfile 变更，自动提交
+        # 如果有变化，自动提交
         if ! git diff --cached --quiet; then
             echo "📝 lockfile 有变化，自动提交..."
-            git commit -m "chore: update lockfiles before push to main"
+            git commit -m "chore: update workspace lockfile before push to main"
             echo "✅ lockfile 已更新并提交，请重新推送"
             echo "   (git push)"
             exit 1

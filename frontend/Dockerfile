@@ -8,7 +8,9 @@ WORKDIR /app
 RUN npm install -g pnpm@latest
 
 # 复制依赖文件（context 是项目根目录）
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY frontend/package.json ./frontend/
+COPY packages/shared-types/package.json ./packages/shared-types/
 
 # 安装依赖（使用 pnpm 的 --frozen-lockfile 确保依赖一致性）
 RUN pnpm install --frozen-lockfile
