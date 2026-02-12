@@ -1,0 +1,36 @@
+{
+  "name": "qzt",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "backend": "cd backend && pnpm run start:dev",
+    "frontend": "cd frontend && pnpm run dev",
+    "dev": "./start-dev.sh",
+    "check:contract": "tsx scripts/compare-api-contract.ts",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "axios": "^1.13.4",
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "husky": "^9.1.7",
+    "orval": "^8.2.0",
+    "prettier": "^3.8.1",
+    "tsx": "^4.19.2"
+  },
+  "dependencies": {
+    "@nestjs/schedule": "^6.1.0"
+  }
+}
