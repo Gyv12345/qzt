@@ -275,16 +275,36 @@ chmod 600 ~/.ssh/authorized_keys
 
 ## 首次部署
 
-### 方法一：本地手动部署 (推荐首次使用)
+### 方法一：服务器端直接构建（推荐）
+
+代码已在服务器上，直接在服务器上操作：
+
+```bash
+# 登录服务器
+ssh root@your-server
+cd /root/qzt
+
+# 运行部署脚本
+bash scripts/deploy-server.sh all
+
+# 或分别部署
+bash scripts/deploy-server.sh backend
+bash scripts/deploy-server.sh frontend
+bash scripts/deploy-server.sh website
+```
+
+**优点**：
+- 无需本地构建
+- 无需传输大文件
+- 适合服务器网络较慢的情况
+
+### 方法二：本地构建后部署（传统方式）
+
+如果需要在本地构建：
 
 ```bash
 # 在本地项目根目录运行
 SERVER_HOST=your-server-ip bash scripts/deploy.sh all
-
-# 或分别部署
-SERVER_HOST=your-server-ip bash scripts/deploy.sh backend
-SERVER_HOST=your-server-ip bash scripts/deploy.sh frontend
-SERVER_HOST=your-server-ip bash scripts/deploy.sh website
 ```
 
 ### 方法二：配置后端环境变量
