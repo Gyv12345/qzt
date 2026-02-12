@@ -13,8 +13,49 @@
 - 角色与权限完全关联（菜单权限 + 数据权限）
 - 支持灵活的权限配置
 
-## Current Phase
-Phase 1: 后端动态菜单 API 开发（Phase 0 已完成）
+## 2026-02-12 会话：菜单路由清理与种子数据
+
+### 问题 1：菜单 404 问题
+- **原因**：后端 `menu.service.ts` 中定义了 `/sales`、`/finance`、`/logs` 等虚拟父节点，但前端没有对应路由
+- **解决**：删除这些 `hasChildren: true` 的虚拟父节点定义
+
+### 问题 2：菜单 i18n 失效
+- **原因**：后端 `mapToMenuItemDto` 没有返回 i18nKey，前端也没有使用 i18n 翻译
+- **解决**：
+  1. 后端：给每个菜单项添加独立的 i18nKey（如 `menu.sidebar.contacts`）
+  2. 后端：`mapToMenuItemDto` 从 DEFAULT_MENUS 查找并返回 i18nKey
+  3. 前端：`convertToNavGroups` 使用 `t(i18nKey)` 翻译
+  4. 前端：添加 `menu.sidebar.*` 翻译 key
+
+### 问题 3：migrations 文件被删除
+- **原因**：`backend/prisma/migrations/` 目录下的 SQL 文件被删除
+- **解决**：`git checkout 064d013 -- backend/prisma/migrations/` 恢复文件
+
+### 问题 4：CMS 种子数据包含不需要的案例和团队成员
+- **原因**：`seed.cms.ts` 包含案例（CASE_STUDY）和团队成员（PROFILE）
+- **解决**：删除案例和团队成员部分，只保留文章和产品展示
+
+---
+
+## 决策记录
+
+| 日期 | 决策 | 理由 |
+|------|------|------|
+| 2026-02-12 | 菜单配置不使用虚拟父节点 | 前端路由是平铺结构，父节点无实际路由会导致 404 |
+| 2026-02-12 | 菜单 i18nKey 按颗粒度设计 | 分组用 `groupI18nKey`，菜单项用 `i18nKey` |
+| 2026-02-12 | migrations 文件必须保留 | 记录数据库结构变更历史，不能删除 |
+
+---
+
+## 种子数据文件清单
+
+| 文件 | 说明 | 执行方式 |
+|------|------|---------|
+| `scripts/seed.ts` | 主种子：部门、用户、角色、系统配置 | `npx ts-node scripts/seed.ts` |
+| `scripts/seed-rules.ts` | 客户规则种子 | `npx ts-node scripts/seed-rules.ts` |
+| `prisma/seed.cms.ts` | CMS 内容：标签、文章、产品展示 | `npx ts-node prisma/seed.cms.ts` |
+
+**注意**：种子文件使用 `findUnique` + `create` 或 `upsert` 模式，可以安全地多次执行，不会重复创建数据。
 
 ## Team Structure
 | 角色 | 负责项目 | 职责 | 状态 |

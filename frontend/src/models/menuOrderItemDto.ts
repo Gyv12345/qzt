@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface InitializeResultResponse {
-  /** 创建数量 */
-  created: number;
-  /** 跳过数量 */
-  skipped: number;
+export interface MenuOrderItemDto {
+  /** 菜单ID */
+  id: string;
+  /** 新排序值 */
+  sort: number;
 }

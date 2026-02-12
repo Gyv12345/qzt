@@ -43,6 +43,7 @@ type CreateMenuDto = {
 type MenuItemDto = {
   id: string;
   path: string;
+  name: string;
   title: string;
   i18nKey?: string;
   icon?: string;

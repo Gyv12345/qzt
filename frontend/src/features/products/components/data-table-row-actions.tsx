@@ -5,6 +5,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Product } from "../types/product";
@@ -25,47 +27,39 @@ export function DataTableRowActions({
   const product = row.original;
 
   return (
-    <div className="flex items-center gap-1">
-      {onViewDetail && (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
-          size="sm"
           variant="ghost"
-          onClick={() => onViewDetail(product.id)}
-          title="查看详情"
+          size="sm"
+          className="h-8 w-8 p-0 data-[state=open]:bg-muted"
         >
-          <Eye className="h-4 w-4" />
+          <span className="sr-only">打开菜单</span>
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
-      )}
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onEdit(product)}
-        title="编辑"
-      >
-        <Edit className="h-4 w-4" />
-      </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onDelete(product)}
-        title="删除"
-      >
-        <Trash2 className="h-4 w-4 text-destructive" />
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
-          {onViewDetail && (
-            <DropdownMenuItem onClick={() => onViewDetail(product.id)}>
-              查看详情
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuLabel>操作</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {onViewDetail && (
+          <DropdownMenuItem onClick={() => onViewDetail(product.id)}>
+            <Eye className="mr-2 h-4 w-4 text-muted-foreground" />
+            查看详情
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={() => onEdit(product)}>
+          <Edit className="mr-2 h-4 w-4 text-muted-foreground" />
+          编辑
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => onDelete(product)}
+          className="text-destructive focus:text-destructive"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          删除
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -58,9 +58,20 @@ export function ProductFormDrawer({
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   // 本地管理时间轴数组，提交时转换为 JSON 字符串
-  const [timelineItems, setTimelineItems] = useState<string[]>(
-    product?.timeline || [],
-  );
+  const [timelineItems, setTimelineItems] = useState<string[]>(() => {
+    if (!product?.timeline) return [];
+    // 如果 timeline 是字符串，尝试解析为数组
+    if (typeof product.timeline === "string") {
+      try {
+        const parsed = JSON.parse(product.timeline);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    // 如果已经是数组，直接返回
+    return Array.isArray(product.timeline) ? product.timeline : [];
+  });
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -116,7 +127,19 @@ export function ProductFormDrawer({
       form.reset();
       setTimelineItems([]);
     } else if (product) {
-      setTimelineItems(product.timeline || []);
+      // 解析 timeline 数据
+      if (typeof product.timeline === "string") {
+        try {
+          const parsed = JSON.parse(product.timeline);
+          setTimelineItems(Array.isArray(parsed) ? parsed : []);
+        } catch {
+          setTimelineItems([]);
+        }
+      } else {
+        setTimelineItems(
+          Array.isArray(product.timeline) ? product.timeline : [],
+        );
+      }
     }
   }, [open, product, form]);
 

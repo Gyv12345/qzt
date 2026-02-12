@@ -806,6 +806,36 @@
       "invalid": "请选择有效选项"
     }
   },
+  "menu": {
+    "sidebar": {
+      "business": "业务",
+      "dashboard": "工作台",
+      "contacts": "联系人管理",
+      "customers": "客户管理",
+      "contracts": "合同管理",
+      "serviceTeams": "服务团队",
+      "invoices": "发票管理",
+      "payments": "收款管理",
+      "content": "内容管理",
+      "cms": "文章管理",
+      "cmsPages": "页面管理",
+      "cmsTags": "标签管理",
+      "socialMedia": "新媒体管理",
+      "businessSettings": "业务设置",
+      "products": "产品管理",
+      "contractTemplates": "合同模板设置",
+      "customerRules": "客户规则",
+      "webhooks": "Webhook配置",
+      "systemSettings": "系统设置",
+      "users": "用户管理",
+      "departments": "部门管理",
+      "roles": "角色管理",
+      "permissions": "权限管理",
+      "loginLogs": "登录日志",
+      "operationLogs": "操作日志",
+      "systemLogs": "系统日志"
+    }
+  },
   "cms": {
     "content": {
       "columns": {

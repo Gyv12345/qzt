@@ -1,26 +1,24 @@
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useProduct } from "../hooks/use-products";
 import { getOss } from "@/services/api";
 import type { Product } from "../types/product";
 import {
-  Package,
   DollarSign,
-  FileText,
-  Calendar,
   Edit,
-  Image as ImageIcon,
+  Calendar,
+  Clock,
+  FileText,
+  Package,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
@@ -44,17 +42,27 @@ export function ProductDetailDrawer({
   const { dir } = useDirection();
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
+  // 解析 timeline 数据
+  const timelineItems = useMemo(() => {
+    if (!product?.timeline) return [];
+    if (typeof product.timeline === "string") {
+      try {
+        const parsed = JSON.parse(product.timeline);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(product.timeline) ? product.timeline : [];
+  }, [product?.timeline]);
+
   // 加载产品图片
   useEffect(() => {
     if (product?.imageId) {
       const { ossControllerFindOne } = getOss();
       ossControllerFindOne(product.imageId)
-        .then((result: any) => {
-          setImageUrl(result?.fileUrl);
-        })
-        .catch(() => {
-          setImageUrl(undefined);
-        });
+        .then((result: any) => setImageUrl(result?.fileUrl))
+        .catch(() => setImageUrl(undefined));
     } else {
       setImageUrl(undefined);
     }
@@ -65,19 +73,17 @@ export function ProductDetailDrawer({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side={drawerSide}
-          className={isMobile ? "h-[85vh]" : "w-[600px]"}
+          className={isMobile ? "h-[85vh]" : "w-[560px]"}
         >
-          <div className="flex items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="flex items-center justify-center h-64">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         </SheetContent>
       </Sheet>
     );
   }
 
-  if (!product) {
-    return null;
-  }
+  if (!product) return null;
 
   const productData = product as Product;
 
@@ -85,154 +91,122 @@ export function ProductDetailDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side={drawerSide}
-        className={isMobile ? "h-[85vh]" : "w-[600px] overflow-y-auto"}
+        className={isMobile ? "h-[85vh]" : "w-[560px]"}
       >
-        <SheetHeader className="pb-4 text-start">
+        <SheetHeader className="mb-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <SheetTitle className="text-xl">{productData.name}</SheetTitle>
-              <SheetDescription>
-                产品代码: {productData.code || productData.id}
-              </SheetDescription>
+              <SheetTitle className="text-lg pr-4">
+                {productData.name}
+              </SheetTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                代码: {productData.code || "-"}
+              </p>
             </div>
             {onEdit && (
               <Button
-                variant="outline"
                 size="sm"
+                variant="outline"
                 onClick={() => onEdit(productData)}
               >
-                <Edit className="h-4 w-4 mr-1" />
+                <Edit className="h-4 w-4 mr-1.5" />
                 编辑
               </Button>
             )}
           </div>
         </SheetHeader>
 
-        <Separator className="my-4" />
-
         {/* 产品图片 */}
         {imageUrl && (
           <div className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">产品图片</span>
-            </div>
-            <div className="rounded-lg border bg-muted/50 overflow-hidden h-48 w-full">
-              <img
-                src={imageUrl}
-                alt={productData.name}
-                className="w-full h-full object-contain"
-              />
+            <img
+              src={imageUrl}
+              alt={productData.name}
+              className="w-full h-48 object-cover rounded-lg border"
+            />
+          </div>
+        )}
+
+        {/* 价格和基本信息 */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">价格</p>
+            <p className="text-lg font-semibold text-primary">
+              ¥{productData.price?.toFixed(2) || "0.00"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">产品代码</p>
+            <p className="text-sm">{productData.code || "-"}</p>
+          </div>
+        </div>
+
+        <Separator className="mb-6" />
+
+        {/* 产品描述 */}
+        {productData.description && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              产品描述
+            </h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+              {productData.description}
+            </p>
+          </div>
+        )}
+
+        {/* 产品时间轴 */}
+        {timelineItems.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-3 flex items-center gap-1.5">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              产品时间轴
+            </h3>
+            <div className="space-y-2">
+              {timelineItems.map((item, index) => (
+                <div key={index} className="flex gap-3">
+                  <div className="flex flex-col items-center pt-0.5">
+                    <div className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+                      {index + 1}
+                    </div>
+                    {index < timelineItems.length - 1 && (
+                      <div className="w-px flex-1 bg-border min-h-[28px]" />
+                    )}
+                  </div>
+                  <p className="text-sm flex-1 pt-0.5">{item}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* 基本信息固定显示在顶部 */}
-        <div className="space-y-4 mb-6">
-          <div className="grid grid-cols-2 gap-4">
-            <InfoItem
-              icon={<Package className="h-4 w-4" />}
-              label="产品名称"
-              value={productData.name || "-"}
-            />
-            <InfoItem
-              icon={<FileText className="h-4 w-4" />}
-              label="产品代码"
-              value={productData.code || "-"}
-            />
-            <InfoItem
-              icon={<DollarSign className="h-4 w-4" />}
-              label="价格"
-              value={
-                productData.price ? `¥${productData.price.toFixed(2)}` : "-"
-              }
-            />
-            <InfoItem
-              icon={<Calendar className="h-4 w-4" />}
-              label="创建时间"
-              value={
-                productData.createdAt
-                  ? format(
-                      new Date(productData.createdAt),
-                      "yyyy-MM-dd HH:mm",
-                      {
-                        locale: zhCN,
-                      },
-                    )
-                  : "-"
-              }
-            />
-          </div>
+        <Separator className="mb-6" />
 
-          {productData.description && (
-            <div className="space-y-1">
-              <span className="text-sm text-muted-foreground">产品描述:</span>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {productData.description}
-              </p>
-            </div>
-          )}
-
-          {/* 时间轴 */}
-          {productData.timeline && productData.timeline.length > 0 && (
-            <div className="space-y-2">
-              <span className="text-sm text-muted-foreground">时间轴:</span>
-              <div className="space-y-2">
-                {productData.timeline.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-2 p-2 rounded-md bg-muted/50"
-                  >
-                    <Badge variant="outline" className="mt-0.5">
-                      {index + 1}
-                    </Badge>
-                    <span className="text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Separator className="my-4" />
-
-          <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-            <div>
-              <span className="font-medium">创建时间:</span>{" "}
+        {/* 底部时间信息 */}
+        <div className="flex items-center gap-6 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>
               {productData.createdAt
                 ? format(new Date(productData.createdAt), "yyyy-MM-dd HH:mm", {
                     locale: zhCN,
                   })
                 : "-"}
-            </div>
-            <div>
-              <span className="font-medium">更新时间:</span>{" "}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            <span>
               {productData.updatedAt
                 ? format(new Date(productData.updatedAt), "yyyy-MM-dd HH:mm", {
                     locale: zhCN,
                   })
                 : "-"}
-            </div>
+            </span>
           </div>
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function InfoItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-muted-foreground">{icon}</span>
-      <span className="text-sm text-muted-foreground">{label}:</span>
-      <span className="text-sm font-medium">{value}</span>
-    </div>
   );
 }

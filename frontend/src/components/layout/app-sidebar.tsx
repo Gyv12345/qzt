@@ -10,6 +10,7 @@ import { NavGroup } from "./nav-group";
 import { TeamSwitcher } from "./team-switcher";
 import { useUserMenus } from "@/features/menus/hooks/use-user-menus";
 import type { MenuGroupDto } from "./types";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Building,
@@ -85,13 +86,16 @@ function getIconComponent(iconName?: string): React.ElementType | undefined {
 }
 
 /**
- * 将后端菜单数据转换为 NavGroup 格式
+ * 将后端菜单数据转换为 NavGroup 格式（使用 i18n 翻译）
  */
-function convertToNavGroups(menuGroups: MenuGroupDto[]) {
+function convertToNavGroups(
+  menuGroups: MenuGroupDto[],
+  t: (key: string) => string,
+) {
   return menuGroups.map((group) => ({
-    title: group.title,
+    title: group.i18nKey ? t(group.i18nKey) : group.title,
     variant: getGroupVariant(group.title),
-    items: group.items.map((item) => convertToNavItem(item)),
+    items: group.items.map((item) => convertToNavItem(item, t)),
   }));
 }
 
@@ -104,13 +108,13 @@ function getGroupVariant(title: string): string | undefined {
 }
 
 /**
- * 将单个菜单项转换为 NavItem 格式
+ * 将单个菜单项转换为 NavItem 格式（使用 i18n 翻译）
  */
-function convertToNavItem(item: MenuGroupDto) {
+function convertToNavItem(item: MenuGroupDto, t: (key: string) => string) {
   const Icon = getIconComponent(item.icon);
 
   return {
-    title: item.title,
+    title: item.i18nKey ? t(item.i18nKey) : item.title,
     url: item.path,
     icon: Icon || CircleDashed,
     badge: item.badge,
@@ -120,10 +124,11 @@ function convertToNavItem(item: MenuGroupDto) {
 export function AppSidebar() {
   const { collapsible, variant } = useLayout();
   const { data: userMenus, isLoading, error } = useUserMenus();
+  const { t } = useTranslation();
 
   // 使用动态菜单数据，如果加载失败则回退到静态数据
   const navGroups = userMenus
-    ? convertToNavGroups(userMenus)
+    ? convertToNavGroups(userMenus, t)
     : sidebarData.navGroups;
 
   return (

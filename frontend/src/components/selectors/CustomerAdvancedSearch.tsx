@@ -43,7 +43,7 @@ export function CustomerAdvancedSearch({
   // 筛选条件
   const [filters, setFilters] = useState({
     name: "",
-    customerLevel: "",
+    customerLevel: "__all__",
   });
 
   // 分页
@@ -71,7 +71,8 @@ export function CustomerAdvancedSearch({
     if (filters.name) {
       params.name = filters.name;
     }
-    if (filters.customerLevel) {
+    // __all__ 表示不筛选等级
+    if (filters.customerLevel && filters.customerLevel !== "__all__") {
       params.customerLevel = filters.customerLevel;
     }
     return params;
@@ -97,7 +98,7 @@ export function CustomerAdvancedSearch({
 
   // 处理重置
   const handleReset = () => {
-    setFilters({ name: "", customerLevel: "" });
+    setFilters({ name: "", customerLevel: "__all__" });
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
@@ -113,7 +114,7 @@ export function CustomerAdvancedSearch({
       onOpenChange(false);
       setSelectedCustomer(null);
       // 重置筛选
-      setFilters({ name: "", customerLevel: "" });
+      setFilters({ name: "", customerLevel: "__all__" });
       setPagination({ page: 1, pageSize: 10 });
     }
   };
@@ -123,7 +124,7 @@ export function CustomerAdvancedSearch({
     onOpenChange(false);
     setSelectedCustomer(null);
     // 重置筛选
-    setFilters({ name: "", customerLevel: "" });
+    setFilters({ name: "", customerLevel: "__all__" });
     setPagination({ page: 1, pageSize: 10 });
   };
 
@@ -204,7 +205,7 @@ export function CustomerAdvancedSearch({
                 <SelectValue placeholder="全部等级" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部等级</SelectItem>
+                <SelectItem value="__all__">全部等级</SelectItem>
                 {CUSTOMER_LEVELS.map((level) => (
                   <SelectItem key={level.value} value={level.value}>
                     {level.label}

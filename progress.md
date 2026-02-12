@@ -222,3 +222,34 @@ frontend/src/features/menus/
 ### 2026-02-11 - Docker 部署方案（已完成）
 - Phase 0-5 完成
 - Docker 部署方案已实现
+
+---
+
+## 2026-02-12 会话：菜单路由清理问题
+
+### 问题提出
+> "UI 还有其他工程师，改造了菜单，连功能也改造了，就很不爽，既然现在菜单全平铺了，那么 http://localhost:3456/sales 销售管理，还有其他几个是不是应该去掉了"
+
+### 调查发现
+1. **`/sales` 路由不存在** - 可能用户记错了 URL
+2. **发现 5 个未被菜单使用的路由**：`/apps`, `/chats`, `/tasks`, `/settings`, `/help-center`
+3. **migrations 文件被删除** - 通过 `git checkout` 恢复
+4. **菜单 i18n 失效** - 后端没有返回 i18nKey，前端也没有翻译
+
+### 解决方案
+1. **删除虚拟父节点**：移除 `/sales`、`/finance`、`/logs` 等无路由的菜单定义
+2. **实现菜单 i18n**：
+   - 后端添加 groupI18nKey 和 i18nKey
+   - mapToMenuItemDto 返回 i18nKey
+   - 前端使用 t(i18nKey) 翻译
+3. **恢复 migrations 文件**：`git checkout 064d013 -- backend/prisma/migrations/`
+
+### 执行的操作
+- ✅ 删除后端虚拟菜单父节点定义
+- ✅ 添加菜单 i18n 支持（前后端）
+- ✅ 恢复 migrations 文件
+- ✅ 清理 CMS 种子数据（删除案例和团队成员）
+- ✅ 执行所有种子数据文件
+
+### 待确认
+- [ ] 菜单 i18n 是否生效（需要重新初始化菜单或重启后查看）

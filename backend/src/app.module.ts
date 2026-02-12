@@ -34,6 +34,7 @@ import { CmsModule } from "./modules/cms/cms.module";
 import { CustomerRuleModule } from "./modules/customer-rules/customer-rule.module";
 import { EsignModule } from "./modules/esign/esign.module";
 import { SystemLogsModule } from "./modules/system-logs/system-logs.module";
+import { MenuModule } from "./modules/menu/menu.module";
 import { I18nModule, AcceptLanguageResolver } from "nestjs-i18n";
 import * as path from "path";
 import { Reflector } from "@nestjs/core";
@@ -170,6 +171,7 @@ const envSchema = Joi.object({
     CustomerRuleModule,
     EsignModule,
     SystemLogsModule,
+    MenuModule,
     HealthModule,
   ],
   providers: [
