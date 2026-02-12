@@ -2,8 +2,6 @@
 node_modules/
 package-lock.json
 yarn.lock
-# pnpm-lock.yaml 需要提交，确保构建一致性
-# 不忽略任何 pnpm-lock.yaml
 
 # Build
 dist/

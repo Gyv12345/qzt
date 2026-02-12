@@ -123,7 +123,7 @@ export function getProductsColumns({
       enableHiding: false,
       meta: {
         displayName: t("product.columns.actions"),
-        className: "w-[120px]",
+        className: "w-[60px] text-center",
       },
     },
   ];

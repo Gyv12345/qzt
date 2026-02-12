@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# pre-push hook: update lockfiles when pushing to main branch
+
+set -e
+
+# 获取目标分支
+REMOTE="$1"
+URL="$2"
+
+# 读取 stdin 获取推送的引用
+while read LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
+    # 只在推送到 main/master 分支时执行
+    if [[ "$REMOTE_REF" == *"refs/heads/main"* ]] || [[ "$REMOTE_REF" == *"refs/heads/master"* ]]; then
+        echo "🔄 推送到 main 分支，更新 workspace lockfile..."
+
+        # 在根目录运行 pnpm install 更新 lockfile
+        # 这会更新所有 workspace 项目的依赖
+        echo "📦 更新 pnpm-lock.yaml (workspace)..."
+        pnpm install --no-frozen-lockfile 2>/dev/null || pnpm install
+
+        # 添加根 lockfile
+        git add pnpm-lock.yaml
+
+        # 如果有变化，自动提交
+        if ! git diff --cached --quiet; then
+            echo "📝 lockfile 有变化，自动提交..."
+            git commit -m "chore: update workspace lockfile before push to main"
+            echo "✅ lockfile 已更新并提交，请重新推送"
+            echo "   (git push)"
+            exit 1
+        fi
+
+        echo "✅ lockfile 检查完成"
+    fi
+done
+
+exit 0

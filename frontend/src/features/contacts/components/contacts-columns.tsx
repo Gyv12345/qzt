@@ -93,17 +93,24 @@ export function getContactsColumns({
       },
     },
     {
-      accessorKey: "customerName",
+      accessorKey: "companies",
       header: () => t("contact.columns.customerName"),
       meta: {
         displayName: t("contact.columns.customerName"),
       },
       cell: ({ row }) => {
-        const customerName = row.getValue("customerName") as string;
+        const companies = (row.original as any).companies as
+          | Array<{ name: string }>
+          | undefined;
         const contact = row.original;
-        if (customerName) {
-          return customerName;
+
+        if (companies && companies.length > 0) {
+          // 显示所有关联的企业名称，用分隔符隔开
+          const companyNames = companies.map((c) => c.name).join("、");
+          return <span className="text-sm">{companyNames}</span>;
         }
+
+        // 未关联企业时显示操作按钮
         return (
           <div className="flex items-center gap-1">
             <Button

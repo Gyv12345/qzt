@@ -119,15 +119,20 @@ model Permission {
 }
 
 model Menu {
-  id        String   @id @default(cuid())
-  path      String   @unique // 路由路径
-  name      String   // 菜单名称
-  icon      String?  // 图标
-  parentId  String?  // 父级菜单ID
-  sort      Int      @default(0) // 排序
-  enabled   Boolean  @default(true) // 是否启用
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  path       String   @unique // 路由路径
+  name       String   // 菜单名称
+  icon       String?  // 图标
+  parentId   String?  // 父级菜单ID
+  sort       Int      @default(0) // 排序
+  enabled    Boolean  @default(true) // 是否启用
+  groupTitle String?  // 菜单分组标题（业务、系统设置等）
+  i18nKey    String?  // 国际化 key
+  badge      String?  // 徽章/角标
+  isHidden   Boolean  @default(false) // 是否隐藏
+  isSystem   Boolean  @default(false) // 是否系统菜单
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   parent         Menu?             @relation("MenuHierarchy", fields: [parentId], references: [id])
   children       Menu[]            @relation("MenuHierarchy")

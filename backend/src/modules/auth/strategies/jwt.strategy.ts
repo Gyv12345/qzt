@@ -56,7 +56,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       phone: result.phone,
       avatar: result.avatar,
       status: result.status,
-      isAdmin: result.roles.some((ur) => ur.role.code === "SUPERADMIN"),
+      isAdmin: result.roles.some(
+        (ur) => ur.role.code === "SUPERADMIN" || ur.role.code === "ADMIN",
+      ),
       departmentId: result.departmentId,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,

@@ -8,7 +8,8 @@ export interface DefaultMenuConfig {
   name: string;
   path: string;
   groupTitle: string;
-  i18nKey?: string;
+  i18nKey?: string; // 菜单项的 i18n key
+  groupI18nKey?: string; // 分组的 i18n key
   icon?: string;
   sort: number;
   enabled: boolean;

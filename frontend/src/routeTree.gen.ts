@@ -52,6 +52,7 @@ import { Route as AuthenticatedCmsTagsRouteRouteImport } from './routes/_authent
 import { Route as AuthenticatedCmsPagesRouteRouteImport } from './routes/_authenticated/cms/pages/route'
 import { Route as AuthenticatedCmsNewRouteRouteImport } from './routes/_authenticated/cms/new/route'
 import { Route as AuthenticatedCmsElementsRouteRouteImport } from './routes/_authenticated/cms/elements/route'
+import { Route as AuthenticatedRolesRoleIdPermissionsRouteImport } from './routes/_authenticated/roles/$roleId/permissions'
 import { Route as AuthenticatedCmsPagesNewRouteRouteImport } from './routes/_authenticated/cms/pages/new/route'
 import { Route as AuthenticatedCmsEditIdRouteRouteImport } from './routes/_authenticated/cms/edit/$id/route'
 import { Route as AuthenticatedCmsPagesEditPageIdRouteRouteImport } from './routes/_authenticated/cms/pages/edit/$pageId/route'
@@ -295,6 +296,12 @@ const AuthenticatedCmsElementsRouteRoute =
     path: '/elements',
     getParentRoute: () => AuthenticatedCmsRouteRoute,
   } as any)
+const AuthenticatedRolesRoleIdPermissionsRoute =
+  AuthenticatedRolesRoleIdPermissionsRouteImport.update({
+    id: '/$roleId/permissions',
+    path: '/$roleId/permissions',
+    getParentRoute: () => AuthenticatedRolesRouteRoute,
+  } as any)
 const AuthenticatedCmsPagesNewRouteRoute =
   AuthenticatedCmsPagesNewRouteRouteImport.update({
     id: '/new',
@@ -332,7 +339,7 @@ export interface FileRoutesByFullPath {
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
-  '/roles': typeof AuthenticatedRolesRouteRoute
+  '/roles': typeof AuthenticatedRolesRouteRouteWithChildren
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/social-media': typeof AuthenticatedSocialMediaRouteRoute
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/users/': typeof AuthenticatedUsersIndexRoute
   '/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
   '/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/roles/$roleId/permissions': typeof AuthenticatedRolesRoleIdPermissionsRoute
   '/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRoutesByTo {
@@ -377,7 +385,7 @@ export interface FileRoutesByTo {
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
-  '/roles': typeof AuthenticatedRolesRouteRoute
+  '/roles': typeof AuthenticatedRolesRouteRouteWithChildren
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/social-media': typeof AuthenticatedSocialMediaRouteRoute
   '/system-logs': typeof AuthenticatedSystemLogsRouteRoute
@@ -404,6 +412,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersIndexRoute
   '/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
   '/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/roles/$roleId/permissions': typeof AuthenticatedRolesRoleIdPermissionsRoute
   '/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRoutesById {
@@ -425,7 +434,7 @@ export interface FileRoutesById {
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
-  '/_authenticated/roles': typeof AuthenticatedRolesRouteRoute
+  '/_authenticated/roles': typeof AuthenticatedRolesRouteRouteWithChildren
   '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/_authenticated/social-media': typeof AuthenticatedSocialMediaRouteRoute
@@ -453,6 +462,7 @@ export interface FileRoutesById {
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/cms/edit/$id': typeof AuthenticatedCmsEditIdRouteRoute
   '/_authenticated/cms/pages/new': typeof AuthenticatedCmsPagesNewRouteRoute
+  '/_authenticated/roles/$roleId/permissions': typeof AuthenticatedRolesRoleIdPermissionsRoute
   '/_authenticated/cms/pages/edit/$pageId': typeof AuthenticatedCmsPagesEditPageIdRouteRoute
 }
 export interface FileRouteTypes {
@@ -502,6 +512,7 @@ export interface FileRouteTypes {
     | '/users/'
     | '/cms/edit/$id'
     | '/cms/pages/new'
+    | '/roles/$roleId/permissions'
     | '/cms/pages/edit/$pageId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/cms/edit/$id'
     | '/cms/pages/new'
+    | '/roles/$roleId/permissions'
     | '/cms/pages/edit/$pageId'
   id:
     | '__root__'
@@ -595,6 +607,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/'
     | '/_authenticated/cms/edit/$id'
     | '/_authenticated/cms/pages/new'
+    | '/_authenticated/roles/$roleId/permissions'
     | '/_authenticated/cms/pages/edit/$pageId'
   fileRoutesById: FileRoutesById
 }
@@ -913,6 +926,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCmsElementsRouteRouteImport
       parentRoute: typeof AuthenticatedCmsRouteRoute
     }
+    '/_authenticated/roles/$roleId/permissions': {
+      id: '/_authenticated/roles/$roleId/permissions'
+      path: '/$roleId/permissions'
+      fullPath: '/roles/$roleId/permissions'
+      preLoaderRoute: typeof AuthenticatedRolesRoleIdPermissionsRouteImport
+      parentRoute: typeof AuthenticatedRolesRouteRoute
+    }
     '/_authenticated/cms/pages/new': {
       id: '/_authenticated/cms/pages/new'
       path: '/new'
@@ -977,6 +997,21 @@ const AuthenticatedCmsRouteRouteWithChildren =
     AuthenticatedCmsRouteRouteChildren,
   )
 
+interface AuthenticatedRolesRouteRouteChildren {
+  AuthenticatedRolesRoleIdPermissionsRoute: typeof AuthenticatedRolesRoleIdPermissionsRoute
+}
+
+const AuthenticatedRolesRouteRouteChildren: AuthenticatedRolesRouteRouteChildren =
+  {
+    AuthenticatedRolesRoleIdPermissionsRoute:
+      AuthenticatedRolesRoleIdPermissionsRoute,
+  }
+
+const AuthenticatedRolesRouteRouteWithChildren =
+  AuthenticatedRolesRouteRoute._addFileChildren(
+    AuthenticatedRolesRouteRouteChildren,
+  )
+
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
@@ -1009,7 +1044,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
   AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
   AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
-  AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRoute
+  AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRouteWithChildren
   AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedSocialMediaRouteRoute: typeof AuthenticatedSocialMediaRouteRoute
@@ -1039,7 +1074,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentsRouteRoute: AuthenticatedPaymentsRouteRoute,
   AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
   AuthenticatedProductsRouteRoute: AuthenticatedProductsRouteRoute,
-  AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRoute,
+  AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRouteWithChildren,
   AuthenticatedServiceTeamsRouteRoute: AuthenticatedServiceTeamsRouteRoute,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedSocialMediaRouteRoute: AuthenticatedSocialMediaRouteRoute,

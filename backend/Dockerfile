@@ -1,130 +1,58 @@
-# ==========================================
-# Stage 1: Dependencies
-# ==========================================
-FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS deps
+# 后端 Docker 镜像 - 本地构建版本
+# 使用方法：
+#   1. 先在本地构建: cd backend && pnpm build
+#   2. 再构建镜像:   docker build -t qzt-backend .
 
-RUN apt-get update && apt-get install -y libc6-dev openssl && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm@9
-
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-
-# Copy shared-types package
-COPY packages/shared-types/package.json ./packages/shared-types/
-
-# Copy backend package
-COPY backend/package.json ./backend/
-
-# Install dependencies (workspace-aware)
-RUN pnpm install --frozen-lockfile
-
-
-# ==========================================
-# Stage 2: Build shared-types
-# ==========================================
-FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS shared-types-builder
+FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@9
-
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY packages/shared-types ./packages/shared-types
-
-# Install shared-types dependencies
-RUN pnpm install --frozen-lockfile
-
-# Build shared-types
-WORKDIR /app/packages/shared-types
-RUN pnpm build
-
-
-# ==========================================
-# Stage 3: Build Backend
-# ==========================================
-FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS builder
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y libc6-dev openssl python3 make g++ && rm -rf /var/lib/apt/lists/*
-
-# Install pnpm
-RUN npm install -g pnpm@9
-
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-
-# Copy shared-types (source + built artifacts from previous stage)
-COPY --from=shared-types-builder /app/packages/shared-types ./packages/shared-types
-
-# Copy backend source
-COPY backend ./backend
-
-# Install backend dependencies
-RUN pnpm install --frozen-lockfile
-
-WORKDIR /app/backend
-
-# Generate Prisma Client
-RUN pnpm prisma generate
-
-# Build backend application
-RUN pnpm build
-
-
-# ==========================================
-# Stage 4: Runner
-# ==========================================
-FROM registry.cn-heyuan.aliyuncs.com/yt4j/node:22.22.0 AS runner
-
-WORKDIR /app
-
-# Install runtime dependencies only
+# 安装运行时依赖
 RUN apt-get update && apt-get install -y openssl tini && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm
+# 安装 pnpm
 RUN npm install -g pnpm@9
 
-# Create non-root user
+# 创建非 root 用户
 RUN groupadd -g 1001 nodejs && \
     useradd -u 1001 -g nodejs -s /bin/bash nestjs
 
-# Copy necessary files
+# 复制 workspace 配置
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+
+# 复制 shared-types
+COPY packages/shared-types ./packages/shared-types
+
+# 复制 backend
 COPY backend/package.json ./backend/
 COPY backend/prisma ./backend/prisma/
 
-# Copy shared-types
-COPY --from=shared-types-builder /app/packages/shared-types ./packages/shared-types/
+# 复制本地构建好的产物
+COPY backend/dist ./backend/dist
 
-# Copy built backend
-COPY --from=builder --chown=nestjs:nodejs /app/backend/dist ./backend/dist
-COPY --from=builder --chown=nestjs:nodejs /app/backend/node_modules ./backend/node_modules
-COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+# 安装生产依赖（不包括 devDependencies）
+WORKDIR /app/backend
+RUN pnpm install --prod --frozen-lockfile
 
-# Set permissions
+# 生成 Prisma Client
+RUN pnpm prisma generate
+
+# 设置权限
 RUN chown -R nestjs:nodejs /app
 
 USER nestjs
 
 WORKDIR /app/backend
 
-# Expose port
+# 暴露端口
 EXPOSE 7890
 
-# Health check
+# 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:7890/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Use tini for signal handling
+# 使用 tini 处理信号
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-# Start application
+# 启动应用
 CMD ["node", "dist/main"]

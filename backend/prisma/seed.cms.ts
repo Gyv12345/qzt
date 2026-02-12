@@ -38,10 +38,7 @@ async function main() {
     { name: "产品资讯", slug: "product-news", color: "#8B5CF6", sortOrder: 2 },
     { name: "公司新闻", slug: "company-news", color: "#10B981", sortOrder: 3 },
     { name: "技术分享", slug: "tech-share", color: "#F59E0B", sortOrder: 4 },
-    { name: "成功案例", slug: "success-case", color: "#EF4444", sortOrder: 5 },
-    { name: "解决方案", slug: "solution", color: "#6366F1", sortOrder: 6 },
-    { name: "团队介绍", slug: "team-intro", color: "#EC4899", sortOrder: 7 },
-    { name: "产品展示", slug: "product-showcase", color: "#14B8A6", sortOrder: 8 },
+    { name: "产品展示", slug: "product-showcase", color: "#14B8A6", sortOrder: 5 },
   ];
 
   const createdTags: Record<string, string> = {};
@@ -177,7 +174,7 @@ async function main() {
 
 让数据说话，让决策更明智。`,
       coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop",
-      tagNames: ["技术分享", "解决方案"],
+      tagNames: ["技术分享"],
     },
   ];
 
@@ -214,147 +211,6 @@ async function main() {
       console.log(`  ✓ 创建文章: ${article.title}`);
     } else {
       console.log(`  ⊙ 文章已存在: ${existing.title}`);
-    }
-  }
-
-  // ==================== 创建案例 ====================
-  console.log("\n💼 创建案例...");
-
-  const casesData = [
-    {
-      title: "某制造企业：客户跟进效率提升 200%",
-      slug: "manufacturing-crm-case",
-      excerpt: "该企业通过使用企智通，实现了客户信息的集中管理，跟进响应时间从平均 2 天缩短到 4 小时，成单率提升 35%。",
-      content: `# 某制造企业：客户跟进效率提升 200%
-
-## 项目背景
-
-该企业是一家专业的机械制造企业，拥有 50 多人的销售团队，服务全国各地的客户。在引入企智通之前，面临以下问题：
-
-## 痛点分析
-
-### 1. 客户信息分散
-客户资料保存在销售人员的 Excel 表格和个人电脑中，信息不共享，易丢失。
-
-### 2. 跟进效率低下
-缺乏统一的跟进记录系统，管理者无法了解跟进进度，客户跟进不及时。
-
-### 3. 数据统计分析困难
-无法准确统计销售漏斗、转化率等关键指标，管理决策缺乏数据支撑。
-
-## 解决方案
-
-### 1. 统一客户管理
-将所有客户信息录入系统，实现数据的集中存储和权限管理。
-
-### 2. 标准化跟进流程
-建立标准化的跟进流程，销售人员每次跟进后及时记录。
-
-### 3. 数据驱动决策
-通过系统报表，管理者可以实时查看销售数据，做出科学决策。
-
-## 实施效果
-
-### 效率提升
-- 客户响应时间：从 2 天缩短到 4 小时
-- 跟进效率：提升 200%
-
-### 业绩增长
-- 成单率：提升 35%
-- 客户满意度：提升 28%
-
-## 客户评价
-
-> "企智通帮助我们实现了销售管理的数字化转型，系统稳定易用，服务响应及时。"
-> —— 销售总监`,
-      coverImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&h=600&fit=crop",
-      tagNames: ["成功案例"],
-    },
-    {
-      title: "某互联网公司：从线索到成交的全流程优化",
-      slug: "internet-company-full-funnel",
-      excerpt: "通过企智通的全流程管理，该公司实现了从线索获取到成交的完整闭环，线索转化率从 15% 提升到 32%。",
-      content: `# 某互联网公司：全流程优化实践
-
-## 项目背景
-
-该公司是一家提供企业级 SaaS 服务的互联网公司，拥有多个营销渠道，但线索转化率一直不理想。
-
-## 核心挑战
-
-### 1. 多渠道线索整合困难
-来自不同渠道的线索分散管理，缺乏统一的处理流程。
-
-### 2. 线索流转不透明
-线索从市场部到销售部的流转缺乏透明度，容易造成线索浪费。
-
-### 3. 转化率无法追踪
-无法准确统计各渠道的转化效果，营销投入缺乏数据依据。
-
-## 解决方案
-
-### 1. 统一线索管理
-建立统一的线索池，所有渠道的线索集中管理。
-
-### 2. 智能分配机制
-根据销售人员的专长、工作量等因素，智能分配线索。
-
-### 3. 全流程追踪
-从线索获取到成交的每个环节都有记录，形成完整的转化漏斗。
-
-## 实施成果
-
-### 转化率提升
-- 整体转化率：从 15% 提升到 32%
-- 线索响应速度：提升 80%
-
-### 营销效率优化
-- 高效渠道识别：精准识别高效渠道
-- 营销 ROI：提升 45%
-
-## 经验总结
-
-1. **数据先行**：建立统一的数据标准是流程优化的基础
-2. **工具支撑**：选择合适的 CRM 系统至关重要
-3. **持续优化**：根据数据反馈持续优化流程`,
-      coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=600&fit=crop",
-      tagNames: ["成功案例", "解决方案"],
-    },
-  ];
-
-  for (const caseData of casesData) {
-    const existing = await prisma.cmsContent.findUnique({
-      where: { slug: caseData.slug },
-    });
-
-    if (!existing) {
-      const tagIds = caseData.tagNames
-        .map((name) => createdTags[name])
-        .filter(Boolean);
-
-      const caseStudy = await prisma.cmsContent.create({
-        data: {
-          title: caseData.title,
-          slug: caseData.slug,
-          excerpt: caseData.excerpt,
-          content: caseData.content,
-          coverImage: caseData.coverImage,
-          contentType: "CASE_STUDY",
-          status: "PUBLISHED",
-          authorId: author.id,
-          publishedAt: new Date(),
-          ...(tagIds.length > 0 && {
-            tags: {
-              create: tagIds.map((tagId) => ({ tagId })),
-            },
-          }),
-          metaTitle: caseData.title,
-          metaDesc: caseData.excerpt,
-        },
-      });
-      console.log(`  ✓ 创建案例: ${caseStudy.title}`);
-    } else {
-      console.log(`  ⊙ 案例已存在: ${existing.title}`);
     }
   }
 
@@ -411,7 +267,7 @@ async function main() {
 
 现在注册，享受 30 天免费试用！`,
       coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop",
-      tagNames: ["产品展示", "解决方案"],
+      tagNames: ["产品展示"],
     },
     {
       title: "企智通企业版：大型企业的数字化解决方案",
@@ -495,164 +351,17 @@ async function main() {
     }
   }
 
-  // ==================== 创建人员介绍 ====================
-  console.log("\n👥 创建人员介绍...");
-
-  // 获取现有用户
-  const users = await prisma.user.findMany({
-    where: { status: "ACTIVE" },
-    take: 5,
-  });
-
-  const profilesData = [
-    {
-      title: "张明 - 产品总监",
-      slug: "zhangming-product-director",
-      excerpt: "10 年企业服务产品经验，曾主导多款企业级产品的设计与研发。",
-      content: `# 张明
-## 产品总监
-
-张明拥有 10 年的企业服务产品设计经验，擅长将复杂的业务需求转化为简洁易用的产品功能。
-
-## 专业背景
-
-- 曾任职于多家知名 SaaS 企业
-- 主导过千万级用户产品的设计
-- 拥有产品设计专利 3 项
-
-## 工作理念
-
-> "好的产品应该让用户忘记它的存在，却能感受到效率的提升。"
-
-## 主要职责
-
-- 负责企智通产品规划
-- 主导用户体验设计
-- 推动产品创新迭代`,
-      coverImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop",
-      tagNames: ["团队介绍"],
-    },
-    {
-      title: "李婷 - 技术负责人",
-      slug: "liting-tech-lead",
-      excerpt: "12 年软件开发经验，精通分布式系统架构，负责企智通的技术架构设计与研发管理。",
-      content: `# 李婷
-## 技术负责人
-
-李婷是一位资深的技术专家，在企业级软件开发领域深耕 12 年。
-
-## 技术专长
-
-- 分布式系统架构设计
-- 高并发系统优化
-- 数据库设计与优化
-- 微服务架构实践
-
-## 项目经验
-
-- 曾主导千万级用户系统的架构设计
-- 拥有多项技术发明专利
-- 开源项目贡献者
-
-## 技术理念
-
-> "代码质量是产品的生命线，技术架构决定了产品的发展上限。"
-
-## 主要职责
-
-- 负责技术架构设计
-- 主导核心技术研发
-- 推动技术团队成长`,
-      coverImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
-      tagNames: ["团队介绍"],
-    },
-    {
-      title: "王强 - 销售总监",
-      slug: "wangqiang-sales-director",
-      excerpt: "15 年 B2B 销售经验，擅长企业客户开发与团队管理。",
-      content: `# 王强
-## 销售总监
-
-王强在企业服务销售领域拥有丰富的经验，帮助众多企业实现数字化转型。
-
-## 销售业绩
-
-- 累计服务企业客户 500+
-- 带领团队实现业绩连续 3 年翻倍
-- 客户续约率保持在 90% 以上
-
-## 行业洞察
-
-王强深刻理解各行业的客户管理痛点，能够为客户提供专业的咨询建议。
-
-## 服务理念
-
-> "我们不只是销售产品，更是为企业提供解决问题的方案。"
-
-## 主要职责
-
-- 负责销售团队管理
-- 大客户开发与维护
-- 销售策略制定与执行`,
-      coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-      tagNames: ["团队介绍"],
-    },
-  ];
-
-  for (let i = 0; i < profilesData.length; i++) {
-    const profileData = profilesData[i];
-    const existing = await prisma.cmsContent.findUnique({
-      where: { slug: profileData.slug },
-    });
-
-    if (!existing) {
-      const tagIds = profileData.tagNames
-        .map((name) => createdTags[name])
-        .filter(Boolean);
-
-      const profile = await prisma.cmsContent.create({
-        data: {
-          title: profileData.title,
-          slug: profileData.slug,
-          excerpt: profileData.excerpt,
-          content: profileData.content,
-          coverImage: profileData.coverImage,
-          contentType: "PROFILE",
-          status: "PUBLISHED",
-          authorId: author.id,
-          userId: users[i]?.id || null,
-          publishedAt: new Date(),
-          ...(tagIds.length > 0 && {
-            tags: {
-              create: tagIds.map((tagId) => ({ tagId })),
-            },
-          }),
-          metaTitle: profileData.title,
-          metaDesc: profileData.excerpt,
-        },
-      });
-      console.log(`  ✓ 创建人员介绍: ${profile.title}`);
-    } else {
-      console.log(`  ⊙ 人员介绍已存在: ${existing.title}`);
-    }
-  }
-
   console.log("\n✅ CMS 内容数据填充完成！");
   console.log("\n📊 数据统计：");
 
-  const [articleCount, caseCount, productCount, profileCount, tagCount] =
-    await Promise.all([
-      prisma.cmsContent.count({ where: { contentType: "ARTICLE" } }),
-      prisma.cmsContent.count({ where: { contentType: "CASE_STUDY" } }),
-      prisma.cmsContent.count({ where: { contentType: "PRODUCT_SHOWCASE" } }),
-      prisma.cmsContent.count({ where: { contentType: "PROFILE" } }),
-      prisma.cmsTag.count(),
-    ]);
+  const [articleCount, productCount, tagCount] = await Promise.all([
+    prisma.cmsContent.count({ where: { contentType: "ARTICLE" } }),
+    prisma.cmsContent.count({ where: { contentType: "PRODUCT_SHOWCASE" } }),
+    prisma.cmsTag.count(),
+  ]);
 
   console.log(`  - 文章: ${articleCount} 篇`);
-  console.log(`  - 案例: ${caseCount} 个`);
   console.log(`  - 产品展示: ${productCount} 个`);
-  console.log(`  - 人员介绍: ${profileCount} 个`);
   console.log(`  - 标签: ${tagCount} 个`);
 }
 

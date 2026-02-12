@@ -402,7 +402,8 @@ function ImportDialog({
       const mapped: Record<string, string> = {};
       fields.forEach((field) => {
         const header = mapping[field.key as string];
-        mapped[field.key as string] = header ? row[header] || "" : "";
+        const isEmpty = !header || header === "__none__";
+        mapped[field.key as string] = isEmpty ? "" : row[header] || "";
       });
       return mapped;
     });
@@ -539,7 +540,7 @@ function ImportDialog({
                       <SelectValue placeholder="请选择字段" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">不导入</SelectItem>
+                      <SelectItem value="__none__">不导入</SelectItem>
                       {headers.map((header) => (
                         <SelectItem key={header} value={header}>
                           {header}
