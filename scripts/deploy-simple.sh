@@ -5,10 +5,12 @@
 #
 # 原理：
 #   1. 服务器上已有源码，直接在源码目录构建
-#   2. 将构建产物复制到 /var/www/qzt 对应目录
+#   2. 将 dist 和 node_modules 复制到 /var/www/qzt
 #   3. 重启服务
 #
-# 注意：第一次部署需要先创建 /var/www/qzt 目录
+# 为什么复制 node_modules？
+#   /var/www/qzt/backend 不在 workspace 中，无法解析 @qzt/shared-types
+#   直接复制源码的 node_modules 是最可靠的方式
 # ============================================================
 
 set -e
@@ -81,15 +83,13 @@ deploy_backend() {
     cp "$SRC_DIR/backend/package.json" "$DEPLOY_DIR/backend/"
     cp -r "$SRC_DIR/backend/prisma" "$DEPLOY_DIR/backend/"
 
-    # 复制 shared-types 构建产物
-    rm -rf "$DEPLOY_DIR/backend/node_modules/@qzt/shared-types"
-    mkdir -p "$DEPLOY_DIR/backend/node_modules/@qzt"
-    cp -r "$SRC_DIR/packages/shared-types/dist" "$DEPLOY_DIR/backend/node_modules/@qzt/shared-types"
+    # 复制 node_modules（直接复制，避免 workspace 依赖问题）
+    echo -e "${YELLOW}3. 复制依赖...${NC}"
+    rm -rf "$DEPLOY_DIR/backend/node_modules"
+    cp -r "$SRC_DIR/backend/node_modules" "$DEPLOY_DIR/backend/"
 
-    # 安装生产依赖
-    echo -e "${YELLOW}3. 安装依赖...${NC}"
+    # 生成 Prisma Client
     cd "$DEPLOY_DIR/backend"
-    pnpm install --prod
     pnpm prisma generate
 
     # 重启
