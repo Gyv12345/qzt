@@ -2,21 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsOptional, IsNumber, IsBoolean } from "class-validator";
 
 /**
- * 默认菜单配置接口（仅用于服务内部定义）
- */
-export interface DefaultMenuConfig {
-  name: string;
-  path: string;
-  groupTitle: string;
-  i18nKey?: string; // 菜单项的 i18n key
-  groupI18nKey?: string; // 分组的 i18n key
-  icon?: string;
-  sort: number;
-  enabled: boolean;
-  hasChildren?: boolean;
-}
-
-/**
  * 菜单项响应 DTO
  */
 export class MenuItemDto {
@@ -127,8 +112,8 @@ export class InitializeResultResponse {
   @ApiProperty({ description: "菜单创建数量" })
   menusCreated: number;
 
-  @ApiProperty({ description: "菜单跳过数量" })
-  menusSkipped: number;
+  @ApiProperty({ description: "菜单更新数量" })
+  menusUpdated: number;
 
   @ApiProperty({ description: "权限创建数量" })
   permissionsCreated: number;

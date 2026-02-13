@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
-import { DefaultMenuConfig, MenuItemDto, MenuGroupDto } from "./dto/menu.dto";
+import { MenuItemDto, MenuGroupDto } from "./dto/menu.dto";
 
 /**
  * 按钮权限配置
@@ -46,14 +46,10 @@ const PERMISSION_CONFIG: Record<string, string[]> = {
 };
 
 /**
- * 默认菜单配置
- * 包含系统所有菜单项的结构定义
- *
- * i18nKey 说明：
- * - groupI18nKey: 分组标题的翻译 key（如 menu.sidebar.business）
- * - i18nKey: 菜单项标题的翻译 key（如 menu.sidebar.contacts）
+ * 完整菜单配置
+ * 用于 initializeMenus() 方法初始化菜单数据
  */
-const DEFAULT_MENUS: DefaultMenuConfig[] = [
+const DEFAULT_MENUS = [
   // === 业务分组 ===
   {
     name: "工作台",
@@ -63,6 +59,19 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     i18nKey: "menu.sidebar.dashboard",
     icon: "LayoutDashboard",
     sort: 1,
+    enabled: true,
+    type: "menu",
+  },
+  // 客户中心父菜单（用于建立父子关系）
+  {
+    name: "客户中心",
+    path: "/customer-center",
+    groupTitle: "业务",
+    groupI18nKey: "menu.sidebar.business",
+    i18nKey: "menu.sidebar.customerCenter",
+    icon: "Building",
+    sort: 2,
+    type: "group",
     enabled: true,
   },
   {
@@ -74,6 +83,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "UserCircle",
     sort: 3,
     enabled: true,
+    type: "menu",
   },
   {
     name: "客户管理",
@@ -84,6 +94,19 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Building",
     sort: 4,
     enabled: true,
+    type: "menu",
+  },
+  // 合同父菜单（用于建立父子关系）
+  {
+    name: "合同",
+    path: "/contracts-group",
+    groupTitle: "业务",
+    groupI18nKey: "menu.sidebar.business",
+    i18nKey: "menu.sidebar.contractsGroup",
+    icon: "FileCheck",
+    sort: 5,
+    type: "group",
+    enabled: true,
   },
   {
     name: "合同管理",
@@ -92,8 +115,9 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     groupI18nKey: "menu.sidebar.business",
     i18nKey: "menu.sidebar.contracts",
     icon: "FileCheck",
-    sort: 5,
+    sort: 6,
     enabled: true,
+    type: "menu",
   },
   {
     name: "服务团队",
@@ -102,8 +126,9 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     groupI18nKey: "menu.sidebar.business",
     i18nKey: "menu.sidebar.serviceTeams",
     icon: "UsersRound",
-    sort: 6,
+    sort: 7,
     enabled: true,
+    type: "menu",
   },
   {
     name: "发票管理",
@@ -112,8 +137,9 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     groupI18nKey: "menu.sidebar.business",
     i18nKey: "menu.sidebar.invoices",
     icon: "Receipt",
-    sort: 8,
+    sort: 9,
     enabled: true,
+    type: "menu",
   },
   {
     name: "收款管理",
@@ -122,8 +148,9 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     groupI18nKey: "menu.sidebar.business",
     i18nKey: "menu.sidebar.payments",
     icon: "Wallet",
-    sort: 9,
+    sort: 10,
     enabled: true,
+    type: "menu",
   },
 
   // === 内容管理分组 ===
@@ -136,6 +163,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "FileText",
     sort: 20,
     enabled: true,
+    type: "menu",
   },
   {
     name: "页面管理",
@@ -146,6 +174,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Layout",
     sort: 21,
     enabled: true,
+    type: "menu",
   },
   {
     name: "标签管理",
@@ -156,6 +185,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Tag",
     sort: 22,
     enabled: true,
+    type: "menu",
   },
   {
     name: "新媒体管理",
@@ -166,6 +196,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Share2",
     sort: 23,
     enabled: true,
+    type: "menu",
   },
 
   // === 业务设置分组 ===
@@ -178,6 +209,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Archive",
     sort: 30,
     enabled: true,
+    type: "menu",
   },
   {
     name: "合同模板设置",
@@ -188,6 +220,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "FileSignature",
     sort: 31,
     enabled: true,
+    type: "menu",
   },
   {
     name: "客户规则",
@@ -198,6 +231,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Sliders",
     sort: 32,
     enabled: true,
+    type: "menu",
   },
   {
     name: "Webhook配置",
@@ -208,6 +242,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Webhook",
     sort: 33,
     enabled: true,
+    type: "menu",
   },
 
   // === 系统设置分组 ===
@@ -220,6 +255,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Users",
     sort: 40,
     enabled: true,
+    type: "menu",
   },
   {
     name: "部门管理",
@@ -230,6 +266,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Building",
     sort: 41,
     enabled: true,
+    type: "menu",
   },
   {
     name: "角色管理",
@@ -240,16 +277,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "ShieldCheck",
     sort: 42,
     enabled: true,
-  },
-  {
-    name: "权限管理",
-    path: "/permissions",
-    groupTitle: "系统设置",
-    groupI18nKey: "menu.sidebar.systemSettings",
-    i18nKey: "menu.sidebar.permissions",
-    icon: "Lock",
-    sort: 43,
-    enabled: true,
+    type: "menu",
   },
   {
     name: "登录日志",
@@ -260,6 +288,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "History",
     sort: 45,
     enabled: true,
+    type: "menu",
   },
   {
     name: "操作日志",
@@ -270,6 +299,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "ClipboardList",
     sort: 46,
     enabled: true,
+    type: "menu",
   },
   {
     name: "系统日志",
@@ -280,6 +310,7 @@ const DEFAULT_MENUS: DefaultMenuConfig[] = [
     icon: "Terminal",
     sort: 47,
     enabled: true,
+    type: "menu",
   },
 ];
 
@@ -320,23 +351,37 @@ export class MenuService {
    * 使用 upsert 模式，可安全重复调用
    */
   async initializeMenus(): Promise<{
-    menus: { created: number; skipped: number };
+    menus: { created: number; updated: number };
     permissions: { created: number; skipped: number };
   }> {
     let menuCreated = 0;
-    let menuSkipped = 0;
+    let menuUpdated = 0;
     let permissionCreated = 0;
     let permissionSkipped = 0;
 
-    // 1. 创建/更新菜单
+    // 1. 创建/更新菜单（使用 upsert 模式）
     for (const menuData of DEFAULT_MENUS) {
       const existing = await this.prisma.menu.findUnique({
         where: { path: menuData.path },
       });
 
       if (existing) {
-        menuSkipped++;
-        this.logger.debug(`菜单已存在: ${menuData.name} (${menuData.path})`);
+        // 更新现有菜单，写入完整的 i18n 字段
+        await this.prisma.menu.update({
+          where: { id: existing.id },
+          data: {
+            name: menuData.name,
+            icon: menuData.icon,
+            sort: menuData.sort || 0,
+            type: menuData.type || "menu",
+            groupTitle: menuData.groupTitle,
+            groupI18nKey: menuData.groupI18nKey,
+            i18nKey: menuData.i18nKey,
+            // 注意：不更新 enabled，保留手动修改
+          },
+        });
+        menuUpdated++;
+        this.logger.debug(`更新菜单: ${menuData.name} (${menuData.path})`);
       } else {
         await this.prisma.menu.create({
           data: {
@@ -345,7 +390,10 @@ export class MenuService {
             icon: menuData.icon,
             sort: menuData.sort || 0,
             enabled: menuData.enabled !== undefined ? menuData.enabled : true,
-            type: "menu",
+            type: menuData.type || "menu",
+            groupTitle: menuData.groupTitle,
+            groupI18nKey: menuData.groupI18nKey,
+            i18nKey: menuData.i18nKey,
           },
         });
         menuCreated++;
@@ -405,12 +453,15 @@ export class MenuService {
       }
     }
 
+    // 3. 设置菜单父子关系
+    await this.setupMenuParentRelationships();
+
     this.logger.log(
-      `菜单初始化完成: 菜单[创建 ${menuCreated}, 跳过 ${menuSkipped}], 权限[创建 ${permissionCreated}, 跳过 ${permissionSkipped}]`,
+      `菜单初始化完成: 菜单[创建 ${menuCreated}, 更新 ${menuUpdated}], 权限[创建 ${permissionCreated}, 跳过 ${permissionSkipped}]`,
     );
 
     return {
-      menus: { created: menuCreated, skipped: menuSkipped },
+      menus: { created: menuCreated, updated: menuUpdated },
       permissions: { created: permissionCreated, skipped: permissionSkipped },
     };
   }
@@ -441,23 +492,25 @@ export class MenuService {
   }
 
   /**
-   * 获取所有启用的菜单
+   * 获取所有启用的菜单（包含分组信息）
+   * 用于构建菜单分组
    */
-  private async getAllEnabledMenus(): Promise<MenuItemDto[]> {
+  private async getAllEnabledMenus(): Promise<any[]> {
     const menus = await this.prisma.menu.findMany({
       where: { enabled: true },
       orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
     });
 
-    return menus.map(this.mapToMenuItemDto);
+    // 只返回实际页面菜单，过滤掉分组和按钮类型
+    return menus.filter((menu) => menu.type === "menu");
   }
 
   /**
-   * 根据用户角色获取有权限的菜单
+   * 根据用户角色获取有权限的菜单（包含分组信息）
    */
   private async getMenusByRoles(
     userRoles: Array<{ id: string; code: string }>,
-  ): Promise<MenuItemDto[]> {
+  ): Promise<any[]> {
     if (userRoles.length === 0) {
       return [];
     }
@@ -491,7 +544,8 @@ export class MenuService {
       orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
     });
 
-    return menus.map(this.mapToMenuItemDto);
+    // 只返回实际页面菜单，过滤掉分组和按钮类型
+    return menus.filter((menu) => menu.type === "menu");
   }
 
   /**
@@ -523,18 +577,24 @@ export class MenuService {
 
   /**
    * 将 Prisma Menu 模型映射为 MenuItemDto
+   * 直接从数据库记录读取 i18nKey
    */
-  private mapToMenuItemDto(menu: any): MenuItemDto {
-    // 从 DEFAULT_MENUS 中查找对应的 i18nKey
-    const defaultMenu = DEFAULT_MENUS.find((m) => m.path === menu.path);
-
+  private mapToMenuItemDto(menu: {
+    id: string;
+    path: string;
+    name: string;
+    icon: string | null;
+    sort: number;
+    enabled: boolean;
+    i18nKey: string | null;
+  }): MenuItemDto {
     return {
       id: menu.id,
       path: menu.path,
       name: menu.name,
       title: menu.name,
-      i18nKey: defaultMenu?.i18nKey,
-      icon: menu.icon,
+      i18nKey: menu.i18nKey || undefined,
+      icon: menu.icon || undefined,
       sort: menu.sort,
       enabled: menu.enabled,
     };
@@ -567,36 +627,30 @@ export class MenuService {
 
   /**
    * 构建按分组的菜单列表
-   * 根据 DEFAULT_MENUS 中的 groupTitle 进行分组
+   * 直接从数据库记录提取分组信息
    */
-  private buildMenuGroups(menus: MenuItemDto[]): MenuGroupDto[] {
-    // 从 DEFAULT_MENUS 提取分组信息
+  private buildMenuGroups(menus: any[]): MenuGroupDto[] {
+    // 直接从数据库记录提取分组信息
     const groupMap = new Map<
       string,
-      { title: string; i18nKey?: string; items: MenuItemDto[] }
+      { title: string; i18nKey?: string; sort: number; items: MenuItemDto[] }
     >();
-
-    // 初始化分组
-    for (const menu of DEFAULT_MENUS) {
-      if (!groupMap.has(menu.groupTitle)) {
-        groupMap.set(menu.groupTitle, {
-          title: menu.groupTitle,
-          i18nKey: menu.groupI18nKey,
-          items: [],
-        });
-      }
-    }
 
     // 将菜单添加到对应分组
     for (const menu of menus) {
-      // 查找菜单所属分组
-      const defaultMenu = DEFAULT_MENUS.find((m) => m.path === menu.path);
-      if (defaultMenu) {
-        const group = groupMap.get(defaultMenu.groupTitle);
-        if (group) {
-          group.items.push(menu);
-        }
+      const groupKey = menu.groupTitle || "默认";
+
+      if (!groupMap.has(groupKey)) {
+        groupMap.set(groupKey, {
+          title: menu.groupTitle || "默认",
+          i18nKey: menu.groupI18nKey || undefined,
+          sort: menu.sort,
+          items: [],
+        });
       }
+
+      const group = groupMap.get(groupKey)!;
+      group.items.push(this.mapToMenuItemDto(menu));
     }
 
     // 转换为数组并过滤掉没有菜单的分组
@@ -607,5 +661,53 @@ export class MenuService {
         i18nKey: group.i18nKey,
         items: group.items.sort((a, b) => a.sort - b.sort),
       }));
+  }
+
+  /**
+   * 设置菜单父子关系
+   * 为相关菜单设置 parentId，形成正确的层级结构
+   */
+  private async setupMenuParentRelationships(): Promise<void> {
+    // 客户中心分组
+    const customerCenterGroup = await this.prisma.menu.findFirst({
+      where: { path: "/customer-center" },
+    });
+
+    if (customerCenterGroup) {
+      const customerPaths = ["/customers", "/contacts", "/service-teams"];
+      for (const path of customerPaths) {
+        await this.prisma.menu.updateMany({
+          where: {
+            path,
+            parentId: null, // 只更新没有父级的菜单
+          },
+          data: {
+            parentId: customerCenterGroup.id,
+          },
+        });
+      }
+    }
+
+    // 合同分组
+    const contractGroup = await this.prisma.menu.findFirst({
+      where: { path: "/contracts-group" },
+    });
+
+    if (contractGroup) {
+      const contractPaths = ["/contracts", "/contract-templates"];
+      for (const path of contractPaths) {
+        await this.prisma.menu.updateMany({
+          where: {
+            path,
+            parentId: null,
+          },
+          data: {
+            parentId: contractGroup.id,
+          },
+        });
+      }
+    }
+
+    this.logger.log("菜单父子关系设置完成");
   }
 }

@@ -56,14 +56,14 @@ export class MenuController {
   })
   async initializeMenus(): Promise<{
     menusCreated: number;
-    menusSkipped: number;
+    menusUpdated: number;
     permissionsCreated: number;
     permissionsSkipped: number;
   }> {
     const result = await this.menuService.initializeMenus();
     return {
       menusCreated: result.menus.created,
-      menusSkipped: result.menus.skipped,
+      menusUpdated: result.menus.updated,
       permissionsCreated: result.permissions.created,
       permissionsSkipped: result.permissions.skipped,
     };

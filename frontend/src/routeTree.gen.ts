@@ -26,7 +26,6 @@ import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedServiceTeamsRouteRouteImport } from './routes/_authenticated/service-teams/route'
 import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authenticated/roles/route'
 import { Route as AuthenticatedProductsRouteRouteImport } from './routes/_authenticated/products/route'
-import { Route as AuthenticatedPermissionsRouteRouteImport } from './routes/_authenticated/permissions/route'
 import { Route as AuthenticatedPaymentsRouteRouteImport } from './routes/_authenticated/payments/route'
 import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
 import { Route as AuthenticatedLoginLogsRouteRouteImport } from './routes/_authenticated/login-logs/route'
@@ -144,12 +143,6 @@ const AuthenticatedProductsRouteRoute =
   AuthenticatedProductsRouteRouteImport.update({
     id: '/products',
     path: '/products',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedPermissionsRouteRoute =
-  AuthenticatedPermissionsRouteRouteImport.update({
-    id: '/permissions',
-    path: '/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPaymentsRouteRoute =
@@ -337,7 +330,6 @@ export interface FileRoutesByFullPath {
   '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
-  '/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRouteWithChildren
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
@@ -383,7 +375,6 @@ export interface FileRoutesByTo {
   '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
-  '/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
   '/roles': typeof AuthenticatedRolesRouteRouteWithChildren
   '/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
@@ -432,7 +423,6 @@ export interface FileRoutesById {
   '/_authenticated/login-logs': typeof AuthenticatedLoginLogsRouteRoute
   '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
-  '/_authenticated/permissions': typeof AuthenticatedPermissionsRouteRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRouteRouteWithChildren
   '/_authenticated/service-teams': typeof AuthenticatedServiceTeamsRouteRoute
@@ -483,7 +473,6 @@ export interface FileRouteTypes {
     | '/login-logs'
     | '/operation-logs'
     | '/payments'
-    | '/permissions'
     | '/products'
     | '/roles'
     | '/service-teams'
@@ -529,7 +518,6 @@ export interface FileRouteTypes {
     | '/login-logs'
     | '/operation-logs'
     | '/payments'
-    | '/permissions'
     | '/products'
     | '/roles'
     | '/service-teams'
@@ -577,7 +565,6 @@ export interface FileRouteTypes {
     | '/_authenticated/login-logs'
     | '/_authenticated/operation-logs'
     | '/_authenticated/payments'
-    | '/_authenticated/permissions'
     | '/_authenticated/products'
     | '/_authenticated/roles'
     | '/_authenticated/service-teams'
@@ -742,13 +729,6 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof AuthenticatedProductsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/permissions': {
-      id: '/_authenticated/permissions'
-      path: '/permissions'
-      fullPath: '/permissions'
-      preLoaderRoute: typeof AuthenticatedPermissionsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -1042,7 +1022,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLoginLogsRouteRoute: typeof AuthenticatedLoginLogsRouteRoute
   AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
   AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
-  AuthenticatedPermissionsRouteRoute: typeof AuthenticatedPermissionsRouteRoute
   AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
   AuthenticatedRolesRouteRoute: typeof AuthenticatedRolesRouteRouteWithChildren
   AuthenticatedServiceTeamsRouteRoute: typeof AuthenticatedServiceTeamsRouteRoute
@@ -1072,7 +1051,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLoginLogsRouteRoute: AuthenticatedLoginLogsRouteRoute,
   AuthenticatedOperationLogsRouteRoute: AuthenticatedOperationLogsRouteRoute,
   AuthenticatedPaymentsRouteRoute: AuthenticatedPaymentsRouteRoute,
-  AuthenticatedPermissionsRouteRoute: AuthenticatedPermissionsRouteRoute,
   AuthenticatedProductsRouteRoute: AuthenticatedProductsRouteRoute,
   AuthenticatedRolesRouteRoute: AuthenticatedRolesRouteRouteWithChildren,
   AuthenticatedServiceTeamsRouteRoute: AuthenticatedServiceTeamsRouteRoute,

@@ -7,8 +7,12 @@
  */
 
 export interface InitializeResultResponse {
-  /** 创建数量 */
-  created: number;
-  /** 跳过数量 */
-  skipped: number;
+  /** 菜单创建数量 */
+  menusCreated: number;
+  /** 菜单更新数量 */
+  menusUpdated: number;
+  /** 权限创建数量 */
+  permissionsCreated: number;
+  /** 权限跳过数量 */
+  permissionsSkipped: number;
 }

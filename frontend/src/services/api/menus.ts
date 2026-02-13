@@ -25,7 +25,7 @@ export const getMenus = () => {
     });
   };
   /**
-   * 创建默认菜单结构，仅在首次运行时调用。已存在的菜单将被跳过。
+   * 创建默认菜单结构和按钮权限，使用 upsert 模式可重复调用。
    * @summary 初始化菜单数据
    */
   const menuControllerInitializeMenus = () => {

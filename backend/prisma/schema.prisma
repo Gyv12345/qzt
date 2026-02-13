@@ -106,9 +106,10 @@ model Menu {
   parentId   String?  // 父级菜单ID
   sort       Int      @default(0) // 排序
   enabled    Boolean  @default(true) // 是否启用
-  groupTitle String?  // 菜单分组标题（业务、系统设置等）
-  i18nKey    String?  // 国际化 key
-  badge      String?  // 徽章/角标
+  groupTitle   String?  // 菜单分组标题（业务、系统设置等）
+  groupI18nKey String?  // 分组标题的国际化 key
+  i18nKey      String?  // 菜单项的国际化 key
+  badge        String?  // 徽章/角标
   isHidden   Boolean  @default(false) // 是否隐藏
   isSystem   Boolean  @default(false) // 是否系统菜单
   type       String   @default("menu") // 类型: menu(菜单), button(按钮权限)

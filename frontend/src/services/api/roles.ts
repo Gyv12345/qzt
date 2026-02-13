@@ -62,16 +62,8 @@ export const getRoles = () => {
   /**
    * @summary 为角色分配菜单
    */
-  const rolesControllerAssignMenusToRole = (
-    id: string,
-    data?: { menuIds: string[] },
-  ) => {
-    return customInstance<void>({
-      url: `/roles/${id}/menus`,
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      data,
-    });
+  const rolesControllerAssignMenusToRole = (id: string) => {
+    return customInstance<void>({ url: `/roles/${id}/menus`, method: "PUT" });
   };
   return {
     rolesControllerCreateRole,
