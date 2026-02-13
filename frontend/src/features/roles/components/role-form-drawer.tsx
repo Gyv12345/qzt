@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useAllMenus } from "@/features/menus/hooks/use-all-menus";
-import { MenuTreeSelect } from "@/components/ui/menu-tree-select";
+import { MenuTreeSelectVirtual } from "@/components/ui/menu-tree-select-virtual";
 import { Loader2 } from "lucide-react";
 import {
   Sheet,
@@ -276,7 +276,7 @@ export function RoleFormDrawer({
                         <span>加载权限列表...</span>
                       </div>
                     ) : (
-                      <MenuTreeSelect
+                      <MenuTreeSelectVirtual
                         value={field.value || []}
                         onChange={field.onChange}
                         menuTree={(menuTree as any) || []}

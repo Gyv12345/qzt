@@ -520,5 +520,17 @@
     "enum": {
       "invalid": "Please select a valid option"
     }
+  },
+  "roles": {
+    "permissionTree": {
+      "selectPermissions": "Please select role permissions",
+      "selectedCount": "{{count}} permissions selected",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "selectAll": "Select All",
+      "clearAll": "Clear All",
+      "button": "Button",
+      "noPermissions": "No permissions available"
+    }
   }
 }

@@ -848,5 +848,17 @@
         "actions": "操作"
       }
     }
+  },
+  "roles": {
+    "permissionTree": {
+      "selectPermissions": "请选择角色权限",
+      "selectedCount": "已选择 {{count}} 个权限",
+      "expandAll": "展开全部",
+      "collapseAll": "收起全部",
+      "selectAll": "全选",
+      "clearAll": "清空",
+      "button": "按钮",
+      "noPermissions": "暂无权限数据"
+    }
   }
 }
