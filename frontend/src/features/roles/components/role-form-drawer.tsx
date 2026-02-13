@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useMenuTree } from "@/features/menus/hooks/use-menu-tree";
-import { PermissionTreeSelect } from "@/components/ui/permission-tree-select";
+import { useAllMenus } from "@/features/menus/hooks/use-all-menus";
+import { MenuTreeSelect } from "@/components/ui/menu-tree-select";
 import { Loader2 } from "lucide-react";
 import {
   Sheet,
@@ -67,7 +67,7 @@ export function RoleFormDrawer({
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
 
   // 获取菜单树数据用于权限选择
-  const { data: menuTree, isLoading: menuTreeLoading } = useMenuTree();
+  const { data: menuTree, isLoading: menuTreeLoading } = useAllMenus();
 
   const form = useForm<RoleFormValues>({
     // @ts-ignore - Zod version compatibility issue (project-wide, not specific to this file)
@@ -84,7 +84,7 @@ export function RoleFormDrawer({
             | "department_and_sub"
             | "self"
             | undefined,
-          permissionIds: role.permissionIds || [],
+          menuIds: role.menuIds || [],
         }
       : {
           name: "",
@@ -92,7 +92,7 @@ export function RoleFormDrawer({
           description: "",
           type: "system",
           dataScope: "all",
-          permissionIds: [],
+          menuIds: [],
         },
   });
 
@@ -116,7 +116,7 @@ export function RoleFormDrawer({
           | "department_and_sub"
           | "self"
           | undefined,
-        permissionIds: role.permissionIds || [],
+        menuIds: role.menuIds || [],
       });
     } else if (open) {
       form.reset({
@@ -125,7 +125,7 @@ export function RoleFormDrawer({
         description: "",
         type: "system",
         dataScope: "all",
-        permissionIds: [],
+        menuIds: [],
       });
     }
   }, [role, open, form]);
@@ -140,7 +140,7 @@ export function RoleFormDrawer({
         description: values.description || undefined,
         type: values.type || "system",
         dataScope: values.dataScope || "all",
-        permissionIds: values.permissionIds || [],
+        menuIds: values.menuIds || [],
       };
 
       if (isEdit && role) {
@@ -265,7 +265,7 @@ export function RoleFormDrawer({
             {/* 权限选择 */}
             <FormField
               control={form.control}
-              name="permissionIds"
+              name="menuIds"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>权限配置</FormLabel>
@@ -276,7 +276,7 @@ export function RoleFormDrawer({
                         <span>加载权限列表...</span>
                       </div>
                     ) : (
-                      <PermissionTreeSelect
+                      <MenuTreeSelect
                         value={field.value || []}
                         onChange={field.onChange}
                         menuTree={(menuTree as any) || []}

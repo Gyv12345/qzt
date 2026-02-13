@@ -20,8 +20,8 @@ import { QueryContactDto } from "./dto/query-contact.dto";
 import { LinkCompanyDto } from "./dto/link-company.dto";
 import { SubmitContactDto } from "./dto/submit-contact.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { DataScopeGuard } from "../permission/guards/data-scope.guard";
-import { DataScope } from "../permission/decorators/data-scope.decorator";
+import { DataScopeGuard } from "../roles/guards/data-scope.guard";
+import { DataScope } from "../roles/decorators/data-scope.decorator";
 
 @ApiTags("contacts")
 @Controller("contacts")

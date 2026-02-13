@@ -409,6 +409,31 @@ export class MenuService {
   }
 
   /**
+   * 获取所有菜单树（用于角色权限配置）
+   * 返回所有启用的菜单和按钮，树形结构
+   */
+  async getAllMenusTree(): Promise<any[]> {
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        enabled: true,
+      },
+      orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
+    });
+
+    // 构建树形结构
+    const buildTree = (parentId: string | null = null) => {
+      return menus
+        .filter((menu) => menu.parentId === parentId)
+        .map((menu) => ({
+          ...menu,
+          children: buildTree(menu.id),
+        }));
+    };
+
+    return buildTree();
+  }
+
+  /**
    * 构建按分组的菜单列表
    * 根据 DEFAULT_MENUS 中的 groupTitle 进行分组
    */

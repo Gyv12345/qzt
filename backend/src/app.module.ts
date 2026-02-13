@@ -17,7 +17,7 @@ import { StatisticsModule } from "./modules/statistics/statistics.module";
 import { ServiceTeamModule } from "./modules/service-team/service-team.module";
 import { SystemModule } from "./modules/system/system.module";
 import { PricingModule } from "./modules/pricing/pricing.module";
-import { PermissionModule } from "./modules/permission/permission.module";
+import { RolesModule } from "./modules/roles/roles.module";
 import { UsersModule } from "./modules/users/users.module";
 import { DepartmentModule } from "./modules/department/department.module";
 import { LogsModule } from "./modules/logs/logs.module";
@@ -130,7 +130,7 @@ function validateAppConfig(config: Record<string, unknown>): EnvConfig {
     ServiceTeamModule,
     SystemModule,
     PricingModule,
-    PermissionModule,
+    RolesModule,
     UsersModule,
     DepartmentModule,
     LogsModule,

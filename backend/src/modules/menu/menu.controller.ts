@@ -16,7 +16,11 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { MenuService } from "./menu.service";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { UserInfo } from "../auth/interfaces/auth.interface";
-import { MenuGroupDto, InitializeResultResponse } from "./dto/menu.dto";
+import {
+  MenuGroupDto,
+  InitializeResultResponse,
+  MenuItemDto,
+} from "./dto/menu.dto";
 
 @ApiTags("menus")
 @Controller("menus")
@@ -52,5 +56,20 @@ export class MenuController {
   })
   initializeMenus(): Promise<{ created: number; skipped: number }> {
     return this.menuService.initializeMenus();
+  }
+
+  @Get("all")
+  @ApiOperation({
+    summary: "获取所有菜单（树形结构）",
+    description:
+      "返回所有启用的菜单和按钮，用于角色权限配置。返回树形结构，包含父子关系。",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "操作成功",
+    type: [MenuItemDto],
+  })
+  getAllMenus(): Promise<any[]> {
+    return this.menuService.getAllMenusTree();
   }
 }

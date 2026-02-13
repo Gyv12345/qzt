@@ -5,7 +5,11 @@
  * 企智通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
-import type { InitializeResultResponse, MenuGroupDto } from "../../models";
+import type {
+  InitializeResultResponse,
+  MenuGroupDto,
+  MenuItemDto,
+} from "../../models";
 
 import { customInstance } from "../api-client";
 
@@ -30,7 +34,18 @@ export const getMenus = () => {
       method: "POST",
     });
   };
-  return { menuControllerGetUserMenus, menuControllerInitializeMenus };
+  /**
+   * 返回所有启用的菜单和按钮，用于角色权限配置。返回树形结构，包含父子关系。
+   * @summary 获取所有菜单（树形结构）
+   */
+  const menuControllerGetAllMenus = () => {
+    return customInstance<MenuItemDto[]>({ url: `/menus/all`, method: "GET" });
+  };
+  return {
+    menuControllerGetUserMenus,
+    menuControllerInitializeMenus,
+    menuControllerGetAllMenus,
+  };
 };
 export type MenuControllerGetUserMenusResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerGetUserMenus"]>>
@@ -39,4 +54,7 @@ export type MenuControllerInitializeMenusResult = NonNullable<
   Awaited<
     ReturnType<ReturnType<typeof getMenus>["menuControllerInitializeMenus"]>
   >
+>;
+export type MenuControllerGetAllMenusResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerGetAllMenus"]>>
 >;

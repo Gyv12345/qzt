@@ -5,10 +5,10 @@ import {
   PublicContactController,
 } from "./contact.controller";
 import { PrismaModule } from "../../common/prisma/prisma.module";
-import { PermissionModule } from "../permission/permission.module";
+import { RolesModule } from "../roles/roles.module";
 
 @Module({
-  imports: [PrismaModule, PermissionModule],
+  imports: [PrismaModule, RolesModule],
   controllers: [ContactController, PublicContactController],
   providers: [ContactService],
   exports: [ContactService],

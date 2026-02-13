@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
-import { DataScopeService } from "../permission/services/data-scope.service";
+import { DataScopeService } from "../roles/services/data-scope.service";
 import { CreateContactDto } from "./dto/create-contact.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { QueryContactDto } from "./dto/query-contact.dto";

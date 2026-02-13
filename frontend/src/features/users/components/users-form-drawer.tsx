@@ -29,10 +29,10 @@ import { SelectDropdown } from "@/components/select-dropdown";
 import { DepartmentTreeSelect } from "@/components/ui/department-tree-select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
-import { roles } from "../data/data";
 import type { UserEntity } from "@/models";
 import { useCreateUser, useUpdateUser } from "../hooks/use-users";
 import { useDepartments } from "@/features/departments/hooks/use-departments";
+import { useRolesList } from "@/features/roles/hooks/use-roles";
 
 type UserFormDrawerProps = {
   currentRow?: UserEntity;
@@ -54,9 +54,12 @@ export function UsersFormDrawer({
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const { data: departmentsData } = useDepartments();
+  const { data: rolesData, isLoading: rolesLoading } = useRolesList();
 
   // 部门数据处理
   const departments = departmentsData || [];
+  // 角色数据处理
+  const roles = rolesData || [];
 
   // 动态生成验证 schema 以使用 i18n
   const formSchema = z
@@ -328,7 +331,7 @@ export function UsersFormDrawer({
                     defaultValue={field.value}
                     onValueChange={field.onChange}
                     placeholder={t("user.selectRole")}
-                    disabled={isEdit && currentRow?.isSystem}
+                    disabled={(isEdit && currentRow?.isSystem) || rolesLoading}
                     items={roles.map(({ label, value }) => ({
                       label,
                       value,

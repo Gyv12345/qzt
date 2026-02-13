@@ -18,6 +18,7 @@ import { getInvoices } from "./invoices";
 import { getFollowRecords } from "./follow-records";
 import { getDepartments } from "./departments";
 import { getPermissions } from "./permissions";
+import { getRoles } from "./roles";
 import { getServiceTeams } from "./service-teams";
 import { getStatistics } from "./statistics";
 import { getSystem } from "./system";
@@ -51,6 +52,7 @@ export { getInvoices };
 export { getFollowRecords };
 export { getDepartments };
 export { getPermissions };
+export { getRoles };
 export { getServiceTeams };
 export { getStatistics };
 export { getSystem };
@@ -85,6 +87,7 @@ export const getScrmApi = () => ({
   ...getFollowRecords(),
   ...getDepartments(),
   ...getPermissions(),
+  ...getRoles(),
   ...getServiceTeams(),
   ...getStatistics(),
   ...getSystem(),

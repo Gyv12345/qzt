@@ -10,8 +10,7 @@ export function useRoles() {
   return useQuery<Role[]>({
     queryKey: ["roles"],
     queryFn: async () => {
-      const result =
-        (await getScrmApi().permissionControllerFindAllRoles()) as any;
+      const result = (await getScrmApi().rolesControllerFindAllRoles()) as any;
       return result as Role[];
     },
   });
@@ -23,7 +22,7 @@ export function useCreateRole() {
 
   return useMutation({
     mutationFn: async (data: CreateRoleDto) => {
-      return await getScrmApi().permissionControllerCreateRole(data);
+      return await getScrmApi().rolesControllerCreateRole(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
@@ -41,7 +40,7 @@ export function useUpdateRole() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateRoleDto }) => {
-      return await getScrmApi().permissionControllerUpdateRole(id, data);
+      return await getScrmApi().rolesControllerUpdateRole(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
@@ -59,7 +58,7 @@ export function useDeleteRole() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await getScrmApi().permissionControllerRemoveRole(id);
+      return await getScrmApi().rolesControllerRemoveRole(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
@@ -67,6 +66,75 @@ export function useDeleteRole() {
     },
     onError: (error: any) => {
       toast.error(error.message || "删除失败");
+    },
+  });
+}
+
+// 获取角色详情
+export function useRole(id: string) {
+  return useQuery<Role>({
+    queryKey: ["roles", id],
+    queryFn: async () => {
+      const result = (await getScrmApi().rolesControllerFindOneRole({
+        id,
+      })) as any;
+      return result as Role;
+    },
+    enabled: !!id,
+  });
+}
+
+// 获取角色的菜单列表
+export function useRoleMenus(roleId: string) {
+  return useQuery<string[]>({
+    queryKey: ["roles", roleId, "menus"],
+    queryFn: async () => {
+      const result = (await getScrmApi().rolesControllerGetRoleMenus({
+        id: roleId,
+      })) as any;
+      return (result || []).map((m: any) => m.id);
+    },
+    enabled: !!roleId,
+  });
+}
+
+// 分配菜单给角色
+export function useAssignMenusToRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      roleId,
+      menuIds,
+    }: {
+      roleId: string;
+      menuIds: string[];
+    }) => {
+      return await getScrmApi().rolesControllerAssignMenusToRole(roleId, {
+        menuIds,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      queryClient.invalidateQueries({ queryKey: ["roles", variables.roleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["roles", variables.roleId, "menus"],
+      });
+      toast.success("菜单分配成功");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "分配失败");
+    },
+  });
+}
+
+// 角色列表选择器 Hook（用于用户表单等场景）
+export function useRolesList() {
+  return useQuery<Array<{ label: string; value: string }>>({
+    queryKey: ["roles-list"],
+    queryFn: async () => {
+      const result = (await getScrmApi().rolesControllerFindAllRoles()) as any;
+      return (result || []).map((r: any) => ({ label: r.name, value: r.id }));
     },
   });
 }
