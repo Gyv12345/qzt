@@ -1,8 +1,7 @@
 import { Module, Scope } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bullmq";
-import * as Joi from "joi";
 import { HealthModule } from "./health/health.module";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -38,93 +37,65 @@ import { MenuModule } from "./modules/menu/menu.module";
 import { I18nModule, AcceptLanguageResolver } from "nestjs-i18n";
 import * as path from "path";
 import { Reflector } from "@nestjs/core";
+import { validateEnv, type EnvConfig } from "./config";
 
-// 环境变量验证Schema
-const envSchema = Joi.object({
-  NODE_ENV: Joi.string()
-    .valid("development", "production")
-    .default("development"),
-
-  // 数据库配置
-  DATABASE_PROVIDER: Joi.string().valid("sqlite", "mysql").default("sqlite"),
-  DATABASE_URL: Joi.string().when("DATABASE_PROVIDER", {
-    is: "sqlite",
-    then: Joi.required(),
-  }),
-  DB_HOST: Joi.string().when("DATABASE_PROVIDER", {
-    is: "mysql",
-    then: Joi.required(),
-  }),
-  DB_PORT: Joi.number().default(3306).when("DATABASE_PROVIDER", {
-    is: "mysql",
-    then: Joi.required(),
-  }),
-  DB_USERNAME: Joi.string().when("DATABASE_PROVIDER", {
-    is: "mysql",
-    then: Joi.required(),
-  }),
-  DB_PASSWORD: Joi.string().when("DATABASE_PROVIDER", {
-    is: "mysql",
-    then: Joi.required(),
-  }),
-  DB_DATABASE: Joi.string().when("DATABASE_PROVIDER", {
-    is: "mysql",
-    then: Joi.required(),
-  }),
-
-  // Redis配置
-  REDIS_ENABLED: Joi.boolean().default(false),
-  REDIS_HOST: Joi.string().when("REDIS_ENABLED", {
-    is: true,
-    then: Joi.required(),
-  }),
-  REDIS_PORT: Joi.number().default(6379),
-  REDIS_PASSWORD: Joi.string().allow(""),
-  REDIS_DB: Joi.number().default(0),
-
-  // JWT配置
-  JWT_SECRET: Joi.string().required(),
-  JWT_EXPIRES_IN: Joi.string().default("7d"),
-
-  // 服务端口
-  BACKEND_PORT: Joi.number().default(3456),
-
-  // 应用配置
-  APP_NAME: Joi.string().default("企智通"),
-  APP_URL: Joi.string().default("http://localhost:7890"),
-  API_URL: Joi.string().default("http://localhost:3456"),
-
-  // 前端URL (用于CORS)
-  FRONTEND_URL: Joi.string().default("http://localhost:7890"),
-
-  // TOTP 2FA 配置
-  TOTP_APP_NAME: Joi.string().default("企智通"),
-  TOTP_ENCRYPTION_KEY: Joi.string().optional(),
-
-  // 并发优化配置
-  PM2_CLUSTER_ENABLED: Joi.boolean().default(false),
-  THROTTLE_TTL: Joi.number().default(60000),
-  THROTTLE_LIMIT: Joi.number().default(100),
-}).unknown(true);
+/**
+ * 环境变量验证函数
+ *
+ * 使用 Zod 验证环境变量，确保配置正确
+ * 如果验证失败会抛出详细的错误信息
+ */
+function validateAppConfig(config: Record<string, unknown>): EnvConfig {
+  try {
+    return validateEnv(config);
+  } catch (error: any) {
+    console.error("❌ 环境变量验证失败:");
+    console.error(error.message);
+    console.error("\n💡 提示: 请检查 .env.local 文件配置");
+    console.error("   运行 'pnpm tsx scripts/check-env.ts' 查看详细错误");
+    throw error;
+  }
+}
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV || "development"}`,
-      validationSchema: envSchema,
+      // 环境文件加载优先级: 后面的文件会覆盖前面的
+      // .env.local 优先于 .env (用于本地开发覆盖)
+      envFilePath: [".env", ".env.local"],
+      validate: validateAppConfig,
       validationOptions: {
         allowUnknown: true,
         abortEarly: false,
       },
     }),
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || "127.0.0.1",
-        port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : 6379,
-        password: process.env.REDIS_PASSWORD || undefined,
-        db: process.env.REDIS_DB ? Number(process.env.REDIS_DB) : 0,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const enabled = configService.get<boolean>("REDIS_ENABLED", false);
+        const host = configService.get<string>("REDIS_HOST");
+
+        if (!enabled || !host) {
+          // Redis 未启用时，使用内存模式（开发环境）
+          return {
+            connection: {
+              host: "localhost",
+              port: 6379,
+            },
+          };
+        }
+
+        return {
+          connection: {
+            host,
+            port: configService.get<number>("REDIS_PORT", 6379),
+            password: configService.get<string>("REDIS_PASSWORD") || undefined,
+            db: configService.get<number>("REDIS_DB", 0),
+          },
+        };
       },
+      inject: [ConfigService],
     }),
     I18nModule.forRoot({
       fallbackLanguage: "zh",
@@ -134,12 +105,16 @@ const envSchema = Joi.object({
       },
       resolvers: [AcceptLanguageResolver],
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: Number(process.env.THROTTLE_TTL) || 60000,
-        limit: Number(process.env.THROTTLE_LIMIT) || 100,
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => [
+        {
+          ttl: configService.get<number>("THROTTLE_TTL", 60000),
+          limit: configService.get<number>("THROTTLE_LIMIT", 100),
+        },
+      ],
+      inject: [ConfigService],
+    }),
     // ScheduleModule.forRoot(), // 暂时禁用：Reflector 依赖问题
     PrismaModule,
     AuthModule,

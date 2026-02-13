@@ -8,32 +8,55 @@ import { ConfigService } from "@nestjs/config";
 import * as OSS from "ali-oss";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { UploadFileDto } from "./dto/upload-file.dto";
+import { ossConfig, validateOSSConfig } from "../../config/modules/oss.config";
 
 @Injectable()
 export class OssService {
   private readonly logger = new Logger(OssService.name);
-  private ossClient: OSS;
+  private readonly config: ReturnType<typeof ossConfig>;
+  private ossClient?: OSS;
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    // 初始化 OSS 客户端（如果配置了）
-    const region = this.configService.get("OSS_REGION");
-    const accessKeyId = this.configService.get("OSS_ACCESS_KEY_ID");
-    const accessKeySecret = this.configService.get("OSS_ACCESS_KEY_SECRET");
-    const bucket = this.configService.get("OSS_BUCKET");
+    // 使用统一的配置工厂获取 OSS 配置
+    this.config = ossConfig(configService);
 
-    if (region && accessKeyId && accessKeySecret && bucket) {
+    // 验证配置
+    const validation = validateOSSConfig(this.config);
+    if (!validation.valid) {
+      this.logger.warn(`OSS 配置不完整: ${validation.error}`);
+      return;
+    }
+
+    if (!this.config.enabled) {
+      this.logger.warn("OSS 未启用，文件上传功能将不可用");
+      return;
+    }
+
+    // 初始化 OSS 客户端
+    try {
       this.ossClient = new OSS({
-        region,
-        accessKeyId,
-        accessKeySecret,
-        bucket,
+        region: this.config.region,
+        accessKeyId: this.config.accessKeyId,
+        accessKeySecret: this.config.accessKeySecret,
+        bucket: this.config.bucket,
       });
-      this.logger.log("OSS 客户端初始化成功");
-    } else {
-      this.logger.warn("OSS 配置不完整，OSS 功能将不可用");
+      this.logger.log(
+        `OSS 客户端初始化成功 (region: ${this.config.region}, bucket: ${this.config.bucket})`,
+      );
+    } catch (error: any) {
+      this.logger.error(`OSS 客户端初始化失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 检查 OSS 是否可用
+   */
+  private ensureOssAvailable() {
+    if (!this.ossClient) {
+      throw new BadRequestException("OSS 服务未配置或未启用，无法上传文件");
     }
   }
 
@@ -41,6 +64,7 @@ export class OssService {
    * 上传文件
    */
   async uploadFile(uploadFileDto: UploadFileDto, uploaderId?: string) {
+    this.ensureOssAvailable();
     const {
       fileName,
       fileContent,
@@ -56,7 +80,7 @@ export class OssService {
       // 将 Base64 转换为 Buffer
       const buffer = Buffer.from(fileContent, "base64");
 
-      // 生成唯一文件名
+      // 生成唯一文件名（带前缀）
       const uniqueFileName = this.generateUniqueFileName(fileName);
 
       // 上传到 OSS
@@ -282,7 +306,9 @@ export class OssService {
     const baseName = originalName.replace(ext, "");
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
-    return `${baseName}_${timestamp}_${random}${ext}`;
+    // 添加配置的文件前缀
+    const prefix = this.config.prefix || "";
+    return `${prefix}${baseName}_${timestamp}_${random}${ext}`;
   }
 
   /**

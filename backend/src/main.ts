@@ -1,8 +1,13 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe, Module } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
 import { AppModule } from "./app.module";
-import { getDatabaseUrl } from "./config/database.config";
+import {
+  getDatabaseUrl,
+  databaseConfig,
+} from "./config/modules/database.config";
+import { appConfig } from "./config/modules/app.config";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import {
   LoggingInterceptor,
@@ -16,12 +21,17 @@ import {
 } from "./common/middleware";
 
 async function bootstrap() {
-  // 设置DATABASE_URL for Prisma
-  process.env.DATABASE_URL = getDatabaseUrl();
-
   const app = await NestFactory.create(AppModule, {
     logger: ["log", "error", "warn", "debug", "verbose"],
   });
+
+  // 获取 ConfigService 实例
+  const configService = app.get(ConfigService);
+
+  // 设置 DATABASE_URL for Prisma（使用新配置系统）
+  process.env.DATABASE_URL = getDatabaseUrl(configService);
+  const dbConfig = databaseConfig(configService);
+  const appCfg = appConfig(configService);
 
   // ========== 中间件配置 ==========
   // 请求ID中间件（必须第一个）
@@ -62,15 +72,14 @@ async function bootstrap() {
   );
 
   // 启用CORS - 安全配置
-  const allowedOrigins = [
-    process.env.FRONTEND_URL || "http://localhost:3456",
-    process.env.WEBSITE_URL || "http://localhost:5180",
+  const allowedOrigins = appCfg.corsOrigins || [
+    appCfg.frontendUrl,
     "http://localhost:5180", // 开发环境 Next.js website 端口
     "http://localhost:3456", // 开发环境前端端口 (frontend)
   ];
   app.enableCors({
     origin: allowedOrigins,
-    credentials: true,
+    credentials: appCfg.corsCredentials,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   });
@@ -86,12 +95,19 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api-docs", app, document);
 
-  const port = process.env.BACKEND_PORT || 7890;
+  const port = appCfg.port;
   await app.listen(port);
 
+  // 输出配置信息
   console.log(`
-🚀 Application is running on: http://localhost:${port}
-📚 API Documentation: http://localhost:${port}/api-docs
+╔════════════════════════════════════════════════════════════╗
+║  企智通 SCRM Backend                                      ║
+╠════════════════════════════════════════════════════════════╣
+║  🚀 Server: http://localhost:${port}                          ║
+║  📚 API Docs: http://localhost:${port}/api-docs               ║
+║  🔧 Environment: ${appCfg.env}                                   ║
+║  💾 Database: ${dbConfig.provider}                              ║
+╚════════════════════════════════════════════════════════════╝
   `);
 }
 
