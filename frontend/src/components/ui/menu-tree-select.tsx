@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight, Minus, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Minus, Check, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -69,7 +69,8 @@ function MenuTreeNodeItem({
   onToggleMenu: (nodeId: string, checked: boolean, childIds: string[]) => void;
   level: number;
 }) {
-  const [isOpen, setIsOpen] = useState(level < 2);
+  // 默认展开所有节点（包括按钮权限）
+  const [isOpen, setIsOpen] = useState(true);
 
   const childNodeIds = useMemo(() => collectNodeMenuIds(node), [node]);
 
@@ -140,7 +141,8 @@ function MenuTreeNodeItem({
         </span>
 
         {node.permissionCode && (
-          <span className="text-xs text-muted-foreground font-mono px-2 py-0.5 bg-muted rounded">
+          <span className="text-xs text-muted-foreground font-mono px-2 py-0.5 bg-muted rounded flex items-center gap-1">
+            <Shield className="h-3 w-3" />
             {node.permissionCode}
           </span>
         )}

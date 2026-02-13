@@ -47,15 +47,26 @@ export class MenuController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "初始化菜单数据",
-    description: "创建默认菜单结构，仅在首次运行时调用。已存在的菜单将被跳过。",
+    description: "创建默认菜单结构和按钮权限，使用 upsert 模式可重复调用。",
   })
   @ApiResponse({
     status: 200,
     description: "操作成功",
     type: InitializeResultResponse,
   })
-  initializeMenus(): Promise<{ created: number; skipped: number }> {
-    return this.menuService.initializeMenus();
+  async initializeMenus(): Promise<{
+    menusCreated: number;
+    menusSkipped: number;
+    permissionsCreated: number;
+    permissionsSkipped: number;
+  }> {
+    const result = await this.menuService.initializeMenus();
+    return {
+      menusCreated: result.menus.created,
+      menusSkipped: result.menus.skipped,
+      permissionsCreated: result.permissions.created,
+      permissionsSkipped: result.permissions.skipped,
+    };
   }
 
   @Get("all")

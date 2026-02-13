@@ -124,11 +124,17 @@ export class InitializeMenuDto {
  * 初始化菜单响应 DTO
  */
 export class InitializeResultResponse {
-  @ApiProperty({ description: "创建数量" })
-  created: number;
+  @ApiProperty({ description: "菜单创建数量" })
+  menusCreated: number;
 
-  @ApiProperty({ description: "跳过数量" })
-  skipped: number;
+  @ApiProperty({ description: "菜单跳过数量" })
+  menusSkipped: number;
+
+  @ApiProperty({ description: "权限创建数量" })
+  permissionsCreated: number;
+
+  @ApiProperty({ description: "权限跳过数量" })
+  permissionsSkipped: number;
 }
 
 /**

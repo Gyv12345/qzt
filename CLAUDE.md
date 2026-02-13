@@ -320,3 +320,99 @@ cd website && pnpm dev/build
 | useDebounce 防抖 | 分页限制 |
 | React.lazy() 懒加载 | Redis 缓存 |
 | React Query 缓存 | 连接池优化 |
+
+---
+
+## RBAC 权限系统
+
+### 权限代码命名规范
+
+格式：`资源:操作`（如 `contacts:view`）
+
+### 权限清单（按实际页面功能）
+
+> ⚠️ **重要**：添加新菜单或按钮时，必须同步更新此清单！
+
+| 页面 | 权限代码 | 说明 |
+|------|---------|------|
+| **联系人** | `contacts:view` | 查看列表 |
+| | `contacts:create` | 新建联系人 |
+| | `contacts:edit` | 编辑 |
+| | `contacts:delete` | 删除 |
+| | `contacts:export` | 导出 |
+| | `contacts:import` | 导入 |
+| | `contacts:history` | 历史记录 |
+| | `contacts:linkCustomer` | 关联客户 |
+| **客户** | `customers:view` | 查看列表 |
+| | `customers:create` | 新建客户 |
+| | `customers:edit` | 编辑 |
+| | `customers:delete` | 删除 |
+| | `customers:export` | 导出 |
+| | `customers:import` | 导入 |
+| | `customers:batchUpdate` | 批量更新 |
+| | `customers:batchAssign` | 批量分配 |
+| **合同** | `contracts:view` | 查看列表 |
+| | `contracts:create` | 新建合同 |
+| | `contracts:edit` | 编辑 |
+| | `contracts:delete` | 删除 |
+| | `contracts:updatePayment` | 更新收款状态 |
+| | `contracts:detail` | 查看详情 |
+| **服务团队** | `service-teams:view` | 查看列表 |
+| | `service-teams:create` | 添加成员 |
+| | `service-teams:edit` | 编辑 |
+| | `service-teams:delete` | 删除 |
+| **发票** | `invoices:view` | 查看列表 |
+| | `invoices:create` | 新建开票 |
+| | `invoices:edit` | 编辑 |
+| | `invoices:delete` | 删除 |
+| | `invoices:detail` | 查看详情 |
+| **收款** | `payments:view` | 查看列表 |
+| | `payments:create` | 新建收款 |
+| | `payments:edit` | 编辑 |
+| | `payments:delete` | 删除 |
+| | `payments:confirm` | 确认收款 |
+| | `payments:detail` | 查看详情 |
+| **内容管理** | `cms:view` | 查看列表 |
+| | `cms:create` | 新建内容 |
+| | `cms:edit` | 编辑 |
+| **产品** | `products:view` | 查看列表 |
+| | `products:create` | 新建产品 |
+| | `products:edit` | 编辑 |
+| | `products:delete` | 删除 |
+| | `products:detail` | 查看详情 |
+| **合同模板** | `contract-templates:view` | 查看列表 |
+| | `contract-templates:create` | 新建合同模板 |
+| | `contract-templates:edit` | 编辑 |
+| | `contract-templates:preview` | 预览 |
+| **Webhook** | `webhooks:view` | 查看列表 |
+| | `webhooks:create` | 添加配置 |
+| **用户** | `users:view` | 查看列表 |
+| | `users:create` | 新建用户 |
+| | `users:createBatch` | 批量添加 |
+| | `users:edit` | 编辑 |
+| | `users:delete` | 删除 |
+| **角色** | `roles:view` | 查看列表 |
+| | `roles:create` | 新建角色 |
+| | `roles:edit` | 编辑 |
+| | `roles:delete` | 删除 |
+| **日志类** | `login-logs:view` | 查看登录日志 |
+| | `operation-logs:view` | 查看操作日志 |
+| | `system-logs:view` | 查看系统日志 |
+
+### 无操作按钮的页面
+
+以下页面仅有 `:view` 权限：
+- 客户规则 (`customer-rules:view`)
+- 部门管理 (`departments:view`)
+- 登录日志、操作日志、系统日志
+
+### 权限初始化
+
+权限数据在应用启动时通过 `MenuService.initializeMenus()` 自动初始化，使用 `upsert` 模式避免重复创建。
+
+### 添加新权限的流程
+
+1. 前端添加新按钮/功能
+2. 在上方清单中添加对应的权限代码
+3. 后端 `MenuService.initializeMenus()` 中添加权限定义
+4. 重新启动后端服务，权限自动同步到数据库

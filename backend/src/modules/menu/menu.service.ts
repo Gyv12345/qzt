@@ -3,6 +3,49 @@ import { PrismaService } from "../../common/prisma/prisma.service";
 import { DefaultMenuConfig, MenuItemDto, MenuGroupDto } from "./dto/menu.dto";
 
 /**
+ * 按钮权限配置
+ * 格式：`资源:操作`（如 contacts:view）
+ *
+ * ⚠️ 添加新菜单或按钮时，请同步更新 CLAUDE.md 中的权限清单
+ */
+const PERMISSION_CONFIG: Record<string, string[]> = {
+  contacts: [
+    "view",
+    "create",
+    "edit",
+    "delete",
+    "export",
+    "import",
+    "history",
+    "linkCustomer",
+  ],
+  customers: [
+    "view",
+    "create",
+    "edit",
+    "delete",
+    "export",
+    "import",
+    "batchUpdate",
+    "batchAssign",
+  ],
+  contracts: ["view", "create", "edit", "delete", "updatePayment", "detail"],
+  "service-teams": ["view", "create", "edit", "delete"],
+  invoices: ["view", "create", "edit", "delete", "detail"],
+  payments: ["view", "create", "edit", "delete", "confirm", "detail"],
+  cms: ["view", "create", "edit"],
+  products: ["view", "create", "edit", "delete", "detail"],
+  "contract-templates": ["view", "create", "edit", "preview"],
+  webhooks: ["view", "create"],
+  users: ["view", "create", "createBatch", "edit", "delete"],
+  roles: ["view", "create", "edit", "delete"],
+  // 日志类只有 view
+  "login-logs": ["view"],
+  "operation-logs": ["view"],
+  "system-logs": ["view"],
+};
+
+/**
  * 默认菜单配置
  * 包含系统所有菜单项的结构定义
  *
@@ -272,40 +315,129 @@ export class MenuService {
 
   /**
    * 初始化默认菜单数据
-   * 仅在首次运行时调用
+   * 创建菜单及其按钮权限子节点
+   *
+   * 使用 upsert 模式，可安全重复调用
    */
-  async initializeMenus(): Promise<{ created: number; skipped: number }> {
-    let created = 0;
-    let skipped = 0;
+  async initializeMenus(): Promise<{
+    menus: { created: number; skipped: number };
+    permissions: { created: number; skipped: number };
+  }> {
+    let menuCreated = 0;
+    let menuSkipped = 0;
+    let permissionCreated = 0;
+    let permissionSkipped = 0;
 
+    // 1. 创建/更新菜单
     for (const menuData of DEFAULT_MENUS) {
       const existing = await this.prisma.menu.findUnique({
         where: { path: menuData.path },
       });
 
       if (existing) {
-        skipped++;
+        menuSkipped++;
         this.logger.debug(`菜单已存在: ${menuData.name} (${menuData.path})`);
-        continue;
+      } else {
+        await this.prisma.menu.create({
+          data: {
+            path: menuData.path,
+            name: menuData.name,
+            icon: menuData.icon,
+            sort: menuData.sort || 0,
+            enabled: menuData.enabled !== undefined ? menuData.enabled : true,
+            type: "menu",
+          },
+        });
+        menuCreated++;
+        this.logger.debug(`创建菜单: ${menuData.name} (${menuData.path})`);
       }
+    }
 
-      await this.prisma.menu.create({
-        data: {
-          path: menuData.path,
-          name: menuData.name,
-          icon: menuData.icon,
-          sort: menuData.sort || 0,
-          enabled: menuData.enabled !== undefined ? menuData.enabled : true,
+    // 2. 为每个菜单创建按钮权限子节点
+    for (const [resourceKey, actions] of Object.entries(PERMISSION_CONFIG)) {
+      // 查找父菜单
+      const parentMenu = await this.prisma.menu.findFirst({
+        where: {
+          path: {
+            contains: resourceKey,
+          },
+          type: "menu",
         },
       });
 
-      created++;
-      this.logger.debug(`创建菜单: ${menuData.name} (${menuData.path})`);
+      if (!parentMenu) {
+        this.logger.warn(`未找到菜单: ${resourceKey}`);
+        continue;
+      }
+
+      for (const action of actions) {
+        const permissionCode = `${resourceKey}:${action}`;
+        const permissionName = this.formatPermissionName(action);
+
+        // 检查权限是否已存在
+        const existing = await this.prisma.menu.findFirst({
+          where: {
+            parentId: parentMenu.id,
+            permissionCode: permissionCode,
+          },
+        });
+
+        if (existing) {
+          permissionSkipped++;
+          this.logger.debug(`权限已存在: ${permissionCode}`);
+          continue;
+        }
+
+        await this.prisma.menu.create({
+          data: {
+            path: `${parentMenu.path}/${action}`,
+            name: permissionName,
+            type: "button",
+            permissionCode: permissionCode,
+            parentId: parentMenu.id,
+            sort: action === "view" ? 0 : 1, // view 权限排在最前
+            enabled: true,
+          },
+        });
+
+        permissionCreated++;
+        this.logger.debug(`创建权限: ${permissionCode}`);
+      }
     }
 
-    this.logger.log(`菜单初始化完成: 创建 ${created} 个，跳过 ${skipped} 个`);
+    this.logger.log(
+      `菜单初始化完成: 菜单[创建 ${menuCreated}, 跳过 ${menuSkipped}], 权限[创建 ${permissionCreated}, 跳过 ${permissionSkipped}]`,
+    );
 
-    return { created, skipped };
+    return {
+      menus: { created: menuCreated, skipped: menuSkipped },
+      permissions: { created: permissionCreated, skipped: permissionSkipped },
+    };
+  }
+
+  /**
+   * 格式化权限名称
+   * 将操作码转换为可读名称
+   */
+  private formatPermissionName(action: string): string {
+    const actionNames: Record<string, string> = {
+      view: "查看",
+      create: "新建",
+      edit: "编辑",
+      delete: "删除",
+      export: "导出",
+      import: "导入",
+      history: "历史记录",
+      linkCustomer: "关联客户",
+      batchUpdate: "批量更新",
+      batchAssign: "批量分配",
+      updatePayment: "更新收款",
+      detail: "查看详情",
+      createBatch: "批量添加",
+      confirm: "确认收款",
+      preview: "预览",
+    };
+    return actionNames[action] || action;
   }
 
   /**
