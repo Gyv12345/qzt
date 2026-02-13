@@ -14,7 +14,6 @@ export enum DataScope {
   ALL = "all", // 查看全部数据
   DEPARTMENT = "department", // 仅查看本部门数据
   DEPARTMENT_AND_SUB = "department_and_sub", // 查看本部门及下级部门数据
-  CUSTOM = "custom", // 自定义部门
   SELF = "self", // 仅查看本人数据
 }
 
@@ -88,7 +87,6 @@ export class DataScopeGuard implements CanActivate {
       DataScope.ALL,
       DataScope.DEPARTMENT_AND_SUB,
       DataScope.DEPARTMENT,
-      DataScope.CUSTOM,
       DataScope.SELF,
     ];
 
@@ -132,13 +130,6 @@ export class DataScopeGuard implements CanActivate {
           departmentIds: subDeptIds,
         };
 
-      case DataScope.CUSTOM:
-        // 从角色中获取自定义部门ID列表
-        const customDeptIds = this.getCustomDepartmentIds(user.roles || []);
-        return {
-          type: DataScope.CUSTOM,
-          departmentIds: customDeptIds,
-        };
 
       case DataScope.SELF:
       default:
@@ -177,25 +168,5 @@ export class DataScopeGuard implements CanActivate {
     return ids;
   }
 
-  /**
-   * 从角色中获取自定义部门ID列表
-   */
-  private getCustomDepartmentIds(roles: any[]): string[] {
-    const deptIds = new Set<string>();
 
-    for (const role of roles) {
-      if (role.dataScope === DataScope.CUSTOM && role.dataScopeDeptIds) {
-        try {
-          const ids = JSON.parse(role.dataScopeDeptIds);
-          if (Array.isArray(ids)) {
-            ids.forEach((id) => deptIds.add(id));
-          }
-        } catch {
-          // 忽略解析错误
-        }
-      }
-    }
-
-    return Array.from(deptIds);
-  }
 }

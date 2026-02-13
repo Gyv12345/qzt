@@ -32,7 +32,6 @@ export class DataScopeService {
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
-      case DataScope.CUSTOM:
         // 根据部门过滤 - 通过客户的跟进人所在部门
         if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
           const userIds = await this.getUserIdsByDepartments(
@@ -69,7 +68,6 @@ export class DataScopeService {
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
-      case DataScope.CUSTOM:
         // 根据部门过滤 - 通过客户间接过滤
         if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
           const userIds = await this.getUserIdsByDepartments(
@@ -109,7 +107,6 @@ export class DataScopeService {
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
-      case DataScope.CUSTOM:
         if (dataScope.departmentIds && dataScope.departmentIds.length > 0) {
           const userIds = await this.getUserIdsByDepartments(
             dataScope.departmentIds,
@@ -200,7 +197,6 @@ export class DataScopeService {
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
-      case DataScope.CUSTOM:
         if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
           return false;
         }
@@ -241,7 +237,6 @@ export class DataScopeService {
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
-      case DataScope.CUSTOM:
         if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
           return false;
         }
@@ -280,7 +275,6 @@ export class DataScopeService {
 
       case DataScope.DEPARTMENT:
       case DataScope.DEPARTMENT_AND_SUB:
-      case DataScope.CUSTOM:
         if (!dataScope.departmentIds || dataScope.departmentIds.length === 0) {
           return false;
         }
