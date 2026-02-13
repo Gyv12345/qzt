@@ -153,18 +153,6 @@ export class UsersService {
                 name: true,
                 code: true,
                 description: true,
-                rolePermissions: {
-                  select: {
-                    permission: {
-                      select: {
-                        id: true,
-                        name: true,
-                        code: true,
-                        type: true,
-                      },
-                    },
-                  },
-                },
               },
             },
           },

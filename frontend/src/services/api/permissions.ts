@@ -5,12 +5,7 @@
  * 企智通SCRM系统API文档
  * OpenAPI spec version: 1.0
  */
-import type {
-  CreatePermissionDto,
-  CreateRoleDto,
-  PermissionControllerFindAllPermissionsParams,
-  UpdateRoleDto,
-} from "../../models";
+import type { CreateRoleDto, UpdateRoleDto } from "../../models";
 
 import { customInstance } from "../api-client";
 
@@ -58,72 +53,6 @@ export const getPermissions = () => {
   const permissionControllerRemoveMenu = (id: string) => {
     return customInstance<void>({
       url: `/permissions/menus/${id}`,
-      method: "DELETE",
-    });
-  };
-  /**
-   * @summary 创建权限
-   */
-  const permissionControllerCreatePermission = (
-    createPermissionDto: CreatePermissionDto,
-  ) => {
-    return customInstance<void>({
-      url: `/permissions/permissions`,
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      data: createPermissionDto,
-    });
-  };
-  /**
-   * @summary 查询所有权限
-   */
-  const permissionControllerFindAllPermissions = (
-    params: PermissionControllerFindAllPermissionsParams,
-  ) => {
-    return customInstance<void>({
-      url: `/permissions/permissions`,
-      method: "GET",
-      params,
-    });
-  };
-  /**
-   * @summary 获取权限树
-   */
-  const permissionControllerFindPermissionTree = () => {
-    return customInstance<void>({
-      url: `/permissions/permissions/tree`,
-      method: "GET",
-    });
-  };
-  /**
-   * @summary 获取权限详情
-   */
-  const permissionControllerFindOnePermission = (id: string) => {
-    return customInstance<void>({
-      url: `/permissions/permissions/${id}`,
-      method: "GET",
-    });
-  };
-  /**
-   * @summary 更新权限
-   */
-  const permissionControllerUpdatePermission = (
-    id: string,
-    createPermissionDto: CreatePermissionDto,
-  ) => {
-    return customInstance<void>({
-      url: `/permissions/permissions/${id}`,
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      data: createPermissionDto,
-    });
-  };
-  /**
-   * @summary 删除权限
-   */
-  const permissionControllerRemovePermission = (id: string) => {
-    return customInstance<void>({
-      url: `/permissions/permissions/${id}`,
       method: "DELETE",
     });
   };
@@ -177,12 +106,21 @@ export const getPermissions = () => {
     });
   };
   /**
-   * @summary 为角色分配权限
+   * @summary 为角色分配菜单
    */
-  const permissionControllerAssignPermissionsToRole = (id: string) => {
+  const permissionControllerAssignMenusToRole = (id: string) => {
     return customInstance<void>({
-      url: `/permissions/roles/${id}/permissions`,
+      url: `/permissions/roles/${id}/menus`,
       method: "PUT",
+    });
+  };
+  /**
+   * @summary 获取角色的菜单列表
+   */
+  const permissionControllerGetRoleMenus = (id: string) => {
+    return customInstance<void>({
+      url: `/permissions/roles/${id}/menus`,
+      method: "GET",
     });
   };
   /**
@@ -191,6 +129,15 @@ export const getPermissions = () => {
   const permissionControllerGetUserPermissions = (id: string) => {
     return customInstance<void>({
       url: `/permissions/users/${id}/permissions`,
+      method: "GET",
+    });
+  };
+  /**
+   * @summary 获取用户的菜单列表
+   */
+  const permissionControllerGetUserMenus = (id: string) => {
+    return customInstance<void>({
+      url: `/permissions/users/${id}/menus`,
       method: "GET",
     });
   };
@@ -218,19 +165,15 @@ export const getPermissions = () => {
     permissionControllerFindOneMenu,
     permissionControllerUpdateMenu,
     permissionControllerRemoveMenu,
-    permissionControllerCreatePermission,
-    permissionControllerFindAllPermissions,
-    permissionControllerFindPermissionTree,
-    permissionControllerFindOnePermission,
-    permissionControllerUpdatePermission,
-    permissionControllerRemovePermission,
     permissionControllerCreateRole,
     permissionControllerFindAllRoles,
     permissionControllerFindOneRole,
     permissionControllerUpdateRole,
     permissionControllerRemoveRole,
-    permissionControllerAssignPermissionsToRole,
+    permissionControllerAssignMenusToRole,
+    permissionControllerGetRoleMenus,
     permissionControllerGetUserPermissions,
+    permissionControllerGetUserMenus,
     permissionControllerAssignRolesToUser,
     permissionControllerInitializeSuperAdmin,
   };
@@ -270,52 +213,6 @@ export type PermissionControllerRemoveMenuResult = NonNullable<
     >
   >
 >;
-export type PermissionControllerCreatePermissionResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getPermissions>["permissionControllerCreatePermission"]
-    >
-  >
->;
-export type PermissionControllerFindAllPermissionsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<
-        typeof getPermissions
-      >["permissionControllerFindAllPermissions"]
-    >
-  >
->;
-export type PermissionControllerFindPermissionTreeResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<
-        typeof getPermissions
-      >["permissionControllerFindPermissionTree"]
-    >
-  >
->;
-export type PermissionControllerFindOnePermissionResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getPermissions>["permissionControllerFindOnePermission"]
-    >
-  >
->;
-export type PermissionControllerUpdatePermissionResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getPermissions>["permissionControllerUpdatePermission"]
-    >
-  >
->;
-export type PermissionControllerRemovePermissionResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getPermissions>["permissionControllerRemovePermission"]
-    >
-  >
->;
 export type PermissionControllerCreateRoleResult = NonNullable<
   Awaited<
     ReturnType<
@@ -351,12 +248,17 @@ export type PermissionControllerRemoveRoleResult = NonNullable<
     >
   >
 >;
-export type PermissionControllerAssignPermissionsToRoleResult = NonNullable<
+export type PermissionControllerAssignMenusToRoleResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<
-        typeof getPermissions
-      >["permissionControllerAssignPermissionsToRole"]
+      ReturnType<typeof getPermissions>["permissionControllerAssignMenusToRole"]
+    >
+  >
+>;
+export type PermissionControllerGetRoleMenusResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPermissions>["permissionControllerGetRoleMenus"]
     >
   >
 >;
@@ -366,6 +268,13 @@ export type PermissionControllerGetUserPermissionsResult = NonNullable<
       ReturnType<
         typeof getPermissions
       >["permissionControllerGetUserPermissions"]
+    >
+  >
+>;
+export type PermissionControllerGetUserMenusResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getPermissions>["permissionControllerGetUserMenus"]
     >
   >
 >;

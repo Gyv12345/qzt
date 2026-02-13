@@ -6,12 +6,16 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { REQUIRE_PERMISSIONS_KEY } from "../decorators/require-permissions.decorator";
+import { PermissionService } from "../permission.service";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private permissionService: PermissionService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     // 获取需要的权限
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
       REQUIRE_PERMISSIONS_KEY,
@@ -32,14 +36,14 @@ export class PermissionsGuard implements CanActivate {
     }
 
     // 检查是否是超级管理员
-    if (user.isAdmin) {
+    if (user.isSystem || user.isAdmin) {
       return true;
     }
 
     // 检查用户是否拥有所需权限
-    const userPermissions = user.permissions || [];
-    const hasPermission = requiredPermissions.every((permission) =>
-      userPermissions.includes(permission),
+    const hasPermission = await this.permissionService.hasPermissions(
+      user.userId || user.id,
+      requiredPermissions,
     );
 
     if (!hasPermission) {

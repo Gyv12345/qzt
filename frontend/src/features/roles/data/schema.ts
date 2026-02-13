@@ -10,7 +10,7 @@ export const roleFormSchema = z.object({
     .enum(["all", "department", "department_and_sub", "self"])
     .optional(),
   dataScopeDeptIds: z.string().optional(),
-  permissionIds: z.array(z.string()).optional(),
+  menuIds: z.array(z.string()).optional(),
 });
 
 export type RoleFormValues = z.infer<typeof roleFormSchema>;
@@ -23,7 +23,7 @@ export const roleSchema = z.object({
   description: z.string().optional(),
   type: z.string(),
   dataScope: z.string().optional(),
-  permissionIds: z.array(z.string()).optional(),
+  menuIds: z.array(z.string()).optional(),
   status: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),

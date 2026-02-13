@@ -40,9 +40,9 @@ export class PrismaService
 
     await this.product.deleteMany();
 
-    await this.rolePermission.deleteMany();
+    await this.roleMenu.deleteMany();
     await this.userRole.deleteMany();
-    await this.permission.deleteMany();
+    await this.menu.deleteMany();
     await this.role.deleteMany();
     await this.user.deleteMany();
   }

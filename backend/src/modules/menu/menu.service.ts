@@ -330,19 +330,13 @@ export class MenuService {
       return [];
     }
 
-    // 获取角色关联的菜单权限
+    // 获取角色关联的菜单
     const roleIds = userRoles.map((r) => r.id);
 
-    const menuPermissions = await this.prisma.menuPermission.findMany({
+    const roleMenus = await this.prisma.roleMenu.findMany({
       where: {
-        permission: {
-          rolePermissions: {
-            some: {
-              roleId: {
-                in: roleIds,
-              },
-            },
-          },
+        roleId: {
+          in: roleIds,
         },
       },
       include: {
@@ -351,7 +345,7 @@ export class MenuService {
     });
 
     // 提取菜单ID去重
-    const menuIds = [...new Set(menuPermissions.map((mp) => mp.menuId))];
+    const menuIds = [...new Set(roleMenus.map((rm) => rm.menuId))];
 
     if (menuIds.length === 0) {
       return [];

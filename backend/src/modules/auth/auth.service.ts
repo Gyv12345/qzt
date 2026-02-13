@@ -146,7 +146,11 @@ export class AuthService {
           include: {
             role: {
               include: {
-                permissions: true,
+                menus: {
+                  include: {
+                    menu: true,
+                  },
+                },
               },
             },
           },

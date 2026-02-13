@@ -22,96 +22,93 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getScrmApi } from "@/services/api";
-import {
-  useMenuTree,
-  type MenuNode,
-} from "@/features/menus/hooks/use-menu-tree";
 import { roleFormSchema, type RoleFormValues } from "../data/schema";
 
-interface PermissionTreeNode {
+interface MenuNode {
   id: string;
+  path: string;
   name: string;
-  type: "menu" | "permission";
-  code?: string;
-  permissionType?: string;
-  parentId?: string | null;
-  permissions?: PermissionTreeNode[];
-  children?: PermissionTreeNode[];
-  level?: number;
+  icon?: string;
+  parentId: string | null;
+  type: string; // "menu" | "button"
+  permissionCode?: string;
+  enabled: boolean;
+  sort: number;
+  children?: MenuNode[];
 }
 
-// 将菜单树转换为权限树
-function convertToPermissionTree(menus: MenuNode[]): PermissionTreeNode[] {
-  return menus.map((menu) => ({
-    id: menu.id,
-    name: menu.name,
-    type: "menu" as const,
-    permissions: menu.permissions?.map((p) => ({
-      id: p.id,
-      name: p.name,
-      code: p.code,
-      type: "permission" as const,
-      permissionType: p.type,
-      parentId: menu.id,
-    })),
-    children: menu.children ? convertToPermissionTree(menu.children) : [],
-  }));
+// 将菜单列表转换为树形结构
+function buildMenuTree(
+  menus: MenuNode[],
+  parentId: string | null = null,
+): MenuNode[] {
+  return menus
+    .filter((menu) => menu.parentId === parentId)
+    .map((menu) => ({
+      ...menu,
+      children: buildMenuTree(menus, menu.id),
+    }));
 }
 
-// 收集节点下所有权限 ID
-function collectNodePermissionIds(node: PermissionTreeNode): string[] {
+// 收集节点下所有菜单 ID（包括子菜单和按钮权限）
+function collectNodeMenuIds(node: MenuNode): string[] {
   const ids: string[] = [];
 
-  if (node.permissions) {
-    node.permissions.forEach((p) => ids.push(p.id));
-  }
+  // 添加当前节点（菜单或按钮权限）
+  ids.push(node.id);
 
-  if (node.children) {
+  // 递归收集子节点
+  if (node.children && node.children.length > 0) {
     node.children.forEach((child) => {
-      ids.push(...collectNodePermissionIds(child));
+      ids.push(...collectNodeMenuIds(child));
     });
   }
 
   return ids;
 }
 
-interface PermissionTreeNodeItemProps {
-  node: PermissionTreeNode;
+interface MenuTreeNodeItemProps {
+  node: MenuNode;
   selectedIds: Set<string>;
   onToggle: (id: string, checked: boolean) => void;
-  onToggleMenu: (menuId: string, checked: boolean, childIds: string[]) => void;
+  onToggleNode: (nodeId: string, checked: boolean, childIds: string[]) => void;
   level?: number;
 }
 
-function PermissionTreeNodeItem({
+function MenuTreeNodeItem({
   node,
   selectedIds,
   onToggle,
-  onToggleMenu,
+  onToggleNode,
   level = 0,
-}: PermissionTreeNodeItemProps) {
+}: MenuTreeNodeItemProps) {
   const [isOpen, setIsOpen] = useState(level < 2);
 
-  const childNodeIds = useMemo(() => collectNodePermissionIds(node), [node]);
+  const childNodeIds = useMemo(() => collectNodeMenuIds(node), [node]);
 
+  // 计算所有子节点是否都被选中
   const allChildrenSelected =
     childNodeIds.length > 0 && childNodeIds.every((id) => selectedIds.has(id));
   const someChildrenSelected = childNodeIds.some((id) => selectedIds.has(id));
 
   const handleToggle = (checked: boolean) => {
-    onToggleMenu(node.id, checked, childNodeIds);
+    onToggleNode(node.id, checked, childNodeIds);
   };
 
-  const hasChildren =
-    (node.children?.length || 0) > 0 || (node.permissions?.length || 0) > 0;
+  const hasChildren = node.children && node.children.length > 0;
+
+  // 按钮权限显示不同样式
+  const isButton = node.type === "button";
 
   return (
     <div className="space-y-1">
       <div
-        className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-accent/50 transition-colors"
+        className={`flex items-center gap-2 py-2 px-3 rounded-md hover:bg-accent/50 transition-colors ${
+          isButton ? "ml-6" : ""
+        }`}
         style={{ paddingLeft: `${level * 16 + 12}px` }}
       >
-        {hasChildren ? (
+        {hasChildren && !isButton ? (
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
@@ -128,8 +125,8 @@ function PermissionTreeNodeItem({
         )}
 
         <Checkbox
-          checked={allChildrenSelected}
-          onCheckedChange={handleToggle}
+          checked={selectedIds.has(node.id)}
+          onCheckedChange={(checked) => onToggle(node.id, !!checked)}
           className={
             allChildrenSelected || someChildrenSelected
               ? "data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary/50"
@@ -137,57 +134,38 @@ function PermissionTreeNodeItem({
           }
         />
 
-        <span className="flex-1 font-medium text-sm">{node.name}</span>
+        <span
+          className={`flex-1 text-sm ${isButton ? "text-muted-foreground" : "font-medium"}`}
+        >
+          {node.name}
+        </span>
 
-        {node.permissionType && (
-          <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded">
-            {node.permissionType}
+        {node.permissionCode && (
+          <span className="text-xs text-muted-foreground font-mono px-2 py-0.5 bg-muted rounded">
+            {node.permissionCode}
+          </span>
+        )}
+
+        {node.type === "button" && (
+          <span className="text-xs text-muted-foreground px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded">
+            按钮
           </span>
         )}
       </div>
 
-      {isOpen && (
-        <>
-          {/* 直接权限 */}
-          {node.permissions && node.permissions.length > 0 && (
-            <div className="space-y-0.5">
-              {node.permissions.map((permission) => (
-                <div
-                  key={permission.id}
-                  className="flex items-center gap-2 py-1.5 px-3 hover:bg-accent/30 rounded-md transition-colors"
-                  style={{ paddingLeft: `${(level + 1) * 16 + 12}px` }}
-                >
-                  <span className="w-4" />
-                  <Checkbox
-                    checked={selectedIds.has(permission.id)}
-                    onCheckedChange={(checked) =>
-                      onToggle(permission.id, !!checked)
-                    }
-                  />
-                  <span className="flex-1 text-sm">{permission.name}</span>
-                  {permission.code && (
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {permission.code}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* 子菜单 */}
-          {node.children &&
-            node.children.map((child) => (
-              <PermissionTreeNodeItem
-                key={child.id}
-                node={child}
-                selectedIds={selectedIds}
-                onToggle={onToggle}
-                onToggleMenu={onToggleMenu}
-                level={level + 1}
-              />
-            ))}
-        </>
+      {isOpen && hasChildren && (
+        <div>
+          {node.children!.map((child) => (
+            <MenuTreeNodeItem
+              key={child.id}
+              node={child}
+              selectedIds={selectedIds}
+              onToggle={onToggle}
+              onToggleNode={onToggleNode}
+              level={isButton ? level : level + 1}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -218,17 +196,34 @@ export function RolePermissionsContent({
 }: RolePermissionsContentProps) {
   const queryClient = useQueryClient();
 
-  // 获取菜单树
-  const { data: menuTree, isLoading: menuTreeLoading } = useMenuTree();
+  // 获取所有菜单
+  const { data: allMenus, isLoading: menusLoading } = useQuery({
+    queryKey: ["menus-tree"],
+    queryFn: async () => {
+      const api = getScrmApi();
+      return (await api.permissionControllerGetMenus()) as any;
+    },
+  });
 
   // 获取角色详情
   const { data: roleData, isLoading: roleLoading } = useQuery({
     queryKey: ["roles", roleId],
     queryFn: async () => {
       const api = getScrmApi();
-      // TODO: 待后端提供单个角色查询 API
       const roles = (await api.permissionControllerFindAllRoles()) as any;
       return roles?.find((r: any) => r.id === roleId);
+    },
+    enabled: !!roleId,
+  });
+
+  // 获取角色的菜单列表
+  const { data: roleMenus } = useQuery({
+    queryKey: ["roles", roleId, "menus"],
+    queryFn: async () => {
+      const api = getScrmApi();
+      return (await api.permissionControllerGetRoleMenus({
+        id: roleId,
+      })) as any;
     },
     enabled: !!roleId,
   });
@@ -242,7 +237,7 @@ export function RolePermissionsContent({
       description: "",
       dataScope: "all",
       dataScopeDeptIds: "",
-      permissionIds: [],
+      menuIds: [],
     },
   });
 
@@ -255,25 +250,29 @@ export function RolePermissionsContent({
         description: roleData.description || "",
         dataScope: roleData.dataScope || "all",
         dataScopeDeptIds: roleData.dataScopeDeptIds || "",
-        permissionIds: roleData.permissionIds || [],
+        menuIds: roleMenus?.map((m: any) => m.id) || [],
       });
     }
-  }, [roleData, form]);
+  }, [roleData, roleMenus, form]);
 
   const selectedIds = useMemo(() => {
-    const permissionIds = form.watch("permissionIds");
-    return new Set(permissionIds || []);
+    const menuIds = form.watch("menuIds");
+    return new Set(menuIds || []);
   }, [form]);
 
-  // 更新角色权限
+  // 更新角色菜单
   const updateMutation = useMutation({
     mutationFn: async (values: RoleFormValues) => {
       const api = getScrmApi();
-      return await api.permissionControllerUpdateRole(roleId, values as any);
+      return await api.permissionControllerAssignMenusToRole({
+        id: roleId,
+        body: { menuIds: values.menuIds || [] },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       queryClient.invalidateQueries({ queryKey: ["roles", roleId] });
+      queryClient.invalidateQueries({ queryKey: ["roles", roleId, "menus"] });
       toast.success("权限配置保存成功");
     },
     onError: (error: any) => {
@@ -290,30 +289,31 @@ export function RolePermissionsContent({
   };
 
   const handleToggle = (id: string, checked: boolean) => {
-    const currentIds = form.getValues("permissionIds") || [];
+    const currentIds = form.getValues("menuIds") || [];
     const newIds = checked
       ? [...currentIds, id]
       : currentIds.filter((v) => v !== id);
-    form.setValue("permissionIds", newIds);
+    form.setValue("menuIds", newIds);
   };
 
-  const handleToggleMenu = (
-    _menuId: string,
+  const handleToggleNode = (
+    _nodeId: string,
     checked: boolean,
     childIds: string[],
   ) => {
-    const currentIds = form.getValues("permissionIds") || [];
+    const currentIds = form.getValues("menuIds") || [];
     const otherIds = currentIds.filter((v) => !childIds.includes(v));
     const newIds = checked ? [...otherIds, ...childIds] : otherIds;
-    form.setValue("permissionIds", newIds);
+    form.setValue("menuIds", newIds);
   };
 
-  const permissionTree = useMemo(() => {
-    if (!menuTree) return [];
-    return convertToPermissionTree(menuTree as any);
-  }, [menuTree]);
+  // 构建菜单树
+  const menuTree = useMemo(() => {
+    if (!allMenus) return [];
+    return buildMenuTree(allMenus as MenuNode[]);
+  }, [allMenus]);
 
-  if (menuTreeLoading || roleLoading) {
+  if (menusLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -349,19 +349,19 @@ export function RolePermissionsContent({
           <CardDescription>配置角色可访问的菜单和功能权限</CardDescription>
         </CardHeader>
         <CardContent>
-          {permissionTree.length === 0 ? (
+          {menuTree.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              暂无可配置的权限
+              暂无可配置的菜单
             </div>
           ) : (
-            <div className="space-y-4">
-              {permissionTree.map((node) => (
+            <div className="space-y-2">
+              {menuTree.map((node) => (
                 <div key={node.id}>
-                  <PermissionTreeNodeItem
+                  <MenuTreeNodeItem
                     node={node}
                     selectedIds={selectedIds}
                     onToggle={handleToggle}
-                    onToggleMenu={handleToggleMenu}
+                    onToggleNode={handleToggleNode}
                     level={0}
                   />
                   <Separator className="my-2 ml-4" />

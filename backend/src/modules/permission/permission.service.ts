@@ -7,10 +7,6 @@ import {
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
-import {
-  CreatePermissionDto,
-  PermissionType,
-} from "./dto/create-permission.dto";
 
 @Injectable()
 export class PermissionService {
@@ -72,9 +68,6 @@ export class PermissionService {
       where: {
         enabled: true,
       },
-      include: {
-        permissions: true,
-      },
       orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
     });
 
@@ -84,7 +77,6 @@ export class PermissionService {
         .filter((menu) => menu.parentId === parentId)
         .map((menu) => ({
           ...menu,
-          permissions: menu.permissions,
           children: buildTree(menu.id),
         }));
     };
@@ -109,7 +101,6 @@ export class PermissionService {
     return this.prisma.menu.findUnique({
       where: { id },
       include: {
-        permissions: true,
         parent: true,
         children: true,
       },
@@ -135,136 +126,10 @@ export class PermissionService {
   }
 
   /**
-   * 创建权限
-   */
-  async createPermission(createPermissionDto: CreatePermissionDto) {
-    const { parentId, ...data } = createPermissionDto;
-
-    // 如果指定了父权限，检查父权限是否存在
-    if (parentId) {
-      const parent = await this.prisma.permission.findUnique({
-        where: { id: parentId },
-      });
-      if (!parent) {
-        throw new NotFoundException("父权限不存在");
-      }
-    }
-
-    return this.prisma.permission.create({
-      data: {
-        ...data,
-        ...(parentId && { parentId }),
-      },
-    });
-  }
-
-  /**
-   * 查询所有权限
-   */
-  async findAllPermissions(type?: PermissionType) {
-    const where = type ? { type } : {};
-
-    return this.prisma.permission.findMany({
-      where,
-      orderBy: [{ type: "asc" }, { createdAt: "desc" }],
-    });
-  }
-
-  /**
-   * 获取权限树形结构
-   */
-  async findPermissionTree() {
-    const permissions = await this.prisma.permission.findMany({
-      orderBy: [{ type: "asc" }, { createdAt: "desc" }],
-    });
-
-    const buildTree = (parentId: string | null = null) => {
-      return permissions
-        .filter((perm) => perm.parentId === parentId)
-        .map((perm) => ({
-          ...perm,
-          children: buildTree(perm.id),
-        }));
-    };
-
-    return buildTree();
-  }
-
-  /**
-   * 获取单个权限详情
-   */
-  async findOnePermission(id: string) {
-    return this.prisma.permission.findUnique({
-      where: { id },
-      include: {
-        roles: true,
-        menus: true,
-      },
-    });
-  }
-
-  /**
-   * 更新权限
-   */
-  async updatePermission(id: string, updatePermissionDto: CreatePermissionDto) {
-    const { parentId, ...data } = updatePermissionDto;
-
-    // 不能将父权限设置为自己
-    if (parentId === id) {
-      throw new ConflictException("不能将父权限设置为自己");
-    }
-
-    // 检查父权限是否存在
-    if (parentId !== undefined && parentId) {
-      const parent = await this.prisma.permission.findUnique({
-        where: { id: parentId },
-      });
-      if (!parent) {
-        throw new NotFoundException("父权限不存在");
-      }
-    }
-
-    return this.prisma.permission.update({
-      where: { id },
-      data: {
-        ...data,
-        ...(parentId !== undefined && { parentId }),
-      },
-    });
-  }
-
-  /**
-   * 删除权限
-   */
-  async removePermission(id: string) {
-    // 检查是否有子权限
-    const childrenCount = await this.prisma.permission.count({
-      where: { parentId: id },
-    });
-
-    if (childrenCount > 0) {
-      throw new Error("该权限下有子权限，无法删除");
-    }
-
-    // 检查是否有角色使用此权限
-    const roleCount = await this.prisma.rolePermission.count({
-      where: { permissionId: id },
-    });
-
-    if (roleCount > 0) {
-      throw new Error("该权限正在被角色使用，无法删除");
-    }
-
-    return this.prisma.permission.delete({
-      where: { id },
-    });
-  }
-
-  /**
    * 创建角色
    */
   async createRole(createRoleDto: CreateRoleDto) {
-    const { permissionIds, dataScopeDeptIds, ...roleData } = createRoleDto;
+    const { menuIds, dataScopeDeptIds, ...roleData } = createRoleDto;
 
     return this.prisma.role.create({
       data: {
@@ -272,14 +137,20 @@ export class PermissionService {
         type: roleData.type || "system",
         dataScope: roleData.dataScope || "all",
         dataScopeDeptIds: dataScopeDeptIds || null,
-        ...(permissionIds && {
-          permissions: {
-            connect: permissionIds.map((id) => ({ id })),
+        ...(menuIds && {
+          menus: {
+            create: menuIds.map((menuId) => ({
+              menu: { connect: { id: menuId } },
+            })),
           },
         }),
       },
       include: {
-        permissions: true,
+        menus: {
+          include: {
+            menu: true,
+          },
+        },
       },
     });
   }
@@ -290,7 +161,11 @@ export class PermissionService {
   async findAllRoles() {
     return this.prisma.role.findMany({
       include: {
-        permissions: true,
+        menus: {
+          include: {
+            menu: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -305,7 +180,11 @@ export class PermissionService {
     return this.prisma.role.findUnique({
       where: { id },
       include: {
-        permissions: true,
+        menus: {
+          include: {
+            menu: true,
+          },
+        },
       },
     });
   }
@@ -314,17 +193,12 @@ export class PermissionService {
    * 更新角色
    */
   async updateRole(id: string, updateRoleDto: UpdateRoleDto) {
-    const { permissionIds, dataScopeDeptIds, ...roleData } = updateRoleDto;
+    const { menuIds, dataScopeDeptIds, ...roleData } = updateRoleDto;
 
-    // 如果更新权限,先断开旧的权限关联
-    if (permissionIds !== undefined) {
-      await this.prisma.role.update({
-        where: { id },
-        data: {
-          permissions: {
-            set: [],
-          },
-        },
+    // 如果更新菜单,先断开旧的菜单关联
+    if (menuIds !== undefined) {
+      await this.prisma.roleMenu.deleteMany({
+        where: { roleId: id },
       });
     }
 
@@ -333,16 +207,20 @@ export class PermissionService {
       data: {
         ...roleData,
         ...(dataScopeDeptIds !== undefined && { dataScopeDeptIds }),
-        ...(permissionIds && {
-          permissions: {
-            connect: permissionIds.map((permissionId) => ({
-              id: permissionId,
+        ...(menuIds && {
+          menus: {
+            create: menuIds.map((menuId) => ({
+              menu: { connect: { id: menuId } },
             })),
           },
         }),
       },
       include: {
-        permissions: true,
+        menus: {
+          include: {
+            menu: true,
+          },
+        },
       },
     });
   }
@@ -357,7 +235,146 @@ export class PermissionService {
   }
 
   /**
-   * 获取用户的所有权限（包含角色信息）
+   * 获取用户的菜单权限（含按钮权限）
+   */
+  async getUserMenus(userId: string): Promise<any[]> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                menus: {
+                  include: {
+                    menu: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return [];
+    }
+
+    // 超级管理员返回所有启用的菜单（仅导航菜单，不含按钮）
+    if (user.isSystem) {
+      const allMenus = await this.prisma.menu.findMany({
+        where: {
+          enabled: true,
+          type: "menu", // 只返回导航菜单
+        },
+        orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
+      });
+      return allMenus;
+    }
+
+    // 收集用户的所有菜单ID（去重）
+    const menuSet = new Map<string, any>();
+
+    for (const userRole of user.roles) {
+      for (const roleMenu of userRole.role.menus) {
+        const menu = roleMenu.menu;
+        // 只包含导航菜单，不包含按钮权限
+        if (
+          menu &&
+          menu.enabled &&
+          menu.type === "menu" &&
+          !menuSet.has(menu.id)
+        ) {
+          menuSet.set(menu.id, menu);
+        }
+      }
+    }
+
+    // 构建树形结构
+    const menus = Array.from(menuSet.values());
+    const buildTree = (parentId: string | null = null) => {
+      return menus
+        .filter((menu) => menu.parentId === parentId)
+        .map((menu) => ({
+          ...menu,
+          children: buildTree(menu.id),
+        }));
+    };
+
+    return buildTree();
+  }
+
+  /**
+   * 检查用户是否有指定权限（通过 permissionCode）
+   */
+  async hasPermission(
+    userId: string,
+    permissionCode: string,
+  ): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                menus: {
+                  include: {
+                    menu: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    // 超级管理员拥有所有权限
+    if (user.isSystem) {
+      return true;
+    }
+
+    // 检查用户的角色菜单中是否有匹配的 permissionCode
+    for (const userRole of user.roles) {
+      for (const roleMenu of userRole.role.menus) {
+        if (roleMenu.menu.permissionCode === permissionCode) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * 检查用户是否有多个权限（所有权限都需要满足）
+   */
+  async hasPermissions(
+    userId: string,
+    permissionCodes: string[],
+  ): Promise<boolean> {
+    if (!permissionCodes || permissionCodes.length === 0) {
+      return true;
+    }
+
+    for (const code of permissionCodes) {
+      const has = await this.hasPermission(userId, code);
+      if (!has) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * 获取用户的所有权限代码列表
    */
   async getUserPermissions(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -367,7 +384,11 @@ export class PermissionService {
           include: {
             role: {
               include: {
-                permissions: true,
+                menus: {
+                  include: {
+                    menu: true,
+                  },
+                },
               },
             },
           },
@@ -380,7 +401,7 @@ export class PermissionService {
       return {
         permissions: [],
         roles: [],
-        departmentId: user?.departmentId || null,
+        departmentId: null,
       };
     }
 
@@ -397,8 +418,10 @@ export class PermissionService {
     }));
 
     for (const userRole of user.roles) {
-      for (const permission of userRole.role.permissions) {
-        permissions.add(permission.code);
+      for (const roleMenu of userRole.role.menus) {
+        if (roleMenu.menu.permissionCode) {
+          permissions.add(roleMenu.menu.permissionCode);
+        }
       }
     }
 
@@ -410,29 +433,39 @@ export class PermissionService {
   }
 
   /**
-   * 为角色分配权限
+   * 为角色分配菜单
    */
-  async assignPermissionsToRole(roleId: string, permissionIds: string[]) {
-    // 删除旧的权限关联
-    await this.prisma.rolePermission.deleteMany({
+  async assignMenusToRole(roleId: string, menuIds: string[]) {
+    // 删除旧的菜单关联
+    await this.prisma.roleMenu.deleteMany({
       where: { roleId },
     });
 
-    // 创建新的权限关联
-    await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        rolePermissions: {
-          create: permissionIds.map((permissionId) => ({
-            permission: {
-              connect: { id: permissionId },
-            },
-          })),
+    // 创建新的菜单关联
+    for (const menuId of menuIds) {
+      await this.prisma.roleMenu.create({
+        data: {
+          roleId,
+          menuId,
         },
+      });
+    }
+
+    return this.findOneRole(roleId);
+  }
+
+  /**
+   * 获取角色的菜单列表
+   */
+  async getRoleMenus(roleId: string): Promise<any[]> {
+    const roleMenus = await this.prisma.roleMenu.findMany({
+      where: { roleId },
+      include: {
+        menu: true,
       },
     });
 
-    return this.findOneRole(roleId);
+    return roleMenus.map((rm) => rm.menu);
   }
 
   /**
@@ -482,8 +515,8 @@ export class PermissionService {
       return existingAdmin;
     }
 
-    // 创建所有权限
-    const permissions = await this.createDefaultPermissions();
+    // 创建所有菜单
+    const menus = await this.createDefaultMenus();
 
     // 创建超级管理员角色
     const superAdminRole = await this.prisma.role.create({
@@ -492,11 +525,9 @@ export class PermissionService {
         code: "SUPER_ADMIN",
         description: "系统内置超级管理员,拥有所有权限",
         status: "ACTIVE",
-        rolePermissions: {
-          create: permissions.map((p) => ({
-            permission: {
-              connect: { id: p.id },
-            },
+        menus: {
+          create: menus.map((m) => ({
+            menu: { connect: { id: m.id } },
           })),
         },
       },
@@ -512,6 +543,7 @@ export class PermissionService {
         password: hashedPassword,
         name: "超级管理员",
         status: "ACTIVE",
+        isSystem: true,
         roles: {
           create: {
             roleId: superAdminRole.id,
@@ -525,66 +557,177 @@ export class PermissionService {
   }
 
   /**
-   * 创建默认权限
+   * 创建默认菜单和权限
    */
-  private async createDefaultPermissions() {
-    const defaultPermissions = [
-      // 客户管理
-      { name: "查看客户", code: "customer.view", type: "menu" },
-      { name: "新增客户", code: "customer.create", type: "button" },
-      { name: "编辑客户", code: "customer.update", type: "button" },
-      { name: "删除客户", code: "customer.delete", type: "button" },
-      { name: "导出客户", code: "customer.export", type: "button" },
+  private async createDefaultMenus() {
+    // 默认菜单配置
+    const defaultMenus = [
+      // 业务模块
+      {
+        path: "/customers",
+        name: "客户管理",
+        icon: "Users",
+        sort: 1,
+        type: "menu",
+      },
+      {
+        path: "/contracts",
+        name: "合同管理",
+        icon: "FileText",
+        sort: 2,
+        type: "menu",
+      },
+      {
+        path: "/products",
+        name: "产品管理",
+        icon: "Package",
+        sort: 3,
+        type: "menu",
+      },
+      {
+        path: "/invoices",
+        name: "发票管理",
+        icon: "Receipt",
+        sort: 4,
+        type: "menu",
+      },
 
-      // 合同管理
-      { name: "查看合同", code: "contract.view", type: "menu" },
-      { name: "新增合同", code: "contract.create", type: "button" },
-      { name: "编辑合同", code: "contract.update", type: "button" },
-      { name: "删除合同", code: "contract.delete", type: "button" },
-
-      // 产品管理
-      { name: "查看产品", code: "product.view", type: "menu" },
-      { name: "新增产品", code: "product.create", type: "button" },
-      { name: "编辑产品", code: "product.update", type: "button" },
-
-      // 发票管理
-      { name: "查看发票", code: "invoice.view", type: "menu" },
-      { name: "新增发票", code: "invoice.create", type: "button" },
-
-      // 定价管理
-      { name: "查看定价", code: "pricing.view", type: "menu" },
-      { name: "管理定价规则", code: "pricing.manage", type: "button" },
-
-      // 统计分析
-      { name: "查看统计", code: "statistics.view", type: "menu" },
-
-      // 系统管理
-      { name: "查看用户", code: "user.view", type: "menu" },
-      { name: "新增用户", code: "user.create", type: "button" },
-      { name: "编辑用户", code: "user.update", type: "button" },
-      { name: "删除用户", code: "user.delete", type: "button" },
-      { name: "管理角色", code: "role.manage", type: "button" },
-      { name: "管理权限", code: "permission.manage", type: "button" },
-      { name: "管理菜单", code: "menu.manage", type: "button" },
+      // 系统设置
+      {
+        path: "/system",
+        name: "系统设置",
+        icon: "Settings",
+        sort: 100,
+        type: "menu",
+      },
+      {
+        path: "/system/users",
+        name: "用户管理",
+        icon: "UserCog",
+        parentId: "/system",
+        sort: 1,
+        type: "menu",
+      },
+      {
+        path: "/system/roles",
+        name: "角色管理",
+        icon: "Shield",
+        parentId: "/system",
+        sort: 2,
+        type: "menu",
+      },
+      {
+        path: "/system/menus",
+        name: "菜单管理",
+        icon: "Menu",
+        parentId: "/system",
+        sort: 3,
+        type: "menu",
+      },
+      {
+        path: "/system/departments",
+        name: "部门管理",
+        icon: "Building",
+        parentId: "/system",
+        sort: 4,
+        type: "menu",
+      },
+      {
+        path: "/system/logs",
+        name: "日志管理",
+        icon: "FileText",
+        parentId: "/system",
+        sort: 5,
+        type: "menu",
+      },
     ];
 
-    const createdPermissions = [];
+    // 按钮权限配置
+    const defaultPermissions = [
+      // 客户管理
+      { path: "customer.create", name: "新增客户", type: "button" },
+      { path: "customer.update", name: "编辑客户", type: "button" },
+      { path: "customer.delete", name: "删除客户", type: "button" },
+      { path: "customer.export", name: "导出客户", type: "button" },
 
-    for (const perm of defaultPermissions) {
-      const existing = await this.prisma.permission.findUnique({
-        where: { code: perm.code },
+      // 合同管理
+      { path: "contract.create", name: "新增合同", type: "button" },
+      { path: "contract.update", name: "编辑合同", type: "button" },
+      { path: "contract.delete", name: "删除合同", type: "button" },
+
+      // 产品管理
+      { path: "product.create", name: "新增产品", type: "button" },
+      { path: "product.update", name: "编辑产品", type: "button" },
+      { path: "product.delete", name: "删除产品", type: "button" },
+
+      // 发票管理
+      { path: "invoice.create", name: "新增发票", type: "button" },
+      { path: "invoice.update", name: "编辑发票", type: "button" },
+
+      // 系统管理
+      { path: "user.create", name: "新增用户", type: "button" },
+      { path: "user.update", name: "编辑用户", type: "button" },
+      { path: "user.delete", name: "删除用户", type: "button" },
+      { path: "role.manage", name: "管理角色", type: "button" },
+      { path: "menu.manage", name: "管理菜单", type: "button" },
+      { path: "dept.manage", name: "管理部门", type: "button" },
+    ];
+
+    const createdMenus = [];
+
+    // 创建菜单
+    for (const menuData of defaultMenus) {
+      const existing = await this.prisma.menu.findUnique({
+        where: { path: menuData.path },
       });
 
       if (!existing) {
-        const created = await this.prisma.permission.create({
-          data: perm,
+        // 查找父菜单ID
+        let parentId = null;
+        if (menuData.parentId) {
+          const parent = await this.prisma.menu.findUnique({
+            where: { path: menuData.parentId },
+          });
+          parentId = parent?.id || null;
+        }
+
+        const created = await this.prisma.menu.create({
+          data: {
+            path: menuData.path,
+            name: menuData.name,
+            icon: menuData.icon,
+            sort: menuData.sort,
+            type: menuData.type,
+            enabled: true,
+            parentId,
+          },
         });
-        createdPermissions.push(created);
+        createdMenus.push(created);
       } else {
-        createdPermissions.push(existing);
+        createdMenus.push(existing);
       }
     }
 
-    return createdPermissions;
+    // 创建按钮权限
+    for (const permData of defaultPermissions) {
+      const existing = await this.prisma.menu.findUnique({
+        where: { path: permData.path },
+      });
+
+      if (!existing) {
+        const created = await this.prisma.menu.create({
+          data: {
+            path: permData.path,
+            name: permData.name,
+            type: permData.type,
+            permissionCode: permData.path,
+            enabled: true,
+          },
+        });
+        createdMenus.push(created);
+      }
+    }
+
+    return createdMenus;
   }
 }

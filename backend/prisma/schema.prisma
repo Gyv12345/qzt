@@ -80,8 +80,7 @@ model Role {
   updatedAt   DateTime @updatedAt
 
   users       UserRole[]
-  permissions    Permission[]      @relation("RolePermissions")
-  rolePermissions RolePermission[]
+  menus       RoleMenu[]
 
   @@map("roles")
 }
@@ -99,28 +98,6 @@ model UserRole {
   @@map("user_roles")
 }
 
-model Permission {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  code        String   @unique
-  description String?
-  type        String // menu:菜单按钮 button:操作按钮 data:数据权限
-  parentId    String?  // 上级权限ID
-  status      Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  parent   Permission?      @relation("PermissionHierarchy", fields: [parentId], references: [id])
-  children Permission[]     @relation("PermissionHierarchy")
-  roles          Role[]           @relation("RolePermissions")
-  menus          Menu[]           @relation("MenuPermissions")
-  rolePermissions RolePermission[]
-  menuPermissions MenuPermission[]
-
-  @@index([parentId])
-  @@map("permissions")
-}
-
 model Menu {
   id         String   @id @default(cuid())
   path       String   @unique // 路由路径
@@ -134,44 +111,38 @@ model Menu {
   badge      String?  // 徽章/角标
   isHidden   Boolean  @default(false) // 是否隐藏
   isSystem   Boolean  @default(false) // 是否系统菜单
+  type       String   @default("menu") // 类型: menu(菜单), button(按钮权限)
+  permissionCode String? // 权限标识，如 "customer.create"
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  parent         Menu?             @relation("MenuHierarchy", fields: [parentId], references: [id])
-  children       Menu[]            @relation("MenuHierarchy")
-  permissions    Permission[]      @relation("MenuPermissions")
-  menuPermissions MenuPermission[]
+  parent         Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children       Menu[]     @relation("MenuHierarchy")
+  roles          RoleMenu[]
 
   @@index([parentId])
   @@map("menus")
 }
 
-model MenuPermission {
-  id           String   @id @default(cuid())
-  menuId       String
-  permissionId String
-  createdAt    DateTime @default(now())
+// 角色-菜单关联表
+model RoleMenu {
+  id        String   @id @default(cuid())
+  roleId    String
+  menuId    String
+  createdAt DateTime @default(now())
 
-  menu       Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
-  @@unique([menuId, permissionId])
+  @@unique([roleId, menuId])
+  @@index([roleId])
   @@index([menuId])
-  @@map("menu_permissions")
+  @@map("role_menu")
 }
 
-model RolePermission {
-  id           String   @id @default(cuid())
-  roleId       String
-  permissionId String
-  createdAt    DateTime @default(now())
 
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
-  @@unique([roleId, permissionId])
-  @@map("role_permissions")
-}
+
 
 // ==================== 客户模块 ====================
 // 概念说明：

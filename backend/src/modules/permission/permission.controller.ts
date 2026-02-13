@@ -13,9 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { PermissionService } from "./permission.service";
 import { CreateRoleDto } from "./dto/create-role.dto";
-import { PermissionType } from "./dto/create-permission.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
-import { CreatePermissionDto } from "./dto/create-permission.dto";
 
 @ApiTags("permissions")
 @Controller("permissions")
@@ -54,45 +52,6 @@ export class PermissionController {
     return this.permissionService.removeMenu(id);
   }
 
-  @Post("permissions")
-  @ApiOperation({ summary: "创建权限" })
-  createPermission(@Body() createPermissionDto: CreatePermissionDto) {
-    return this.permissionService.createPermission(createPermissionDto);
-  }
-
-  @Get("permissions")
-  @ApiOperation({ summary: "查询所有权限" })
-  findAllPermissions(@Query("type") type?: string) {
-    return this.permissionService.findAllPermissions(type as PermissionType);
-  }
-
-  @Get("permissions/tree")
-  @ApiOperation({ summary: "获取权限树" })
-  findPermissionTree() {
-    return this.permissionService.findPermissionTree();
-  }
-
-  @Get("permissions/:id")
-  @ApiOperation({ summary: "获取权限详情" })
-  findOnePermission(@Param("id") id: string) {
-    return this.permissionService.findOnePermission(id);
-  }
-
-  @Put("permissions/:id")
-  @ApiOperation({ summary: "更新权限" })
-  updatePermission(
-    @Param("id") id: string,
-    @Body() updatePermissionDto: CreatePermissionDto,
-  ) {
-    return this.permissionService.updatePermission(id, updatePermissionDto);
-  }
-
-  @Delete("permissions/:id")
-  @ApiOperation({ summary: "删除权限" })
-  removePermission(@Param("id") id: string) {
-    return this.permissionService.removePermission(id);
-  }
-
   @Post("roles")
   @ApiOperation({ summary: "创建角色" })
   createRole(@Body() createRoleDto: CreateRoleDto) {
@@ -123,22 +82,31 @@ export class PermissionController {
     return this.permissionService.removeRole(id);
   }
 
-  @Put("roles/:id/permissions")
-  @ApiOperation({ summary: "为角色分配权限" })
-  assignPermissionsToRole(
+  @Put("roles/:id/menus")
+  @ApiOperation({ summary: "为角色分配菜单" })
+  assignMenusToRole(
     @Param("id") id: string,
-    @Body() body: { permissionIds: string[] },
+    @Body() body: { menuIds: string[] },
   ) {
-    return this.permissionService.assignPermissionsToRole(
-      id,
-      body.permissionIds,
-    );
+    return this.permissionService.assignMenusToRole(id, body.menuIds);
+  }
+
+  @Get("roles/:id/menus")
+  @ApiOperation({ summary: "获取角色的菜单列表" })
+  getRoleMenus(@Param("id") id: string) {
+    return this.permissionService.getRoleMenus(id);
   }
 
   @Get("users/:id/permissions")
   @ApiOperation({ summary: "获取用户的所有权限" })
   getUserPermissions(@Param("id") id: string) {
     return this.permissionService.getUserPermissions(id);
+  }
+
+  @Get("users/:id/menus")
+  @ApiOperation({ summary: "获取用户的菜单列表" })
+  getUserMenus(@Param("id") id: string) {
+    return this.permissionService.getUserMenus(id);
   }
 
   @Put("users/:id/roles")
