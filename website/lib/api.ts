@@ -308,3 +308,134 @@ export async function getProductByCode(code: string): Promise<Product> {
     throw new Error("Product not found");
   }
 }
+
+// ==================== 案例（合同）API ====================
+
+// 合同状态
+export type ContractStatus = "UNPAID" | "PARTIAL" | "PAID";
+
+// 合同产品明细
+export interface ContractItem {
+  id: string;
+  productId: string;
+  quantity: number;
+  originalPrice: number;
+  actualPrice: number;
+  subtotal: number;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    description?: string;
+  };
+}
+
+// 合同接口（公开）
+export interface PublicContract {
+  id: string;
+  contractNo: string;
+  customerId: string;
+  customer: {
+    id: string;
+    name: string;
+    shortName?: string;
+  };
+  originalAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  status: ContractStatus;
+  serviceStart: string;
+  serviceEnd: string;
+  remark?: string;
+  createdAt: string;
+  items: ContractItem[];
+}
+
+// 获取已完成合同（案例）
+export async function getCompletedContracts(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+}): Promise<PaginatedResponse<PublicContract>> {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.set("page", params.page.toString());
+    if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
+    if (params?.keyword) queryParams.set("keyword", params.keyword);
+
+    const res = await fetch(
+      `${API_BASE_URL}/public/contracts?${queryParams}`,
+      { next: { revalidate: 3600 } } // 案例缓存 1 小时
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch contracts");
+    const json = await res.json();
+    return json.data; // 提取 data 字段
+  } catch {
+    // 构建时后端可能不可用，返回空数据
+    return { data: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+  }
+}
+
+// 获取合同详情
+export async function getContractById(id: string): Promise<PublicContract> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/contracts/${id}`, {
+      next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) throw new Error("Contract not found");
+    const json = await res.json();
+    return json.data; // 提取 data 字段
+  } catch {
+    // 构建时后端可能不可用，抛出错误让页面处理
+    throw new Error("Contract not found");
+  }
+}
+
+// ==================== 人员（用户）API ====================
+
+// 用户接口（公开）
+export interface PublicUser {
+  id: string;
+  username: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  department?: {
+    id: string;
+    name: string;
+  };
+  roles: Array<{
+    role: {
+      id: string;
+      name: string;
+      code: string;
+    };
+  }>;
+}
+
+// 获取启用用户（团队成员）
+export async function getActiveUsers(params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<PaginatedResponse<PublicUser>> {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.set("page", params.page.toString());
+    if (params?.pageSize) queryParams.set("pageSize", params.pageSize.toString());
+
+    const res = await fetch(
+      `${API_BASE_URL}/public/users?${queryParams}`,
+      { next: { revalidate: 3600 } } // 人员缓存 1 小时
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch users");
+    const json = await res.json();
+    return json.data; // 提取 data 字段
+  } catch {
+    // 构建时后端可能不可用，返回空数据
+    return { data: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+  }
+}

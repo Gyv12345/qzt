@@ -11,14 +11,16 @@ import {
   Building2,
   TrendingUp,
   ArrowRight,
+  Mail,
+  Phone,
 } from "lucide-react";
-import type { CmsContent } from "@/lib/api";
+import type { PublicUser } from "@/lib/api";
 
 interface AboutPageContentProps {
-  profiles: CmsContent[];
+  users: PublicUser[];
 }
 
-export function AboutPageContent({ profiles }: AboutPageContentProps) {
+export function AboutPageContent({ users }: AboutPageContentProps) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -289,7 +291,7 @@ export function AboutPageContent({ profiles }: AboutPageContentProps) {
       </section>
 
       {/* 团队介绍 */}
-      {profiles.length > 0 && (
+      {users.length > 0 && (
         <section className="py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
@@ -308,56 +310,75 @@ export function AboutPageContent({ profiles }: AboutPageContentProps) {
             </motion.div>
 
             <div className="mx-auto mt-16 grid max-w-5xl gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {profiles.map((profile, index) => (
+              {users.map((user, index) => (
                 <motion.div
-                  key={profile.id}
+                  key={user.id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.5, delay: index * 0.1 }}
                 >
-                  <Link
-                    href={`/profiles/${profile.slug}`}
-                    className="group block h-full"
-                  >
-                    <div className="h-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
-                      {profile.coverImage && (
-                        <div className="mb-4 aspect-square overflow-hidden rounded-xl bg-slate-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <div className="h-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                    {/* 头像 */}
+                    <div className="mb-4 flex justify-center">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-2xl font-bold text-white shadow-lg">
+                        {user.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={profile.coverImage}
-                            alt={profile.title}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            src={user.avatar}
+                            alt={user.name}
+                            className="h-full w-full rounded-full object-cover"
                           />
-                        </div>
-                      )}
-                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                        {profile.title}
-                      </h3>
-                      {profile.excerpt && (
-                        <p className="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-2">
-                          {profile.excerpt}
-                        </p>
-                      )}
-                      <div className="mt-4 flex items-center text-sm font-medium text-blue-600 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                        了解更多
-                        <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        ) : (
+                          user.name.charAt(0).toUpperCase()
+                        )}
                       </div>
                     </div>
-                  </Link>
+
+                    {/* 姓名 */}
+                    <h3 className="text-center text-lg font-bold text-slate-900">
+                      {user.name}
+                    </h3>
+
+                    {/* 部门 */}
+                    {user.department && (
+                      <p className="mt-1 text-center text-sm text-muted-foreground">
+                        {user.department.name}
+                      </p>
+                    )}
+
+                    {/* 角色 */}
+                    {user.roles.length > 0 && (
+                      <div className="mt-3 flex flex-wrap justify-center gap-1">
+                        {user.roles.slice(0, 2).map(({ role }) => (
+                          <span
+                            key={role.id}
+                            className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"
+                          >
+                            {role.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 联系方式 */}
+                    <div className="mt-4 space-y-1 text-center text-sm text-muted-foreground">
+                      {user.email && (
+                        <div className="flex items-center justify-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate">{user.email}</span>
+                        </div>
+                      )}
+                      {user.phone && (
+                        <div className="flex items-center justify-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          <span>{user.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               ))}
-            </div>
-
-            <div className="mt-12 text-center">
-              <Button
-                variant="outline"
-                size="lg"
-                asChild
-                className="border-slate-300 bg-white/80 text-slate-700 backdrop-blur-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
-              >
-                <Link href="/profiles">查看全部成员</Link>
-              </Button>
             </div>
           </div>
         </section>

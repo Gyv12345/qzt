@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AboutPageContent } from "./about-page-content";
-import { getProfiles } from "@/lib/api";
+import { getActiveUsers, type PublicUser } from "@/lib/api";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,15 +12,15 @@ export const metadata: Metadata = {
 export const revalidate = 3600; // ISR 缓存 1 小时
 
 async function AboutPage() {
-  // 获取团队人员数据
-  const profilesResult = await getProfiles({ pageSize: 10 });
-  const profiles = profilesResult.data;
+  // 获取团队人员数据（从用户系统获取启用状态的用户）
+  const usersResult = await getActiveUsers({ pageSize: 10 });
+  const users = usersResult.data;
 
   return (
     <>
       <Header />
       <main>
-        <AboutPageContent profiles={profiles} />
+        <AboutPageContent users={users} />
       </main>
       <Footer />
     </>
