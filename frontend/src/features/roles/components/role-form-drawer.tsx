@@ -36,6 +36,18 @@ import { useCreateRole, useUpdateRole } from "../hooks/use-roles";
 import { roleFormSchema, type RoleFormValues } from "../data/schema";
 import type { Role } from "../data/schema";
 
+/**
+ * 从角色对象中提取菜单ID列表
+ * 处理后端返回的嵌套结构 menus: [{menu:{}}]
+ */
+const extractMenuIds = (role: Role): string[] => {
+  if (!role.menus || role.menus.length === 0) {
+    return role.menuIds || [];
+  }
+  // 处理嵌套结构 {menu: {id: ...}} 或平铺结构 {id: ...}
+  return role.menus.map((m: any) => m.menu?.id || m.id);
+};
+
 interface RoleFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -116,7 +128,7 @@ export function RoleFormDrawer({
           | "department_and_sub"
           | "self"
           | undefined,
-        menuIds: role.menuIds || [],
+        menuIds: extractMenuIds(role),
       });
     } else if (open) {
       form.reset({

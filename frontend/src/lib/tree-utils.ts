@@ -103,14 +103,14 @@ export function buildFlatTree(
   const flatNodes: FlatNode[] = [];
 
   for (const node of nodes) {
-    const hasChildren = node.children && node.children.length > 0;
+    const hasChildren = !!(node.children && node.children.length > 0);
 
     // 添加当前节点
     flatNodes.push({
       id: node.id,
       name: node.name,
-      permissionCode: node.permissionCode,
-      type: node.type,
+      permissionCode: node.permissionCode ?? undefined,
+      type: node.type ?? "menu",
       level,
       hasChildren,
       node,

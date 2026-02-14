@@ -24,6 +24,18 @@ export const roleSchema = z.object({
   type: z.string(),
   dataScope: z.string().optional(),
   menuIds: z.array(z.string()).optional(),
+  menus: z
+    .array(
+      z.object({
+        id: z.string(),
+        menu: z.object({
+          id: z.string(),
+          name: z.string(),
+          type: z.string(),
+        }),
+      }),
+    )
+    .optional(),
   status: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),

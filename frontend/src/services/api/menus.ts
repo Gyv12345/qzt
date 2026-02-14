@@ -41,10 +41,18 @@ export const getMenus = () => {
   const menuControllerGetAllMenus = () => {
     return customInstance<MenuItemDto[]>({ url: `/menus/all`, method: "GET" });
   };
+  /**
+   * 删除指定菜单，如果有子菜单则无法删除
+   * @summary 删除菜单
+   */
+  const menuControllerDeleteMenu = (id: string) => {
+    return customInstance<void>({ url: `/menus/${id}`, method: "DELETE" });
+  };
   return {
     menuControllerGetUserMenus,
     menuControllerInitializeMenus,
     menuControllerGetAllMenus,
+    menuControllerDeleteMenu,
   };
 };
 export type MenuControllerGetUserMenusResult = NonNullable<
@@ -57,4 +65,7 @@ export type MenuControllerInitializeMenusResult = NonNullable<
 >;
 export type MenuControllerGetAllMenusResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerGetAllMenus"]>>
+>;
+export type MenuControllerDeleteMenuResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerDeleteMenu"]>>
 >;

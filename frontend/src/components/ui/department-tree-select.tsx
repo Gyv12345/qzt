@@ -21,6 +21,7 @@ interface DepartmentTreeProps {
   onSelect: (id: string) => void;
   level?: number;
   parentId?: string;
+  excludeId?: string;
 }
 
 // 使用 Map 来跟踪每个部门的展开状态
@@ -32,10 +33,27 @@ function DepartmentTree({
   onSelect,
   level = 0,
   parentId = "root",
+  excludeId,
 }: DepartmentTreeProps) {
+  // 过滤掉 excludeId（编辑时排除自己和子孙部门）
+  const filteredDepartments = departments.filter((dept) => {
+    if (excludeId) {
+      // 检查 dept 或其子孙部门是否是 excludeId
+      const isExcluded = (node: Department): boolean => {
+        if (node.id === excludeId) return true;
+        if (node.children) {
+          return node.children.some((child) => isExcluded(child));
+        }
+        return false;
+      };
+      return !isExcluded(dept);
+    }
+    return true;
+  });
+
   return (
     <ul className={cn("m-0 list-none", level > 0 && "ml-6")}>
-      {departments.map((dept, index) => {
+      {filteredDepartments.map((dept, index) => {
         const deptKey = `${parentId}-${dept.id}`;
         const [isOpen, setIsOpen] = useState(
           () => expandStateMap.get(deptKey) ?? true,
@@ -113,6 +131,8 @@ interface DepartmentTreeSelectProps {
   departments: Department[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
+  excludeId?: string;
 }
 
 export function DepartmentTreeSelect({
@@ -121,6 +141,8 @@ export function DepartmentTreeSelect({
   departments,
   placeholder = "请选择部门",
   className,
+  disabled,
+  excludeId,
 }: DepartmentTreeSelectProps) {
   const [open, setOpen] = useState(false);
 
@@ -137,6 +159,7 @@ export function DepartmentTreeSelect({
         <Button
           type="button"
           variant="outline"
+          disabled={disabled}
           className={cn(
             "w-full justify-start text-left font-normal",
             !value && "text-muted-foreground",
@@ -153,6 +176,7 @@ export function DepartmentTreeSelect({
               departments={departments}
               selectedId={value}
               onSelect={handleSelect}
+              excludeId={excludeId}
             />
           </div>
         </ScrollArea>

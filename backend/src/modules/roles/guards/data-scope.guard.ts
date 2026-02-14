@@ -130,7 +130,6 @@ export class DataScopeGuard implements CanActivate {
           departmentIds: subDeptIds,
         };
 
-
       case DataScope.SELF:
       default:
         return {
@@ -167,6 +166,4 @@ export class DataScopeGuard implements CanActivate {
     await collectSubIds(departmentId);
     return ids;
   }
-
-
 }

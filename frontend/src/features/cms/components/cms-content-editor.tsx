@@ -9,6 +9,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Form } from "@/components/ui/form";
 import { CmsEditorSidebar } from "./cms-editor-sidebar";
 import { CmsEditorMain } from "./cms-editor-main";
 import { CmsEditorToolbar } from "./cms-editor-toolbar";
@@ -211,40 +212,42 @@ export function CmsContentEditor({
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      {/* 顶部工具栏 */}
-      <CmsEditorToolbar
-        isNew={!isEdit}
-        isDirty={isDirty}
-        isSaving={isSaving}
-        status={currentStatus}
-        onBack={onBack}
-        onSave={handleSave}
-        onPublish={handlePublish}
-        onPreview={() => setShowPreview(!showPreview)}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        sidebarOpen={sidebarOpen}
-      />
+    <Form {...form}>
+      <div className="flex h-screen flex-col overflow-hidden">
+        {/* 顶部工具栏 */}
+        <CmsEditorToolbar
+          isNew={!isEdit}
+          isDirty={isDirty}
+          isSaving={isSaving}
+          status={currentStatus}
+          onBack={onBack}
+          onSave={handleSave}
+          onPublish={handlePublish}
+          onPreview={() => setShowPreview(!showPreview)}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          sidebarOpen={sidebarOpen}
+        />
 
-      {/* 主编辑区 */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* 左侧边栏 */}
-        {sidebarOpen && (
-          <aside
-            className={cn(
-              "w-80 border-r bg-card transition-all duration-300",
-              "flex flex-col overflow-hidden",
-            )}
-          >
-            <CmsEditorSidebar form={form as any} />
-          </aside>
-        )}
+        {/* 主编辑区 */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* 左侧边栏 */}
+          {sidebarOpen && (
+            <aside
+              className={cn(
+                "w-80 border-r bg-card transition-all duration-300",
+                "flex flex-col overflow-hidden",
+              )}
+            >
+              <CmsEditorSidebar form={form as any} />
+            </aside>
+          )}
 
-        {/* 主编辑区域 */}
-        <main className="flex-1 overflow-hidden">
-          <CmsEditorMain form={form as any} showPreview={showPreview} />
-        </main>
+          {/* 主编辑区域 */}
+          <main className="flex-1 overflow-hidden">
+            <CmsEditorMain form={form as any} showPreview={showPreview} />
+          </main>
+        </div>
       </div>
-    </div>
+    </Form>
   );
 }

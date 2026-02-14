@@ -18,20 +18,10 @@ export function DataTableRowActions({
 
   return (
     <div className="flex items-center gap-1">
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onEdit(role)}
-        title="编辑"
-      >
+      <Button size="sm" variant="ghost" onClick={() => onEdit(role)}>
         <Edit className="h-4 w-4" />
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onDelete(role)}
-        title="删除"
-      >
+      <Button size="sm" variant="ghost" onClick={() => onDelete(role)}>
         <Trash2 className="h-4 w-4 text-destructive" />
       </Button>
     </div>

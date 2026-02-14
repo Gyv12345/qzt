@@ -1,12 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronRight,
   ChevronDown,
   Plus,
-  Building2,
+  Menu,
   Edit,
   Trash2,
 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -19,33 +21,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  useDepartments,
-  useDeleteDepartment,
-  type DepartmentNode,
-} from "../hooks/use-departments";
-import { DepartmentFormDrawer } from "./department-form-drawer";
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { useAllMenus } from "../hooks/use-all-menus";
+import { getScrmApi } from "@/services/api";
+import type { MenuNode } from "../hooks/use-all-menus";
 
-export function DepartmentTreeTable() {
+interface MenusTreeTableProps {
+  onEdit: (menu: MenuNode) => void;
+  onCreate?: () => void;
+}
+
+export function MenusTreeTable({ onEdit, onCreate }: MenusTreeTableProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] =
-    useState<DepartmentNode | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingDepartment, setDeletingDepartment] =
-    useState<DepartmentNode | null>(null);
+  const [deletingMenu, setDeletingMenu] = useState<MenuNode | null>(null);
+  const [hasChildrenDialogOpen, setHasChildrenDialogOpen] = useState(false);
+  const [menuWithChildren, setMenuWithChildren] = useState<MenuNode | null>(
+    null,
+  );
 
-  const { data: treeData, isLoading, error } = useDepartments();
-  const { mutate: deleteDepartment, isPending: isDeleting } =
-    useDeleteDepartment();
+  const queryClient = useQueryClient();
 
-  // 当搜索关键词变化时，重置展开状态
-  useEffect(() => {
-    if (!searchKeyword.trim()) {
-      setExpandedIds(new Set());
-    }
-  }, [searchKeyword]);
+  // 从 API 获取菜单数据
+  const { data: treeData, isLoading, error } = useAllMenus();
+
+  // 删除菜单 mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await (getScrmApi() as any).menuControllerDeleteMenu(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["menus-all"] });
+      toast.success("菜单删除成功");
+      setDeleteDialogOpen(false);
+      setDeletingMenu(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "删除失败");
+    },
+  });
 
   // 切换展开/收起状态
   const toggleExpand = (id: string) => {
@@ -61,59 +84,43 @@ export function DepartmentTreeTable() {
   };
 
   // 处理编辑按钮点击
-  const handleEdit = (department: DepartmentNode) => {
-    setEditingDepartment(department);
-    setDrawerOpen(true);
+  const handleEdit = (menu: MenuNode) => {
+    onEdit(menu);
   };
 
   // 处理删除按钮点击
-  const handleDelete = (department: DepartmentNode) => {
-    setDeletingDepartment(department);
+  const handleDelete = (menu: MenuNode) => {
+    // 检查是否有子菜单/按钮
+    const hasChildren = menu.children && menu.children.length > 0;
+    if (hasChildren) {
+      setMenuWithChildren(menu);
+      setHasChildrenDialogOpen(true);
+      return;
+    }
+    setDeletingMenu(menu);
     setDeleteDialogOpen(true);
   };
 
   // 确认删除
   const confirmDelete = () => {
-    if (deletingDepartment) {
-      deleteDepartment(deletingDepartment.id, {
-        onSuccess: () => {
-          setDeleteDialogOpen(false);
-          setDeletingDepartment(null);
-        },
-      });
+    if (deletingMenu) {
+      deleteMutation.mutate(deletingMenu.id);
     }
   };
 
-  // 处理抽屉关闭
-  const handleDrawerClose = () => {
-    setDrawerOpen(false);
-    setEditingDepartment(null);
-  };
-
-  // 处理添加按钮点击
-  const handleAdd = () => {
-    setEditingDepartment(null);
-    setDrawerOpen(true);
-  };
-
-  const handleDrawerSuccess = () => {
-    handleDrawerClose();
-    // 刷新列表由 mutation 自动处理
-  };
-
-  // 根据搜索关键词过滤部门树（使用 useMemo 优化性能）
+  // 根据搜索关键词过滤菜单树
   const { filteredTreeData, autoExpandedIds } = useMemo(() => {
     if (!searchKeyword.trim()) {
       return {
-        filteredTreeData: treeData || [],
+        filteredTreeData: treeData,
         autoExpandedIds: new Set<string>(),
       };
     }
 
     const filterNodes = (
-      nodes: DepartmentNode[],
-    ): { nodes: DepartmentNode[]; expandedIds: Set<string> } => {
-      const filtered: DepartmentNode[] = [];
+      nodes: MenuNode[],
+    ): { nodes: MenuNode[]; expandedIds: Set<string> } => {
+      const filtered: MenuNode[] = [];
       const expandedIds = new Set<string>();
 
       nodes.forEach((node) => {
@@ -129,7 +136,6 @@ export function DepartmentTreeTable() {
           nodeCopy.children = filteredChildren.nodes;
           filtered.push(nodeCopy);
 
-          // 如果有匹配的子节点，标记需要展开
           if (filteredChildren.nodes.length > 0) {
             expandedIds.add(node.id);
           }
@@ -143,7 +149,7 @@ export function DepartmentTreeTable() {
 
     // 递归收集所有需要展开的节点ID
     const collectExpandedIds = (
-      nodes: DepartmentNode[],
+      nodes: MenuNode[],
       ids: Set<string>,
     ): Set<string> => {
       const allIds = new Set(ids);
@@ -169,28 +175,29 @@ export function DepartmentTreeTable() {
   }, [treeData, searchKeyword]);
 
   // 自动展开搜索结果
-  useEffect(() => {
+  useState(() => {
     if (searchKeyword.trim() && autoExpandedIds.size > 0) {
       setExpandedIds(autoExpandedIds);
     } else if (!searchKeyword.trim()) {
       setExpandedIds(new Set());
     }
-  }, [searchKeyword, autoExpandedIds]);
+  });
 
   // 递归渲染表格行
-  const renderRows = (nodes: DepartmentNode[], level: number = 0) => {
+  const renderRows = (nodes: MenuNode[], level: number = 0) => {
     return nodes.flatMap((node) => {
       const hasChildren = node.children && node.children.length > 0;
       const isExpanded = expandedIds.has(node.id);
+      const isButton = node.type === "button";
 
       const rows = [
         <TableRow key={node.id}>
           <TableCell>
             <div
-              className="flex items-center gap-1"
+              className="flex items-center gap-2"
               style={{ paddingLeft: `${level * 24}px` }}
             >
-              {hasChildren && (
+              {hasChildren && !isButton ? (
                 <button
                   onClick={() => toggleExpand(node.id)}
                   className="flex h-5 w-5 items-center justify-center rounded hover:bg-accent transition-colors"
@@ -201,28 +208,29 @@ export function DepartmentTreeTable() {
                     <ChevronRight className="h-4 w-4" />
                   )}
                 </button>
+              ) : (
+                <div className="h-5 w-5" />
               )}
-              {!hasChildren && <div className="h-5 w-5" />}
-              <Building2 className="h-4 w-4 text-muted-foreground mr-2" />
+              <Menu
+                className={`h-4 w-4 ${isButton ? "text-muted-foreground" : "text-primary"}`}
+              />
               <span className="font-medium">{node.name}</span>
-              {node.isSystem && (
+              {node.type === "button" && (
                 <Badge variant="secondary" className="ml-2 text-xs">
-                  系统
+                  按钮
+                </Badge>
+              )}
+              {!node.enabled && (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  禁用
                 </Badge>
               )}
             </div>
           </TableCell>
+          <TableCell>{node.path || "-"}</TableCell>
+          <TableCell>{node.icon || "-"}</TableCell>
           <TableCell>{node.sort}</TableCell>
-          <TableCell>
-            {node.status === "ACTIVE" ? (
-              <Badge variant="default">启用</Badge>
-            ) : (
-              <Badge variant="secondary">禁用</Badge>
-            )}
-          </TableCell>
-          <TableCell>
-            {new Date(node.createdAt).toLocaleDateString("zh-CN")}
-          </TableCell>
+          <TableCell>{node.permissionCode || "-"}</TableCell>
           <TableCell>
             <div className="flex items-center gap-1">
               <Button
@@ -236,7 +244,6 @@ export function DepartmentTreeTable() {
                 size="sm"
                 variant="ghost"
                 onClick={() => handleDelete(node)}
-                disabled={node.isSystem}
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
@@ -254,26 +261,26 @@ export function DepartmentTreeTable() {
     });
   };
 
-  // 统计总部门数（包括所有子部门）
-  const countTotalDepartments = (nodes: DepartmentNode[]): number => {
+  // 统计总菜单数
+  const countTotalMenus = (nodes: MenuNode[]): number => {
     let count = 0;
     nodes.forEach((node) => {
       count += 1;
       if (node.children) {
-        count += countTotalDepartments(node.children);
+        count += countTotalMenus(node.children);
       }
     });
     return count;
   };
 
-  const total = countTotalDepartments(filteredTreeData || []);
+  const total = countTotalMenus(filteredTreeData || []);
 
-  // 渲染加载状态
+  // 加载状态
   if (isLoading) {
     return <div className="flex justify-center p-8">加载中...</div>;
   }
 
-  // 渲染错误状态
+  // 错误状态
   if (error) {
     return (
       <div className="text-destructive p-8">加载失败: {error.message}</div>
@@ -284,14 +291,14 @@ export function DepartmentTreeTable() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Input
-          placeholder="搜索部门..."
+          placeholder="搜索菜单..."
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
           className="max-w-sm"
         />
-        <Button onClick={handleAdd}>
+        <Button onClick={onCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          新增部门
+          新建菜单
         </Button>
       </div>
 
@@ -299,10 +306,11 @@ export function DepartmentTreeTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>部门名称</TableHead>
+              <TableHead>菜单名称</TableHead>
+              <TableHead>路径</TableHead>
+              <TableHead>图标</TableHead>
               <TableHead>排序</TableHead>
-              <TableHead>状态</TableHead>
-              <TableHead>创建时间</TableHead>
+              <TableHead>权限代码</TableHead>
               <TableHead>操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -311,8 +319,8 @@ export function DepartmentTreeTable() {
               renderRows(filteredTreeData)
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  {searchKeyword ? "未找到匹配的部门" : "暂无数据"}
+                <TableCell colSpan={6} className="h-24 text-center">
+                  {searchKeyword ? "未找到匹配的菜单" : "暂无数据"}
                 </TableCell>
               </TableRow>
             )}
@@ -320,28 +328,35 @@ export function DepartmentTreeTable() {
         </Table>
       </div>
 
-      <div className="text-muted-foreground text-sm">共 {total} 个部门</div>
+      <div className="text-muted-foreground text-sm">共 {total} 个菜单</div>
 
-      <DepartmentFormDrawer
-        open={drawerOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            handleDrawerClose();
-          } else {
-            setDrawerOpen(true);
-          }
-        }}
-        editingDepartment={editingDepartment || undefined}
-        onSuccess={handleDrawerSuccess}
-      />
-
+      {/* 删除确认对话框 */}
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
-        itemName={deletingDepartment?.name || ""}
-        isLoading={isDeleting}
+        itemName={deletingMenu?.name || ""}
+        isLoading={deleteMutation.isPending}
       />
+
+      {/* 有子项提示对话框 */}
+      <AlertDialog
+        open={hasChildrenDialogOpen}
+        onOpenChange={setHasChildrenDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>无法删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              菜单 <strong>{menuWithChildren?.name}</strong>{" "}
+              下还有子菜单或按钮，请先删除子项后再删除该菜单。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>我知道了</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

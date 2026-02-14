@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -82,5 +84,27 @@ export class MenuController {
   })
   getAllMenus(): Promise<any[]> {
     return this.menuService.getAllMenusTree();
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "删除菜单",
+    description: "删除指定菜单，如果有子菜单则无法删除",
+  })
+  @ApiResponse({
+    status: 204,
+    description: "删除成功",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "菜单下存在子菜单，无法删除",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "菜单不存在",
+  })
+  async deleteMenu(@Param("id") id: string): Promise<void> {
+    return this.menuService.deleteMenu(id);
   }
 }

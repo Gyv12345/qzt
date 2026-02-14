@@ -1,4 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { MenuItemDto, MenuGroupDto } from "./dto/menu.dto";
 
@@ -709,5 +714,41 @@ export class MenuService {
     }
 
     this.logger.log("菜单父子关系设置完成");
+  }
+
+  /**
+   * 删除菜单
+   * 如果菜单下有子菜单/按钮，则拒绝删除
+   */
+  async deleteMenu(id: string): Promise<void> {
+    // 检查菜单是否存在
+    const menu = await this.prisma.menu.findUnique({
+      where: { id },
+    });
+
+    if (!menu) {
+      throw new NotFoundException("菜单不存在");
+    }
+
+    // 检查是否有子菜单
+    const children = await this.prisma.menu.findMany({
+      where: { parentId: id },
+    });
+
+    if (children.length > 0) {
+      throw new BadRequestException("菜单下存在子菜单或按钮，请先删除子项");
+    }
+
+    // 删除角色关联
+    await this.prisma.roleMenu.deleteMany({
+      where: { menuId: id },
+    });
+
+    // 删除菜单
+    await this.prisma.menu.delete({
+      where: { id },
+    });
+
+    this.logger.log(`删除菜单: ${menu.name} (${menu.path})`);
   }
 }

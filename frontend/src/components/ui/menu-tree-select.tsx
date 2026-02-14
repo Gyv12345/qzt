@@ -79,10 +79,6 @@ function MenuTreeNodeItem({
     childNodeIds.length > 0 && childNodeIds.every((id) => selectedIds.has(id));
   const someChildrenSelected = childNodeIds.some((id) => selectedIds.has(id));
 
-  const handleToggle = (checked: boolean) => {
-    onToggleMenu(node.id, checked, childNodeIds);
-  };
-
   const hasChildren = node.children && node.children.length > 0;
 
   // 按钮权限显示不同样式

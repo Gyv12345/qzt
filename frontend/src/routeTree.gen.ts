@@ -28,6 +28,7 @@ import { Route as AuthenticatedRolesRouteRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProductsRouteRouteImport } from './routes/_authenticated/products/route'
 import { Route as AuthenticatedPaymentsRouteRouteImport } from './routes/_authenticated/payments/route'
 import { Route as AuthenticatedOperationLogsRouteRouteImport } from './routes/_authenticated/operation-logs/route'
+import { Route as AuthenticatedMenusRouteRouteImport } from './routes/_authenticated/menus/route'
 import { Route as AuthenticatedLoginLogsRouteRouteImport } from './routes/_authenticated/login-logs/route'
 import { Route as AuthenticatedInvoicesRouteRouteImport } from './routes/_authenticated/invoices/route'
 import { Route as AuthenticatedDepartmentsRouteRouteImport } from './routes/_authenticated/departments/route'
@@ -157,6 +158,11 @@ const AuthenticatedOperationLogsRouteRoute =
     path: '/operation-logs',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMenusRouteRoute = AuthenticatedMenusRouteRouteImport.update({
+  id: '/menus',
+  path: '/menus',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLoginLogsRouteRoute =
   AuthenticatedLoginLogsRouteRouteImport.update({
     id: '/login-logs',
@@ -328,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
   '/invoices': typeof AuthenticatedInvoicesRouteRoute
   '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
+  '/menus': typeof AuthenticatedMenusRouteRoute
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
@@ -373,6 +380,7 @@ export interface FileRoutesByTo {
   '/departments': typeof AuthenticatedDepartmentsRouteRoute
   '/invoices': typeof AuthenticatedInvoicesRouteRoute
   '/login-logs': typeof AuthenticatedLoginLogsRouteRoute
+  '/menus': typeof AuthenticatedMenusRouteRoute
   '/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/payments': typeof AuthenticatedPaymentsRouteRoute
   '/products': typeof AuthenticatedProductsRouteRoute
@@ -421,6 +429,7 @@ export interface FileRoutesById {
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRouteRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRouteRoute
   '/_authenticated/login-logs': typeof AuthenticatedLoginLogsRouteRoute
+  '/_authenticated/menus': typeof AuthenticatedMenusRouteRoute
   '/_authenticated/operation-logs': typeof AuthenticatedOperationLogsRouteRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteRoute
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/invoices'
     | '/login-logs'
+    | '/menus'
     | '/operation-logs'
     | '/payments'
     | '/products'
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/invoices'
     | '/login-logs'
+    | '/menus'
     | '/operation-logs'
     | '/payments'
     | '/products'
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/_authenticated/departments'
     | '/_authenticated/invoices'
     | '/_authenticated/login-logs'
+    | '/_authenticated/menus'
     | '/_authenticated/operation-logs'
     | '/_authenticated/payments'
     | '/_authenticated/products'
@@ -743,6 +755,13 @@ declare module '@tanstack/react-router' {
       path: '/operation-logs'
       fullPath: '/operation-logs'
       preLoaderRoute: typeof AuthenticatedOperationLogsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/menus': {
+      id: '/_authenticated/menus'
+      path: '/menus'
+      fullPath: '/menus'
+      preLoaderRoute: typeof AuthenticatedMenusRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/login-logs': {
@@ -1020,6 +1039,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDepartmentsRouteRoute: typeof AuthenticatedDepartmentsRouteRoute
   AuthenticatedInvoicesRouteRoute: typeof AuthenticatedInvoicesRouteRoute
   AuthenticatedLoginLogsRouteRoute: typeof AuthenticatedLoginLogsRouteRoute
+  AuthenticatedMenusRouteRoute: typeof AuthenticatedMenusRouteRoute
   AuthenticatedOperationLogsRouteRoute: typeof AuthenticatedOperationLogsRouteRoute
   AuthenticatedPaymentsRouteRoute: typeof AuthenticatedPaymentsRouteRoute
   AuthenticatedProductsRouteRoute: typeof AuthenticatedProductsRouteRoute
@@ -1049,6 +1069,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDepartmentsRouteRoute: AuthenticatedDepartmentsRouteRoute,
   AuthenticatedInvoicesRouteRoute: AuthenticatedInvoicesRouteRoute,
   AuthenticatedLoginLogsRouteRoute: AuthenticatedLoginLogsRouteRoute,
+  AuthenticatedMenusRouteRoute: AuthenticatedMenusRouteRoute,
   AuthenticatedOperationLogsRouteRoute: AuthenticatedOperationLogsRouteRoute,
   AuthenticatedPaymentsRouteRoute: AuthenticatedPaymentsRouteRoute,
   AuthenticatedProductsRouteRoute: AuthenticatedProductsRouteRoute,

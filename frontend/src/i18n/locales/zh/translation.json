@@ -830,6 +830,7 @@
       "users": "用户管理",
       "departments": "部门管理",
       "roles": "角色管理",
+      "menus": "菜单管理",
       "permissions": "权限管理",
       "loginLogs": "登录日志",
       "operationLogs": "操作日志",
@@ -847,6 +848,69 @@
         "publishedAt": "发布日期",
         "actions": "操作"
       }
+    }
+  },
+  "user": {
+    "title": "用户管理",
+    "description": "管理系统用户账户和权限",
+    "addNew": "新建用户",
+    "batchAdd": "批量添加",
+    "edit": "编辑用户",
+    "editDescription": "修改用户信息",
+    "addDescription": "填写用户基本信息",
+    "clickSave": "点击保存完成操作",
+    "name": "姓名",
+    "username": "用户名",
+    "email": "邮箱",
+    "phoneNumber": "手机号",
+    "department": "部门",
+    "role": "角色",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "status": "状态",
+    "statusEnabled": "启用",
+    "statusDisabled": "禁用",
+    "searchPlaceholder": "搜索用户...",
+    "loadFailed": "加载用户数据失败",
+    "selectRole": "请选择角色",
+    "saveChanges": "保存更改",
+    "placeholder": {
+      "name": "请输入姓名",
+      "username": "请输入用户名",
+      "email": "请输入邮箱",
+      "phoneNumber": "请输入手机号",
+      "password": "请输入密码"
+    },
+    "columns": {
+      "username": "用户名",
+      "fullName": "姓名",
+      "email": "邮箱",
+      "phoneNumber": "手机号",
+      "status": "状态",
+      "department": "部门",
+      "createdAt": "创建时间"
+    },
+    "validation": {
+      "nameRequired": "姓名不能为空",
+      "usernameRequired": "用户名不能为空",
+      "phoneNumberRequired": "手机号不能为空",
+      "emailRequired": "邮箱不能为空",
+      "roleRequired": "请选择角色",
+      "passwordRequired": "密码不能为空",
+      "passwordMinLength": "密码至少8位",
+      "passwordLowercase": "密码必须包含小写字母",
+      "passwordNumber": "密码必须包含数字",
+      "passwordMismatch": "两次密码不一致"
+    },
+    "delete": {
+      "title": "确认删除",
+      "description": "您即将删除用户",
+      "description2": "此操作不可撤销。",
+      "usernameLabel": "请输入用户名以确认",
+      "usernamePlaceholder": "输入用户名",
+      "warning": "警告",
+      "warningText": "删除用户将无法恢复其数据。",
+      "confirmButton": "确认删除"
     }
   },
   "roles": {

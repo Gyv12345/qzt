@@ -91,10 +91,6 @@ function MenuTreeNodeItem({
     childNodeIds.length > 0 && childNodeIds.every((id) => selectedIds.has(id));
   const someChildrenSelected = childNodeIds.some((id) => selectedIds.has(id));
 
-  const handleToggle = (checked: boolean) => {
-    onToggleNode(node.id, checked, childNodeIds);
-  };
-
   const hasChildren = node.children && node.children.length > 0;
 
   // 按钮权限显示不同样式
@@ -201,7 +197,7 @@ export function RolePermissionsContent({
     queryKey: ["menus-tree"],
     queryFn: async () => {
       const api = getScrmApi();
-      return (await api.permissionControllerGetMenus()) as any;
+      return (await api.permissionControllerGetRoleMenus(roleId)) as any;
     },
   });
 
@@ -221,9 +217,7 @@ export function RolePermissionsContent({
     queryKey: ["roles", roleId, "menus"],
     queryFn: async () => {
       const api = getScrmApi();
-      return (await api.permissionControllerGetRoleMenus({
-        id: roleId,
-      })) as any;
+      return (await api.permissionControllerGetRoleMenus(roleId)) as any;
     },
     enabled: !!roleId,
   });
@@ -264,9 +258,9 @@ export function RolePermissionsContent({
   const updateMutation = useMutation({
     mutationFn: async (values: RoleFormValues) => {
       const api = getScrmApi();
-      return await api.permissionControllerAssignMenusToRole({
-        id: roleId,
-        body: { menuIds: values.menuIds || [] },
+      // API 类型暂时不完整（后端未运行），使用 as any 绕过
+      return await (api as any).permissionControllerAssignMenusToRole(roleId, {
+        menuIds: values.menuIds || [],
       });
     },
     onSuccess: () => {

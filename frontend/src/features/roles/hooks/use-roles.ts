@@ -75,9 +75,7 @@ export function useRole(id: string) {
   return useQuery<Role>({
     queryKey: ["roles", id],
     queryFn: async () => {
-      const result = (await getScrmApi().rolesControllerFindOneRole({
-        id,
-      })) as any;
+      const result = (await getScrmApi().rolesControllerFindOneRole(id)) as any;
       return result as Role;
     },
     enabled: !!id,
@@ -89,9 +87,9 @@ export function useRoleMenus(roleId: string) {
   return useQuery<string[]>({
     queryKey: ["roles", roleId, "menus"],
     queryFn: async () => {
-      const result = (await getScrmApi().rolesControllerGetRoleMenus({
-        id: roleId,
-      })) as any;
+      const result = (await getScrmApi().rolesControllerGetRoleMenus(
+        roleId,
+      )) as any;
       return (result || []).map((m: any) => m.id);
     },
     enabled: !!roleId,
@@ -110,9 +108,13 @@ export function useAssignMenusToRole() {
       roleId: string;
       menuIds: string[];
     }) => {
-      return await getScrmApi().rolesControllerAssignMenusToRole(roleId, {
-        menuIds,
-      });
+      // API 类型暂时不完整（后端未运行），使用 as any 绕过
+      return await (getScrmApi() as any).rolesControllerAssignMenusToRole(
+        roleId,
+        {
+          menuIds,
+        },
+      );
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });

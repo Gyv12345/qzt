@@ -69,7 +69,25 @@ export function useFlatMenus(): MenuItem[] {
 
 // ========== 以下是兼容旧权限系统的函数，暂时保留 ==========
 
-import type { PermissionTreeNode } from "@/features/permissions/data/schema";
+/**
+ * @deprecated 旧版权限树节点类型，仅为兼容保留
+ */
+export interface PermissionTreeNode {
+  id: string;
+  name: string;
+  type: "menu" | "button" | "data";
+  permissions?: Array<{
+    id: string;
+    name: string;
+    code: string;
+    type: "menu" | "button" | "data";
+    description?: string;
+    status: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  children?: PermissionTreeNode[];
+}
 
 /**
  * @deprecated 旧版菜单树节点类型，仅为兼容保留

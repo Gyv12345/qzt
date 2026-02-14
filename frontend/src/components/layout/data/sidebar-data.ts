@@ -20,6 +20,7 @@ import {
   Tag,
   Terminal,
   Share2,
+  Menu as MenuIcon,
 } from "lucide-react";
 import { type SidebarData } from "../types";
 
@@ -167,6 +168,11 @@ export const sidebarData: SidebarData = {
           title: "角色管理",
           url: "/roles",
           icon: ShieldCheck,
+        },
+        {
+          title: "菜单管理",
+          url: "/menus",
+          icon: MenuIcon,
         },
         {
           title: "权限管理",
