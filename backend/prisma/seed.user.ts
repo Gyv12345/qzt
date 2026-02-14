@@ -29,6 +29,16 @@ const ROLE_DATA = {
 };
 
 /**
+ * 部门种子数据（顶级部门）
+ */
+const DEPARTMENT_DATA = {
+  name: "总公司",
+  sort: 0,
+  status: "ACTIVE",
+  isSystem: true,
+};
+
+/**
  * 用户种子数据
  *
  * 运行方式：
@@ -48,6 +58,33 @@ async function main() {
   });
   console.log(`  ✓ 角色: ${role.name} (${role.code})`);
 
+  // ==================== 创建顶级部门 ====================
+  console.log("\n🏢 创建顶级部门...");
+
+  let department = await prisma.department.findFirst({
+    where: {
+      name: DEPARTMENT_DATA.name,
+      parentId: null,
+    },
+  });
+
+  if (department) {
+    department = await prisma.department.update({
+      where: { id: department.id },
+      data: {
+        sort: DEPARTMENT_DATA.sort,
+        status: DEPARTMENT_DATA.status,
+        isSystem: DEPARTMENT_DATA.isSystem,
+      },
+    });
+    console.log(`  ⊙ 更新部门: ${department.name}`);
+  } else {
+    department = await prisma.department.create({
+      data: DEPARTMENT_DATA,
+    });
+    console.log(`  ✓ 创建部门: ${department.name}`);
+  }
+
   // ==================== 创建管理员用户 ====================
   console.log("\n🔐 创建管理员用户...");
 
@@ -61,6 +98,7 @@ async function main() {
       phone: USER_DATA.phone,
       status: USER_DATA.status,
       isSystem: USER_DATA.isSystem,
+      departmentId: department.id,
       // 不更新密码，保留已有的
     },
     create: {
@@ -71,6 +109,7 @@ async function main() {
       phone: USER_DATA.phone,
       status: USER_DATA.status,
       isSystem: USER_DATA.isSystem,
+      departmentId: department.id,
     },
   });
   console.log(`  ✓ 用户: ${user.name} (${user.username})`);

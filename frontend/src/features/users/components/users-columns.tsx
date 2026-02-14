@@ -110,13 +110,12 @@ export function getUsersColumns({
         />
       ),
       cell: ({ row }) => {
-        const status = row.getValue("status") as number;
+        const status = row.getValue("status") as string;
+        const isEnabled = status === "ACTIVE";
         return (
           <div className="flex space-x-2">
-            <Badge variant={status === 1 ? "default" : "secondary"}>
-              {status === 1
-                ? t("user.statusEnabled")
-                : t("user.statusDisabled")}
+            <Badge variant={isEnabled ? "default" : "secondary"}>
+              {isEnabled ? t("user.statusEnabled") : t("user.statusDisabled")}
             </Badge>
           </div>
         );

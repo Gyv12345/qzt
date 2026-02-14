@@ -82,10 +82,11 @@ export function getRolesColumns(
       accessorKey: "status",
       header: "状态",
       cell: ({ row }) => {
-        const status = row.getValue("status") as number;
+        const status = row.getValue("status") as string;
+        const isEnabled = status === "ACTIVE";
         return (
-          <Badge variant={status === 1 ? "default" : "secondary"}>
-            {status === 1 ? "启用" : "禁用"}
+          <Badge variant={isEnabled ? "default" : "secondary"}>
+            {isEnabled ? "启用" : "禁用"}
           </Badge>
         );
       },
