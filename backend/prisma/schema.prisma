@@ -47,40 +47,40 @@ model User {
   updatedAt    DateTime @updatedAt
 
   // 2FA 相关字段
-  twoFactorEnabled    Boolean   @default(false)  // 是否启用 2FA
-  twoFactorSecret     String?                    // TOTP 密钥（加密存储）
-  twoFactorBackupCodes String?                   // 备份码（JSON 数组，加密存储）
-  twoFactorSetupCompletedAt DateTime?            // 2FA 设置完成时间
-  hasCompletedFirstLogin Boolean @default(false) // 是否完成首次登录流程
+  twoFactorEnabled          Boolean   @default(false) // 是否启用 2FA
+  twoFactorSecret           String? // TOTP 密钥（加密存储）
+  twoFactorBackupCodes      String? // 备份码（JSON 数组，加密存储）
+  twoFactorSetupCompletedAt DateTime? // 2FA 设置完成时间
+  hasCompletedFirstLogin    Boolean   @default(false) // 是否完成首次登录流程
 
-  roles         UserRole[]
-  followRecords FollowRecord[]
-  serviceTeams  ServiceTeam[]
-  customers     Customer[]      @relation("CustomerFollowUser")
-  ownedContacts Contact[]       @relation("ContactOwner")
-  department    Department?     @relation(fields: [departmentId], references: [id])
-  cmsAuthoredContents CmsContent[] @relation("CmsContentAuthor")
-  cmsProfiles  CmsContent[]     @relation("CmsUserProfile")
-  changeLogs   ChangeLog[]      @relation("ChangeLogUser")
+  roles               UserRole[]
+  followRecords       FollowRecord[]
+  serviceTeams        ServiceTeam[]
+  customers           Customer[]     @relation("CustomerFollowUser")
+  ownedContacts       Contact[]      @relation("ContactOwner")
+  department          Department?    @relation(fields: [departmentId], references: [id])
+  cmsAuthoredContents CmsContent[]   @relation("CmsContentAuthor")
+  cmsProfiles         CmsContent[]   @relation("CmsUserProfile")
+  changeLogs          ChangeLog[]    @relation("ChangeLogUser")
 
   @@index([departmentId])
   @@map("users")
 }
 
 model Role {
-  id          String   @id @default(cuid())
-  name        String
-  code        String   @unique
-  description String?
-  type        String   @default("system") // 角色类型: system(系统角色), team(团队角色)
-  dataScope   String   @default("all") // 数据权限范围: all(全部), department(本部门), department_and_sub(本部门及下级), custom(自定义), self(仅本人)
+  id               String   @id @default(cuid())
+  name             String
+  code             String   @unique
+  description      String?
+  type             String   @default("system") // 角色类型: system(系统角色), team(团队角色)
+  dataScope        String   @default("all") // 数据权限范围: all(全部), department(本部门), department_and_sub(本部门及下级), custom(自定义), self(仅本人)
   dataScopeDeptIds String? // 数据权限-自定义部门ID列表(JSON数组)
-  status      String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status           String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  users       UserRole[]
-  menus       RoleMenu[]
+  users UserRole[]
+  menus RoleMenu[]
 
   @@map("roles")
 }
@@ -99,27 +99,27 @@ model UserRole {
 }
 
 model Menu {
-  id         String   @id @default(cuid())
-  path       String   @unique // 路由路径
-  name       String   // 菜单名称
-  icon       String?  // 图标
-  parentId   String?  // 父级菜单ID
-  sort       Int      @default(0) // 排序
-  enabled    Boolean  @default(true) // 是否启用
-  groupTitle   String?  // 菜单分组标题（业务、系统设置等）
-  groupI18nKey String?  // 分组标题的国际化 key
-  i18nKey      String?  // 菜单项的国际化 key
-  badge        String?  // 徽章/角标
-  isHidden   Boolean  @default(false) // 是否隐藏
-  isSystem   Boolean  @default(false) // 是否系统菜单
-  type       String   @default("menu") // 类型: menu(菜单), button(按钮权限)
+  id             String   @id @default(cuid())
+  path           String   @unique // 路由路径
+  name           String // 菜单名称
+  icon           String? // 图标
+  parentId       String? // 父级菜单ID
+  sort           Int      @default(0) // 排序
+  enabled        Boolean  @default(true) // 是否启用
+  groupTitle     String? // 菜单分组标题（业务、系统设置等）
+  groupI18nKey   String? // 分组标题的国际化 key
+  i18nKey        String? // 菜单项的国际化 key
+  badge          String? // 徽章/角标
+  isHidden       Boolean  @default(false) // 是否隐藏
+  isSystem       Boolean  @default(false) // 是否系统菜单
+  type           String   @default("menu") // 类型: menu(菜单), button(按钮权限)
   permissionCode String? // 权限标识，如 "customer.create"
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  parent         Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id])
-  children       Menu[]     @relation("MenuHierarchy")
-  roles          RoleMenu[]
+  parent   Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children Menu[]     @relation("MenuHierarchy")
+  roles    RoleMenu[]
 
   @@index([parentId])
   @@map("menus")
@@ -141,10 +141,6 @@ model RoleMenu {
   @@map("role_menu")
 }
 
-
-
-
-
 // ==================== 客户模块 ====================
 // 概念说明：
 // - Customer（客户）= 公司/企业，只有签约付款的才是正式客户
@@ -152,25 +148,25 @@ model RoleMenu {
 // - CustomerContact（客户联系人关联）= 多对多关系，一个联系人可关联多个公司
 
 model Contact {
-  id            String   @id @default(cuid())
-  name          String // 联系人姓名
-  phone         String   @unique // 联系电话（唯一，便于识别）
-  email         String? // 联系邮箱
-  wechat        String? // 微信号
-  position      String? // 职位
-  department    String? // 部门
-  avatar        String? // 头像
-  birthdate     DateTime? // 生日
-  tags          String? // 标签(JSON数组)
-  remark        String? // 备注
-  ownerUserId   String? // 负责人
-  status        String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String    @id @default(cuid())
+  name        String // 联系人姓名
+  phone       String    @unique // 联系电话（唯一，便于识别）
+  email       String? // 联系邮箱
+  wechat      String? // 微信号
+  position    String? // 职位
+  department  String? // 部门
+  avatar      String? // 头像
+  birthdate   DateTime? // 生日
+  tags        String? // 标签(JSON数组)
+  remark      String? // 备注
+  ownerUserId String? // 负责人
+  status      String    @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   customerContacts CustomerContact[]
-  followRecords   FollowRecord[]
-  ownerUser       User?     @relation("ContactOwner", fields: [ownerUserId], references: [id])
+  followRecords    FollowRecord[]
+  ownerUser        User?             @relation("ContactOwner", fields: [ownerUserId], references: [id])
 
   @@index([phone])
   @@index([ownerUserId])
@@ -179,24 +175,24 @@ model Contact {
 }
 
 model Customer {
-  id            String   @id @default(cuid())
-  name          String // 公司名称（必填）
-  shortName     String? // 公司简称
-  code          String? @unique // 公司编码（外部系统对接用）
-  industry      String? // 行业
-  scale         String? // 公司规模: 1-10人, 11-50人, 51-200人, 201-500人, 500人以上
-  address       String? // 公司地址
-  website       String? // 公司网站
-  customerLevel String   @default("LEAD") // 客户等级: LEAD, PROSPECT, CUSTOMER, VIP
-  sourceChannel String? // 来源渠道
-  followUserId  String? // 跟进人ID
-  tags          String? // 标签(JSON数组)
-  remark        String? // 备注
-  status        Int      @default(1) // 1:启用 0:禁用
+  id               String    @id @default(cuid())
+  name             String // 公司名称（必填）
+  shortName        String? // 公司简称
+  code             String?   @unique // 公司编码（外部系统对接用）
+  industry         String? // 行业
+  scale            String? // 公司规模: 1-10人, 11-50人, 51-200人, 201-500人, 500人以上
+  address          String? // 公司地址
+  website          String? // 公司网站
+  customerLevel    String    @default("LEAD") // 客户等级: LEAD, PROSPECT, CUSTOMER, VIP
+  sourceChannel    String? // 来源渠道
+  followUserId     String? // 跟进人ID
+  tags             String? // 标签(JSON数组)
+  remark           String? // 备注
+  status           Int       @default(1) // 1:启用 0:禁用
   firstContactDate DateTime? // 首次联系时间
   contractDate     DateTime? // 签约时间（成为正式客户的时间）
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   contracts           Contract[]
   followRecords       FollowRecord[]
@@ -204,7 +200,7 @@ model Customer {
   serviceTeams        ServiceTeam[]
   assignmentHistories CustomerAssignmentHistory[]
   contacts            CustomerContact[]
-  followUser          User?      @relation("CustomerFollowUser", fields: [followUserId], references: [id])
+  followUser          User?                       @relation("CustomerFollowUser", fields: [followUserId], references: [id])
 
   @@index([followUserId])
   @@index([customerLevel])
@@ -239,13 +235,13 @@ model CustomerContact {
 }
 
 model CustomerAssignmentHistory {
-  id                  String   @id @default(cuid())
-  customerId          String
+  id                   String   @id @default(cuid())
+  customerId           String
   previousFollowUserId String?
-  newFollowUserId     String
-  assignedBy          String // 操作人ID
-  reason              String?
-  createdAt           DateTime @default(now())
+  newFollowUserId      String
+  assignedBy           String // 操作人ID
+  reason               String?
+  createdAt            DateTime @default(now())
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
@@ -282,23 +278,23 @@ model FollowRecord {
 // ==================== 产品模块 ====================
 
 model Product {
-  id             String   @id @default(cuid())
-  name           String
-  code           String   @unique
-  description    String?
-  price          Float    // 基础价格
-  pricingType    String   @default("FIXED") // FIXED:固定价格 TIER_AMOUNT:按金额阶梯 TIER_COUNT:按次数计费 ZERO_DECLARATION:零申报
-  timeline       String?  // 时间轴 JSON 数组，每项包含描述文本
-  serviceRoleId  String?  // 服务负责人角色ID（哪个角色负责此产品的运维）
-  imageId        String?  @unique // 产品图片ID（一对一关系）
-  status         String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  code          String   @unique
+  description   String?
+  price         Float // 基础价格
+  pricingType   String   @default("FIXED") // FIXED:固定价格 TIER_AMOUNT:按金额阶梯 TIER_COUNT:按次数计费 ZERO_DECLARATION:零申报
+  timeline      String? // 时间轴 JSON 数组，每项包含描述文本
+  serviceRoleId String? // 服务负责人角色ID（哪个角色负责此产品的运维）
+  imageId       String?  @unique // 产品图片ID（一对一关系）
+  status        String   @default("ACTIVE") // ACTIVE:启用 INACTIVE:禁用
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  contractItems  ContractItem[]  // 合同产品明细
-  pricingRules   PricingRule[]
-  cmsShowcases   CmsContent[]    @relation("CmsProductShowcase")
-  image          OssFile?        @relation("ProductImage", fields: [imageId], references: [id]) // 图片关联
+  contractItems ContractItem[] // 合同产品明细
+  pricingRules  PricingRule[]
+  cmsShowcases  CmsContent[]   @relation("CmsProductShowcase")
+  image         OssFile?       @relation("ProductImage", fields: [imageId], references: [id]) // 图片关联
 
   @@map("products")
 }
@@ -306,17 +302,17 @@ model Product {
 // ==================== 阶梯定价规则 ====================
 
 model PricingRule {
-  id             String   @id @default(cuid())
-  productId      String
-  name           String   // 规则名称
-  ruleType       String   // AMOUNT_TIER:按金额阶梯 COUNT_TIER:按次数 ZERO_DECLARATION:零申报
-  effectiveDate  DateTime @default(now()) // 生效日期
-  expiryDate     DateTime? // 失效日期
-  status         Int      @default(1) // 1:启用 0:禁用
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String    @id @default(cuid())
+  productId     String
+  name          String // 规则名称
+  ruleType      String // AMOUNT_TIER:按金额阶梯 COUNT_TIER:按次数 ZERO_DECLARATION:零申报
+  effectiveDate DateTime  @default(now()) // 生效日期
+  expiryDate    DateTime? // 失效日期
+  status        Int       @default(1) // 1:启用 0:禁用
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   tiers   PricingTier[]
 
   @@index([productId])
@@ -326,12 +322,12 @@ model PricingRule {
 model PricingTier {
   id              String   @id @default(cuid())
   pricingRuleId   String
-  minThreshold    Float    // 最小阈值
-  maxThreshold    Float?   // 最大阈值(null表示无上限)
-  price           Float    // 该阶梯的价格
-  additionalPrice Float?   // 超出基础价格的加价部分
-  description     String?  // 描述
-  order           Int      // 排序
+  minThreshold    Float // 最小阈值
+  maxThreshold    Float? // 最大阈值(null表示无上限)
+  price           Float // 该阶梯的价格
+  additionalPrice Float? // 超出基础价格的加价部分
+  description     String? // 描述
+  order           Int // 排序
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -345,41 +341,41 @@ model PricingTier {
 
 model ContractTemplate {
   id          String   @id @default(cuid())
-  name        String   // 模板名称
+  name        String // 模板名称
   code        String   @unique // 模板编码
-  content     String   // 合同内容（支持变量占位符）
-  variables   String?  // 变量定义(JSON数组)
-  description String?  // 模板说明
+  content     String // 合同内容（支持变量占位符）
+  variables   String? // 变量定义(JSON数组)
+  description String? // 模板说明
   status      Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  contracts   Contract[]
+  contracts Contract[]
 
   @@map("contract_templates")
 }
 
 model Contract {
-  id           String   @id @default(cuid())
-  contractNo   String   @unique
-  customerId   String
-  templateId   String? // 合同模板ID
-  originalAmount Float  // 原价总额（所有产品原价 × 数量之和）
-  totalAmount   Float    // 实际合同总额（所有产品实际价格 × 数量之和）
-  paidAmount   Float    @default(0)
-  status       String   @default("UNPAID") // UNPAID:待收款 PARTIAL:部分收款 PAID:已收全
-  serviceStart DateTime
-  serviceEnd   DateTime
-  remark       String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  contractNo     String   @unique
+  customerId     String
+  templateId     String? // 合同模板ID
+  originalAmount Float // 原价总额（所有产品原价 × 数量之和）
+  totalAmount    Float // 实际合同总额（所有产品实际价格 × 数量之和）
+  paidAmount     Float    @default(0)
+  status         String   @default("UNPAID") // UNPAID:待收款 PARTIAL:部分收款 PAID:已收全
+  serviceStart   DateTime
+  serviceEnd     DateTime
+  remark         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  customer        Customer        @relation(fields: [customerId], references: [id])
-  template        ContractTemplate? @relation(fields: [templateId], references: [id])
-  payments        Payment[]
-  items           ContractItem[]  // 合同产品明细
-  esignRecord     EsignRecord?    // e签宝签署记录
-  cmsCases        CmsContent[]    @relation("CmsContractCase")  // 客户案例
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  template    ContractTemplate? @relation(fields: [templateId], references: [id])
+  payments    Payment[]
+  items       ContractItem[] // 合同产品明细
+  esignRecord EsignRecord? // e签宝签署记录
+  cmsCases    CmsContent[]      @relation("CmsContractCase") // 客户案例
 
   @@index([customerId])
   @@index([status])
@@ -391,14 +387,14 @@ model ContractItem {
   id            String   @id @default(cuid())
   contractId    String
   productId     String
-  quantity      Int      @default(1)  // 数量
-  originalPrice Float    // 产品原价（划线价格）
-  actualPrice   Float    // 实际成交价
-  subtotal      Float    // 小计（actualPrice × quantity）
+  quantity      Int      @default(1) // 数量
+  originalPrice Float // 产品原价（划线价格）
+  actualPrice   Float // 实际成交价
+  subtotal      Float // 小计（actualPrice × quantity）
   createdAt     DateTime @default(now())
 
-  contract  Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
 
   @@index([contractId])
   @@index([productId])
@@ -428,23 +424,23 @@ model Payment {
 // ==================== 开票记录 ====================
 
 model Invoice {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   customerId  String
   contractId  String? // 关联合同(可选)
   amount      Float
   count       Int // 开票张数
   month       String // 开票月份(YYYY-MM)
-  status      String   @default("PENDING") // PENDING:待开票 ISSUED:已开票 CANCELLED:已作废
+  status      String    @default("PENDING") // PENDING:待开票 ISSUED:已开票 CANCELLED:已作废
   issuedAt    DateTime? // 开票日期
-  isOverLimit Boolean  @default(false) // 是否超额
+  isOverLimit Boolean   @default(false) // 是否超额
   overAmount  Float? // 超额金额
-  overCount   Int      @default(0) // 超额张数
+  overCount   Int       @default(0) // 超额张数
   remark      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  customer            Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  priceChangeRecords  InvoicePriceChange[]
+  customer           Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  priceChangeRecords InvoicePriceChange[]
 
   @@index([customerId, month])
   @@index([status])
@@ -456,10 +452,10 @@ model Invoice {
 model InvoicePriceChange {
   id           String   @id @default(cuid())
   invoiceId    String
-  oldPrice     Float    // 原价格
-  newPrice     Float    // 新价格
-  changeReason String?  // 变更原因
-  changedBy    String?  // 操作人ID
+  oldPrice     Float // 原价格
+  newPrice     Float // 新价格
+  changeReason String? // 变更原因
+  changedBy    String? // 操作人ID
   createdAt    DateTime @default(now())
 
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
@@ -487,11 +483,11 @@ model ServiceTeam {
 
 model Notification {
   id        String   @id @default(cuid())
-  userId    String   // 接收用户ID
-  type      String   // 类型: CONTRACT_EXPIRY, FOLLOW_UP, TASK, etc.
-  title     String   // 标题
-  content   String   // 内容
-  link      String?  // 跳转链接
+  userId    String // 接收用户ID
+  type      String // 类型: CONTRACT_EXPIRY, FOLLOW_UP, TASK, etc.
+  title     String // 标题
+  content   String // 内容
+  link      String? // 跳转链接
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -504,26 +500,26 @@ model Notification {
 model SystemConfig {
   id          String   @id @default(cuid())
   key         String   @unique // 配置键
-  value       String   // 配置值(JSON字符串)
-  category    String   // 配置分类: basic, email, sms, wechat, etc.
-  description String?  // 配置说明
+  value       String // 配置值(JSON字符串)
+  category    String // 配置分类: basic, email, sms, wechat, etc.
+  description String? // 配置说明
   isPublic    Boolean  @default(false) // 是否公开（前端可访问）
   updatedAt   DateTime @updatedAt
-  updatedBy   String?  // 最后更新人ID
+  updatedBy   String? // 最后更新人ID
 
   @@index([category])
   @@map("system_configs")
 }
 
 model CommonPhrase {
-  id         String   @id @default(cuid())
-  userId     String?  // null表示系统常用语
-  content    String   // 常用语内容
-  category   String?  // 分类: GREETING, FOLLOW_UP, CLOSING, OTHER
-  useCount   Int      @default(0) // 使用次数
-  isSystem   Boolean  @default(false) // 是否系统预置
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String? // null表示系统常用语
+  content   String // 常用语内容
+  category  String? // 分类: GREETING, FOLLOW_UP, CLOSING, OTHER
+  useCount  Int      @default(0) // 使用次数
+  isSystem  Boolean  @default(false) // 是否系统预置
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([category])
@@ -531,15 +527,15 @@ model CommonPhrase {
 }
 
 model PaymentAccount {
-  id         String   @id @default(cuid())
-  name       String   // 账户名称
-  accountNo  String   // 账号
-  bank       String?  // 开户行
-  type       String   // 类型: 1:银行转账 2:微信 3:支付宝 4:现金
-  isDefault  Boolean  @default(false) // 是否默认账户
-  status     Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String // 账户名称
+  accountNo String // 账号
+  bank      String? // 开户行
+  type      String // 类型: 1:银行转账 2:微信 3:支付宝 4:现金
+  isDefault Boolean  @default(false) // 是否默认账户
+  status    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("payment_accounts")
 }
@@ -553,10 +549,10 @@ model LoginLog {
   email      String?
   ip         String?
   userAgent  String?
-  browser    String?  // 浏览器信息
-  os         String?  // 操作系统
-  status     String   // SUCCESS, FAILED
-  failReason String?  // 失败原因
+  browser    String? // 浏览器信息
+  os         String? // 操作系统
+  status     String // SUCCESS, FAILED
+  failReason String? // 失败原因
   createdAt  DateTime @default(now())
 
   @@index([userId])
@@ -569,12 +565,12 @@ model OperationLog {
   id         String   @id @default(cuid())
   userId     String
   username   String
-  action     String   // 操作类型: CREATE, UPDATE, DELETE, EXPORT, etc.
-  resource   String   // 资源类型: User, Customer, Contract, etc.
-  resourceId String?  // 资源ID
+  action     String // 操作类型: CREATE, UPDATE, DELETE, EXPORT, etc.
+  resource   String // 资源类型: User, Customer, Contract, etc.
+  resourceId String? // 资源ID
   ip         String?
   userAgent  String?
-  detail     String?  // 详细信息(JSON)
+  detail     String? // 详细信息(JSON)
   createdAt  DateTime @default(now())
 
   @@index([userId])
@@ -585,11 +581,11 @@ model OperationLog {
 
 model SystemLog {
   id         String   @id @default(cuid())
-  level      String   // INFO, WARN, ERROR, DEBUG
-  module     String   // 模块名
-  message    String   // 日志消息
-  stacktrace String?  // 堆栈信息
-  detail     String?  // 详细信息(JSON)
+  level      String // INFO, WARN, ERROR, DEBUG
+  module     String // 模块名
+  message    String // 日志消息
+  stacktrace String? // 堆栈信息
+  detail     String? // 详细信息(JSON)
   createdAt  DateTime @default(now())
 
   @@index([level])
@@ -602,14 +598,14 @@ model SystemLog {
 
 model WebhookConfig {
   id         String   @id @default(cuid())
-  name       String   // 配置名称
-  platform   String   // 平台: wecom(企业微信), feishu(飞书), dingtalk(钉钉)
-  webhookUrl String   // Webhook URL
+  name       String // 配置名称
+  platform   String // 平台: wecom(企业微信), feishu(飞书), dingtalk(钉钉)
+  webhookUrl String // Webhook URL
   enabled    Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  messages   WebhookMessage[]
+  messages WebhookMessage[]
 
   @@index([platform])
   @@map("webhook_configs")
@@ -618,12 +614,12 @@ model WebhookConfig {
 model WebhookMessage {
   id          String   @id @default(cuid())
   configId    String
-  platform    String   // 平台
-  messageType String   // 消息类型: text, markdown, card
-  content     String   // 消息内容(JSON)
-  status      String   // success, failed
-  response    String?  // 响应内容
-  error       String?  // 错误信息
+  platform    String // 平台
+  messageType String // 消息类型: text, markdown, card
+  content     String // 消息内容(JSON)
+  status      String // success, failed
+  response    String? // 响应内容
+  error       String? // 错误信息
   sentAt      DateTime @default(now())
 
   config WebhookConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
@@ -637,18 +633,18 @@ model WebhookMessage {
 // ==================== OSS 文件管理 ====================
 
 model OssFile {
-  id          String   @id @default(cuid())
-  fileName    String   // 原始文件名
-  fileUrl     String   // 文件URL
-  fileSize    Int      // 文件大小(字节)
-  fileType    String   // 文件类型: image, document, video, other
-  mimeType    String   // MIME类型
-  uploaderId  String?  // 上传者ID
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  fileName   String // 原始文件名
+  fileUrl    String // 文件URL
+  fileSize   Int // 文件大小(字节)
+  fileType   String // 文件类型: image, document, video, other
+  mimeType   String // MIME类型
+  uploaderId String? // 上传者ID
+  createdAt  DateTime @default(now())
 
-  videoPosts  SocialMediaPost[] @relation("SocialMediaPostVideo")
-  coverPosts  SocialMediaPost[] @relation("SocialMediaPostCover")
-  product     Product?           @relation("ProductImage")
+  videoPosts SocialMediaPost[] @relation("SocialMediaPostVideo")
+  coverPosts SocialMediaPost[] @relation("SocialMediaPostCover")
+  product    Product?          @relation("ProductImage")
 
   @@index([uploaderId])
   @@index([fileType])
@@ -660,22 +656,22 @@ model OssFile {
 
 // 新媒体账号配置
 model SocialMediaAccount {
-  id          String   @id @default(cuid())
-  platform    String   // douyin, xiaohongshu, wechat
-  accountName String   // 账号名称
-  accountId   String?  // 平台账号ID
-  appId       String?  // 应用ID
-  appSecret   String?  // 应用密钥(加密存储)
-  accessToken String?  // 访问令牌(加密存储)
+  id           String    @id @default(cuid())
+  platform     String // douyin, xiaohongshu, wechat
+  accountName  String // 账号名称
+  accountId    String? // 平台账号ID
+  appId        String? // 应用ID
+  appSecret    String? // 应用密钥(加密存储)
+  accessToken  String? // 访问令牌(加密存储)
   refreshToken String? // 刷新令牌(加密存储)
-  openId      String?  // 开放ID
-  unionId     String?  // 联合ID(主要用于微信)
-  expiresAt   DateTime? // 令牌过期时间
-  status      Int      @default(1) // 1:启用 0:禁用
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  openId       String? // 开放ID
+  unionId      String? // 联合ID(主要用于微信)
+  expiresAt    DateTime? // 令牌过期时间
+  status       Int       @default(1) // 1:启用 0:禁用
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  posts       SocialMediaPost[]
+  posts SocialMediaPost[]
 
   @@index([platform])
   @@index([status])
@@ -684,28 +680,28 @@ model SocialMediaAccount {
 
 // 新媒体内容
 model SocialMediaPost {
-  id           String   @id @default(cuid())
-  accountId    String   // 关联账号ID
-  title        String   // 标题
-  content      String?  // 文案内容
-  videoFile    OssFile? @relation("SocialMediaPostVideo", fields: [videoFileId], references: [id], onDelete: SetNull)
-  videoFileId  String?  // 视频文件ID(关联oss_files)
-  coverFile    OssFile? @relation("SocialMediaPostCover", fields: [coverFileId], references: [id], onDelete: SetNull)
-  coverFileId  String?  // 封面图文件ID(关联oss_files)
-  videoUrl     String?  // 视频URL
-  coverUrl     String?  // 封面图URL
-  topics       String?  // 话题标签(JSON数组)
-  location     String?  // 位置信息
-  visibility   String   @default("public") // public, friends, private
-  scheduledAt  DateTime? // 定时发布时间
-  status       String   @default("draft") // draft:草稿, scheduled:定时中, publishing:发布中, published:已发布, failed:失败
-  publishData  String?  // 各平台发布数据(JSON)
-  error        String?  // 错误信息
-  publishedAt  DateTime? // 实际发布时间
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String    @id @default(cuid())
+  accountId   String // 关联账号ID
+  title       String // 标题
+  content     String? // 文案内容
+  videoFile   OssFile?  @relation("SocialMediaPostVideo", fields: [videoFileId], references: [id], onDelete: SetNull)
+  videoFileId String? // 视频文件ID(关联oss_files)
+  coverFile   OssFile?  @relation("SocialMediaPostCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+  coverFileId String? // 封面图文件ID(关联oss_files)
+  videoUrl    String? // 视频URL
+  coverUrl    String? // 封面图URL
+  topics      String? // 话题标签(JSON数组)
+  location    String? // 位置信息
+  visibility  String    @default("public") // public, friends, private
+  scheduledAt DateTime? // 定时发布时间
+  status      String    @default("draft") // draft:草稿, scheduled:定时中, publishing:发布中, published:已发布, failed:失败
+  publishData String? // 各平台发布数据(JSON)
+  error       String? // 错误信息
+  publishedAt DateTime? // 实际发布时间
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  account      SocialMediaAccount @relation(fields: [accountId], references: [id])
+  account SocialMediaAccount @relation(fields: [accountId], references: [id])
 
   @@index([accountId])
   @@index([status])
@@ -716,18 +712,18 @@ model SocialMediaPost {
 
 // 新媒体发布记录（支持多平台同时发布）
 model SocialMediaPublishLog {
-  id         String   @id @default(cuid())
-  postId     String   // 关联内容ID
-  platform   String   // 目标平台: douyin, xiaohongshu, wechat
-  accountId  String   // 使用的账号ID
-  status     String   @default("pending") // pending:待发布, publishing:发布中, success:成功, failed:失败
+  id               String    @id @default(cuid())
+  postId           String // 关联内容ID
+  platform         String // 目标平台: douyin, xiaohongshu, wechat
+  accountId        String // 使用的账号ID
+  status           String    @default("pending") // pending:待发布, publishing:发布中, success:成功, failed:失败
   postIdOnPlatform String? // 平台返回的内容ID
-  postUrl    String?  // 平台内容链接
-  error      String?  // 错误信息
-  retryCount Int      @default(0) // 重试次数
-  publishedAt DateTime? // 发布时间
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  postUrl          String? // 平台内容链接
+  error            String? // 错误信息
+  retryCount       Int       @default(0) // 重试次数
+  publishedAt      DateTime? // 发布时间
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([postId])
   @@index([platform])
@@ -739,31 +735,31 @@ model SocialMediaPublishLog {
 
 // 支付订单（独立于收款记录，用于在线支付）
 model PaymentOrder {
-  id              String   @id @default(cuid())
-  contractId      String?  // 关联合同ID（可选）
-  orderNo         String   @unique // 订单号
-  amount          Float    // 支付金额
-  paymentMethod   String   // 支付方式: wechat, alipay, bank
-  paymentChannel  String?  // 支付渠道: wechat_pay, alipay_sign, bank_transfer
-  status          String   @default("pending") // pending:待支付, paid:已支付, cancelled:已取消, refunded:已退款, expired:已过期
-  qrCodeUrl       String?  // 二维码URL
-  qrCodeData      String?  // 二维码数据（用于生成）
-  transactionId   String?  // 第三方交易ID
-  prepayId        String?  // 预支付ID（微信）
-  outTradeNo      String?  // 商户订单号
-  paidAt          DateTime? // 支付时间
-  expiredAt       DateTime? // 过期时间
-  clientIp        String?  // 客户端IP
-  returnUrl       String?  // 支付完成跳转URL
-  notifyUrl       String?  // 异步通知URL
-  body            String?  // 订单描述
-  attach          String?  // 附加数据
-  error           String?  // 错误信息
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String    @id @default(cuid())
+  contractId     String? // 关联合同ID（可选）
+  orderNo        String    @unique // 订单号
+  amount         Float // 支付金额
+  paymentMethod  String // 支付方式: wechat, alipay, bank
+  paymentChannel String? // 支付渠道: wechat_pay, alipay_sign, bank_transfer
+  status         String    @default("pending") // pending:待支付, paid:已支付, cancelled:已取消, refunded:已退款, expired:已过期
+  qrCodeUrl      String? // 二维码URL
+  qrCodeData     String? // 二维码数据（用于生成）
+  transactionId  String? // 第三方交易ID
+  prepayId       String? // 预支付ID（微信）
+  outTradeNo     String? // 商户订单号
+  paidAt         DateTime? // 支付时间
+  expiredAt      DateTime? // 过期时间
+  clientIp       String? // 客户端IP
+  returnUrl      String? // 支付完成跳转URL
+  notifyUrl      String? // 异步通知URL
+  body           String? // 订单描述
+  attach         String? // 附加数据
+  error          String? // 错误信息
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // 关联收款记录（支付成功后创建）
-  paymentId       String?
+  paymentId String?
 
   @@index([contractId])
   @@index([orderNo])
@@ -775,20 +771,20 @@ model PaymentOrder {
 
 // 支付配置（扩展PaymentAccount）
 model PaymentConfig {
-  id              String   @id @default(cuid())
-  paymentMethod   String   // 支付方式: wechat, alipay
-  paymentChannel  String   // 支付渠道
-  appId           String?  // 应用ID
-  appSecret       String?  // 应用密钥(加密存储)
-  merchantId      String?  // 商户ID
-  apiKey          String?  // API密钥(加密存储)
-  certPath        String?  // 证书路径
-  notifyUrl       String?  // 默认回调地址
-  returnUrl       String?  // 默认返回地址
-  sandbox         Boolean  @default(false) // 是否沙箱环境
-  status          Int      @default(1) // 1:启用 0:禁用
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  paymentMethod  String // 支付方式: wechat, alipay
+  paymentChannel String // 支付渠道
+  appId          String? // 应用ID
+  appSecret      String? // 应用密钥(加密存储)
+  merchantId     String? // 商户ID
+  apiKey         String? // API密钥(加密存储)
+  certPath       String? // 证书路径
+  notifyUrl      String? // 默认回调地址
+  returnUrl      String? // 默认返回地址
+  sandbox        Boolean  @default(false) // 是否沙箱环境
+  status         Int      @default(1) // 1:启用 0:禁用
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([paymentMethod])
   @@index([status])
@@ -797,15 +793,15 @@ model PaymentConfig {
 
 // 支付回调日志
 model PaymentCallbackLog {
-  id          String   @id @default(cuid())
-  orderId     String   // 支付订单ID
+  id            String   @id @default(cuid())
+  orderId       String // 支付订单ID
   paymentMethod String // 支付方式
-  status      String   // success, failed, pending
-  rawData     String   // 原始回调数据(JSON)
-  responseData String? // 响应数据
-  error       String?  // 错误信息
-  ip          String?  // 回调来源IP
-  createdAt   DateTime @default(now())
+  status        String // success, failed, pending
+  rawData       String // 原始回调数据(JSON)
+  responseData  String? // 响应数据
+  error         String? // 错误信息
+  ip            String? // 回调来源IP
+  createdAt     DateTime @default(now())
 
   @@index([orderId])
   @@index([paymentMethod])
@@ -817,38 +813,38 @@ model PaymentCallbackLog {
 
 // CMS 内容主表
 model CmsContent {
-  id          String      @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
-  slug        String      @unique
-  content     String      // SQLite 不支持 @db.Text，改用普通 String
-  excerpt     String?     // 摘要
-  coverImage  String?     // 封面图 URL
-  status      String      @default("DRAFT") // SQLite 不支持枚举，改用 String: DRAFT, PUBLISHED, ARCHIVED
-  contentType String      // SQLite 不支持枚举，改用 String: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE, PAGE_ELEMENT
+  slug        String  @unique
+  content     String // SQLite 不支持 @db.Text，改用普通 String
+  excerpt     String? // 摘要
+  coverImage  String? // 封面图 URL
+  status      String  @default("DRAFT") // SQLite 不支持枚举，改用 String: DRAFT, PUBLISHED, ARCHIVED
+  contentType String // SQLite 不支持枚举，改用 String: ARTICLE, CASE_STUDY, PRODUCT_SHOWCASE, PROFILE, PAGE_ELEMENT
   authorId    String
 
   // 关联引用（可选）
-  productId   String?     // 引用现有产品（仅产品展示类型使用）
-  userId      String?     // 引用现有用户（仅人员介绍类型使用）
-  contractId  String?     // 引用已签合同（仅案例类型使用，展示客户案例）
+  productId  String? // 引用现有产品（仅产品展示类型使用）
+  userId     String? // 引用现有用户（仅人员介绍类型使用）
+  contractId String? // 引用已签合同（仅案例类型使用，展示客户案例）
 
   // SEO 字段
-  metaTitle   String?
-  metaDesc    String?
-  keywords    String?
+  metaTitle String?
+  metaDesc  String?
+  keywords  String?
 
   // 发布信息
   publishedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  author         User                  @relation("CmsContentAuthor", fields: [authorId], references: [id])
-  product        Product?              @relation("CmsProductShowcase", fields: [productId], references: [id])
-  userProfile    User?                 @relation("CmsUserProfile", fields: [userId], references: [id])
-  contract       Contract?             @relation("CmsContractCase", fields: [contractId], references: [id])
-  tags           CmsContentTag[]
-  previewTokens  CmsContentPreviewToken[] @relation("ContentPreviewTokens")
-  versions       CmsContentVersion[]     @relation("ContentVersions")
+  author        User                     @relation("CmsContentAuthor", fields: [authorId], references: [id])
+  product       Product?                 @relation("CmsProductShowcase", fields: [productId], references: [id])
+  userProfile   User?                    @relation("CmsUserProfile", fields: [userId], references: [id])
+  contract      Contract?                @relation("CmsContractCase", fields: [contractId], references: [id])
+  tags          CmsContentTag[]
+  previewTokens CmsContentPreviewToken[] @relation("ContentPreviewTokens")
+  versions      CmsContentVersion[]      @relation("ContentVersions")
 
   @@index([status])
   @@index([contentType])
@@ -859,15 +855,15 @@ model CmsContent {
 
 // 统一标签系统
 model CmsTag {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  color       String?  // 标签颜色（前端展示）
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  color     String? // 标签颜色（前端展示）
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  contents    CmsContentTag[]
+  contents CmsContentTag[]
 
   @@index([sortOrder])
   @@map("cms_tags")
@@ -875,12 +871,12 @@ model CmsTag {
 
 // 内容-标签关联表
 model CmsContentTag {
-  contentId   String
-  tagId       String
-  createdAt   DateTime @default(now())
+  contentId String
+  tagId     String
+  createdAt DateTime @default(now())
 
-  content     CmsContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  tag         CmsTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  content CmsContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     CmsTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([contentId, tagId])
   @@index([contentId])
@@ -897,27 +893,27 @@ model CmsContentTag {
 
 // CMS 页面主表
 model CmsPage {
-  id          String   @id @default(cuid())
-  name        String   // 页面名称（内部标识）
-  title       String   // 页面标题
-  slug        String   @unique // URL 路径 (如: homepage, about)
-  description String?  // 页面描述
-  status      String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  id          String    @id @default(cuid())
+  name        String // 页面名称（内部标识）
+  title       String // 页面标题
+  slug        String    @unique // URL 路径 (如: homepage, about)
+  description String? // 页面描述
+  status      String    @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // SEO 字段
-  metaTitle   String?
-  metaDesc    String?
-  keywords    String?
-  ogImage     String?
+  metaTitle String?
+  metaDesc  String?
+  keywords  String?
+  ogImage   String?
 
   // 模板字段
-  template    String?  // homepage, about, contact, custom
+  template String? // homepage, about, contact, custom
 
-  elements       CmsPageElement[]        @relation("CmsPageElements")
-  previewTokens  CmsPagePreviewToken[]   @relation("PagePreviewTokens")
+  elements      CmsPageElement[]      @relation("CmsPageElements")
+  previewTokens CmsPagePreviewToken[] @relation("PagePreviewTokens")
 
   @@index([status])
   @@index([slug])
@@ -927,17 +923,17 @@ model CmsPage {
 // CMS 页面元素表（用于存储页面各区域内容）
 model CmsPageElement {
   id          String   @id @default(cuid())
-  pageId      String   // 所属页面ID
-  sectionType String   // 区域类型: HERO, STATS, FEATURES, CTA, TESTIMONIALS, PARTNERS, CONTACT
-  elementType String   // 元素类型: heading, text, button, image, card, list, statistic, testimonial
+  pageId      String // 所属页面ID
+  sectionType String // 区域类型: HERO, STATS, FEATURES, CTA, TESTIMONIALS, PARTNERS, CONTACT
+  elementType String // 元素类型: heading, text, button, image, card, list, statistic, testimonial
   sortOrder   Int      @default(0) // 排序
-  content     String?  // 元素内容（JSON 格式，存储动态数据）
-  styleConfig String?  // 样式配置（JSON 格式，存储颜色、布局等）
+  content     String? // 元素内容（JSON 格式，存储动态数据）
+  styleConfig String? // 样式配置（JSON 格式，存储颜色、布局等）
   visible     Boolean  @default(true) // 是否显示
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  page        CmsPage  @relation("CmsPageElements", fields: [pageId], references: [id], onDelete: Cascade)
+  page CmsPage @relation("CmsPageElements", fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([pageId])
   @@index([sectionType])
@@ -954,7 +950,7 @@ model CmsContentPreviewToken {
   expiresAt DateTime // 30分钟后过期
   createdAt DateTime @default(now())
 
-  content   CmsContent @relation("ContentPreviewTokens", fields: [contentId], references: [id], onDelete: Cascade)
+  content CmsContent @relation("ContentPreviewTokens", fields: [contentId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([expiresAt])
@@ -968,7 +964,7 @@ model CmsPagePreviewToken {
   expiresAt DateTime // 30分钟后过期
   createdAt DateTime @default(now())
 
-  page      CmsPage @relation("PagePreviewTokens", fields: [pageId], references: [id], onDelete: Cascade)
+  page CmsPage @relation("PagePreviewTokens", fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([expiresAt])
@@ -978,9 +974,9 @@ model CmsPagePreviewToken {
 // ==================== CMS 内容版本历史 ====================
 
 model CmsContentVersion {
-  id          String   @id @default(cuid())
-  contentId   String
-  version     Int      // 版本号
+  id        String @id @default(cuid())
+  contentId String
+  version   Int // 版本号
 
   // 内容快照
   title       String
@@ -992,24 +988,24 @@ model CmsContentVersion {
   contentType String
 
   // 关联快照
-  productId   String?
-  userId      String?
-  contractId  String?
+  productId  String?
+  userId     String?
+  contractId String?
 
   // SEO 快照
-  metaTitle   String?
-  metaDesc    String?
-  keywords    String?
+  metaTitle String?
+  metaDesc  String?
+  keywords  String?
 
   // 标签快照（JSON 存储）
-  tagSnapshot String?  // JSON 数组，存储当时的标签
+  tagSnapshot String? // JSON 数组，存储当时的标签
 
   // 元数据
-  createdAt   DateTime @default(now())
-  createdBy   String   // 创建版本的用户 ID
-  changeNote  String?  // 变更说明
+  createdAt  DateTime @default(now())
+  createdBy  String // 创建版本的用户 ID
+  changeNote String? // 变更说明
 
-  contentRelation  CmsContent @relation("ContentVersions", fields: [contentId], references: [id], onDelete: Cascade)
+  contentRelation CmsContent @relation("ContentVersions", fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([contentId, version])
   @@index([contentId])
@@ -1037,17 +1033,17 @@ model CustomerRule {
 // ==================== e签宝电子签名 ====================
 
 model EsignRecord {
-  id          String   @id @default(cuid())
-  contractId  String   @unique
-  flowId      String   // e签宝流程ID
-  status      String   @default("DRAFT") // 签署状态: DRAFT, SIGNING, COMPLETED, FAILED, CANCELLED
-  signUrl     String?  // 签署URL
-  signedAt    DateTime? // 签署完成时间
-  remark      String?  // 备注
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(cuid())
+  contractId String    @unique
+  flowId     String // e签宝流程ID
+  status     String    @default("DRAFT") // 签署状态: DRAFT, SIGNING, COMPLETED, FAILED, CANCELLED
+  signUrl    String? // 签署URL
+  signedAt   DateTime? // 签署完成时间
+  remark     String? // 备注
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
   @@index([contractId])
   @@index([flowId])
@@ -1058,18 +1054,18 @@ model EsignRecord {
 // ==================== 变更记录 ====================
 
 model ChangeLog {
-  id          String   @id @default(cuid())
-  entityType  String   // 实体类型: Customer, Product, Contract, etc.
-  entityId    String   // 实体ID
-  fieldName   String   // 字段名称
-  oldValue    String?  // 变更前的值（JSON字符串）
-  newValue    String?  // 变更后的值（JSON字符串）
-  changedBy   String   // 操作人ID
-  changeType  String   // CREATE, UPDATE, DELETE
-  reason      String?  // 变更原因
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  entityType String // 实体类型: Customer, Product, Contract, etc.
+  entityId   String // 实体ID
+  fieldName  String // 字段名称
+  oldValue   String? // 变更前的值（JSON字符串）
+  newValue   String? // 变更后的值（JSON字符串）
+  changedBy  String // 操作人ID
+  changeType String // CREATE, UPDATE, DELETE
+  reason     String? // 变更原因
+  createdAt  DateTime @default(now())
 
-  changedByUser User?   @relation("ChangeLogUser", fields: [changedBy], references: [id])
+  changedByUser User? @relation("ChangeLogUser", fields: [changedBy], references: [id])
 
   @@index([entityType, entityId])
   @@index([changedBy])

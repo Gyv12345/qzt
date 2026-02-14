@@ -5,8 +5,7 @@
   "workspaces": [
     "packages/*",
     "backend",
-    "frontend",
-    "website"
+    "frontend"
   ],
   "scripts": {
     "backend": "cd backend && pnpm run start:dev",
@@ -16,8 +15,7 @@
     "prepare": "husky",
     "build:backend": "cd backend && pnpm run build",
     "build:frontend": "cd frontend && pnpm run build",
-    "build:website": "cd website && pnpm run build",
-    "build": "concurrently \"pnpm run build:backend\" \"pnpm run build:frontend\" \"pnpm run build:website\""
+    "build": "concurrently \"pnpm run build:backend\" \"pnpm run build:frontend\" "
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.11",
