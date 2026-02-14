@@ -216,7 +216,6 @@ git checkout -b hotfix/critical-bug
 |-------|------|
 | `backend` | 后端相关 |
 | `frontend` | 前端相关 |
-| `website` | 网站相关 |
 | `shared-types` | 共享类型 |
 | `deploy` | 部署相关 |
 | `docs` | 文档 |

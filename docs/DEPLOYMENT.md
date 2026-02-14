@@ -138,7 +138,6 @@ pm2 status
 ├────┼───────────────┼─────┼─────────┤
 │ 0  │ qzt-backend   │ cluster│ online│
 │ 1  │ qzt-backend   │ cluster│ online│
-│ 2  │ qzt-website   │ fork  │ online│
 └────┴───────────────┴─────┴─────────┘
 ```
 

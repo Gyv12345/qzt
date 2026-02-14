@@ -53,7 +53,6 @@
 |------|------|------|
 | [backend](./backend/) | NestJS 后端 API 服务 | [中文](./backend/README.md) · [English](./backend/README.en.md) |
 | [frontend](./frontend/) | React 管理后台 | [中文](./frontend/README.md) · [English](./frontend/README.en.md) |
-| [website](./website/) | Next.js 官方网站 | [中文](./website/README.md) · [English](./website/README.en.md) |
 | [packages](./packages/) | Monorepo 共享包 | [中文](./packages/README.md) · [English](./packages/README.en.md) |
 
 ---
@@ -434,7 +433,6 @@ pm2 status
 
 # 查看日志
 pm2 logs qzt-backend      # 后端日志
-pm2 logs qzt-website      # 网站日志
 
 # 重启服务
 pm2 restart all           # 重启所有
@@ -449,7 +447,6 @@ pm2 monit
 | 服务 | 日志路径 |
 |------|---------|
 | 后端应用 | `/opt/qzt/backend/logs/` |
-| 网站应用 | `/opt/qzt/website/logs/` |
 | Nginx 主站 | `/var/log/nginx/域名-access.log` |
 | Nginx 管理后台 | `/var/log/nginx/admin.域名-access.log` |
 | 系统日志 | `journalctl -u nginx -f` |

@@ -14,7 +14,6 @@
 |------|------|------|
 | 前端 | 3456 | React + Vite |
 | 后端 | 7890 | NestJS |
-| 网站 | 5180 | Next.js 15 |
 
 **包管理器**：pnpm（npm 很慢）
 
@@ -77,14 +76,13 @@ features/{module}/
 
 ### 快速清理
 ```bash
-rm -rf website/.next frontend/node_modules/.vite frontend/node_modules/.cache logs/*
+rm -rf frontend/node_modules/.vite frontend/node_modules/.cache logs/*
 find . -name ".DS_Store" -delete && find . -name "*.iml" -delete
 ```
 
 ### 可删除文件
 | 文件 | 说明 |
 |------|------|
-| `website/.next/` | 构建产物 |
 | `frontend/node_modules/.vite/` | Vite 缓存 |
 | `logs/*` | 日志 |
 | `.DS_Store`, `*.iml` | 系统/IDE 文件 |
@@ -98,7 +96,7 @@ find . -name ".DS_Store" -delete && find . -name "*.iml" -delete
 
 ### 依赖版本
 ```bash
-pnpm add -F backend|shadcn-admin|website|shared-types <package>@<version>
+pnpm add -F backend|shadcn-admin|shared-types <package>@<version>
 # 当前: Zod ^4.3.6, React ^19.2.3-4, Axios ^1.13.4
 ```
 
@@ -276,19 +274,6 @@ function Component() {
 
 ```bash
 cd backend && pnpm prisma generate && pnpm prisma db push
-```
-
----
-
-## Website（公司网站）
-
-- Next.js 15 + Tailwind v4 + shadcn/ui
-- 端口 5180
-- 使用 `fetch` + ISR（不用 Orval）
-- 路由：`/`, `/articles`, `/articles/[slug]`, `/cases`, `/cases/[slug]`
-
-```bash
-cd website && pnpm dev/build
 ```
 
 ---

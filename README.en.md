@@ -53,7 +53,6 @@ A modern CRM system developed with **Claude Code** + **Zhipu GLM-4.7 (Chinese Op
 |--------|-------------|------|
 | [backend](./backend/) | NestJS Backend API | [English](./backend/README.en.md) · [中文](./backend/README.md) |
 | [frontend](./frontend/) | React Admin Dashboard | [English](./frontend/README.en.md) · [中文](./frontend/README.md) |
-| [website](./website/) | Next.js Official Website | [English](./website/README.en.md) · [中文](./website/README.md) |
 | [packages](./packages/) | Monorepo Shared Packages | [English](./packages/README.en.md) · [中文](./packages/README.md) |
 
 ---

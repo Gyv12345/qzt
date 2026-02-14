@@ -6,7 +6,7 @@ description: 企智通项目全栈开发。后端 NestJS + Prisma，前端 React
 ## 快速开始
 
 ```bash
-./start-dev.sh    # 启动（前端 3456，后端 7890，网站 5180）
+./start-dev.sh    # 启动（前端 3456，后端 7890）
 ```
 
 ## 开发流程
@@ -90,7 +90,7 @@ cd frontend && pnpm run generate:api
 cd backend && pnpm prisma generate && pnpm prisma db push
 
 # 项目清理
-rm -rf website/.next frontend/node_modules/.vite frontend/node_modules/.cache logs/*
+rm -rf frontend/node_modules/.vite frontend/node_modules/.cache logs/*
 ```
 
 ## 项目维护
@@ -98,7 +98,6 @@ rm -rf website/.next frontend/node_modules/.vite frontend/node_modules/.cache lo
 ### 可安全删除
 | 文件 | 说明 |
 |------|------|
-| `website/.next/` | 构建产物 |
 | `frontend/node_modules/.vite/` | Vite 缓存 |
 | `logs/*`, `.DS_Store`, `*.iml` | 日志/系统文件 |
 | `package-lock.json` | 冗余（用 pnpm） |
@@ -111,7 +110,7 @@ rm -rf website/.next frontend/node_modules/.vite frontend/node_modules/.cache lo
 
 ### 依赖版本
 ```bash
-pnpm add -F backend|shadcn-admin|website|shared-types <package>@<version>
+pnpm add -F backend|shadcn-admin|shared-types <package>@<version>
 # 当前: Zod ^4.3.6, React ^19.2.3-4, Axios ^1.13.4
 ```
 
