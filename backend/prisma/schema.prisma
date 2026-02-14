@@ -5,10 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" // 默认使用 SQLite（开发环境）
-  // 生产环境部署时：
-  // 1. 将 provider 改为 "mysql"
-  // 2. 设置 DATABASE_URL 为 MySQL 连接字符串
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 

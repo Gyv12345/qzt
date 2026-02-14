@@ -2,16 +2,12 @@
 
 database:
   # 数据库类型: sqlite | mysql
-  type: sqlite
+  type: mysql
 
-  # SQLite 配置
-  sqlite:
-    path: /Users/shichenyang/WebstormProjects/qzt/backend/prisma/dev.db
-
-  # MySQL 配置（生产环境）
-  # mysql:
-  #   host: localhost
-  #   port: 3306
-  #   database: qzt_prod
-  #   user: root
-  #   password: your_password
+  # MySQL 配置
+  mysql:
+    host: rm-f8zy67b6vb06r1a82io.mysql.rds.aliyuncs.com
+    port: 3306
+    database: qzt
+    user: yt4j
+    password: "!Shijie123456"
