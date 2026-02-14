@@ -77,7 +77,6 @@ show_usage() {
     echo "端口配置:"
     echo "  后端: 7890"
     echo "  前端: 3456"
-    echo "  网站: 5180"
     echo ""
 }
 
@@ -115,19 +114,6 @@ show_status() {
         echo "  端口: $FRONTEND_PORT"
     fi
     echo ""
-
-    # 检查网站
-    WEBSITE_PORT=5180
-    if is_running $WEBSITE_PORT; then
-        echo -e "${GREEN}✓ 网站运行中${NC}"
-        echo "  端口: $WEBSITE_PORT"
-        echo "  PID: $(get_pid_by_port $WEBSITE_PORT)"
-        echo "  URL: http://localhost:$WEBSITE_PORT"
-    else
-        echo -e "${RED}✗ 网站未运行${NC}"
-        echo "  端口: $WEBSITE_PORT"
-    fi
-    echo ""
 }
 
 # 查看日志
@@ -149,7 +135,6 @@ show_logs() {
     echo "实时查看日志:"
     echo "  后端: tail -f $LOG_DIR/backend_latest.log"
     echo "  前端: tail -f $LOG_DIR/frontend_latest.log"
-    echo "  网站: tail -f $LOG_DIR/website_latest.log"
 }
 
 # 项目根目录
@@ -164,12 +149,10 @@ mkdir -p "$LOG_DIR"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKEND_LOG="$LOG_DIR/backend_${TIMESTAMP}.log"
 FRONTEND_LOG="$LOG_DIR/frontend_${TIMESTAMP}.log"
-WEBSITE_LOG="$LOG_DIR/website_${TIMESTAMP}.log"
 
 # 最新日志的软链接
 BACKEND_LOG_LATEST="$LOG_DIR/backend_latest.log"
 FRONTEND_LOG_LATEST="$LOG_DIR/frontend_latest.log"
-WEBSITE_LOG_LATEST="$LOG_DIR/website_latest.log"
 
 # 主命令处理
 COMMAND=${1:-start}
@@ -232,32 +215,6 @@ case "$COMMAND" in
         fi
 
         echo ""
-
-        # 检查网站（默认端口5180）
-        WEBSITE_PORT=5180
-        if is_running $WEBSITE_PORT; then
-            echo -e "${YELLOW}⚠ 网站已在端口 $WEBSITE_PORT 运行，跳过启动${NC}"
-        else
-            echo -e "${GREEN}▶ 启动网站服务...${NC}"
-            cd "$ROOT_DIR/website"
-            # 使用 UTF-8 编码重定向日志
-            PORT=$WEBSITE_PORT pnpm dev > "$WEBSITE_LOG" 2>&1 &
-            WEBSITE_PID=$!
-            ln -sf "$(basename "$WEBSITE_LOG")" "$WEBSITE_LOG_LATEST"
-            echo "  PID: $WEBSITE_PID"
-            echo "  日志: $WEBSITE_LOG_LATEST"
-
-            # 等待网站启动
-            for i in {1..30}; do
-                if is_running $WEBSITE_PORT; then
-                    echo -e "${GREEN}✓ 网站启动成功 (端口 $WEBSITE_PORT)${NC}"
-                    break
-                fi
-                sleep 1
-            done
-        fi
-
-        echo ""
         echo -e "${CYAN}================================${NC}"
         echo -e "${GREEN}✓ 开发环境启动完成${NC}"
         echo -e "${CYAN}================================${NC}"
@@ -265,12 +222,10 @@ case "$COMMAND" in
         echo -e "${BLUE}🌐 服务地址:${NC}"
         echo "  后端: http://localhost:$BACKEND_PORT"
         echo "  前端: http://localhost:$FRONTEND_PORT"
-        echo "  网站: http://localhost:$WEBSITE_PORT"
         echo ""
         echo -e "${BLUE}📝 查看日志:${NC}"
         echo "  后端: tail -f $BACKEND_LOG_LATEST"
         echo "  前端: tail -f $FRONTEND_LOG_LATEST"
-        echo "  网站: tail -f $WEBSITE_LOG_LATEST"
         echo ""
         ;;
 
@@ -283,8 +238,6 @@ case "$COMMAND" in
         stop_service "后端" 7890
         echo ""
         stop_service "前端" 3456
-        echo ""
-        stop_service "网站" 5180
 
         echo ""
         echo -e "${GREEN}✓ 开发环境已停止${NC}"
@@ -300,8 +253,6 @@ case "$COMMAND" in
         stop_service "后端" 7890
         echo ""
         stop_service "前端" 3456
-        echo ""
-        stop_service "网站" 5180
 
         echo ""
         echo -e "${YELLOW}等待 2 秒后重启...${NC}"
