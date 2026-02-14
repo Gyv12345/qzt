@@ -14,9 +14,14 @@ export class PrismaService
 
   async onModuleInit() {
     await this.$connect();
-    // 启用SQLite外键约束
-    await this.$executeRawUnsafe("PRAGMA foreign_keys = ON");
-    console.log("✅ Database connected successfully");
+
+    // SQLite 需要手动启用外键约束，MySQL 默认启用
+    const provider = process.env.DATABASE_PROVIDER || "sqlite";
+    if (provider === "sqlite") {
+      await this.$executeRawUnsafe("PRAGMA foreign_keys = ON");
+    }
+
+    console.log(`✅ Database connected successfully (${provider})`);
   }
 
   async onModuleDestroy() {

@@ -28,15 +28,14 @@ const PERMISSION_CONFIG: Record<string, string[]> = {
     "batchAssign",
   ],
   contracts: ["view", "create", "edit", "delete", "updatePayment", "detail"],
-  "service-teams": ["view", "create", "edit", "delete"],
   invoices: ["view", "create", "edit", "delete", "detail"],
   payments: ["view", "create", "edit", "delete", "confirm", "detail"],
-  cms: ["view", "create", "edit"],
   products: ["view", "create", "edit", "delete", "detail"],
   "contract-templates": ["view", "create", "edit", "preview"],
   webhooks: ["view", "create"],
   users: ["view", "create", "createBatch", "edit", "delete"],
   roles: ["view", "create", "edit", "delete"],
+  menus: ["view", "create", "edit", "delete"],
   // 日志类只有 view
   "login-logs": ["view"],
   "operation-logs": ["view"],
@@ -117,17 +116,7 @@ const MENU_DATA = [
     enabled: true,
     type: "menu",
   },
-  {
-    name: "服务团队",
-    path: "/service-teams",
-    groupTitle: "业务",
-    groupI18nKey: "menu.sidebar.business",
-    i18nKey: "menu.sidebar.serviceTeams",
-    icon: "UsersRound",
-    sort: 7,
-    enabled: true,
-    type: "menu",
-  },
+
   {
     name: "发票管理",
     path: "/invoices",
@@ -152,50 +141,10 @@ const MENU_DATA = [
   },
 
   // === 内容管理分组 ===
-  {
-    name: "文章管理",
-    path: "/cms",
-    groupTitle: "内容管理",
-    groupI18nKey: "menu.sidebar.content",
-    i18nKey: "menu.sidebar.cms",
-    icon: "FileText",
-    sort: 20,
-    enabled: true,
-    type: "menu",
-  },
-  {
-    name: "页面管理",
-    path: "/cms/pages",
-    groupTitle: "内容管理",
-    groupI18nKey: "menu.sidebar.content",
-    i18nKey: "menu.sidebar.cmsPages",
-    icon: "Layout",
-    sort: 21,
-    enabled: true,
-    type: "menu",
-  },
-  {
-    name: "标签管理",
-    path: "/cms/tags",
-    groupTitle: "内容管理",
-    groupI18nKey: "menu.sidebar.content",
-    i18nKey: "menu.sidebar.cmsTags",
-    icon: "Tag",
-    sort: 22,
-    enabled: true,
-    type: "menu",
-  },
-  {
-    name: "新媒体管理",
-    path: "/social-media",
-    groupTitle: "内容管理",
-    groupI18nKey: "menu.sidebar.content",
-    i18nKey: "menu.sidebar.socialMedia",
-    icon: "Share2",
-    sort: 23,
-    enabled: true,
-    type: "menu",
-  },
+
+
+
+
 
   // === 业务设置分组 ===
   {
@@ -274,6 +223,17 @@ const MENU_DATA = [
     i18nKey: "menu.sidebar.roles",
     icon: "ShieldCheck",
     sort: 42,
+    enabled: true,
+    type: "menu",
+  },
+  {
+    name: "菜单管理",
+    path: "/menus",
+    groupTitle: "系统设置",
+    groupI18nKey: "menu.sidebar.systemSettings",
+    i18nKey: "menu.sidebar.menus",
+    icon: "Menu",
+    sort: 43,
     enabled: true,
     type: "menu",
   },

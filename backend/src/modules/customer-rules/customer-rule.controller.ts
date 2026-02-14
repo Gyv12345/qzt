@@ -47,14 +47,6 @@ class CustomerRuleResponse {
   updatedAt: Date;
 }
 
-class InitializeResultResponse {
-  @ApiProperty()
-  action: "created" | "skipped";
-
-  @ApiProperty()
-  rule: CustomerRuleResponse;
-}
-
 @ApiTags("customer-rules")
 @Controller("customer-rules")
 @UseGuards(JwtAuthGuard)
@@ -104,17 +96,6 @@ export class CustomerRuleController {
   })
   create(@Body() createCustomerRuleDto: CreateCustomerRuleDto) {
     return this.customerRuleService.create(createCustomerRuleDto);
-  }
-
-  @Post("initialize")
-  @ApiOperation({ summary: "初始化预设规则" })
-  @ApiResponse({
-    status: 201,
-    description: "初始化成功",
-    type: [InitializeResultResponse],
-  })
-  initializeDefaultRules() {
-    return this.customerRuleService.initializeDefaultRules();
   }
 
   @Patch(":id")

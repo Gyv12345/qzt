@@ -76,54 +76,6 @@ export class CustomerRuleService {
   }
 
   /**
-   * 初始化预设规则
-   */
-  async initializeDefaultRules() {
-    const defaultRules = [
-      {
-        code: "follow_up_days",
-        title: "跟进天数",
-        description: "客户跟进间隔天数提醒",
-        daysValue: 7,
-        enabled: true,
-      },
-      {
-        code: "message_reminder",
-        title: "消息提醒天数",
-        description: "未收到消息自动提醒天数",
-        daysValue: 3,
-        enabled: true,
-      },
-      {
-        code: "inactive_restart",
-        title: "失效客户重启天数",
-        description: "客户长时间未联系后的重新启动天数",
-        daysValue: 30,
-        enabled: true,
-      },
-    ];
-
-    const results = [];
-
-    for (const rule of defaultRules) {
-      const existing = await this.prisma.customerRule.findUnique({
-        where: { code: rule.code },
-      });
-
-      if (!existing) {
-        const created = await this.prisma.customerRule.create({
-          data: rule,
-        });
-        results.push({ action: "created", rule: created });
-      } else {
-        results.push({ action: "skipped", rule: existing });
-      }
-    }
-
-    return results;
-  }
-
-  /**
    * 删除规则（谨慎使用）
    */
   async remove(id: number) {
