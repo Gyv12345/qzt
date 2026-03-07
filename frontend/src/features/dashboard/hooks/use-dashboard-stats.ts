@@ -42,3 +42,18 @@ export function useSalesPerformance(params?: {
     },
   });
 }
+
+// 产品销售统计
+export function useProductSalesStats(params?: {
+  startDate?: string;
+  endDate?: string;
+}) {
+  return useQuery({
+    queryKey: ["product-sales", params],
+    queryFn: async () => {
+      const { statisticsControllerGetProductSalesStats } = getScrmApi();
+      // API 拦截器已自动提取 response.data
+      return await statisticsControllerGetProductSalesStats(params);
+    },
+  });
+}

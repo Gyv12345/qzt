@@ -75,6 +75,12 @@ export class StatisticsController {
     return this.statisticsService.getProductSalesStats(start, end);
   }
 
+  @Get("contract-status")
+  @ApiOperation({ summary: "获取合同状态分布" })
+  getContractStatusDistribution() {
+    return this.statisticsService.getContractStatusDistribution();
+  }
+
   @Get("export")
   @ApiOperation({ summary: "导出数据" })
   @ApiQuery({

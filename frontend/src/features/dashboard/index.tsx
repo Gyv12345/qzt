@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Overview } from "./components/overview";
 import { StatsCards } from "./components/stats-cards";
 import { CustomerGrowthChart } from "./components/customer-growth-chart";
+import { SalesPerformanceChart } from "./components/sales-performance-chart";
+import { ProductSalesChart } from "./components/product-sales-chart";
+import { ContractStatusChart } from "./components/contract-status-chart";
+import { QuickActions } from "./components/quick-actions";
 import { useDashboardStats } from "./hooks/use-dashboard-stats";
 
 export function Dashboard() {
@@ -46,20 +50,30 @@ export function Dashboard() {
       {/* 统计卡片 */}
       <StatsCards data={stats} isLoading={isLoading} />
 
-      {/* 图表区域 */}
+      {/* 快速操作 */}
+      <QuickActions />
+
+      {/* 图表区域 - 第一行 */}
       <div className="grid gap-4 md:grid-cols-2">
         <CustomerGrowthChart />
-
-        {/* 数据概览 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>数据概览</CardTitle>
-          </CardHeader>
-          <CardContent className="ps-2">
-            <Overview />
-          </CardContent>
-        </Card>
+        <ContractStatusChart />
       </div>
+
+      {/* 图表区域 - 第二行 */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <SalesPerformanceChart />
+        <ProductSalesChart />
+      </div>
+
+      {/* 数据概览 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>数据概览</CardTitle>
+        </CardHeader>
+        <CardContent className="ps-2">
+          <Overview />
+        </CardContent>
+      </Card>
 
       {/* 最近活动 */}
       {stats?.recentActivities && stats.recentActivities.length > 0 && (

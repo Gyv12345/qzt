@@ -508,6 +508,27 @@ export class StatisticsService {
   }
 
   /**
+   * 获取合同状态分布
+   */
+  async getContractStatusDistribution() {
+    const contracts = await this.prisma.contract.groupBy({
+      by: ["status"],
+      _count: {
+        id: true,
+      },
+      _sum: {
+        totalAmount: true,
+      },
+    });
+
+    return contracts.map((item) => ({
+      status: item.status,
+      count: item._count.id,
+      totalAmount: item._sum.totalAmount || 0,
+    }));
+  }
+
+  /**
    * 导出数据
    */
   async exportData(type: string, filters?: any) {
