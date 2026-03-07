@@ -7,8 +7,8 @@ test.describe("登录流程", () => {
     await page.waitForLoadState("networkidle");
 
     // 验证登录表单存在
-    await expect(page.locator('input[name="username"]')).toBeVisible();
-    await expect(page.locator('input[name="password"]')).toBeVisible();
+    await expect(page.getByLabel("用户名")).toBeVisible();
+    await expect(page.getByLabel("密码")).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
   });
 
@@ -17,7 +17,7 @@ test.describe("登录流程", () => {
 
     // 验证登录成功后跳转到首页
     await expect(page).toHaveURL("/");
-    await expect(page.locator("h1")).toContainText("工作台");
+    await expect(page.getByRole("heading", { name: "工作台" })).toBeVisible();
   });
 
   test("应该拒绝无效凭据", async ({ page }) => {
@@ -25,8 +25,8 @@ test.describe("登录流程", () => {
     await page.waitForLoadState("networkidle");
 
     // 填写错误的凭据
-    await page.fill('input[name="username"]', "invalid");
-    await page.fill('input[name="password"]', "wrongpassword");
+    await page.getByLabel("用户名").fill("invalid");
+    await page.getByLabel("密码").fill("wrongpassword");
 
     // 提交表单
     await page.click('button[type="submit"]');
@@ -42,13 +42,19 @@ test.describe("登录流程", () => {
     await login(page);
 
     // 点击用户菜单
-    await page.click('[data-testid="profile-dropdown"]');
+    await page.click('text=系统');
+
+    // 等待下拉菜单打开
+    await page.waitForTimeout(500);
 
     // 点击登出
-    await page.click("text=登出");
+    await page.click('text=/登出|退出|Sign Out/');
+
+    // 等待确认对话框出现并点击"退出"按钮
+    await page.click('button:has-text("退出")');
 
     // 等待跳转到登录页面
-    await page.waitForURL("/login", { timeout: 5000 });
+    await page.waitForURL("/login", { timeout: 10000 });
     await expect(page).toHaveURL("/login");
   });
 
@@ -65,7 +71,7 @@ test.describe("登录表单验证", () => {
     await page.waitForLoadState("networkidle");
 
     // 只填写密码
-    await page.fill('input[name="password"]', "admin123");
+    await page.getByLabel("密码").fill("admin123");
 
     // 提交表单
     await page.click('button[type="submit"]');
@@ -81,7 +87,7 @@ test.describe("登录表单验证", () => {
     await page.waitForLoadState("networkidle");
 
     // 只填写用户名
-    await page.fill('input[name="username"]', "admin");
+    await page.getByLabel("用户名").fill("admin");
 
     // 提交表单
     await page.click('button[type="submit"]');

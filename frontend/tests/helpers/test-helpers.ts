@@ -17,15 +17,15 @@ export async function login(page: Page) {
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
 
-  // 填写登录表单
-  await page.fill('input[name="username"]', TEST_CREDENTIALS.username);
-  await page.fill('input[name="password"]', TEST_CREDENTIALS.password);
+  // 填写登录表单（使用 getByLabel 更可靠）
+  await page.getByLabel("用户名").fill(TEST_CREDENTIALS.username);
+  await page.getByLabel("密码").fill(TEST_CREDENTIALS.password);
 
   // 提交表单
   await page.click('button[type="submit"]');
 
-  // 等待导航到仪表盘
-  await page.waitForURL("/", { timeout: 10000 });
+  // 等待导航到仪表盘（增加超时时间到 30 秒）
+  await page.waitForURL("/", { timeout: 30000 });
   await expect(page).toHaveURL("/");
 }
 

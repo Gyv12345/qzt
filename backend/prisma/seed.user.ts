@@ -15,6 +15,7 @@ const USER_DATA = {
   phone: "13800138000",
   status: "ACTIVE",
   isSystem: true,
+  hasCompletedFirstLogin: true, // 测试用户默认已完成首次登录流程
 };
 
 /**
@@ -91,6 +92,7 @@ async function main() {
       status: USER_DATA.status,
       isSystem: USER_DATA.isSystem,
       departmentId: department.id,
+      hasCompletedFirstLogin: USER_DATA.hasCompletedFirstLogin,
       // 不更新密码，保留已有的
     },
     create: {
@@ -102,6 +104,7 @@ async function main() {
       status: USER_DATA.status,
       isSystem: USER_DATA.isSystem,
       departmentId: department.id,
+      hasCompletedFirstLogin: USER_DATA.hasCompletedFirstLogin,
     },
   });
   console.log(`  ✓ 用户: ${user.name} (${user.username})`);
