@@ -627,6 +627,25 @@ model WebhookMessage {
   @@map("webhook_messages")
 }
 
+// Webhook 消息模板
+model WebhookTemplate {
+  id          String   @id @default(cuid())
+  name        String // 模板名称
+  code        String   @unique // 模板代码
+  platform    String // 平台: wecom, feishu, dingtalk, all
+  messageType String // 消息类型: text, markdown, card
+  content     String // 模板内容 (支持变量占位符 {{variable}})
+  variables   String? // 变量定义 (JSON)
+  description String? // 描述
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([platform])
+  @@index([code])
+  @@map("webhook_templates")
+}
+
 // ==================== OSS 文件管理 ====================
 
 model OssFile {

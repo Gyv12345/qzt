@@ -22,7 +22,7 @@ export default defineConfig({
   /* 共享设置 */
   use: {
     /* 基础 URL */
-    baseURL: "http://localhost:3456",
+    baseURL: "http://localhost:3458",
     /* 追踪选项 (失败时重试) */
     trace: "on-first-retry",
     /* 截图选项 (仅失败时) */
@@ -46,7 +46,7 @@ export default defineConfig({
   /* 本地开发时运行测试服务器 */
   webServer: {
     command: "pnpm run dev",
-    url: "http://localhost:3456",
+    url: "http://localhost:3458",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

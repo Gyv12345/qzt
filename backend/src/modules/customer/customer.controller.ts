@@ -56,6 +56,59 @@ export class CustomerController {
     );
   }
 
+  @Get("export")
+  @ApiOperation({ summary: "导出客户数据" })
+  async exportCustomers(@Query() query: QueryCustomerDto, @Request() req) {
+    const buffer = await this.customerService.exportCustomers(
+      query,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+    return new StreamableFile(buffer, {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      disposition: `attachment; filename="customers_${Date.now()}.xlsx"`,
+    });
+  }
+
+  @Get("import-template")
+  @ApiOperation({ summary: "下载客户导入模板" })
+  async downloadImportTemplate() {
+    const buffer = await this.customerService.generateImportTemplate();
+    return new StreamableFile(buffer, {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      disposition: `attachment; filename="customer_import_template.xlsx"`,
+    });
+  }
+
+  @Get("statistics/level-distribution")
+  @ApiOperation({ summary: "客户等级分布统计" })
+  getLevelDistribution(@Request() req) {
+    return this.customerService.getLevelDistribution(
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Get("statistics/conversion-rate")
+  @ApiOperation({ summary: "客户转化率分析" })
+  getConversionRate(@Query() query: { months?: number }, @Request() req) {
+    return this.customerService.getConversionRate(
+      query.months || 6,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Get("statistics/growth-trend")
+  @ApiOperation({ summary: "客户增长趋势" })
+  getGrowthTrend(@Query() query: { months?: number }, @Request() req) {
+    return this.customerService.getGrowthTrend(
+      query.months || 6,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "获取客户详情" })
   findOne(@Param("id") id: string, @Request() req) {
@@ -94,6 +147,38 @@ export class CustomerController {
       id,
       assignDto.newFollowUserId,
       assignDto.reason,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Get(":id/assignment-history")
+  @ApiOperation({ summary: "查询客户分配历史" })
+  getAssignmentHistory(
+    @Param("id") id: string,
+    @Query() query: { page?: number; pageSize?: number },
+    @Request() req,
+  ) {
+    return this.customerService.getAssignmentHistory(
+      id,
+      query.page || 1,
+      query.pageSize || 20,
+      req.user.userId,
+      req.user.isAdmin,
+    );
+  }
+
+  @Get(":id/follow-records")
+  @ApiOperation({ summary: "查询客户跟进记录" })
+  getFollowRecords(
+    @Param("id") id: string,
+    @Query() query: { page?: number; pageSize?: number },
+    @Request() req,
+  ) {
+    return this.customerService.getFollowRecords(
+      id,
+      query.page || 1,
+      query.pageSize || 20,
       req.user.userId,
       req.user.isAdmin,
     );
@@ -144,38 +229,6 @@ export class CustomerController {
     );
   }
 
-  @Get(":id/assignment-history")
-  @ApiOperation({ summary: "查询客户分配历史" })
-  getAssignmentHistory(
-    @Param("id") id: string,
-    @Query() query: { page?: number; pageSize?: number },
-    @Request() req,
-  ) {
-    return this.customerService.getAssignmentHistory(
-      id,
-      query.page || 1,
-      query.pageSize || 20,
-      req.user.userId,
-      req.user.isAdmin,
-    );
-  }
-
-  @Get(":id/follow-records")
-  @ApiOperation({ summary: "查询客户跟进记录" })
-  getFollowRecords(
-    @Param("id") id: string,
-    @Query() query: { page?: number; pageSize?: number },
-    @Request() req,
-  ) {
-    return this.customerService.getFollowRecords(
-      id,
-      query.page || 1,
-      query.pageSize || 20,
-      req.user.userId,
-      req.user.isAdmin,
-    );
-  }
-
   @Post("import")
   @ApiOperation({ summary: "批量导入客户" })
   @ApiConsumes("multipart/form-data")
@@ -189,59 +242,6 @@ export class CustomerController {
     }
     return this.customerService.importCustomers(
       file,
-      req.user.userId,
-      req.user.isAdmin,
-    );
-  }
-
-  @Get("export")
-  @ApiOperation({ summary: "导出客户数据" })
-  async exportCustomers(@Query() query: QueryCustomerDto, @Request() req) {
-    const buffer = await this.customerService.exportCustomers(
-      query,
-      req.user.userId,
-      req.user.isAdmin,
-    );
-    return new StreamableFile(buffer, {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      disposition: `attachment; filename="customers_${Date.now()}.xlsx"`,
-    });
-  }
-
-  @Get("import-template")
-  @ApiOperation({ summary: "下载客户导入模板" })
-  async downloadImportTemplate() {
-    const buffer = await this.customerService.generateImportTemplate();
-    return new StreamableFile(buffer, {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      disposition: `attachment; filename="customer_import_template.xlsx"`,
-    });
-  }
-
-  @Get("statistics/level-distribution")
-  @ApiOperation({ summary: "客户等级分布统计" })
-  getLevelDistribution(@Request() req) {
-    return this.customerService.getLevelDistribution(
-      req.user.userId,
-      req.user.isAdmin,
-    );
-  }
-
-  @Get("statistics/conversion-rate")
-  @ApiOperation({ summary: "客户转化率分析" })
-  getConversionRate(@Query() query: { months?: number }, @Request() req) {
-    return this.customerService.getConversionRate(
-      query.months || 6,
-      req.user.userId,
-      req.user.isAdmin,
-    );
-  }
-
-  @Get("statistics/growth-trend")
-  @ApiOperation({ summary: "客户增长趋势" })
-  getGrowthTrend(@Query() query: { months?: number }, @Request() req) {
-    return this.customerService.getGrowthTrend(
-      query.months || 6,
       req.user.userId,
       req.user.isAdmin,
     );

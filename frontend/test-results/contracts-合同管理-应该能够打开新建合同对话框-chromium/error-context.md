@@ -1,0 +1,174 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e12]:
+          - img "企智通" [ref=e13]
+          - generic [ref=e14]:
+            - heading "企智通" [level=1] [ref=e15]
+            - paragraph [ref=e16]: 河南爱编程网络科技有限公司
+        - generic [ref=e17]:
+          - heading "欢迎回来" [level=2] [ref=e18]
+          - paragraph [ref=e19]: 登录您的账户以继续管理工作
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - text: 用户名
+              - textbox "用户名" [ref=e24]:
+                - /placeholder: 输入您的用户名
+            - generic [ref=e25]:
+              - text: 密码
+              - generic [ref=e27]:
+                - textbox "密码" [ref=e28]:
+                  - /placeholder: 输入您的密码
+                - button [ref=e29] [cursor=pointer]:
+                  - img
+          - button "登录" [ref=e30] [cursor=pointer]:
+            - text: 登录
+            - img
+        - generic [ref=e31]: © 2026 河南爱编程网络科技有限公司 版权所有
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - img [ref=e42]
+            - generic [ref=e45]: 企业级安全保护
+          - generic [ref=e46]:
+            - heading "智能管理 高效协作" [level=3] [ref=e47]:
+              - text: 智能管理
+              - text: 高效协作
+            - paragraph [ref=e48]: 全方位的企业管理解决方案，助力数字化转型
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - paragraph [ref=e51]: 99.9%
+            - paragraph [ref=e52]: 系统可用性
+          - generic [ref=e53]:
+            - paragraph [ref=e54]: 24/7
+            - paragraph [ref=e55]: 技术支持
+          - generic [ref=e56]:
+            - paragraph [ref=e57]: SSL
+            - paragraph [ref=e58]: 数据加密
+    - region "Notifications alt+T"
+    - generic [ref=e61]:
+      - img [ref=e63]
+      - button "Open Tanstack query devtools" [ref=e111] [cursor=pointer]:
+        - img [ref=e112]
+    - generic:
+      - contentinfo:
+        - button "Open TanStack Router Devtools" [ref=e160] [cursor=pointer]:
+          - generic [ref=e161]:
+            - img [ref=e163]
+            - img [ref=e198]
+          - generic [ref=e232]: "-"
+          - generic [ref=e233]: TanStack Router
+  - button "/agentation v2.2.0 Output Detail Standard React Components Marker Colour Purple Blue Cyan Green Yellow Orange Red Clear on copy/send Block page interactions Manage MCP & Webhooks Manage MCP & Webhooks MCP Connection MCP connection allows agents to receive and act on annotations. Learn more Webhooks Auto-Send The webhook URL will receive live annotation changes and annotation data." [ref=e234] [cursor=pointer]:
+    - img [ref=e236]
+    - generic [ref=e239]:
+      - button [ref=e241]:
+        - img [ref=e242]
+      - button [disabled] [ref=e245]:
+        - img [ref=e246]
+      - button [disabled] [ref=e254]:
+        - img [ref=e255]
+      - generic:
+        - button [disabled]:
+          - img
+      - button [disabled] [ref=e263]:
+        - img [ref=e264]
+      - button [ref=e267]:
+        - img [ref=e268]
+      - button [ref=e273]:
+        - img [ref=e274]
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic: /agentation
+            - generic: v2.2.0
+            - button "Switch to light mode":
+              - generic:
+                - generic:
+                  - img
+          - generic:
+            - generic:
+              - generic:
+                - text: Output Detail
+                - generic:
+                  - generic:
+                    - img
+              - button "Standard":
+                - generic: Standard
+            - generic:
+              - generic:
+                - text: React Components
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - checkbox [checked]
+          - generic:
+            - generic: Marker Colour
+            - generic:
+              - button "Purple":
+                - generic "Purple"
+              - button "Blue":
+                - generic "Blue"
+              - button "Cyan":
+                - generic "Cyan"
+              - button "Green":
+                - generic "Green"
+              - button "Yellow":
+                - generic "Yellow"
+              - button "Orange":
+                - generic "Orange"
+              - button "Red":
+                - generic "Red"
+          - generic:
+            - generic:
+              - checkbox "Clear on copy/send"
+              - generic:
+                - text: Clear on copy/send
+                - generic:
+                  - generic:
+                    - img
+            - generic:
+              - checkbox "Block page interactions" [checked]
+              - generic:
+                - img
+              - generic: Block page interactions
+          - generic:
+            - button "Manage MCP & Webhooks":
+              - generic: Manage MCP & Webhooks
+              - generic:
+                - img
+        - generic:
+          - button "Manage MCP & Webhooks":
+            - img
+            - generic: Manage MCP & Webhooks
+          - generic:
+            - generic:
+              - generic:
+                - text: MCP Connection
+                - generic:
+                  - generic:
+                    - img
+            - paragraph:
+              - text: MCP connection allows agents to receive and act on annotations.
+              - link "Learn more":
+                - /url: https://agentation.dev/mcp
+          - generic:
+            - generic:
+              - generic:
+                - text: Webhooks
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic: Auto-Send
+                - generic:
+                  - checkbox [checked] [disabled]
+            - paragraph: The webhook URL will receive live annotation changes and annotation data.
+            - textbox "Webhook URL"
+```

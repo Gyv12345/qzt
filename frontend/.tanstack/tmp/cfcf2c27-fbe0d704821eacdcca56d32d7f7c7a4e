@@ -45,7 +45,6 @@ import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedCmsIndexRouteImport } from './routes/_authenticated/cms/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
-import { Route as AuthenticatedWebhooksTemplatesRouteImport } from './routes/_authenticated/webhooks/templates'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedPaymentsConfigRouteImport } from './routes/_authenticated/payments/config'
@@ -255,12 +254,6 @@ const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexRouteImport.update({
   path: '/apps/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedWebhooksTemplatesRoute =
-  AuthenticatedWebhooksTemplatesRouteImport.update({
-    id: '/templates',
-    path: '/templates',
-    getParentRoute: () => AuthenticatedWebhooksRoute,
-  } as any)
 const AuthenticatedSettingsSecurityRoute =
   AuthenticatedSettingsSecurityRouteImport.update({
     id: '/security',
@@ -362,7 +355,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/webhooks': typeof AuthenticatedWebhooksRouteWithChildren
+  '/webhooks': typeof AuthenticatedWebhooksRoute
   '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
   '/cms/new': typeof AuthenticatedCmsNewRouteRoute
   '/cms/pages': typeof AuthenticatedCmsPagesRouteRouteWithChildren
@@ -371,7 +364,6 @@ export interface FileRoutesByFullPath {
   '/payments/config': typeof AuthenticatedPaymentsConfigRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
-  '/webhooks/templates': typeof AuthenticatedWebhooksTemplatesRoute
   '/apps/': typeof AuthenticatedAppsIndexRoute
   '/chats/': typeof AuthenticatedChatsIndexRoute
   '/cms/': typeof AuthenticatedCmsIndexRoute
@@ -409,7 +401,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/webhooks': typeof AuthenticatedWebhooksRouteWithChildren
+  '/webhooks': typeof AuthenticatedWebhooksRoute
   '/': typeof AuthenticatedIndexRoute
   '/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
   '/cms/new': typeof AuthenticatedCmsNewRouteRoute
@@ -419,7 +411,6 @@ export interface FileRoutesByTo {
   '/payments/config': typeof AuthenticatedPaymentsConfigRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
-  '/webhooks/templates': typeof AuthenticatedWebhooksTemplatesRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/cms': typeof AuthenticatedCmsIndexRoute
@@ -461,7 +452,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
-  '/_authenticated/webhooks': typeof AuthenticatedWebhooksRouteWithChildren
+  '/_authenticated/webhooks': typeof AuthenticatedWebhooksRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cms/elements': typeof AuthenticatedCmsElementsRouteRoute
   '/_authenticated/cms/new': typeof AuthenticatedCmsNewRouteRoute
@@ -471,7 +462,6 @@ export interface FileRoutesById {
   '/_authenticated/payments/config': typeof AuthenticatedPaymentsConfigRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
-  '/_authenticated/webhooks/templates': typeof AuthenticatedWebhooksTemplatesRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/cms/': typeof AuthenticatedCmsIndexRoute
@@ -523,7 +513,6 @@ export interface FileRouteTypes {
     | '/payments/config'
     | '/settings/account'
     | '/settings/security'
-    | '/webhooks/templates'
     | '/apps/'
     | '/chats/'
     | '/cms/'
@@ -571,7 +560,6 @@ export interface FileRouteTypes {
     | '/payments/config'
     | '/settings/account'
     | '/settings/security'
-    | '/webhooks/templates'
     | '/apps'
     | '/chats'
     | '/cms'
@@ -622,7 +610,6 @@ export interface FileRouteTypes {
     | '/_authenticated/payments/config'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/security'
-    | '/_authenticated/webhooks/templates'
     | '/_authenticated/apps/'
     | '/_authenticated/chats/'
     | '/_authenticated/cms/'
@@ -902,13 +889,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/webhooks/templates': {
-      id: '/_authenticated/webhooks/templates'
-      path: '/templates'
-      fullPath: '/webhooks/templates'
-      preLoaderRoute: typeof AuthenticatedWebhooksTemplatesRouteImport
-      parentRoute: typeof AuthenticatedWebhooksRoute
-    }
     '/_authenticated/settings/security': {
       id: '/_authenticated/settings/security'
       path: '/security'
@@ -1083,19 +1063,6 @@ const AuthenticatedSettingsRouteRouteWithChildren =
     AuthenticatedSettingsRouteRouteChildren,
   )
 
-interface AuthenticatedWebhooksRouteChildren {
-  AuthenticatedWebhooksTemplatesRoute: typeof AuthenticatedWebhooksTemplatesRoute
-}
-
-const AuthenticatedWebhooksRouteChildren: AuthenticatedWebhooksRouteChildren = {
-  AuthenticatedWebhooksTemplatesRoute: AuthenticatedWebhooksTemplatesRoute,
-}
-
-const AuthenticatedWebhooksRouteWithChildren =
-  AuthenticatedWebhooksRoute._addFileChildren(
-    AuthenticatedWebhooksRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRouteWithChildren
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
@@ -1115,7 +1082,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedSocialMediaRouteRoute: typeof AuthenticatedSocialMediaRouteRoute
   AuthenticatedSystemLogsRouteRoute: typeof AuthenticatedSystemLogsRouteRoute
-  AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRouteWithChildren
+  AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -1145,7 +1112,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedSocialMediaRouteRoute: AuthenticatedSocialMediaRouteRoute,
   AuthenticatedSystemLogsRouteRoute: AuthenticatedSystemLogsRouteRoute,
-  AuthenticatedWebhooksRoute: AuthenticatedWebhooksRouteWithChildren,
+  AuthenticatedWebhooksRoute: AuthenticatedWebhooksRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
