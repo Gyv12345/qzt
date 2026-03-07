@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+# 只忽略根目录的 logs 文件夹（运行时日志），不忽略代码模块
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Prisma
+dev.db
+dev.db-journal
+
+
+# Temporary
+*.tmp
+.temp/
+.env.temp

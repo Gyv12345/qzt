@@ -1,0 +1,697 @@
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { DataScopeService } from "../roles/services/data-scope.service";
+import { CreateContactDto } from "./dto/create-contact.dto";
+import { UpdateContactDto } from "./dto/update-contact.dto";
+import { QueryContactDto } from "./dto/query-contact.dto";
+import { LinkCompanyDto } from "./dto/link-company.dto";
+import { ExportContactDto } from "./dto/export-contact.dto";
+import { ImportContactDto } from "./dto/import-contact.dto";
+import { SubmitContactDto } from "./dto/submit-contact.dto";
+
+@Injectable()
+export class ContactService {
+  constructor(
+    private prisma: PrismaService,
+    private dataScopeService: DataScopeService,
+  ) {}
+
+  /**
+   * 创建联系人
+   */
+  async create(createContactDto: CreateContactDto, userId: string) {
+    // 检查手机号是否已存在
+    const existing = await this.prisma.contact.findUnique({
+      where: { phone: createContactDto.phone },
+    });
+
+    if (existing) {
+      throw new ConflictException("该手机号已存在");
+    }
+
+    // 创建联系人
+    const contact = await this.prisma.contact.create({
+      data: {
+        ...createContactDto,
+        ownerUserId: userId,
+      },
+    });
+
+    return contact;
+  }
+
+  /**
+   * 查询联系人列表
+   */
+  async findAll(
+    query: QueryContactDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    const {
+      page = 1,
+      pageSize = 10,
+      keyword,
+      customerId,
+      sortField = "createdAt",
+      sortOrder = "desc",
+    } = query;
+
+    // 构建查询条件
+    const where = this.buildContactWhere(keyword, customerId);
+
+    const scopedWhere = dataScope
+      ? await this.dataScopeService.buildContactWhere(dataScope, where)
+      : where;
+
+    // 计算总数
+    const total = await this.prisma.contact.count({ where: scopedWhere });
+
+    // 查询数据
+    const data = await this.prisma.contact.findMany({
+      where: scopedWhere,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        [sortField]: sortOrder,
+      },
+      include: {
+        customerContacts: {
+          where: { status: 1 },
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                customerLevel: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 组装数据：添加关联的公司列表
+    const result = data.map((contact) => ({
+      ...contact,
+      companies: contact.customerContacts.map((cc) => ({
+        ...cc.customer,
+        isPrimary: cc.isPrimary,
+        isDecision: cc.isDecision,
+        position: cc.position,
+        relation: cc.relation,
+      })),
+      customerContacts: undefined, // 移除原始嵌套数据
+    }));
+
+    return {
+      data: result,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  /**
+   * 获取联系人详情
+   */
+  async findOne(
+    id: string,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        id,
+        dataScope,
+      );
+      if (!canAccess) {
+        throw new ForbiddenException("无权访问此联系人");
+      }
+    }
+
+    const contact = await this.prisma.contact.findUnique({
+      where: { id },
+      include: {
+        customerContacts: {
+          where: { status: 1 },
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                shortName: true,
+                customerLevel: true,
+                industry: true,
+                followUserId: true,
+              },
+            },
+          },
+          orderBy: {
+            isPrimary: "desc", // 主要联系人排前面
+          },
+        },
+      },
+    });
+
+    if (!contact) {
+      throw new NotFoundException("联系人不存在");
+    }
+
+    // 组装数据
+    const companies = contact.customerContacts.map((cc) => ({
+      id: cc.customerId,
+      ...cc.customer,
+      isPrimary: cc.isPrimary,
+      isDecision: cc.isDecision,
+      department: cc.department,
+      position: cc.position,
+      relation: cc.relation,
+      tags: cc.tags,
+      remark: cc.remark,
+      status: cc.status,
+      createdAt: cc.createdAt,
+    }));
+
+    return {
+      ...contact,
+      companies,
+      customerContacts: undefined,
+    };
+  }
+
+  /**
+   * 导出联系人数据
+   */
+  async exportContacts(
+    exportDto: ExportContactDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    const { range, ids, keyword, customerId } = exportDto;
+    let where: Record<string, unknown> = {};
+
+    if (range === "selected" && ids?.length) {
+      where = { id: { in: ids } };
+    } else if (range === "filtered") {
+      where = this.buildContactWhere(keyword, customerId);
+    }
+
+    const scopedWhere = dataScope
+      ? await this.dataScopeService.buildContactWhere(dataScope, where)
+      : where;
+
+    const contacts = await this.prisma.contact.findMany({
+      where: scopedWhere,
+      orderBy: { createdAt: "desc" },
+      include: {
+        customerContacts: {
+          where: { status: 1 },
+          include: {
+            customer: {
+              select: { id: true, name: true },
+            },
+          },
+          orderBy: {
+            isPrimary: "desc",
+          },
+        },
+      },
+    });
+
+    return contacts.map((contact) => {
+      const primaryCustomer =
+        contact.customerContacts.find((cc) => cc.isPrimary) ||
+        contact.customerContacts[0];
+      return {
+        ...contact,
+        customerName: primaryCustomer?.customer?.name || "",
+      };
+    });
+  }
+
+  /**
+   * 批量导入联系人
+   */
+  async importContacts(importDto: ImportContactDto, userId: string) {
+    const rows = importDto.rows || [];
+    if (rows.length === 0) {
+      return { total: 0, created: 0, skipped: 0, errors: [] };
+    }
+
+    const validRows = rows.filter((row) => row.name && row.phone);
+    const phones = validRows.map((row) => row.phone);
+
+    const existing = await this.prisma.contact.findMany({
+      where: { phone: { in: phones } },
+      select: { phone: true },
+    });
+
+    const existingPhones = new Set(existing.map((item) => item.phone));
+
+    const toCreate = validRows.filter((row) => !existingPhones.has(row.phone));
+
+    if (toCreate.length > 0) {
+      await this.prisma.contact.createMany({
+        data: toCreate.map((row) => ({
+          name: row.name,
+          phone: row.phone,
+          email: row.email || undefined,
+          wechat: row.wechat || undefined,
+          position: row.position || undefined,
+          department: row.department || undefined,
+          ownerUserId: userId,
+        })),
+      });
+    }
+
+    return {
+      total: rows.length,
+      created: toCreate.length,
+      skipped: rows.length - toCreate.length,
+      errors: rows.length - validRows.length,
+    };
+  }
+
+  private buildContactWhere(keyword?: string, customerId?: string) {
+    const where: Record<string, unknown> = {};
+
+    if (keyword) {
+      where.OR = [
+        { name: { contains: keyword } },
+        { phone: { contains: keyword } },
+        { email: { contains: keyword } },
+        { wechat: { contains: keyword } },
+      ];
+    }
+
+    if (customerId) {
+      where.customerContacts = {
+        some: {
+          customerId,
+          status: 1,
+        },
+      };
+    }
+
+    return where;
+  }
+
+  /**
+   * 通过手机号查找联系人（用于去重）
+   */
+  async findByPhone(phone: string) {
+    return this.prisma.contact.findUnique({
+      where: { phone },
+    });
+  }
+
+  /**
+   * 更新联系人
+   */
+  async update(
+    id: string,
+    updateContactDto: UpdateContactDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        id,
+        dataScope,
+      );
+      if (!canAccess) {
+        throw new ForbiddenException("无权更新此联系人");
+      }
+    }
+
+    // 检查联系人是否存在
+    const contact = await this.prisma.contact.findUnique({
+      where: { id },
+    });
+
+    if (!contact) {
+      throw new NotFoundException("联系人不存在");
+    }
+
+    // 如果要更新手机号，检查新手机号是否已被使用
+    if (updateContactDto.phone && updateContactDto.phone !== contact.phone) {
+      const existing = await this.prisma.contact.findUnique({
+        where: { phone: updateContactDto.phone },
+      });
+
+      if (existing) {
+        throw new ConflictException("该手机号已被使用");
+      }
+    }
+
+    // 更新联系人
+    const updated = await this.prisma.contact.update({
+      where: { id },
+      data: updateContactDto,
+    });
+
+    return updated;
+  }
+
+  /**
+   * 删除联系人
+   */
+  async remove(
+    id: string,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        id,
+        dataScope,
+      );
+      if (!canAccess) {
+        throw new ForbiddenException("无权删除此联系人");
+      }
+    }
+
+    // 检查联系人是否存在
+    const contact = await this.prisma.contact.findUnique({
+      where: { id },
+      include: {
+        customerContacts: true,
+      },
+    });
+
+    if (!contact) {
+      throw new NotFoundException("联系人不存在");
+    }
+
+    // 如果有关联的公司，提示用户
+    if (contact.customerContacts.length > 0) {
+      throw new ConflictException(
+        `该联系人关联了 ${contact.customerContacts.length} 个公司，请先解除关联`,
+      );
+    }
+
+    // 删除联系人
+    await this.prisma.contact.delete({
+      where: { id },
+    });
+
+    return { message: "删除成功" };
+  }
+
+  /**
+   * 关联公司
+   */
+  async linkCompany(
+    contactId: string,
+    linkDto: LinkCompanyDto,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        contactId,
+        dataScope,
+      );
+      if (!canAccess) {
+        throw new ForbiddenException("无权关联此联系人");
+      }
+    }
+
+    // 检查联系人是否存在
+    const contact = await this.prisma.contact.findUnique({
+      where: { id: contactId },
+    });
+
+    if (!contact) {
+      throw new NotFoundException("联系人不存在");
+    }
+
+    // 检查公司是否存在
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: linkDto.customerId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException("公司不存在");
+    }
+
+    // 检查是否已经关联
+    const existing = await this.prisma.customerContact.findUnique({
+      where: {
+        customerId_contactId: {
+          customerId: linkDto.customerId,
+          contactId,
+        },
+      },
+    });
+
+    if (existing) {
+      // 如果已存在但状态为离职，则更新为在职
+      if (existing.status === 0) {
+        await this.prisma.customerContact.update({
+          where: { id: existing.id },
+          data: { status: 1, ...linkDto },
+        });
+        return { message: "关联成功（已恢复离职状态）" };
+      }
+      throw new ConflictException("该联系人已关联此公司");
+    }
+
+    // 如果设置为主要联系人，需要取消其他主要联系人
+    if (linkDto.isPrimary) {
+      await this.prisma.customerContact.updateMany({
+        where: {
+          customerId: linkDto.customerId,
+          isPrimary: true,
+        },
+        data: {
+          isPrimary: false,
+        },
+      });
+    }
+
+    // 创建关联
+    await this.prisma.customerContact.create({
+      data: {
+        contactId,
+        customerId: linkDto.customerId,
+        isPrimary: linkDto.isPrimary ?? false,
+        isDecision: linkDto.isDecision ?? false,
+        department: linkDto.department,
+        position: linkDto.position,
+        relation: linkDto.relation,
+        tags: linkDto.tags,
+        remark: linkDto.remark,
+      },
+    });
+
+    return { message: "关联成功" };
+  }
+
+  /**
+   * 取消关联公司
+   */
+  async unlinkCompany(
+    contactId: string,
+    customerId: string,
+    dataScope?: { type: string; userIds?: string[]; departmentIds?: string[] },
+  ) {
+    if (dataScope) {
+      const canAccess = await this.dataScopeService.canAccess(
+        "contact",
+        contactId,
+        dataScope,
+      );
+      if (!canAccess) {
+        throw new ForbiddenException("无权取消此联系人关联");
+      }
+    }
+
+    // 检查关联是否存在
+    const existing = await this.prisma.customerContact.findUnique({
+      where: {
+        customerId_contactId: {
+          customerId,
+          contactId,
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException("关联不存在");
+    }
+
+    // 软删除：设置状态为离职
+    await this.prisma.customerContact.update({
+      where: {
+        customerId_contactId: {
+          customerId,
+          contactId,
+        },
+      },
+      data: {
+        status: 0, // 离职
+      },
+    });
+
+    return { message: "已取消关联（标记为离职状态）" };
+  }
+
+  /**
+   * 处理网站联系表单提交（公开接口）
+   * 1. 创建或更新联系人
+   * 2. 创建或更新客户
+   * 3. 创建跟进记录
+   * 4. 自动分配跟进人
+   */
+  async submitContactForm(submitContactDto: SubmitContactDto) {
+    const { name, phone, email, company, message } = submitContactDto;
+
+    // 验证必填字段
+    if (!name || !phone || !message) {
+      throw new BadRequestException("姓名、电话和留言为必填项");
+    }
+
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      throw new BadRequestException("手机号格式不正确");
+    }
+
+    // 使用事务处理整个流程
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. 查找或创建联系人
+      let contact = await tx.contact.findUnique({
+        where: { phone: phone.trim() },
+      });
+
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: {
+            name: name.trim(),
+            phone: phone.trim(),
+            email: email?.trim() || null,
+            status: "ACTIVE",
+          },
+        });
+      } else {
+        // 更新联系人信息
+        contact = await tx.contact.update({
+          where: { id: contact.id },
+          data: {
+            name: name.trim(),
+            email: email?.trim() || contact.email,
+          },
+        });
+      }
+
+      // 2. 查找或创建客户
+      let customer;
+      const companyName = company?.trim();
+
+      if (companyName) {
+        // 如果提供了公司名称，查找或创建对应客户
+        customer = await tx.customer.findFirst({
+          where: {
+            name: {
+              contains: companyName,
+            },
+          },
+        });
+
+        if (!customer) {
+          // 自动分配跟进人（选择一个活跃的销售人员）
+          const assignedUser = await this.assignSalesUser(tx);
+
+          customer = await tx.customer.create({
+            data: {
+              name: companyName,
+              customerLevel: "LEAD",
+              sourceChannel: "官网表单",
+              followUserId: assignedUser?.id || null,
+              firstContactDate: new Date(),
+              status: 1,
+            },
+          });
+        }
+
+        // 关联联系人和客户
+        const existingLink = await tx.customerContact.findUnique({
+          where: {
+            customerId_contactId: {
+              customerId: customer.id,
+              contactId: contact.id,
+            },
+          },
+        });
+
+        if (!existingLink) {
+          await tx.customerContact.create({
+            data: {
+              customerId: customer.id,
+              contactId: contact.id,
+              isPrimary: true,
+              status: 1,
+            },
+          });
+        }
+      }
+
+      // 3. 创建跟进记录
+      const followRecord = await tx.followRecord.create({
+        data: {
+          customerId: customer?.id || null,
+          contactId: contact.id,
+          userId: customer?.followUserId || null,
+          type: 5, // 其他类型
+          content: `【官网表单咨询】\n姓名：${name}\n电话：${phone}\n邮箱：${email || "未填写"}\n公司：${company || "未填写"}\n\n留言内容：\n${message}`,
+        },
+      });
+
+      return {
+        success: true,
+        message: "提交成功，我们会尽快与您联系",
+        data: {
+          contactId: contact.id,
+          customerId: customer?.id || null,
+          followRecordId: followRecord.id,
+        },
+      };
+    });
+
+    return result;
+  }
+
+  /**
+   * 自动分配销售人员
+   * 策略：选择 admin 用户
+   */
+  private async assignSalesUser(prisma: any) {
+    // 查找状态为活跃的用户（简单起见，这里选择 admin 用户）
+    const adminUser = await prisma.user.findFirst({
+      where: {
+        username: "admin",
+        status: "ACTIVE",
+      },
+    });
+
+    if (adminUser) {
+      return adminUser;
+    }
+
+    // 如果没有 admin 用户，返回第一个活跃用户
+    const activeUser = await prisma.user.findFirst({
+      where: {
+        status: "ACTIVE",
+      },
+    });
+
+    return activeUser;
+  }
+}

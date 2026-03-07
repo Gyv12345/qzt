@@ -1,0 +1,31 @@
+export {
+  permissionTypeSchema,
+  permissionBaseSchema,
+  permissionSchema,
+  createPermissionSchema,
+  updatePermissionSchema,
+  permissionTypeMap,
+  getPermissionTypeLabel,
+  type PermissionType,
+  type PermissionBase,
+  type Permission,
+} from './permission.schema'
+
+export {
+  roleTypeSchema,
+  dataScopeTypeSchema,
+  roleBaseSchema,
+  roleSchema,
+  roleDetailSchema,
+  createRoleSchema,
+  updateRoleSchema,
+  roleTypeMap,
+  dataScopeTypeMap,
+  getRoleTypeLabel,
+  getDataScopeTypeLabel,
+  type RoleType,
+  type DataScopeType,
+  type RoleBase,
+  type Role,
+  type RoleDetail,
+} from './role.schema'

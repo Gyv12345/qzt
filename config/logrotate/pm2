@@ -1,0 +1,37 @@
+# ============================================================
+# PM2 日志轮转配置
+# 安装: cp config/logrotate/pm2 /etc/logrotate.d/pm2
+# ============================================================
+
+/opt/qzt/backend/logs/*.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 0644 root root
+    dateext
+    dateformat -%Y%m%d
+
+    # PM2 重载后自动切换到新日志
+    postrotate
+        pm2 reload qzt-backend >/dev/null 2>&1 || true
+    endscript
+}
+
+/opt/qzt/website/logs/*.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 0644 root root
+    dateext
+    dateformat -%Y%m%d
+
+    postrotate
+        pm2 reload qzt-website >/dev/null 2>&1 || true
+    endscript
+}

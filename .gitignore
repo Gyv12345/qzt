@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+.next/
+*.local
+
+# Cache
+.cache/
+.vite/
+.turbo/
+node_modules/.cache/
+node_modules/.tmp/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+# .idea/ 已纳入版本控制（内部有 .gitignore 忽略用户特定文件）
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+# 只忽略根目录的 logs 文件夹，不忽略代码模块中的 logs 目录
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Git Worktrees
+.worktrees/
+
+# Payment Certificates
+certificates/
+
+
+# Temporary
+*.tmp
+.temp/
+
+backend/.env.development

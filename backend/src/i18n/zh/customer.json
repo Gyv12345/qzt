@@ -1,0 +1,8 @@
+{
+  "NOT_FOUND": "客户不存在",
+  "CREATE_SUCCESS": "客户创建成功",
+  "UPDATE_SUCCESS": "客户更新成功",
+  "DELETE_SUCCESS": "客户删除成功",
+  "LIST_SUCCESS": "获取客户列表成功",
+  "DETAIL_SUCCESS": "获取客户详情成功"
+}

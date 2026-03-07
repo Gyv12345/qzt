@@ -1,0 +1,536 @@
+{
+  "common": {
+    "success": "Operation successful",
+    "error": "Operation failed",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "noData": "No data",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "reset": "Reset",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {{current}} of {{total}}",
+    "goToFirstPage": "Go to first page",
+    "goToPreviousPage": "Go to previous page",
+    "goToPage": "Go to page {{page}}",
+    "goToNextPage": "Go to next page",
+    "goToLastPage": "Go to last page",
+    "view": "View"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "invalidCredentials": "Invalid username or password",
+    "accountDisabled": "Account has been disabled",
+    "loginSuccess": "Login successful"
+  },
+  "customer": {
+    "title": "Customer Management",
+    "description": "Manage your customer information and follow records",
+    "create": "New Customer",
+    "edit": "Edit Customer",
+    "createDescription": "Fill in customer basic information",
+    "editDescription": "Modify customer information",
+    "searchPlaceholder": "Search customer name...",
+    "columns": {
+      "name": "Company Name",
+      "shortName": "Short Name",
+      "industry": "Industry",
+      "customerLevel": "Customer Level",
+      "followUserName": "Follow User",
+      "sourceChannel": "Source Channel",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "fields": {
+      "name": "Company Name",
+      "shortName": "Short Name",
+      "code": "Customer Code",
+      "industry": "Industry",
+      "scale": "Scale",
+      "address": "Address",
+      "website": "Website",
+      "customerLevel": "Customer Level",
+      "sourceChannel": "Source Channel",
+      "tags": "Tags",
+      "remark": "Remark"
+    },
+    "placeholders": {
+      "name": "Enter company name",
+      "shortName": "Enter short name",
+      "code": "Enter customer code",
+      "industry": "Enter industry",
+      "scale": "Enter scale",
+      "address": "Enter address",
+      "website": "Enter website",
+      "customerLevel": "Select customer level",
+      "sourceChannel": "Enter source channel",
+      "tags": "Enter tags, separate with commas",
+      "remark": "Enter remarks"
+    },
+    "levels": {
+      "LEAD": "Lead",
+      "PROSPECT": "Prospect",
+      "CUSTOMER": "Customer",
+      "VIP": "VIP"
+    },
+    "empty": {
+      "customer": "Unlinked"
+    },
+    "name": "Customer Name",
+    "code": "Customer Code",
+    "level": "Customer Level",
+    "industry": "Industry",
+    "createSuccess": "Customer created successfully",
+    "updateSuccess": "Customer updated successfully",
+    "deleteSuccess": "Customer deleted successfully"
+  },
+  "contact": {
+    "title": "Contact Management",
+    "description": "Manage your contacts and company relationships",
+    "searchPlaceholder": "Search contact name...",
+    "columns": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "customerName": "Company",
+      "position": "Position",
+      "department": "Department",
+      "wechat": "WeChat",
+      "birthdate": "Birthday",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "tags": {
+      "primary": "Primary",
+      "decisionMaker": "Decision Maker"
+    },
+    "empty": {
+      "customer": "Unlinked"
+    },
+    "birthdate": {
+      "today": "Birthday today",
+      "inDays": "In {{count}} days"
+    }
+  },
+  "user": {
+    "title": "User Management",
+    "description": "Manage system users and role permissions",
+    "searchPlaceholder": "Search username...",
+    "status": "Status",
+    "statusEnabled": "Enabled",
+    "statusDisabled": "Disabled",
+    "loadFailed": "Failed to load user data",
+    "columns": {
+      "username": "Username",
+      "fullName": "Full Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "status": "Status",
+      "role": "Role",
+      "department": "Department",
+      "createdAt": "Created At"
+    },
+    "addNew": "Add New User",
+    "inviteUser": "Invite User",
+    "edit": "Edit User",
+    "addDescription": "Create new user here.",
+    "editDescription": "Update the user here.",
+    "clickSave": "Click save when you're done.",
+    "name": "Full Name",
+    "username": "Username",
+    "email": "Email",
+    "phoneNumber": "Phone Number",
+    "role": "Role",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "selectRole": "Select a role",
+    "saveChanges": "Save changes",
+    "placeholder": {
+      "name": "John Doe",
+      "username": "john_doe",
+      "email": "john.doe@example.com",
+      "phoneNumber": "+123456789",
+      "password": "e.g., S3cur3P@ssw0rd"
+    },
+    "validation": {
+      "nameRequired": "Full name is required.",
+      "usernameRequired": "Username is required.",
+      "phoneNumberRequired": "Phone number is required.",
+      "emailRequired": "Email is required.",
+      "roleRequired": "Role is required.",
+      "passwordRequired": "Password is required.",
+      "passwordMinLength": "Password must be at least 8 characters long.",
+      "passwordLowercase": "Password must contain at least one lowercase letter.",
+      "passwordNumber": "Password must contain at least one number.",
+      "passwordMismatch": "Passwords don't match."
+    },
+    "delete": {
+      "title": "Delete User",
+      "description": "Are you sure you want to delete {{username}}?",
+      "description2": "This action will permanently remove the user with the role of {{role}} from the system. This cannot be undone.",
+      "usernameLabel": "Username:",
+      "usernamePlaceholder": "Enter username to confirm deletion.",
+      "warning": "Warning!",
+      "warningText": "Please be careful, this operation can not be rolled back.",
+      "confirmButton": "Delete",
+      "deletedMessage": "The following user has been deleted:"
+    }
+  },
+  "settings": {
+    "title": "System Settings",
+    "description": "Manage system settings and preferences",
+    "logs": {
+      "title": "Log Management",
+      "loginLog": {
+        "title": "Login Logs",
+        "description": "View user login history",
+        "columns": {
+          "username": "Username",
+          "ipAddress": "IP Address",
+          "loginTime": "Login Time",
+          "status": "Status",
+          "browser": "Browser",
+          "os": "Operating System"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed"
+        }
+      },
+      "operationLog": {
+        "title": "Operation Logs",
+        "description": "View user operation history",
+        "columns": {
+          "username": "Username",
+          "module": "Module",
+          "operation": "Operation",
+          "method": "Method",
+          "url": "URL",
+          "ipAddress": "IP Address",
+          "operationTime": "Operation Time",
+          "status": "Status"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed"
+        }
+      }
+    }
+  },
+  "nav": {
+    "user": {
+      "upgradeToPro": "Upgrade to Pro",
+      "account": "Account",
+      "billing": "Billing",
+      "notifications": "Notifications",
+      "signOut": "Sign out",
+      "signOutDialog": {
+        "title": "Sign out",
+        "description": "Are you sure you want to sign out? You will need to sign in again to access your account.",
+        "confirm": "Sign out"
+      }
+    }
+  },
+  "profile": {
+    "profile": "Profile",
+    "billing": "Billing",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "newTeam": "New Team",
+    "signOut": "Sign out"
+  },
+  "config": {
+    "title": "Theme Settings",
+    "description": "Adjust the appearance and layout to suit your preferences.",
+    "openSettings": "Open theme settings",
+    "reset": "Reset",
+    "resetAll": "Reset all settings to default values",
+    "theme": {
+      "title": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "selectTheme": "Select theme preference",
+      "description": "Choose between system preference, light mode, or dark mode"
+    },
+    "sidebar": {
+      "title": "Sidebar",
+      "inset": "Inset",
+      "floating": "Floating",
+      "sidebar": "Sidebar",
+      "selectSidebar": "Select sidebar style",
+      "description": "Choose between inset, floating, or standard sidebar layout"
+    },
+    "layout": {
+      "title": "Layout",
+      "default": "Default",
+      "compact": "Compact",
+      "fullLayout": "Full layout",
+      "selectLayout": "Select layout style",
+      "description": "Choose between default expanded, compact icon-only, or full layout mode"
+    },
+    "direction": {
+      "title": "Direction",
+      "leftToRight": "Left to Right",
+      "rightToLeft": "Right to Left",
+      "selectDirection": "Select site direction",
+      "description": "Choose between left-to-right or right-to-left site direction"
+    }
+  },
+  "accountSettings": {
+    "title": "Settings",
+    "description": "Manage your account settings and set e-mail preferences.",
+    "selectPlaceholder": "Select setting",
+    "sidebar": {
+      "profile": "Profile",
+      "account": "Account",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "webhooks": "Webhooks",
+      "display": "Display"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "This is how others will see you on the site.",
+      "username": "Username",
+      "usernameDescription": "This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30 days.",
+      "email": "Email",
+      "selectEmail": "Select a verified email to display",
+      "emailDescription": "You can manage verified email addresses in your",
+      "emailSettings": "email settings",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us a little bit about yourself",
+      "bioDescription": "You can @mention other users and organizations to link to them.",
+      "urls": "URLs",
+      "urlsDescription": "Add links to your website, blog, or social media profiles.",
+      "addUrl": "Add URL",
+      "updateProfile": "Update profile",
+      "validation": {
+        "usernameMin": "Username must be at least 2 characters.",
+        "usernameMax": "Username must not be longer than 30 characters.",
+        "emailRequired": "Please select an email to display.",
+        "invalidUrl": "Please enter a valid URL."
+      }
+    },
+    "account": {
+      "title": "Account",
+      "description": "Manage your account settings and preferences."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the look and feel of the application as you use it."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure when and how you receive notifications."
+    },
+    "display": {
+      "title": "Display",
+      "description": "Adjust display settings to suit your needs."
+    },
+    "webhooks": {
+      "title": "Webhook Settings",
+      "description": "Configure when and how you receive notifications."
+    }
+  },
+  "webhooks": {
+    "title": "Webhook Push Configuration",
+    "description": "Configure Feishu, WeCom, and DingTalk webhook push addresses",
+    "create": "New Configuration",
+    "edit": "Edit Configuration",
+    "delete": "Delete Configuration",
+    "test": "Test Send",
+    "testSuccess": "Test message sent successfully",
+    "testFailed": "Test message sending failed",
+    "createSuccess": "Webhook configuration created successfully",
+    "updateSuccess": "Webhook configuration updated successfully",
+    "deleteSuccess": "Webhook configuration deleted successfully",
+    "createFailed": "Creation failed",
+    "updateFailed": "Update failed",
+    "deleteFailed": "Deletion failed",
+    "deleteConfirm": "Are you sure you want to delete this webhook configuration? This action cannot be undone.",
+    "deleteConfirmTitle": "Confirm Delete",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "noData": "No webhook configuration",
+    "fields": {
+      "name": "Configuration Name",
+      "platform": "Platform",
+      "webhookUrl": "Webhook URL",
+      "enabled": "Enable Configuration"
+    },
+    "placeholders": {
+      "name": "e.g. Sales Notification Group",
+      "webhookUrl": "https://open.feishu.cn/open-apis/bot/v2/hook/..."
+    },
+    "platforms": {
+      "wecom": "WeCom",
+      "feishu": "Feishu",
+      "dingtalk": "DingTalk"
+    },
+    "validation": {
+      "nameRequired": "Configuration name is required",
+      "nameTooLong": "Configuration name must not exceed 100 characters",
+      "platformRequired": "Please select a platform",
+      "webhookUrlRequired": "Please enter webhook URL",
+      "webhookUrlInvalid": "Please enter a valid webhook URL"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "helpText": {
+      "enabled": "Messages will not be sent to this webhook when disabled",
+      "createDescription": "Add a new Feishu, WeCom, or DingTalk webhook configuration",
+      "editDescription": "Modify existing webhook configuration"
+    },
+    "actions": {
+      "send": "Send",
+      "save": "Save",
+      "create": "Create"
+    }
+  },
+  "socialMedia": {
+    "title": "Social Media Management",
+    "description": "Manage content publishing across Douyin, Xiaohongshu, WeChat Channels and more",
+    "accountSettings": "Account Settings",
+    "calendarView": "Calendar View",
+    "configured": "Configured",
+    "notConfigured": "Not Configured",
+    "postsList": "Posts List",
+    "accountManagement": "Account Management",
+    "newPost": "New Post",
+    "confirmDeleteAccount": "Confirm Delete Account?",
+    "confirmDeletePost": "Confirm Delete Post?",
+    "deleteAccountWarning": "This action cannot be undone. Scheduled posts associated with this account may fail.",
+    "deletePostWarning": "This action cannot be undone. Content already published to platforms will not be deleted.",
+    "columns": {
+      "platform": "Platform",
+      "accountName": "Account Name",
+      "accountId": "Platform Account ID",
+      "tokenExpiry": "Token Expiry",
+      "status": "Status",
+      "title": "Title",
+      "content": "Content",
+      "scheduledAt": "Scheduled At",
+      "publishedAt": "Published At",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "publishing": "Publishing",
+      "published": "Published",
+      "failed": "Failed",
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "publish": "Publish Now",
+      "schedule": "Schedule",
+      "cancelSchedule": "Cancel Schedule",
+      "refreshToken": "Refresh Token",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "selectAccount": "Select publishing account",
+      "title": "Title",
+      "titlePlaceholder": "Enter content title",
+      "content": "Content",
+      "contentPlaceholder": "Enter content text, supports hashtags #topic",
+      "topics": "Topics",
+      "topicsPlaceholder": "Enter topic tag (e.g. #tips)",
+      "location": "Location",
+      "locationPlaceholder": "Add location information",
+      "visibility": "Visibility",
+      "visibilityPublic": "Public",
+      "visibilityFriends": "Friends Only",
+      "visibilityPrivate": "Private",
+      "scheduledAt": "Schedule Publish",
+      "scheduledAtPlaceholder": "Select publish time",
+      "platform": "Platform",
+      "accountName": "Account Name",
+      "accountNamePlaceholder": "Enter account nickname/name",
+      "appId": "App ID / Client ID",
+      "appSecret": "App Secret",
+      "appSecretPlaceholder": "App secret (will be encrypted)",
+      "accessToken": "Access Token",
+      "accessTokenPlaceholder": "Enter existing token if available",
+      "openId": "OpenID",
+      "openIdPlaceholder": "WeChat OpenID"
+    },
+    "messages": {
+      "createSuccess": "Created successfully",
+      "updateSuccess": "Updated successfully",
+      "deleteSuccess": "Deleted successfully",
+      "publishSuccess": "Published successfully",
+      "scheduleSuccess": "Scheduled successfully",
+      "cancelScheduleSuccess": "Schedule cancelled",
+      "refreshTokenSuccess": "Token refreshed successfully",
+      "noAccounts": "No account data",
+      "noPosts": "No post data",
+      "addAccount": "Add Account",
+      "addFirstAccount": "Add first account",
+      "createPost": "Create Post"
+    }
+  },
+  "validation": {
+    "_invalid": "Invalid format",
+    "_required": "This field is required",
+    "string": {
+      "invalid": "Must be a string",
+      "min": "Must be at least {{min}} characters",
+      "max": "Must be at most {{max}} characters",
+      "email": "Please enter a valid email address",
+      "url": "Please enter a valid URL",
+      "uuid": "Please enter a valid UUID",
+      "cuid": "Please enter a valid CUID",
+      "phone": "Invalid phone number format",
+      "regex": "Format does not match"
+    },
+    "number": {
+      "invalid": "Must be a number",
+      "min": "Must be at least {{min}}",
+      "max": "Must be at most {{max}}",
+      "int": "Must be an integer",
+      "positive": "Must be greater than 0",
+      "nonnegative": "Must be greater than or equal to 0"
+    },
+    "boolean": {
+      "invalid": "Must be a boolean"
+    },
+    "date": {
+      "invalid": "Please enter a valid date"
+    },
+    "array": {
+      "min": "At least {{min}} items required",
+      "max": "At most {{max}} items"
+    },
+    "enum": {
+      "invalid": "Please select a valid option"
+    }
+  },
+  "roles": {
+    "permissionTree": {
+      "selectPermissions": "Please select role permissions",
+      "selectedCount": "{{count}} permissions selected",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "selectAll": "Select All",
+      "clearAll": "Clear All",
+      "button": "Button",
+      "noPermissions": "No permissions available"
+    }
+  }
+}

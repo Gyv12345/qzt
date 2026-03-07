@@ -1,0 +1,238 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma/prisma.service";
+import { CreateInvoiceDto } from "./dto/create-invoice.dto";
+import { UpdateInvoiceDto } from "./dto/update-invoice.dto";
+import { QueryInvoiceDto } from "./dto/query-invoice.dto";
+import { PricingService } from "../pricing/pricing.service";
+
+@Injectable()
+export class InvoiceService {
+  private readonly logger = new Logger(InvoiceService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private pricingService: PricingService,
+  ) {}
+
+  async create(createInvoiceDto: CreateInvoiceDto) {
+    // 验证客户存在
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: createInvoiceDto.customerId },
+    });
+
+    if (!customer) {
+      throw new Error(`Customer #${createInvoiceDto.customerId} not found`);
+    }
+
+    // 计算该客户本月已开票金额和张数
+    const monthStart = new Date(createInvoiceDto.month + "-01");
+    const monthEnd = new Date(createInvoiceDto.month + "-31");
+
+    const existingInvoices = await this.prisma.invoice.findMany({
+      where: {
+        customerId: createInvoiceDto.customerId,
+        month: createInvoiceDto.month,
+      },
+    });
+
+    const totalAmount = existingInvoices.reduce(
+      (sum, inv) => sum + inv.amount,
+      0,
+    );
+    const totalCount = existingInvoices.reduce(
+      (sum, inv) => sum + inv.count,
+      0,
+    );
+
+    // 注: 由于 Product 模型已移除 invoiceLimit/invoiceCount/overLimitPrice 字段
+    // 这里简化处理，直接标记为不超额
+    const invoiceLimit = 0;
+    const invoiceCount = 0;
+    const overLimitPrice = 0;
+
+    // 计算超额情况 (暂时禁用)
+    const newTotalAmount = totalAmount + createInvoiceDto.amount;
+    const newTotalCount = totalCount + createInvoiceDto.count;
+
+    const isOverLimit = false;
+    const overAmount = 0;
+    const overCount = 0;
+
+    // 如果超额并且有关联合同,使用阶梯定价计算新价格
+    const priceChangeRecord = null;
+    if (isOverLimit && createInvoiceDto.contractId) {
+      try {
+        const priceCalculation = await this.pricingService.calculatePrice({
+          contractId: createInvoiceDto.contractId,
+          invoiceAmount: newTotalAmount,
+          invoiceCount: newTotalCount,
+        });
+
+        // 如果价格发生变化,记录变更
+        if (priceCalculation.additionalPrice > 0) {
+          const contract = await this.prisma.contract.findUnique({
+            where: { id: createInvoiceDto.contractId },
+          });
+
+          // 创建发票后再关联价格变更记录
+          // 暂时保存数据,稍后创建invoice时使用
+          this.logger.log(
+            `发票 ${createInvoiceDto.customerId} 超额开票,价格从 ${priceCalculation.basePrice} 调整为 ${priceCalculation.finalPrice}`,
+          );
+        }
+      } catch (error) {
+        this.logger.error("计算价格失败:", error);
+      }
+    }
+
+    const invoice = await this.prisma.invoice.create({
+      data: {
+        customerId: createInvoiceDto.customerId,
+        contractId: createInvoiceDto.contractId,
+        amount: createInvoiceDto.amount,
+        count: createInvoiceDto.count,
+        month: createInvoiceDto.month,
+        isOverLimit,
+        overAmount: isOverLimit && overAmount > 0 ? overAmount : null,
+        overCount: isOverLimit && overCount > 0 ? overCount : 0,
+        remark: createInvoiceDto.remark,
+      },
+      include: {
+        customer: {
+          select: { id: true, name: true },
+        },
+        priceChangeRecords: true,
+      },
+    });
+
+    return invoice;
+  }
+
+  async findAll(query: QueryInvoiceDto) {
+    const { page = 1, pageSize = 10, customerId, month } = query;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+
+    if (customerId) {
+      where.customerId = customerId;
+    }
+
+    if (month) {
+      where.month = month;
+    }
+
+    const [total, data] = await Promise.all([
+      this.prisma.invoice.count({ where }),
+      this.prisma.invoice.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: [{ month: "desc" }, { createdAt: "desc" }],
+        include: {
+          customer: {
+            select: { id: true, name: true },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      data,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  async findOne(id: string) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        customer: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    if (!invoice) {
+      throw new Error(`Invoice #${id} not found`);
+    }
+
+    return invoice;
+  }
+
+  async update(id: string, updateInvoiceDto: UpdateInvoiceDto) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id },
+    });
+
+    if (!invoice) {
+      throw new Error(`Invoice #${id} not found`);
+    }
+
+    return this.prisma.invoice.update({
+      where: { id },
+      data: updateInvoiceDto,
+      include: {
+        customer: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+  }
+
+  async remove(id: string) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id },
+    });
+
+    if (!invoice) {
+      throw new Error(`Invoice #${id} not found`);
+    }
+
+    await this.prisma.invoice.delete({
+      where: { id },
+    });
+
+    return { message: "Invoice deleted successfully" };
+  }
+
+  async getCustomerInvoiceSummary(customerId: string, month?: string) {
+    const where: any = { customerId };
+
+    if (month) {
+      where.month = month;
+    }
+
+    const invoices = await this.prisma.invoice.findMany({
+      where,
+      orderBy: [{ month: "desc" }, { createdAt: "desc" }],
+    });
+
+    // 按月份分组统计
+    const summary = invoices.reduce((acc: any, invoice) => {
+      if (!acc[invoice.month]) {
+        acc[invoice.month] = {
+          month: invoice.month,
+          totalAmount: 0,
+          totalCount: 0,
+          overLimitCount: 0,
+          invoices: [],
+        };
+      }
+
+      acc[invoice.month].totalAmount += invoice.amount;
+      acc[invoice.month].totalCount += invoice.count;
+      if (invoice.isOverLimit) {
+        acc[invoice.month].overLimitCount += 1;
+      }
+      acc[invoice.month].invoices.push(invoice);
+
+      return acc;
+    }, {});
+
+    return Object.values(summary);
+  }
+}

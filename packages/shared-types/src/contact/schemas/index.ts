@@ -1,0 +1,15 @@
+export {
+  contactStatusSchema,
+  contactBaseSchema,
+  contactSchema,
+  createContactSchema,
+  updateContactSchema,
+  queryContactSchema,
+  contactStatusMap,
+  getContactStatusLabel,
+  type ContactStatus,
+  type ContactBase,
+  type Contact,
+  type QueryContactParams,
+  type ContactListResponse,
+} from './contact.schema'

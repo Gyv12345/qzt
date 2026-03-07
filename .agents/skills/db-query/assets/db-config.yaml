@@ -1,0 +1,13 @@
+# 数据库查询配置
+
+database:
+  # 数据库类型: sqlite | mysql
+  type: mysql
+
+  # MySQL 配置
+  mysql:
+    host: rm-f8zy67b6vb06r1a82io.mysql.rds.aliyuncs.com
+    port: 3306
+    database: qzt
+    user: yt4j
+    password: "!Shijie123456"

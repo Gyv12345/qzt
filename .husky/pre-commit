@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# pre-commit hook: auto-increment version number on every commit
+
+set -e
+
+# 获取今天的日期基础版本
+TODAY=$(date +%Y.%m.%d)
+
+# 从 frontend/package.json 获取当前版本（因为根 package.json 版本不更新）
+if [[ -f "frontend/package.json" ]]; then
+  CURRENT_VERSION=$(node -p "require('./frontend/package.json').version" 2>/dev/null || echo "0.0.0")
+else
+  CURRENT_VERSION="0.0.0"
+fi
+
+# 检查当前版本是否是今天的日期版本
+if [[ $CURRENT_VERSION == ${TODAY}* ]]; then
+  # 提取当前的小版本号
+  CURRENT_PATCH=$(echo $CURRENT_VERSION | grep -oE '\.[0-9]+$' | tr -d '.' || echo "0")
+  NEW_PATCH=$((CURRENT_PATCH + 1))
+  NEW_VERSION="${TODAY}.${NEW_PATCH}"
+else
+  # 新的一天，从小版本1开始
+  NEW_VERSION="${TODAY}.1"
+fi
+
+echo "📦 Bumping version: $CURRENT_VERSION → $NEW_VERSION"
+
+# 更新 README 中的版本 badge
+update_readme_version() {
+  local file=$1
+  if [[ -f "$file" ]]; then
+    # macOS 使用 -i ''，Linux 使用 -i
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      sed -i '' "s/version-[0-9]\{4\}\.[0-9]\{2\}\.[0-9]\{2\}\.[0-9]\+/version-${NEW_VERSION}/g" "$file"
+    else
+      sed -i "s/version-[0-9]\{4\}\.[0-9]\{2\}\.[0-9]\{2\}\.[0-9]\+/version-${NEW_VERSION}/g" "$file"
+    fi
+  fi
+}
+
+# 更新 package.json 中的版本号
+update_package_version() {
+  local file=$1
+  if [[ -f "$file" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      sed -i '' "s/\"version\": \"[0-9]\{4\}\.[0-9]\{2\}\.[0-9]\{2\}\.[0-9]\+\"/\"version\": \"${NEW_VERSION}\"/g" "$file"
+    else
+      sed -i "s/\"version\": \"[0-9]\{4\}\.[0-9]\{2\}\.[0-9]\{2\}\.[0-9]\+\"/\"version\": \"${NEW_VERSION}\"/g" "$file"
+    fi
+  fi
+}
+
+# 更新所有文件
+update_readme_version "README.md"
+update_readme_version "README.en.md"
+update_package_version "frontend/package.json"
+update_package_version "backend/package.json"
+update_package_version "website/package.json"
+
+# 将更新后的文件添加到暂存区
+git add README.md README.en.md frontend/package.json backend/package.json website/package.json 2>/dev/null || true
+
+echo "✅ Version updated to $NEW_VERSION"

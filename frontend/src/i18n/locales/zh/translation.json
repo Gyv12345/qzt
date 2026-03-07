@@ -1,0 +1,928 @@
+{
+  "common": {
+    "success": "操作成功",
+    "error": "操作失败",
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "search": "搜索",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "submit": "提交",
+    "submitting": "提交中...",
+    "reset": "重置",
+    "rowsPerPage": "每页行数",
+    "pageOf": "第 {{current}} 页，共 {{total}} 页",
+    "goToFirstPage": "跳转到第一页",
+    "goToPreviousPage": "跳转到上一页",
+    "goToPage": "跳转到第 {{page}} 页",
+    "goToNextPage": "跳转到下一页",
+    "goToLastPage": "跳转到最后一页",
+    "view": "查看",
+    "tip": "提示"
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出",
+    "username": "用户名",
+    "password": "密码",
+    "invalidCredentials": "用户名或密码错误",
+    "accountDisabled": "账号已被禁用",
+    "loginSuccess": "登录成功"
+  },
+  "customer": {
+    "title": "客户管理",
+    "description": "管理您的客户信息和跟进记录",
+    "create": "新建客户",
+    "edit": "编辑客户",
+    "createDescription": "填写客户基本信息",
+    "editDescription": "修改客户信息",
+    "searchPlaceholder": "搜索客户名称...",
+    "batchAssign": {
+      "title": "批量分配跟进人",
+      "description": "将选中的 {{count}} 个客户分配给指定的跟进人",
+      "selectUser": "请选择跟进人",
+      "loadingUsers": "加载用户列表...",
+      "reason": "分配原因",
+      "reasonPlaceholder": "请输入分配原因（选填）",
+      "hint": "分配后，原跟进人将无法继续管理这些客户。分配历史将被记录。",
+      "selectUserRequired": "请选择跟进人",
+      "assigning": "分配中...",
+      "confirmAssign": "确认分配",
+      "success": "批量分配成功",
+      "failed": "批量分配失败",
+      "fetchUsersFailed": "获取用户列表失败"
+    },
+    "columns": {
+      "name": "公司名称",
+      "shortName": "简称",
+      "industry": "行业",
+      "customerLevel": "客户等级",
+      "followUserName": "跟进人",
+      "sourceChannel": "来源渠道",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "fields": {
+      "name": "公司名称",
+      "shortName": "简称",
+      "code": "客户编码",
+      "industry": "行业",
+      "scale": "规模",
+      "address": "地址",
+      "website": "网站",
+      "customerLevel": "客户等级",
+      "sourceChannel": "来源渠道",
+      "tags": "标签",
+      "remark": "备注"
+    },
+    "placeholders": {
+      "name": "请输入公司名称",
+      "shortName": "请输入简称",
+      "code": "请输入客户编码",
+      "industry": "请输入行业",
+      "scale": "请输入规模",
+      "address": "请输入地址",
+      "website": "请输入网站",
+      "customerLevel": "选择客户等级",
+      "sourceChannel": "请输入来源渠道",
+      "tags": "请输入标签，多个标签用逗号分隔",
+      "remark": "请输入备注信息"
+    },
+    "levels": {
+      "LEAD": "线索",
+      "PROSPECT": "意向",
+      "CUSTOMER": "正式",
+      "VIP": "VIP"
+    },
+    "empty": {
+      "customer": "未关联"
+    },
+    "name": "客户名称",
+    "code": "客户编码",
+    "level": "客户级别",
+    "industry": "行业",
+    "createSuccess": "客户创建成功",
+    "updateSuccess": "客户更新成功",
+    "deleteSuccess": "客户删除成功"
+  },
+  "product": {
+    "title": "产品管理",
+    "description": "管理您的产品信息和价格配置",
+    "searchPlaceholder": "搜索产品名称...",
+    "columns": {
+      "name": "产品名称",
+      "code": "产品代码",
+      "price": "价格",
+      "description": "产品描述",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "createSuccess": "产品创建成功",
+    "updateSuccess": "产品更新成功",
+    "deleteSuccess": "产品删除成功"
+  },
+  "productPackage": {
+    "title": "产品套餐",
+    "description": "管理产品套餐，组合多个产品销售",
+    "name": "套餐名称",
+    "description": "套餐描述",
+    "price": "套餐价格",
+    "originalPrice": "原价",
+    "productCount": "产品数量",
+    "status": "状态",
+    "active": "启用",
+    "inactive": "禁用",
+    "createSuccess": "产品套餐已创建",
+    "updateSuccess": "产品套餐已更新",
+    "deleteSuccess": "产品套餐已删除",
+    "noPackages": "暂无产品套餐",
+    "createPackage": "创建套餐",
+    "editPackage": "编辑套餐",
+    "deletePackage": "删除套餐",
+    "manageProducts": "管理产品",
+    "confirmDelete": "确定要删除该产品套餐吗？此操作无法撤销。",
+    "confirmRemoveProduct": "确定要将该产品从套餐中移除吗？",
+    "addProduct": "添加产品",
+    "removeProduct": "移除产品",
+    "productsInPackage": "套餐内产品",
+    "availableProducts": "可添加产品",
+    "searchProducts": "搜索产品...",
+    "noProductsFound": "未找到匹配的产品",
+    "noAvailableProducts": "暂无可用产品"
+  },
+  "productFlow": {
+    "title": "产品流程",
+    "description": "管理产品业务流程，定义产品处理步骤",
+    "name": "流程名称",
+    "description": "流程描述",
+    "product": "所属产品",
+    "nodes": "流程节点",
+    "isActive": "状态",
+    "active": "启用",
+    "inactive": "禁用",
+    "nodeCount": "节点数量",
+    "createSuccess": "产品流程已创建",
+    "updateSuccess": "产品流程已更新",
+    "deleteSuccess": "产品流程已删除",
+    "noFlows": "该产品暂无流程配置",
+    "selectProduct": "请选择产品查看其流程",
+    "createFlow": "创建流程",
+    "createFirstFlow": "创建第一个流程",
+    "toggleStatus": "切换状态"
+  },
+  "contract": {
+    "title": "合同管理",
+    "description": "管理您的合同信息和签约状态",
+    "searchPlaceholder": "搜索合同名称...",
+    "columns": {
+      "name": "合同名称",
+      "contractNo": "合同编号",
+      "customerName": "客户名称",
+      "amount": "合同金额",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "active": "生效中",
+      "expired": "已过期",
+      "terminated": "已终止"
+    },
+    "createSuccess": "合同创建成功",
+    "updateSuccess": "合同更新成功",
+    "deleteSuccess": "合同删除成功"
+  },
+  "invoice": {
+    "title": "发票管理",
+    "description": "管理您的发票开具和记录",
+    "searchPlaceholder": "搜索发票号码...",
+    "columns": {
+      "invoiceNo": "发票号码",
+      "customerName": "客户名称",
+      "amount": "发票金额",
+      "invoiceDate": "开票日期",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "issued": "已开具",
+      "cancelled": "已作废"
+    }
+  },
+  "payment": {
+    "title": "收款管理",
+    "description": "管理您的收款记录和回款状态",
+    "searchPlaceholder": "搜索收款流水号...",
+    "columns": {
+      "paymentNo": "流水号",
+      "contractName": "合同名称",
+      "amount": "收款金额",
+      "paymentDate": "收款日期",
+      "method": "收款方式",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "method": {
+      "bank": "银行转账",
+      "cash": "现金",
+      "check": "支票",
+      "other": "其他"
+    }
+  },
+  "contact": {
+    "title": "联系人管理",
+    "description": "管理您的联系人和企业关联信息",
+    "searchPlaceholder": "搜索联系人姓名...",
+    "columns": {
+      "name": "姓名",
+      "phone": "手机号",
+      "email": "邮箱",
+      "customerName": "所属企业",
+      "position": "职位",
+      "department": "部门",
+      "wechat": "微信号",
+      "birthdate": "生日",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "tags": {
+      "primary": "主要",
+      "decisionMaker": "决策人"
+    },
+    "empty": {
+      "customer": "未关联"
+    },
+    "birthdate": {
+      "today": "今天生日",
+      "inDays": "{{count}}天后"
+    }
+  },
+  "serviceTeam": {
+    "title": "服务团队",
+    "description": "管理客户服务团队成员分配",
+    "roleCode": {
+      "SALE": "销售",
+      "FINANCE": "财务",
+      "OUTWORK": "外勤"
+    },
+    "member": "服务成员",
+    "addMember": "添加成员",
+    "editMember": "编辑成员",
+    "deleteMember": "删除成员",
+    "noMembers": "暂无服务团队成员",
+    "addFirstMember": "添加第一个成员",
+    "assignedAt": "分配于",
+    "confirmDelete": "确定要删除该服务团队成员吗？此操作无法撤销。",
+    "createSuccess": "服务团队成员已添加",
+    "updateSuccess": "服务团队成员已更新",
+    "deleteSuccess": "服务团队成员已删除",
+    "selectCustomer": "请选择客户",
+    "selectUser": "请选择服务人员",
+    "selectRole": "请选择角色"
+  },
+  "user": {
+    "title": "用户管理",
+    "description": "管理系统用户和角色权限",
+    "searchPlaceholder": "搜索用户名...",
+    "status": "状态",
+    "statusEnabled": "启用",
+    "statusDisabled": "禁用",
+    "loadFailed": "加载用户数据失败",
+    "columns": {
+      "username": "用户名",
+      "fullName": "姓名",
+      "email": "邮箱",
+      "phoneNumber": "手机号",
+      "status": "状态",
+      "role": "角色",
+      "department": "部门",
+      "createdAt": "创建时间"
+    },
+    "addNew": "新建用户",
+    "inviteUser": "邀请用户",
+    "edit": "编辑用户",
+    "addDescription": "在此处创建新用户。",
+    "editDescription": "在此处更新用户。",
+    "clickSave": "完成后点击保存。",
+    "name": "姓名",
+    "username": "用户名",
+    "email": "邮箱",
+    "phoneNumber": "电话号码",
+    "role": "角色",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "selectRole": "选择角色",
+    "saveChanges": "保存更改",
+    "placeholder": {
+      "name": "张三",
+      "username": "zhang_san",
+      "email": "zhang.san@example.com",
+      "phoneNumber": "+8613800138000",
+      "password": "例如,S3cur3P@ssw0rd"
+    },
+    "validation": {
+      "nameRequired": "姓名是必填项。",
+      "usernameRequired": "用户名是必填项。",
+      "phoneNumberRequired": "电话号码是必填项。",
+      "emailRequired": "邮箱是必填项。",
+      "roleRequired": "角色是必填项。",
+      "passwordRequired": "密码是必填项。",
+      "passwordMinLength": "密码长度至少为 8 个字符。",
+      "passwordLowercase": "密码必须包含至少一个小写字母。",
+      "passwordNumber": "密码必须包含至少一个数字。",
+      "passwordMismatch": "两次输入的密码不一致。"
+    },
+    "delete": {
+      "title": "删除用户",
+      "description": "您确定要删除 {{username}} 吗？",
+      "description2": "此操作将永久从系统中删除角色为 {{role}} 的用户。此操作无法撤销。",
+      "usernameLabel": "用户名:",
+      "usernamePlaceholder": "输入用户名以确认删除。",
+      "warning": "警告!",
+      "warningText": "请谨慎操作,此操作无法回滚。",
+      "confirmButton": "删除",
+      "deletedMessage": "以下用户已被删除:"
+    }
+  },
+  "settings": {
+    "title": "系统设置",
+    "description": "管理系统设置和首选项",
+    "logs": {
+      "title": "日志管理",
+      "loginLog": {
+        "title": "登录日志",
+        "description": "查看用户登录历史记录",
+        "columns": {
+          "username": "用户名",
+          "ipAddress": "IP 地址",
+          "loginTime": "登录时间",
+          "status": "状态",
+          "browser": "浏览器",
+          "os": "操作系统"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失败"
+        }
+      },
+      "operationLog": {
+        "title": "操作日志",
+        "description": "查看用户操作历史记录",
+        "columns": {
+          "username": "用户名",
+          "module": "模块",
+          "operation": "操作",
+          "method": "请求方法",
+          "url": "请求路径",
+          "ipAddress": "IP 地址",
+          "operationTime": "操作时间",
+          "status": "状态"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失败"
+        }
+      }
+    }
+  },
+  "nav": {
+    "user": {
+      "upgradeToPro": "升级到专业版",
+      "account": "账户",
+      "billing": "账单",
+      "notifications": "通知",
+      "signOut": "退出登录",
+      "signOutDialog": {
+        "title": "退出登录",
+        "description": "您确定要退出登录吗？退出后需要重新登录才能访问系统。",
+        "confirm": "退出"
+      }
+    }
+  },
+  "profile": {
+    "profile": "个人资料",
+    "billing": "账单",
+    "settings": "设置",
+    "notifications": "通知",
+    "newTeam": "新建团队",
+    "signOut": "退出登录"
+  },
+  "config": {
+    "title": "主题设置",
+    "description": "调整外观和布局以适应您的偏好。",
+    "openSettings": "打开主题设置",
+    "reset": "重置",
+    "resetAll": "将所有设置重置为默认值",
+    "theme": {
+      "title": "主题",
+      "system": "跟随系统",
+      "light": "浅色",
+      "dark": "深色",
+      "selectTheme": "选择主题偏好",
+      "description": "在系统偏好、浅色模式或深色模式之间选择"
+    },
+    "sidebar": {
+      "title": "侧边栏",
+      "inset": "内嵌",
+      "floating": "浮动",
+      "sidebar": "标准",
+      "selectSidebar": "选择侧边栏样式",
+      "description": "在内嵌、浮动或标准侧边栏布局之间选择"
+    },
+    "layout": {
+      "title": "布局",
+      "default": "默认",
+      "compact": "紧凑",
+      "fullLayout": "完整布局",
+      "selectLayout": "选择布局样式",
+      "description": "在默认展开、仅图标紧凑模式或完整布局模式之间选择"
+    },
+    "direction": {
+      "title": "方向",
+      "leftToRight": "从左到右",
+      "rightToLeft": "从右到左",
+      "selectDirection": "选择网站方向",
+      "description": "在从左到右或从右到左网站方向之间选择"
+    }
+  },
+  "accountSettings": {
+    "title": "设置",
+    "description": "管理您的账户设置和电子邮件首选项。",
+    "selectPlaceholder": "选择设置",
+    "sidebar": {
+      "profile": "个人资料",
+      "account": "账户",
+      "appearance": "外观",
+      "notifications": "通知",
+      "webhooks": "推送配置",
+      "display": "显示"
+    },
+    "profile": {
+      "title": "个人资料",
+      "description": "这是他人在网站上看到您的信息。",
+      "username": "用户名",
+      "usernameDescription": "这是您的公开显示名称。可以是您的真实姓名或 pseudonym。您每30天只能更改一次。",
+      "email": "邮箱",
+      "selectEmail": "选择要显示的已验证邮箱",
+      "emailDescription": "您可以在",
+      "emailSettings": "邮箱设置",
+      "bio": "个人简介",
+      "bioPlaceholder": "简单介绍一下您自己",
+      "bioDescription": "您可以 @提及 其他用户和组织以链接到他们。",
+      "urls": "网址",
+      "urlsDescription": "添加到您的网站、博客或社交媒体资料的链接。",
+      "addUrl": "添加网址",
+      "updateProfile": "更新个人资料",
+      "validation": {
+        "usernameMin": "用户名至少需要2个字符。",
+        "usernameMax": "用户名不得超过30个字符。",
+        "emailRequired": "请选择要显示的邮箱。",
+        "invalidUrl": "请输入有效的网址。"
+      }
+    },
+    "account": {
+      "title": "账户",
+      "description": "管理您的账户设置和首选项。"
+    },
+    "appearance": {
+      "title": "外观",
+      "description": "自定义您看到和使用应用程序的外观。"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "配置何时以及如何接收通知。"
+    },
+    "display": {
+      "title": "显示",
+      "description": "调整显示设置以适应您的需求。"
+    },
+    "webhooks": {
+      "title": "推送配置",
+      "description": "配置何时以及如何接收通知。"
+    }
+  },
+  "webhooks": {
+    "title": "Webhook 推送配置",
+    "description": "配置飞书、企业微信、钉钉的 Webhook 推送地址",
+    "create": "新建配置",
+    "edit": "编辑配置",
+    "delete": "删除配置",
+    "test": "测试发送",
+    "testSuccess": "测试消息发送成功",
+    "testFailed": "测试消息发送失败",
+    "createSuccess": "Webhook 配置创建成功",
+    "updateSuccess": "Webhook 配置更新成功",
+    "deleteSuccess": "Webhook 配置删除成功",
+    "createFailed": "创建失败",
+    "updateFailed": "更新失败",
+    "deleteFailed": "删除失败",
+    "deleteConfirm": "确定要删除此 Webhook 配置吗？此操作无法撤销。",
+    "deleteConfirmTitle": "确认删除",
+    "cancel": "取消",
+    "confirm": "确认",
+    "noData": "暂无 Webhook 配置",
+    "fields": {
+      "name": "配置名称",
+      "platform": "平台",
+      "webhookUrl": "Webhook URL",
+      "enabled": "启用配置"
+    },
+    "placeholders": {
+      "name": "例如：销售通知群",
+      "webhookUrl": "https://open.feishu.cn/open-apis/bot/v2/hook/..."
+    },
+    "platforms": {
+      "wecom": "企业微信",
+      "feishu": "飞书",
+      "dingtalk": "钉钉"
+    },
+    "validation": {
+      "nameRequired": "配置名称不能为空",
+      "nameTooLong": "配置名称最多100个字符",
+      "platformRequired": "请选择平台",
+      "webhookUrlRequired": "请输入 Webhook URL",
+      "webhookUrlInvalid": "请输入有效的 Webhook URL"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "helpText": {
+      "enabled": "关闭后将不会发送消息到此 Webhook",
+      "createDescription": "添加新的飞书、企业微信或钉钉 Webhook 配置",
+      "editDescription": "修改现有的 Webhook 配置信息"
+    },
+    "actions": {
+      "send": "发送",
+      "save": "保存",
+      "create": "创建"
+    }
+  },
+  "customerRule": {
+    "title": "客户规则管理",
+    "description": "配置客户管理规则、验证逻辑和业务约束",
+    "searchPlaceholder": "搜索规则名称...",
+    "columns": {
+      "title": "规则标题",
+      "code": "规则代码",
+      "description": "规则描述",
+      "daysValue": "天数设置",
+      "enabled": "启用状态",
+      "updatedAt": "更新时间"
+    },
+    "fields": {
+      "title": "规则标题",
+      "description": "规则描述",
+      "daysValue": "天数设置",
+      "enabled": "启用规则"
+    },
+    "placeholders": {
+      "title": "请输入规则标题",
+      "description": "请输入规则描述"
+    },
+    "helpText": {
+      "enabled": "启用后将应用此规则到客户管理流程中"
+    },
+    "edit": {
+      "title": "编辑规则",
+      "description": "修改客户规则的配置和参数"
+    },
+    "updateSuccess": "规则更新成功"
+  },
+  "contractTemplate": {
+    "title": "合同模板管理",
+    "description": "管理合同模板，支持富文本编辑和变量插入",
+    "create": "新建模板",
+    "edit": "编辑模板",
+    "preview": "预览模板",
+    "createSuccess": "合同模板创建成功",
+    "updateSuccess": "合同模板更新成功",
+    "deleteSuccess": "合同模板删除成功",
+    "columns": {
+      "name": "模板名称",
+      "code": "模板编码",
+      "description": "描述",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "禁用"
+    },
+    "fields": {
+      "name": "模板名称",
+      "code": "模板编码",
+      "content": "模板内容",
+      "description": "模板描述",
+      "variables": "变量定义"
+    },
+    "placeholders": {
+      "name": "请输入模板名称",
+      "code": "请输入模板编码",
+      "description": "请输入模板描述",
+      "content": "请输入合同内容，可以插入变量..."
+    },
+    "variables": {
+      "basic": "基本信息",
+      "contract": "合同信息",
+      "product": "产品信息",
+      "company": "我方信息",
+      "user": "用户信息",
+      "customerName": "客户名称",
+      "customerShortName": "客户简称",
+      "contractNo": "合同编号",
+      "contractName": "合同名称",
+      "contractAmount": "合同金额",
+      "signDate": "签约日期",
+      "startDate": "服务开始日期",
+      "endDate": "服务结束日期",
+      "productName": "产品名称",
+      "productCode": "产品编码",
+      "productPrice": "产品价格",
+      "productQuantity": "产品数量",
+      "companyName": "我方公司名称",
+      "companyAddress": "我方地址",
+      "companyPhone": "我方电话",
+      "userName": "操作员姓名"
+    },
+    "editor": {
+      "bold": "粗体",
+      "italic": "斜体",
+      "underline": "下划线",
+      "strike": "删除线",
+      "code": "代码",
+      "heading1": "一级标题",
+      "heading2": "二级标题",
+      "bulletList": "无序列表",
+      "orderedList": "有序列表",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中对齐",
+      "alignRight": "右对齐",
+      "undo": "撤销",
+      "redo": "重做",
+      "link": "链接",
+      "insertVariable": "插入变量",
+      "placeholder": "请输入合同内容，可以插入变量..."
+    },
+    "preview": {
+      "title": "预览合同模板",
+      "description": "预览合同模板内容，变量已替换为示例数据",
+      "refresh": "刷新预览",
+      "download": "下载",
+      "print": "打印",
+      "sampleDataNote": "示例数据已应用，实际使用时将替换为真实数据"
+    }
+  },
+  "socialMedia": {
+    "title": "新媒体管理",
+    "description": "统一管理抖音、小红书、微信视频号等平台内容发布",
+    "accountSettings": "账号设置",
+    "calendarView": "日历视图",
+    "configured": "已配置",
+    "notConfigured": "未配置",
+    "postsList": "内容列表",
+    "accountManagement": "账号管理",
+    "newPost": "新建内容",
+    "confirmDeleteAccount": "确认删除账号？",
+    "confirmDeletePost": "确认删除内容？",
+    "deleteAccountWarning": "删除后将无法恢复，且与此账号相关的定时发布任务可能会失败。",
+    "deletePostWarning": "删除后将无法恢复，已发布到各平台的内容不会被删除。",
+    "columns": {
+      "platform": "平台",
+      "accountName": "账号名称",
+      "accountId": "平台账号ID",
+      "tokenExpiry": "令牌过期时间",
+      "status": "状态",
+      "title": "标题",
+      "content": "内容",
+      "scheduledAt": "定时发布",
+      "publishedAt": "发布时间",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "scheduled": "定时中",
+      "publishing": "发布中",
+      "published": "已发布",
+      "failed": "失败",
+      "active": "启用",
+      "disabled": "禁用"
+    },
+    "actions": {
+      "publish": "立即发布",
+      "schedule": "定时发布",
+      "cancelSchedule": "取消定时",
+      "refreshToken": "刷新令牌",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "form": {
+      "selectAccount": "选择发布账号",
+      "title": "标题",
+      "titlePlaceholder": "输入内容标题",
+      "content": "内容",
+      "contentPlaceholder": "输入内容文案，支持话题标签 #话题名",
+      "topics": "话题标签",
+      "topicsPlaceholder": "输入话题标签（如 #干货分享）",
+      "location": "位置信息",
+      "locationPlaceholder": "添加位置信息",
+      "visibility": "可见性",
+      "visibilityPublic": "公开",
+      "visibilityFriends": "好友可见",
+      "visibilityPrivate": "私密",
+      "scheduledAt": "定时发布",
+      "scheduledAtPlaceholder": "选择发布时间",
+      "platform": "平台",
+      "accountName": "账号名称",
+      "accountNamePlaceholder": "输入账号昵称/名称",
+      "appId": "App ID / 应用ID",
+      "appSecret": "App Secret / 应用密钥",
+      "appSecretPlaceholder": "应用密钥（将加密存储）",
+      "accessToken": "Access Token",
+      "accessTokenPlaceholder": "已有令牌可直接填入",
+      "openId": "OpenID",
+      "openIdPlaceholder": "微信 OpenID"
+    },
+    "messages": {
+      "createSuccess": "创建成功",
+      "updateSuccess": "更新成功",
+      "deleteSuccess": "删除成功",
+      "publishSuccess": "发布成功",
+      "scheduleSuccess": "定时发布设置成功",
+      "cancelScheduleSuccess": "已取消定时发布",
+      "refreshTokenSuccess": "令牌刷新成功",
+      "noAccounts": "暂无账号数据",
+      "noPosts": "暂无内容数据",
+      "addAccount": "添加账号",
+      "addFirstAccount": "添加第一个账号",
+      "createPost": "创建内容"
+    }
+  },
+  "validation": {
+    "_invalid": "格式不正确",
+    "_required": "此字段为必填项",
+    "string": {
+      "invalid": "必须是字符串",
+      "min": "至少需要 {{min}} 个字符",
+      "max": "最多 {{max}} 个字符",
+      "email": "请输入有效的邮箱地址",
+      "url": "请输入有效的网址",
+      "uuid": "请输入有效的 UUID",
+      "cuid": "请输入有效的 CUID",
+      "phone": "手机号格式不正确",
+      "regex": "格式不匹配"
+    },
+    "number": {
+      "invalid": "必须是数字",
+      "min": "不能小于 {{min}}",
+      "max": "不能大于 {{max}}",
+      "int": "必须是整数",
+      "positive": "必须大于 0",
+      "nonnegative": "必须大于等于 0"
+    },
+    "boolean": {
+      "invalid": "必须是布尔值"
+    },
+    "date": {
+      "invalid": "请输入有效的日期"
+    },
+    "array": {
+      "min": "至少需要 {{min}} 项",
+      "max": "最多 {{max}} 项"
+    },
+    "enum": {
+      "invalid": "请选择有效选项"
+    }
+  },
+  "menu": {
+    "sidebar": {
+      "business": "业务",
+      "dashboard": "工作台",
+      "contacts": "联系人管理",
+      "customers": "客户管理",
+      "contracts": "合同管理",
+      "serviceTeams": "服务团队",
+      "invoices": "发票管理",
+      "payments": "收款管理",
+      "content": "内容管理",
+      "cms": "文章管理",
+      "cmsPages": "页面管理",
+      "cmsTags": "标签管理",
+      "socialMedia": "新媒体管理",
+      "businessSettings": "业务设置",
+      "products": "产品管理",
+      "contractTemplates": "合同模板设置",
+      "customerRules": "客户规则",
+      "webhooks": "Webhook配置",
+      "systemSettings": "系统设置",
+      "users": "用户管理",
+      "departments": "部门管理",
+      "roles": "角色管理",
+      "menus": "菜单管理",
+      "permissions": "权限管理",
+      "loginLogs": "登录日志",
+      "operationLogs": "操作日志",
+      "systemLogs": "系统日志"
+    }
+  },
+  "cms": {
+    "content": {
+      "columns": {
+        "title": "标题",
+        "type": "类型",
+        "status": "状态",
+        "author": "作者",
+        "excerpt": "摘要",
+        "publishedAt": "发布日期",
+        "actions": "操作"
+      }
+    }
+  },
+  "user": {
+    "title": "用户管理",
+    "description": "管理系统用户账户和权限",
+    "addNew": "新建用户",
+    "batchAdd": "批量添加",
+    "edit": "编辑用户",
+    "editDescription": "修改用户信息",
+    "addDescription": "填写用户基本信息",
+    "clickSave": "点击保存完成操作",
+    "name": "姓名",
+    "username": "用户名",
+    "email": "邮箱",
+    "phoneNumber": "手机号",
+    "department": "部门",
+    "role": "角色",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "status": "状态",
+    "statusEnabled": "启用",
+    "statusDisabled": "禁用",
+    "searchPlaceholder": "搜索用户...",
+    "loadFailed": "加载用户数据失败",
+    "selectRole": "请选择角色",
+    "saveChanges": "保存更改",
+    "placeholder": {
+      "name": "请输入姓名",
+      "username": "请输入用户名",
+      "email": "请输入邮箱",
+      "phoneNumber": "请输入手机号",
+      "password": "请输入密码"
+    },
+    "columns": {
+      "username": "用户名",
+      "fullName": "姓名",
+      "email": "邮箱",
+      "phoneNumber": "手机号",
+      "status": "状态",
+      "department": "部门",
+      "createdAt": "创建时间"
+    },
+    "validation": {
+      "nameRequired": "姓名不能为空",
+      "usernameRequired": "用户名不能为空",
+      "phoneNumberRequired": "手机号不能为空",
+      "emailRequired": "邮箱不能为空",
+      "roleRequired": "请选择角色",
+      "passwordRequired": "密码不能为空",
+      "passwordMinLength": "密码至少8位",
+      "passwordLowercase": "密码必须包含小写字母",
+      "passwordNumber": "密码必须包含数字",
+      "passwordMismatch": "两次密码不一致"
+    },
+    "delete": {
+      "title": "确认删除",
+      "description": "您即将删除用户",
+      "description2": "此操作不可撤销。",
+      "usernameLabel": "请输入用户名以确认",
+      "usernamePlaceholder": "输入用户名",
+      "warning": "警告",
+      "warningText": "删除用户将无法恢复其数据。",
+      "confirmButton": "确认删除"
+    }
+  },
+  "roles": {
+    "permissionTree": {
+      "selectPermissions": "请选择角色权限",
+      "selectedCount": "已选择 {{count}} 个权限",
+      "expandAll": "展开全部",
+      "collapseAll": "收起全部",
+      "selectAll": "全选",
+      "clearAll": "清空",
+      "button": "按钮",
+      "noPermissions": "暂无权限数据"
+    }
+  }
+}
