@@ -34,10 +34,12 @@ import { CustomerRuleModule } from "./modules/customer-rules/customer-rule.modul
 import { EsignModule } from "./modules/esign/esign.module";
 import { SystemLogsModule } from "./modules/system-logs/system-logs.module";
 import { MenuModule } from "./modules/menu/menu.module";
+import { TodoModule } from "./modules/todo/todo.module";
 import { I18nModule, AcceptLanguageResolver } from "nestjs-i18n";
 import * as path from "path";
 import { Reflector } from "@nestjs/core";
 import { validateEnv, type EnvConfig } from "./config";
+import { AiAgentModule } from "./modules/ai-agent/ai-agent.module";
 
 /**
  * 环境变量验证函数
@@ -147,7 +149,9 @@ function validateAppConfig(config: Record<string, unknown>): EnvConfig {
     EsignModule,
     SystemLogsModule,
     MenuModule,
+    TodoModule,
     HealthModule,
+    AiAgentModule,
   ],
   providers: [
     {

@@ -27,4 +27,8 @@ export interface CreateMenuDto {
   hasChildren?: boolean;
   /** 关联权限ID列表 */
   permissionIds?: string[];
+  /** 菜单类型（menu: 菜单, button: 按钮, group: 分组） */
+  type?: string;
+  /** 权限代码 */
+  permissionCode?: string;
 }

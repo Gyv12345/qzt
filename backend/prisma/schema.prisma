@@ -59,6 +59,8 @@ model User {
   cmsAuthoredContents CmsContent[]   @relation("CmsContentAuthor")
   cmsProfiles         CmsContent[]   @relation("CmsUserProfile")
   changeLogs          ChangeLog[]    @relation("ChangeLogUser")
+  assignedTasks       Task[]         @relation("TaskAssignee")
+  createdTasks        Task[]         @relation("TaskCreator")
 
   @@index([departmentId])
   @@map("users")
@@ -270,6 +272,29 @@ model FollowRecord {
   @@index([contactId])
   @@index([userId])
   @@map("follow_records")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("todo") // backlog, todo, in progress, done, canceled
+  label       String    @default("feature") // bug, feature, documentation
+  priority    String    @default("medium") // low, medium, high, critical
+  dueDate     DateTime?
+  assigneeId  String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  assignee User? @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  creator  User? @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([priority])
+  @@index([assigneeId])
+  @@index([createdById])
+  @@map("tasks")
 }
 
 // ==================== 产品模块 ====================
@@ -1068,4 +1093,56 @@ model ChangeLog {
   @@index([changedBy])
   @@index([createdAt])
   @@map("change_logs")
+}
+
+// ==================== AI Agent 模块 ====================
+
+// AI Agent 会话（多轮对话）
+model AgentSession {
+  id                String   @id @default(cuid())
+  wechatUserId      String // 企业微信用户ID
+  systemUserId      String? // 关联的系统用户ID
+  intent            String? // 当前意图
+  extractedEntities String? // 已提取的实体(JSON)
+  missingFields     String? // 缺失字段(JSON数组)
+  status            String   @default("active") // active:活跃 completed:完成 expired:过期
+  expiresAt         DateTime // 过期时间
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([wechatUserId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("agent_sessions")
+}
+
+// AI Agent 操作日志
+model AgentActionLog {
+  id            String   @id @default(cuid())
+  systemUserId  String // 操作用户ID
+  intent        String // 意图类型
+  inputMessage  String // 用户输入消息
+  extractedData String? // 提取的数据(JSON)
+  actionResult  String? // 操作结果(JSON)
+  success       Boolean // 是否成功
+  createdAt     DateTime @default(now())
+
+  @@index([systemUserId])
+  @@index([intent])
+  @@index([createdAt])
+  @@map("agent_action_logs")
+}
+
+// 企业微信用户映射
+model WechatUserMapping {
+  id             String   @id @default(cuid())
+  wechatUserId   String   @unique // 企业微信用户ID
+  wechatUserName String? // 企业微信用户名
+  systemUserId   String? // 关联的系统用户ID
+  isActive       Boolean  @default(true) // 是否启用
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([systemUserId])
+  @@map("wechat_user_mappings")
 }

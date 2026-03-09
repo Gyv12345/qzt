@@ -826,6 +826,7 @@
       "contractTemplates": "合同模板设置",
       "customerRules": "客户规则",
       "webhooks": "Webhook配置",
+      "aiAgent": "AI Agent",
       "systemSettings": "系统设置",
       "users": "用户管理",
       "departments": "部门管理",
@@ -923,6 +924,55 @@
       "clearAll": "清空",
       "button": "按钮",
       "noPermissions": "暂无权限数据"
+    }
+  },
+  "aiAgent": {
+    "title": "AI Agent",
+    "description": "配置 AI Agent，支持通过企业微信快速操作业务系统",
+    "config": {
+      "title": "AI Agent 配置",
+      "enabled": "启用 AI Agent",
+      "enabledDesc": "开启后可通过企业微信使用 AI Agent 功能",
+      "provider": "AI 提供商",
+      "model": "模型",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "输入新的 API Key（留空保持不变）",
+      "apiKeyHint": "从智谱开放平台获取：https://open.bigmodel.cn"
+    },
+    "test": {
+      "title": "测试对话",
+      "welcome": "发送消息开始测试 AI Agent 功能",
+      "example": "例如：新建客户北京科技有限公司，联系人张三",
+      "inputPlaceholder": "输入消息...",
+      "error": "抱歉，发生了错误，请稍后重试。"
+    },
+    "logs": {
+      "title": "操作日志",
+      "time": "时间",
+      "intent": "意图",
+      "input": "输入",
+      "status": "状态",
+      "success": "成功",
+      "failed": "失败",
+      "empty": "暂无操作日志"
+    },
+    "guide": {
+      "title": "使用指南",
+      "setup": {
+        "title": "配置步骤",
+        "step1": "在智谱开放平台注册账号",
+        "step2": "创建应用并获取 API Key",
+        "step3": "在上方配置卡片中填入 API Key",
+        "step4": "开启 AI Agent 功能"
+      },
+      "features": {
+        "title": "支持的操作",
+        "customer": "创建客户 - 新建客户北京科技公司",
+        "follow": "添加跟进 - 给客户添加跟进记录",
+        "contract": "创建合同 - 创建合同，金额5万元",
+        "payment": "创建回款 - 添加回款，金额2万元",
+        "query": "查询客户 - 查询客户北京科技"
+      }
     }
   }
 }

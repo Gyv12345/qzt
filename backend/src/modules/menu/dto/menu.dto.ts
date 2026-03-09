@@ -95,6 +95,19 @@ export class CreateMenuDto {
   @ApiProperty({ description: "关联权限ID列表", required: false })
   @IsOptional()
   permissionIds?: string[];
+
+  @ApiProperty({
+    description: "菜单类型（menu: 菜单, button: 按钮, group: 分组）",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiProperty({ description: "权限代码", required: false })
+  @IsOptional()
+  @IsString()
+  permissionCode?: string;
 }
 
 /**
@@ -179,6 +192,19 @@ export class UpdateMenuDto {
   @ApiProperty({ description: "关联权限ID列表", required: false })
   @IsOptional()
   permissionIds?: string[];
+
+  @ApiProperty({
+    description: "菜单类型（menu: 菜单, button: 按钮, group: 分组）",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiProperty({ description: "权限代码", required: false })
+  @IsOptional()
+  @IsString()
+  permissionCode?: string;
 }
 
 /**

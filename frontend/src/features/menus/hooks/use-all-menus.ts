@@ -12,10 +12,15 @@ export interface MenuNode {
   path: string;
   name: string;
   icon?: string;
+  groupTitle?: string | null;
+  i18nKey?: string | null;
+  badge?: string | null;
   parentId: string | null;
   type?: string; // "menu" | "button"
   permissionCode?: string;
   enabled: boolean;
+  isHidden?: boolean;
+  isSystem?: boolean;
   sort: number;
   children?: MenuNode[];
 }

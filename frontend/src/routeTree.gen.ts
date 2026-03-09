@@ -38,6 +38,7 @@ import { Route as AuthenticatedContractsRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedContractTemplatesRouteRouteImport } from './routes/_authenticated/contract-templates/route'
 import { Route as AuthenticatedContactsRouteRouteImport } from './routes/_authenticated/contacts/route'
 import { Route as AuthenticatedCmsRouteRouteImport } from './routes/_authenticated/cms/route'
+import { Route as AuthenticatedAiAgentRouteRouteImport } from './routes/_authenticated/ai-agent/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
@@ -216,6 +217,12 @@ const AuthenticatedCmsRouteRoute = AuthenticatedCmsRouteRouteImport.update({
   path: '/cms',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAiAgentRouteRoute =
+  AuthenticatedAiAgentRouteRouteImport.update({
+    id: '/ai-agent',
+    path: '/ai-agent',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -325,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/setup-2fa': typeof Setup2faRoute
+  '/ai-agent': typeof AuthenticatedAiAgentRouteRoute
   '/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
@@ -372,6 +380,7 @@ export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/setup-2fa': typeof Setup2faRoute
+  '/ai-agent': typeof AuthenticatedAiAgentRouteRoute
   '/contacts': typeof AuthenticatedContactsRouteRoute
   '/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
   '/contracts': typeof AuthenticatedContractsRouteRoute
@@ -420,6 +429,7 @@ export interface FileRoutesById {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/setup-2fa': typeof Setup2faRoute
+  '/_authenticated/ai-agent': typeof AuthenticatedAiAgentRouteRoute
   '/_authenticated/cms': typeof AuthenticatedCmsRouteRouteWithChildren
   '/_authenticated/contacts': typeof AuthenticatedContactsRouteRoute
   '/_authenticated/contract-templates': typeof AuthenticatedContractTemplatesRouteRoute
@@ -471,6 +481,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/login'
     | '/setup-2fa'
+    | '/ai-agent'
     | '/cms'
     | '/contacts'
     | '/contract-templates'
@@ -518,6 +529,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/login'
     | '/setup-2fa'
+    | '/ai-agent'
     | '/contacts'
     | '/contract-templates'
     | '/contracts'
@@ -565,6 +577,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/login'
     | '/setup-2fa'
+    | '/_authenticated/ai-agent'
     | '/_authenticated/cms'
     | '/_authenticated/contacts'
     | '/_authenticated/contract-templates'
@@ -827,6 +840,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCmsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ai-agent': {
+      id: '/_authenticated/ai-agent'
+      path: '/ai-agent'
+      fullPath: '/ai-agent'
+      preLoaderRoute: typeof AuthenticatedAiAgentRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -1030,6 +1050,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAiAgentRouteRoute: typeof AuthenticatedAiAgentRouteRoute
   AuthenticatedCmsRouteRoute: typeof AuthenticatedCmsRouteRouteWithChildren
   AuthenticatedContactsRouteRoute: typeof AuthenticatedContactsRouteRoute
   AuthenticatedContractTemplatesRouteRoute: typeof AuthenticatedContractTemplatesRouteRoute
@@ -1059,6 +1080,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAiAgentRouteRoute: AuthenticatedAiAgentRouteRoute,
   AuthenticatedCmsRouteRoute: AuthenticatedCmsRouteRouteWithChildren,
   AuthenticatedContactsRouteRoute: AuthenticatedContactsRouteRoute,
   AuthenticatedContractTemplatesRouteRoute:

@@ -3,9 +3,14 @@ import { TasksDialogs } from "./components/tasks-dialogs";
 import { TasksPrimaryButtons } from "./components/tasks-primary-buttons";
 import { TasksProvider } from "./components/tasks-provider";
 import { TasksTable } from "./components/tasks-table";
-import { tasks } from "./data/tasks";
+import { useTasks } from "./hooks/use-tasks";
 
 export function Tasks() {
+  const { data, isLoading, isError } = useTasks({
+    page: 1,
+    pageSize: 1000,
+  });
+
   return (
     <TasksProvider>
       <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
@@ -18,7 +23,17 @@ export function Tasks() {
           </div>
           <TasksPrimaryButtons />
         </div>
-        <TasksTable data={tasks} />
+        {isLoading ? (
+          <div className="rounded-md border p-8 text-center text-muted-foreground">
+            Loading tasks...
+          </div>
+        ) : isError ? (
+          <div className="rounded-md border p-8 text-center text-destructive">
+            Failed to load tasks.
+          </div>
+        ) : (
+          <TasksTable data={data?.data || []} />
+        )}
       </Main>
 
       <TasksDialogs />

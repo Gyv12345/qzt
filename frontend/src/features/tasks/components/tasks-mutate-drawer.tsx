@@ -1,7 +1,7 @@
+import { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
-import { showSubmittedData } from "@/lib/show-submitted-data";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { SelectDropdown } from "@/components/select-dropdown";
 import { type Task } from "../data/schema";
+import { useCreateTask, useUpdateTask } from "../hooks/use-tasks";
 
 type TaskMutateDrawerProps = {
   open: boolean;
@@ -45,10 +46,12 @@ export function TasksMutateDrawer({
   currentRow,
 }: TaskMutateDrawerProps) {
   const isUpdate = !!currentRow;
+  const createMutation = useCreateTask();
+  const updateMutation = useUpdateTask();
 
   const form = useForm<TaskForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: currentRow ?? {
+    defaultValues: {
       title: "",
       status: "",
       label: "",
@@ -56,12 +59,50 @@ export function TasksMutateDrawer({
     },
   });
 
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        title: "",
+        status: "",
+        label: "",
+        priority: "",
+      });
+      return;
+    }
+
+    if (currentRow) {
+      form.reset({
+        title: currentRow.title,
+        status: currentRow.status,
+        label: currentRow.label,
+        priority: currentRow.priority,
+      });
+    }
+  }, [open, currentRow, form]);
+
   const onSubmit = (data: TaskForm) => {
-    // do something with the form data
-    onOpenChange(false);
-    form.reset();
-    showSubmittedData(data);
+    if (isUpdate && currentRow) {
+      updateMutation.mutate(
+        { id: currentRow.id, payload: data },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+            form.reset();
+          },
+        },
+      );
+      return;
+    }
+
+    createMutation.mutate(data, {
+      onSuccess: () => {
+        onOpenChange(false);
+        form.reset();
+      },
+    });
   };
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Sheet
@@ -200,10 +241,12 @@ export function TasksMutateDrawer({
         </Form>
         <SheetFooter className="gap-2">
           <SheetClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline" disabled={isSubmitting}>
+              Close
+            </Button>
           </SheetClose>
-          <Button form="tasks-form" type="submit">
-            Save changes
+          <Button form="tasks-form" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save changes"}
           </Button>
         </SheetFooter>
       </SheetContent>

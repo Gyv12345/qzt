@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -30,18 +32,21 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
+import { getScrmApi } from "@/services/api";
 import { useAllMenus } from "../hooks/use-all-menus";
 import type { MenuNode } from "../hooks/use-all-menus";
+import type { CreateMenuDto, UpdateMenuDto } from "@/models";
 
 const menuFormSchema = z.object({
   name: z.string().min(1, "菜单名称不能为空"),
   path: z.string().min(1, "路径不能为空"),
+  groupTitle: z.string().min(1, "分组标题不能为空"),
   icon: z.string().optional(),
   parentId: z.string().optional(),
   sort: z.number().min(0, "排序必须大于等于0"),
-  type: z.enum(["menu", "button"]).optional(),
+  type: z.enum(["menu", "button", "group"]),
   permissionCode: z.string().optional(),
-  enabled: z.boolean().default(true),
+  enabled: z.boolean(),
 });
 
 type MenuFormValues = z.infer<typeof menuFormSchema>;
@@ -56,7 +61,22 @@ interface MenuFormDrawerProps {
 const typeOptions = [
   { value: "menu", label: "菜单" },
   { value: "button", label: "按钮" },
+  { value: "group", label: "分组" },
 ];
+
+const ROOT_PARENT_VALUE = "__ROOT__";
+
+function collectDescendantIds(node: MenuNode, ids: Set<string>) {
+  ids.add(node.id);
+  node.children?.forEach((child) => collectDescendantIds(child, ids));
+}
+
+function flattenMenuOptions(nodes: MenuNode[], level = 0): MenuNode[] {
+  return nodes.flatMap((node) => [
+    { ...node, name: `${"  ".repeat(level)}${node.name}` },
+    ...(node.children ? flattenMenuOptions(node.children, level + 1) : []),
+  ]);
+}
 
 export function MenuFormDrawer({
   open,
@@ -68,6 +88,7 @@ export function MenuFormDrawer({
   const isMobile = useIsMobile();
   const { dir } = useDirection();
   const drawerSide = isMobile ? "bottom" : dir === "rtl" ? "left" : "right";
+  const queryClient = useQueryClient();
 
   const { data: menuTree } = useAllMenus();
 
@@ -77,24 +98,27 @@ export function MenuFormDrawer({
       ? {
           name: menu.name,
           path: menu.path,
+          groupTitle: menu.groupTitle || "",
           icon: menu.icon,
           parentId: menu.parentId || undefined,
           sort: menu.sort,
-          type: menu.type as "menu" | "button" | undefined,
+          type: (menu.type as "menu" | "button" | "group" | undefined) || "menu",
           permissionCode: menu.permissionCode,
           enabled: menu.enabled,
         }
       : {
           name: "",
           path: "",
+          groupTitle: "",
           icon: undefined,
           parentId: undefined,
           sort: 0,
-          type: undefined,
+          type: "menu",
           permissionCode: undefined,
           enabled: true,
         },
   });
+  const selectedType = form.watch("type");
 
   useEffect(() => {
     if (!open) {
@@ -107,10 +131,11 @@ export function MenuFormDrawer({
       form.reset({
         name: menu.name,
         path: menu.path,
+        groupTitle: menu.groupTitle || "",
         icon: menu.icon,
         parentId: menu.parentId || undefined,
         sort: menu.sort,
-        type: menu.type as "menu" | "button" | undefined,
+        type: (menu.type as "menu" | "button" | "group" | undefined) || "menu",
         permissionCode: menu.permissionCode,
         enabled: menu.enabled,
       });
@@ -118,25 +143,102 @@ export function MenuFormDrawer({
       form.reset({
         name: "",
         path: "",
+        groupTitle: "",
         icon: undefined,
         parentId: undefined,
         sort: 0,
-        type: undefined,
+        type: "menu",
         permissionCode: undefined,
         enabled: true,
       });
     }
   }, [menu, open, form]);
 
-  const onSubmit = async (values: MenuFormValues) => {
-    try {
-      // TODO: 调用后端 API 创建/更新菜单
-      console.log("提交菜单数据:", values);
-      onSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("提交失败:", error);
+  const excludedParentIds = useMemo(() => {
+    if (!menu || !menuTree?.length) {
+      return new Set<string>();
     }
+
+    const excludedIds = new Set<string>();
+    const stack = [...menuTree];
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (current.id === menu.id) {
+        collectDescendantIds(current, excludedIds);
+        break;
+      }
+      if (current.children?.length) {
+        stack.push(...current.children);
+      }
+    }
+    return excludedIds;
+  }, [menu, menuTree]);
+
+  const parentOptions = useMemo(() => {
+    const flattened = flattenMenuOptions(menuTree || []);
+    return flattened.filter(
+      (item) => item.type !== "button" && !excludedParentIds.has(item.id),
+    );
+  }, [menuTree, excludedParentIds]);
+
+  const createMutation = useMutation({
+    mutationFn: async (payload: CreateMenuDto) =>
+      (getScrmApi() as any).menuControllerCreateMenu(payload),
+    onSuccess: async () => {
+      toast.success("菜单创建成功");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["menus-all"] }),
+        queryClient.invalidateQueries({ queryKey: ["menu-tree"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-menus"] }),
+      ]);
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "菜单创建失败");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: UpdateMenuDto }) =>
+      (getScrmApi() as any).menuControllerUpdateMenu(id, payload),
+    onSuccess: async () => {
+      toast.success("菜单更新成功");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["menus-all"] }),
+        queryClient.invalidateQueries({ queryKey: ["menu-tree"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-menus"] }),
+      ]);
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "菜单更新失败");
+    },
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
+  const onSubmit = async (values: MenuFormValues) => {
+    const payload = {
+      name: values.name.trim(),
+      path: values.path.trim(),
+      groupTitle: values.groupTitle.trim(),
+      icon: values.icon?.trim() || undefined,
+      parentId: values.parentId || undefined,
+      sort: values.sort,
+      type: values.type,
+      permissionCode: values.permissionCode?.trim() || undefined,
+      enabled: values.enabled,
+    };
+
+    if (isEdit && menu) {
+      await updateMutation.mutateAsync({
+        id: menu.id,
+        payload,
+      });
+      return;
+    }
+
+    await createMutation.mutateAsync(payload);
   };
 
   return (
@@ -187,6 +289,20 @@ export function MenuFormDrawer({
 
             <FormField
               control={form.control}
+              name="groupTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>分组标题 *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="例如：系统设置" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="icon"
               render={({ field }) => (
                 <FormItem>
@@ -209,19 +325,23 @@ export function MenuFormDrawer({
                 <FormItem>
                   <FormLabel>父菜单</FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(
+                          value === ROOT_PARENT_VALUE ? undefined : value,
+                        );
+                      }}
+                      value={field.value || ROOT_PARENT_VALUE}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="请选择父菜单" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={undefined as any}>
-                          无上级菜单
-                        </SelectItem>
-                        {menuTree?.map((parentOption: MenuNode) => (
+                        <SelectItem value={ROOT_PARENT_VALUE}>无上级菜单</SelectItem>
+                        {parentOptions.map((parentOption: MenuNode) => (
                           <SelectItem
                             key={parentOption.id}
                             value={parentOption.id}
-                            disabled={isEdit && parentOption.id === menu?.id}
                           >
                             {parentOption.name}
                           </SelectItem>
@@ -263,7 +383,7 @@ export function MenuFormDrawer({
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        value={field.value || "menu"}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="选择类型" />
@@ -290,7 +410,14 @@ export function MenuFormDrawer({
                 <FormItem>
                   <FormLabel>权限代码</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：users:view" {...field} />
+                    <Input
+                      placeholder={
+                        selectedType === "button"
+                          ? "例如：users:view"
+                          : "按钮类型可填写权限代码"
+                      }
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -323,10 +450,13 @@ export function MenuFormDrawer({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 取消
               </Button>
-              <Button type="submit">{isEdit ? "保存" : "创建"}</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "提交中..." : isEdit ? "保存" : "创建"}
+              </Button>
             </SheetFooter>
           </form>
         </Form>

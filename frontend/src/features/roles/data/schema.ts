@@ -7,7 +7,7 @@ export const roleFormSchema = z.object({
   description: z.string().optional(),
   type: z.enum(["system", "team"]).optional(),
   dataScope: z
-    .enum(["all", "department", "department_and_sub", "self"])
+    .enum(["all", "department", "department_and_sub", "custom", "self"])
     .optional(),
   dataScopeDeptIds: z.string().optional(),
   menuIds: z.array(z.string()).optional(),

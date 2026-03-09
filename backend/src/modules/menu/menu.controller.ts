@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Param,
   UseGuards,
@@ -19,9 +21,11 @@ import { MenuService } from "./menu.service";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { UserInfo } from "../auth/interfaces/auth.interface";
 import {
+  CreateMenuDto,
   MenuGroupDto,
   InitializeResultResponse,
   MenuItemDto,
+  UpdateMenuDto,
 } from "./dto/menu.dto";
 
 @ApiTags("menus")
@@ -84,6 +88,37 @@ export class MenuController {
   })
   getAllMenus(): Promise<any[]> {
     return this.menuService.getAllMenusTree();
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: "创建菜单",
+    description: "创建新的菜单或按钮节点",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "创建成功",
+    type: MenuItemDto,
+  })
+  createMenu(@Body() createMenuDto: CreateMenuDto): Promise<any> {
+    return this.menuService.createMenu(createMenuDto);
+  }
+
+  @Patch(":id")
+  @ApiOperation({
+    summary: "更新菜单",
+    description: "更新指定菜单信息",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "更新成功",
+    type: MenuItemDto,
+  })
+  updateMenu(
+    @Param("id") id: string,
+    @Body() updateMenuDto: UpdateMenuDto,
+  ): Promise<any> {
+    return this.menuService.updateMenu(id, updateMenuDto);
   }
 
   @Delete(":id")

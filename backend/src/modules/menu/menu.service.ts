@@ -5,7 +5,12 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
-import { MenuItemDto, MenuGroupDto } from "./dto/menu.dto";
+import {
+  MenuItemDto,
+  MenuGroupDto,
+  CreateMenuDto,
+  UpdateMenuDto,
+} from "./dto/menu.dto";
 
 /**
  * 按钮权限配置
@@ -42,6 +47,7 @@ const PERMISSION_CONFIG: Record<string, string[]> = {
   products: ["view", "create", "edit", "delete", "detail"],
   "contract-templates": ["view", "create", "edit", "preview"],
   webhooks: ["view", "create"],
+  "ai-agent": ["view", "config"],
   users: ["view", "create", "createBatch", "edit", "delete"],
   roles: ["view", "create", "edit", "delete"],
   // 日志类只有 view
@@ -246,6 +252,17 @@ const DEFAULT_MENUS = [
     i18nKey: "menu.sidebar.webhooks",
     icon: "Webhook",
     sort: 33,
+    enabled: true,
+    type: "menu",
+  },
+  {
+    name: "AI Agent",
+    path: "/ai-agent",
+    groupTitle: "业务设置",
+    groupI18nKey: "menu.sidebar.businessSettings",
+    i18nKey: "menu.sidebar.aiAgent",
+    icon: "Bot",
+    sort: 34,
     enabled: true,
     type: "menu",
   },
@@ -631,6 +648,134 @@ export class MenuService {
   }
 
   /**
+   * 创建菜单
+   */
+  async createMenu(createMenuDto: CreateMenuDto): Promise<any> {
+    const path = createMenuDto.path.trim();
+    const existingPathMenu = await this.prisma.menu.findUnique({
+      where: { path },
+    });
+
+    if (existingPathMenu) {
+      throw new BadRequestException("菜单路径已存在");
+    }
+
+    const parentId = this.normalizeOptionalString(createMenuDto.parentId);
+    const parent = await this.assertParentValid(null, parentId);
+
+    const type = this.normalizeMenuType(createMenuDto.type);
+    const permissionCode = this.normalizeOptionalString(
+      createMenuDto.permissionCode,
+    );
+    if (type === "button" && !permissionCode) {
+      throw new BadRequestException("按钮类型菜单必须填写权限代码");
+    }
+
+    const groupTitle =
+      this.normalizeOptionalString(createMenuDto.groupTitle) ||
+      parent?.groupTitle ||
+      null;
+
+    const menu = await this.prisma.menu.create({
+      data: {
+        path,
+        name: createMenuDto.name.trim(),
+        icon: this.normalizeOptionalString(createMenuDto.icon),
+        parentId,
+        sort: createMenuDto.sort ?? 0,
+        enabled: createMenuDto.enabled ?? true,
+        groupTitle,
+        i18nKey: this.normalizeOptionalString(createMenuDto.i18nKey),
+        type,
+        permissionCode,
+      },
+    });
+
+    this.logger.log(`创建菜单: ${menu.name} (${menu.path})`);
+    return menu;
+  }
+
+  /**
+   * 更新菜单
+   */
+  async updateMenu(id: string, updateMenuDto: UpdateMenuDto): Promise<any> {
+    const menu = await this.prisma.menu.findUnique({
+      where: { id },
+    });
+
+    if (!menu) {
+      throw new NotFoundException("菜单不存在");
+    }
+
+    if (updateMenuDto.path) {
+      const path = updateMenuDto.path.trim();
+      if (path && path !== menu.path) {
+        const existingPathMenu = await this.prisma.menu.findUnique({
+          where: { path },
+        });
+        if (existingPathMenu && existingPathMenu.id !== id) {
+          throw new BadRequestException("菜单路径已存在");
+        }
+      }
+    }
+
+    const parentId =
+      updateMenuDto.parentId !== undefined
+        ? this.normalizeOptionalString(updateMenuDto.parentId)
+        : menu.parentId;
+
+    const parent = await this.assertParentValid(id, parentId);
+
+    const type =
+      updateMenuDto.type !== undefined
+        ? this.normalizeMenuType(updateMenuDto.type)
+        : menu.type;
+
+    const permissionCode =
+      updateMenuDto.permissionCode !== undefined
+        ? this.normalizeOptionalString(updateMenuDto.permissionCode)
+        : menu.permissionCode;
+    if (type === "button" && !permissionCode) {
+      throw new BadRequestException("按钮类型菜单必须填写权限代码");
+    }
+
+    const updated = await this.prisma.menu.update({
+      where: { id },
+      data: {
+        name:
+          updateMenuDto.name !== undefined ? updateMenuDto.name.trim() : undefined,
+        path: updateMenuDto.path !== undefined ? updateMenuDto.path.trim() : undefined,
+        icon:
+          updateMenuDto.icon !== undefined
+            ? this.normalizeOptionalString(updateMenuDto.icon)
+            : undefined,
+        badge:
+          updateMenuDto.badge !== undefined
+            ? this.normalizeOptionalString(updateMenuDto.badge)
+            : undefined,
+        parentId: updateMenuDto.parentId !== undefined ? parentId : undefined,
+        sort: updateMenuDto.sort,
+        enabled: updateMenuDto.enabled,
+        isHidden: updateMenuDto.isHidden,
+        groupTitle:
+          updateMenuDto.groupTitle !== undefined
+            ? this.normalizeOptionalString(updateMenuDto.groupTitle)
+            : parent?.groupTitle || undefined,
+        i18nKey:
+          updateMenuDto.i18nKey !== undefined
+            ? this.normalizeOptionalString(updateMenuDto.i18nKey)
+            : undefined,
+        type: updateMenuDto.type !== undefined ? type : undefined,
+        permissionCode:
+          updateMenuDto.permissionCode !== undefined ? permissionCode : undefined,
+      },
+    });
+
+    this.logger.log(`更新菜单: ${updated.name} (${updated.path})`);
+    return updated;
+  }
+
+  /**
    * 构建按分组的菜单列表
    * 直接从数据库记录提取分组信息
    */
@@ -750,5 +895,61 @@ export class MenuService {
     });
 
     this.logger.log(`删除菜单: ${menu.name} (${menu.path})`);
+  }
+
+  private normalizeOptionalString(value?: string | null): string | null {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private normalizeMenuType(type?: string): string {
+    const normalized = this.normalizeOptionalString(type) || "menu";
+    const allowedTypes = new Set(["menu", "button", "group"]);
+    if (!allowedTypes.has(normalized)) {
+      throw new BadRequestException("菜单类型不合法");
+    }
+    return normalized;
+  }
+
+  private async assertParentValid(
+    currentMenuId: string | null,
+    parentId: string | null,
+  ) {
+    if (!parentId) {
+      return null;
+    }
+
+    if (currentMenuId && currentMenuId === parentId) {
+      throw new BadRequestException("父菜单不能选择自己");
+    }
+
+    const parent = await this.prisma.menu.findUnique({
+      where: { id: parentId },
+    });
+    if (!parent) {
+      throw new NotFoundException("父菜单不存在");
+    }
+
+    if (currentMenuId) {
+      let cursor = parent;
+      while (cursor.parentId) {
+        if (cursor.parentId === currentMenuId) {
+          throw new BadRequestException("父菜单不能是当前菜单的子菜单");
+        }
+
+        const nextParent = await this.prisma.menu.findUnique({
+          where: { id: cursor.parentId },
+        });
+        if (!nextParent) {
+          break;
+        }
+        cursor = nextParent;
+      }
+    }
+
+    return parent;
   }
 }

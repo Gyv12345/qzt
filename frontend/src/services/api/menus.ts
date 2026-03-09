@@ -6,9 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  CreateMenuDto,
   InitializeResultResponse,
   MenuGroupDto,
   MenuItemDto,
+  UpdateMenuDto,
 } from "../../models";
 
 import { customInstance } from "../api-client";
@@ -42,6 +44,31 @@ export const getMenus = () => {
     return customInstance<MenuItemDto[]>({ url: `/menus/all`, method: "GET" });
   };
   /**
+   * 创建新的菜单或按钮节点
+   * @summary 创建菜单
+   */
+  const menuControllerCreateMenu = (createMenuDto: CreateMenuDto) => {
+    return customInstance<MenuItemDto>({
+      url: `/menus`,
+      method: "POST",
+      data: createMenuDto,
+    });
+  };
+  /**
+   * 更新指定菜单信息
+   * @summary 更新菜单
+   */
+  const menuControllerUpdateMenu = (
+    id: string,
+    updateMenuDto: UpdateMenuDto,
+  ) => {
+    return customInstance<MenuItemDto>({
+      url: `/menus/${id}`,
+      method: "PATCH",
+      data: updateMenuDto,
+    });
+  };
+  /**
    * 删除指定菜单，如果有子菜单则无法删除
    * @summary 删除菜单
    */
@@ -52,6 +79,8 @@ export const getMenus = () => {
     menuControllerGetUserMenus,
     menuControllerInitializeMenus,
     menuControllerGetAllMenus,
+    menuControllerCreateMenu,
+    menuControllerUpdateMenu,
     menuControllerDeleteMenu,
   };
 };
@@ -65,6 +94,12 @@ export type MenuControllerInitializeMenusResult = NonNullable<
 >;
 export type MenuControllerGetAllMenusResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerGetAllMenus"]>>
+>;
+export type MenuControllerCreateMenuResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerCreateMenu"]>>
+>;
+export type MenuControllerUpdateMenuResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerUpdateMenu"]>>
 >;
 export type MenuControllerDeleteMenuResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getMenus>["menuControllerDeleteMenu"]>>

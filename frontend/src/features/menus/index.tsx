@@ -18,13 +18,8 @@ function MenusContent() {
 }
 
 export function Menus() {
-  const handleRefresh = () => {
-    // 刷新逻辑由 MenusDialogs 处理
-    window.location.reload();
-  };
-
   return (
-    <MenusDialogs onRefresh={handleRefresh}>
+    <MenusDialogs>
       <MenusContent />
     </MenusDialogs>
   );

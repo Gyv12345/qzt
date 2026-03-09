@@ -8,6 +8,7 @@ import {
   ContractsDialogs,
   useContractsDialogs,
 } from "./components/contracts-dialogs";
+import { CustomerContractsTab } from "./components/customer-contracts-tab";
 
 const route = getRouteApi("/_authenticated/contracts");
 
@@ -64,3 +65,5 @@ export function Contracts() {
     </ContractsDialogs>
   );
 }
+
+export { CustomerContractsTab };

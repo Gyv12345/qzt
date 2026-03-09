@@ -33,8 +33,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDirection } from "@/context/direction-provider";
 import { useCreateRole, useUpdateRole } from "../hooks/use-roles";
-import { roleFormSchema, type RoleFormValues } from "../data/schema";
-import type { Role } from "../data/schema";
+import { roleFormSchema, type Role, type RoleFormValues } from "../data/schema";
 
 /**
  * 从角色对象中提取菜单ID列表
@@ -64,6 +63,7 @@ const dataScopeOptions = [
   { value: "all", label: "全部数据" },
   { value: "department", label: "本部门数据" },
   { value: "department_and_sub", label: "本部门及下级部门数据" },
+  { value: "custom", label: "自定义部门" },
   { value: "self", label: "仅本人数据" },
 ];
 
@@ -94,6 +94,7 @@ export function RoleFormDrawer({
             | "all"
             | "department"
             | "department_and_sub"
+            | "custom"
             | "self"
             | undefined,
           menuIds: role.menuIds || [],
@@ -126,6 +127,7 @@ export function RoleFormDrawer({
           | "all"
           | "department"
           | "department_and_sub"
+          | "custom"
           | "self"
           | undefined,
         menuIds: extractMenuIds(role),
