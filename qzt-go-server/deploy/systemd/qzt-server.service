@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────
+# QZT Go Server — systemd 服务文件
+#
+# 部署:
+#   cp deploy/systemd/qzt-server.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable qzt-server   # 开机自启
+#   systemctl start qzt-server
+#
+# 日志查看:
+#   journalctl -u qzt-server -f          # systemd 日志
+#   tail -f /opt/qzt-server/logs/stdout.log  # 应用 stdout
+#
+# 使用 systemd 时,用 run.sh 的 build 编译,然后 systemctl restart
+# ─────────────────────────────────────────────────────────────
+
+[Unit]
+Description=QZT Go Server (Enterprise Business Platform)
+Documentation=https://github.com/your-repo/qzt-go-server
+After=network.target redis-server.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+
+# 运行用户(确保该用户对 /opt/qzt-server 有读写权限)
+User=www-data
+Group=www-data
+
+# 工作目录
+WorkingDirectory=/opt/qzt-server
+
+# 环境变量(敏感配置从 .env 加载)
+EnvironmentFile=/opt/qzt-server/.env
+
+# 启动命令
+ExecStart=/opt/qzt-server/bin/qzt-server -config /opt/qzt-server/config -log /opt/qzt-server/logs
+
+# 优雅停止:Go 服务收到 SIGTERM 后执行 graceful shutdown
+ExecStop=/bin/kill -SIGTERM $MAINPID
+
+# 超时等待(graceful shutdown 最长 30s)
+TimeoutStopSec=30
+
+# 崩溃自动重启
+Restart=on-failure
+RestartSec=5s
+
+# 资源限制
+LimitNOFILE=65536
+LimitNPROC=65536
+
+# 安全加固
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/qzt-server/logs /opt/qzt-server/storage
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

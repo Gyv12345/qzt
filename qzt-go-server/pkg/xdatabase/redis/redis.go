@@ -1,0 +1,37 @@
+package redis
+
+import (
+	"context"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"qzt-go-server/config"
+)
+
+// NewRedis 创建一个新的 redis 实例（不影响全局 RDB）
+func NewRedis(cfg config.RedisConfig) (*redis.Client, error) {
+	dialTimeout := cfg.DialTimeout
+	if dialTimeout <= 0 {
+		dialTimeout = 5 * time.Second
+	}
+	rdb := redis.NewClient(&redis.Options{
+		Addr:            cfg.Addr,
+		Password:        cfg.Password,
+		DB:              cfg.DB,
+		DialTimeout:     dialTimeout,
+		ReadTimeout:     cfg.ReadTimeout,
+		WriteTimeout:    cfg.WriteTimeout,
+		PoolSize:        cfg.PoolSize,
+		MinIdleConns:    cfg.MinIdleConns,
+		ConnMaxIdleTime: cfg.IdleTimeout,
+	})
+
+	// 使用超时上下文验证连接
+	ctx, cancel := context.WithTimeout(context.Background(), dialTimeout)
+	defer cancel()
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
+		_ = rdb.Close()
+		return nil, err
+	}
+	return rdb, nil
+}

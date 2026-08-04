@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────
+# QZT CMS (Next.js 企业官网) — systemd 服务文件
+#
+# 部署:
+#   npm install -g pm2  # 或用 systemd(推荐 pm2 管理 Node 进程)
+#   cp deploy/systemd/qzt-cms.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable qzt-cms && systemctl start qzt-cms
+# ─────────────────────────────────────────────────────────────
+
+[Unit]
+Description=QZT CMS (Next.js Enterprise Website)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/qzt-cms
+
+# Next.js 生产模式启动(监听 3000)
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=/opt/qzt-cms/.env.local
+
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3000
+ExecStop=/bin/kill -SIGTERM $MAINPID
+
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

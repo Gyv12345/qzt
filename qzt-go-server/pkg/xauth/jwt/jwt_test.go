@@ -1,0 +1,328 @@
+package jwt_test
+
+import (
+	"errors"
+	"qzt-go-server/pkg/xauth/jwt"
+	"strings"
+	"sync/atomic"
+	"testing"
+	"time"
+)
+
+const testJwtSecret = "Tphdi%Aapi5iXsX67F7MX5ZRJxZF*6wK"
+
+func TestJwt(t *testing.T) {
+	var userId int32 = 1
+	username := "test"
+
+	jwtManager, err := jwt.NewJwtManager(&jwt.Config{
+		JwtSecret:             testJwtSecret,
+		Issuer:                "test-snow",
+		AccessExpirationTime:  10 * time.Minute,
+		RefreshExpirationTime: 30 * time.Minute,
+	})
+	if err != nil {
+		t.Fatalf("NewJwtManager error: %v", err)
+	}
+
+	t.Run("NewJwtManager validation errors", func(t *testing.T) {
+		tests := []struct {
+			name   string
+			conf   *jwt.Config
+			wantOk bool
+		}{
+			{"nil config", nil, false},
+			{"secret too short", &jwt.Config{JwtSecret: "short", Issuer: "test", AccessExpirationTime: time.Minute, RefreshExpirationTime: time.Minute}, false},
+			{"empty issuer", &jwt.Config{JwtSecret: "longsecret12345678901234567890ab", Issuer: "", AccessExpirationTime: time.Minute, RefreshExpirationTime: time.Minute}, false},
+			{"zero access expiration", &jwt.Config{JwtSecret: "longsecret12345678901234567890ab", Issuer: "test", AccessExpirationTime: 0, RefreshExpirationTime: time.Minute}, false},
+			{"zero refresh expiration", &jwt.Config{JwtSecret: "longsecret12345678901234567890ab", Issuer: "test", AccessExpirationTime: time.Minute, RefreshExpirationTime: 0}, false},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				_, err := jwt.NewJwtManager(tt.conf)
+				if tt.wantOk && err != nil {
+					t.Fatalf("expected success, got error: %v", err)
+				}
+				if !tt.wantOk && err == nil {
+					t.Fatal("expected error, got nil")
+				}
+			})
+		}
+	})
+
+	t.Run("generate and parse tokens", func(t *testing.T) {
+		tokenPair, err := jwtManager.GenerateTokens(userId, username, 0)
+		if err != nil {
+			t.Fatalf("GenerateTokens error: %v", err)
+		}
+
+		accessClaims, err := jwtManager.ParseToken(tokenPair.AccessToken)
+		if err != nil {
+			t.Fatalf("Parse access token error: %v", err)
+		}
+
+		if accessClaims.UserId != userId || accessClaims.Username != username {
+			t.Fatalf("access token claims mismatch")
+		}
+
+		// 校验 access token 类型
+		if err := accessClaims.ValidAccessToken(); err != nil {
+			t.Fatalf("ValidAccessToken error: %v", err)
+		}
+
+		// 校验 SessionId 对应 refresh token jti
+		refreshClaims, err := jwtManager.ParseToken(tokenPair.RefreshToken)
+		if err != nil {
+			t.Fatalf("Parse refresh token error: %v", err)
+		}
+		if accessClaims.SessionId != refreshClaims.ID {
+			t.Fatalf("access token session_id not match refresh token jti")
+		}
+	})
+
+	t.Run("access token validation from header", func(t *testing.T) {
+		tokenPair, err := jwtManager.GenerateTokens(userId, username, 0)
+		if err != nil {
+			t.Fatalf("GenerateTokens error: %v", err)
+		}
+		authHeader := "Bearer " + tokenPair.AccessToken
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			t.Fatalf("invalid Authorization header format")
+		}
+		claims, err := jwtManager.ParseToken(parts[1])
+		if err != nil {
+			t.Fatalf("ParseToken from header error: %v", err)
+		}
+		if err := claims.ValidAccessToken(); err != nil {
+			t.Fatalf("access token validation failed: %v", err)
+		}
+	})
+
+	t.Run("expired token", func(t *testing.T) {
+		// Create a token with 100ms expiry, sleep 200ms (more tolerant than original 1s/1.5s)
+		expiredManager, err := jwt.NewJwtManager(&jwt.Config{
+			JwtSecret:             testJwtSecret,
+			Issuer:                "test-snow",
+			AccessExpirationTime:  100 * time.Millisecond,
+			RefreshExpirationTime: 100 * time.Millisecond,
+		})
+		if err != nil {
+			t.Fatalf("NewJwtManager error: %v", err)
+		}
+		accessToken, _, err := expiredManager.GenerateAccessToken(userId, username, "123", 0)
+		if err != nil {
+			t.Fatalf("generate expired access token error: %v", err)
+		}
+		time.Sleep(200 * time.Millisecond)
+		_, err = expiredManager.ParseToken(accessToken)
+		if !errors.Is(err, jwt.ErrTokenExpired) {
+			t.Fatalf("expected ErrTokenExpired, got: %v", err)
+		}
+	})
+
+	t.Run("issuer validation", func(t *testing.T) {
+		// 用 issuer-A 签发 token，用 issuer-B 解析，应该失败
+		mgrA, err := jwt.NewJwtManager(&jwt.Config{
+			JwtSecret:             testJwtSecret,
+			Issuer:                "issuer-A",
+			AccessExpirationTime:  time.Minute,
+			RefreshExpirationTime: time.Minute,
+		})
+		if err != nil {
+			t.Fatalf("NewJwtManager error: %v", err)
+		}
+		mgrB, err := jwt.NewJwtManager(&jwt.Config{
+			JwtSecret:             testJwtSecret,
+			Issuer:                "issuer-B",
+			AccessExpirationTime:  time.Minute,
+			RefreshExpirationTime: time.Minute,
+		})
+		if err != nil {
+			t.Fatalf("NewJwtManager error: %v", err)
+		}
+		accessToken, _, err := mgrA.GenerateAccessToken(userId, username, "jti", 0)
+		if err != nil {
+			t.Fatalf("GenerateAccessToken error: %v", err)
+		}
+		_, err = mgrB.ParseToken(accessToken)
+		if err == nil {
+			t.Fatal("expected error when parsing token with wrong issuer, got nil")
+		}
+		if !errors.Is(err, jwt.ErrInvalidToken) {
+			t.Fatalf("expected ErrInvalidToken, got: %v", err)
+		}
+	})
+
+	t.Run("invalid token format", func(t *testing.T) {
+		_, err := jwtManager.ParseToken("invalid.token.format")
+		if err == nil {
+			t.Fatal("expected error on invalid token format, got nil")
+		}
+	})
+
+	t.Run("invalid access token type", func(t *testing.T) {
+		refreshToken, _, _, err := jwtManager.GenerateRefreshToken(userId, username, 0)
+		if err != nil {
+			t.Fatalf("generate refresh token error: %v", err)
+		}
+		claims, err := jwtManager.ParseToken(refreshToken)
+		if err != nil {
+			t.Fatalf("ParseToken error: %v", err)
+		}
+		if err := claims.ValidAccessToken(); !errors.Is(err, jwt.ErrInvalidTokenType) {
+			t.Fatalf("expected ErrInvalidTokenType, got: %v", err)
+		}
+	})
+
+	t.Run("refresh tokens generate new access token", func(t *testing.T) {
+		tokenPair, err := jwtManager.GenerateTokens(userId, username, 0)
+		if err != nil {
+			t.Fatalf("GenerateTokens error: %v", err)
+		}
+		newPair, err := jwtManager.RefreshTokens(tokenPair.RefreshToken)
+		if err != nil {
+			t.Fatalf("RefreshTokens error: %v", err)
+		}
+
+		newAccessClaims, err := jwtManager.ParseToken(newPair.AccessToken)
+		if err != nil {
+			t.Fatalf("ParseToken error: %v", err)
+		}
+		if newAccessClaims.SessionId == "" {
+			t.Fatal("new access token missing session_id")
+		}
+
+		newRefreshClaims, err := jwtManager.ParseToken(newPair.RefreshToken)
+		if err != nil {
+			t.Fatalf("ParseToken error: %v", err)
+		}
+		if newAccessClaims.SessionId != newRefreshClaims.ID {
+			t.Fatal("new access token session_id not match new refresh token jti")
+		}
+	})
+
+	t.Run("refresh token reuse old access token", func(t *testing.T) {
+		oldPair, err := jwtManager.GenerateTokens(userId, username, 0)
+		if err != nil {
+			t.Fatalf("GenerateTokens error: %v", err)
+		}
+		claims, err := jwtManager.ParseToken(oldPair.AccessToken)
+		if err != nil {
+			t.Fatalf("Parse old access token error: %v", err)
+		}
+		if claims.SessionId == "" {
+			t.Fatalf("old access token session_id is empty")
+		}
+		refreshClaims, err := jwtManager.ParseToken(oldPair.RefreshToken)
+		if err != nil {
+			t.Fatalf("Parse old refresh token error: %v", err)
+		}
+		if claims.SessionId != refreshClaims.ID {
+			t.Fatalf("access token session_id not match refresh token jti")
+		}
+	})
+
+	t.Run("claims type check", func(t *testing.T) {
+		tokenPair, err := jwtManager.GenerateTokens(userId, username, 0)
+		if err != nil {
+			t.Fatalf("GenerateTokens error: %v", err)
+		}
+
+		accessClaims, err := jwtManager.ParseToken(tokenPair.AccessToken)
+		if err != nil {
+			t.Fatalf("ParseToken error: %v", err)
+		}
+		if !accessClaims.IsAccessToken() {
+			t.Fatal("access token claims should be access type")
+		}
+		if accessClaims.IsRefreshToken() {
+			t.Fatal("access token claims should not be refresh type")
+		}
+
+		refreshClaims, err := jwtManager.ParseToken(tokenPair.RefreshToken)
+		if err != nil {
+			t.Fatalf("ParseToken error: %v", err)
+		}
+		if !refreshClaims.IsRefreshToken() {
+			t.Fatal("refresh token claims should be refresh type")
+		}
+		if refreshClaims.IsAccessToken() {
+			t.Fatal("refresh token claims should not be access type")
+		}
+	})
+
+	t.Run("refresh token with access token should fail", func(t *testing.T) {
+		tokenPair, err := jwtManager.GenerateTokens(userId, username, 0)
+		if err != nil {
+			t.Fatalf("GenerateTokens error: %v", err)
+		}
+		_, err = jwtManager.RefreshTokens(tokenPair.AccessToken)
+		if err == nil {
+			t.Fatal("expected error when refreshing access token")
+		}
+		if !errors.Is(err, jwt.ErrInvalidTokenType) {
+			t.Fatalf("expected ErrInvalidTokenType, got: %v", err)
+		}
+	})
+
+	t.Run("refresh with invalid token", func(t *testing.T) {
+		_, err := jwtManager.RefreshTokens("not.a.real.token")
+		if err == nil {
+			t.Fatal("expected error for invalid refresh token")
+		}
+	})
+
+}
+
+// ========================
+// Benchmark
+// ========================
+
+var benchMgr *jwt.Manager
+
+func init() {
+	var err error
+	benchMgr, err = jwt.NewJwtManager(&jwt.Config{
+		JwtSecret:             "benchmark-secret-key-32bytes!!!!",
+		Issuer:                "bench",
+		AccessExpirationTime:  10 * time.Minute,
+		RefreshExpirationTime: 30 * time.Minute,
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func BenchmarkGenerateAccessToken(b *testing.B) {
+	var uid int32
+	b.RunParallel(func(pb *testing.PB) {
+		id := atomic.AddInt32(&uid, 1)
+		for pb.Next() {
+			_, _, _ = benchMgr.GenerateAccessToken(id, "user", "refresh-jti", 0)
+		}
+	})
+}
+
+func BenchmarkGenerateTokens(b *testing.B) {
+	for b.Loop() {
+		_, _ = benchMgr.GenerateTokens(1, "benchuser", 0)
+	}
+}
+
+func BenchmarkParseToken(b *testing.B) {
+	token, _, _ := benchMgr.GenerateAccessToken(1, "benchuser", "jti", 0)
+	b.ResetTimer()
+	for b.Loop() {
+		_, _ = benchMgr.ParseToken(token)
+	}
+}
+
+func BenchmarkRefreshTokens(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, refreshToken, _, _ := benchMgr.GenerateRefreshToken(1, "benchuser", 0)
+			_, _ = benchMgr.RefreshTokens(refreshToken)
+		}
+	})
+}

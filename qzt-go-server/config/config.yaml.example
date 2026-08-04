@@ -1,0 +1,59 @@
+# 配置模板：复制为 config/config.dev.yaml（或对应环境文件）后按需修改。
+# 敏感字段在生产环境推荐用 ${VAR:-default} 占位符 + 环境变量注入，见 config/config.go 的 expandEnv。
+
+application:
+  enable_access_log: false
+  enable_pprof: false
+  server:
+    name: qzt-server
+    version: v1
+    addr: 0.0.0.0
+    port: 8000
+    read_timeout: 30s
+    write_timeout: 30s
+    max_header_mb: 4
+
+log:
+  output: console          # console / file / multi
+  access_encoder: normal   # normal / json
+  log_encoder: normal      # normal / json
+  access_file_max_age_days: 7
+  log_file_max_age_days: 7
+
+mysql:
+  enable_read_write_separation: false
+  # 生产环境：dsn: ${MYSQL_DSN}
+  dsn: root:CHANGE_ME@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s
+  mains_dsn: []
+  slaves_dsn: []
+  max_idle_conns: 4
+  max_open_conns: 20
+  conn_max_idle_time: 10m
+  conn_max_life_time: 1h
+  enable_sql_log: false
+  slow_sql_threshold_time: 3s
+
+redis:
+  # 生产环境：addr: ${REDIS_ADDR}  password: ${REDIS_PASSWORD:-}
+  addr: 127.0.0.1:6379
+  password: ""
+  db: 0
+  dial_timeout: 2s
+  read_timeout: 2s
+  write_timeout: 2s
+  idle_timeout: 60s
+  min_idle_conns: 4
+  pool_size: 10
+
+jwt:
+  issuer: qzt-server
+  # 生产环境：jwt_secret: ${JWT_SECRET}（至少 32 字节）
+  jwt_secret: CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_BYTES
+  access_expiration_time: 2h
+  refresh_expiration_time: 168h
+
+storage:
+  driver: local
+  local_path: ./storage/uploads
+  resource_domain: http://localhost:8000
+  max_upload_mb: 20

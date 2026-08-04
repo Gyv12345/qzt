@@ -1,0 +1,100 @@
+import type {
+  ApiResponse,
+  Article,
+  Category,
+  CmsPage,
+  PageData,
+  Partner,
+  Product,
+  ProductDetail,
+  SiteConfig,
+  TeamMember,
+} from "./types";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+
+/**
+ * 调用后端公开接口并解包响应信封。
+ * 后端约定: code===0 表示成功, data 为业务数据。
+ * 失败时抛出 Error, 调用方(页面)可捕获并渲染降级 UI。
+ */
+async function request<T>(path: string, search?: Record<string, string | number | undefined>): Promise<T> {
+  const url = new URL(API_BASE + path);
+  if (search) {
+    for (const [k, v] of Object.entries(search)) {
+      if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
+    }
+  }
+
+  const res = await fetch(url.toString(), {
+    // 服务端渲染时禁用缓存重验证由各调用方通过 next.revalidate 控制,
+    // 此处默认让 fetch 遵循 Next 的缓存语义。
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) {
+    throw new Error(`请求失败: ${res.status} ${url.pathname}`);
+  }
+  const body = (await res.json()) as ApiResponse<T>;
+  if (body.code !== 0) {
+    throw new Error(body.msg || `接口返回错误码: ${body.code}`);
+  }
+  return body.data;
+}
+
+// ── 产品 ──
+export function getProducts(params?: {
+  page?: number;
+  page_size?: number;
+  keyword?: string;
+  category?: string;
+}): Promise<PageData<Product>> {
+  return request<PageData<Product>>("/crm/public/products", params);
+}
+
+export function getProduct(id: number | string): Promise<ProductDetail> {
+  return request<ProductDetail>(`/crm/public/products/${id}`);
+}
+
+// ── 合作方 ──
+export function getPartners(params?: {
+  page?: number;
+  page_size?: number;
+  keyword?: string;
+  industry?: string;
+}): Promise<PageData<Partner>> {
+  return request<PageData<Partner>>("/crm/public/partners", params);
+}
+
+// ── 团队 ──
+export function getTeam(params?: { page?: number; page_size?: number }): Promise<PageData<TeamMember>> {
+  return request<PageData<TeamMember>>("/system/public/team", params);
+}
+
+// ── CMS ──
+export function getArticles(params?: {
+  page?: number;
+  page_size?: number;
+  keyword?: string;
+  category_id?: number;
+}): Promise<PageData<Article>> {
+  return request<PageData<Article>>("/cms/public/articles", params);
+}
+
+export function getArticleBySlug(slug: string): Promise<Article> {
+  return request<Article>(`/cms/public/articles/slug/${encodeURIComponent(slug)}`);
+}
+
+export function getCategories(): Promise<Category[]> {
+  return request<Category[]>("/cms/public/categories");
+}
+
+export function getPage(slug: string): Promise<CmsPage> {
+  return request<CmsPage>(`/cms/public/pages/${encodeURIComponent(slug)}`);
+}
+
+// ── 站点配置 ──
+export function getPublicConfig(): Promise<SiteConfig> {
+  return request<SiteConfig>("/api/configs/public");
+}
+
+export const apiBase = API_BASE;

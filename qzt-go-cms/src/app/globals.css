@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --max-w: 1200px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-ink-800 antialiased;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* 容器: 统一最大宽度并居中, padding 随断点放大 */
+.container {
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .container {
+    padding-inline: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .container {
+    padding-inline: 2rem;
+  }
+}
+
+/* 链接默认样式 */
+a {
+  @apply text-brand transition-colors hover:text-brand-dark;
+}
+
+/* ── Hero 装饰工具类 ── */
+
+/* 几何网格底纹: 细线方格, 营造科技/专业感 */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(15, 76, 129, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 76, 129, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* 渐变 mesh: 多层径向渐变叠加, 营造氛围深度 */
+.hero-mesh {
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%, rgba(53, 124, 191, 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(217, 119, 6, 0.06), transparent 60%),
+    linear-gradient(to bottom, #eff6fc 0%, #ffffff 70%);
+}
+
+/* ── 入场动效工具类 (staggered, 通过 animation-delay 错峰) ── */
+.fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}
+.delay-400 {
+  animation-delay: 0.4s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up {
+    animation: none;
+  }
+}
+
+/* ── 装饰下划线 (PageHeader 标题下方) ── */
+.title-underline::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 3px;
+  margin: 0.875rem auto 0;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #0f4c81, #357cbf);
+}
+
+/* 文章正文 prose 样式 (CMS content 多为 HTML) */
+.prose-content :where(h1, h2, h3) {
+  @apply mt-6 mb-3 font-semibold text-ink-900;
+}
+.prose-content :where(h2) {
+  @apply text-2xl;
+}
+.prose-content :where(h3) {
+  @apply text-xl;
+}
+.prose-content :where(p) {
+  @apply my-3 leading-7 text-ink-600;
+}
+.prose-content :where(img) {
+  @apply my-4 rounded-lg;
+}
+.prose-content :where(ul, ol) {
+  @apply my-3 ml-6 list-disc text-ink-600;
+}
+.prose-content :where(a) {
+  @apply underline decoration-brand-300 underline-offset-2 hover:decoration-brand;
+}
+.prose-content :where(blockquote) {
+  @apply my-4 border-l-4 border-brand-200 bg-brand-50 py-2 pl-4 text-ink-600;
+}
+.prose-content :where(code) {
+  @apply rounded bg-ink-100 px-1.5 py-0.5 text-sm text-brand-700;
+}
+.prose-content :where(pre) {
+  @apply my-4 overflow-x-auto rounded-lg bg-ink-900 p-4 text-sm text-ink-100;
+}
+.prose-content :where(pre code) {
+  @apply bg-transparent p-0 text-ink-100;
+}

@@ -1,0 +1,52 @@
+# ── 通用系统文件 ──
+.DS_Store
+Thumbs.db
+
+# ── IDE / 编辑器 ──
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.sublime*
+*.iml
+*.swp
+*.swo
+*~
+
+# ── AI Agent 工具缓存(各子项目亦各自忽略,此处兜底) ──
+.claude/
+.agents/
+.codex
+.zcode/
+
+# ── 依赖与构建产物(子项目各自 .gitignore 已含,此处兜底防遗漏) ──
+node_modules/
+dist/
+dist-ssr/
+.next/
+out/
+build/
+vendor/
+bin/
+
+# ── 环境与本地配置(敏感) ──
+.env
+.env*.local
+*.local
+config/config.yaml
+config/config.prod.yaml
+config/config.uat.yaml
+
+# ── 运行时数据 ──
+data/
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# ── GUI 测试截图(临时产物) ──
+gui-test-screenshots/
+
+# ── TypeScript 构建信息 ──
+*.tsbuildinfo

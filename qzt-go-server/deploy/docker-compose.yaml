@@ -1,0 +1,72 @@
+# docker-compose：一键拉起 MySQL + Redis + 应用，适合本地与私有化部署演示。
+# 生产部署请修改密码、JWT_SECRET，并将 config/config.prod.yaml 通过环境变量注入敏感字段。
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: qzt-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-CHANGE_ME}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-qztgo}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=caching_sha2_password
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - qzt-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-CHANGE_ME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: qzt-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - qzt-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: qzt-server:1.0.0
+    container_name: qzt-server
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # ENV 决定加载哪个配置文件（config.dev/config.uat/config.prod）
+      ENV: ${ENV:-dev}
+      # 敏感字段通过环境变量注入（config 文件内用 ${VAR:-default} 占位符引用）
+      MYSQL_DSN: "root:${MYSQL_ROOT_PASSWORD:-CHANGE_ME}@tcp(mysql:3306)/${MYSQL_DATABASE:-qzt}?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s"
+      REDIS_ADDR: "redis:6379"
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_BYTES}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      # 配置目录挂载（含 config.yaml 与 rbac_model.conf）
+      - ../config:/app/config:ro
+      - qzt-logs:/app/logs
+      - qzt-uploads:/app/storage/uploads
+
+volumes:
+  qzt-mysql-data:
+  qzt-redis-data:
+  qzt-logs:
+  qzt-uploads:

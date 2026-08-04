@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────
+# QZT Go Server — 日志轮转配置
+#
+# 部署:
+#   cp deploy/logrotate.d/qzt-server /etc/logrotate.d/qzt-server
+#
+# 测试:
+#   logrotate -d /etc/logrotate.d/qzt-server   # dry run
+#   logrotate -f /etc/logrotate.d/qzt-server   # 强制执行一次
+# ─────────────────────────────────────────────────────────────
+
+# Go 服务 stdout 日志(nohup 输出)
+/opt/qzt-server/logs/stdout.log {
+    daily
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d
+    copytruncate
+    size 100M
+}
+
+# Go 业务日志(xlogger rotatelogs 也会按天轮转,logrotate 兜底)
+/opt/qzt-server/logs/*.log {
+    daily
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d
+    copytruncate
+    size 100M
+    # 排除 stdout.log(上面已单独配置)
+    prerotate
+        [ "$(basename $1)" = "stdout.log" ] && exit 1 || exit 0
+    endscript
+}
+
+# Nginx 日志
+/var/log/nginx/qzt.*.log {
+    daily
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d
+    sharedscripts
+    postrotate
+        [ -f /var/run/nginx.pid ] && kill -USR1 "$(cat /var/run/nginx.pid)" 2>/dev/null || true
+    endscript
+    size 200M
+}

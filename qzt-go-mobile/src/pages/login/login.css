@@ -1,0 +1,231 @@
+/* 登录页:与 qzt-go-cms 官网同一设计语言 —— 海军蓝品牌色 + 暖灰 ink + 网格/mesh 底纹 */
+
+.qz-login {
+  /* 与 qzt-go-cms tailwind.config 一致的色板 */
+  --brand-100: #d9ebf7;
+  --brand-200: #bcd9f0;
+  --brand-300: #8ec0e6;
+  --brand-500: #357cbf;
+  --brand-600: #0f4c81;
+  --brand-700: #0a3a63;
+  --ink-200: #d8d4ce;
+  --ink-300: #b8b1a8;
+  --ink-400: #928a7e;
+  --ink-500: #6f685c;
+  --ink-700: #3a3630;
+  --ink-900: #16140f;
+
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  /* hero-mesh: 多层径向渐变 + 顶部浅蓝过渡 */
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%, rgba(53, 124, 191, 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(217, 119, 6, 0.06), transparent 60%),
+    linear-gradient(to bottom, #eff6fc 0%, #ffffff 70%);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei',
+    'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--ink-900);
+}
+
+/* hero-grid: 细线方格底纹, 顶部椭圆遮罩渐隐 */
+.qz-login-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(15, 76, 129, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 76, 129, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, #000 40%, transparent 100%);
+  pointer-events: none;
+}
+
+.qz-login-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 72px 24px calc(32px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* ---- 品牌区 ---- */
+.qz-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qz-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-700));
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px -2px rgba(15, 76, 129, 0.35);
+}
+.qz-brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-700);
+}
+
+/* ---- 标题区 ---- */
+.qz-badge {
+  margin-top: 36px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--brand-200);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--brand-700);
+}
+.qz-title {
+  margin: 18px 0 0;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink-900);
+}
+.qz-subtitle {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--ink-500);
+  letter-spacing: 0.04em;
+}
+
+/* ---- 登录卡片 ---- */
+.qz-card {
+  width: 100%;
+  max-width: 360px;
+  margin-top: 32px;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 76, 129, 0.06);
+  background: #fff;
+  box-shadow:
+    0 1px 3px 0 rgba(15, 76, 129, 0.04),
+    0 4px 12px -2px rgba(15, 76, 129, 0.06),
+    0 24px 48px -12px rgba(15, 76, 129, 0.1);
+}
+
+.qz-field {
+  display: block;
+  margin-bottom: 18px;
+}
+.qz-field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-700);
+}
+.qz-field input {
+  width: 100%;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--ink-200);
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink-900);
+  caret-color: var(--brand-600);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.qz-field input::placeholder {
+  color: var(--ink-300);
+}
+.qz-field input:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
+/* 主按钮: 品牌蓝渐变, 与官网 CTA 一致 */
+.qz-submit {
+  width: 100%;
+  margin-top: 6px;
+  padding: 13px 0;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(to right, var(--brand-600), var(--brand-700));
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  box-shadow:
+    0 1px 3px 0 rgba(15, 76, 129, 0.2),
+    0 8px 20px -6px rgba(15, 76, 129, 0.4);
+  transition:
+    transform 0.15s,
+    box-shadow 0.2s,
+    opacity 0.2s;
+  -webkit-appearance: none;
+}
+.qz-submit:active {
+  transform: translateY(1px);
+}
+.qz-submit:disabled {
+  opacity: 0.65;
+}
+
+.qz-foot {
+  margin: 40px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-400);
+}
+
+/* ---- 入场动效: 与官网一致的 fade-in-up 错峰 ---- */
+.fade-in-up {
+  animation: qz-fade-in-up 0.6s ease-out both;
+}
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}
+.delay-400 {
+  animation-delay: 0.4s;
+}
+.delay-500 {
+  animation-delay: 0.5s;
+}
+@keyframes qz-fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up {
+    animation: none;
+  }
+}

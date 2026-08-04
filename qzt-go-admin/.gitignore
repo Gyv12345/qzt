@@ -1,0 +1,26 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+dist-ssr/
+*.local
+
+# 编辑器
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Agent 工具缓存
+.agents/
+.claude/
+skills-lock.json
+
+# 系统
+.DS_Store
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*

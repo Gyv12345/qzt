@@ -1,0 +1,294 @@
+// PSI 进销存模块 API 契约类型,与 qzt-go-server swagger 定义保持一致
+// 注意:数量/金额字段后端以字符串(decimal)返回
+
+/** 供应商 */
+export interface PsiSupplier {
+  id: number
+  name: string
+  supplier_no: string
+  contact_person: string
+  phone: string
+  email: string
+  address: string
+  bank_name: string
+  bank_account: string
+  /** 1 启用 0 停用 */
+  status: number
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 创建/更新供应商请求 */
+export interface PsiSupplierPayload {
+  name: string
+  supplier_no?: string
+  contact_person?: string
+  phone?: string
+  email?: string
+  address?: string
+  bank_name?: string
+  bank_account?: string
+  status?: number
+  remark?: string
+}
+
+/** 仓库 */
+export interface PsiWarehouse {
+  id: number
+  code: string
+  name: string
+  address: string
+  manager_id: number | null
+  phone: string
+  sort: number
+  /** 1 启用 0 停用 */
+  status: number
+  /** 1 默认仓库 */
+  is_default: number
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 创建/更新仓库请求 */
+export interface PsiWarehousePayload {
+  code: string
+  name: string
+  address?: string
+  manager_id?: number
+  phone?: string
+  sort?: number
+  status?: number
+  is_default?: number
+  remark?: string
+}
+
+/** 单据明细行(请求) */
+export interface PsiOrderItemPayload {
+  product_id: number
+  quantity: number
+  unit_price?: number
+  unit_cost?: number
+  remark?: string
+}
+
+/** 采购单 */
+export interface PsiPurchaseOrder {
+  id: number
+  order_no: string
+  supplier_id: number
+  warehouse_id: number
+  order_date: string
+  expected_date: string | null
+  total_quantity: string
+  total_amount: string
+  discount_amount: string
+  /** 1 正常 */
+  status: number
+  /** NONE / PENDING / APPROVED / REJECTED */
+  approval_status: string
+  operator_id: number
+  remark: string
+  created_at: string
+  updated_at: string
+  /** 详情时返回 */
+  items?: PsiPurchaseOrderItem[]
+}
+
+/** 采购单明细 */
+export interface PsiPurchaseOrderItem {
+  id: number
+  order_id: number
+  product_id: number
+  quantity: string
+  received_quantity: string
+  unit_price: string
+  amount: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 创建采购单请求 */
+export interface PsiPurchaseOrderPayload {
+  supplier_id: number
+  warehouse_id: number
+  order_date?: string
+  expected_date?: string
+  discount_amount?: number
+  remark?: string
+  items: PsiOrderItemPayload[]
+}
+
+/** 销售单 */
+export interface PsiSalesOrder {
+  id: number
+  order_no: string
+  customer_id: number
+  warehouse_id: number
+  order_date: string
+  total_quantity: string
+  total_amount: string
+  discount_amount: string
+  status: number
+  approval_status: string
+  operator_id: number
+  remark: string
+  created_at: string
+  updated_at: string
+  items?: PsiSalesOrderItem[]
+}
+
+/** 销售单明细 */
+export interface PsiSalesOrderItem {
+  id: number
+  order_id: number
+  product_id: number
+  quantity: string
+  shipped_quantity?: string
+  unit_price: string
+  amount: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 创建销售单请求 */
+export interface PsiSalesOrderPayload {
+  customer_id: number
+  warehouse_id: number
+  order_date?: string
+  discount_amount?: number
+  remark?: string
+  items: PsiOrderItemPayload[]
+}
+
+/** 退货单(采购退货/销售退货共用结构) */
+export interface PsiReturnOrder {
+  id: number
+  order_no: string
+  supplier_id?: number
+  customer_id?: number
+  warehouse_id: number
+  order_date: string
+  total_quantity: string
+  total_amount: string
+  status: number
+  operator_id: number
+  remark: string
+  created_at: string
+  updated_at: string
+  items?: PsiReturnOrderItem[]
+}
+
+/** 退货单明细 */
+export interface PsiReturnOrderItem {
+  id: number
+  order_id: number
+  product_id: number
+  quantity: string
+  unit_price?: string
+  amount?: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 其他入库单/出库单 */
+export interface PsiStockOrder {
+  id: number
+  order_no: string
+  /** 入库:INIT/PROFIT/GIFT/OTHER;出库:LOSS/SCRAP/USE/OTHER */
+  biz_type: string
+  warehouse_id: number
+  order_date: string
+  total_quantity: string
+  status: number
+  operator_id: number
+  remark: string
+  created_at: string
+  updated_at: string
+  items?: PsiStockOrderItem[]
+}
+
+/** 其他出入库单明细 */
+export interface PsiStockOrderItem {
+  id: number
+  order_id: number
+  product_id: number
+  quantity: string
+  unit_cost?: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 创建其他入库单请求 */
+export interface PsiStockInPayload {
+  warehouse_id: number
+  biz_type: string
+  order_date?: string
+  remark?: string
+  items: PsiOrderItemPayload[]
+}
+
+/** 创建其他出库单请求 */
+export interface PsiStockOutPayload {
+  warehouse_id: number
+  biz_type: string
+  order_date?: string
+  remark?: string
+  items: PsiOrderItemPayload[]
+}
+
+/** 库存结余 */
+export interface PsiStock {
+  id: number
+  product_id: number
+  warehouse_id: number
+  quantity: string
+  safety_stock: string
+  product_name: string
+  product_no: string
+  unit: string
+  category: string
+  created_at: string
+  updated_at: string
+}
+
+/** 库存收发明细 */
+export interface PsiStockMovement {
+  id: number
+  /** PURCHASE_IN / SALE_OUT / RETURN_IN / RETURN_OUT / OTHER_IN / OTHER_OUT 等 */
+  biz_type: string
+  biz_order_type: string
+  biz_order_id: number
+  biz_order_no: string
+  product_id: number
+  warehouse_id: number
+  in_qty: string
+  out_qty: string
+  balance_after: string
+  unit_cost: string
+  operator_id: number
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 采购汇总数据点 */
+export interface PsiPurchaseSummaryItem {
+  date: string
+  count: number
+  amount: string
+}
+
+/** 商品销量排行(后端文档未定义,字段按常规推断,均为可选) */
+export interface PsiSalesRankItem {
+  product_id?: number
+  product_name?: string
+  product_no?: string
+  quantity?: string
+  amount?: string
+}

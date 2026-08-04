@@ -1,0 +1,818 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  App,
+  Button,
+  DatePicker,
+  Descriptions,
+  Drawer,
+  Form,
+  InputNumber,
+  Popconfirm,
+  Select,
+  Space,
+  Statistic,
+  Table,
+  Tabs,
+  Tag,
+  type TableProps,
+} from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import {
+  ProForm,
+  ModalForm,
+  ProFormText,
+  ProFormTextArea,
+  ProTable,
+  type ActionType,
+  type ProColumns,
+} from '@ant-design/pro-components'
+import dayjs, { type Dayjs } from 'dayjs'
+import Auth from '../../../components/Auth'
+import CustomerSelect from '../../../components/CustomerSelect'
+import DictSelect, { DictTag } from '../../../components/DictSelect'
+import UserSelect from '../../../components/UserSelect'
+import {
+  createContract,
+  createPaymentPlan,
+  createPaymentRecord,
+  deleteContract,
+  deletePaymentPlan,
+  deletePaymentRecord,
+  getContractPaymentSummary,
+  listContracts,
+  listCustomers,
+  listPaymentRecords,
+  updateContract,
+  updatePaymentPlan,
+  updatePaymentRecord,
+} from '../../../services/crm'
+import { useUserStore } from '../../../stores/users'
+import type {
+  CrmContract,
+  CrmContractPayload,
+  CrmCustomer,
+  CrmPaymentPlan,
+  CrmPaymentRecord,
+  CrmPaymentSummary,
+} from '../../../types/crm'
+
+interface ContractFormValues {
+  name: string
+  customer_id: number
+  opportunity_id?: number
+  total_amount?: number
+  signed_date?: Dayjs
+  start_date?: Dayjs
+  end_date?: Dayjs
+  stage?: string
+  owner_id?: number
+  content?: string
+}
+
+interface PlanFormValues {
+  plan_date: Dayjs
+  plan_amount: number
+  remark?: string
+}
+
+interface RecordFormValues {
+  received_date: Dayjs
+  amount: number
+  method?: string
+  plan_id?: number
+  remark?: string
+}
+
+/** 回款计划状态: 0未回款 1部分回款 2已回款 */
+const PLAN_STATUS: Record<number, { text: string; color: string }> = {
+  0: { text: '未回款', color: 'default' },
+  1: { text: '部分回款', color: 'warning' },
+  2: { text: '已回款', color: 'success' },
+}
+
+/** 金额显示: ¥ 前缀 + 两位小数 */
+const money = (v: string | number | null | undefined) => `¥${Number(v ?? 0).toFixed(2)}`
+
+const formatDate = (v: Dayjs | undefined) => (v ? v.format('YYYY-MM-DD') : undefined)
+
+export default function ContractPage() {
+  const { message } = App.useApp()
+  const actionRef = useRef<ActionType>(null)
+  const nickname = useUserStore((s) => s.nickname)
+
+  // 合同新增/编辑
+  const [form] = Form.useForm<ContractFormValues>()
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editing, setEditing] = useState<CrmContract | null>(null)
+
+  // 客户 id -> 名称(列表展示)
+  const [customers, setCustomers] = useState<CrmCustomer[]>([])
+  const customerMap = useMemo(() => new Map(customers.map((c) => [c.id, c.name])), [customers])
+
+  // 详情抽屉 + 回款数据
+  const [detail, setDetail] = useState<CrmContract | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [summary, setSummary] = useState<CrmPaymentSummary | null>(null)
+  const [records, setRecords] = useState<CrmPaymentRecord[]>([])
+  const [paymentLoading, setPaymentLoading] = useState(false)
+
+  // 回款计划新增/编辑
+  const [planForm] = Form.useForm<PlanFormValues>()
+  const [planModalOpen, setPlanModalOpen] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<CrmPaymentPlan | null>(null)
+
+  // 回款记录新增/编辑
+  const [recordForm] = Form.useForm<RecordFormValues>()
+  const [recordModalOpen, setRecordModalOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<CrmPaymentRecord | null>(null)
+
+  const plans = summary?.plans ?? []
+
+  useEffect(() => {
+    listCustomers({ page: 1, page_size: 100 })
+      .then((res) => setCustomers(res.list ?? []))
+      .catch(() => {})
+  }, [])
+
+  const loadPayments = async (contractId: number) => {
+    setPaymentLoading(true)
+    try {
+      const [s, r] = await Promise.all([
+        getContractPaymentSummary(contractId),
+        listPaymentRecords(contractId),
+      ])
+      setSummary(s)
+      setRecords(r ?? [])
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  // 抽屉打开时加载回款数据
+  useEffect(() => {
+    if (drawerOpen && detail) {
+      loadPayments(detail.id).catch(() => {})
+    }
+  }, [drawerOpen, detail])
+
+  /** 回款增删改后重新拉取,并刷新合同列表(已回款金额会变化) */
+  const refreshPayments = async () => {
+    if (!detail) return
+    await loadPayments(detail.id)
+    actionRef.current?.reload()
+  }
+
+  // ---------- 合同 CRUD ----------
+
+  const openCreate = () => {
+    setEditing(null)
+    form.resetFields()
+    form.setFieldsValue({ stage: 'DRAFT' } as Partial<ContractFormValues>)
+    setModalOpen(true)
+  }
+
+  const openEdit = (record: CrmContract) => {
+    setEditing(record)
+    form.setFieldsValue({
+      name: record.name,
+      customer_id: record.customer_id,
+      opportunity_id: record.opportunity_id ?? undefined,
+      total_amount: Number(record.total_amount),
+      signed_date: record.signed_date ? dayjs(record.signed_date) : undefined,
+      start_date: record.start_date ? dayjs(record.start_date) : undefined,
+      end_date: record.end_date ? dayjs(record.end_date) : undefined,
+      stage: record.stage || undefined,
+      owner_id: record.owner_id ?? undefined,
+      content: record.content,
+    })
+    setModalOpen(true)
+  }
+
+  const handleSubmit = async (values: ContractFormValues) => {
+    const payload: CrmContractPayload = {
+      name: values.name,
+      customer_id: values.customer_id,
+      opportunity_id: values.opportunity_id,
+      total_amount: values.total_amount,
+      signed_date: formatDate(values.signed_date),
+      start_date: formatDate(values.start_date),
+      end_date: formatDate(values.end_date),
+      stage: values.stage,
+      owner_id: values.owner_id,
+      content: values.content,
+    }
+    if (editing) {
+      await updateContract(editing.id, payload)
+      message.success('合同已更新')
+    } else {
+      await createContract(payload)
+      message.success('合同已创建')
+    }
+    actionRef.current?.reload()
+    return true
+  }
+
+  const handleDelete = async (record: CrmContract) => {
+    await deleteContract(record.id)
+    message.success('合同已删除')
+    actionRef.current?.reload()
+  }
+
+  const openDetail = (record: CrmContract) => {
+    setDetail(record)
+    setSummary(null)
+    setRecords([])
+    setDrawerOpen(true)
+  }
+
+  // ---------- 回款计划 CRUD ----------
+
+  const openPlanCreate = () => {
+    setEditingPlan(null)
+    planForm.resetFields()
+    setPlanModalOpen(true)
+  }
+
+  const openPlanEdit = (record: CrmPaymentPlan) => {
+    setEditingPlan(record)
+    planForm.resetFields()
+    planForm.setFieldsValue({
+      plan_date: record.plan_date ? dayjs(record.plan_date) : undefined,
+      plan_amount: Number(record.plan_amount),
+      remark: record.remark,
+    })
+    setPlanModalOpen(true)
+  }
+
+  const handlePlanSubmit = async (values: PlanFormValues) => {
+    if (!detail) return false
+    const payload = {
+      plan_date: values.plan_date.format('YYYY-MM-DD'),
+      plan_amount: values.plan_amount,
+      remark: values.remark,
+    }
+    if (editingPlan) {
+      await updatePaymentPlan(editingPlan.id, payload)
+      message.success('回款计划已更新')
+    } else {
+      await createPaymentPlan(detail.id, payload)
+      message.success('回款计划已创建')
+    }
+    await refreshPayments()
+    return true
+  }
+
+  const handlePlanDelete = async (record: CrmPaymentPlan) => {
+    await deletePaymentPlan(record.id)
+    message.success('回款计划已删除')
+    await refreshPayments()
+  }
+
+  // ---------- 回款记录 CRUD ----------
+
+  const openRecordCreate = () => {
+    setEditingRecord(null)
+    recordForm.resetFields()
+    setRecordModalOpen(true)
+  }
+
+  const openRecordEdit = (record: CrmPaymentRecord) => {
+    setEditingRecord(record)
+    recordForm.resetFields()
+    recordForm.setFieldsValue({
+      received_date: record.received_date ? dayjs(record.received_date) : undefined,
+      amount: Number(record.amount),
+      method: record.method || undefined,
+      plan_id: record.plan_id ?? undefined,
+      remark: record.remark,
+    })
+    setRecordModalOpen(true)
+  }
+
+  const handleRecordSubmit = async (values: RecordFormValues) => {
+    if (!detail) return false
+    const payload = {
+      received_date: values.received_date.format('YYYY-MM-DD'),
+      amount: values.amount,
+      method: values.method,
+      plan_id: values.plan_id,
+      remark: values.remark,
+    }
+    if (editingRecord) {
+      await updatePaymentRecord(editingRecord.id, payload)
+      message.success('回款记录已更新')
+    } else {
+      await createPaymentRecord(detail.id, payload)
+      message.success('回款记录已创建')
+    }
+    await refreshPayments()
+    return true
+  }
+
+  const handleRecordDelete = async (record: CrmPaymentRecord) => {
+    await deletePaymentRecord(record.id)
+    message.success('回款记录已删除')
+    await refreshPayments()
+  }
+
+  // ---------- 列表 ----------
+
+  const columns: ProColumns<CrmContract>[] = [
+    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    { title: '合同名称', dataIndex: 'keyword', hideInTable: true },
+    {
+      title: '客户',
+      dataIndex: 'customer_id',
+      hideInTable: true,
+      renderFormItem: () => <CustomerSelect />,
+    },
+    {
+      title: '阶段',
+      dataIndex: 'stage',
+      hideInTable: true,
+      renderFormItem: () => <DictSelect code="CONTRACT_STAGE" placeholder="选择阶段" />,
+    },
+    {
+      title: '合同编号',
+      dataIndex: 'contract_no',
+      width: 140,
+      search: false,
+      render: (_, r) => r.contract_no || '-',
+    },
+    { title: '合同名称', dataIndex: 'name', width: 240, search: false, ellipsis: true },
+    {
+      title: '客户',
+      dataIndex: 'customer_id',
+      width: 140,
+      search: false,
+      render: (_, r) => customerMap.get(r.customer_id) ?? `#${r.customer_id}`,
+    },
+    {
+      title: '合同金额',
+      dataIndex: 'total_amount',
+      width: 120,
+      search: false,
+      align: 'right',
+      render: (_, r) => money(r.total_amount),
+    },
+    {
+      title: '已回款',
+      dataIndex: 'received_amount',
+      width: 120,
+      search: false,
+      align: 'right',
+      render: (_, r) => <span style={{ color: '#52c41a' }}>{money(r.received_amount)}</span>,
+    },
+    {
+      title: '阶段',
+      dataIndex: 'stage',
+      width: 120,
+      search: false,
+      render: (_, r) => <DictTag code="CONTRACT_STAGE" value={r.stage} />,
+    },
+    {
+      title: '签订日期',
+      dataIndex: 'signed_date',
+      width: 110,
+      search: false,
+      render: (_, r) => r.signed_date ?? '-',
+    },
+    {
+      title: '负责人',
+      dataIndex: 'owner_id',
+      width: 100,
+      search: false,
+      render: (_, r) => nickname(r.owner_id),
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 200,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space>
+          <Button type="link" size="small" onClick={() => openDetail(record)}>
+            详情
+          </Button>
+          <Auth perm="crm:contract:edit">
+            <Button type="link" size="small" onClick={() => openEdit(record)}>
+              编辑
+            </Button>
+          </Auth>
+          <Auth perm="crm:contract:delete">
+            <Popconfirm
+              title="确认删除该合同?"
+              okText="删除"
+              okButtonProps={{ danger: true }}
+              cancelText="取消"
+              onConfirm={() => handleDelete(record)}
+            >
+              <Button type="link" size="small" danger>
+                删除
+              </Button>
+            </Popconfirm>
+          </Auth>
+        </Space>
+      ),
+    },
+  ]
+
+  // ---------- 回款计划/记录表格 ----------
+
+  const planColumns: TableProps<CrmPaymentPlan>['columns'] = [
+    { title: '计划日期', dataIndex: 'plan_date', render: (v: string | null) => v ?? '-' },
+    { title: '计划金额', dataIndex: 'plan_amount', align: 'right', render: (v: string) => money(v) },
+    {
+      title: '已回款',
+      dataIndex: 'received_amount',
+      align: 'right',
+      render: (v: string) => money(v),
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      render: (v: number) => {
+        const s = PLAN_STATUS[v] ?? { text: String(v), color: 'default' }
+        return <Tag color={s.color}>{s.text}</Tag>
+      },
+    },
+    { title: '备注', dataIndex: 'remark', render: (v: string) => v || '-' },
+    {
+      title: '操作',
+      key: 'action',
+      width: 130,
+      render: (_, r) => (
+        <Space>
+          <Auth perm="crm:payment:edit">
+            <Button type="link" size="small" onClick={() => openPlanEdit(r)}>
+              编辑
+            </Button>
+          </Auth>
+          <Auth perm="crm:payment:delete">
+            <Popconfirm
+              title="确认删除该回款计划?"
+              okText="删除"
+              okButtonProps={{ danger: true }}
+              cancelText="取消"
+              onConfirm={() => handlePlanDelete(r)}
+            >
+              <Button type="link" size="small" danger>
+                删除
+              </Button>
+            </Popconfirm>
+          </Auth>
+        </Space>
+      ),
+    },
+  ]
+
+  const recordColumns: TableProps<CrmPaymentRecord>['columns'] = [
+    { title: '回款日期', dataIndex: 'received_date', render: (v: string | null) => v ?? '-' },
+    { title: '回款金额', dataIndex: 'amount', align: 'right', render: (v: string) => money(v) },
+    {
+      title: '回款方式',
+      dataIndex: 'method',
+      render: (v: string) => <DictTag code="PAYMENT_METHOD" value={v} />,
+    },
+    { title: '备注', dataIndex: 'remark', render: (v: string) => v || '-' },
+    {
+      title: '操作',
+      key: 'action',
+      width: 130,
+      render: (_, r) => (
+        <Space>
+          <Auth perm="crm:payment:edit">
+            <Button type="link" size="small" onClick={() => openRecordEdit(r)}>
+              编辑
+            </Button>
+          </Auth>
+          <Auth perm="crm:payment:delete">
+            <Popconfirm
+              title="确认删除该回款记录?"
+              okText="删除"
+              okButtonProps={{ danger: true }}
+              cancelText="取消"
+              onConfirm={() => handleRecordDelete(r)}
+            >
+              <Button type="link" size="small" danger>
+                删除
+              </Button>
+            </Popconfirm>
+          </Auth>
+        </Space>
+      ),
+    },
+  ]
+
+  const unreceived = summary
+    ? Number((Number(summary.total_amount) - Number(summary.received_amount)).toFixed(2))
+    : 0
+
+  return (
+    <>
+      <ProTable<CrmContract>
+        rowKey="id"
+        actionRef={actionRef}
+        columns={columns}
+        scroll={{ x: 'max-content' }}
+        request={async ({ current, pageSize, ...rest }) => {
+          const res = await listContracts({ page: current, page_size: pageSize, ...rest })
+          return { data: res.list, total: res.total, success: true }
+        }}
+        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+        toolBarRender={() => [
+          <Auth perm="crm:contract:add" key="add">
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+              新增合同
+            </Button>
+          </Auth>,
+        ]}
+        headerTitle="合同列表"
+      />
+
+      {/* 新增/编辑合同 */}
+      <ModalForm<ContractFormValues>
+        title={editing ? '编辑合同' : '新增合同'}
+        form={form}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        modalProps={{ destroyOnHidden: true, maskClosable: false }}
+        onFinish={handleSubmit}
+        width={720}
+        grid
+      >
+        <ProFormText
+          name="name"
+          label="合同名称"
+          rules={[{ required: true, message: '请输入合同名称' }]}
+          placeholder="合同名称"
+          colProps={{ span: 12 }}
+        />
+        <ProForm.Item
+          name="customer_id"
+          label="客户"
+          rules={[{ required: true, message: '请选择客户' }]}
+          colProps={{ span: 12 }}
+        >
+          <CustomerSelect />
+        </ProForm.Item>
+        <ProForm.Item name="opportunity_id" label="关联商机" colProps={{ span: 12 }}>
+          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="关联商机ID" />
+        </ProForm.Item>
+        <ProForm.Item name="total_amount" label="合同金额" colProps={{ span: 12 }}>
+          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="合同金额" />
+        </ProForm.Item>
+        <ProForm.Item name="signed_date" label="签订日期" colProps={{ span: 12 }}>
+          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+        </ProForm.Item>
+        <ProForm.Item name="start_date" label="开始日期" colProps={{ span: 12 }}>
+          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+        </ProForm.Item>
+        <ProForm.Item name="end_date" label="结束日期" colProps={{ span: 12 }}>
+          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+        </ProForm.Item>
+        <ProForm.Item name="stage" label="阶段" colProps={{ span: 12 }}>
+          <DictSelect code="CONTRACT_STAGE" placeholder="选择阶段" />
+        </ProForm.Item>
+        <ProForm.Item name="owner_id" label="负责人" colProps={{ span: 12 }}>
+          <UserSelect />
+        </ProForm.Item>
+        <ProFormTextArea
+          name="content"
+          label="合同内容"
+          placeholder="合同内容"
+          colProps={{ span: 24 }}
+        />
+      </ModalForm>
+
+      {/* 合同详情抽屉 */}
+      <Drawer
+        width={860}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={detail ? `合同详情:${detail.name}` : '合同详情'}
+      >
+        {detail && (
+          <Tabs
+            items={[
+              {
+                key: 'info',
+                label: '基本信息',
+                children: (
+                  <Descriptions
+                    bordered
+                    column={2}
+                    size="small"
+                    items={[
+                      { key: 'contract_no', label: '合同编号', children: detail.contract_no || '-' },
+                      { key: 'name', label: '合同名称', children: detail.name },
+                      {
+                        key: 'customer',
+                        label: '客户',
+                        children: customerMap.get(detail.customer_id) ?? `#${detail.customer_id}`,
+                      },
+                      {
+                        key: 'opportunity_id',
+                        label: '关联商机',
+                        children: detail.opportunity_id ?? '-',
+                      },
+                      {
+                        key: 'total_amount',
+                        label: '合同金额',
+                        children: money(detail.total_amount),
+                      },
+                      {
+                        key: 'received_amount',
+                        label: '已回款',
+                        children: (
+                          <span style={{ color: '#52c41a' }}>{money(detail.received_amount)}</span>
+                        ),
+                      },
+                      {
+                        key: 'stage',
+                        label: '阶段',
+                        children: <DictTag code="CONTRACT_STAGE" value={detail.stage} />,
+                      },
+                      {
+                        key: 'owner',
+                        label: '负责人',
+                        children: nickname(detail.owner_id),
+                      },
+                      { key: 'signed_date', label: '签订日期', children: detail.signed_date ?? '-' },
+                      { key: 'start_date', label: '开始日期', children: detail.start_date ?? '-' },
+                      { key: 'end_date', label: '结束日期', children: detail.end_date ?? '-' },
+                      { key: 'title_id', label: '标题ID', children: detail.title_id ?? '-' },
+                      {
+                        key: 'content',
+                        label: '合同内容',
+                        span: 2,
+                        children: detail.content || '-',
+                      },
+                      { key: 'created_at', label: '创建时间', children: detail.created_at },
+                      { key: 'updated_at', label: '更新时间', children: detail.updated_at },
+                    ]}
+                  />
+                ),
+              },
+              {
+                key: 'payment',
+                label: '回款管理',
+                children: (
+                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <Space size={48}>
+                      <Statistic
+                        title="合同金额"
+                        value={Number(summary?.total_amount ?? 0)}
+                        precision={2}
+                        prefix="¥"
+                      />
+                      <Statistic
+                        title="已回款"
+                        value={Number(summary?.received_amount ?? 0)}
+                        precision={2}
+                        prefix="¥"
+                        valueStyle={{ color: '#52c41a' }}
+                      />
+                      <Statistic title="未回款" value={unreceived} precision={2} prefix="¥" />
+                    </Space>
+                    <Table<CrmPaymentPlan>
+                      rowKey="id"
+                      size="small"
+                      loading={paymentLoading}
+                      columns={planColumns}
+                      dataSource={plans}
+                      pagination={false}
+                      title={() => (
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span>回款计划</span>
+                          <Auth perm="crm:payment:add">
+                            <Button
+                              type="primary"
+                              size="small"
+                              icon={<PlusOutlined />}
+                              onClick={openPlanCreate}
+                            >
+                              新增回款计划
+                            </Button>
+                          </Auth>
+                        </div>
+                      )}
+                    />
+                    <Table<CrmPaymentRecord>
+                      rowKey="id"
+                      size="small"
+                      loading={paymentLoading}
+                      columns={recordColumns}
+                      dataSource={records}
+                      pagination={false}
+                      title={() => (
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span>回款记录</span>
+                          <Auth perm="crm:payment:add">
+                            <Button
+                              type="primary"
+                              size="small"
+                              icon={<PlusOutlined />}
+                              onClick={openRecordCreate}
+                            >
+                              新增回款记录
+                            </Button>
+                          </Auth>
+                        </div>
+                      )}
+                    />
+                  </Space>
+                ),
+              },
+            ]}
+          />
+        )}
+      </Drawer>
+
+      {/* 新增/编辑回款计划 */}
+      <ModalForm<PlanFormValues>
+        title={editingPlan ? '编辑回款计划' : '新增回款计划'}
+        form={planForm}
+        open={planModalOpen}
+        onOpenChange={setPlanModalOpen}
+        modalProps={{ destroyOnHidden: true, maskClosable: false }}
+        onFinish={handlePlanSubmit}
+        width={640}
+        grid
+      >
+        <ProForm.Item
+          name="plan_date"
+          label="计划日期"
+          rules={[{ required: true, message: '请选择计划日期' }]}
+          colProps={{ span: 12 }}
+        >
+          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+        </ProForm.Item>
+        <ProForm.Item
+          name="plan_amount"
+          label="计划金额"
+          rules={[{ required: true, message: '请输入计划金额' }]}
+          colProps={{ span: 12 }}
+        >
+          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="计划金额" />
+        </ProForm.Item>
+        <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
+      </ModalForm>
+
+      {/* 新增/编辑回款记录 */}
+      <ModalForm<RecordFormValues>
+        title={editingRecord ? '编辑回款记录' : '新增回款记录'}
+        form={recordForm}
+        open={recordModalOpen}
+        onOpenChange={setRecordModalOpen}
+        modalProps={{ destroyOnHidden: true, maskClosable: false }}
+        onFinish={handleRecordSubmit}
+        width={640}
+        grid
+      >
+        <ProForm.Item
+          name="received_date"
+          label="回款日期"
+          rules={[{ required: true, message: '请选择回款日期' }]}
+          colProps={{ span: 12 }}
+        >
+          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+        </ProForm.Item>
+        <ProForm.Item
+          name="amount"
+          label="回款金额"
+          rules={[{ required: true, message: '请输入回款金额' }]}
+          colProps={{ span: 12 }}
+        >
+          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="回款金额" />
+        </ProForm.Item>
+        <ProForm.Item name="method" label="回款方式" colProps={{ span: 12 }}>
+          <DictSelect code="PAYMENT_METHOD" placeholder="选择回款方式" />
+        </ProForm.Item>
+        <ProForm.Item name="plan_id" label="关联回款计划" colProps={{ span: 12 }}>
+          <Select
+            allowClear
+            placeholder="选择回款计划(可选)"
+            options={plans.map((p) => ({
+              label: `${p.plan_date ?? '-'} ¥${p.plan_amount}`,
+              value: p.id,
+            }))}
+          />
+        </ProForm.Item>
+        <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
+      </ModalForm>
+    </>
+  )
+}

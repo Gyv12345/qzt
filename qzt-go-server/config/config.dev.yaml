@@ -1,0 +1,60 @@
+application:
+  enable_access_log: false  # 是否记录访问日志文件
+  enable_pprof: true        # 是否注册 pprof 路由
+  server:
+    name: qzt-dev           # 服务名
+    version: v1
+    addr: 0.0.0.0           # 监听地址
+    port: 9000              # 端口（8000 被本机 node 占用）
+    read_timeout: 30s       # 读超时
+    write_timeout: 30s      # 写超时
+    max_header_mb: 4        # 最大请求头(MB)
+
+log:
+  output: console           # 输出方式：console / file / multi
+  access_encoder: normal    # 访问日志编码：normal / json
+  log_encoder: normal       # 业务日志编码：normal / json
+  access_file_max_age_days: 7
+  log_file_max_age_days: 7
+
+mysql:
+  enable_read_write_separation: false  # 是否启用读写分离
+  # 敏感连接串通过 .env 注入：make run 自动加载 .env 并导出 MYSQL_DSN
+  dsn: ${MYSQL_DSN:-root:CHANGE_ME@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s}
+  mains_dsn: []                        # 主库 DSN（读写分离时）
+  slaves_dsn: []                       # 从库 DSN（读写分离时）
+  max_idle_conns: 4                    # 最大空闲连接
+  max_open_conns: 20                   # 最大打开连接
+  conn_max_idle_time: 5m               # 空闲连接最长存活(短于 RDS wait_timeout,避免用到被断的连接)
+  conn_max_life_time: 30m              # 连接最长生命周期(定期重建,对抗中间网络设备超时)
+  enable_sql_log: false                # 是否打印 SQL（调试时改 true）
+  slow_sql_threshold_time: 3s          # 慢 SQL 阈值
+
+redis:
+  addr: ${REDIS_ADDR:-127.0.0.1:6379}
+  password: ${REDIS_PASSWORD:-}
+  db: ${REDIS_DB:-0}
+  dial_timeout: 2s
+  read_timeout: 2s
+  write_timeout: 2s
+  idle_timeout: 60s
+  min_idle_conns: 4
+  pool_size: 10
+
+jwt:
+  issuer: qzt-server                                       # 签发者
+  jwt_secret: ${JWT_SECRET:-CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_BYTES}  # 密钥（生产环境务必修改并改用环境变量注入）
+  access_expiration_time: 2h                               # access token 有效期
+  refresh_expiration_time: 168h                            # refresh token 有效期（7 天）
+
+storage:
+  driver: ${STORAGE_DRIVER:-local}  # 存储驱动：local（本地磁盘）| oss（阿里云 OSS）
+  local_path: ./storage/uploads  # 本地存储根目录（driver=local 时使用）
+  resource_domain: http://localhost:9000  # 本地资源访问域名
+  max_upload_mb: 20            # 单文件大小上限(MB)
+  oss:                         # 阿里云 OSS 配置（driver=oss 时使用，敏感值通过 .env 注入）
+    endpoint: ${OSS_ENDPOINT:-}
+    access_key_id: ${OSS_ACCESS_KEY_ID:-}
+    access_key_secret: ${OSS_ACCESS_KEY_SECRET:-}
+    bucket_name: ${OSS_BUCKET_NAME:-}
+    custom_domain: ${OSS_CUSTOM_DOMAIN:-}  # CDN/自定义域名（空则用默认域名）

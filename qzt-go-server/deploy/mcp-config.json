@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "qzt": {
+      "url": "https://devlovecode.com/mcp",
+      "headers": {
+        "Authorization": "Bearer qzt_7515af11706404c518652612d996622a"
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+# Environment files (template .env.example is committed)
+.env
+!.env.example
+
+# Runtime data directories
+data/
+logs/
+*.log
+
+# Uploads (keep dir, ignore content)
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# IDE / Editor settings
+.idea/
+.vscode/
+*.sublime*
+*.iml
+
+# OS system files
+.DS_Store
+Thumbs.db
+
+# Editor swap / backup files
+*~
+*.swp
+*.swo
+*.bak
+
+# AI agent files
+.claude/
+.agents/
+.codex
+.zcode/
+
+# Go build artifacts
+/vendor/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+
+# Local config (template config.yaml.example is committed)
+config/config.yaml
+config/config.prod.yaml
+config/config.uat.yaml
