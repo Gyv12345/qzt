@@ -179,7 +179,8 @@ export default function BasicLayout() {
       <header className="qzt-header">
         <div
           className="qzt-logo"
-          onClick={() => businessModules[0] && goModule(businessModules[0])}
+          onClick={() => navigate('/dashboard')}
+          style={{ cursor: 'pointer' }}
         >
           <div className="qzt-logo-mark">Q</div>
           <div className="qzt-logo-title">业务管理平台</div>

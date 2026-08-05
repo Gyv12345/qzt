@@ -56,6 +56,9 @@ export default function SiteConfigPage() {
         >
           <ProFormText name="site_name" label="站点名称" colProps={{ span: 12 }} />
           <ProFormText name="slogan" label="标语" colProps={{ span: 12 }} />
+          <ProFormText name="hero_badge" label="首页标签" placeholder="如 企业级业务管理平台" colProps={{ span: 12 }} />
+          <ProFormText name="hero_title" label="首页大标题" placeholder="留空则用站点名称" colProps={{ span: 24 }} />
+          <ProFormTextArea name="hero_subtitle" label="首页副标题" placeholder="留空则用站点描述" colProps={{ span: 24 }} />
           <ProForm.Item name="logo_url" label="Logo" colProps={{ span: 12 }}>
             <ImageUpload folder="site" />
           </ProForm.Item>

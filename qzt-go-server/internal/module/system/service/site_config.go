@@ -33,6 +33,9 @@ type UpdateSiteConfigRequest struct {
 	LogoURL     string `json:"logo_url"`
 	FaviconURL  string `json:"favicon_url"`
 	Slogan      string `json:"slogan"`
+	HeroBadge   string `json:"hero_badge"`
+	HeroTitle   string `json:"hero_title"`
+	HeroSubtitle string `json:"hero_subtitle"`
 	Description string `json:"description"`
 
 	ContactPhone   string `json:"contact_phone"`
@@ -65,6 +68,9 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	cfg.LogoURL = req.LogoURL
 	cfg.FaviconURL = req.FaviconURL
 	cfg.Slogan = req.Slogan
+	cfg.HeroBadge = req.HeroBadge
+	cfg.HeroTitle = req.HeroTitle
+	cfg.HeroSubtitle = req.HeroSubtitle
 	cfg.Description = req.Description
 	cfg.ContactPhone = req.ContactPhone
 	cfg.ContactEmail = req.ContactEmail

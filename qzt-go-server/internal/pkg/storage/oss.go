@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"fmt"
 	"mime/multipart"
 	"strings"
@@ -98,22 +97,19 @@ func (s *OSS) Save(file *multipart.FileHeader, folders ...string) (*UploadedFile
 	}
 	relativePath := relativeFolder + "/" + fileName
 
-	// 读取完整文件内容(header + 剩余部分)
+	// 读取完整文件内容(直接从 multipart file 读,header 仅用于校验不写入)
 	src, err := file.Open()
 	if err != nil {
 		return nil, fmt.Errorf("open upload file: %w", err)
 	}
 	defer src.Close()
 
-	var buf bytes.Buffer
-	buf.Write(val.header[:val.headerSize])
-	if _, err := buf.ReadFrom(src); err != nil {
-		return nil, fmt.Errorf("read upload file body: %w", err)
-	}
-
-	// 上传到 OSS
+	// 上传到 OSS(Content-Disposition: inline 允许浏览器内联预览,覆盖 bucket 默认的 attachment)
 	objectKey := relativePath
-	if err := s.bucket.PutObject(objectKey, &buf, oss.ContentType(val.contentType)); err != nil {
+	if err := s.bucket.PutObject(objectKey, src,
+		oss.ContentType(val.contentType),
+		oss.ContentDisposition("inline"),
+	); err != nil {
 		return nil, fmt.Errorf("upload to oss failed: %w", err)
 	}
 

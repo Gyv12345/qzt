@@ -24,6 +24,7 @@ import { PlusOutlined, PrinterOutlined } from '@ant-design/icons'
 import {
   ProForm,
   ModalForm,
+  ProFormDigit,
   ProFormText,
   ProFormTextArea,
   ProTable,
@@ -37,6 +38,8 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import UserSelect from '../../../components/UserSelect'
 import {
   createContract,
+  createContractItem,
+  deleteContractItem,
   createPaymentPlan,
   createPaymentRecord,
   deleteContract,
@@ -44,17 +47,20 @@ import {
   deletePaymentRecord,
   getContractPaymentSummary,
   listContracts,
+  listContractItems,
   listContractTemplates,
   listCustomers,
   listPaymentRecords,
   printContractDocument,
   updateContract,
+  updateContractItem,
   updatePaymentPlan,
   updatePaymentRecord,
 } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type {
   CrmContract,
+  CrmContractItem,
   CrmContractPayload,
   CrmContractTemplate,
   CrmCustomer,
@@ -134,6 +140,13 @@ export default function ContractPage() {
   const [recordModalOpen, setRecordModalOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<CrmPaymentRecord | null>(null)
 
+  // 产品明细
+  const [items, setItems] = useState<CrmContractItem[]>([])
+  const [itemLoading, setItemLoading] = useState(false)
+  const [itemForm] = Form.useForm<{ product_name: string; quantity: number; unit: string; unit_price: number; remark: string }>()
+  const [itemModalOpen, setItemModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<CrmContractItem | null>(null)
+
   // 套打文档
   const [printOpen, setPrintOpen] = useState(false)
   const [printTemplates, setPrintTemplates] = useState<CrmContractTemplate[]>([])
@@ -164,10 +177,35 @@ export default function ContractPage() {
     }
   }
 
+  const loadItems = async (contractId: number) => {
+    setItemLoading(true)
+    try {
+      const list = await listContractItems(contractId)
+      setItems(list ?? [])
+    } finally {
+      setItemLoading(false)
+    }
+  }
+
+  const handleItemSubmit = async (values: { product_name: string; quantity: number; unit: string; unit_price: number; remark: string }) => {
+    if (!detail) return false
+    const payload = { product_name: values.product_name, quantity: values.quantity || 1, unit: values.unit, unit_price: values.unit_price || 0, remark: values.remark }
+    if (editingItem) {
+      await updateContractItem(editingItem.id, payload)
+      message.success('明细已更新')
+    } else {
+      await createContractItem(detail.id, payload)
+      message.success('明细已添加')
+    }
+    await loadItems(detail.id)
+    return true
+  }
+
   // 抽屉打开时加载回款数据
   useEffect(() => {
     if (drawerOpen && detail) {
       loadPayments(detail.id).catch(() => {})
+      loadItems(detail.id).catch(() => {})
     }
   }, [drawerOpen, detail])
 
@@ -796,10 +834,71 @@ export default function ContractPage() {
                   </Space>
                 ),
               },
+              {
+                key: 'items',
+                label: '产品明细',
+                children: (
+                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <Button type="primary" size="small" icon={<PlusOutlined />}
+                        onClick={() => { setEditingItem(null); itemForm.resetFields(); setItemModalOpen(true) }}>
+                        新增明细
+                      </Button>
+                    </div>
+                    <Table<CrmContractItem>
+                      rowKey="id"
+                      size="small"
+                      loading={itemLoading}
+                      dataSource={items}
+                      pagination={false}
+                      columns={[
+                        { title: '产品名称', dataIndex: 'product_name' },
+                        { title: '数量', dataIndex: 'quantity', width: 80, align: 'right' },
+                        { title: '单位', dataIndex: 'unit', width: 70 },
+                        { title: '单价', dataIndex: 'unit_price', width: 100, align: 'right', render: (v: string) => `¥${v}` },
+                        { title: '小计', dataIndex: 'amount', width: 100, align: 'right', render: (v: string) => `¥${v}` },
+                        { title: '备注', dataIndex: 'remark', ellipsis: true },
+                        {
+                          title: '操作', width: 120, render: (_: unknown, r: CrmContractItem) => (
+                            <Space>
+                              <Button type="link" size="small" onClick={() => {
+                                setEditingItem(r)
+                                itemForm.setFieldsValue({ product_name: r.product_name, quantity: Number(r.quantity), unit: r.unit, unit_price: Number(r.unit_price), remark: r.remark })
+                                setItemModalOpen(true)
+                              }}>编辑</Button>
+                              <Popconfirm title="确认删除?" onConfirm={async () => { await deleteContractItem(r.id); message.success('已删除'); if (detail) await loadItems(detail.id) }}>
+                                <Button type="link" size="small" danger>删除</Button>
+                              </Popconfirm>
+                            </Space>
+                          ),
+                        },
+                      ]}
+                    />
+                  </Space>
+                ),
+              },
             ]}
           />
         )}
       </Drawer>
+
+      {/* 新增/编辑产品明细 */}
+      <ModalForm<{ product_name: string; quantity: number; unit: string; unit_price: number; remark: string }>
+        title={editingItem ? '编辑明细' : '新增明细'}
+        form={itemForm}
+        open={itemModalOpen}
+        onOpenChange={setItemModalOpen}
+        modalProps={{ destroyOnHidden: true, maskClosable: false }}
+        onFinish={handleItemSubmit}
+        width={640}
+        grid
+      >
+        <ProFormText name="product_name" label="产品名称" rules={[{ required: true, message: '请输入产品名称' }]} colProps={{ span: 24 }} />
+        <ProFormDigit name="quantity" label="数量" min={0} fieldProps={{ precision: 2 }} colProps={{ span: 8 }} />
+        <ProFormText name="unit" label="单位" placeholder="如 套/个/月" colProps={{ span: 4 }} />
+        <ProFormDigit name="unit_price" label="单价" min={0} fieldProps={{ precision: 2 }} colProps={{ span: 6 }} />
+        <ProFormText name="remark" label="备注" colProps={{ span: 6 }} />
+      </ModalForm>
 
       {/* 新增/编辑回款计划 */}
       <ModalForm<PlanFormValues>

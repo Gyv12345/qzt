@@ -34,6 +34,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	customFieldHandler := handler.NewCustomFieldHandler()
 	stageHandler := handler.NewStageHandler()
 	contractTemplateHandler := handler.NewContractTemplateHandler()
+	contractItemHandler := handler.NewContractItemHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -131,7 +132,13 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.PUT("/payment-records/:id", paymentHandler.UpdateRecord)
 		auth.DELETE("/payment-records/:id", paymentHandler.DeleteRecord)
 
-		// 商品管理
+		// 合同产品明细
+		auth.GET("/contracts/:id/items", contractItemHandler.ListByContract)
+		auth.POST("/contracts/:id/items", contractItemHandler.Create)
+		auth.PUT("/contract-items/:itemId", contractItemHandler.Update)
+		auth.DELETE("/contract-items/:itemId", contractItemHandler.Delete)
+
+		// 产品管理
 		auth.GET("/products", productHandler.List)
 		auth.POST("/products", productHandler.Create)
 		auth.GET("/products/:id", productHandler.GetByID)

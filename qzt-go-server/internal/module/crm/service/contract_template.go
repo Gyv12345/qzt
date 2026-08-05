@@ -151,6 +151,8 @@ func VariableMetas() []VariableMeta {
 		// 负责人
 		{Key: "ownerName", Group: "负责人", Label: "负责人姓名"},
 		{Key: "ownerPhone", Group: "负责人", Label: "负责人电话"},
+		// 产品
+		{Key: "productTable", Group: "产品", Label: "产品明细表"},
 		// 系统
 		{Key: "currentDate", Group: "系统", Label: "当前日期"},
 	}
@@ -255,6 +257,9 @@ func (s *ContractDocumentService) BuildVars(ctx context.Context, contractID uint
 
 	// 系统
 	vars["currentDate"] = time.Now().Format("2006-01-02")
+
+	// 产品明细表
+	vars["productTable"] = NewContractItemService().BuildProductTable(ctx, contractID)
 
 	return vars, nil
 }

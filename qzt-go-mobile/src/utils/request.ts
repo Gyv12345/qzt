@@ -4,9 +4,9 @@ import type { ApiResponse, LoginResult } from '../types'
 import { useAuthStore } from '../stores/auth'
 
 /** 不经过拦截器的裸实例,用于登录/刷新令牌 */
-export const rawRequest = axios.create({ baseURL: '/', timeout: 15000 })
+export const rawRequest = axios.create({ baseURL: '/prod-api', timeout: 15000 })
 
-const request = axios.create({ baseURL: '/', timeout: 15000 })
+const request = axios.create({ baseURL: '/prod-api', timeout: 15000 })
 
 request.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState()

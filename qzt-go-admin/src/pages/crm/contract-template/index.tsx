@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Select, Space } from 'antd'
+import { App, Button, Popconfirm, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -41,7 +41,18 @@ export default function ContractTemplatePage() {
   const [content, setContent] = useState('')
   const [variables, setVariables] = useState<ContractVariable[]>([])
 
-  // 懒加载变量清单(首次打开表单时)
+  // 按分组排列变量
+  const groupedVars = variables.reduce<Record<string, ContractVariable[]>>((acc, v) => {
+    if (!acc[v.group]) acc[v.group] = []
+    acc[v.group].push(v)
+    return acc
+  }, {})
+
+  // 点击变量:在 content 末尾追加 ${key}(简单高效)
+  const insertVariable = (key: string) => {
+    setContent((c) => `${c}\${${key}}`)
+  }
+
   const ensureVariables = () => {
     if (variables.length === 0) {
       listContractVariables().then(setVariables).catch(() => {})
@@ -109,7 +120,7 @@ export default function ContractTemplatePage() {
           </Auth>
           <Auth perm="crm:contractTemplate:delete">
             <Popconfirm
-              title="确认删除该模板？"
+              title="确认删除该模板?"
               onConfirm={async () => {
                 await deleteContractTemplate(r.id)
                 message.success('删除成功')
@@ -159,7 +170,7 @@ export default function ContractTemplatePage() {
             ? { name: editing.name, remark: editing.remark, enabled: editing.enabled === 1 }
             : { enabled: true }
         }
-        width={920}
+        width={1100}
         onFinish={handleSubmit}
         modalProps={{ destroyOnHidden: true }}
       >
@@ -172,38 +183,53 @@ export default function ContractTemplatePage() {
         <ProForm.Item label="启用" name="enabled" valuePropName="checked" colProps={{ span: 6 }}>
           <ProFormSwitch />
         </ProForm.Item>
-        <ProForm.Item label="插入变量" colProps={{ span: 24 }}>
-          <Select
-            placeholder="选择变量插入到正文 ${...}"
-            showSearch
-            optionFilterProp="label"
-            options={variables.map((v) => ({ label: `${v.group} · ${v.label}（${v.key}）`, value: v.key }))}
-            value={undefined}
-            onChange={(key) => {
-              if (key) {
-                setContent((c) => `${c}\${${key}}`)
-              }
-            }}
-            allowClear
-          />
-        </ProForm.Item>
-        <ProForm.Item
-          label="模板正文（Markdown）"
-          required
-          rules={[
-            {
-              validator: () => (content.trim() ? Promise.resolve() : Promise.reject(new Error('请输入模板正文'))),
-            },
-          ]}
-          colProps={{ span: 24 }}
-        >
-          <MarkdownEditor
-            value={content}
-            onChange={setContent}
-            height={420}
-            placeholder="支持 Markdown 语法,可用 ${变量} 占位符,例如：甲方：${customerName}，合同编号：${contractNo}"
-          />
-        </ProForm.Item>
+
+        {/* 左栏变量面板 + 右栏编辑器 */}
+        <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+          {/* 左栏:变量面板 */}
+          <div style={{ width: 220, flexShrink: 0, maxHeight: 460, overflowY: 'auto', borderRight: '1px solid #f0f0f0', paddingRight: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: '#666' }}>📝 点击插入变量</div>
+            {Object.entries(groupedVars).map(([group, vars]) => (
+              <div key={group} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#999', marginBottom: 4 }}>{group}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {vars.map((v) => (
+                    <Tag
+                      key={v.key}
+                      style={{ cursor: 'pointer', margin: '2px 0', fontSize: 12 }}
+                      color="blue"
+                      onClick={() => insertVariable(v.key)}
+                    >
+                      {v.label}
+                    </Tag>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 右栏:编辑器 */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <ProForm.Item
+              label="模板正文(Markdown)"
+              required
+              rules={[
+                {
+                  validator: () => (content.trim() ? Promise.resolve() : Promise.reject(new Error('请输入模板正文'))),
+                },
+              ]}
+              colProps={{ span: 24 }}
+            >
+              <MarkdownEditor
+                value={content}
+                onChange={setContent}
+                height={400}
+                placeholder="支持 Markdown 语法,点击左侧变量插入占位符,如 ${customerName} ${productTable}"
+              />
+            </ProForm.Item>
+          </div>
+        </div>
+
         <ProFormTextArea
           name="remark"
           label="说明"

@@ -11,9 +11,8 @@ import {
   Switch,
   Tag,
   TreeSelect,
-  Upload,
 } from 'antd'
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons'
+import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
   DrawerForm,
@@ -25,6 +24,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import ImageUpload from '../../../components/ImageUpload'
 import MarkdownEditor from '../../../components/MarkdownEditor'
 import {
   createArticle,
@@ -35,7 +35,6 @@ import {
   listArticles,
   updateArticle,
 } from '../../../services/cms'
-import { useAuthStore } from '../../../stores/auth'
 import type { CmsArticle, CmsArticlePayload, CmsCategory } from '../../../types/cms'
 
 interface ArticleFormValues {
@@ -63,11 +62,6 @@ interface CategoryTreeNode {
   children?: CategoryTreeNode[]
 }
 
-interface UploadResponse {
-  code?: number
-  data?: { url?: string; resource_domain?: string }
-}
-
 const flattenCategories = (nodes: CmsCategory[] | null): Option[] => {
   if (!nodes || !nodes.length) return []
   return nodes.flatMap((n) => [{ label: n.name, value: n.id }, ...flattenCategories(n.children ?? [])])
@@ -86,7 +80,7 @@ export default function ArticlePage() {
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [form] = Form.useForm<ArticleFormValues>()
-  const accessToken = useAuthStore((s) => s.accessToken)
+
   const coverUrl = Form.useWatch('cover_url', form)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<CmsArticle | null>(null)
@@ -334,31 +328,10 @@ export default function ArticlePage() {
           <Input />
         </ProForm.Item>
         <ProForm.Item label="封面" colProps={{ span: 24 }}>
-          <Upload
-            action="/api/upload"
-            name="file"
-            accept="image/*"
-            showUploadList={false}
-            headers={{ Authorization: `Bearer ${accessToken}` }}
-            onChange={(info) => {
-              if (info.file.status === 'done') {
-                const data = (info.file.response as UploadResponse | undefined)?.data
-                if (data?.url) {
-                  form.setFieldValue('cover_url', `${data.resource_domain ?? ''}${data.url}`)
-                  message.success('封面已上传')
-                }
-              }
-            }}
-          >
-            <Button icon={<UploadOutlined />}>上传封面</Button>
-          </Upload>
-          {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt="封面预览"
-              style={{ width: 120, marginTop: 8, borderRadius: 4, display: 'block' }}
-            />
-          ) : null}
+          <ImageUpload folder="article" value={coverUrl} onChange={(url) => {
+            form.setFieldValue('cover_url', url)
+            message.success('封面已上传')
+          }} />
         </ProForm.Item>
         <ProFormTextArea
           name="summary"

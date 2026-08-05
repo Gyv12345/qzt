@@ -414,6 +414,28 @@ export interface ContractVariable {
   label: string
 }
 
+// ── 合同产品明细 ──
+export interface CrmContractItem {
+  id: number
+  contract_id: number
+  product_id: number | null
+  product_name: string
+  quantity: string
+  unit: string
+  unit_price: string
+  amount: string
+  remark: string
+}
+
+export interface CrmContractItemPayload {
+  product_id?: number
+  product_name: string
+  quantity?: number
+  unit?: string
+  unit_price?: number
+  remark?: string
+}
+
 export interface CrmPaymentPlanPayload {
   contract_id?: number
   plan_date: string

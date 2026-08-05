@@ -1,11 +1,13 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"time"
 
 	"qzt-go-server/config"
+	"qzt-go-server/internal/model"
 )
 
 // Init 初始化所有全局资源，顺序为：配置 → 时区 → 日志 → 存储 → 数据库 → Redis → Casbin。
@@ -21,15 +23,21 @@ func Init(cfgPath string, logPath string) error {
 	Log.Info("配置加载完成")
 	Log.Infof("日志输出目录: %s", logPath)
 
-	if err := InitStorage(); err != nil {
-		return fmt.Errorf("init storage: %w", err)
-	}
-	Log.Info("文件存储初始化完成")
-
+	// 存储初始化移到数据库之后(从 DB 读 sys_storage_config)
 	if err := InitDatabase(); err != nil {
 		return fmt.Errorf("init database: %w", err)
 	}
 	Log.Info("数据库连接成功")
+
+	if err := InitStorage(func() (*model.SysStorageConfig, error) {
+		var cfg model.SysStorageConfig
+		err := DB.WithContext(context.Background()).
+			Where("id = 1").First(&cfg).Error
+		return &cfg, err
+	}); err != nil {
+		return fmt.Errorf("init storage: %w", err)
+	}
+	Log.Info("文件存储初始化完成")
 
 	if err := InitRedis(); err != nil {
 		return fmt.Errorf("init redis: %w", err)

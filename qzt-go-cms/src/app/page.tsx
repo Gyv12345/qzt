@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getArticles, getPartners, getProducts, getTeam } from "@/lib/api";
+import { getArticles, getPartners, getProducts, getSiteConfig, getTeam } from "@/lib/api";
 import { ArticleCard, PartnerCard, ProductCard, TeamCard } from "@/components/Cards";
 import { EmptyState } from "@/components/EmptyState";
 import { SITE } from "@/lib/site";
@@ -9,12 +9,19 @@ export const revalidate = 300;
 
 export default async function HomePage() {
   // 并行拉取各板块数据。任一接口失败不阻断整页, 该板块降级为空。
-  const [productsRes, partnersRes, teamRes, newsRes] = await Promise.all([
+  const [productsRes, partnersRes, teamRes, newsRes, siteCfg] = await Promise.all([
     getProducts({ page_size: 6 }).catch(() => ({ list: [], total: 0 })),
     getPartners({ page_size: 8 }).catch(() => ({ list: [], total: 0 })),
     getTeam({ page_size: 4 }).catch(() => ({ list: [], total: 0 })),
     getArticles({ page_size: 4 }).catch(() => ({ list: [], total: 0 })),
+    getSiteConfig().catch(() => null),
   ]);
+
+  // Hero 区域配置(从站点配置读,留空回退到站点名称/描述)
+  const heroBadge = (siteCfg as { hero_badge?: string } | null)?.hero_badge || "企业级业务管理平台";
+  const heroTitle = (siteCfg as { hero_title?: string } | null)?.hero_title || SITE.name;
+  const heroSubtitle = (siteCfg as { hero_subtitle?: string } | null)?.hero_subtitle
+    || `${SITE.description}。即时的产品、团队与合作客户信息, 数据来源于业务系统实时同步。`;
 
   return (
     <>
@@ -24,13 +31,13 @@ export default async function HomePage() {
         <div className="container relative py-24 text-center sm:py-32">
           {/* 小标签 */}
           <span className="fade-in-up inline-block rounded-full border border-brand-200 bg-white/60 px-4 py-1.5 text-xs font-medium text-brand-700 backdrop-blur-sm">
-            企业级业务管理平台
+            {heroBadge}
           </span>
           <h1 className="fade-in-up delay-100 mx-auto mt-6 max-w-3xl font-display text-4xl font-extrabold leading-tight tracking-tight text-ink-900 sm:text-5xl md:text-6xl">
-            {SITE.name}
+            {heroTitle}
           </h1>
           <p className="fade-in-up delay-200 mx-auto mt-6 max-w-2xl text-lg leading-8 text-ink-500 sm:text-xl">
-            {SITE.description}。即时的产品、团队与合作客户信息, 数据来源于业务系统实时同步。
+            {heroSubtitle}
           </p>
           <div className="fade-in-up delay-300 mt-10 flex justify-center gap-4">
             <Link

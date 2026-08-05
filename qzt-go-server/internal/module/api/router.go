@@ -33,6 +33,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
 	{
 		authenticated.POST("/upload", uploadHandler.Upload)
+		authenticated.GET("/upload/sts", uploadHandler.STS)
 		authenticated.GET("/dashboard/overview", dashboardHandler.Overview)
 		authenticated.GET("/dashboard/sales-trend", dashboardHandler.SalesTrend)
 		authenticated.GET("/dashboard/customer-distribution", dashboardHandler.CustomerDistribution)

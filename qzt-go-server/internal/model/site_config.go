@@ -13,6 +13,9 @@ type SysSiteConfig struct {
 	LogoURL     string `json:"logo_url" gorm:"size:500;comment:Logo图片URL"`
 	FaviconURL  string `json:"favicon_url" gorm:"size:500;comment:Favicon图标URL"`
 	Slogan      string `json:"slogan" gorm:"size:255;comment:品牌标语/Slogan"`
+	HeroBadge   string `json:"hero_badge" gorm:"size:100;comment:首页Hero小标签"`
+	HeroTitle   string `json:"hero_title" gorm:"size:255;comment:首页Hero大标题"`
+	HeroSubtitle string `json:"hero_subtitle" gorm:"size:500;comment:首页Hero副标题"`
 	Description string `json:"description" gorm:"size:500;comment:站点描述(SEO meta description)"`
 
 	// ── 联系方式 ──

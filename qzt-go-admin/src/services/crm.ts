@@ -4,6 +4,8 @@ import type {
   CrmContactPayload,
   CrmContract,
   CrmContractPayload,
+  CrmContractItem,
+  CrmContractItemPayload,
   CrmContractTemplate,
   CrmContractTemplatePayload,
   ContractVariable,
@@ -210,6 +212,20 @@ export const printContractDocument = (contractId: number, templateId: number) =>
     `/crm/contracts/${contractId}/print-document`,
     { params: { template_id: templateId } },
   )
+
+// ---------- 合同产品明细 ----------
+
+export const listContractItems = (contractId: number) =>
+  request.get<unknown, CrmContractItem[]>(`/crm/contracts/${contractId}/items`)
+
+export const createContractItem = (contractId: number, data: CrmContractItemPayload) =>
+  request.post(`/crm/contracts/${contractId}/items`, data)
+
+export const updateContractItem = (itemId: number, data: Partial<CrmContractItemPayload>) =>
+  request.put(`/crm/contract-items/${itemId}`, data)
+
+export const deleteContractItem = (itemId: number) =>
+  request.delete(`/crm/contract-items/${itemId}`)
 
 // ---------- 回款计划/记录 ----------
 

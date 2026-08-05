@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE } from "@/lib/site";
+import { getSiteConfig } from "@/lib/api";
 
 // 标题字体: 几何感无衬线, 有个性且专业 (非烂大街的 Inter/Roboto)
 const displayFont = Plus_Jakarta_Sans({
@@ -21,24 +22,37 @@ const sansFont = Noto_Sans_SC({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: `${SITE.name} - ${SITE.description}`,
-    template: `%s | ${SITE.name}`,
-  },
-  description: SITE.description,
-  metadataBase: new URL(SITE.url),
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: SITE.name,
+export async function generateMetadata(): Promise<Metadata> {
+  let siteName = SITE.name;
+  let logoUrl = "";
+  try {
+    const cfg = await getSiteConfig();
+    if (cfg.site_name) siteName = cfg.site_name;
+    if (cfg.logo_url) logoUrl = cfg.logo_url;
+  } catch {
+    // 回退到环境变量
+  }
+
+  return {
+    title: {
+      default: `${siteName} - ${SITE.description}`,
+      template: `%s | ${siteName}`,
+    },
     description: SITE.description,
-    url: SITE.url,
-    siteName: SITE.name,
-    locale: "zh_CN",
-    type: "website",
-  },
-  robots: { index: true, follow: true },
-};
+    metadataBase: new URL(SITE.url),
+    alternates: { canonical: "/" },
+    icons: logoUrl ? { icon: logoUrl, apple: logoUrl } : undefined,
+    openGraph: {
+      title: siteName,
+      description: SITE.description,
+      url: SITE.url,
+      siteName,
+      locale: "zh_CN",
+      type: "website",
+    },
+    robots: { index: true, follow: true },
+  };
+}
 
 export default function RootLayout({
   children,

@@ -5,6 +5,7 @@ import { getSiteConfig } from "@/lib/api";
 /** 底部页脚。深色块收束页面, 文字反白, 营造层级感。 */
 export async function Footer() {
   let siteName = SITE.name;
+  let logoUrl = "";
   let icp = "";
   let policeBeian = "";
   let policeBeianUrl = "";
@@ -17,6 +18,7 @@ export async function Footer() {
   try {
     const cfg = await getSiteConfig();
     if (cfg.site_name) siteName = cfg.site_name;
+    if (cfg.logo_url) logoUrl = cfg.logo_url;
     icp = cfg.icp_beian || "";
     policeBeian = cfg.public_security_beian || "";
     policeBeianUrl = cfg.public_security_beian_url || "";
@@ -35,11 +37,17 @@ export async function Footer() {
       <div className="container grid gap-8 py-14 sm:grid-cols-2 md:grid-cols-4">
         <div className="sm:col-span-2 md:col-span-1">
           <div className="flex items-center gap-2.5">
-            {false && null /* logo_url 预留 */}
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 font-display text-sm font-bold text-white">
-              {siteName.slice(0, 1)}
-            </span>
-            <p className="font-display text-lg font-bold text-white">{siteName}</p>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={siteName} className="h-9 w-auto max-w-[180px] object-contain" />
+            ) : (
+              <>
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 font-display text-sm font-bold text-white">
+                  {siteName.slice(0, 1)}
+                </span>
+                <p className="font-display text-lg font-bold text-white">{siteName}</p>
+              </>
+            )}
           </div>
           <p className="mt-3 max-w-xs text-sm leading-6 text-ink-400">{SITE.description}</p>
         </div>
