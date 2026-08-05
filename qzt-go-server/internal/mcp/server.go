@@ -72,6 +72,9 @@ func buildServer() *server.MCPServer {
 	// 注册系统配置 tools(存储/OSS、企业微信、站点设置)
 	registerConfigTools(s)
 
+	// 注册系统管理 tools(用户/角色/菜单/API/字典)
+	registerSystemTools(s)
+
 	return s
 }
 
