@@ -25,6 +25,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import MarkdownEditor from '../../../components/MarkdownEditor'
 import {
   createArticle,
   deleteArticle,
@@ -366,13 +367,9 @@ export default function ArticlePage() {
           placeholder="文章摘要"
           colProps={{ span: 24 }}
         />
-        <ProFormTextArea
-          name="content"
-          label="内容"
-          fieldProps={{ rows: 12 }}
-          placeholder="支持 HTML / 纯文本"
-          colProps={{ span: 24 }}
-        />
+        <ProForm.Item name="content" label="内容" colProps={{ span: 24 }}>
+          <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
+        </ProForm.Item>
         <ProForm.Item name="status" label="状态" colProps={{ span: 12 }}>
           <Radio.Group
             options={[

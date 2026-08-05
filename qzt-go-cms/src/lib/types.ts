@@ -32,6 +32,7 @@ export interface Product {
   unit: string;
   standard_price: string;
   status: number;
+  image_url: string;
   description: string;
 }
 
@@ -91,3 +92,19 @@ export interface CmsPage {
 
 /** 站点公共配置 key->value */
 export type SiteConfig = Record<string, string>;
+
+/** 站点完整配置(来自 /system/site-config) */
+export interface SiteInfo {
+  site_name: string;
+  logo_url: string;
+  slogan: string;
+  description: string;
+  contact_phone: string;
+  contact_email: string;
+  contact_address: string;
+  work_hours: string;
+  copyright: string;
+  icp_beian: string;
+  public_security_beian: string;
+  public_security_beian_url: string;
+}

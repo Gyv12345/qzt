@@ -7,6 +7,7 @@ import type {
   ApprovalInstanceDetail,
   ApprovalRecord,
   ApprovalTask,
+  SaveDesignRequest,
 } from '../types/approval'
 import type { PageParams } from '../types'
 
@@ -30,6 +31,10 @@ export const createApprovalFlow = (data: ApprovalFlowPayload) =>
 /** 启用/禁用流程 */
 export const setApprovalFlowEnable = (id: number, enable: number) =>
   request.put(`/approval/flows/${id}/enable`, { enable })
+
+/** 保存流程设计(节点图,每次保存创建新版本) */
+export const saveApprovalFlowDesign = (id: number, data: SaveDesignRequest) =>
+  request.put(`/approval/flows/${id}/design`, data)
 
 // ---------- 审批实例 ----------
 

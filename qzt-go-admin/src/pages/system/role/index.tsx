@@ -1,5 +1,5 @@
 import { useRef, useState, type Key } from 'react'
-import { App, Button, Form, Modal, Popconfirm, Space, Spin, Switch, Tree, type TreeProps } from 'antd'
+import { App, Button, Form, Modal, Popconfirm, Radio, Space, Spin, Switch, Tree, type TreeProps } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
 import {
@@ -29,8 +29,17 @@ interface RoleFormValues {
   code: string
   sort: number
   status: boolean
+  data_scope: number
   remark?: string
 }
+
+/** 数据权限选项 */
+const DATA_SCOPE_OPTIONS = [
+  { label: '全部数据', value: 1 },
+  { label: '本部门数据', value: 3 },
+  { label: '本部门及子部门', value: 4 },
+  { label: '仅本人数据', value: 5 },
+]
 
 /** SysMenu 树递归映射为 Tree 的 DataNode */
 const toTreeData = (menus: SysMenu[]): DataNode[] =>
@@ -63,7 +72,7 @@ export default function RolePage() {
   const openCreate = () => {
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ sort: 0, status: true } as Partial<RoleFormValues>)
+    form.setFieldsValue({ sort: 0, status: true, data_scope: 1 } as Partial<RoleFormValues>)
     setModalOpen(true)
   }
 
@@ -74,6 +83,7 @@ export default function RolePage() {
       code: record.code,
       sort: record.sort,
       status: record.status === 1,
+      data_scope: record.data_scope ?? 1,
       remark: record.remark,
     })
     setModalOpen(true)
@@ -84,6 +94,7 @@ export default function RolePage() {
       name: values.name,
       sort: values.sort,
       status: values.status ? 1 : 0,
+      data_scope: values.data_scope,
       remark: values.remark,
     }
     if (editing) {
@@ -144,6 +155,17 @@ export default function RolePage() {
     { title: '名称', dataIndex: 'name', width: 140 },
     { title: '编码', dataIndex: 'code', width: 140 },
     { title: '排序', dataIndex: 'sort', width: 70 },
+    {
+      title: '数据权限',
+      dataIndex: 'data_scope',
+      width: 130,
+      valueEnum: {
+        1: { text: '全部' },
+        3: { text: '本部门' },
+        4: { text: '本部门及子部门' },
+        5: { text: '仅本人' },
+      },
+    },
     {
       title: '状态',
       dataIndex: 'status',
@@ -250,6 +272,9 @@ export default function RolePage() {
         />
         <ProForm.Item name="status" label="状态" valuePropName="checked" colProps={{ span: 12 }}>
           <Switch checkedChildren="正常" unCheckedChildren="停用" />
+        </ProForm.Item>
+        <ProForm.Item name="data_scope" label="数据权限" colProps={{ span: 24 }} rules={[{ required: true, message: '请选择数据权限' }]}>
+          <Radio.Group options={DATA_SCOPE_OPTIONS} optionType="button" buttonStyle="solid" />
         </ProForm.Item>
         <ProFormTextArea name="remark" label="备注" colProps={{ span: 24 }} />
       </ModalForm>

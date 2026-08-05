@@ -4,6 +4,7 @@ import {
   Button,
   Drawer,
   Form,
+  Image,
   InputNumber,
   Popconfirm,
   Radio,
@@ -17,13 +18,14 @@ import {
   ProForm,
   ModalForm,
   ProFormText,
-  ProFormTextArea,
   ProTable,
   type ActionType,
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
+import MarkdownEditor from '../../../components/MarkdownEditor'
+import ImageUpload from '../../../components/ImageUpload'
 import {
   createProduct,
   createProductPrice,
@@ -50,6 +52,7 @@ interface ProductFormValues {
   standard_price?: number
   cost_price?: number
   status: number
+  image_url?: string
   description?: string
 }
 
@@ -97,6 +100,7 @@ export default function ProductPage() {
       standard_price: record.standard_price ? Number(record.standard_price) : undefined,
       cost_price: record.cost_price ? Number(record.cost_price) : undefined,
       status: record.status,
+      image_url: record.image_url || undefined,
       description: record.description || undefined,
     })
     setModalOpen(true)
@@ -111,6 +115,7 @@ export default function ProductPage() {
       standard_price: values.standard_price,
       cost_price: values.cost_price,
       status: values.status,
+      image_url: values.image_url,
       description: values.description,
     }
     if (editing) {
@@ -212,6 +217,18 @@ export default function ProductPage() {
           ]}
         />
       ),
+    },
+    {
+      title: '主图',
+      dataIndex: 'image_url',
+      width: 90,
+      search: false,
+      render: (_, r) =>
+        r.image_url ? (
+          <Image src={r.image_url} width={56} height={56} style={{ objectFit: 'cover', borderRadius: 6 }} />
+        ) : (
+          '-'
+        ),
     },
     { title: '商品名称', dataIndex: 'name', width: 220, search: false },
     {
@@ -398,7 +415,12 @@ export default function ProductPage() {
             ]}
           />
         </ProForm.Item>
-        <ProFormTextArea name="description" label="描述" placeholder="商品描述" colProps={{ span: 24 }} />
+        <ProForm.Item name="image_url" label="商品主图" colProps={{ span: 24 }}>
+          <ImageUpload folder="product" />
+        </ProForm.Item>
+        <ProForm.Item name="description" label="商品详情(Markdown)" colProps={{ span: 24 }}>
+          <MarkdownEditor height={400} placeholder="支持 Markdown 语法编写商品详情" />
+        </ProForm.Item>
       </ModalForm>
 
       <Drawer

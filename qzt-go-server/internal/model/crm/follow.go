@@ -26,6 +26,7 @@ const (
 // FollowUpRecord 跟进记录。customer/opportunity/clue/contact/contract 五选一关联(至少一个)。
 type FollowUpRecord struct {
 	ID            uint       `json:"id" gorm:"primaryKey"`
+	FollowNo      string     `json:"follow_no" gorm:"size:64;comment:跟进编号"`
 	Type          string     `json:"type" gorm:"size:32;not null;comment:跟进类型(WECHAT/PHONE/VISIT/EMAIL/OTHER)"`
 	Content       string     `json:"content" gorm:"type:text;not null;comment:跟进内容"`
 	FollowTime    xtime.DateTime  `json:"follow_time" gorm:"type:datetime;not null;comment:跟进发生时间"`

@@ -24,6 +24,7 @@ type CrmProduct struct {
 	StandardPrice decimal.Decimal `json:"standard_price" gorm:"type:decimal(14,2);comment:标准价格"`
 	CostPrice     decimal.Decimal `json:"cost_price" gorm:"type:decimal(14,2);comment:成本价"`
 	Status        int8            `json:"status" gorm:"default:1;index;comment:1上架 2下架"`
+	ImageURL      string          `json:"image_url" gorm:"size:512;comment:商品主图URL"`
 	Description   string          `json:"description" gorm:"type:text;comment:描述"`
 	base.BaseModel
 }

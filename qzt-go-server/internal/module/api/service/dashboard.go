@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -9,6 +10,7 @@ import (
 
 	apprmodel "qzt-go-server/internal/model/approval"
 	crmmodel "qzt-go-server/internal/model/crm"
+	hrmmodel "qzt-go-server/internal/model/hrm"
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
 )
@@ -170,6 +172,10 @@ func (s *DashboardService) FinanceSummary(ctx context.Context, startDate, endDat
 	rq = applyDateRange(rq, "received_date", startDate, endDate)
 	rq.Select("COALESCE(SUM(amount),0)").Scan(&data.ReceivedAmount)
 
+	// 库存总值(数量*成本)
+	db.Table("psi_stock").
+		Select("COALESCE(SUM(quantity * unit_cost),0)").Scan(&data.StockValue)
+
 	return data, nil
 }
 
@@ -183,3 +189,303 @@ func applyDateRange(db *gorm.DB, col, start, end string) *gorm.DB {
 	}
 	return db
 }
+
+// ── BI 扩展:CRM / HRM / 财务 / 进销存 聚合分析 ──
+
+// LabelValue 通用标签-值对(饼图/柱状图)。
+type LabelValue struct {
+	Label string          `json:"label"`
+	Value decimal.Decimal `json:"value"`
+}
+
+// MonthValue 月份-金额(趋势折线)。
+type MonthValue struct {
+	Month  string          `json:"month"`
+	Amount decimal.Decimal `json:"amount"`
+	Count  int64           `json:"count"`
+}
+
+// ── CRM ──
+
+// ContractTrend 近 N 月合同签约金额趋势。
+func (s *DashboardService) ContractTrend(ctx context.Context, months int) ([]MonthValue, error) {
+	if months <= 0 {
+		months = 6
+	}
+	start := time.Now().AddDate(0, -months+1, 0).Format("2006-01")
+	var rows []MonthValue
+	err := repository.DBFrom(ctx).Table("crm_contract").
+		Select("DATE_FORMAT(signed_date, '%Y-%m') AS month, COALESCE(SUM(total_amount),0) AS amount, COUNT(*) AS count").
+		Where("signed_date >= ?", start+"-01").Where("deleted_at IS NULL").
+		Group("month").Order("month ASC").Scan(&rows).Error
+	return rows, err
+}
+
+// SalesRanking 销售业绩排行(按合同负责人汇总 total_amount)。
+func (s *DashboardService) SalesRanking(ctx context.Context, limit int) ([]struct {
+	OwnerID   uint            `json:"owner_id"`
+	OwnerName string          `json:"owner_name"`
+	Amount    decimal.Decimal `json:"amount"`
+	Count     int64           `json:"count"`
+}, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 10
+	}
+	var rows []struct {
+		OwnerID   uint            `json:"owner_id"`
+		OwnerName string          `json:"owner_name"`
+		Amount    decimal.Decimal `json:"amount"`
+		Count     int64           `json:"count"`
+	}
+	// 先按 owner_id 聚合
+	type agg struct {
+		OwnerID uint            `json:"owner_id"`
+		Amount  decimal.Decimal `json:"amount"`
+		Count   int64           `json:"count"`
+	}
+	var aggs []agg
+	err := repository.DBFrom(ctx).Table("crm_contract").
+		Select("owner_id, COALESCE(SUM(total_amount),0) AS amount, COUNT(*) AS count").
+		Where("owner_id IS NOT NULL AND deleted_at IS NULL").
+		Group("owner_id").Order("amount DESC").Limit(limit).Scan(&aggs).Error
+	if err != nil {
+		return rows, err
+	}
+	// 批量查用户名
+	userNames := make(map[uint]string)
+	for _, a := range aggs {
+		var name string
+		repository.DBFrom(ctx).Table("sys_user").
+			Select("COALESCE(NULLIF(nickname,''), username)").Where("id = ?", a.OwnerID).Scan(&name)
+		userNames[a.OwnerID] = name
+	}
+	for _, a := range aggs {
+		rows = append(rows, struct {
+			OwnerID   uint            `json:"owner_id"`
+			OwnerName string          `json:"owner_name"`
+			Amount    decimal.Decimal `json:"amount"`
+			Count     int64           `json:"count"`
+		}{a.OwnerID, userNames[a.OwnerID], a.Amount, a.Count})
+	}
+	return rows, nil
+}
+
+// LeadSourceDistribution 线索来源分布。
+func (s *DashboardService) LeadSourceDistribution(ctx context.Context) ([]LabelValue, error) {
+	var rows []LabelValue
+	err := repository.DBFrom(ctx).Table("crm_lead").
+		Select("source AS label, COUNT(*) AS value").
+		Where("source != '' AND deleted_at IS NULL").
+		Group("source").Order("value DESC").Scan(&rows).Error
+	return rows, err
+}
+
+// ── HRM ──
+
+// EmployeeDistribution 员工分布(department/gender/status)。
+func (s *DashboardService) EmployeeDistribution(ctx context.Context, dimension string) ([]LabelValue, error) {
+	var rows []LabelValue
+	switch dimension {
+	case "gender":
+		err := repository.DBFrom(ctx).Table("hrm_employee").
+			Select(fmt.Sprintf("CASE gender WHEN 1 THEN '男' WHEN 2 THEN '女' ELSE '未知' END AS label, COUNT(*) AS value")).
+			Where("deleted_at IS NULL").Group("gender").Order("value DESC").Scan(&rows).Error
+		return rows, err
+	case "status":
+		err := repository.DBFrom(ctx).Table("hrm_employee").
+			Select(fmt.Sprintf("CASE status WHEN 1 THEN '在职' WHEN 2 THEN '试用' WHEN 3 THEN '离职' ELSE '未知' END AS label, COUNT(*) AS value")).
+			Where("deleted_at IS NULL").Group("status").Order("value DESC").Scan(&rows).Error
+		return rows, err
+	default: // department
+		err := repository.DBFrom(ctx).Table("hrm_employee AS e").
+			Select("COALESCE(d.name,'未分配') AS label, COUNT(*) AS value").
+			Joins("LEFT JOIN hrm_department AS d ON d.id = e.department_id").
+			Where("e.deleted_at IS NULL").
+			Group("d.id").Order("value DESC").Scan(&rows).Error
+		return rows, err
+	}
+}
+
+// HeadcountTrend 近 N 月入职人数趋势。
+func (s *DashboardService) HeadcountTrend(ctx context.Context, months int) ([]MonthValue, error) {
+	if months <= 0 {
+		months = 6
+	}
+	start := time.Now().AddDate(0, -months+1, 0).Format("2006-01")
+	var rows []MonthValue
+	err := repository.DBFrom(ctx).Table("hrm_employee").
+		Select("DATE_FORMAT(entry_date, '%Y-%m') AS month, 0 AS amount, COUNT(*) AS count").
+		Where("entry_date >= ?", start+"-01").Where("deleted_at IS NULL").
+		Group("month").Order("month ASC").Scan(&rows).Error
+	return rows, err
+}
+
+// AttendanceSummary 月度考勤汇总(按部门: 请假天数 + 加班小时)。
+func (s *DashboardService) AttendanceSummary(ctx context.Context, month string) ([]struct {
+	Department string          `json:"department"`
+	LeaveDays  decimal.Decimal `json:"leave_days"`
+	OTHours    decimal.Decimal `json:"ot_hours"`
+}, error) {
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+	var rows []struct {
+		Department string          `json:"department"`
+		LeaveDays  decimal.Decimal `json:"leave_days"`
+		OTHours    decimal.Decimal `json:"ot_hours"`
+	}
+	// 请假 by dept
+	type leaveAgg struct {
+		Dept string
+		Days decimal.Decimal
+	}
+	var leaves []leaveAgg
+	repository.DBFrom(ctx).Table("hrm_leave AS l").
+		Select("COALESCE(d.name,'未分配') AS dept, COALESCE(SUM(l.duration_days),0) AS days").
+		Joins("LEFT JOIN hrm_employee AS e ON e.id = l.employee_id").
+		Joins("LEFT JOIN hrm_department AS d ON d.id = e.department_id").
+		Where("DATE_FORMAT(l.start_date, '%Y-%m') = ?", month).Where("l.deleted_at IS NULL").
+		Group("d.id").Scan(&leaves)
+
+	// 加班 by dept
+	type otAgg struct {
+		Dept  string
+		Hours decimal.Decimal
+	}
+	var ots []otAgg
+	repository.DBFrom(ctx).Table("hrm_overtime AS o").
+		Select("COALESCE(d.name,'未分配') AS dept, COALESCE(SUM(o.duration_hours),0) AS hours").
+		Joins("LEFT JOIN hrm_employee AS e ON e.id = o.employee_id").
+		Joins("LEFT JOIN hrm_department AS d ON d.id = e.department_id").
+		Where("DATE_FORMAT(o.start_date, '%Y-%m') = ?", month).Where("o.deleted_at IS NULL").
+		Group("d.id").Scan(&ots)
+
+	// merge
+	deptMap := make(map[string]*struct {
+		Department string          `json:"department"`
+		LeaveDays  decimal.Decimal `json:"leave_days"`
+		OTHours    decimal.Decimal `json:"ot_hours"`
+	})
+	for _, l := range leaves {
+		if _, ok := deptMap[l.Dept]; !ok {
+			deptMap[l.Dept] = &struct {
+				Department string          `json:"department"`
+				LeaveDays  decimal.Decimal `json:"leave_days"`
+				OTHours    decimal.Decimal `json:"ot_hours"`
+			}{Department: l.Dept}
+		}
+		deptMap[l.Dept].LeaveDays = l.Days
+	}
+	for _, o := range ots {
+		if _, ok := deptMap[o.Dept]; !ok {
+			deptMap[o.Dept] = &struct {
+				Department string          `json:"department"`
+				LeaveDays  decimal.Decimal `json:"leave_days"`
+				OTHours    decimal.Decimal `json:"ot_hours"`
+			}{Department: o.Dept}
+		}
+		deptMap[o.Dept].OTHours = o.Hours
+	}
+	for _, v := range deptMap {
+		rows = append(rows, *v)
+	}
+	return rows, nil
+}
+
+// ── 财务 ──
+
+// FinanceTrend 近 N 月收入/支出趋势(voucher by month + direction)。
+func (s *DashboardService) FinanceTrend(ctx context.Context, months int) ([]struct {
+	Month   string          `json:"month"`
+	Income  decimal.Decimal `json:"income"`
+	Expense decimal.Decimal `json:"expense"`
+}, error) {
+	if months <= 0 {
+		months = 6
+	}
+	start := time.Now().AddDate(0, -months+1, 0).Format("2006-01")
+	var rows []struct {
+		Month   string          `json:"month"`
+		Income  decimal.Decimal `json:"income"`
+		Expense decimal.Decimal `json:"expense"`
+	}
+	// 按月聚合 voucher:DEBIT=支出, CREDIT=收入
+	err := repository.DBFrom(ctx).Table("fin_voucher").
+		Select("DATE_FORMAT(voucher_date, '%Y-%m') AS month, "+
+			"COALESCE(SUM(CASE WHEN direction='CREDIT' THEN amount ELSE 0 END),0) AS income, "+
+			"COALESCE(SUM(CASE WHEN direction='DEBIT' THEN amount ELSE 0 END),0) AS expense").
+		Where("voucher_date >= ?", start+"-01").Where("deleted_at IS NULL").
+		Group("month").Order("month ASC").Scan(&rows).Error
+	return rows, err
+}
+
+// ── 进销存 ──
+
+// StockValueByWarehouse 各仓库库存总值(quantity * unit_cost)。
+func (s *DashboardService) StockValueByWarehouse(ctx context.Context) ([]struct {
+	Warehouse  string          `json:"warehouse"`
+	StockValue decimal.Decimal `json:"stock_value"`
+	Quantity   decimal.Decimal `json:"quantity"`
+}, error) {
+	var rows []struct {
+		Warehouse  string          `json:"warehouse"`
+		StockValue decimal.Decimal `json:"stock_value"`
+		Quantity   decimal.Decimal `json:"quantity"`
+	}
+	err := repository.DBFrom(ctx).Table("psi_stock AS s").
+		Select("COALESCE(w.name,'未知') AS warehouse, COALESCE(SUM(s.quantity * s.unit_cost),0) AS stock_value, COALESCE(SUM(s.quantity),0) AS quantity").
+		Joins("LEFT JOIN psi_warehouse AS w ON w.id = s.warehouse_id").
+		Where("s.deleted_at IS NULL").
+		Group("w.id").Order("stock_value DESC").Scan(&rows).Error
+	return rows, err
+}
+
+// SalesVsPurchase 近 N 月采购额 vs 销售额对比。
+func (s *DashboardService) SalesVsPurchase(ctx context.Context, months int) ([]struct {
+	Month         string          `json:"month"`
+	PurchaseAmount decimal.Decimal `json:"purchase_amount"`
+	SalesAmount    decimal.Decimal `json:"sales_amount"`
+}, error) {
+	if months <= 0 {
+		months = 6
+	}
+	start := time.Now().AddDate(0, -months+1, 0).Format("2006-01")
+	var rows []struct {
+		Month         string          `json:"month"`
+		PurchaseAmount decimal.Decimal `json:"purchase_amount"`
+		SalesAmount    decimal.Decimal `json:"sales_amount"`
+	}
+	err := repository.DBFrom(ctx).Table("psi_purchase_order AS po").
+		Select("DATE_FORMAT(po.order_date, '%Y-%m') AS month, "+
+			"COALESCE(SUM(po.total_amount),0) AS purchase_amount, 0 AS sales_amount").
+		Where("po.order_date >= ?", start+"-01").Where("po.deleted_at IS NULL").
+		Group("month").Scan(&rows).Error
+
+	// 销售额
+	type salesAgg struct {
+		Month  string
+		Amount decimal.Decimal
+	}
+	var sales []salesAgg
+	repository.DBFrom(ctx).Table("psi_sales_order AS so").
+		Select("DATE_FORMAT(so.order_date, '%Y-%m') AS month, COALESCE(SUM(so.total_amount),0) AS amount").
+		Where("so.order_date >= ?", start+"-01").Where("so.deleted_at IS NULL").
+		Group("month").Scan(&sales)
+
+	salesMap := make(map[string]decimal.Decimal)
+	for _, s := range sales {
+		salesMap[s.Month] = s.Amount
+	}
+	for i := range rows {
+		if v, ok := salesMap[rows[i].Month]; ok {
+			rows[i].SalesAmount = v
+		}
+	}
+	return rows, err
+}
+
+// ── 引用避免 unused ──
+var _ = crmmodel.CrmCustomer{}
+var _ = psimodel.PsiStock{}
+var _ = hrmmodel.HrmEmployee{}
+var _ = apprmodel.ApprovalTask{}

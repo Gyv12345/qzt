@@ -17,7 +17,7 @@ func NewOpportunityRepo() *OpportunityRepo { return &OpportunityRepo{} }
 
 func (r *OpportunityRepo) Update(ctx context.Context, m *crmmodel.CrmOpportunity) error {
 	return r.BaseRepo.Update(ctx, m,
-		"Name", "CustomerID", "ExpectedAmount", "ExpectedCloseDate", "Stage", "Probability",
+		"Name", "OpportunityNo", "CustomerID", "ExpectedAmount", "ExpectedCloseDate", "Stage", "Probability",
 		"OwnerID", "FollowerID", "FollowTime", "SourceClueID", "Description")
 }
 

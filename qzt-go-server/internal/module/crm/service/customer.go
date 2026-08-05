@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/numbergen"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xtime"
@@ -36,12 +38,13 @@ func NewCustomerService() *CustomerService {
 
 // CreateCustomerRequest 创建客户请求。
 type CreateCustomerRequest struct {
-	Name      string `json:"name" binding:"required"`
-	Level     string `json:"level"`
-	Source    string `json:"source"`
-	Industry  string `json:"industry"`
-	OwnerID   *uint  `json:"owner_id"`
-	Fields    []FieldValue `json:"fields"`
+	Name       string `json:"name" binding:"required"`
+	CustomerNo string `json:"customer_no"` // 留空则自动生成
+	Level      string `json:"level"`
+	Source     string `json:"source"`
+	Industry   string `json:"industry"`
+	OwnerID    *uint  `json:"owner_id"`
+	Fields     []FieldValue `json:"fields"`
 }
 
 // Create 创建客户(默认私海,owner 默认当前用户;写自定义字段值)。
@@ -60,8 +63,14 @@ func (s *CustomerService) Create(ctx context.Context, req *CreateCustomerRequest
 		ownerID = &currentUserID // 默认创建人为负责人
 	}
 	now := time.Now()
+	// 自动生成客户编号(用户填了用手填的,留空才自动)
+	customerNo := req.CustomerNo
+	if customerNo == "" {
+		customerNo, _ = numbergen.Generate(ctx, "customer")
+	}
 	customer := &crmmodel.CrmCustomer{
 		Name:    req.Name,
+		CustomerNo: customerNo,
 		Level:   req.Level,
 		Source:  req.Source,
 		Industry: req.Industry,
@@ -233,6 +242,10 @@ func (s *CustomerService) List(ctx context.Context, page, pageSize int, keyword,
 	}
 	if len(where) > 0 {
 		q.Where = where
+	}
+	// 数据权限过滤
+	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+		q.Conds = append(q.Conds, *cond)
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
 }

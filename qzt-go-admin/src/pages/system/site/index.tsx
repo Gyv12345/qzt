@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { App, Button, Card, Form, Space } from 'antd'
 import { ProForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import ImageUpload from '../../../components/ImageUpload'
 import { getSiteConfig, updateSiteConfig } from '../../../services/system'
 import type { UpdateSiteConfigRequest } from '../../../types'
 
@@ -55,8 +56,12 @@ export default function SiteConfigPage() {
         >
           <ProFormText name="site_name" label="站点名称" colProps={{ span: 12 }} />
           <ProFormText name="slogan" label="标语" colProps={{ span: 12 }} />
-          <ProFormText name="logo_url" label="Logo 地址" colProps={{ span: 12 }} />
-          <ProFormText name="favicon_url" label="Favicon 地址" colProps={{ span: 12 }} />
+          <ProForm.Item name="logo_url" label="Logo" colProps={{ span: 12 }}>
+            <ImageUpload folder="site" />
+          </ProForm.Item>
+          <ProForm.Item name="favicon_url" label="Favicon" colProps={{ span: 12 }}>
+            <ImageUpload folder="site" accept="image/x-icon,image/png" />
+          </ProForm.Item>
           <ProFormTextArea name="description" label="站点描述" colProps={{ span: 24 }} />
           <ProFormTextArea
             name="keywords"
@@ -73,7 +78,9 @@ export default function SiteConfigPage() {
           <ProFormText name="contact_wechat" label="微信号" colProps={{ span: 12 }} />
 
           <ProFormText name="weibo_url" label="微博链接" colProps={{ span: 12 }} />
-          <ProFormText name="wechat_qr_url" label="微信二维码图" colProps={{ span: 12 }} />
+          <ProForm.Item name="wechat_qr_url" label="微信二维码" colProps={{ span: 12 }}>
+            <ImageUpload folder="site" />
+          </ProForm.Item>
           <ProFormText name="linkedin_url" label="LinkedIn 链接" colProps={{ span: 12 }} />
           <ProFormText name="copyright" label="版权信息" colProps={{ span: 12 }} />
 

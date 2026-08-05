@@ -124,3 +124,18 @@ a {
 .prose-content :where(pre code) {
   @apply bg-transparent p-0 text-ink-100;
 }
+.prose-content :where(table) {
+  @apply my-4 w-full border-collapse text-sm;
+}
+.prose-content :where(th, td) {
+  @apply border border-ink-100 px-4 py-2 text-left;
+}
+.prose-content :where(thead) {
+  @apply bg-ink-50 text-ink-600;
+}
+.prose-content :where(hr) {
+  @apply my-6 border-ink-100;
+}
+.prose-content :where(strong) {
+  @apply font-semibold text-ink-900;
+}

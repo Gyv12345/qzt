@@ -48,6 +48,8 @@ export interface SysRole {
   code: string
   sort: number
   status: number
+  /** 数据权限范围 1全部 3本部门 4本部门及子部门 5仅本人 */
+  data_scope: number
   remark: string
   menus?: SysMenu[]
   created_at: string
@@ -58,6 +60,8 @@ export interface SysUser {
   id: number
   username: string
   nickname: string
+  /** 部门ID(关联hrm_department) */
+  dept_id: number | null
   avatar: string
   email: string
   phone: string
@@ -198,6 +202,7 @@ export interface CreateUserRequest {
   username: string
   nickname: string
   password: string
+  dept_id?: number | null
   email?: string
   phone?: string
   status: number
@@ -206,6 +211,7 @@ export interface CreateUserRequest {
 
 export interface UpdateUserRequest {
   nickname?: string
+  dept_id?: number | null
   password?: string
   avatar?: string
   email?: string
@@ -219,6 +225,7 @@ export interface CreateRoleRequest {
   code: string
   sort: number
   status: number
+  data_scope: number
   remark?: string
 }
 
@@ -226,6 +233,7 @@ export interface UpdateRoleRequest {
   name?: string
   sort?: number
   status?: number
+  data_scope?: number
   remark?: string
 }
 

@@ -29,8 +29,11 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	productPriceHandler := handler.NewProductPriceHandler()
 	followHandler := handler.NewFollowHandler()
 	poolHandler := handler.NewPoolHandler()
+	leadHandler := handler.NewLeadHandler()
+	leadPoolHandler := handler.NewLeadPoolHandler()
 	customFieldHandler := handler.NewCustomFieldHandler()
 	stageHandler := handler.NewStageHandler()
+	contractTemplateHandler := handler.NewContractTemplateHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -50,6 +53,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 公海池下拉
 		authenticated.GET("/customer-pools/enabled", poolHandler.ListEnabledPools)
 
+		// 线索公海池下拉
+		authenticated.GET("/lead-pools/enabled", leadPoolHandler.ListEnabledPools)
+
 		// 跟进记录时间线
 		authenticated.GET("/follow-records/timeline", followHandler.Timeline)
 
@@ -58,6 +64,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 变更历史(查询类)
 		authenticated.GET("/customers/:id/owner-history", customerHandler.OwnerHistory)
+		authenticated.GET("/leads/:id/owner-history", leadHandler.OwnerHistory)
 		authenticated.GET("/opportunities/:id/stage-history", opportunityHandler.StageHistory)
 
 		// 合同回款汇总
@@ -99,6 +106,16 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/contracts/:id", contractHandler.GetByID)
 		auth.PUT("/contracts/:id", contractHandler.Update)
 		auth.DELETE("/contracts/:id", contractHandler.Delete)
+		// 合同套打(选模板渲染)
+		auth.GET("/contracts/:id/print-document", contractTemplateHandler.PrintDocument)
+
+		// 合同模板(静态路径 variables 须先于 :id 注册)
+		auth.GET("/contract-templates/variables", contractTemplateHandler.Variables)
+		auth.GET("/contract-templates", contractTemplateHandler.List)
+		auth.POST("/contract-templates", contractTemplateHandler.Create)
+		auth.GET("/contract-templates/:id", contractTemplateHandler.GetByID)
+		auth.PUT("/contract-templates/:id", contractTemplateHandler.Update)
+		auth.DELETE("/contract-templates/:id", contractTemplateHandler.Delete)
 
 		// 回款计划
 		auth.GET("/contracts/:id/payment-plans", paymentHandler.ListPlansByContract)
@@ -151,6 +168,27 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.PUT("/customer-pools/:id/recycle-rule", poolHandler.SetRecycleRule)
 		auth.POST("/customer-pools/capacity", poolHandler.SetCapacity)
 		auth.POST("/customer-pools/:id/recycle", poolHandler.ManualRecycle)
+
+		// 线索管理
+		auth.GET("/leads", leadHandler.List)
+		auth.POST("/leads", leadHandler.Create)
+		auth.GET("/leads/:id", leadHandler.GetByID)
+		auth.PUT("/leads/:id", leadHandler.Update)
+		auth.DELETE("/leads/:id", leadHandler.Delete)
+		auth.POST("/leads/:id/release", leadHandler.ReleaseToPool)
+		auth.POST("/leads/:id/pick", leadHandler.PickFromPool)
+		auth.POST("/leads/:id/transfer", leadHandler.Transfer)
+		auth.POST("/leads/:id/convert", leadHandler.Convert)
+
+		// 线索公海池
+		auth.GET("/lead-pools", leadPoolHandler.ListPools)
+		auth.POST("/lead-pools", leadPoolHandler.CreatePool)
+		auth.GET("/lead-pools/:id", leadPoolHandler.GetPool)
+		auth.PUT("/lead-pools/:id", leadPoolHandler.UpdatePool)
+		auth.DELETE("/lead-pools/:id", leadPoolHandler.DeletePool)
+		auth.PUT("/lead-pools/:id/pick-rule", leadPoolHandler.SetPickRule)
+		auth.PUT("/lead-pools/:id/recycle-rule", leadPoolHandler.SetRecycleRule)
+		auth.POST("/lead-pools/:id/recycle", leadPoolHandler.ManualRecycle)
 
 		// 自定义字段
 		auth.GET("/custom-fields", customFieldHandler.ListFields)

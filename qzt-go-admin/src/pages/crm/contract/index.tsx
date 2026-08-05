@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import {
   App,
   Button,
@@ -7,16 +9,18 @@ import {
   Drawer,
   Form,
   InputNumber,
+  Modal,
   Popconfirm,
   Select,
   Space,
+  Spin,
   Statistic,
   Table,
   Tabs,
   Tag,
   type TableProps,
 } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, PrinterOutlined } from '@ant-design/icons'
 import {
   ProForm,
   ModalForm,
@@ -40,8 +44,10 @@ import {
   deletePaymentRecord,
   getContractPaymentSummary,
   listContracts,
+  listContractTemplates,
   listCustomers,
   listPaymentRecords,
+  printContractDocument,
   updateContract,
   updatePaymentPlan,
   updatePaymentRecord,
@@ -50,6 +56,7 @@ import { useUserStore } from '../../../stores/users'
 import type {
   CrmContract,
   CrmContractPayload,
+  CrmContractTemplate,
   CrmCustomer,
   CrmPaymentPlan,
   CrmPaymentRecord,
@@ -58,6 +65,7 @@ import type {
 
 interface ContractFormValues {
   name: string
+  contract_no?: string
   customer_id: number
   opportunity_id?: number
   total_amount?: number
@@ -126,6 +134,14 @@ export default function ContractPage() {
   const [recordModalOpen, setRecordModalOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<CrmPaymentRecord | null>(null)
 
+  // 套打文档
+  const [printOpen, setPrintOpen] = useState(false)
+  const [printTemplates, setPrintTemplates] = useState<CrmContractTemplate[]>([])
+  const [printTplId, setPrintTplId] = useState<number | undefined>()
+  const [printMarkdown, setPrintMarkdown] = useState('')
+  const [printLoading, setPrintLoading] = useState(false)
+  const printPreviewRef = useRef<HTMLDivElement>(null)
+
   const plans = summary?.plans ?? []
 
   useEffect(() => {
@@ -175,6 +191,7 @@ export default function ContractPage() {
     setEditing(record)
     form.setFieldsValue({
       name: record.name,
+      contract_no: record.contract_no || undefined,
       customer_id: record.customer_id,
       opportunity_id: record.opportunity_id ?? undefined,
       total_amount: Number(record.total_amount),
@@ -191,6 +208,7 @@ export default function ContractPage() {
   const handleSubmit = async (values: ContractFormValues) => {
     const payload: CrmContractPayload = {
       name: values.name,
+      contract_no: values.contract_no,
       customer_id: values.customer_id,
       opportunity_id: values.opportunity_id,
       total_amount: values.total_amount,
@@ -223,6 +241,35 @@ export default function ContractPage() {
     setSummary(null)
     setRecords([])
     setDrawerOpen(true)
+  }
+
+  // 打开套打弹窗:先拉启用模板列表
+  const openPrint = async () => {
+    if (!detail) return
+    setPrintOpen(true)
+    setPrintTplId(undefined)
+    setPrintMarkdown('')
+    try {
+      const res = await listContractTemplates({ page: 1, page_size: 50, enabled: 1 })
+      setPrintTemplates(res.list ?? [])
+    } catch {
+      // ignore
+    }
+  }
+
+  // 选模板后调后端渲染
+  const handlePrintRender = async (templateId: number) => {
+    if (!detail) return
+    setPrintTplId(templateId)
+    setPrintLoading(true)
+    try {
+      const res = await printContractDocument(detail.id, templateId)
+      setPrintMarkdown(res.markdown || '')
+    } catch {
+      setPrintMarkdown('')
+    } finally {
+      setPrintLoading(false)
+    }
   }
 
   // ---------- 回款计划 CRUD ----------
@@ -548,6 +595,12 @@ export default function ContractPage() {
           placeholder="合同名称"
           colProps={{ span: 12 }}
         />
+        <ProFormText
+          name="contract_no"
+          label="合同编号"
+          placeholder="留空则自动生成"
+          colProps={{ span: 12 }}
+        />
         <ProForm.Item
           name="customer_id"
           label="客户"
@@ -591,6 +644,13 @@ export default function ContractPage() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         title={detail ? `合同详情:${detail.name}` : '合同详情'}
+        extra={
+          <Auth perm="crm:contractTemplate:list">
+            <Button icon={<PrinterOutlined />} onClick={openPrint}>
+              打印文档
+            </Button>
+          </Auth>
+        }
       >
         {detail && (
           <Tabs
@@ -813,6 +873,95 @@ export default function ContractPage() {
         </ProForm.Item>
         <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
       </ModalForm>
+
+      {/* 套打文档预览 */}
+      <Modal
+        title="打印合同文档"
+        open={printOpen}
+        onCancel={() => setPrintOpen(false)}
+        width={860}
+        footer={[
+          <Button key="close" onClick={() => setPrintOpen(false)}>
+            关闭
+          </Button>,
+          <Button
+            key="print"
+            type="primary"
+            icon={<PrinterOutlined />}
+            disabled={!printMarkdown}
+            onClick={() => {
+              const html = printPreviewRef.current?.innerHTML ?? ''
+              const w = window.open('', '_blank', 'width=900,height=700')
+              if (!w) return
+              w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>打印合同</title>
+                <style>
+                  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.8;padding:40px;color:#222;}
+                  h1,h2,h3{margin:1.2em 0 .5em;} table{border-collapse:collapse;width:100%;margin:12px 0;}
+                  th,td{border:1px solid #ddd;padding:8px 12px;text-align:left;} th{background:#f5f5f5;}
+                  hr{border:none;border-top:1px solid #ddd;margin:16px 0;} img{max-width:100%;}
+                </style></head><body>${html}</body></html>`)
+              w.document.close()
+              w.focus()
+              setTimeout(() => w.print(), 300)
+            }}
+          >
+            打印
+          </Button>,
+        ]}
+      >
+        <Space style={{ width: '100%', marginBottom: 16 }}>
+          <span>选择模板:</span>
+          <Select
+            style={{ width: 360 }}
+            placeholder="选择合同模板"
+            value={printTplId}
+            options={printTemplates.map((t) => ({ label: t.name, value: t.id }))}
+            onChange={handlePrintRender}
+          />
+        </Space>
+        <Spin spinning={printLoading}>
+          {printMarkdown ? (
+            <div
+              ref={printPreviewRef}
+              className="prose-content max-w-none"
+              style={{
+                minHeight: 200,
+                lineHeight: 1.8,
+                color: '#222',
+              }}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }: { children?: ReactNode }) => (
+                    <h1 style={{ fontSize: 20, margin: '1.2em 0 .5em' }}>{children}</h1>
+                  ),
+                  h2: ({ children }: { children?: ReactNode }) => (
+                    <h2 style={{ fontSize: 17, margin: '1.2em 0 .5em' }}>{children}</h2>
+                  ),
+                  table: ({ children }: { children?: ReactNode }) => (
+                    <table style={{ borderCollapse: 'collapse', width: '100%', margin: '12px 0' }}>{children}</table>
+                  ),
+                  th: ({ children }: { children?: ReactNode }) => (
+                    <th style={{ border: '1px solid #ddd', padding: '8px 12px', background: '#f5f5f5', textAlign: 'left' }}>
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }: { children?: ReactNode }) => (
+                    <td style={{ border: '1px solid #ddd', padding: '8px 12px', textAlign: 'left' }}>{children}</td>
+                  ),
+                }}
+              >
+                {printMarkdown}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div style={{ color: '#999', textAlign: 'center', padding: 40 }}>
+              请选择模板预览渲染结果
+            </div>
+          )}
+        </Spin>
+      </Modal>
     </>
   )
 }

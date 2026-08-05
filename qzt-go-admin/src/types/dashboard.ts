@@ -42,3 +42,54 @@ export interface DashboardFinanceSummary {
   received_amount: string
   stock_value: string
 }
+
+// ── BI 扩展类型 ──
+
+/** 标签-值(饼图/柱状图) */
+export interface LabelValue {
+  label: string
+  value: string
+}
+
+/** 月度趋势(折线) */
+export interface MonthTrend {
+  month: string
+  amount: string
+  count: number
+}
+
+/** 销售排行 */
+export interface SalesRankingItem {
+  owner_id: number
+  owner_name: string
+  amount: string
+  count: number
+}
+
+/** 考勤汇总 */
+export interface AttendanceSummaryItem {
+  department: string
+  leave_days: string
+  ot_hours: string
+}
+
+/** 收支趋势 */
+export interface FinanceTrendItem {
+  month: string
+  income: string
+  expense: string
+}
+
+/** 仓库库存 */
+export interface StockValueItem {
+  warehouse: string
+  stock_value: string
+  quantity: string
+}
+
+/** 采购vs销售 */
+export interface SalesVsPurchaseItem {
+  month: string
+  purchase_amount: string
+  sales_amount: string
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 )
@@ -30,15 +31,20 @@ type CreateProductRequest struct {
 	Unit          string          `json:"unit"`
 	StandardPrice decimal.Decimal `json:"standard_price"`
 	CostPrice     decimal.Decimal `json:"cost_price"`
+	ImageURL      string          `json:"image_url"`
 	Description   string          `json:"description"`
 }
 
 // Create 创建商品(默认 status=上架)。
 func (s *ProductService) Create(ctx context.Context, req *CreateProductRequest) (*crmmodel.CrmProduct, error) {
+	productNo := req.ProductNo
+	if productNo == "" {
+		productNo, _ = numbergen.Generate(ctx, "product")
+	}
 	p := &crmmodel.CrmProduct{
-		Name: req.Name, ProductNo: req.ProductNo, Category: req.Category, Unit: req.Unit,
+		Name: req.Name, ProductNo: productNo, Category: req.Category, Unit: req.Unit,
 		StandardPrice: req.StandardPrice, CostPrice: req.CostPrice,
-		Status: crmmodel.ProductStatusOn, Description: req.Description,
+		Status: crmmodel.ProductStatusOn, ImageURL: req.ImageURL, Description: req.Description,
 	}
 	if err := s.repo.Create(ctx, p); err != nil {
 		return nil, err
@@ -61,6 +67,7 @@ type UpdateProductRequest struct {
 	StandardPrice decimal.Decimal `json:"standard_price"`
 	CostPrice     decimal.Decimal `json:"cost_price"`
 	Status        *int8           `json:"status"`
+	ImageURL      string          `json:"image_url"`
 	Description   string          `json:"description"`
 }
 
@@ -79,6 +86,7 @@ func (s *ProductService) Update(ctx context.Context, id uint, req *UpdateProduct
 	if req.Status != nil {
 		p.Status = *req.Status
 	}
+	p.ImageURL = req.ImageURL
 	p.Description = req.Description
 	return s.repo.Update(ctx, p)
 }
@@ -102,6 +110,7 @@ type PublicProductDTO struct {
 	Unit          string          `json:"unit"`
 	StandardPrice decimal.Decimal `json:"standard_price"`
 	Status        int8            `json:"status"`
+	ImageURL      string          `json:"image_url"`
 	Description   string          `json:"description"`
 	Prices        []crmmodel.CrmProductPrice `json:"prices"`
 }
@@ -135,7 +144,7 @@ func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*Public
 	}
 	return &PublicProductDTO{
 		ID: p.ID, Name: p.Name, ProductNo: p.ProductNo, Category: p.Category,
-		Unit: p.Unit, StandardPrice: p.StandardPrice, Status: p.Status, Description: p.Description,
+		Unit: p.Unit, StandardPrice: p.StandardPrice, Status: p.Status, ImageURL: p.ImageURL, Description: p.Description,
 		Prices: prices,
 	}, nil
 }

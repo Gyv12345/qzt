@@ -32,6 +32,7 @@ import DetailDrawer from './DetailDrawer'
 
 interface CustomerFormValues {
   name: string
+  customer_no?: string
   level?: string
   source?: string
   industry?: string
@@ -87,6 +88,7 @@ export default function CustomerPage() {
     setEditing(detail.customer)
     form.setFieldsValue({
       name: detail.customer.name,
+      customer_no: detail.customer.customer_no || undefined,
       level: detail.customer.level || undefined,
       source: detail.customer.source || undefined,
       industry: detail.customer.industry || undefined,
@@ -99,6 +101,7 @@ export default function CustomerPage() {
   const handleSubmit = async (values: CustomerFormValues) => {
     const payload: CrmCustomerPayload = {
       name: values.name,
+      customer_no: values.customer_no,
       level: values.level,
       source: values.source,
       industry: values.industry,
@@ -170,6 +173,13 @@ export default function CustomerPage() {
       renderFormItem: () => <DictSelect code="INDUSTRY" />,
     },
     // ---- 可见列 ----
+    {
+      title: '编号',
+      dataIndex: 'customer_no',
+      width: 150,
+      search: false,
+      render: (v) => v || '-',
+    },
     {
       title: '客户名称',
       dataIndex: 'name',
@@ -337,6 +347,12 @@ export default function CustomerPage() {
           name="name"
           label="客户名称"
           rules={[{ required: true, message: '请输入客户名称' }]}
+          colProps={{ span: 12 }}
+        />
+        <ProFormText
+          name="customer_no"
+          label="客户编号"
+          placeholder="留空则自动生成"
           colProps={{ span: 12 }}
         />
         <ProForm.Item name="level" label="等级" colProps={{ span: 12 }}>

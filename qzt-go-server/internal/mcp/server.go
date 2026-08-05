@@ -57,6 +57,12 @@ func buildServer() *server.MCPServer {
 	registerFollowupTools(s)
 	registerDashboardTools(s)
 
+	// 注册 CRM 合同模板 tools
+	registerContractTemplateTools(s)
+
+	// 注册 CMS tools(文章)
+	registerArticleTools(s)
+
 	// 注册系统配置 tools(存储/OSS、企业微信、站点设置)
 	registerConfigTools(s)
 
@@ -114,6 +120,7 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 			roleCodes = append(roleCodes, r.Code)
 		}
 		c.Set(middleware.CtxRoleCodesKey, roleCodes)
+		middleware.InjectDataScope(c, user)
 
 		c.Next()
 	}

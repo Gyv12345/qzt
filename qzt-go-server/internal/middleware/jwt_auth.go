@@ -9,6 +9,7 @@ import (
 
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xauth"
 	jwtpkg "qzt-go-server/pkg/xauth/jwt"
@@ -84,6 +85,7 @@ func JWTAuth(mgr *jwtpkg.Manager) gin.HandlerFunc {
 		ctx = context.WithValue(ctx, xauth.XUserName, claims.Username)
 		ctx = context.WithValue(ctx, xauth.XSessionId, claims.SessionId)
 		c.Request = c.Request.WithContext(ctx)
+		InjectDataScope(c, user)
 
 		c.Next()
 	}
@@ -97,6 +99,29 @@ func GetUserID(c *gin.Context) uint {
 	}
 	id, _ := val.(uint)
 	return id
+}
+
+// InjectDataScope 将数据权限范围、部门ID、用户ID 注入 request context,
+// 供 service 层通过 datascope.GetScope / datascope.BuildCond 读取。
+// 超管或多角色取最宽松 scope(ALL 最宽松)。
+func InjectDataScope(c *gin.Context, user *model.SysUser) {
+	// 计算有效数据权限(多角色取最宽松)
+	scope := datascope.EffectiveScope(user.Roles)
+	var deptID uint
+	if user.DeptID != nil {
+		deptID = *user.DeptID
+	}
+	userID, _ := c.Get(CtxUserIDKey)
+	uid, _ := userID.(uint)
+
+	// gin context(供 handler 读)
+	c.Set(datascope.CtxDeptIDKey, deptID)
+	c.Set(datascope.CtxDataScopeKey, scope)
+	// request context(供 service 读)
+	ctx := context.WithValue(c.Request.Context(), datascope.CtxDeptIDKey, deptID)
+	ctx = context.WithValue(ctx, datascope.CtxDataScopeKey, scope)
+	ctx = context.WithValue(ctx, datascope.CtxUserIDKey, uid)
+	c.Request = c.Request.WithContext(ctx)
 }
 
 // GetUsername 从 gin context 取当前登录用户名。
@@ -207,6 +232,7 @@ func tryApiKeyAuth(c *gin.Context, apiKeyRepo *repository.ApiKeyRepo, userRepo *
 	ctx := context.WithValue(c.Request.Context(), xauth.XUserId, int32(user.ID))
 	ctx = context.WithValue(ctx, xauth.XUserName, user.Username)
 	c.Request = c.Request.WithContext(ctx)
+	InjectDataScope(c, user)
 
 	return apiKey, true
 }
@@ -251,6 +277,7 @@ func tryJwtAuth(c *gin.Context, userRepo *repository.UserRepo, mgr *jwtpkg.Manag
 	ctx = context.WithValue(ctx, xauth.XUserName, claims.Username)
 	ctx = context.WithValue(ctx, xauth.XSessionId, claims.SessionId)
 	c.Request = c.Request.WithContext(ctx)
+	InjectDataScope(c, user)
 
 	c.Set("_auth_method", "jwt")
 	c.Next()

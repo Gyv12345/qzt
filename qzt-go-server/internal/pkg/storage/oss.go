@@ -46,11 +46,22 @@ func NewOSS(cfg OSSConfig) (*OSS, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get oss bucket %q: %w", cfg.BucketName, err)
 	}
+	// 与 NewLocal 一致:扩展名 key 归一化为带点小写(与 filepath.Ext 输出对齐),
+	// 否则 defaultAllowedTypes 的 "png"(无点)永远匹配不上 filepath.Ext 的 ".png"。
+	allowedTypes := make(map[string]string, len(cfg.AllowedTypes))
+	for ext, ct := range cfg.AllowedTypes {
+		ext = strings.ToLower(strings.TrimSpace(ext))
+		if !strings.HasPrefix(ext, ".") {
+			ext = "." + ext
+		}
+		allowedTypes[ext] = strings.ToLower(ct)
+	}
+
 	return &OSS{
 		bucket:       bucket,
 		customDomain: strings.TrimSuffix(cfg.CustomDomain, "/"),
 		maxBytes:     cfg.MaxBytes,
-		allowedTypes: cfg.AllowedTypes,
+		allowedTypes: allowedTypes,
 		now:          time.Now,
 	}, nil
 }

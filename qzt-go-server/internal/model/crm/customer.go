@@ -47,6 +47,7 @@ type CrmCustomerContact struct {
 	ID                 uint   `json:"id" gorm:"primaryKey"`
 	CustomerID         uint   `json:"customer_id" gorm:"index:idx_customer;not null;comment:客户ID"`
 	Name               string `json:"name" gorm:"size:255;not null;comment:联系人姓名"`
+	ContactNo          string `json:"contact_no" gorm:"size:64;comment:联系人编号"`
 	Phone              string `json:"phone" gorm:"size:30;comment:电话"`
 	Email              string `json:"email" gorm:"size:100;comment:邮箱"`
 	Position           string `json:"position" gorm:"size:100;comment:职务"`

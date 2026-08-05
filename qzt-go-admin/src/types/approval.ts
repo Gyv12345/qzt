@@ -142,3 +142,58 @@ export interface ApprovalInstanceDetail extends ApprovalInstance {
   tasks: ApprovalTask[] | null
   records: ApprovalRecord[] | null
 }
+
+// ── 流程设计(SaveDesign)相关类型 ──
+
+/** 节点设计(用 number 作为前端标识,links 引用它) */
+export interface NodeDesign {
+  number: string
+  name: string
+  /** START / APPROVER / CONDITION / DEFAULT / END */
+  node_type: string
+  /** CREATE / UPDATE / DELETE (START 节点) */
+  execute_timing?: string
+  sort: number
+}
+
+/** 审批人配置设计 */
+export interface ApproversDesign {
+  node_number: string
+  approval_type?: string
+  /** ALL 会签 / ANY 或签 / SEQUENTIAL 依次 */
+  multi_approver_mode?: string
+  /** AUTO_PASS / ASSIGN_SPECIFIC / ASSIGN_ADMIN */
+  empty_approver_action?: string
+  fallback_approver?: number
+  /** SKIP / ALLOW */
+  same_submitter_action?: string
+  /** MEMBER / ROLE / SUPERIOR / MULTIPLE_SUPERIOR / DEPT_HEAD / MULTIPLE_DEPT_HEAD */
+  approver_type?: string
+  approver_direction?: string
+  cc_type?: string
+  cc_list?: string
+  /** JSON 字符串,如 "[1,2]" */
+  approver_list?: string
+}
+
+/** 条件配置设计 */
+export interface ConditionsDesign {
+  node_number: string
+  /** JSON: {"logic":"AND","conditions":[{field,op,value}]} */
+  condition_config: string
+}
+
+/** 连线设计(from/to 用 node_number) */
+export interface LinkDesign {
+  from_node_number: string
+  to_node_number: string
+  sort: number
+}
+
+/** 保存流程设计请求 */
+export interface SaveDesignRequest {
+  nodes: NodeDesign[]
+  approvers: ApproversDesign[]
+  conditions: ConditionsDesign[]
+  links: LinkDesign[]
+}

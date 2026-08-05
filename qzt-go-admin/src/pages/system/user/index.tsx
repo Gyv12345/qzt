@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Select, Space, Switch, Tag } from 'antd'
+import { useEffect, useRef, useState } from 'react'
+import { App, Button, Form, Popconfirm, Select, Space, Switch, Tag, TreeSelect, type TreeSelectProps } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -12,11 +12,23 @@ import {
 import Auth from '../../../components/Auth'
 import { createUser, deleteUser, listUsers, updateUser } from '../../../services/system'
 import { listAllRoles } from '../../../services/system'
+import { getDepartmentTree } from '../../../services/hrm'
+import type { HrmDepartment } from '../../../types/hrm'
 import type { SysUser } from '../../../types'
+
+/** 部门树 → TreeSelect data */
+function deptToTreeData(depts: HrmDepartment[]): TreeSelectProps['treeData'] {
+  return depts.map((d) => ({
+    title: d.name,
+    value: d.id,
+    children: d.children?.length ? deptToTreeData(d.children) : undefined,
+  }))
+}
 
 interface UserFormValues {
   username: string
   nickname: string
+  dept_id?: number | null
   password?: string
   email?: string
   phone?: string
@@ -31,6 +43,11 @@ export default function UserPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<SysUser | null>(null)
   const [roleOptions, setRoleOptions] = useState<{ label: string; value: number }[]>([])
+  const [deptTree, setDeptTree] = useState<HrmDepartment[]>([])
+
+  useEffect(() => {
+    getDepartmentTree().then(setDeptTree).catch(() => {})
+  }, [])
 
   const loadRoles = async () => {
     const roles = await listAllRoles()
@@ -49,6 +66,7 @@ export default function UserPage() {
     form.setFieldsValue({
       username: record.username,
       nickname: record.nickname,
+      dept_id: record.dept_id ?? undefined,
       password: undefined,
       email: record.email,
       phone: record.phone,
@@ -61,6 +79,7 @@ export default function UserPage() {
   const handleSubmit = async (values: UserFormValues) => {
     const payload = {
       nickname: values.nickname,
+      dept_id: values.dept_id ?? null,
       email: values.email,
       phone: values.phone,
       status: values.status ? 1 : 0,
@@ -202,6 +221,14 @@ export default function UserPage() {
           rules={[{ required: true, message: '请输入昵称' }]}
           colProps={{ span: 12 }}
         />
+        <ProForm.Item name="dept_id" label="部门" colProps={{ span: 12 }}>
+          <TreeSelect
+            allowClear
+            placeholder="选择部门"
+            treeData={deptToTreeData(deptTree)}
+            treeDefaultExpandAll
+          />
+        </ProForm.Item>
         <ProFormText.Password
           name="password"
           label="密码"

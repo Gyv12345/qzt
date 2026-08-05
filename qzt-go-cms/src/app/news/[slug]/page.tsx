@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { getArticleBySlug, getArticles } from "@/lib/api";
 
 export const revalidate = 300;
@@ -86,11 +88,10 @@ export default async function ArticlePage({ params }: Props) {
         )}
 
         {article.content && (
-          <div
-            className="prose-content max-w-none"
-            // CMS 文章正文为富文本 HTML, 服务端渲染输出, 已通过 trusted 后端产出。
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
+          <div className="prose-content max-w-none">
+            {/* 文章正文为 Markdown(admin 后台 MD 编辑器维护), 服务端渲染为 HTML */}
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
+          </div>
         )}
       </article>
 

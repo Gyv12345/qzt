@@ -63,6 +63,7 @@ func (HrmAttendanceClock) TableName() string { return "hrm_attendance_clock" }
 // HrmLeave 请假单。
 type HrmLeave struct {
 	ID           uint               `json:"id" gorm:"primaryKey"`
+	LeaveNo      string             `json:"leave_no" gorm:"size:64;comment:请假单号"`
 	EmployeeID   uint               `json:"employee_id" gorm:"index;not null;comment:员工ID"`
 	LeaveType    string             `json:"leave_type" gorm:"size:32;not null;comment:请假类型"`
 	StartDate    xtime.DateTime     `json:"start_date" gorm:"type:datetime;not null;comment:开始时间"`
@@ -81,6 +82,7 @@ func (HrmLeave) TableName() string { return "hrm_leave" }
 // HrmOvertime 加班单。
 type HrmOvertime struct {
 	ID           uint               `json:"id" gorm:"primaryKey"`
+	OvertimeNo   string             `json:"overtime_no" gorm:"size:64;comment:加班单号"`
 	EmployeeID   uint               `json:"employee_id" gorm:"index;not null;comment:员工ID"`
 	StartDate    xtime.DateTime     `json:"start_date" gorm:"type:datetime;not null;comment:加班开始时间"`
 	EndDate      xtime.DateTime     `json:"end_date" gorm:"type:datetime;not null;comment:加班结束时间"`

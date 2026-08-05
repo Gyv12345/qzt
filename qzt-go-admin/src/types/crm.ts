@@ -37,6 +37,7 @@ export interface CrmContact {
   id: number
   customer_id: number
   name: string
+  contact_no: string
   phone: string
   email: string
   position: string
@@ -72,6 +73,7 @@ export interface CrmFollowPlan {
 
 export interface CrmFollowRecord {
   id: number
+  follow_no: string
   type: string
   content: string
   follow_time: string
@@ -88,6 +90,7 @@ export interface CrmFollowRecord {
 export interface CrmOpportunity {
   id: number
   name: string
+  opportunity_no: string
   customer_id: number
   expected_amount: string
   expected_close_date: string | null
@@ -168,6 +171,7 @@ export interface CrmProduct {
   cost_price: string
   /** 1上架 2下架(字典 PRODUCT_STATUS) */
   status: number
+  image_url: string
   description: string
   created_at: string
   updated_at: string
@@ -314,6 +318,7 @@ export interface CrmFieldValue {
 
 export interface CrmCustomerPayload {
   name: string
+  customer_no?: string
   level?: string
   source?: string
   industry?: string
@@ -359,6 +364,7 @@ export interface CrmFollowRecordPayload {
 
 export interface CrmOpportunityPayload {
   name: string
+  opportunity_no?: string
   customer_id: number
   expected_amount?: number
   expected_close_date?: string
@@ -370,6 +376,7 @@ export interface CrmOpportunityPayload {
 
 export interface CrmContractPayload {
   name: string
+  contract_no?: string
   customer_id: number
   opportunity_id?: number
   title_id?: number
@@ -380,6 +387,31 @@ export interface CrmContractPayload {
   stage?: string
   owner_id?: number
   content?: string
+}
+
+// ── 合同模板 ──
+export interface CrmContractTemplate {
+  id: number
+  name: string
+  content: string
+  remark: string
+  enabled: number
+  owner_id: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CrmContractTemplatePayload {
+  name: string
+  content: string
+  remark?: string
+  enabled?: number
+}
+
+export interface ContractVariable {
+  key: string
+  group: string
+  label: string
 }
 
 export interface CrmPaymentPlanPayload {
@@ -406,6 +438,7 @@ export interface CrmProductPayload {
   standard_price?: number
   cost_price?: number
   status?: number
+  image_url?: string
   description?: string
 }
 

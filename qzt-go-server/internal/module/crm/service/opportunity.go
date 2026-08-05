@@ -8,6 +8,8 @@ import (
 	"github.com/shopspring/decimal"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
@@ -31,6 +33,7 @@ func NewOpportunityService() *OpportunityService {
 // CreateOpportunityRequest 创建商机请求。
 type CreateOpportunityRequest struct {
 	Name              string          `json:"name" binding:"required"`
+	OpportunityNo     string          `json:"opportunity_no"` // 留空则自动生成
 	CustomerID        uint            `json:"customer_id" binding:"required"`
 	ExpectedAmount    decimal.Decimal `json:"expected_amount"`
 	ExpectedCloseDate xtime.NullDateTime `json:"expected_close_date"`
@@ -50,8 +53,13 @@ func (s *OpportunityService) Create(ctx context.Context, req *CreateOpportunityR
 	if stage == "" {
 		stage = crmmodel.OppStageProspecting
 	}
+	// 自动生成商机编号(用户填了用手填的,留空才自动)
+	oppNo := req.OpportunityNo
+	if oppNo == "" {
+		oppNo, _ = numbergen.Generate(ctx, "opportunity")
+	}
 	opp := &crmmodel.CrmOpportunity{
-		Name: req.Name, CustomerID: req.CustomerID, ExpectedAmount: req.ExpectedAmount,
+		Name: req.Name, OpportunityNo: oppNo, CustomerID: req.CustomerID, ExpectedAmount: req.ExpectedAmount,
 		ExpectedCloseDate: req.ExpectedCloseDate, Stage: stage, Probability: req.Probability,
 		OwnerID: ownerID, Description: req.Description,
 	}
@@ -121,6 +129,9 @@ func (s *OpportunityService) List(ctx context.Context, page, pageSize int, keywo
 	}
 	if len(where) > 0 {
 		q.Where = where
+	}
+	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+		q.Conds = append(q.Conds, *cond)
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
 }

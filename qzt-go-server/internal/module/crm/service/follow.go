@@ -6,6 +6,7 @@ import (
 	"time"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xlogger"
@@ -34,6 +35,7 @@ func NewFollowService() *FollowService {
 
 // CreateRecordRequest 创建跟进记录请求。
 type CreateRecordRequest struct {
+	FollowNo      string    `json:"follow_no"` // 留空则自动生成
 	Type          string    `json:"type" binding:"required"`
 	Content       string    `json:"content" binding:"required"`
 	FollowTime    xtime.DateTime `json:"follow_time" binding:"required"`
@@ -49,7 +51,12 @@ func (s *FollowService) CreateRecord(ctx context.Context, req *CreateRecordReque
 	if req.CustomerID == nil && req.OpportunityID == nil && req.ContactID == nil && req.ContractID == nil {
 		return nil, errors.New("跟进记录至少关联一个资源(客户/商机/联系人/合同)")
 	}
+	followNo := req.FollowNo
+	if followNo == "" {
+		followNo, _ = numbergen.Generate(ctx, "follow")
+	}
 	rec := &crmmodel.FollowUpRecord{
+		FollowNo: followNo,
 		Type: req.Type, Content: req.Content, FollowTime: req.FollowTime, OwnerID: req.OwnerID,
 		CustomerID: req.CustomerID, OpportunityID: req.OpportunityID,
 		ContactID: req.ContactID, ContractID: req.ContractID,
@@ -175,7 +182,9 @@ func (s *FollowService) ConvertPlanToRecord(ctx context.Context, id, operatorID 
 		return nil, errors.New("该计划已处理,无法转换")
 	}
 	now := time.Now()
+	planFollowNo, _ := numbergen.Generate(ctx, "follow")
 	rec := &crmmodel.FollowUpRecord{
+		FollowNo: planFollowNo,
 		Type: plan.Type, Content: plan.Content, FollowTime: xtime.NewDateTime(now), OwnerID: operatorID,
 		CustomerID: plan.CustomerID, OpportunityID: plan.OpportunityID,
 		ContactID: plan.ContactID, ContractID: plan.ContractID, PlanID: &plan.ID,

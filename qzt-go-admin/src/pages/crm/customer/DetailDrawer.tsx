@@ -5,7 +5,9 @@ import { getCustomer, listCustomFields } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type { CrmCustomField, CrmCustomer, CrmCustomerDetail } from '../../../types/crm'
 import ContactsPanel from './ContactsPanel'
+import ContractsPanel from './ContractsPanel'
 import FollowPanel from './FollowPanel'
+import OpportunitiesPanel from './OpportunitiesPanel'
 import OwnerHistoryPanel from './OwnerHistoryPanel'
 
 const STATUS_MAP: Record<number, { text: string; color: string }> = {
@@ -95,6 +97,8 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
               ),
             },
             { key: 'contacts', label: '联系人', children: <ContactsPanel customerId={c.id} /> },
+            { key: 'opportunities', label: '商机', children: <OpportunitiesPanel customerId={c.id} /> },
+            { key: 'contracts', label: '合同', children: <ContractsPanel customerId={c.id} /> },
             { key: 'follow', label: '跟进记录', children: <FollowPanel customerId={c.id} /> },
             {
               key: 'history',

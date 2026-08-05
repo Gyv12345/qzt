@@ -47,7 +47,7 @@ func NewCustomerContactRepo() *CustomerContactRepo { return &CustomerContactRepo
 
 func (r *CustomerContactRepo) Update(ctx context.Context, m *crmmodel.CrmCustomerContact) error {
 	return r.BaseRepo.Update(ctx, m,
-		"Name", "Phone", "Email", "Position", "Department", "IsKeyDecisionMaker", "Status", "Remark")
+		"Name", "ContactNo", "Phone", "Email", "Position", "Department", "IsKeyDecisionMaker", "Status", "Remark")
 }
 
 // ListByCustomer 按客户列联系人。

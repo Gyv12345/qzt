@@ -39,7 +39,7 @@ func (d *UserRepo) GetTokenVersion(ctx context.Context, id uint) (int, error) {
 
 // Update writes only base columns; Roles is managed by SetRoles.
 func (d *UserRepo) Update(ctx context.Context, user *model.SysUser) error {
-	return d.BaseRepo.Update(ctx, user, "Nickname", "Email", "Phone", "Avatar", "Status", "Password", "TokenVersion", "WecomUserID")
+	return d.BaseRepo.Update(ctx, user, "Nickname", "DeptID", "Email", "Phone", "Avatar", "Status", "Password", "TokenVersion", "WecomUserID")
 }
 
 // GetByWecomUserID 按企业微信 UserID 查找用户(扫码登录用)。找不到返回 gorm.ErrRecordNotFound。

@@ -7,7 +7,17 @@ const avatarFallback =
     `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#357cbf'/><stop offset='1' stop-color='#0a3a63'/></linearGradient></defs><rect width='80' height='80' fill='url(#g)'/><text x='50%' y='52%' font-size='32' fill='#fff' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif' font-weight='700'>Q</text></svg>`
   );
 
-/** 产品卡片: 左侧色条 + 顶部渐变缩略区 + hover 上浮 */
+/** 卡片摘要: 去掉 markdown 语法符号, 只留纯文本。 */
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/[#>*`_~|-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** 产品卡片: 左侧色条 + 顶部主图/渐变缩略区 + hover 上浮 */
 export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
@@ -16,15 +26,24 @@ export function ProductCard({ product }: { product: Product }) {
     >
       {/* 左侧色条 */}
       <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-500 to-brand-700 opacity-0 transition-opacity group-hover:opacity-100" />
-      {/* 顶部缩略区: 渐变背景 */}
-      <div className="mb-4 grid aspect-video place-items-center rounded-lg bg-gradient-to-br from-brand-50 to-brand-100 font-display text-sm font-semibold text-brand-700">
-        {product.category || "产品"}
-      </div>
+      {/* 顶部缩略区: 有主图显示主图, 否则渐变背景 */}
+      {product.image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={product.image_url}
+          alt={product.name}
+          className="mb-4 aspect-video w-full rounded-lg object-cover"
+        />
+      ) : (
+        <div className="mb-4 grid aspect-video place-items-center rounded-lg bg-gradient-to-br from-brand-50 to-brand-100 font-display text-sm font-semibold text-brand-700">
+          {product.category || "产品"}
+        </div>
+      )}
       <h3 className="font-display font-semibold text-ink-900 transition-colors group-hover:text-brand-700">
         {product.name}
       </h3>
       <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-ink-500">
-        {product.description || "暂无描述"}
+        {product.description ? stripMarkdown(product.description) || "暂无描述" : "暂无描述"}
       </p>
       <div className="mt-3.5 flex items-center justify-between">
         <span className="text-xs text-ink-400">{product.product_no || "—"}</span>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { getProducts, getProduct } from "@/lib/api";
 
 export const revalidate = 300;
@@ -72,10 +74,19 @@ export default async function ProductDetailPage({ params }: Props) {
           )}
         </header>
 
+        {product.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="mb-8 aspect-video w-full rounded-xl border border-ink-100 object-cover shadow-card"
+          />
+        )}
+
         {product.description && (
           <div className="prose-content max-w-none">
             <h2>产品介绍</h2>
-            <p>{product.description}</p>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{product.description}</ReactMarkdown>
           </div>
         )}
 

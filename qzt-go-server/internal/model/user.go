@@ -6,6 +6,7 @@ type SysUser struct {
 	Username     string    `json:"username" gorm:"uniqueIndex;size:64;not null"`
 	Password     string    `json:"-" gorm:"size:128;not null"`
 	Nickname     string    `json:"nickname" gorm:"size:64"`
+	DeptID       *uint     `json:"dept_id" gorm:"comment:部门ID(关联hrm_department)"`
 	Avatar       string    `json:"avatar" gorm:"size:255"`
 	Email        string    `json:"email" gorm:"size:128"`
 	Phone        string    `json:"phone" gorm:"size:20"`

@@ -7,6 +7,8 @@ import (
 	"github.com/shopspring/decimal"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
@@ -34,6 +36,7 @@ func NewContractService() *ContractService {
 // CreateContractRequest 创建合同请求。
 type CreateContractRequest struct {
 	Name          string             `json:"name" binding:"required"`
+	ContractNo    string             `json:"contract_no"` // 留空则自动生成
 	CustomerID    uint               `json:"customer_id" binding:"required"`
 	OpportunityID *uint              `json:"opportunity_id"`
 	TitleID       *uint              `json:"title_id"`
@@ -51,8 +54,13 @@ func (s *ContractService) Create(ctx context.Context, req *CreateContractRequest
 	if ownerID == nil {
 		ownerID = &currentUserID
 	}
+	// 自动生成合同编号(用户填了用手填的,留空才自动)
+	contractNo := req.ContractNo
+	if contractNo == "" {
+		contractNo, _ = numbergen.Generate(ctx, "contract")
+	}
 	contract := &crmmodel.CrmContract{
-		Name: req.Name, CustomerID: req.CustomerID, OpportunityID: req.OpportunityID, TitleID: req.TitleID,
+		Name: req.Name, ContractNo: contractNo, CustomerID: req.CustomerID, OpportunityID: req.OpportunityID, TitleID: req.TitleID,
 		TotalAmount: req.TotalAmount, ReceivedAmount: decimal.Zero, SignedDate: req.SignedDate,
 		StartDate: req.StartDate, EndDate: req.EndDate, Stage: crmmodel.ContractStageDraft,
 		OwnerID: ownerID, Content: req.Content,
@@ -130,6 +138,9 @@ func (s *ContractService) List(ctx context.Context, page, pageSize int, keyword 
 	}
 	if len(where) > 0 {
 		q.Where = where
+	}
+	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+		q.Conds = append(q.Conds, *cond)
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
 }

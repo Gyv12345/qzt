@@ -4,6 +4,7 @@ import (
 	"context"
 
 	psimodel "qzt-go-server/internal/model/psi"
+	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	psirepo "qzt-go-server/internal/repository/psi"
 )
@@ -35,8 +36,12 @@ type CreateSupplierRequest struct {
 
 // Create 创建供应商(默认 status=启用)。
 func (s *SupplierService) Create(ctx context.Context, req *CreateSupplierRequest) (*psimodel.PsiSupplier, error) {
+	supplierNo := req.SupplierNo
+	if supplierNo == "" {
+		supplierNo, _ = numbergen.Generate(ctx, "supplier")
+	}
 	sup := &psimodel.PsiSupplier{
-		Name: req.Name, SupplierNo: req.SupplierNo, ContactPerson: req.ContactPerson,
+		Name: req.Name, SupplierNo: supplierNo, ContactPerson: req.ContactPerson,
 		Phone: req.Phone, Email: req.Email, Address: req.Address,
 		BankName: req.BankName, BankAccount: req.BankAccount, Status: psimodel.StatusEnabled, Remark: req.Remark,
 	}

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Descriptions, Drawer, Empty, Form, Space, Spin, Steps, Tag, Typography } from 'antd'
+import { App, Button, Drawer, Form, Space } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -12,11 +12,11 @@ import {
 import Auth from '../../../components/Auth'
 import {
   createApprovalFlow,
-  getApprovalFlow,
   listApprovalFlows,
   setApprovalFlowEnable,
 } from '../../../services/approval'
-import type { ApprovalFlow, ApprovalFlowDetail } from '../../../types/approval'
+import type { ApprovalFlow } from '../../../types/approval'
+import Designer from './Designer'
 
 interface FlowFormValues {
   name: string
@@ -24,16 +24,19 @@ interface FlowFormValues {
   number?: string
 }
 
-const FORM_TYPE_OPTIONS = [{ label: '合同(CONTRACT)', value: 'CONTRACT' }]
+const FORM_TYPE_OPTIONS = [
+  { label: '合同(CONTRACT)', value: 'CONTRACT' },
+  { label: '报价单(QUOTATION)', value: 'QUOTATION' },
+  { label: '订单(ORDER)', value: 'ORDER' },
+  { label: '发票(INVOICE)', value: 'INVOICE' },
+]
 
 export default function ApprovalFlowPage() {
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [form] = Form.useForm<FlowFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
-  const [designOpen, setDesignOpen] = useState(false)
-  const [designLoading, setDesignLoading] = useState(false)
-  const [designDetail, setDesignDetail] = useState<ApprovalFlowDetail | null>(null)
+  const [designId, setDesignId] = useState<number | null>(null)
 
   const openCreate = () => {
     form.resetFields()
@@ -41,16 +44,8 @@ export default function ApprovalFlowPage() {
     setModalOpen(true)
   }
 
-  const openDesign = async (record: ApprovalFlow) => {
-    setDesignOpen(true)
-    setDesignLoading(true)
-    setDesignDetail(null)
-    try {
-      const res = await getApprovalFlow(record.id)
-      setDesignDetail(res)
-    } finally {
-      setDesignLoading(false)
-    }
+  const openDesign = (record: ApprovalFlow) => {
+    setDesignId(record.id)
   }
 
   const handleSubmit = async (values: FlowFormValues) => {
@@ -81,7 +76,12 @@ export default function ApprovalFlowPage() {
       dataIndex: 'form_type',
       width: 120,
       search: false,
-      valueEnum: { CONTRACT: { text: '合同(CONTRACT)' } },
+      valueEnum: {
+        CONTRACT: { text: '合同' },
+        QUOTATION: { text: '报价单' },
+        ORDER: { text: '订单' },
+        INVOICE: { text: '发票' },
+      },
     },
     {
       title: '启用',
@@ -121,8 +121,6 @@ export default function ApprovalFlowPage() {
       ),
     },
   ]
-
-  const sortedNodes = designDetail?.nodes ? [...designDetail.nodes].sort((a, b) => a.sort - b.sort) : []
 
   return (
     <>
@@ -176,70 +174,26 @@ export default function ApprovalFlowPage() {
           colProps={{ span: 12 }}
         />
       </ModalForm>
-      <Drawer title="流程设计" width={520} open={designOpen} onClose={() => setDesignOpen(false)} destroyOnHidden>
-        <Spin spinning={designLoading}>
-          {designDetail ? (
-            <>
-              <Descriptions column={1} bordered size="small">
-                <Descriptions.Item label="流程名称">{designDetail.name}</Descriptions.Item>
-                <Descriptions.Item label="编号">{designDetail.number || '-'}</Descriptions.Item>
-                <Descriptions.Item label="表单类型">{designDetail.form_type || '-'}</Descriptions.Item>
-                <Descriptions.Item label="状态">
-                  {designDetail.enable === 1 ? (
-                    <Tag color="success">启用</Tag>
-                  ) : (
-                    <Tag>禁用</Tag>
-                  )}
-                </Descriptions.Item>
-              </Descriptions>
-              <Typography.Title level={5} style={{ marginTop: 24 }}>
-                节点链
-              </Typography.Title>
-              {sortedNodes.length > 0 ? (
-                <Steps
-                  direction="vertical"
-                  current={-1}
-                  items={sortedNodes.map((node) => ({
-                    title: `${node.name}(${node.node_type})`,
-                    description: `节点编号:${node.number || '-'}`,
-                  }))}
-                />
-              ) : (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无节点" />
-              )}
-              <Typography.Title level={5} style={{ marginTop: 24 }}>
-                审批人配置
-              </Typography.Title>
-              {designDetail.approvers && designDetail.approvers.length > 0 ? (
-                designDetail.approvers.map((approver) => (
-                  <Descriptions
-                    key={approver.id}
-                    column={1}
-                    bordered
-                    size="small"
-                    style={{ marginBottom: 16 }}
-                  >
-                    <Descriptions.Item label="审批方式">
-                      {approver.approval_type || '-'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="审批人类型">
-                      {approver.approver_type || '-'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="审批人列表">
-                      {approver.approver_list || '-'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="多人审批模式">
-                      {approver.multi_approver_mode || '-'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="抄送列表">{approver.cc_list || '-'}</Descriptions.Item>
-                  </Descriptions>
-                ))
-              ) : (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无审批人配置" />
-              )}
-            </>
-          ) : null}
-        </Spin>
+      <Drawer
+        title={null}
+        open={designId !== null}
+        onClose={() => {
+          setDesignId(null)
+          actionRef.current?.reload()
+        }}
+        width="90%"
+        styles={{ body: { padding: 0, height: '100%' } }}
+        destroyOnHidden
+      >
+        {designId !== null && (
+          <Designer
+            flowId={designId}
+            onClose={() => {
+              setDesignId(null)
+              actionRef.current?.reload()
+            }}
+          />
+        )}
       </Drawer>
     </>
   )

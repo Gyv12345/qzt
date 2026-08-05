@@ -42,7 +42,7 @@ type LeaveRepo struct {
 func NewLeaveRepo() *LeaveRepo { return &LeaveRepo{} }
 
 func (r *LeaveRepo) Update(ctx context.Context, m *hrmmodel.HrmLeave) error {
-	return r.BaseRepo.Update(ctx, m, "LeaveType", "StartDate", "EndDate", "DurationDays", "Reason", "Status", "ApproverID", "ApproveTime", "ApproveRemark")
+	return r.BaseRepo.Update(ctx, m, "LeaveNo", "LeaveType", "StartDate", "EndDate", "DurationDays", "Reason", "Status", "ApproverID", "ApproveTime", "ApproveRemark")
 }
 
 // ── 加班 ──
@@ -54,7 +54,7 @@ type OvertimeRepo struct {
 func NewOvertimeRepo() *OvertimeRepo { return &OvertimeRepo{} }
 
 func (r *OvertimeRepo) Update(ctx context.Context, m *hrmmodel.HrmOvertime) error {
-	return r.BaseRepo.Update(ctx, m, "StartDate", "EndDate", "DurationHours", "Reason", "Status", "ApproverID", "ApproveTime", "ApproveRemark", "CompensateType")
+	return r.BaseRepo.Update(ctx, m, "OvertimeNo", "StartDate", "EndDate", "DurationHours", "Reason", "Status", "ApproverID", "ApproveTime", "ApproveRemark", "CompensateType")
 }
 
 // ── 月度汇总 ──

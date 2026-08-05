@@ -66,39 +66,36 @@ body,
 }
 
 /* 业务模块页签 */
-.qzt-modules {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* 模块下拉触发器(替代平铺 Tab,模块多时省空间) */
+.qzt-module-nav {
   flex: 1;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+  display: flex;
+  align-items: center;
 }
-.qzt-modules::-webkit-scrollbar {
-  display: none;
-}
-
-.qzt-module-tab {
+.qzt-module-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   border: none;
-  background: transparent;
-  padding: 7px 16px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 7px 14px;
   border-radius: 8px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.62);
+  font-weight: 600;
+  color: #fff;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.2s, background 0.2s;
+  transition: background 0.2s;
+  flex: 0 0 auto;
 }
-.qzt-module-tab:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
+.qzt-module-trigger:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
-.qzt-module-tab.active {
-  color: #fff;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+.qzt-module-trigger > span:nth-of-type(1) {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 顶栏右侧 */

@@ -30,7 +30,7 @@ func (d *RoleRepo) GetByCode(ctx context.Context, code string) (*model.SysRole, 
 
 // Update writes only base columns; Menus is managed by SetMenus.
 func (d *RoleRepo) Update(ctx context.Context, role *model.SysRole) error {
-	return d.BaseRepo.Update(ctx, role, "Name", "Sort", "Status", "Remark")
+	return d.BaseRepo.Update(ctx, role, "Name", "Sort", "Status", "DataScope", "Remark")
 }
 
 // Delete soft-deletes the role, clears its menu associations (sys_role_menu),

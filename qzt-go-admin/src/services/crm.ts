@@ -4,6 +4,9 @@ import type {
   CrmContactPayload,
   CrmContract,
   CrmContractPayload,
+  CrmContractTemplate,
+  CrmContractTemplatePayload,
+  ContractVariable,
   CrmCustomField,
   CrmCustomFieldPayload,
   CrmCustomer,
@@ -176,6 +179,37 @@ export const deleteContract = (id: number) => request.delete(`/crm/contracts/${i
 
 export const getContractPaymentSummary = (id: number) =>
   request.get<unknown, CrmPaymentSummary>(`/crm/contracts/${id}/payment-summary`)
+
+// ---------- 合同模板 ----------
+
+export interface ContractTemplateQuery extends PageParams {
+  keyword?: string
+  enabled?: number
+}
+
+export const listContractTemplates = (params?: ContractTemplateQuery) =>
+  request.get<unknown, CrmPageResult<CrmContractTemplate>>('/crm/contract-templates', { params })
+
+export const getContractTemplate = (id: number) =>
+  request.get<unknown, CrmContractTemplate>(`/crm/contract-templates/${id}`)
+
+export const createContractTemplate = (data: CrmContractTemplatePayload) =>
+  request.post('/crm/contract-templates', data)
+
+export const updateContractTemplate = (id: number, data: Partial<CrmContractTemplatePayload>) =>
+  request.put(`/crm/contract-templates/${id}`, data)
+
+export const deleteContractTemplate = (id: number) =>
+  request.delete(`/crm/contract-templates/${id}`)
+
+export const listContractVariables = () =>
+  request.get<unknown, ContractVariable[]>('/crm/contract-templates/variables')
+
+export const printContractDocument = (contractId: number, templateId: number) =>
+  request.get<unknown, { markdown: string }>(
+    `/crm/contracts/${contractId}/print-document`,
+    { params: { template_id: templateId } },
+  )
 
 // ---------- 回款计划/记录 ----------
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, Suspense } from 'react'
 import { Avatar, Button, Dropdown, Result, Spin } from 'antd'
-import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons'
+import { LogoutOutlined, SettingOutlined, UserOutlined, AppstoreOutlined, DownOutlined } from '@ant-design/icons'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
 import { fetchUserInfo, logout } from '../services/auth'
@@ -185,17 +185,30 @@ export default function BasicLayout() {
           <div className="qzt-logo-title">业务管理平台</div>
         </div>
 
-        <nav className="qzt-modules">
-          {businessModules.map((m) => (
-            <button
-              key={m.id}
-              className={`qzt-module-tab${activeModule === m ? ' active' : ''}`}
-              onClick={() => goModule(m)}
-            >
-              {m.name}
+        <div className="qzt-module-nav">
+          <Dropdown
+            overlayClassName="qzt-module-dropdown"
+            menu={{
+              items: businessModules.map((m) => ({
+                key: String(m.id),
+                label: m.name,
+                icon: <MenuIcon icon={m.icon} />,
+              })),
+              selectable: true,
+              selectedKeys: activeModule ? [String(activeModule.id)] : [],
+              onClick: ({ key }) => {
+                const m = businessModules.find((x) => String(x.id) === key)
+                if (m) goModule(m)
+              },
+            }}
+          >
+            <button className="qzt-module-trigger" type="button">
+              <AppstoreOutlined />
+              <span>{activeModule?.name ?? '选择模块'}</span>
+              <DownOutlined style={{ fontSize: 10 }} />
             </button>
-          ))}
-        </nav>
+          </Dropdown>
+        </div>
 
         <div className="qzt-header-right">
           <MessageBox />

@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	hrmmodel "qzt-go-server/internal/model/hrm"
+	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	hrmrepo "qzt-go-server/internal/repository/hrm"
 	"qzt-go-server/pkg/xtime"
@@ -99,6 +100,7 @@ func (s *AttendanceService) ClockList(ctx context.Context, employeeID uint, star
 
 // LeaveRequest 请假请求。
 type LeaveRequest struct {
+	LeaveNo      string `json:"leave_no"` // 留空则自动生成
 	EmployeeID   uint   `json:"employee_id" binding:"required"`
 	LeaveType    string `json:"leave_type" binding:"required"`
 	StartDate    string `json:"start_date" binding:"required"` // yyyy-MM-dd HH:mm:ss
@@ -121,7 +123,12 @@ func (s *AttendanceService) ApplyLeave(ctx context.Context, req *LeaveRequest) (
 	if err != nil {
 		return nil, errors.New("duration_days 格式错误")
 	}
+	leaveNo := req.LeaveNo
+	if leaveNo == "" {
+		leaveNo, _ = numbergen.Generate(ctx, "leave")
+	}
 	leave := &hrmmodel.HrmLeave{
+		LeaveNo:      leaveNo,
 		EmployeeID:   req.EmployeeID,
 		LeaveType:    req.LeaveType,
 		StartDate:    xtime.NewDateTime(start),
@@ -181,6 +188,7 @@ func leaveListQuery(ctx context.Context, page, pageSize int, employeeID uint, st
 
 // OvertimeRequest 加班请求。
 type OvertimeRequest struct {
+	OvertimeNo    string `json:"overtime_no"` // 留空则自动生成
 	EmployeeID    uint   `json:"employee_id" binding:"required"`
 	StartDate     string `json:"start_date" binding:"required"`
 	EndDate       string `json:"end_date" binding:"required"`
@@ -207,7 +215,12 @@ func (s *AttendanceService) ApplyOvertime(ctx context.Context, req *OvertimeRequ
 	if compType == "" {
 		compType = "PAY"
 	}
+	otNo := req.OvertimeNo
+	if otNo == "" {
+		otNo, _ = numbergen.Generate(ctx, "overtime")
+	}
 	ot := &hrmmodel.HrmOvertime{
+		OvertimeNo:    otNo,
 		EmployeeID:     req.EmployeeID,
 		StartDate:      xtime.NewDateTime(start),
 		EndDate:        xtime.NewDateTime(end),

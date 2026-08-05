@@ -5,6 +5,7 @@ import (
 
 	"qzt-go-server/internal/model/base"
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/numbergen"
 	crrepo "qzt-go-server/internal/repository/crm"
 )
 
@@ -22,6 +23,7 @@ func NewContactService() *ContactService {
 type CreateContactRequest struct {
 	CustomerID         uint   `json:"customer_id" binding:"required"`
 	Name               string `json:"name" binding:"required"`
+	ContactNo          string `json:"contact_no"` // 留空则自动生成
 	Phone              string `json:"phone"`
 	Email              string `json:"email"`
 	Position           string `json:"position"`
@@ -31,8 +33,12 @@ type CreateContactRequest struct {
 }
 
 func (s *ContactService) Create(ctx context.Context, req *CreateContactRequest) error {
+	contactNo := req.ContactNo
+	if contactNo == "" {
+		contactNo, _ = numbergen.Generate(ctx, "contact")
+	}
 	contact := &crmmodel.CrmCustomerContact{
-		CustomerID: req.CustomerID, Name: req.Name, Phone: req.Phone, Email: req.Email,
+		CustomerID: req.CustomerID, Name: req.Name, ContactNo: contactNo, Phone: req.Phone, Email: req.Email,
 		Position: req.Position, Department: req.Department, Remark: req.Remark, Status: base.StatusEnabled,
 	}
 	if req.IsKeyDecisionMaker != nil {

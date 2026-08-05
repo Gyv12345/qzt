@@ -113,3 +113,109 @@ func (h *DashboardHandler) FinanceSummary(c *gin.Context) {
 	}
 	response.OK(c, data)
 }
+
+// ── BI 扩展接口 ──
+
+// ContractTrend 近N月合同签约趋势
+// @Summary  合同签约趋势
+// @Tags     仪表盘
+// @Produce  json
+// @Security BearerAuth
+// @Param    months  query  int  false  "月数(默认6)"
+// @Success  200  {object}  xresponse.Response
+// @Router   /api/dashboard/contract-trend [get]
+func (h *DashboardHandler) ContractTrend(c *gin.Context) {
+	months, _ := strconv.Atoi(c.DefaultQuery("months", "6"))
+	data, err := h.svc.ContractTrend(c.Request.Context(), months)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// SalesRanking 销售业绩排行
+func (h *DashboardHandler) SalesRanking(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	data, err := h.svc.SalesRanking(c.Request.Context(), limit)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// LeadSourceDistribution 线索来源分布
+func (h *DashboardHandler) LeadSourceDistribution(c *gin.Context) {
+	data, err := h.svc.LeadSourceDistribution(c.Request.Context())
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// EmployeeDistribution 员工分布
+func (h *DashboardHandler) EmployeeDistribution(c *gin.Context) {
+	dim := c.DefaultQuery("dimension", "department")
+	data, err := h.svc.EmployeeDistribution(c.Request.Context(), dim)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// HeadcountTrend 入职趋势
+func (h *DashboardHandler) HeadcountTrend(c *gin.Context) {
+	months, _ := strconv.Atoi(c.DefaultQuery("months", "6"))
+	data, err := h.svc.HeadcountTrend(c.Request.Context(), months)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// AttendanceSummary 月度考勤汇总
+func (h *DashboardHandler) AttendanceSummary(c *gin.Context) {
+	month := c.Query("month")
+	data, err := h.svc.AttendanceSummary(c.Request.Context(), month)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// FinanceTrend 收支趋势
+func (h *DashboardHandler) FinanceTrend(c *gin.Context) {
+	months, _ := strconv.Atoi(c.DefaultQuery("months", "6"))
+	data, err := h.svc.FinanceTrend(c.Request.Context(), months)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// StockValueByWarehouse 各仓库库存总值
+func (h *DashboardHandler) StockValueByWarehouse(c *gin.Context) {
+	data, err := h.svc.StockValueByWarehouse(c.Request.Context())
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
+// SalesVsPurchase 采购vs销售对比
+func (h *DashboardHandler) SalesVsPurchase(c *gin.Context) {
+	months, _ := strconv.Atoi(c.DefaultQuery("months", "6"))
+	data, err := h.svc.SalesVsPurchase(c.Request.Context(), months)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}

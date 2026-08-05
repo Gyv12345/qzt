@@ -23,6 +23,7 @@ const (
 type CrmOpportunity struct {
 	ID                uint           `json:"id" gorm:"primaryKey"`
 	Name              string         `json:"name" gorm:"size:255;not null;comment:商机名称"`
+	OpportunityNo     string         `json:"opportunity_no" gorm:"size:64;comment:商机编号"`
 	CustomerID        uint           `json:"customer_id" gorm:"index:idx_opp_customer;not null;comment:关联客户ID"`
 	ExpectedAmount    decimal.Decimal `json:"expected_amount" gorm:"type:decimal(14,2);comment:预计金额"`
 	ExpectedCloseDate xtime.NullDateTime `json:"expected_close_date" gorm:"type:date;comment:预计成交日期"`

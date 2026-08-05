@@ -17,7 +17,7 @@ func NewProductRepo() *ProductRepo { return &ProductRepo{} }
 
 func (r *ProductRepo) Update(ctx context.Context, m *crmmodel.CrmProduct) error {
 	return r.BaseRepo.Update(ctx, m,
-		"Name", "ProductNo", "Category", "Unit", "StandardPrice", "CostPrice", "Status", "Description")
+		"Name", "ProductNo", "Category", "Unit", "StandardPrice", "CostPrice", "Status", "ImageURL", "Description")
 }
 
 // ── 商品价格 ──

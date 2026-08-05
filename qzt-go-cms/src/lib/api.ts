@@ -8,6 +8,7 @@ import type {
   Product,
   ProductDetail,
   SiteConfig,
+  SiteInfo,
   TeamMember,
 } from "./types";
 
@@ -95,6 +96,16 @@ export function getPage(slug: string): Promise<CmsPage> {
 // ── 站点配置 ──
 export function getPublicConfig(): Promise<SiteConfig> {
   return request<SiteConfig>("/api/configs/public");
+}
+
+/** 站点完整配置(logo/ICP/联系方式等,公开免鉴权)。不走缓存,确保修改后即时生效。 */
+export async function getSiteConfig(): Promise<SiteInfo> {
+  const url = new URL(API_BASE + "/system/site-config");
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) throw new Error(`站点配置请求失败: ${res.status}`);
+  const body = (await res.json()) as ApiResponse<SiteInfo>;
+  if (body.code !== 0) throw new Error(body.msg || "站点配置错误");
+  return body.data;
 }
 
 export const apiBase = API_BASE;

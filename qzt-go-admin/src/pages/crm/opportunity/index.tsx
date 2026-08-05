@@ -57,6 +57,7 @@ import type {
 
 interface OpportunityFormValues {
   name: string
+  opportunity_no?: string
   customer_id: number
   expected_amount?: number
   expected_close_date?: Dayjs
@@ -151,6 +152,7 @@ export default function OpportunityPage() {
     setEditing(record)
     form.setFieldsValue({
       name: record.name,
+      opportunity_no: record.opportunity_no || undefined,
       customer_id: record.customer_id,
       expected_amount: record.expected_amount ? Number(record.expected_amount) : undefined,
       expected_close_date: record.expected_close_date ? dayjs(record.expected_close_date) : undefined,
@@ -165,6 +167,7 @@ export default function OpportunityPage() {
   const handleSubmit = async (values: OpportunityFormValues) => {
     const payload: CrmOpportunityPayload = {
       name: values.name,
+      opportunity_no: values.opportunity_no,
       customer_id: values.customer_id,
       expected_amount: values.expected_amount,
       expected_close_date: values.expected_close_date
@@ -239,6 +242,7 @@ export default function OpportunityPage() {
       hideInTable: true,
       renderFormItem: () => <Select allowClear placeholder="选择阶段" options={stageOptions} />,
     },
+    { title: '商机编号', dataIndex: 'opportunity_no', width: 140, search: false, render: (v) => v || '-' },
     { title: '商机名称', dataIndex: 'name', width: 220, search: false },
     {
       title: '客户',
@@ -460,6 +464,12 @@ export default function OpportunityPage() {
           name="name"
           label="商机名称"
           rules={[{ required: true, message: '请输入商机名称' }]}
+          colProps={{ span: 12 }}
+        />
+        <ProFormText
+          name="opportunity_no"
+          label="商机编号"
+          placeholder="留空则自动生成"
           colProps={{ span: 12 }}
         />
         <ProForm.Item

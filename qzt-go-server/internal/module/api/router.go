@@ -38,5 +38,19 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/dashboard/customer-distribution", dashboardHandler.CustomerDistribution)
 		authenticated.GET("/dashboard/opportunity-funnel", dashboardHandler.OpportunityFunnel)
 		authenticated.GET("/dashboard/finance-summary", dashboardHandler.FinanceSummary)
+
+		// BI 扩展:CRM
+		authenticated.GET("/dashboard/contract-trend", dashboardHandler.ContractTrend)
+		authenticated.GET("/dashboard/sales-ranking", dashboardHandler.SalesRanking)
+		authenticated.GET("/dashboard/lead-source-distribution", dashboardHandler.LeadSourceDistribution)
+		// BI 扩展:HRM
+		authenticated.GET("/dashboard/employee-distribution", dashboardHandler.EmployeeDistribution)
+		authenticated.GET("/dashboard/headcount-trend", dashboardHandler.HeadcountTrend)
+		authenticated.GET("/dashboard/attendance-summary", dashboardHandler.AttendanceSummary)
+		// BI 扩展:财务
+		authenticated.GET("/dashboard/finance-trend", dashboardHandler.FinanceTrend)
+		// BI 扩展:进销存
+		authenticated.GET("/dashboard/stock-value-by-warehouse", dashboardHandler.StockValueByWarehouse)
+		authenticated.GET("/dashboard/sales-vs-purchase", dashboardHandler.SalesVsPurchase)
 	}
 }

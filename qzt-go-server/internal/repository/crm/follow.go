@@ -16,7 +16,7 @@ type FollowUpRecordRepo struct {
 func NewFollowUpRecordRepo() *FollowUpRecordRepo { return &FollowUpRecordRepo{} }
 
 func (r *FollowUpRecordRepo) Update(ctx context.Context, m *crmmodel.FollowUpRecord) error {
-	return r.BaseRepo.Update(ctx, m, "Type", "Content", "FollowTime")
+	return r.BaseRepo.Update(ctx, m, "FollowNo", "Type", "Content", "FollowTime")
 }
 
 // Timeline 按资源(客户/商机/联系人/合同)查跟进记录时间线。
