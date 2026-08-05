@@ -49,7 +49,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 72px 24px calc(32px + env(safe-area-inset-bottom));
+  justify-content: center;
+  /* 用 100dvh 撑满视口并居中,避免内容溢出产生滚动条 */
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

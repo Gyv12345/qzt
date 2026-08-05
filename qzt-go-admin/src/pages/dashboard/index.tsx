@@ -20,6 +20,7 @@ import { UserOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth'
 import ProfileCenter from '../../components/layout/ProfileCenter'
+import Chart, { funnelOption, lineOption, pieOption } from '../../components/Chart'
 import { menuHasPath } from '../../utils/menu'
 import {
   getCustomerDistribution,
@@ -39,9 +40,6 @@ import type {
 
 // 金额字段后端以字符串(decimal)返回
 const toAmount = (value?: string) => Number(value) || 0
-
-const formatAmount = (value?: string) =>
-  toAmount(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 // 商机阶段英文 code → 中文,未知阶段原样显示
 const STAGE_LABELS: Record<string, string> = {
@@ -116,46 +114,6 @@ function SectionCard({ title, loading, failed, empty, extra, children }: Section
   )
 }
 
-interface BarRowProps {
-  label: string
-  /** 0-100 的宽度百分比 */
-  percent: number
-  value: ReactNode
-}
-
-/** 无图表库,用 div 宽度百分比实现简单条形图 */
-function BarRow({ label, percent, value }: BarRowProps) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-      <span
-        style={{
-          width: 88,
-          flexShrink: 0,
-          textAlign: 'right',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-        title={label}
-      >
-        {label}
-      </span>
-      <div style={{ flex: 1, height: 18, background: '#f5f5f5', borderRadius: 4 }}>
-        <div
-          style={{
-            width: `${Math.min(percent, 100)}%`,
-            minWidth: percent > 0 ? 4 : 0,
-            height: '100%',
-            background: '#1677ff',
-            borderRadius: 4,
-          }}
-        />
-      </div>
-      <span style={{ width: 120, flexShrink: 0 }}>{value}</span>
-    </div>
-  )
-}
-
 const TREND_DAYS = 30
 
 export default function Dashboard() {
@@ -176,15 +134,20 @@ export default function Dashboard() {
   const finance = useSectionData(() => getFinanceSummary())
 
   const ov = overview.data
-  const overviewItems: { title: string; value: number; isAmount?: boolean }[] = ov
+  // 核心 KPI(突出展示)+ 次要指标(折叠/小字),避免 10 个数字平铺成信息墙
+  const coreKpis: { title: string; value: number; isAmount?: boolean }[] = ov
     ? [
         { title: '客户总数', value: ov.customer_total },
-        { title: '公海客户', value: ov.customer_public },
         { title: '商机总数', value: ov.opportunity_total },
-        { title: '赢单商机', value: ov.opportunity_won },
-        { title: '合同总数', value: ov.contract_total },
         { title: '合同金额', value: toAmount(ov.contract_amount), isAmount: true },
         { title: '回款金额', value: toAmount(ov.received_amount), isAmount: true },
+      ]
+    : []
+  const minorKpis: { title: string; value: number; isAmount?: boolean }[] = ov
+    ? [
+        { title: '公海客户', value: ov.customer_public },
+        { title: '赢单商机', value: ov.opportunity_won },
+        { title: '合同总数', value: ov.contract_total },
         { title: '待审批', value: ov.approval_pending },
         { title: '库存预警', value: ov.stock_warning },
         { title: '未读消息', value: ov.unread_message },
@@ -192,13 +155,8 @@ export default function Dashboard() {
     : []
 
   const trendPoints: DashboardTrendPoint[] = trend.data ?? []
-  const trendMax = Math.max(...trendPoints.map((p) => toAmount(p.amount)), 0)
-
   const funnelPoints: DashboardFunnelPoint[] = funnel.data ?? []
-  const funnelMax = Math.max(...funnelPoints.map((p) => p.count), 0)
-
   const distributionPoints: DashboardDistributionPoint[] = distribution.data ?? []
-  const distributionMax = Math.max(...distributionPoints.map((p) => p.count), 0)
 
   const fin: DashboardFinanceSummary | null = finance.data
 
@@ -360,26 +318,45 @@ export default function Dashboard() {
         </Col>
       </Row>
 
-      {/* 统计区块:失败的区块整体隐藏不渲染 */}
+      {/* 核心 KPI:4 个突出展示的大卡片 */}
       {!overview.failed && (
-        <div style={{ marginTop: 16 }}>
-          <SectionCard title="核心指标" loading={overview.loading} failed={overview.failed} empty={!ov}>
-            <Row gutter={[16, 16]}>
-              {overviewItems.map((item) => (
-                <Col xs={12} sm={8} lg={4} key={item.title}>
-                  <Statistic
-                    title={item.title}
-                    value={item.value}
-                    precision={item.isAmount ? 2 : 0}
-                    prefix={item.isAmount ? '¥' : undefined}
-                  />
-                </Col>
-              ))}
-            </Row>
-          </SectionCard>
-        </div>
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          {coreKpis.map((item) => (
+            <Col xs={12} md={6} key={item.title}>
+              <Card bodyStyle={{ padding: '20px 24px' }}>
+                <Statistic
+                  title={<span style={{ fontSize: 13, color: '#8c8c8c' }}>{item.title}</span>}
+                  value={item.value}
+                  precision={item.isAmount ? 2 : 0}
+                  prefix={item.isAmount ? '¥' : undefined}
+                  valueStyle={{ fontWeight: 600 }}
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
       )}
 
+      {/* 次要指标:6 个小字 Statistic,紧凑排列 */}
+      {!overview.failed && minorKpis.length > 0 && (
+        <Card size="small" style={{ marginTop: 16 }}>
+          <Row gutter={[16, 12]}>
+            {minorKpis.map((item) => (
+              <Col xs={12} sm={8} lg={4} key={item.title}>
+                <Statistic
+                  title={<span style={{ fontSize: 12 }}>{item.title}</span>}
+                  value={item.value}
+                  precision={item.isAmount ? 2 : 0}
+                  prefix={item.isAmount ? '¥' : undefined}
+                  valueStyle={{ fontSize: 18 }}
+                />
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      )}
+
+      {/* 图表区:回款趋势(折线)+ 商机漏斗(漏斗) */}
       {(!trend.failed || !funnel.failed) && (
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           {!trend.failed && (
@@ -390,19 +367,12 @@ export default function Dashboard() {
                 failed={trend.failed}
                 empty={trendPoints.length === 0}
               >
-                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-                  {trendPoints.map((p) => {
-                    const amount = toAmount(p.amount)
-                    return (
-                      <BarRow
-                        key={p.date}
-                        label={p.date.slice(5)}
-                        percent={trendMax > 0 ? (amount / trendMax) * 100 : 0}
-                        value={`¥${formatAmount(p.amount)} / ${p.count}笔`}
-                      />
-                    )
-                  })}
-                </div>
+                <Chart
+                  height={300}
+                  option={lineOption('回款趋势', trendPoints.map((p) => p.date.slice(5)), [
+                    { name: '回款金额', data: trendPoints.map((p) => toAmount(p.amount)) },
+                  ])}
+                />
               </SectionCard>
             </Col>
           )}
@@ -414,20 +384,17 @@ export default function Dashboard() {
                 failed={funnel.failed}
                 empty={funnelPoints.length === 0}
               >
-                {funnelPoints.map((p) => (
-                  <BarRow
-                    key={p.stage}
-                    label={stageLabel(p.stage)}
-                    percent={funnelMax > 0 ? (p.count / funnelMax) * 100 : 0}
-                    value={`${p.count}个 / ¥${formatAmount(p.amount)}`}
-                  />
-                ))}
+                <Chart
+                  height={300}
+                  option={funnelOption('商机漏斗', funnelPoints.map((p) => ({ name: stageLabel(p.stage), value: p.count })))}
+                />
               </SectionCard>
             </Col>
           )}
         </Row>
       )}
 
+      {/* 图表区:客户分布(环形)+ 财务概览 */}
       {(!distribution.failed || !finance.failed) && (
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           {!distribution.failed && (
@@ -438,14 +405,10 @@ export default function Dashboard() {
                 failed={distribution.failed}
                 empty={distributionPoints.length === 0}
               >
-                {distributionPoints.map((p) => (
-                  <BarRow
-                    key={p.label}
-                    label={p.label}
-                    percent={distributionMax > 0 ? (p.count / distributionMax) * 100 : 0}
-                    value={`${p.count}家`}
-                  />
-                ))}
+                <Chart
+                  height={300}
+                  option={pieOption('客户分布', distributionPoints.map((p) => ({ name: p.label || '未知', value: p.count })))}
+                />
               </SectionCard>
             </Col>
           )}

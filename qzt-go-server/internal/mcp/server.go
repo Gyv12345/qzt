@@ -54,6 +54,9 @@ func buildServer() *server.MCPServer {
 	registerCustomerTools(s)
 	registerOpportunityTools(s)
 	registerContractTools(s)
+	registerProductTools(s)
+	registerContactTools(s)
+	registerPaymentTools(s)
 	registerFollowupTools(s)
 	registerDashboardTools(s)
 
@@ -62,6 +65,9 @@ func buildServer() *server.MCPServer {
 
 	// 注册 CMS tools(文章)
 	registerArticleTools(s)
+
+	// 注册审批 tools(流程/待办/实例)
+	registerApprovalTools(s)
 
 	// 注册系统配置 tools(存储/OSS、企业微信、站点设置)
 	registerConfigTools(s)

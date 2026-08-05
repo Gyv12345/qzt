@@ -40,7 +40,7 @@ export default function ApprovalList() {
   })
 
   return (
-    <div style={{ background: '#f5f5f5', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>审批中心</NavBar>
       <Tabs activeKey={tab} onChange={(k) => setTab(k as TabKey)}>
         <Tabs.Tab title="待办" key="todos" />
@@ -55,7 +55,7 @@ export default function ApprovalList() {
               key={it.id}
               onClick={() => navigate(`/approval/${it.id}`)}
               description={
-                <span style={{ fontSize: 12, color: '#999' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                   {it.type} · 提交 {it.submit_time}
                 </span>
               }
@@ -70,7 +70,7 @@ export default function ApprovalList() {
           ))}
           {list.length === 0 && (
             <List.Item>
-              <span style={{ color: '#999' }}>暂无数据</span>
+              <span style={{ color: 'var(--text-tertiary)' }}>暂无数据</span>
             </List.Item>
           )}
         </List>

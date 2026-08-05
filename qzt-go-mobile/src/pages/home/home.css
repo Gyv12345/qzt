@@ -1,0 +1,182 @@
+/* ===== 工作台 ===== */
+
+.home-page {
+  min-height: 100%;
+  padding-bottom: 16px;
+}
+
+/* ── 顶部品牌区 ── */
+.home-header {
+  position: relative;
+  padding: calc(env(safe-area-inset-top) + 20px) 20px 56px;
+  background: var(--brand-gradient);
+  color: var(--text-on-brand);
+  overflow: hidden;
+}
+.home-header::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  right: -80px;
+  top: -120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 70%);
+  pointer-events: none;
+}
+.home-brand-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.home-greet {
+  font-size: 19px;
+  font-weight: 700;
+}
+.home-date {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+.home-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ── 核心指标卡(悬浮在品牌区下沿) ── */
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: -40px 12px 0;
+  padding: 16px 8px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
+}
+.home-stat {
+  text-align: center;
+}
+.home-stat-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 3px;
+}
+
+/* ── 宫格入口(支付宝式) ── */
+.home-section {
+  margin: 16px 12px 0;
+  background: var(--bg-card);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.home-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 16px 16px 0;
+}
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 12px 0 16px;
+}
+.home-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 4px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.home-grid-item:active {
+  background: var(--bg-tap);
+}
+.home-grid-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  position: relative;
+}
+.home-grid-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+/* 宫格角标(待办数量等) */
+.home-grid-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-card);
+}
+
+/* ── 待办预览 ── */
+.home-todo-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+}
+.home-todo-item:last-child {
+  border-bottom: none;
+}
+.home-todo-item:active {
+  background: var(--bg-tap);
+}
+.home-todo-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.home-todo-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+.home-todo-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+.home-empty {
+  text-align: center;
+  padding: 28px 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}

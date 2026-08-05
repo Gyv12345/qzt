@@ -16,7 +16,7 @@ export default function TabBarLayout() {
   const activeKey = tabs.some((t) => t.key === location.pathname) ? location.pathname : ''
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--bg)' }}>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <Outlet />
       </div>

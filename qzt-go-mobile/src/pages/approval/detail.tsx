@@ -77,7 +77,7 @@ export default function ApprovalDetail() {
   }
 
   return (
-    <div style={{ background: '#f5f5f5', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>审批详情</NavBar>
 
       <Card title="基本信息" style={{ margin: 8 }}>

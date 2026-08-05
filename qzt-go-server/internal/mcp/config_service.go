@@ -60,6 +60,9 @@ type siteUpdateReq struct {
 	FaviconURL             string
 	Slogan                 string
 	Description            string
+	HeroBadge              string
+	HeroTitle              string
+	HeroSubtitle           string
 	ContactPhone           string
 	ContactEmail           string
 	ContactAddress         string
@@ -81,6 +84,7 @@ func (r *siteUpdateReq) toService() *syservice.UpdateSiteConfigRequest {
 	return &syservice.UpdateSiteConfigRequest{
 		SiteName: r.SiteName, LogoURL: r.LogoURL, FaviconURL: r.FaviconURL,
 		Slogan: r.Slogan, Description: r.Description,
+		HeroBadge: r.HeroBadge, HeroTitle: r.HeroTitle, HeroSubtitle: r.HeroSubtitle,
 		ContactPhone: r.ContactPhone, ContactEmail: r.ContactEmail,
 		ContactAddress: r.ContactAddress, ContactQQ: r.ContactQQ,
 		ContactWechat: r.ContactWechat, WorkHours: r.WorkHours,

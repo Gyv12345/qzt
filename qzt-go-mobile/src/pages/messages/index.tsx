@@ -66,12 +66,12 @@ export default function Messages() {
   }
 
   return (
-    <div style={{ background: '#f5f5f5', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar
         back={null}
         right={
           unread > 0 && tab === 'messages' ? (
-            <span style={{ fontSize: 13, color: '#1677ff' }} onClick={onMarkAll}>
+            <span style={{ fontSize: 13, color: 'var(--brand)' }} onClick={onMarkAll}>
               全部已读
             </span>
           ) : undefined
@@ -96,7 +96,7 @@ export default function Messages() {
                 key={m.id}
                 onClick={() => onOpenMessage(m)}
                 description={
-                  <span style={{ fontSize: 12, color: '#999' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                     {dayjs(m.created_at).format('MM-DD HH:mm')}
                   </span>
                 }
@@ -112,7 +112,7 @@ export default function Messages() {
             ))}
             {messages.length === 0 && (
               <List.Item>
-                <span style={{ color: '#999' }}>暂无消息</span>
+                <span style={{ color: 'var(--text-tertiary)' }}>暂无消息</span>
               </List.Item>
             )}
           </List>
@@ -125,7 +125,7 @@ export default function Messages() {
               <List.Item
                 key={n.id}
                 description={
-                  <span style={{ fontSize: 12, color: '#999' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                     {n.publish_time ? dayjs(n.publish_time).format('YYYY-MM-DD HH:mm') : ''}
                   </span>
                 }
@@ -147,7 +147,7 @@ export default function Messages() {
             ))}
             {notices.length === 0 && (
               <List.Item>
-                <span style={{ color: '#999' }}>暂无公告</span>
+                <span style={{ color: 'var(--text-tertiary)' }}>暂无公告</span>
               </List.Item>
             )}
           </List>

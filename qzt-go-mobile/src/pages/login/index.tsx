@@ -42,7 +42,7 @@ export default function Login() {
           <span className="qz-brand-name">企业级业务管理平台</span>
         </div>
 
-        <span className="qz-badge fade-in-up delay-100">QZT · MOBILE TERMINAL</span>
+        <span className="qz-badge fade-in-up delay-100">企智通 · 移动端</span>
         <h1 className="qz-title fade-in-up delay-200">业务管理平台</h1>
         <p className="qz-subtitle fade-in-up delay-300">客户 · 商机 · 合同,尽在掌握</p>
 
@@ -73,7 +73,7 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="qz-foot fade-in-up delay-500">QZT-GO-SERVER · JWT SECURED</p>
+        <p className="qz-foot fade-in-up delay-500">企智通 · 企业级业务管理平台</p>
       </div>
     </div>
   )

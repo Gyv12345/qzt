@@ -19,7 +19,7 @@ export default function NewsList() {
   })
 
   return (
-    <div style={{ background: '#f5f5f5', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>资讯公告</NavBar>
 
       {loading && list.length === 0 ? (
@@ -53,7 +53,7 @@ export default function NewsList() {
                 {a.summary && (
                   <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>{a.summary}</div>
                 )}
-                <div style={{ fontSize: 12, color: '#999' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                   {a.author_name ? `${a.author_name} · ` : ''}
                   {dayjs(a.created_at).format('YYYY-MM-DD')}
                 </div>

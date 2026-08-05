@@ -21,7 +21,8 @@ interface SettingsState extends LayoutSettings {
 export const DEFAULT_SETTINGS: LayoutSettings = {
   colorPrimary: '#2f54eb',
   colorInfo: '#2f54eb',
-  borderRadius: 8,
+  // 数据密集型后台更适合小圆角(6),更显紧凑专业;8 偏消费级 App
+  borderRadius: 6,
   darkMode: false,
 }
 
@@ -32,6 +33,15 @@ export const useSettingsStore = create<SettingsState>()(
       setSettings: (patch) => set(patch),
       resetSettings: () => set({ ...DEFAULT_SETTINGS }),
     }),
-    { name: 'qzt-go-admin:settings' },
+    {
+      name: 'qzt-go-admin:settings',
+      version: 2,
+      // v1 默认圆角是 8,v2 调整为 6;旧用户若仍是旧默认值则归正,自定义值保留
+      migrate: (persisted: unknown) => {
+        const s = (persisted ?? {}) as Partial<LayoutSettings>
+        if (s.borderRadius === 8) s.borderRadius = DEFAULT_SETTINGS.borderRadius
+        return s as LayoutSettings
+      },
+    },
   ),
 )

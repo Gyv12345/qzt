@@ -32,9 +32,9 @@ export default function CustomerList() {
   }
 
   return (
-    <div style={{ background: '#f5f5f5', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>我的客户</NavBar>
-      <div style={{ padding: 8, background: '#fff' }}>
+      <div style={{ padding: 8, background: 'var(--bg-card)' }}>
         <SearchBar placeholder="搜索客户名称" onSearch={onSearch} onClear={() => onSearch('')} />
       </div>
 
@@ -45,7 +45,7 @@ export default function CustomerList() {
               key={c.id}
               onClick={() => navigate(`/customer/${c.id}`)}
               description={
-                <span style={{ fontSize: 12, color: '#999' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                   {c.customer_no}
                   {c.industry ? ` · ${c.industry}` : ''}
                 </span>
@@ -63,7 +63,7 @@ export default function CustomerList() {
           ))}
           {list.length === 0 && (
             <List.Item>
-              <span style={{ color: '#999' }}>暂无客户</span>
+              <span style={{ color: 'var(--text-tertiary)' }}>暂无客户</span>
             </List.Item>
           )}
         </List>

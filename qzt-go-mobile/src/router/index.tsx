@@ -13,6 +13,10 @@ import NotFound from '../pages/error/404'
 // 业务详情页懒加载(减少首屏体积)
 const CustomerList = lazy(() => import('../pages/customer'))
 const CustomerDetail = lazy(() => import('../pages/customer/detail'))
+const OpportunityList = lazy(() => import('../pages/opportunity'))
+const OpportunityDetail = lazy(() => import('../pages/opportunity/detail'))
+const ContractList = lazy(() => import('../pages/contract'))
+const ContractDetail = lazy(() => import('../pages/contract/detail'))
 const ApprovalList = lazy(() => import('../pages/approval'))
 const ApprovalDetail = lazy(() => import('../pages/approval/detail'))
 const NewsList = lazy(() => import('../pages/news'))
@@ -75,6 +79,38 @@ export default function AppRoutes() {
             element: (
               <Suspense fallback={pageFallback}>
                 <CustomerDetail />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/opportunity',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <OpportunityList />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/opportunity/:id',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <OpportunityDetail />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/contract',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <ContractList />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/contract/:id',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <ContractDetail />
               </Suspense>
             ),
           },

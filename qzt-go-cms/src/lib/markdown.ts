@@ -247,8 +247,9 @@ export function articleToMd(a: Article): string {
 
   if (a.summary) parts.push("> " + a.summary.split("\n").join("\n> "), "");
 
+  // content 现由 admin 的 MD 编辑器维护, 本身即 Markdown, 直接使用(避免 htmlToMd 二次破坏)
   if (a.content) {
-    parts.push(htmlToMd(a.content), "");
+    parts.push(a.content, "");
   } else if (a.summary) {
     parts.push(a.summary, "");
   }
@@ -371,8 +372,8 @@ export function teamListToMd(list: TeamMember[]): string {
 
 // ── 关于页 ────────────────────────────────────────────────────────────
 
-/** 关于页 → Markdown。 */
-export function aboutToMd(title: string, html: string): string {
+/** 关于页 → Markdown。content 现由 admin 的 MD 编辑器维护, 本身就是 Markdown, 直接使用。 */
+export function aboutToMd(title: string, content: string): string {
   const fm = frontmatter({
     title: title || "关于我们",
     description: `了解 ${SITE.name}。`,
@@ -382,8 +383,8 @@ export function aboutToMd(title: string, html: string): string {
   });
 
   const parts: string[] = [fm, "", `# ${title || "关于我们"}`, ""];
-  if (html) {
-    parts.push(htmlToMd(html), "");
+  if (content) {
+    parts.push(content, "");
   }
   parts.push("---", "", `*来源: [${SITE.name}](${SITE.url}) · [查看网页版](${abs("/about")})*`);
   return parts.join("\n");

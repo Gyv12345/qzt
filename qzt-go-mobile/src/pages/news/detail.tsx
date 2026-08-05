@@ -33,11 +33,11 @@ export default function NewsDetail() {
   }
 
   return (
-    <div style={{ background: '#fff', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg-card)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>资讯详情</NavBar>
       <div style={{ padding: '16px' }}>
         <h1 style={{ fontSize: 20, lineHeight: 1.4, marginBottom: 8 }}>{article.title}</h1>
-        <div style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 16 }}>
           {article.author_name ? `${article.author_name} · ` : ''}
           {dayjs(article.created_at).format('YYYY-MM-DD HH:mm')}
           {article.view_count ? ` · 阅读 ${article.view_count}` : ''}
@@ -60,7 +60,7 @@ export default function NewsDetail() {
         {/* 正文:后端为富文本/HTML,这里直接渲染 */}
         <div
           className="news-content"
-          style={{ fontSize: 15, lineHeight: 1.8, color: '#333' }}
+          style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--text)' }}
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
       </div>

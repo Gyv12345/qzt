@@ -3,15 +3,16 @@ import { App, Button, Form, Popconfirm, Space } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   DrawerForm,
+  ProForm,
   ProFormDigit,
   ProFormRadio,
   ProFormText,
-  ProFormTextArea,
   ProTable,
   type ActionType,
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import MarkdownEditor from '../../../components/MarkdownEditor'
 import { createPage, deletePage, listPages, updatePage } from '../../../services/cms'
 import type { CmsPage, CmsPagePayload } from '../../../types/cms'
 
@@ -165,13 +166,9 @@ export default function CmsPagePage() {
           placeholder="英文别名,访问路径用"
           colProps={{ span: 12 }}
         />
-        <ProFormTextArea
-          name="content"
-          label="内容"
-          fieldProps={{ rows: 16 }}
-          placeholder="支持 HTML"
-          colProps={{ span: 24 }}
-        />
+        <ProForm.Item name="content" label="内容" colProps={{ span: 24 }}>
+          <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
+        </ProForm.Item>
         <ProFormRadio.Group
           name="status"
           label="状态"

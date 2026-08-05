@@ -6,6 +6,13 @@ body,
   overflow-x: hidden;
 }
 
+/* ===== 数字等宽工具类:金额/计数列对齐更整齐(Fira Code) ===== */
+.num {
+  font-family: 'Fira Code', 'SF Mono', 'Menlo', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+}
+
 /* ===== 整体框架 ===== */
 .qzt-layout {
   display: flex;

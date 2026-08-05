@@ -37,6 +37,9 @@ export default function App() {
           colorPrimary,
           colorInfo,
           borderRadius,
+          // 数据后台推荐:Fira Sans(西文) + 系统中文回退栈;金额/数字用等宽见全局 .num 类
+          fontFamily:
+            "'Fira Sans','Inter',system-ui,-apple-system,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif",
         },
       }}
     >

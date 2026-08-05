@@ -43,8 +43,8 @@ export default function Chart({ option, height = 320, loading = false }: ChartPr
 }
 
 // ── 图表配置工厂(统一配色) ──
-
-const PALETTE = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2', '#eb2f96', '#fa8c16', '#a0d911', '#36cfc9']
+// 第一色与品牌主色 #2f54eb 对齐,后续为同色系渐变 + 互补强调色,避免与 antd 主色打架
+const PALETTE = ['#2f54eb', '#597ef7', '#85a5ff', '#ff4d4f', '#faad14', '#52c41a', '#13c2c2', '#722ed1', '#eb2f96', '#fa8c16']
 
 /** 饼图配置 */
 export function pieOption(_title: string, data: { name: string; value: number }[]): EChartsOption {

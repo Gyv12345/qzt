@@ -58,35 +58,82 @@ type UpdateSiteConfigRequest struct {
 	Copyright     string `json:"copyright"`
 }
 
-// Update 更新站点信息。
+// Update 更新站点信息(部分更新:仅更新请求中非空字段,空值保留原值)。
 func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigRequest) error {
 	cfg, err := s.repo.Get(ctx)
 	if err != nil {
 		return errors.New("站点配置不存在")
 	}
-	cfg.SiteName = req.SiteName
-	cfg.LogoURL = req.LogoURL
-	cfg.FaviconURL = req.FaviconURL
-	cfg.Slogan = req.Slogan
-	cfg.HeroBadge = req.HeroBadge
-	cfg.HeroTitle = req.HeroTitle
-	cfg.HeroSubtitle = req.HeroSubtitle
-	cfg.Description = req.Description
-	cfg.ContactPhone = req.ContactPhone
-	cfg.ContactEmail = req.ContactEmail
-	cfg.ContactAddress = req.ContactAddress
-	cfg.ContactQQ = req.ContactQQ
-	cfg.ContactWechat = req.ContactWechat
-	cfg.WorkHours = req.WorkHours
-	cfg.WeiboURL = req.WeiboURL
-	cfg.WechatQrURL = req.WechatQrURL
-	cfg.LinkedInURL = req.LinkedInURL
-	cfg.ICPBeian = req.ICPBeian
-	cfg.PublicSecurityBeian = req.PublicSecurityBeian
-	cfg.PublicSecurityBeianURL = req.PublicSecurityBeianURL
-	cfg.Keywords = req.Keywords
-	cfg.AnalyticsCode = req.AnalyticsCode
-	cfg.Copyright = req.Copyright
+	// 仅覆盖非空字段,避免 MCP/admin 只传部分字段时把其他字段清空
+	if req.SiteName != "" {
+		cfg.SiteName = req.SiteName
+	}
+	if req.LogoURL != "" {
+		cfg.LogoURL = req.LogoURL
+	}
+	if req.FaviconURL != "" {
+		cfg.FaviconURL = req.FaviconURL
+	}
+	if req.Slogan != "" {
+		cfg.Slogan = req.Slogan
+	}
+	if req.HeroBadge != "" {
+		cfg.HeroBadge = req.HeroBadge
+	}
+	if req.HeroTitle != "" {
+		cfg.HeroTitle = req.HeroTitle
+	}
+	if req.HeroSubtitle != "" {
+		cfg.HeroSubtitle = req.HeroSubtitle
+	}
+	if req.Description != "" {
+		cfg.Description = req.Description
+	}
+	if req.ContactPhone != "" {
+		cfg.ContactPhone = req.ContactPhone
+	}
+	if req.ContactEmail != "" {
+		cfg.ContactEmail = req.ContactEmail
+	}
+	if req.ContactAddress != "" {
+		cfg.ContactAddress = req.ContactAddress
+	}
+	if req.ContactQQ != "" {
+		cfg.ContactQQ = req.ContactQQ
+	}
+	if req.ContactWechat != "" {
+		cfg.ContactWechat = req.ContactWechat
+	}
+	if req.WorkHours != "" {
+		cfg.WorkHours = req.WorkHours
+	}
+	if req.WeiboURL != "" {
+		cfg.WeiboURL = req.WeiboURL
+	}
+	if req.WechatQrURL != "" {
+		cfg.WechatQrURL = req.WechatQrURL
+	}
+	if req.LinkedInURL != "" {
+		cfg.LinkedInURL = req.LinkedInURL
+	}
+	if req.ICPBeian != "" {
+		cfg.ICPBeian = req.ICPBeian
+	}
+	if req.PublicSecurityBeian != "" {
+		cfg.PublicSecurityBeian = req.PublicSecurityBeian
+	}
+	if req.PublicSecurityBeianURL != "" {
+		cfg.PublicSecurityBeianURL = req.PublicSecurityBeianURL
+	}
+	if req.Keywords != "" {
+		cfg.Keywords = req.Keywords
+	}
+	if req.AnalyticsCode != "" {
+		cfg.AnalyticsCode = req.AnalyticsCode
+	}
+	if req.Copyright != "" {
+		cfg.Copyright = req.Copyright
+	}
 	return s.repo.Update(ctx, cfg)
 }
 
