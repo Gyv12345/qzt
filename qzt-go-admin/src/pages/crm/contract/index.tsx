@@ -37,7 +37,9 @@ import Auth from '../../../components/Auth'
 import CustomerSelect from '../../../components/CustomerSelect'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
+import OpportunitySelect from '../../../components/OpportunitySelect'
 import UserSelect from '../../../components/UserSelect'
+import { pushApproval } from '../../../services/approval'
 import CustomerDetailDrawer from '../customer/DetailDrawer'
 import OpportunityDetailDrawer from '../opportunity/DetailDrawer'
 import {
@@ -108,6 +110,15 @@ const PLAN_STATUS: Record<number, { text: string; color: string }> = {
   2: { text: '已回款', color: 'success' },
 }
 
+/** 合同审批状态 */
+const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
+  NONE: { text: '未审批', color: 'default' },
+  PROCESSING: { text: '审批中', color: 'processing' },
+  APPROVED: { text: '已通过', color: 'success' },
+  REJECTED: { text: '已驳回', color: 'error' },
+  REVOKED: { text: '已撤回', color: 'warning' },
+}
+
 /** 金额显示: ¥ 前缀 + 两位小数 */
 const money = (v: string | number | null | undefined) => `¥${Number(v ?? 0).toFixed(2)}`
 
@@ -122,6 +133,8 @@ export default function ContractPage() {
   const [form] = Form.useForm<ContractFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmContract | null>(null)
+  // 表单内已选客户(联动商机下拉过滤)
+  const selectedCustomerId = Form.useWatch('customer_id', form)
 
   // 客户 id -> 名称(列表展示)
   const [customers, setCustomers] = useState<CrmCustomer[]>([])
@@ -289,6 +302,13 @@ export default function ContractPage() {
     setDrawerOpen(true)
   }
 
+  /** 提交审批:走审批模块 CONTRACT 流程(需先在审批中心启用流程) */
+  const handlePushApproval = async (record: CrmContract) => {
+    await pushApproval({ form_type: 'CONTRACT', resource_id: record.id })
+    message.success('已提交审批')
+    actionRef.current?.reload()
+  }
+
   // 打开套打弹窗:先拉启用模板列表
   const openPrint = async () => {
     if (!detail) return
@@ -430,9 +450,24 @@ export default function ContractPage() {
       dataIndex: 'contract_no',
       width: 140,
       search: false,
-      render: (_, r) => r.contract_no || '-',
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openDetail(r)}>
+          {r.contract_no || '-'}
+        </Button>
+      ),
     },
-    { title: '合同名称', dataIndex: 'name', width: 240, search: false, ellipsis: true },
+    {
+      title: '合同名称',
+      dataIndex: 'name',
+      width: 240,
+      search: false,
+      ellipsis: true,
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openDetail(r)}>
+          {r.name}
+        </Button>
+      ),
+    },
     {
       title: '客户',
       dataIndex: 'customer_id',
@@ -475,6 +510,16 @@ export default function ContractPage() {
       render: (_, r) => <DictTag code="CONTRACT_STAGE" value={r.stage} />,
     },
     {
+      title: '审批状态',
+      dataIndex: 'approval_status',
+      width: 100,
+      search: false,
+      render: (_, r) => {
+        const s = APPROVAL_STATUS[r.approval_status] ?? APPROVAL_STATUS.NONE
+        return <Tag color={s.color}>{s.text}</Tag>
+      },
+    },
+    {
       title: '签订日期',
       dataIndex: 'signed_date',
       width: 110,
@@ -491,13 +536,25 @@ export default function ContractPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 200,
+      width: 220,
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          <Button type="link" size="small" onClick={() => openDetail(record)}>
-            详情
-          </Button>
+          {record.approval_status !== 'PROCESSING' && record.approval_status !== 'APPROVED' && (
+            <Auth perm="crm:contract:edit">
+              <Popconfirm
+                title="提交审批?"
+                description="将按审批中心的合同流程发起审批"
+                okText="提交"
+                cancelText="取消"
+                onConfirm={() => handlePushApproval(record)}
+              >
+                <Button type="link" size="small">
+                  提交审批
+                </Button>
+              </Popconfirm>
+            </Auth>
+          )}
           <Auth perm="crm:contract:edit">
             <Button type="link" size="small" onClick={() => openEdit(record)}>
               编辑
@@ -651,6 +708,10 @@ export default function ContractPage() {
         onOpenChange={setModalOpen}
         modalProps={{ destroyOnHidden: true, maskClosable: false }}
         onFinish={handleSubmit}
+        onValuesChange={(changed) => {
+          // 换客户后清空已选商机(商机下拉按客户过滤)
+          if ('customer_id' in changed) form.setFieldsValue({ opportunity_id: undefined })
+        }}
         width={720}
         grid
       >
@@ -678,7 +739,7 @@ export default function ContractPage() {
         </Col>
         <Col span={12}>
           <ProForm.Item name="opportunity_id" label="关联商机">
-            <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="关联商机ID" />
+            <OpportunitySelect customerId={selectedCustomerId} />
           </ProForm.Item>
         </Col>
         <Col span={12}>
@@ -798,6 +859,15 @@ export default function ContractPage() {
                         key: 'stage',
                         label: '阶段',
                         children: <DictTag code="CONTRACT_STAGE" value={detail.stage} />,
+                      },
+                      {
+                        key: 'approval_status',
+                        label: '审批状态',
+                        children: (
+                          <Tag color={(APPROVAL_STATUS[detail.approval_status] ?? APPROVAL_STATUS.NONE).color}>
+                            {(APPROVAL_STATUS[detail.approval_status] ?? APPROVAL_STATUS.NONE).text}
+                          </Tag>
+                        ),
                       },
                       {
                         key: 'owner',

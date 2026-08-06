@@ -12,6 +12,7 @@ import {
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Auth from '../../../components/Auth'
+import DedupAlert from '../../../components/DedupAlert'
 import { generateScript } from '../../../services/ai'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
@@ -67,6 +68,9 @@ export default function LeadPage() {
   const [form] = Form.useForm<LeadFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmLead | null>(null)
+  // 表单内名称/电话(查重提示联动)
+  const watchName = Form.useWatch('name', form)
+  const watchPhone = Form.useWatch('phone', form)
   const [releaseTarget, setReleaseTarget] = useState<CrmLead | null>(null)
   const [transferTarget, setTransferTarget] = useState<CrmLead | null>(null)
   const [historyTarget, setHistoryTarget] = useState<CrmLead | null>(null)
@@ -391,6 +395,9 @@ export default function LeadPage() {
         width={640}
         grid
       >
+        <Col span={24}>
+          <DedupAlert name={watchName} phone={watchPhone} excludeType="LEAD" excludeId={editing?.id} />
+        </Col>
         <ProFormText
           name="name"
           label="线索名称"

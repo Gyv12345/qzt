@@ -120,6 +120,8 @@ export interface CrmContract {
   end_date: string | null
   /** 字典 CONTRACT_STAGE */
   stage: string
+  /** 审批状态(NONE/PROCESSING/APPROVED/REJECTED/REVOKED) */
+  approval_status: string
   owner_id: number | null
   follower_id: number | null
   follow_time: string | null

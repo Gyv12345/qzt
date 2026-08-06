@@ -10,6 +10,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import DedupAlert from '../../../components/DedupAlert'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
 import ImportButton from '../../../components/ImportButton'
@@ -55,6 +56,8 @@ export default function CustomerPage() {
   const [form] = Form.useForm<CustomerFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmCustomer | null>(null)
+  // 表单内客户名称(查重提示联动)
+  const watchName = Form.useWatch('name', form)
   // 自定义字段定义与值(field_id -> value)
   const [customFields, setCustomFields] = useState<CrmCustomField[]>([])
   const [fieldValues, setFieldValues] = useState<Map<string, unknown>>(new Map())
@@ -361,6 +364,9 @@ export default function CustomerPage() {
         width={640}
         grid
       >
+        <Col span={24}>
+          <DedupAlert name={watchName} excludeType="CUSTOMER" excludeId={editing?.id} />
+        </Col>
         <ProFormText
           name="name"
           label="客户名称"

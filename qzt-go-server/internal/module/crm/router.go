@@ -39,6 +39,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	handoverHandler := handler.NewHandoverHandler()
 	changeLogHandler := handler.NewChangeLogHandler()
 	importExportHandler := handler.NewImportExportHandler()
+	dedupHandler := handler.NewDedupHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -77,6 +78,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 字段变更历史(按 biz_type + resource_id 查询)
 		authenticated.GET("/field-changes", changeLogHandler.List)
+
+		// 客户/线索查重(录入防重,名称模糊+电话精确)
+		authenticated.GET("/dedup", dedupHandler.Check)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):CRUD 与写操作。

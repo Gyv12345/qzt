@@ -61,6 +61,9 @@ func buildServer() *server.MCPServer {
 	registerFollowupTools(s)
 	registerDashboardTools(s)
 
+	// 注册 CRM 写操作 tools(客户流转/商机/合同/回款/跟进/查重)
+	registerCrmWriteTools(s)
+
 	// 注册 CRM 合同模板 tools
 	registerContractTemplateTools(s)
 
@@ -75,6 +78,12 @@ func buildServer() *server.MCPServer {
 
 	// 注册系统管理 tools(用户/角色/菜单/API/字典)
 	registerSystemTools(s)
+
+	// 注册 HRM 只读 tools(部门/员工/职位/考勤/薪资)
+	registerHrmTools(s)
+
+	// 注册 PSI 只读 tools(供应商/仓库/采购/销售/库存/出入库)
+	registerPsiTools(s)
 
 	return s
 }

@@ -16,6 +16,7 @@ import MarkdownEditor from '../../../components/MarkdownEditor'
 import {
   createContractTemplate,
   deleteContractTemplate,
+  getContractTemplate,
   listContractTemplates,
   listContractVariables,
   updateContractTemplate,
@@ -69,8 +70,15 @@ export default function ContractTemplatePage() {
   const openEdit = async (record: CrmContractTemplate) => {
     ensureVariables()
     setEditing(record)
-    setContent(record.content)
+    setContent('')
     setOpen(true)
+    // 列表接口不含 content 正文,需单独拉详情回填编辑器
+    try {
+      const detail = await getContractTemplate(record.id)
+      setContent(detail.content || '')
+    } catch {
+      message.error('加载模板内容失败')
+    }
   }
 
   const handleSubmit = async (values: TemplateFormValues) => {

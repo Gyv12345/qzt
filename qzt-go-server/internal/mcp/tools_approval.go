@@ -125,6 +125,16 @@ func registerApprovalTools(s *server.MCPServer) {
 		),
 		handleApprovalRevoke,
 	)
+
+	s.AddTool(
+		mcp.NewTool("approval_push",
+			mcp.WithDescription("发起审批(对业务单据提交审批,如已创建的合同)。前提:该表单类型已有启用且设计好节点图的审批流(可用 approval_flow_list 查看)"),
+			mcp.WithString("form_type", mcp.Required(), mcp.Description("表单类型:CONTRACT/QUOTATION/ORDER/INVOICE/PURCHASE_ORDER/SALES_ORDER/PURCHASE_RETURN/SALES_RETURN")),
+			mcp.WithNumber("resource_id", mcp.Required(), mcp.Description("业务单据ID(如合同ID)")),
+			mcp.WithString("comment", mcp.Description("提交说明")),
+		),
+		handleApprovalPush,
+	)
 }
 
 // ── handlers ──
@@ -344,4 +354,28 @@ func handleApprovalRevoke(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		return resultError(fmt.Sprintf("撤回失败: %v", err))
 	}
 	return resultText(map[string]interface{}{"message": "审批已撤回", "instance_id": instanceID})
+}
+
+func handleApprovalPush(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := apprsvc.NewApprovalService()
+	formType := req.GetString("form_type", "")
+	resourceID := uint(req.GetFloat("resource_id", 0))
+	if formType == "" || resourceID == 0 {
+		return resultError("表单类型(form_type)和业务单据ID(resource_id)必填")
+	}
+	userID := userIDFromContext(ctx)
+	instance, err := svc.Push(ctx, &apprsvc.PushRequest{
+		FormType:   formType,
+		ResourceID: resourceID,
+		Comment:    req.GetString("comment", ""),
+	}, userID)
+	if err != nil {
+		return resultError(fmt.Sprintf("发起审批失败: %v", err))
+	}
+	return resultText(map[string]interface{}{
+		"message":     "审批已发起",
+		"instance_id": instance.ID,
+		"status":      instance.ApprovalStatus,
+		"next_step":   "可用 approval_instance_get 查看审批进度",
+	})
 }
