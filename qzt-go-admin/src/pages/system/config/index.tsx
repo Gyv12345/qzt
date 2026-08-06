@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Input, Popconfirm, Select, Space, Switch, Tag } from 'antd'
+import { App, Button, Col, Form, Input, Popconfirm, Select, Space, Switch, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -283,9 +283,11 @@ export default function ConfigPage() {
         <ProFormText name="group" label="分组" placeholder="如 system" colProps={{ span: 12 }} />
         <ProFormTextArea name="value" label="值" placeholder="配置值" colProps={{ span: 24 }} />
         <ProFormTextArea name="options" label="选项" placeholder="选项定义(可选)" colProps={{ span: 24 }} />
-        <ProForm.Item name="is_public" label="公开" valuePropName="checked" colProps={{ span: 12 }}>
-          <Switch checkedChildren="公开" unCheckedChildren="私有" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="is_public" label="公开" valuePropName="checked">
+            <Switch checkedChildren="公开" unCheckedChildren="私有" />
+          </ProForm.Item>
+        </Col>
         <ProFormDigit
           name="sort"
           label="排序"

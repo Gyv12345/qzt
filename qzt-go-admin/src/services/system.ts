@@ -5,6 +5,7 @@ import type {
   CreateRoleRequest,
   CreateUserRequest,
   DictPayload,
+  LoginLogQuery,
   MenuPayload,
   OauthConfigPayload,
   OperationLogQuery,
@@ -13,6 +14,7 @@ import type {
   SysAPI,
   SysConfig,
   SysDict,
+  SysLoginLog,
   SysMenu,
   SysOauthConfig,
   SysOperationLog,
@@ -31,6 +33,22 @@ import type {
 
 export const listUsers = (params?: PageParams) =>
   request.get<unknown, PageResult<SysUser>>('/system/users', { params })
+
+// listAllUsers 循环分页拉取全部用户(后端 page_size 上限 100)。
+// 供用户管理页左侧部门树前端过滤使用,用户量通常不大。
+export const listAllUsers = async (): Promise<SysUser[]> => {
+  const pageSize = 100
+  let page = 1
+  const all: SysUser[] = []
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const res = await listUsers({ page, page_size: pageSize })
+    all.push(...res.list)
+    if (all.length >= res.total || res.list.length === 0) break
+    page++
+  }
+  return all
+}
 
 export const createUser = (data: CreateUserRequest) => request.post('/system/users', data)
 
@@ -121,6 +139,17 @@ export const listOperationLogs = (params?: OperationLogQuery) =>
 export const deleteOperationLog = (id: number) => request.delete(`/system/operation-logs/${id}`)
 
 export const clearOperationLogs = () => request.delete('/system/operation-logs')
+
+// ---------- 登录日志 ----------
+
+export const listLoginLogs = (params?: LoginLogQuery) =>
+  request.get<unknown, PageResult<SysLoginLog>>('/system/login-logs', { params })
+
+// ---------- 数据重置(危险操作) ----------
+
+/** 一键清理业务数据:清空客户/线索/商机/合同/跟进/员工/凭证/进销存等,系统配置不受影响 */
+export const resetBusinessData = (confirm: string) =>
+  request.post('/system/reset', { confirm })
 
 // ---------- 第三方登录配置 ----------
 

@@ -3,6 +3,7 @@ import {
   App,
   Button,
   Card,
+  Col,
   DatePicker,
   Form,
   InputNumber,
@@ -210,15 +211,21 @@ export default function CrmFollowPage() {
       <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
         关联资源可按需填写ID
       </Typography.Text>
-      <ProForm.Item name="opportunity_id" label="关联商机" colProps={{ span: 12 }}>
-        <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="商机ID" />
-      </ProForm.Item>
-      <ProForm.Item name="contact_id" label="关联联系人" colProps={{ span: 12 }}>
-        <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="联系人ID" />
-      </ProForm.Item>
-      <ProForm.Item name="contract_id" label="关联合同" colProps={{ span: 12 }}>
-        <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="合同ID" />
-      </ProForm.Item>
+      <Col span={12}>
+        <ProForm.Item name="opportunity_id" label="关联商机">
+          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="商机ID" />
+        </ProForm.Item>
+      </Col>
+      <Col span={12}>
+        <ProForm.Item name="contact_id" label="关联联系人">
+          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="联系人ID" />
+        </ProForm.Item>
+      </Col>
+      <Col span={12}>
+        <ProForm.Item name="contract_id" label="关联合同">
+          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="合同ID" />
+        </ProForm.Item>
+      </Col>
     </>
   )
 
@@ -331,17 +338,20 @@ export default function CrmFollowPage() {
                     submitter={{ searchConfig: { submitText: '提交', resetText: '重置' } }}
                     onFinish={handleCreateRecord}
                   >
-                    <ProForm.Item
-                      name="type"
-                      label="跟进类型"
-                      rules={[{ required: true, message: '请选择跟进类型' }]}
-                      colProps={{ span: 12 }}
-                    >
-                      <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
-                    </ProForm.Item>
-                    <ProForm.Item name="customer_id" label="关联客户" colProps={{ span: 12 }}>
-                      <CustomerSelect />
-                    </ProForm.Item>
+                    <Col span={12}>
+                      <ProForm.Item
+                        name="type"
+                        label="跟进类型"
+                        rules={[{ required: true, message: '请选择跟进类型' }]}
+                      >
+                        <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
+                      </ProForm.Item>
+                    </Col>
+                    <Col span={12}>
+                      <ProForm.Item name="customer_id" label="关联客户">
+                        <CustomerSelect />
+                      </ProForm.Item>
+                    </Col>
                     <ProFormTextArea
                       name="content"
                       label="跟进内容"
@@ -349,14 +359,15 @@ export default function CrmFollowPage() {
                       rules={[{ required: true, message: '请输入跟进内容' }]}
                       colProps={{ span: 24 }}
                     />
-                    <ProForm.Item
-                      name="follow_time"
-                      label="跟进时间"
-                      rules={[{ required: true, message: '请选择跟进时间' }]}
-                      colProps={{ span: 12 }}
-                    >
-                      <DatePicker showTime style={{ width: '100%' }} placeholder="选择跟进时间" />
-                    </ProForm.Item>
+                    <Col span={12}>
+                      <ProForm.Item
+                        name="follow_time"
+                        label="跟进时间"
+                        rules={[{ required: true, message: '请选择跟进时间' }]}
+                      >
+                        <DatePicker showTime style={{ width: '100%' }} placeholder="选择跟进时间" />
+                      </ProForm.Item>
+                    </Col>
                     {relationFields}
                   </ProForm>
                 </Auth>
@@ -376,17 +387,20 @@ export default function CrmFollowPage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="type"
-          label="跟进类型"
-          rules={[{ required: true, message: '请选择跟进类型' }]}
-          colProps={{ span: 12 }}
-        >
-          <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
-        </ProForm.Item>
-        <ProForm.Item name="customer_id" label="关联客户" colProps={{ span: 12 }}>
-          <CustomerSelect />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="type"
+            label="跟进类型"
+            rules={[{ required: true, message: '请选择跟进类型' }]}
+          >
+            <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="customer_id" label="关联客户">
+            <CustomerSelect />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea
           name="content"
           label="跟进内容"
@@ -394,17 +408,20 @@ export default function CrmFollowPage() {
           rules={[{ required: true, message: '请输入跟进内容' }]}
           colProps={{ span: 24 }}
         />
-        <ProForm.Item
-          name="plan_time"
-          label="计划时间"
-          rules={[{ required: true, message: '请选择计划时间' }]}
-          colProps={{ span: 12 }}
-        >
-          <DatePicker showTime style={{ width: '100%' }} placeholder="选择计划时间" />
-        </ProForm.Item>
-        <ProForm.Item name="remind_time" label="提醒时间" colProps={{ span: 12 }}>
-          <DatePicker showTime style={{ width: '100%' }} placeholder="选择提醒时间(可选)" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="plan_time"
+            label="计划时间"
+            rules={[{ required: true, message: '请选择计划时间' }]}
+          >
+            <DatePicker showTime style={{ width: '100%' }} placeholder="选择计划时间" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="remind_time" label="提醒时间">
+            <DatePicker showTime style={{ width: '100%' }} placeholder="选择提醒时间(可选)" />
+          </ProForm.Item>
+        </Col>
         {relationFields}
       </ModalForm>
 
@@ -418,22 +435,24 @@ export default function CrmFollowPage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="type"
-          label="跟进类型"
-          rules={[{ required: true, message: '请选择跟进类型' }]}
-          colProps={{ span: 12 }}
-        >
-          <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
-        </ProForm.Item>
-        <ProForm.Item
-          name="plan_time"
-          label="计划时间"
-          rules={[{ required: true, message: '请选择计划时间' }]}
-          colProps={{ span: 12 }}
-        >
-          <DatePicker showTime style={{ width: '100%' }} placeholder="选择计划时间" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="type"
+            label="跟进类型"
+            rules={[{ required: true, message: '请选择跟进类型' }]}
+          >
+            <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item
+            name="plan_time"
+            label="计划时间"
+            rules={[{ required: true, message: '请选择计划时间' }]}
+          >
+            <DatePicker showTime style={{ width: '100%' }} placeholder="选择计划时间" />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea
           name="content"
           label="跟进内容"
@@ -441,9 +460,11 @@ export default function CrmFollowPage() {
           rules={[{ required: true, message: '请输入跟进内容' }]}
           colProps={{ span: 24 }}
         />
-        <ProForm.Item name="remind_time" label="提醒时间" colProps={{ span: 12 }}>
-          <DatePicker showTime style={{ width: '100%' }} placeholder="选择提醒时间(可选)" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="remind_time" label="提醒时间">
+            <DatePicker showTime style={{ width: '100%' }} placeholder="选择提醒时间(可选)" />
+          </ProForm.Item>
+        </Col>
       </ModalForm>
 
       <ModalForm<ConvertFormValues>
@@ -456,22 +477,24 @@ export default function CrmFollowPage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="type"
-          label="跟进类型"
-          rules={[{ required: true, message: '请选择跟进类型' }]}
-          colProps={{ span: 12 }}
-        >
-          <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
-        </ProForm.Item>
-        <ProForm.Item
-          name="follow_time"
-          label="跟进时间"
-          rules={[{ required: true, message: '请选择跟进时间' }]}
-          colProps={{ span: 12 }}
-        >
-          <DatePicker showTime style={{ width: '100%' }} placeholder="选择跟进时间" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="type"
+            label="跟进类型"
+            rules={[{ required: true, message: '请选择跟进类型' }]}
+          >
+            <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item
+            name="follow_time"
+            label="跟进时间"
+            rules={[{ required: true, message: '请选择跟进时间' }]}
+          >
+            <DatePicker showTime style={{ width: '100%' }} placeholder="选择跟进时间" />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea
           name="content"
           label="跟进内容"

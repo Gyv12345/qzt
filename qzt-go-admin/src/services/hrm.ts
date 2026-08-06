@@ -35,8 +35,9 @@ export const deleteDepartment = (id: number) => request.delete(`/hrm/departments
 
 // ---------- 岗位 ----------
 
+// 后端 /hrm/positions 返回 { list: HrmPosition[] }(非分页,但包了一层 list)
 export const listPositions = (params?: { department_id?: number; status?: number }) =>
-  request.get<unknown, HrmPosition[]>('/hrm/positions', { params })
+  request.get<unknown, { list: HrmPosition[] }>('/hrm/positions', { params })
 
 /** 启用岗位(下拉用) */
 export const listEnabledPositions = () =>

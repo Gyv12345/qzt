@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Input, InputNumber, Popconfirm, Space, Switch } from 'antd'
+import { App, Button, Col, Form, Input, InputNumber, Popconfirm, Space, Switch } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -205,9 +205,11 @@ export default function DictPage() {
           fieldProps={{ precision: 0 }}
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="status" label="状态" valuePropName="checked" colProps={{ span: 12 }}>
-          <Switch checkedChildren="正常" unCheckedChildren="停用" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="status" label="状态" valuePropName="checked">
+            <Switch checkedChildren="正常" unCheckedChildren="停用" />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
         <ProForm.Item label="字典项" colProps={{ span: 24 }}>
           <Form.List name="items">

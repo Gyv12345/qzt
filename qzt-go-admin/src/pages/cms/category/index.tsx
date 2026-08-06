@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Space, TreeSelect } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Space, TreeSelect } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -211,14 +211,16 @@ export default function CmsCategoryPage() {
         width={640}
         grid
       >
-        <ProForm.Item name="parent_id" label="上级分类" colProps={{ span: 24 }}>
-          <TreeSelect
-            treeData={treeData}
-            treeDefaultExpandAll
-            allowClear
-            placeholder="不选则为顶级分类"
-          />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item name="parent_id" label="上级分类">
+            <TreeSelect
+              treeData={treeData}
+              treeDefaultExpandAll
+              allowClear
+              placeholder="不选则为顶级分类"
+            />
+          </ProForm.Item>
+        </Col>
         <ProFormText
           name="name"
           label="分类名称"

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Space } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Space } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   DrawerForm,
@@ -166,9 +166,11 @@ export default function CmsPagePage() {
           placeholder="英文别名,访问路径用"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="content" label="内容" colProps={{ span: 24 }}>
-          <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item name="content" label="内容">
+            <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
+          </ProForm.Item>
+        </Col>
         <ProFormRadio.Group
           name="status"
           label="状态"

@@ -162,6 +162,19 @@ export interface SysOperationLog {
   updated_at: string
 }
 
+/** 登录日志 */
+export interface SysLoginLog {
+  id: number
+  user_id: number
+  username: string
+  action: string
+  success: boolean
+  error_msg: string
+  client_ip: string
+  user_agent: string
+  created_at: string
+}
+
 // ---------- 请求体 ----------
 
 /** API Key */
@@ -306,6 +319,12 @@ export interface OperationLogQuery extends PageParams {
   keyword?: string
   start_time?: string
   end_time?: string
+}
+
+export interface LoginLogQuery extends PageParams {
+  username?: string
+  success?: string
+  client_ip?: string
 }
 
 // ---------- 第三方登录配置 ----------

@@ -1,0 +1,58 @@
+/* 用户管理:左树右表布局 */
+.qzt-user-layout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* 左侧部门树面板 */
+.qzt-user-sider {
+  flex: 0 0 240px;
+  width: 240px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 8px 0;
+  position: sticky;
+  top: 0;
+}
+
+.qzt-user-sider-header {
+  padding: 6px 16px 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f1f1f;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 6px;
+}
+
+.qzt-user-sider .ant-tree {
+  padding: 0 8px;
+  font-size: 14px;
+}
+
+.qzt-user-sider .ant-tree-node-content-wrapper {
+  width: calc(100% - 24px);
+}
+
+/* 右侧主区(ProTable) */
+.qzt-user-main {
+  flex: 1 1 auto;
+  min-width: 0; /* 关键:允许收缩,防止内部表格撑破布局 */
+}
+
+/* 窄屏:左侧面板堆叠到上方 */
+@media (max-width: 768px) {
+  .qzt-user-layout {
+    flex-direction: column;
+  }
+  .qzt-user-sider {
+    flex: none;
+    width: 100%;
+    max-height: 240px;
+    position: static;
+  }
+}

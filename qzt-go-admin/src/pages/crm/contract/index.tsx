@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import {
   App,
   Button,
+  Col,
   DatePicker,
   Descriptions,
   Drawer,
@@ -639,35 +640,50 @@ export default function ContractPage() {
           placeholder="留空则自动生成"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item
-          name="customer_id"
-          label="客户"
-          rules={[{ required: true, message: '请选择客户' }]}
-          colProps={{ span: 12 }}
-        >
-          <CustomerSelect />
-        </ProForm.Item>
-        <ProForm.Item name="opportunity_id" label="关联商机" colProps={{ span: 12 }}>
-          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="关联商机ID" />
-        </ProForm.Item>
-        <ProForm.Item name="total_amount" label="合同金额" colProps={{ span: 12 }}>
-          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="合同金额" />
-        </ProForm.Item>
-        <ProForm.Item name="signed_date" label="签订日期" colProps={{ span: 12 }}>
-          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-        </ProForm.Item>
-        <ProForm.Item name="start_date" label="开始日期" colProps={{ span: 12 }}>
-          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-        </ProForm.Item>
-        <ProForm.Item name="end_date" label="结束日期" colProps={{ span: 12 }}>
-          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-        </ProForm.Item>
-        <ProForm.Item name="stage" label="阶段" colProps={{ span: 12 }}>
-          <DictSelect code="CONTRACT_STAGE" placeholder="选择阶段" />
-        </ProForm.Item>
-        <ProForm.Item name="owner_id" label="负责人" colProps={{ span: 12 }}>
-          <UserSelect />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="customer_id"
+            label="客户"
+            rules={[{ required: true, message: '请选择客户' }]}
+          >
+            <CustomerSelect />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="opportunity_id" label="关联商机">
+            <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="关联商机ID" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="total_amount" label="合同金额">
+            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="合同金额" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="signed_date" label="签订日期">
+            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="start_date" label="开始日期">
+            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="end_date" label="结束日期">
+            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="stage" label="阶段">
+            <DictSelect code="CONTRACT_STAGE" placeholder="选择阶段" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="owner_id" label="负责人">
+            <UserSelect />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea
           name="content"
           label="合同内容"
@@ -911,22 +927,24 @@ export default function ContractPage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="plan_date"
-          label="计划日期"
-          rules={[{ required: true, message: '请选择计划日期' }]}
-          colProps={{ span: 12 }}
-        >
-          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-        </ProForm.Item>
-        <ProForm.Item
-          name="plan_amount"
-          label="计划金额"
-          rules={[{ required: true, message: '请输入计划金额' }]}
-          colProps={{ span: 12 }}
-        >
-          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="计划金额" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="plan_date"
+            label="计划日期"
+            rules={[{ required: true, message: '请选择计划日期' }]}
+          >
+            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item
+            name="plan_amount"
+            label="计划金额"
+            rules={[{ required: true, message: '请输入计划金额' }]}
+          >
+            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="计划金额" />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
       </ModalForm>
 
@@ -941,35 +959,41 @@ export default function ContractPage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="received_date"
-          label="回款日期"
-          rules={[{ required: true, message: '请选择回款日期' }]}
-          colProps={{ span: 12 }}
-        >
-          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-        </ProForm.Item>
-        <ProForm.Item
-          name="amount"
-          label="回款金额"
-          rules={[{ required: true, message: '请输入回款金额' }]}
-          colProps={{ span: 12 }}
-        >
-          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="回款金额" />
-        </ProForm.Item>
-        <ProForm.Item name="method" label="回款方式" colProps={{ span: 12 }}>
-          <DictSelect code="PAYMENT_METHOD" placeholder="选择回款方式" />
-        </ProForm.Item>
-        <ProForm.Item name="plan_id" label="关联回款计划" colProps={{ span: 12 }}>
-          <Select
-            allowClear
-            placeholder="选择回款计划(可选)"
-            options={plans.map((p) => ({
-              label: `${p.plan_date ?? '-'} ¥${p.plan_amount}`,
-              value: p.id,
-            }))}
-          />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="received_date"
+            label="回款日期"
+            rules={[{ required: true, message: '请选择回款日期' }]}
+          >
+            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item
+            name="amount"
+            label="回款金额"
+            rules={[{ required: true, message: '请输入回款金额' }]}
+          >
+            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="回款金额" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="method" label="回款方式">
+            <DictSelect code="PAYMENT_METHOD" placeholder="选择回款方式" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="plan_id" label="关联回款计划">
+            <Select
+              allowClear
+              placeholder="选择回款计划(可选)"
+              options={plans.map((p) => ({
+                label: `${p.plan_date ?? '-'} ¥${p.plan_amount}`,
+                value: p.id,
+              }))}
+            />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
       </ModalForm>
 

@@ -125,12 +125,16 @@ export default function BasicLayout() {
   const groups = moduleChildren.filter((c) => c.type === 0 && visibleMenus(c.children).length > 0)
   const hasGroups = groups.length > 0
 
+  /** 当前命中直接页面(非分组下叶子),如 PSI 报表:此状态下不展示第二列 */
+  const isDirectLeaf = !!chain && chain.group === null
+
   /** 第二列展示的分组:当前命中 > 用户已展开 > 第一个分组 */
-  const secondaryGroup =
-    (chain?.group ?? null) ??
-    groups.find((g) => g.id === expandedGroupId) ??
-    groups[0] ??
-    null
+  const secondaryGroup = isDirectLeaf
+    ? null
+    : (chain?.group ?? null) ??
+      groups.find((g) => g.id === expandedGroupId) ??
+      groups[0] ??
+      null
   const secondaryLeaves = secondaryGroup ? visibleMenus(secondaryGroup.children) : []
 
   const goModule = (module: SysMenu) => {

@@ -1,5 +1,5 @@
 import { useRef, useState, type Key } from 'react'
-import { App, Button, Form, Modal, Popconfirm, Radio, Space, Spin, Switch, Tree, type TreeProps } from 'antd'
+import { App, Button, Col, Form, Modal, Popconfirm, Radio, Space, Spin, Switch, Tree, type TreeProps } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
 import {
@@ -270,12 +270,16 @@ export default function RolePage() {
           initialValue={0}
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="status" label="状态" valuePropName="checked" colProps={{ span: 12 }}>
-          <Switch checkedChildren="正常" unCheckedChildren="停用" />
-        </ProForm.Item>
-        <ProForm.Item name="data_scope" label="数据权限" colProps={{ span: 24 }} rules={[{ required: true, message: '请选择数据权限' }]}>
-          <Radio.Group options={DATA_SCOPE_OPTIONS} optionType="button" buttonStyle="solid" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="status" label="状态" valuePropName="checked">
+            <Switch checkedChildren="正常" unCheckedChildren="停用" />
+          </ProForm.Item>
+        </Col>
+        <Col span={24}>
+          <ProForm.Item name="data_scope" label="数据权限" rules={[{ required: true, message: '请选择数据权限' }]}>
+            <Radio.Group options={DATA_SCOPE_OPTIONS} optionType="button" buttonStyle="solid" />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea name="remark" label="备注" colProps={{ span: 24 }} />
       </ModalForm>
       <Modal

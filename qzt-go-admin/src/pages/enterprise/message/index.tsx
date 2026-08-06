@@ -1,5 +1,5 @@
 import { useRef, useState, type Key } from 'react'
-import { App, Badge, Button, Descriptions, Form, Modal, Popconfirm, Space, Tabs } from 'antd'
+import { App, Badge, Button, Col, Descriptions, Form, Modal, Popconfirm, Space, Tabs } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -300,14 +300,15 @@ export default function MessagePage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="receiver_id"
-          label="接收人"
-          rules={[{ required: true, message: '请选择接收人' }]}
-          colProps={{ span: 12 }}
-        >
-          <UserSelect placeholder="选择接收人" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="receiver_id"
+            label="接收人"
+            rules={[{ required: true, message: '请选择接收人' }]}
+          >
+            <UserSelect placeholder="选择接收人" />
+          </ProForm.Item>
+        </Col>
         <ProFormText
           name="title"
           label="标题"

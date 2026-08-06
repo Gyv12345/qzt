@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Input, Popconfirm, Select, Space, Tag } from 'antd'
+import { App, Button, Col, Form, Input, Popconfirm, Select, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -173,14 +173,15 @@ export default function ApiPage() {
           placeholder="如 /system/users"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item
-          name="method"
-          label="请求方式"
-          rules={[{ required: true, message: '请选择请求方式' }]}
-          colProps={{ span: 12 }}
-        >
-          <Select placeholder="选择请求方式" options={methodOptions} />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="method"
+            label="请求方式"
+            rules={[{ required: true, message: '请选择请求方式' }]}
+          >
+            <Select placeholder="选择请求方式" options={methodOptions} />
+          </ProForm.Item>
+        </Col>
         <ProFormText
           name="group"
           label="分组"
@@ -188,9 +189,11 @@ export default function ApiPage() {
           placeholder="如 用户管理"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="description" label="描述" colProps={{ span: 24 }}>
-          <Input.TextArea rows={3} placeholder="接口描述(选填)" />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item name="description" label="描述">
+            <Input.TextArea rows={3} placeholder="接口描述(选填)" />
+          </ProForm.Item>
+        </Col>
       </ModalForm>
     </>
   )

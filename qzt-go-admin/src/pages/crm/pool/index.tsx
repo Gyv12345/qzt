@@ -3,6 +3,7 @@ import {
   Alert,
   App,
   Button,
+  Col,
   DatePicker,
   Form,
   Input,
@@ -365,21 +366,31 @@ export default function PoolPage() {
           rules={[{ required: true, message: '请输入公海池名称' }]}
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="scope_dept_ids" label="适用部门" colProps={{ span: 12 }}>
-          <Select {...idTagsSelectProps} />
-        </ProForm.Item>
-        <ProForm.Item name="scope_role_ids" label="适用角色" colProps={{ span: 12 }}>
-          <Select {...idTagsSelectProps} />
-        </ProForm.Item>
-        <ProForm.Item name="admin_user_ids" label="管理员" colProps={{ span: 12 }}>
-          <Select {...idTagsSelectProps} />
-        </ProForm.Item>
-        <ProForm.Item name="enabled" label="启用" valuePropName="checked" colProps={{ span: 12 }}>
-          <Switch checkedChildren="启用" unCheckedChildren="禁用" />
-        </ProForm.Item>
-        <ProForm.Item name="auto_recycle" label="自动回收" valuePropName="checked" colProps={{ span: 12 }}>
-          <Switch checkedChildren="开启" unCheckedChildren="关闭" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="scope_dept_ids" label="适用部门">
+            <Select {...idTagsSelectProps} />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="scope_role_ids" label="适用角色">
+            <Select {...idTagsSelectProps} />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="admin_user_ids" label="管理员">
+            <Select {...idTagsSelectProps} />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="enabled" label="启用" valuePropName="checked">
+            <Switch checkedChildren="启用" unCheckedChildren="禁用" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="auto_recycle" label="自动回收" valuePropName="checked">
+            <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+          </ProForm.Item>
+        </Col>
       </ModalForm>
       <ModalForm<PickRuleFormValues>
         title={`领取规则${currentPool ? ` - ${currentPool.name}` : ''}`}

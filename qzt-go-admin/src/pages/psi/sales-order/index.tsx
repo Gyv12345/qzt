@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { App, Button, Descriptions, Drawer, Form, Popconfirm, Space, Table, Tag } from 'antd'
+import { App, Button, Col, Descriptions, Drawer, Form, Popconfirm, Space, Table, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -324,14 +324,15 @@ export default function SalesOrderPage() {
         width={900}
         grid
       >
-        <ProForm.Item
-          name="customer_id"
-          label="客户"
-          rules={[{ required: true, message: '请选择客户' }]}
-          colProps={{ span: 12 }}
-        >
-          <CustomerSelect />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="customer_id"
+            label="客户"
+            rules={[{ required: true, message: '请选择客户' }]}
+          >
+            <CustomerSelect />
+          </ProForm.Item>
+        </Col>
         <ProFormSelect
           name="warehouse_id"
           label="仓库"

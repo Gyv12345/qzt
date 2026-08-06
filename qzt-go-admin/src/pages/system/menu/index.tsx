@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Select, Space, Tag, TreeSelect } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Select, Space, Tag, TreeSelect } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -242,14 +242,16 @@ export default function MenuPage() {
         width={640}
         grid
       >
-        <ProForm.Item name="parent_id" label="上级菜单" colProps={{ span: 24 }}>
-          <TreeSelect
-            treeData={treeData}
-            treeDefaultExpandAll
-            allowClear
-            placeholder="不选则为顶级菜单"
-          />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item name="parent_id" label="上级菜单">
+            <TreeSelect
+              treeData={treeData}
+              treeDefaultExpandAll
+              allowClear
+              placeholder="不选则为顶级菜单"
+            />
+          </ProForm.Item>
+        </Col>
         <ProFormRadio.Group
           name="type"
           label="类型"
@@ -274,20 +276,22 @@ export default function MenuPage() {
           {({ type }) => (
             <>
               {type !== 2 && (
-                <ProForm.Item name="icon" label="图标" colProps={{ span: 12 }}>
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="选择图标"
-                    options={iconOptions}
-                    optionRender={(option) => (
-                      <Space size={4}>
-                        <MenuIcon icon={String(option.value)} />
-                        {option.label}
-                      </Space>
-                    )}
-                  />
-                </ProForm.Item>
+                <Col span={12}>
+                  <ProForm.Item name="icon" label="图标">
+                    <Select
+                      showSearch
+                      allowClear
+                      placeholder="选择图标"
+                      options={iconOptions}
+                      optionRender={(option) => (
+                        <Space size={4}>
+                          <MenuIcon icon={String(option.value)} />
+                          {option.label}
+                        </Space>
+                      )}
+                    />
+                  </ProForm.Item>
+                </Col>
               )}
               {type !== 2 && (
                 <ProFormText
@@ -314,9 +318,11 @@ export default function MenuPage() {
                 />
               )}
               {type === 1 && (
-                <ProForm.Item name="api_ids" label="关联 API" colProps={{ span: 24 }}>
-                  <Select mode="multiple" allowClear placeholder="选择关联的 API" options={apiOptions} />
-                </ProForm.Item>
+                <Col span={24}>
+                  <ProForm.Item name="api_ids" label="关联 API">
+                    <Select mode="multiple" allowClear placeholder="选择关联的 API" options={apiOptions} />
+                  </ProForm.Item>
+                </Col>
               )}
             </>
           )}

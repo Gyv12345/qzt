@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Input, Popconfirm, Select, Space, Tag } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { App, Button, Col, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tag } from 'antd'
+import { PlusOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import {
   ProForm,
   ModalForm,
@@ -9,7 +9,10 @@ import {
   type ActionType,
   type ProColumns,
 } from '@ant-design/pro-components'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import Auth from '../../../components/Auth'
+import { generateScript } from '../../../services/ai'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import UserSelect from '../../../components/UserSelect'
 import {
@@ -68,6 +71,25 @@ export default function LeadPage() {
   const [historyTarget, setHistoryTarget] = useState<CrmLead | null>(null)
   const [history, setHistory] = useState<CrmLeadOwnerHistory[]>([])
   const [poolOptions, setPoolOptions] = useState<{ label: string; value: number }[]>([])
+  const [detailTarget, setDetailTarget] = useState<CrmLead | null>(null)
+  const [scriptOpen, setScriptOpen] = useState(false)
+  const [scriptLoading, setScriptLoading] = useState(false)
+  const [scriptContent, setScriptContent] = useState('')
+
+  const handleGenerateScript = async () => {
+    if (!detailTarget) return
+    setScriptOpen(true)
+    setScriptLoading(true)
+    setScriptContent('')
+    try {
+      const res = await generateScript({ target_type: 'lead', target_id: detailTarget.id })
+      setScriptContent(res.content)
+    } catch {
+      // service 层已弹 error
+    } finally {
+      setScriptLoading(false)
+    }
+  }
 
   const loadPools = async () => {
     const pools = await listEnabledLeadPools()
@@ -183,7 +205,11 @@ export default function LeadPage() {
       dataIndex: 'lead_no',
       width: 140,
       search: false,
-      render: (v) => v || '-',
+      render: (v, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailTarget(r)}>
+          {v || '-'}
+        </Button>
+      ),
     },
     {
       title: '线索名称',
@@ -192,7 +218,9 @@ export default function LeadPage() {
       search: false,
       render: (_, r) => (
         <Space size={4}>
-          {r.name}
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailTarget(r)}>
+            {r.name}
+          </Button>
           {r.in_pool === 1 && <Tag color="orange">公海</Tag>}
           {r.status === 3 && <Tag color="green">已转化</Tag>}
         </Space>
@@ -364,24 +392,34 @@ export default function LeadPage() {
         <ProFormText name="phone" label="电话" colProps={{ span: 12 }} />
         <ProFormText name="email" label="邮箱" colProps={{ span: 12 }} />
         <ProFormText name="company" label="公司" colProps={{ span: 12 }} />
-        <ProForm.Item name="level" label="级别" colProps={{ span: 12 }}>
-          <DictSelect code="LEAD_LEVEL" placeholder="选择级别" />
-        </ProForm.Item>
-        <ProForm.Item name="source" label="来源" colProps={{ span: 12 }}>
-          <DictSelect code="LEAD_SOURCE" placeholder="选择来源" />
-        </ProForm.Item>
-        <ProForm.Item name="industry" label="行业" colProps={{ span: 12 }}>
-          <DictSelect code="INDUSTRY" placeholder="选择行业" />
-        </ProForm.Item>
-        {editing && (
-          <ProForm.Item name="status" label="状态" colProps={{ span: 12 }}>
-            <Select options={STATUS_OPTIONS} placeholder="选择状态" />
+        <Col span={12}>
+          <ProForm.Item name="level" label="级别">
+            <DictSelect code="LEAD_LEVEL" placeholder="选择级别" />
           </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="source" label="来源">
+            <DictSelect code="LEAD_SOURCE" placeholder="选择来源" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="industry" label="行业">
+            <DictSelect code="INDUSTRY" placeholder="选择行业" />
+          </ProForm.Item>
+        </Col>
+        {editing && (
+          <Col span={12}>
+            <ProForm.Item name="status" label="状态">
+              <Select options={STATUS_OPTIONS} placeholder="选择状态" />
+            </ProForm.Item>
+          </Col>
         )}
         {!editing && (
-          <ProForm.Item name="owner_id" label="负责人" colProps={{ span: 12 }}>
-            <UserSelect placeholder="选择负责人,留空则进公海" />
-          </ProForm.Item>
+          <Col span={12}>
+            <ProForm.Item name="owner_id" label="负责人">
+              <UserSelect placeholder="选择负责人,留空则进公海" />
+            </ProForm.Item>
+          </Col>
         )}
       </ModalForm>
 
@@ -472,6 +510,132 @@ export default function LeadPage() {
           </div>
         )}
       </ModalForm>
+
+      {/* 线索详情抽屉 */}
+      <Drawer
+        title="线索详情"
+        open={!!detailTarget}
+        onClose={() => setDetailTarget(null)}
+        width={560}
+        extra={
+          detailTarget && (
+            <Space>
+              <Button
+                size="small"
+                icon={<ThunderboltOutlined />}
+                onClick={handleGenerateScript}
+              >
+                AI话术
+              </Button>
+              <Auth perm="crm:lead:edit">
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() => {
+                    openEdit(detailTarget)
+                    setDetailTarget(null)
+                  }}
+                >
+                  编辑
+                </Button>
+              </Auth>
+            </Space>
+          )
+        }
+      >
+        {detailTarget && (
+          <Descriptions column={2} bordered size="small">
+            <Descriptions.Item label="线索编号">{detailTarget.lead_no || '-'}</Descriptions.Item>
+            <Descriptions.Item label="状态">
+              {(() => {
+                const m: Record<number, { text: string; color: string }> = {
+                  1: { text: '新建', color: 'blue' },
+                  2: { text: '跟进中', color: 'orange' },
+                  3: { text: '已转化', color: 'green' },
+                  4: { text: '无效', color: 'default' },
+                }
+                const s = m[detailTarget.status]
+                return s ? <Tag color={s.color}>{s.text}</Tag> : '-'
+              })()}
+            </Descriptions.Item>
+            <Descriptions.Item label="线索名称" span={2}>
+              <Space size={4}>
+                {detailTarget.name}
+                {detailTarget.in_pool === 1 && <Tag color="orange">公海</Tag>}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="联系人">{detailTarget.contact_name || '-'}</Descriptions.Item>
+            <Descriptions.Item label="电话">{detailTarget.phone || '-'}</Descriptions.Item>
+            <Descriptions.Item label="邮箱" span={2}>{detailTarget.email || '-'}</Descriptions.Item>
+            <Descriptions.Item label="公司" span={2}>{detailTarget.company || '-'}</Descriptions.Item>
+            <Descriptions.Item label="级别">
+              <DictTag code="LEAD_LEVEL" value={detailTarget.level} />
+            </Descriptions.Item>
+            <Descriptions.Item label="来源">
+              <DictTag code="LEAD_SOURCE" value={detailTarget.source} />
+            </Descriptions.Item>
+            <Descriptions.Item label="行业">
+              <DictTag code="INDUSTRY" value={detailTarget.industry} />
+            </Descriptions.Item>
+            <Descriptions.Item label="负责人">
+              {detailTarget.in_pool === 1 ? '公海' : nickname(detailTarget.owner_id)}
+            </Descriptions.Item>
+            <Descriptions.Item label="所属">{detailTarget.in_pool === 1 ? '公海池' : '私海'}</Descriptions.Item>
+            <Descriptions.Item label="转化客户">
+              {detailTarget.converted_customer_id ? `#${detailTarget.converted_customer_id}` : '-'}
+            </Descriptions.Item>
+            {detailTarget.follow_time && (
+              <Descriptions.Item label="最近跟进" span={2}>
+                {detailTarget.follow_time}
+              </Descriptions.Item>
+            )}
+            {detailTarget.converted_at && (
+              <Descriptions.Item label="转化时间" span={2}>
+                {detailTarget.converted_at}
+              </Descriptions.Item>
+            )}
+            <Descriptions.Item label="创建时间" span={2}>
+              {detailTarget.created_at}
+            </Descriptions.Item>
+            <Descriptions.Item label="更新时间" span={2}>
+              {detailTarget.updated_at}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Drawer>
+
+      {/* AI 回访话术 */}
+      <Modal
+        title="AI 回访话术"
+        open={scriptOpen}
+        onCancel={() => setScriptOpen(false)}
+        footer={[
+          <Button
+            key="copy"
+            onClick={() => {
+              navigator.clipboard.writeText(scriptContent)
+              message.success('已复制到剪贴板')
+            }}
+            disabled={!scriptContent}
+          >
+            复制
+          </Button>,
+          <Button key="close" type="primary" onClick={() => setScriptOpen(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={640}
+      >
+        <Spin spinning={scriptLoading} tip="生成中...">
+          {scriptContent ? (
+            <div className="prose-content" style={{ fontSize: 14, lineHeight: 1.8, color: '#222' }}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{scriptContent}</ReactMarkdown>
+            </div>
+          ) : (
+            !scriptLoading && <div style={{ color: '#999' }}>点击生成回访话术</div>
+          )}
+        </Spin>
+      </Modal>
     </>
   )
 }

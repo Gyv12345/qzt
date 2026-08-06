@@ -348,13 +348,15 @@ export default function OpportunityPage() {
 
   const boardView = (
     <Spin spinning={boardLoading}>
-      <Row gutter={12} wrap={false} style={{ overflowX: 'auto', paddingBottom: 8 }}>
+      <Row gutter={12} wrap={false} style={{ overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
         {sortedStages.map((stage) => {
           const items = board[stage.key] ?? []
           return (
-            <Col key={stage.key} flex="0 0 280px">
+            <Col key={stage.key} flex="0 0 280px" style={{ display: 'flex' }}>
               <Card
                 size="small"
+                style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 220px)' }}
+                styles={{ body: { flex: 1, overflowY: 'auto', padding: 8 } }}
                 title={
                   <Space size={8}>
                     <Tag color={stage.color}>{stage.label}</Tag>
@@ -472,20 +474,25 @@ export default function OpportunityPage() {
           placeholder="留空则自动生成"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item
-          name="customer_id"
-          label="客户"
-          rules={[{ required: true, message: '请选择客户' }]}
-          colProps={{ span: 12 }}
-        >
-          <CustomerSelect />
-        </ProForm.Item>
-        <ProForm.Item name="expected_amount" label="预期金额" colProps={{ span: 12 }}>
-          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="金额" />
-        </ProForm.Item>
-        <ProForm.Item name="expected_close_date" label="预计成交日" colProps={{ span: 12 }}>
-          <DatePicker style={{ width: '100%' }} />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="customer_id"
+            label="客户"
+            rules={[{ required: true, message: '请选择客户' }]}
+          >
+            <CustomerSelect />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="expected_amount" label="预期金额">
+            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="金额" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="expected_close_date" label="预计成交日">
+            <DatePicker style={{ width: '100%' }} />
+          </ProForm.Item>
+        </Col>
         <ProFormSelect
           name="stage"
           label="阶段"
@@ -493,12 +500,16 @@ export default function OpportunityPage() {
           placeholder="选择阶段"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="probability" label="成交概率(%)" colProps={{ span: 12 }}>
-          <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="0-100" />
-        </ProForm.Item>
-        <ProForm.Item name="owner_id" label="负责人" colProps={{ span: 12 }}>
-          <UserSelect />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="probability" label="成交概率(%)">
+            <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="0-100" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="owner_id" label="负责人">
+            <UserSelect />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea
           name="description"
           label="描述"

@@ -40,7 +40,7 @@ import type {
   CrmStageRecord,
   StageDef,
 } from '../types/crm'
-import type { PageParams } from '../types'
+import type { PageParams, PageResult } from '../types'
 
 /** CRM/CMS 列表分页结构(与系统模块不同,只有 list+total) */
 export interface CrmPageResult<T> {
@@ -328,3 +328,44 @@ export const updateStageConfig = (bizType: 'OPPORTUNITY' | 'CONTRACT', stages: S
   request.put(`/crm/stage-configs/${bizType}`, stages)
 
 export type { CrmFieldValue }
+
+// ---------- 联系人(全局) ----------
+
+export interface CrmContactListItem {
+  id: number
+  customer_id: number
+  customer_name: string
+  name: string
+  contact_no: string
+  phone: string
+  email: string
+  position: string
+  department: string
+  is_key_decision_maker: number
+  status: number
+  remark: string
+  created_at: string
+}
+
+export const listContacts = (
+  params?: { page?: number; page_size?: number; keyword?: string; customer_id?: number },
+) => request.get<unknown, PageResult<CrmContactListItem>>('/crm/contacts', { params })
+
+// ---------- 客户团队协作 ----------
+export interface CrmCollaboration {
+  id: number
+  customer_id: number
+  user_id: number
+  collaboration_type: 'READ_ONLY' | 'COLLABORATION'
+  nickname: string
+  username: string
+  created_at: string
+}
+export const listCollaborations = (customerId: number) =>
+  request.get<unknown, CrmCollaboration[]>('/crm/customers/' + customerId + '/collaborations')
+export const addCollaboration = (customerId: number, data: { user_id: number; collaboration_type: string }) =>
+  request.post('/crm/customers/' + customerId + '/collaborations', data)
+export const updateCollaboration = (id: number, data: { collaboration_type: string }) =>
+  request.put('/crm/collaborations/' + id, data)
+export const deleteCollaboration = (id: number) =>
+  request.delete('/crm/collaborations/' + id)

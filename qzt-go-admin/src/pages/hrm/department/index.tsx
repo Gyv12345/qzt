@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Space, Tag, TreeSelect } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Space, Tag, TreeSelect } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -186,14 +186,16 @@ export default function DepartmentPage() {
         width={640}
         grid
       >
-        <ProForm.Item name="parent_id" label="上级部门" colProps={{ span: 24 }}>
-          <TreeSelect
-            treeData={treeData}
-            treeDefaultExpandAll
-            allowClear
-            placeholder="不选则为顶级部门"
-          />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item name="parent_id" label="上级部门">
+            <TreeSelect
+              treeData={treeData}
+              treeDefaultExpandAll
+              allowClear
+              placeholder="不选则为顶级部门"
+            />
+          </ProForm.Item>
+        </Col>
         <ProFormText
           name="name"
           label="名称"
@@ -208,9 +210,11 @@ export default function DepartmentPage() {
           placeholder="如 TECH"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="leader_id" label="负责人" colProps={{ span: 12 }}>
-          <UserSelect placeholder="选择负责人" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="leader_id" label="负责人">
+            <UserSelect placeholder="选择负责人" />
+          </ProForm.Item>
+        </Col>
         <ProFormDigit
           name="sort"
           label="排序"

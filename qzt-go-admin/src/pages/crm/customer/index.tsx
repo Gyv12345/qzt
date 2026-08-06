@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Input, Popconfirm, Select, Space, Tag } from 'antd'
+import { App, Button, Col, Form, Input, Popconfirm, Select, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -355,33 +355,45 @@ export default function CustomerPage() {
           placeholder="留空则自动生成"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="level" label="等级" colProps={{ span: 12 }}>
-          <DictSelect code="CUSTOMER_LEVEL" placeholder="选择等级" />
-        </ProForm.Item>
-        <ProForm.Item name="source" label="来源" colProps={{ span: 12 }}>
-          <DictSelect code="CUSTOMER_SOURCE" placeholder="选择来源" />
-        </ProForm.Item>
-        <ProForm.Item name="industry" label="行业" colProps={{ span: 12 }}>
-          <DictSelect code="INDUSTRY" placeholder="选择行业" />
-        </ProForm.Item>
-        {editing && (
-          <ProForm.Item name="status" label="状态" colProps={{ span: 12 }}>
-            <Select options={STATUS_OPTIONS} placeholder="选择状态" />
+        <Col span={12}>
+          <ProForm.Item name="level" label="等级">
+            <DictSelect code="CUSTOMER_LEVEL" placeholder="选择等级" />
           </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="source" label="来源">
+            <DictSelect code="CUSTOMER_SOURCE" placeholder="选择来源" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="industry" label="行业">
+            <DictSelect code="INDUSTRY" placeholder="选择行业" />
+          </ProForm.Item>
+        </Col>
+        {editing && (
+          <Col span={12}>
+            <ProForm.Item name="status" label="状态">
+              <Select options={STATUS_OPTIONS} placeholder="选择状态" />
+            </ProForm.Item>
+          </Col>
         )}
         {!editing && (
-          <ProForm.Item name="owner_id" label="负责人" colProps={{ span: 12 }}>
-            <UserSelect placeholder="选择负责人,留空则进公海" />
-          </ProForm.Item>
+          <Col span={12}>
+            <ProForm.Item name="owner_id" label="负责人">
+              <UserSelect placeholder="选择负责人,留空则进公海" />
+            </ProForm.Item>
+          </Col>
         )}
         {customFields.map((f) => (
-          <ProForm.Item key={f.id} label={f.name} colProps={{ span: 12 }}>
-            <CustomFieldItem
-              field={f}
-              value={fieldValues.get(f.id)}
-              onChange={(v) => setFieldValue(f.id, v)}
-            />
-          </ProForm.Item>
+          <Col span={12} key={f.id}>
+            <ProForm.Item label={f.name}>
+              <CustomFieldItem
+                field={f}
+                value={fieldValues.get(f.id)}
+                onChange={(v) => setFieldValue(f.id, v)}
+              />
+            </ProForm.Item>
+          </Col>
         ))}
       </ModalForm>
 

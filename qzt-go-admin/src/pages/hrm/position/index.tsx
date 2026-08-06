@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Space, TreeSelect } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Space, TreeSelect } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -189,7 +189,8 @@ export default function PositionPage() {
           const res = await listPositions({
             department_id: params.department_id as number | undefined,
           })
-          return { data: res, total: res.length, success: true }
+          const list = res.list ?? []
+          return { data: list, total: list.length, success: true }
         }}
         pagination={false}
         toolBarRender={() => [
@@ -211,19 +212,20 @@ export default function PositionPage() {
         width={640}
         grid
       >
-        <ProForm.Item
-          name="department_id"
-          label="所属部门"
-          rules={[{ required: true, message: '请选择所属部门' }]}
-          colProps={{ span: 12 }}
-        >
-          <TreeSelect
-            treeData={treeData}
-            treeDefaultExpandAll
-            allowClear
-            placeholder="选择所属部门"
-          />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item
+            name="department_id"
+            label="所属部门"
+            rules={[{ required: true, message: '请选择所属部门' }]}
+          >
+            <TreeSelect
+              treeData={treeData}
+              treeDefaultExpandAll
+              allowClear
+              placeholder="选择所属部门"
+            />
+          </ProForm.Item>
+        </Col>
         <ProFormText
           name="name"
           label="名称"

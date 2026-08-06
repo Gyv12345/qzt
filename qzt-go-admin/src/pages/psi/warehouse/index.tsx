@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -208,9 +208,11 @@ export default function WarehousePage() {
           colProps={{ span: 12 }}
         />
         <ProFormText name="address" label="地址" colProps={{ span: 12 }} />
-        <ProForm.Item name="manager_id" label="负责人" colProps={{ span: 12 }}>
-          <UserSelect placeholder="选择负责人" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="manager_id" label="负责人">
+            <UserSelect placeholder="选择负责人" />
+          </ProForm.Item>
+        </Col>
         <ProFormText name="phone" label="电话" colProps={{ span: 12 }} />
         <ProFormDigit
           name="sort"

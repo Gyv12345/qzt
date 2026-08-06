@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { App, Button, DatePicker, Drawer, Form, Popconfirm, Select, Space, Spin, Tag, Timeline, TreeSelect } from 'antd'
+import { App, Button, Col, DatePicker, Divider, Drawer, Form, Popconfirm, Row, Select, Space, Spin, Tag, Timeline, TreeSelect } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -40,8 +40,9 @@ interface EmployeeFormValues {
   gender?: number
   phone?: string
   email?: string
-  entry_date?: Dayjs
-  resign_date?: Dayjs
+  /** DatePicker 可能返回 dayjs 对象或字符串(编辑回填时) */
+  entry_date?: Dayjs | string
+  resign_date?: Dayjs | string
   user_id?: number
   status: number
   remark?: string
@@ -76,7 +77,6 @@ export default function EmployeePage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<HrmEmployee | null>(null)
   const [treeData, setTreeData] = useState<DeptTreeNode[]>([])
-  const [deptOptions, setDeptOptions] = useState<{ label: string; value: number }[]>([])
   const [positions, setPositions] = useState<HrmPosition[]>([])
   const deptMapRef = useRef<Map<number, string>>(new Map())
   const positionMapRef = useRef<Map<number, string>>(new Map())
@@ -90,7 +90,6 @@ export default function EmployeePage() {
       setTreeData(toTreeData(tree))
       const flat = flattenDepartments(tree)
       deptMapRef.current = new Map(flat.map((d) => [d.id, d.name]))
-      setDeptOptions(flat.map((d) => ({ label: d.name, value: d.id })))
     })
     listEnabledPositions().then((list) => {
       setPositions(list)
@@ -124,30 +123,42 @@ export default function EmployeePage() {
     setModalOpen(true)
   }
 
+  /** 把 DatePicker 的值(dayjs 对象或字符串)统一转成 YYYY-MM-DD 字符串 */
+  const toDateStr = (v: Dayjs | string | undefined | null): string | undefined => {
+    if (!v) return undefined
+    if (typeof v === 'string') return v.slice(0, 10)
+    return v.format('YYYY-MM-DD')
+  }
+
   const handleSubmit = async (values: EmployeeFormValues) => {
-    const payload: HrmEmployeePayload = {
-      emp_no: values.emp_no,
-      name: values.name,
-      department_id: values.department_id,
-      position_id: values.position_id,
-      gender: values.gender,
-      phone: values.phone,
-      email: values.email,
-      entry_date: values.entry_date ? values.entry_date.format('YYYY-MM-DD') : undefined,
-      resign_date: values.resign_date ? values.resign_date.format('YYYY-MM-DD') : undefined,
-      user_id: values.user_id,
-      status: values.status,
-      remark: values.remark,
+    try {
+      const payload: HrmEmployeePayload = {
+        emp_no: values.emp_no,
+        name: values.name,
+        department_id: values.department_id,
+        position_id: values.position_id,
+        gender: values.gender,
+        phone: values.phone,
+        email: values.email,
+        entry_date: toDateStr(values.entry_date),
+        resign_date: toDateStr(values.resign_date),
+        user_id: values.user_id,
+        status: values.status,
+        remark: values.remark,
+      }
+      if (editing) {
+        await updateEmployee(editing.id, payload)
+        message.success('员工已更新')
+      } else {
+        await createEmployee(payload)
+        message.success('员工已创建')
+      }
+      actionRef.current?.reload()
+      return true
+    } catch (e) {
+      message.error(`保存失败: ${e instanceof Error ? e.message : String(e)}`)
+      return false
     }
-    if (editing) {
-      await updateEmployee(editing.id, payload)
-      message.success('员工已更新')
-    } else {
-      await createEmployee(payload)
-      message.success('员工已创建')
-    }
-    actionRef.current?.reload()
-    return true
   }
 
   const handleDelete = async (record: HrmEmployee) => {
@@ -217,8 +228,16 @@ export default function EmployeePage() {
       title: '部门',
       dataIndex: 'department_id',
       hideInTable: true,
-      valueType: 'select',
-      fieldProps: { options: deptOptions, showSearch: true, optionFilterProp: 'label' },
+      renderFormItem: () => (
+        <TreeSelect
+          allowClear
+          showSearch
+          treeNodeFilterProp="title"
+          treeData={treeData}
+          treeDefaultExpandAll
+          placeholder="请选择"
+        />
+      ),
     },
     {
       title: '岗位',
@@ -302,98 +321,118 @@ export default function EmployeePage() {
         onOpenChange={setModalOpen}
         modalProps={{ destroyOnHidden: true, maskClosable: false }}
         onFinish={handleSubmit}
-        width={720}
-        grid
+        onFinishFailed={(errorInfo) => {
+          const msgs = errorInfo.errorFields.map((f) => f.errors.join(', ')).join('; ')
+          message.warning(`表单校验未通过: ${msgs || '请检查必填项'}`)
+        }}
+        width={680}
       >
-        <ProFormText
-          name="emp_no"
-          label="工号"
-          rules={[{ required: true, message: '请输入工号' }]}
-          placeholder="如 EMP001"
-          colProps={{ span: 12 }}
-        />
-        <ProFormText
-          name="name"
-          label="姓名"
-          rules={[{ required: true, message: '请输入姓名' }]}
-          placeholder="员工姓名"
-          colProps={{ span: 12 }}
-        />
-        <ProForm.Item
-          name="department_id"
-          label="部门"
-          rules={[{ required: true, message: '请选择部门' }]}
-          colProps={{ span: 12 }}
-        >
-          <TreeSelect
-            treeData={treeData}
-            treeDefaultExpandAll
-            allowClear
-            placeholder="选择部门"
-          />
-        </ProForm.Item>
-        <ProFormDependency name={['department_id']}>
-          {({ department_id }) => (
+        <Divider orientation="left" orientationMargin={0} style={{ marginTop: 0 }}>基本信息</Divider>
+        <Row gutter={24}>
+          <Col span={12}>
+            <ProFormText
+              name="emp_no"
+              label="工号"
+              rules={[{ required: true, message: '请输入工号' }]}
+              placeholder="如 EMP001"
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormText
+              name="name"
+              label="姓名"
+              rules={[{ required: true, message: '请输入姓名' }]}
+              placeholder="员工姓名"
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormRadio.Group
+              name="gender"
+              label="性别"
+              options={[{ label: '男', value: 1 }, { label: '女', value: 2 }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormRadio.Group
+              name="status"
+              label="状态"
+              rules={[{ required: true, message: '请选择状态' }]}
+              options={[{ label: '在职', value: 1 }, { label: '离职', value: 0 }]}
+            />
+          </Col>
+        </Row>
+
+        <Divider orientation="left" orientationMargin={0}>组织信息</Divider>
+        <Row gutter={24}>
+          <Col span={12}>
             <ProForm.Item
-              name="position_id"
-              label="岗位"
-              rules={[{ required: true, message: '请选择岗位' }]}
-              colProps={{ span: 12 }}
+              name="department_id"
+              label="部门"
+              rules={[{ required: true, message: '请选择部门' }]}
             >
-              <Select
-                allowClear
-                showSearch
-                optionFilterProp="label"
-                placeholder="选择岗位"
-                options={
-                  department_id
-                    ? positions
-                        .filter((p) => p.department_id === department_id)
-                        .map((p) => ({ label: p.name, value: p.id }))
-                    : positionOptions
-                }
-              />
+              <TreeSelect treeData={treeData} treeDefaultExpandAll allowClear placeholder="选择部门" />
             </ProForm.Item>
+          </Col>
+          <Col span={12}>
+            <ProFormDependency name={['department_id']}>
+              {({ department_id }) => (
+                <ProForm.Item
+                  name="position_id"
+                  label="岗位"
+                  rules={[{ required: true, message: '请选择岗位' }]}
+                >
+                  <Select
+                    allowClear showSearch optionFilterProp="label"
+                    placeholder="选择岗位"
+                    options={
+                      department_id
+                        ? positions.filter((p) => p.department_id === department_id).map((p) => ({ label: p.name, value: p.id }))
+                        : positionOptions
+                    }
+                  />
+                </ProForm.Item>
+              )}
+            </ProFormDependency>
+          </Col>
+          <Col span={12}>
+            <ProForm.Item name="user_id" label="关联用户">
+              <UserSelect placeholder="选择关联的系统用户" />
+            </ProForm.Item>
+          </Col>
+        </Row>
+
+        <Divider orientation="left" orientationMargin={0}>联系方式</Divider>
+        <Row gutter={24}>
+          <Col span={12}>
+            <ProFormText name="phone" label="手机" placeholder="选填" />
+          </Col>
+          <Col span={12}>
+            <ProFormText name="email" label="邮箱" placeholder="选填" rules={[{ type: 'email', message: '邮箱格式不正确' }]} />
+          </Col>
+        </Row>
+
+        <Divider orientation="left" orientationMargin={0}>日期信息</Divider>
+        <Row gutter={24}>
+          <Col span={12}>
+            <ProForm.Item name="entry_date" label="入职日期">
+              <DatePicker style={{ width: '100%' }} placeholder="选择入职日期" />
+            </ProForm.Item>
+          </Col>
+          {editing && (
+            <Col span={12}>
+              <ProForm.Item name="resign_date" label="离职日期">
+                <DatePicker style={{ width: '100%' }} placeholder="选择离职日期" />
+              </ProForm.Item>
+            </Col>
           )}
-        </ProFormDependency>
-        <ProFormRadio.Group
-          name="gender"
-          label="性别"
-          options={[
-            { label: '男', value: 1 },
-            { label: '女', value: 2 },
-          ]}
-          colProps={{ span: 12 }}
-        />
-        <ProFormText name="phone" label="手机" placeholder="选填" colProps={{ span: 12 }} />
-        <ProFormText name="email" label="邮箱" placeholder="选填" colProps={{ span: 12 }} />
-        <ProForm.Item name="entry_date" label="入职日期" colProps={{ span: 12 }}>
-          <DatePicker style={{ width: '100%' }} placeholder="选择入职日期" />
-        </ProForm.Item>
-        {editing && (
-          <ProForm.Item name="resign_date" label="离职日期" colProps={{ span: 12 }}>
-            <DatePicker style={{ width: '100%' }} placeholder="选择离职日期" />
-          </ProForm.Item>
-        )}
-        <ProForm.Item name="user_id" label="关联用户" colProps={{ span: 12 }}>
-          <UserSelect placeholder="选择关联的系统用户" />
-        </ProForm.Item>
-        <ProFormRadio.Group
-          name="status"
-          label="状态"
-          rules={[{ required: true, message: '请选择状态' }]}
-          options={[
-            { label: '在职', value: 1 },
-            { label: '离职', value: 0 },
-          ]}
-          colProps={{ span: 12 }}
-        />
+        </Row>
+
+        <Divider orientation="left" orientationMargin={0}>备注</Divider>
         <ProFormTextArea
           name="remark"
           label="备注"
           placeholder="选填"
           fieldProps={{ rows: 2 }}
-          colProps={{ span: 24 }}
         />
       </ModalForm>
       <Drawer

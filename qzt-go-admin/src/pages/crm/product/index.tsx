@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import {
   App,
   Button,
+  Col,
   Form,
   Image,
   InputNumber,
@@ -258,35 +259,46 @@ export default function ProductPage() {
           colProps={{ span: 12 }}
         />
         <ProFormText name="product_no" label="产品编号" placeholder="产品编号" colProps={{ span: 12 }} />
-        <ProForm.Item name="category" label="分类" colProps={{ span: 12 }}>
-          <DictSelect code="PRODUCT_CATEGORY" placeholder="请选择分类" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="category" label="分类">
+            <DictSelect code="PRODUCT_CATEGORY" placeholder="请选择分类" />
+          </ProForm.Item>
+        </Col>
         <ProFormText name="unit" label="单位" placeholder="如 套/个/年" colProps={{ span: 12 }} />
-        <ProForm.Item name="standard_price" label="标准价" colProps={{ span: 12 }}>
-          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="标准价" />
-        </ProForm.Item>
-        <ProForm.Item name="cost_price" label="成本价" colProps={{ span: 12 }}>
-          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="成本价" />
-        </ProForm.Item>
-        <ProForm.Item
-          name="status"
-          label="状态"
-          rules={[{ required: true, message: '请选择状态' }]}
-          colProps={{ span: 12 }}
-        >
-          <Radio.Group
-            options={[
-              { label: '上架', value: 1 },
-              { label: '下架', value: 2 },
-            ]}
-          />
-        </ProForm.Item>
-        <ProForm.Item name="image_url" label="产品主图" colProps={{ span: 24 }}>
-          <ImageUpload folder="product" />
-        </ProForm.Item>
-        <ProForm.Item name="description" label="产品详情(Markdown)" colProps={{ span: 24 }}>
-          <MarkdownEditor height={400} placeholder="支持 Markdown 语法编写产品详情" />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="standard_price" label="标准价">
+            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="标准价" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="cost_price" label="成本价">
+            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="成本价" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item
+            name="status"
+            label="状态"
+            rules={[{ required: true, message: '请选择状态' }]}
+          >
+            <Radio.Group
+              options={[
+                { label: '上架', value: 1 },
+                { label: '下架', value: 2 },
+              ]}
+            />
+          </ProForm.Item>
+        </Col>
+        <Col span={24}>
+          <ProForm.Item name="image_url" label="产品主图">
+            <ImageUpload folder="product" />
+          </ProForm.Item>
+        </Col>
+        <Col span={24}>
+          <ProForm.Item name="description" label="产品详情(Markdown)">
+            <MarkdownEditor height={400} placeholder="支持 Markdown 语法编写产品详情" />
+          </ProForm.Item>
+        </Col>
       </ModalForm>
     </>
   )

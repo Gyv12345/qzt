@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   App,
   Button,
+  Col,
   Form,
   Input,
   Popconfirm,
@@ -313,26 +314,32 @@ export default function ArticlePage() {
           placeholder="英文别名,留空自动生成"
           colProps={{ span: 12 }}
         />
-        <ProForm.Item name="category_id" label="分类" colProps={{ span: 12 }}>
-          <TreeSelect
-            treeData={categoryTreeData}
-            allowClear
-            placeholder="选择分类"
-            treeDefaultExpandAll
-          />
-        </ProForm.Item>
-        <ProForm.Item name="tag_ids" label="标签" colProps={{ span: 12 }}>
-          <Select mode="multiple" allowClear placeholder="选择标签" options={tagOptions} />
-        </ProForm.Item>
+        <Col span={12}>
+          <ProForm.Item name="category_id" label="分类">
+            <TreeSelect
+              treeData={categoryTreeData}
+              allowClear
+              placeholder="选择分类"
+              treeDefaultExpandAll
+            />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="tag_ids" label="标签">
+            <Select mode="multiple" allowClear placeholder="选择标签" options={tagOptions} />
+          </ProForm.Item>
+        </Col>
         <ProForm.Item name="cover_url" hidden noStyle>
           <Input />
         </ProForm.Item>
-        <ProForm.Item label="封面" colProps={{ span: 24 }}>
-          <ImageUpload folder="article" value={coverUrl} onChange={(url) => {
-            form.setFieldValue('cover_url', url)
-            message.success('封面已上传')
-          }} />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item label="封面">
+            <ImageUpload folder="article" value={coverUrl} onChange={(url) => {
+              form.setFieldValue('cover_url', url)
+              message.success('封面已上传')
+            }} />
+          </ProForm.Item>
+        </Col>
         <ProFormTextArea
           name="summary"
           label="摘要"
@@ -340,23 +347,31 @@ export default function ArticlePage() {
           placeholder="文章摘要"
           colProps={{ span: 24 }}
         />
-        <ProForm.Item name="content" label="内容" colProps={{ span: 24 }}>
-          <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
-        </ProForm.Item>
-        <ProForm.Item name="status" label="状态" colProps={{ span: 12 }}>
-          <Radio.Group
-            options={[
-              { label: '草稿', value: 0 },
-              { label: '已发布', value: 1 },
-            ]}
-          />
-        </ProForm.Item>
-        <ProForm.Item name="is_top" label="置顶" valuePropName="checked" colProps={{ span: 6 }}>
-          <Switch />
-        </ProForm.Item>
-        <ProForm.Item name="is_hot" label="热门" valuePropName="checked" colProps={{ span: 6 }}>
-          <Switch />
-        </ProForm.Item>
+        <Col span={24}>
+          <ProForm.Item name="content" label="内容">
+            <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="status" label="状态">
+            <Radio.Group
+              options={[
+                { label: '草稿', value: 0 },
+                { label: '已发布', value: 1 },
+              ]}
+            />
+          </ProForm.Item>
+        </Col>
+        <Col span={6}>
+          <ProForm.Item name="is_top" label="置顶" valuePropName="checked">
+            <Switch />
+          </ProForm.Item>
+        </Col>
+        <Col span={6}>
+          <ProForm.Item name="is_hot" label="热门" valuePropName="checked">
+            <Switch />
+          </ProForm.Item>
+        </Col>
         <ProFormDigit
           name="sort"
           label="排序"
