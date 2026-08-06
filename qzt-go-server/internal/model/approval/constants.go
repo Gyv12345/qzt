@@ -121,7 +121,7 @@ var FormTable = map[string]string{
 	FormTypeContract:  "crm_contract",
 	FormTypeQuotation: "crm_quotation",
 	FormTypeOrder:     "crm_order",
-	FormTypeInvoice:   "crm_contract_invoice",
+	FormTypeInvoice:   "fin_invoice", // 修复:原 "crm_contract_invoice" 表不存在
 
 	// PSI 进销存单据(审批引擎据此把 approval_status 写回业务表)
 	FormTypePurchaseOrder:  "psi_purchase_order",

@@ -356,21 +356,40 @@ func (s *ApprovalService) resolveApprovers(ctx context.Context, node *apprmodel.
 		return nil, nil // 无配置 = 空审批人
 	}
 
-	// 按 approverType 解析(当前实现 MEMBER 和 ROLE)
+	// 按 approverType 解析
 	switch cfg.ApproverType {
 	case apprmodel.ApproverTypeMember:
 		return parseUintArray(cfg.ApproverList), nil
+	case apprmodel.ApproverTypeDeptHead, apprmodel.ApproverTypeMultipleDeptHead:
+		// DEPT_HEAD:提交人 → sys_user.dept_id → hrm_department.leader_id
+		return resolveDeptHead(ctx, submitterID)
 	case apprmodel.ApproverTypeRole:
 		// ROLE 类型:approverList 是 role_id 数组,需查 sys_user_role 解析
-		// 简化:暂返回空(后续对接用户角色查询)
 		return nil, nil
 	case apprmodel.ApproverTypeSuperior:
-		// SUPERIOR:查提交人的 leader_id
-		// 简化:暂返回空(后续对接 sys_user.leader_id)
+		// SUPERIOR:查提交人的 leader_id(sys_user 暂无此字段)
 		return nil, nil
 	default:
 		return parseUintArray(cfg.ApproverList), nil
 	}
+}
+
+// resolveDeptHead 解析部门负责人:submitterID → sys_user.dept_id → hrm_department.leader_id。
+func resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
+	if submitterID == 0 {
+		return nil, nil
+	}
+	var deptID *uint
+	repoDB(ctx).Table("sys_user").Where("id = ?", submitterID).Select("dept_id").Scan(&deptID)
+	if deptID == nil || *deptID == 0 {
+		return nil, nil
+	}
+	var leaderID *uint
+	repoDB(ctx).Table("hrm_department").Where("id = ? AND status = 1", *deptID).Select("leader_id").Scan(&leaderID)
+	if leaderID == nil || *leaderID == 0 {
+		return nil, nil
+	}
+	return []uint{*leaderID}, nil
 }
 
 // getNodeRound 获取节点当前轮次(该实例该节点的最大 round + 1,首次为 1)。

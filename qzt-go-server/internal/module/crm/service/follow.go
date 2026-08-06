@@ -18,16 +18,20 @@ import (
 
 // FollowService 跟进服务。
 type FollowService struct {
-	recordRepo  *crrepo.FollowUpRecordRepo
-	planRepo    *crrepo.FollowUpPlanRepo
-	customerSvc *CustomerService
+	recordRepo     *crrepo.FollowUpRecordRepo
+	planRepo       *crrepo.FollowUpPlanRepo
+	customerSvc    *CustomerService
+	opportunitySvc *OpportunityService
+	contractSvc    *ContractService
 }
 
 func NewFollowService() *FollowService {
 	return &FollowService{
-		recordRepo:  crrepo.NewFollowUpRecordRepo(),
-		planRepo:    crrepo.NewFollowUpPlanRepo(),
-		customerSvc: NewCustomerService(),
+		recordRepo:     crrepo.NewFollowUpRecordRepo(),
+		planRepo:       crrepo.NewFollowUpPlanRepo(),
+		customerSvc:    NewCustomerService(),
+		opportunitySvc: NewOpportunityService(),
+		contractSvc:    NewContractService(),
 	}
 }
 
@@ -64,10 +68,20 @@ func (s *FollowService) CreateRecord(ctx context.Context, req *CreateRecordReque
 	if err := s.recordRepo.Create(ctx, rec); err != nil {
 		return nil, err
 	}
-	// 联动更新客户跟进人/时间(REQUIRES_NEW 语义:失败仅记日志不回滚)
+	// 联动更新跟进人/时间(REQUIRES_NEW 语义:失败仅记日志不回滚)
 	if req.CustomerID != nil {
 		if err := s.customerSvc.UpdateFollow(ctx, *req.CustomerID, req.OwnerID, req.FollowTime.Time()); err != nil {
 			xlogger.ErrorfCtx(ctx, "更新客户跟进信息失败 customerID=%d: %v", *req.CustomerID, err)
+		}
+	}
+	if req.OpportunityID != nil {
+		if err := s.opportunitySvc.UpdateFollow(ctx, *req.OpportunityID, req.OwnerID, req.FollowTime.Time()); err != nil {
+			xlogger.ErrorfCtx(ctx, "更新商机跟进信息失败 opportunityID=%d: %v", *req.OpportunityID, err)
+		}
+	}
+	if req.ContractID != nil {
+		if err := s.contractSvc.UpdateFollow(ctx, *req.ContractID, req.OwnerID, req.FollowTime.Time()); err != nil {
+			xlogger.ErrorfCtx(ctx, "更新合同跟进信息失败 contractID=%d: %v", *req.ContractID, err)
 		}
 	}
 	return rec, nil

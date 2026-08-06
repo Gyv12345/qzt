@@ -6,13 +6,28 @@ import (
 
 	"github.com/shopspring/decimal"
 
+	"qzt-go-server/internal/model"
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
 )
+
+// contractFieldDefs 合同可对比的业务字段(CrmContract 实际存在的字段)。
+// 注意:金额字段是 TotalAmount(不是 Amount)。
+var contractFieldDefs = []diff.FieldDef{
+	{Name: "Name", Label: "合同名称"},
+	{Name: "CustomerID", Label: "客户"},
+	{Name: "OpportunityID", Label: "商机"},
+	{Name: "TotalAmount", Label: "合同金额"},
+	{Name: "Stage", Label: "阶段"},
+	{Name: "OwnerID", Label: "负责人"},
+	{Name: "SignedDate", Label: "签订日期"},
+	{Name: "Content", Label: "合同内容"},
+}
 
 // contract.go 合同服务:CRUD + 跟进联动。回款累计逻辑见 payment.go。
 
@@ -93,11 +108,13 @@ type UpdateContractRequest struct {
 }
 
 // Update 更新合同。
-func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContractRequest) error {
+func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContractRequest, operatorID uint) error {
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "合同不存在")
 	}
+	// 复制旧值快照(用于 diff)
+	oldSnapshot := *c
 	c.Name = req.Name
 	c.CustomerID = req.CustomerID
 	c.OpportunityID = req.OpportunityID
@@ -112,7 +129,16 @@ func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContra
 	}
 	c.OwnerID = req.OwnerID
 	c.Content = req.Content
-	return s.repo.Update(ctx, c)
+	// diff 字段变更
+	changes := diff.DiffStructs(&oldSnapshot, c, contractFieldDefs)
+
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.repo.Update(ctx, c); err != nil {
+			return err
+		}
+		recordChanges(ctx, model.BizTypeContract, id, operatorID, changes)
+		return nil
+	})
 }
 
 // Delete 删除合同。

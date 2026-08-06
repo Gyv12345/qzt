@@ -27,6 +27,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	apiHandler := handler.NewAPIHandler()
 	dictHandler := handler.NewDictHandler()
 	operationLogHandler := handler.NewOperationLogHandler()
+	loginLogHandler := handler.NewLoginLogHandler()
+	resetHandler := handler.NewResetHandler()
 	configHandler := handler.NewConfigHandler()
 	oauthConfigHandler := handler.NewOauthConfigHandler()
 	storageConfigHandler := handler.NewStorageConfigHandler()
@@ -118,6 +120,12 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/operation-logs/:id", operationLogHandler.GetByID)
 		auth.DELETE("/operation-logs/:id", operationLogHandler.Delete)
 		auth.DELETE("/operation-logs", operationLogHandler.Clear)
+
+		// 登录日志（审计）
+		auth.GET("/login-logs", loginLogHandler.List)
+
+		// 系统重置（超管专用，一键清理业务数据）
+		auth.POST("/reset", resetHandler.ResetBusinessData)
 
 		// 系统配置
 		auth.GET("/configs", configHandler.List)

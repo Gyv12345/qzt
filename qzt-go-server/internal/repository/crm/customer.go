@@ -3,6 +3,8 @@ package crm
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/repository"
 )
@@ -56,6 +58,41 @@ func (r *CustomerContactRepo) ListByCustomer(ctx context.Context, customerID uin
 		Where: map[string]interface{}{"customer_id": customerID},
 		Order: []string{"id ASC"},
 	})
+}
+
+// ContactListRow 联系人列表行(含客户名)。
+type ContactListRow struct {
+	crmmodel.CrmCustomerContact
+	CustomerName string `json:"customer_name"`
+}
+
+// PageListAll 全局联系人分页(跨客户,关键词搜姓名/电话/邮箱,带客户名)。
+func (r *CustomerContactRepo) PageListAll(ctx context.Context, page, pageSize int, keyword, customerID string) ([]ContactListRow, int64, error) {
+	db := repository.DBFrom(ctx).Table("crm_customer_contact AS c").
+		Select("c.*, cust.name AS customer_name").
+		Joins("LEFT JOIN crm_customer AS cust ON cust.id = c.customer_id").
+		Where("c.deleted_at IS NULL")
+
+	if keyword != "" {
+		like := "%" + keyword + "%"
+		db = db.Where("c.name LIKE ? OR c.phone LIKE ? OR c.email LIKE ? OR c.position LIKE ?", like, like, like, like)
+	}
+	if customerID != "" {
+		db = db.Where("c.customer_id = ?", customerID)
+	}
+
+	var total int64
+	if err := db.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var rows []ContactListRow
+	if err := db.Order("c.id DESC").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Scan(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
 }
 
 // ── 协作 ──

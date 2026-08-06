@@ -14,6 +14,7 @@ type PsiSalesOrder struct {
 	ID             uint            `json:"id" gorm:"primaryKey"`
 	OrderNo        string          `json:"order_no" gorm:"size:64;uniqueIndex:uk_order_no;not null;comment:销售单号"`
 	CustomerID     uint            `json:"customer_id" gorm:"index;not null;comment:客户ID(引用crm_customer.id)"`
+	ContractID     *uint           `json:"contract_id" gorm:"index;comment:关联合同ID(引用crm_contract.id)"`
 	WarehouseID    uint            `json:"warehouse_id" gorm:"index;not null;comment:出库仓库ID"`
 	OrderDate      xtime.NullDateTime `json:"order_date" gorm:"type:datetime;comment:销售日期"`
 	TotalQuantity  decimal.Decimal `json:"total_quantity" gorm:"type:decimal(14,3);default:0;comment:合计数量"`

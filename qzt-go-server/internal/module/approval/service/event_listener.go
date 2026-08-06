@@ -3,8 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xevent"
+	"qzt-go-server/pkg/xlogger"
 )
 
 // event_listener.go 审批引擎事件监听器。
@@ -47,6 +51,24 @@ func RegisterEventListeners(ctx context.Context) error {
 		title := "审批结果通知"
 		if err := msgSvc.SendSystemMessage(ctx, submitterID, title, message); err != nil {
 			// 失败仅记日志
+		}
+
+		// ── 跨模块业务回调:审批通过→自动更新业务阶段 ──
+		resourceType, _ := m["resource_type"].(string)
+		resourceID, _ := m["resource_id"].(uint)
+		if resourceID == 0 {
+			return
+		}
+		if strings.Contains(message, "通过") {
+			switch resourceType {
+			case "CONTRACT":
+				// 合同审批通过 → stage 改为 SIGNED
+				if err := repository.DBFrom(ctx).Model(&crmmodel.CrmContract{}).
+					Where("id = ?", resourceID).
+					UpdateColumn("stage", crmmodel.ContractStageSigned).Error; err != nil {
+					xlogger.ErrorfCtx(ctx, "审批回调:合同阶段更新失败 contract_id=%d: %v", resourceID, err)
+				}
+			}
 		}
 	})
 

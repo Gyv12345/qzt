@@ -35,6 +35,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	stageHandler := handler.NewStageHandler()
 	contractTemplateHandler := handler.NewContractTemplateHandler()
 	contractItemHandler := handler.NewContractItemHandler()
+	collabHandler := handler.NewCollaborationHandler()
+	handoverHandler := handler.NewHandoverHandler()
+	changeLogHandler := handler.NewChangeLogHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -70,6 +73,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 合同回款汇总
 		authenticated.GET("/contracts/:id/payment-summary", paymentHandler.PaymentSummary)
+
+		// 字段变更历史(按 biz_type + resource_id 查询)
+		authenticated.GET("/field-changes", changeLogHandler.List)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):CRUD 与写操作。
@@ -89,9 +95,19 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 联系人(子资源:customers/:id/contacts,参数名用 id 与客户路由一致避免 Gin 路由冲突)
 		auth.GET("/customers/:id/contacts", contactHandler.ListByCustomer)
 		auth.POST("/customers/:id/contacts", contactHandler.Create)
+		auth.GET("/contacts", contactHandler.ListAll) // 全局联系人列表(独立管理页)
 		auth.GET("/contacts/:id", contactHandler.GetByID)
 		auth.PUT("/contacts/:id", contactHandler.Update)
 		auth.DELETE("/contacts/:id", contactHandler.Delete)
+
+		// 客户团队协作
+		auth.GET("/customers/:id/collaborations", collabHandler.List)
+		auth.POST("/customers/:id/collaborations", collabHandler.Add)
+		auth.PUT("/collaborations/:id", collabHandler.Update)
+		auth.DELETE("/collaborations/:id", collabHandler.Delete)
+
+		// 离职交接:批量转移用户名下的业务资源
+		auth.POST("/handover", handoverHandler.Handover)
 
 		// 商机管理
 		auth.GET("/opportunities", opportunityHandler.List)

@@ -63,7 +63,7 @@ func (h *LeadHandler) Update(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	if err := h.svc.Update(c.Request.Context(), uint(id), &req); err != nil {
+	if err := h.svc.Update(c.Request.Context(), uint(id), &req, middleware.GetUserID(c)); err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}

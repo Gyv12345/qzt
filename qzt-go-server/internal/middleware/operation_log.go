@@ -122,6 +122,22 @@ func RecordLogin(c *gin.Context, action string, userID uint, username string, su
 	if err := repository.NewOperationLogRepo().Create(ctx, entry); err != nil {
 		app.Log.Errorw("write login log failed", "username", username, "err", err)
 	}
+
+	// 同时写入独立登录日志表(sys_login_log)
+	loginLog := &model.SysLoginLog{
+		UserID:    userID,
+		Username:  username,
+		Action:    action,
+		Success:   success,
+		ClientIP:  c.ClientIP(),
+		UserAgent: c.Request.UserAgent(),
+		ErrorMsg:  errMsg,
+	}
+	if db := repository.DBFrom(ctx); db != nil {
+		if err := db.Create(loginLog).Error; err != nil {
+			app.Log.Errorw("write sys_login_log failed", "username", username, "err", err)
+		}
+	}
 }
 
 // getTraceID 从 gin context 取 trace_id（Trace 中间件以 xauth.XTraceId 写入）。

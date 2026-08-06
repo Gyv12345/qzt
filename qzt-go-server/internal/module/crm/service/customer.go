@@ -7,13 +7,24 @@ import (
 
 	"gorm.io/gorm"
 
+	"qzt-go-server/internal/model"
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xtime"
 )
+
+// customerFieldDefs 客户可对比的业务字段(CrmCustomer 实际存在的字段)。
+var customerFieldDefs = []diff.FieldDef{
+	{Name: "Name", Label: "客户名称"},
+	{Name: "Level", Label: "级别"},
+	{Name: "Source", Label: "来源"},
+	{Name: "Industry", Label: "行业"},
+	{Name: "Status", Label: "状态"},
+}
 
 // customer.go 客户服务:CRUD + 联系人 + 协作 + 公海操作 + 自定义字段。
 
@@ -163,7 +174,7 @@ type UpdateCustomerRequest struct {
 }
 
 // Update 更新客户(含自定义字段值,先删后写)。
-func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustomerRequest) error {
+func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustomerRequest, operatorID uint) error {
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "客户不存在")
@@ -180,6 +191,8 @@ func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustom
 			return errors.New("客户名称已存在")
 		}
 	}
+	// 复制旧值快照(用于 diff)
+	oldSnapshot := *customer
 	customer.Name = req.Name
 	customer.Level = req.Level
 	customer.Source = req.Source
@@ -187,11 +200,14 @@ func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustom
 	if req.Status != nil {
 		customer.Status = *req.Status
 	}
+	// diff 字段变更
+	changes := diff.DiffStructs(&oldSnapshot, customer, customerFieldDefs)
 
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.repo.Update(ctx, customer); err != nil {
 			return err
 		}
+		recordChanges(ctx, model.BizTypeCustomer, id, operatorID, changes)
 		if req.Fields != nil {
 			return s.fieldSvc.SaveCustomerValues(ctx, formatResourceID(id), req.Fields)
 		}

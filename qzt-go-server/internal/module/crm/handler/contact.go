@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"qzt-go-server/internal/module/crm/service"
+	syservice "qzt-go-server/internal/module/system/service"
 	"qzt-go-server/internal/module/system/errcode"
 	response "qzt-go-server/pkg/xresponse"
 )
@@ -140,4 +141,22 @@ func (h *ContactHandler) ListByCustomer(c *gin.Context) {
 		return
 	}
 	response.OK(c, list)
+}
+
+// ListAll 全局联系人分页(跨客户)。
+func (h *ContactHandler) ListAll(c *gin.Context) {
+	p := syservice.GetPagination(c)
+	keyword := c.Query("keyword")
+	customerID := c.Query("customer_id")
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword, customerID)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, gin.H{
+		"list":  list,
+		"total": total,
+		"page":  p.Page,
+		"size":  p.PageSize,
+	})
 }

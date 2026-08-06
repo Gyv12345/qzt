@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -10,6 +11,7 @@ import (
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
+	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -167,6 +169,19 @@ func (s *PaymentService) CreateRecord(ctx context.Context, req *CreatePaymentRec
 	if err != nil {
 		return nil, err
 	}
+
+	// 事务成功后发事件:通知财务模块自动生成凭证(事务外,失败不影响回款)
+	dateStr := ""
+	if !rec.ReceivedDate.IsZero() {
+		dateStr = time.Time(rec.ReceivedDate).Format("2006-01-02")
+	}
+	xevent.Publish(ctx, "crm.payment.created", map[string]any{
+		"record_id":     rec.ID,
+		"contract_id":   req.ContractID,
+		"amount":        req.Amount.String(),
+		"received_date": dateStr,
+	})
+
 	return rec, nil
 }
 

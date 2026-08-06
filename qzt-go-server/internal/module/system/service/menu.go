@@ -142,6 +142,23 @@ func (s *MenuService) GetUserMenuTree(ctx context.Context, userID uint) ([]*mode
 		return nil, notFoundOr(err, "用户不存在")
 	}
 
+	// 超管直接返回所有菜单(与其他权限检查的超管旁路一致)
+	for _, role := range user.Roles {
+		if role.Code == model.SuperAdminRoleCode {
+			all, err := s.menuRepo.ListAll(ctx)
+			if err != nil {
+				return nil, err
+			}
+			visible := make([]model.SysMenu, 0, len(all))
+			for _, m := range all {
+				if m.Type <= 1 && m.Visible == 1 && m.Status == 1 {
+					visible = append(visible, m)
+				}
+			}
+			return repository.BuildMenuTree(visible, 0), nil
+		}
+	}
+
 	menuIDSet := make(map[uint]bool)
 	for _, role := range user.Roles {
 		menus, err := s.roleRepo.GetMenusByRoleID(ctx, role.ID)

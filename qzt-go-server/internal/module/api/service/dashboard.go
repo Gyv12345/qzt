@@ -172,9 +172,11 @@ func (s *DashboardService) FinanceSummary(ctx context.Context, startDate, endDat
 	rq = applyDateRange(rq, "received_date", startDate, endDate)
 	rq.Select("COALESCE(SUM(amount),0)").Scan(&data.ReceivedAmount)
 
-	// 库存总值(数量*成本)
-	db.Table("psi_stock").
-		Select("COALESCE(SUM(quantity * unit_cost),0)").Scan(&data.StockValue)
+	// 库存总值(在手数量 × 商品成本价,关联 crm_product.cost_price)
+	db.Table("psi_stock AS s").
+		Joins("LEFT JOIN crm_product AS p ON p.id = s.product_id").
+		Where("s.deleted_at IS NULL").
+		Select("COALESCE(SUM(s.quantity * p.cost_price),0)").Scan(&data.StockValue)
 
 	return data, nil
 }
@@ -433,8 +435,9 @@ func (s *DashboardService) StockValueByWarehouse(ctx context.Context) ([]struct 
 		Quantity   decimal.Decimal `json:"quantity"`
 	}
 	err := repository.DBFrom(ctx).Table("psi_stock AS s").
-		Select("COALESCE(w.name,'未知') AS warehouse, COALESCE(SUM(s.quantity * s.unit_cost),0) AS stock_value, COALESCE(SUM(s.quantity),0) AS quantity").
+		Select("COALESCE(w.name,'未知') AS warehouse, COALESCE(SUM(s.quantity * p.cost_price),0) AS stock_value, COALESCE(SUM(s.quantity),0) AS quantity").
 		Joins("LEFT JOIN psi_warehouse AS w ON w.id = s.warehouse_id").
+		Joins("LEFT JOIN crm_product AS p ON p.id = s.product_id").
 		Where("s.deleted_at IS NULL").
 		Group("w.id").Order("stock_value DESC").Scan(&rows).Error
 	return rows, err

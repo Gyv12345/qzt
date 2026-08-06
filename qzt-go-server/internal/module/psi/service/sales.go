@@ -41,6 +41,7 @@ type SalesOrderItemRequest = PurchaseOrderItemRequest
 // CreateSalesOrderRequest 创建销售单请求。
 type CreateSalesOrderRequest struct {
 	CustomerID     uint                     `json:"customer_id" binding:"required"`
+	ContractID     *uint                    `json:"contract_id"`
 	WarehouseID    uint                     `json:"warehouse_id" binding:"required"`
 	OrderDate      string                   `json:"order_date"`
 	DiscountAmount decimal.Decimal          `json:"discount_amount"`
@@ -59,6 +60,7 @@ func (s *SalesService) Create(ctx context.Context, req *CreateSalesOrderRequest,
 	order := &psimodel.PsiSalesOrder{
 		OrderNo:        genOrderNo(prefixSalesOrder),
 		CustomerID:     req.CustomerID,
+		ContractID:     req.ContractID,
 		WarehouseID:    req.WarehouseID,
 		OrderDate:      parseNullDate(req.OrderDate),
 		DiscountAmount: req.DiscountAmount,
@@ -127,6 +129,7 @@ func (s *SalesService) Update(ctx context.Context, id uint, req *CreateSalesOrde
 	}
 
 	o.CustomerID = req.CustomerID
+	o.ContractID = req.ContractID
 	o.WarehouseID = req.WarehouseID
 	o.OrderDate = parseNullDate(req.OrderDate)
 	o.DiscountAmount = req.DiscountAmount

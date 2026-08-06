@@ -5,13 +5,28 @@ import (
 	"errors"
 	"time"
 
+	"qzt-go-server/internal/model"
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xtime"
 )
+
+// leadFieldDefs 线索可对比的业务字段(CrmLead 实际存在的字段)。
+var leadFieldDefs = []diff.FieldDef{
+	{Name: "Name", Label: "线索名称"},
+	{Name: "ContactName", Label: "联系人"},
+	{Name: "Phone", Label: "电话"},
+	{Name: "Email", Label: "邮箱"},
+	{Name: "Company", Label: "公司"},
+	{Name: "Level", Label: "级别"},
+	{Name: "Source", Label: "来源"},
+	{Name: "Industry", Label: "行业"},
+	{Name: "Status", Label: "状态"},
+}
 
 // lead.go 线索服务:CRUD + 公海操作(领取/释放/转移) + 转化为客户。
 // 公海生命周期逻辑逐行镜像 customer.go。
@@ -107,11 +122,13 @@ type UpdateLeadRequest struct {
 }
 
 // Update 更新线索。
-func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadRequest) error {
+func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadRequest, operatorID uint) error {
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "线索不存在")
 	}
+	// 复制旧值快照(用于 diff)
+	oldSnapshot := *lead
 	lead.Name = req.Name
 	lead.ContactName = req.ContactName
 	lead.Phone = req.Phone
@@ -123,7 +140,16 @@ func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadReques
 	if req.Status != nil {
 		lead.Status = *req.Status
 	}
-	return s.repo.Update(ctx, lead)
+	// diff 字段变更
+	changes := diff.DiffStructs(&oldSnapshot, lead, leadFieldDefs)
+
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.repo.Update(ctx, lead); err != nil {
+			return err
+		}
+		recordChanges(ctx, model.BizTypeLead, id, operatorID, changes)
+		return nil
+	})
 }
 
 // Delete 删除线索。

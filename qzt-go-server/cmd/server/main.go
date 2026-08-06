@@ -12,12 +12,14 @@ import (
 
 	"qzt-go-server/config"
 	"qzt-go-server/internal/app"
+	aimod "qzt-go-server/internal/module/ai"
 	mcpmod "qzt-go-server/internal/mcp"
 	apimod "qzt-go-server/internal/module/api"
 	apprmod "qzt-go-server/internal/module/approval"
 	apprsvc "qzt-go-server/internal/module/approval/service"
 	"qzt-go-server/internal/module/cms"
 	crmmod "qzt-go-server/internal/module/crm"
+	crmsvc "qzt-go-server/internal/module/crm/service"
 	finmod "qzt-go-server/internal/module/finance"
 	entmod "qzt-go-server/internal/module/enterprise"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
@@ -57,7 +59,7 @@ func main() {
 	// 数据库表结构和种子数据请通过 docs/sql/ 下的 SQL 脚本手动执行。
 	setting.Warm(context.Background())
 
-	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance 模块）
+	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / ai 模块）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -68,14 +70,18 @@ func main() {
 		hrmmod.New(),
 		psimod.New(),
 		finmod.New(),
+		aimod.New(),
 	)
 
 	// 4.45 注册 MCP Server(挂载 /mcp 到 gin engine,API Key 认证)
 	mcpmod.StartMCP(router)
 
-	// 4.5 审批引擎:注入站内信客户端 + 注册事件监听器(审批任务分配/完成 → 站内信)
+	// 4.5 审批引擎:注入站内信客户端 + 注册事件监听器(审批任务分配/完成 → 站内信 + 业务回调)
 	apprsvc.SetMessageClient(entsvc.NewMessageService())
 	apprsvc.RegisterEventListeners(context.Background())
+
+	// 4.5.1 CRM 回款→财务凭证联动(回款创建后自动生成收入凭证)
+	crmsvc.RegisterPaymentListener(context.Background())
 
 	// 4.6 启动定时任务调度器(从 DB 加载已启用的任务)
 	scheduler := entsvc.NewJobScheduler()

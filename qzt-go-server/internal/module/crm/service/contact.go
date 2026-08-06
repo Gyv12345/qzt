@@ -91,3 +91,8 @@ func (s *ContactService) Delete(ctx context.Context, id uint) error {
 func (s *ContactService) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmCustomerContact, error) {
 	return s.repo.ListByCustomer(ctx, customerID)
 }
+
+// List 全局联系人分页(关键词搜姓名/电话/邮箱,带客户名)。
+func (s *ContactService) List(ctx context.Context, page, pageSize int, keyword, customerID string) ([]crrepo.ContactListRow, int64, error) {
+	return s.repo.PageListAll(ctx, page, pageSize, keyword, customerID)
+}

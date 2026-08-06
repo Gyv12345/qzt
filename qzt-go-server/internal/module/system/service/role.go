@@ -49,10 +49,11 @@ type CreateRoleRequest struct {
 }
 
 type UpdateRoleRequest struct {
-	Name   string `json:"name"`
-	Sort   int    `json:"sort"`
-	Status *int8  `json:"status"`
-	Remark string `json:"remark"`
+	Name      string `json:"name"`
+	Sort      int    `json:"sort"`
+	Status    *int8  `json:"status"`
+	DataScope *int8  `json:"data_scope"`
+	Remark    string `json:"remark"`
 }
 
 type SetRoleMenusRequest struct {
@@ -117,6 +118,9 @@ func (s *RoleService) Update(ctx context.Context, id uint, req *UpdateRoleReques
 	role.Sort = req.Sort
 	if req.Status != nil {
 		role.Status = *req.Status
+	}
+	if req.DataScope != nil {
+		role.DataScope = *req.DataScope
 	}
 	if req.Remark != "" {
 		role.Remark = req.Remark

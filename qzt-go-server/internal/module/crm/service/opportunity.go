@@ -7,13 +7,26 @@ import (
 
 	"github.com/shopspring/decimal"
 
+	"qzt-go-server/internal/model"
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
 )
+
+// opportunityFieldDefs 商机可对比的业务字段(CrmOpportunity 实际存在的字段)。
+var opportunityFieldDefs = []diff.FieldDef{
+	{Name: "Name", Label: "商机名称"},
+	{Name: "CustomerID", Label: "客户"},
+	{Name: "Stage", Label: "阶段"},
+	{Name: "Probability", Label: "成交概率"},
+	{Name: "OwnerID", Label: "负责人"},
+	{Name: "ExpectedAmount", Label: "预期金额"},
+	{Name: "Description", Label: "描述"},
+}
 
 // opportunity.go 商机服务:CRUD + 看板分组 + 阶段流转 + 跟进联动。
 
@@ -88,11 +101,13 @@ type UpdateOpportunityRequest struct {
 }
 
 // Update 更新商机(不含阶段流转,阶段走 ChangeStage)。
-func (s *OpportunityService) Update(ctx context.Context, id uint, req *UpdateOpportunityRequest) error {
+func (s *OpportunityService) Update(ctx context.Context, id uint, req *UpdateOpportunityRequest, operatorID uint) error {
 	opp, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "商机不存在")
 	}
+	// 复制旧值快照(用于 diff)
+	oldSnapshot := *opp
 	opp.Name = req.Name
 	opp.CustomerID = req.CustomerID
 	opp.ExpectedAmount = req.ExpectedAmount
@@ -103,7 +118,16 @@ func (s *OpportunityService) Update(ctx context.Context, id uint, req *UpdateOpp
 	opp.Probability = req.Probability
 	opp.OwnerID = req.OwnerID
 	opp.Description = req.Description
-	return s.repo.Update(ctx, opp)
+	// diff 字段变更
+	changes := diff.DiffStructs(&oldSnapshot, opp, opportunityFieldDefs)
+
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.repo.Update(ctx, opp); err != nil {
+			return err
+		}
+		recordChanges(ctx, model.BizTypeOpportunity, id, operatorID, changes)
+		return nil
+	})
 }
 
 // Delete 删除商机。
