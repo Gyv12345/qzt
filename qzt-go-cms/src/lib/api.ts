@@ -93,6 +93,16 @@ export function getPage(slug: string): Promise<CmsPage> {
   return request<CmsPage>(`/cms/public/pages/${encodeURIComponent(slug)}`);
 }
 
+/** 获取所有启用的单页(导航渲染用,含外链类型) */
+export async function getPages(): Promise<CmsPage[]> {
+  try {
+    const res = await request<CmsPage[]>("/cms/public/pages");
+    return res || [];
+  } catch {
+    return [];
+  }
+}
+
 // ── 站点配置 ──
 export function getPublicConfig(): Promise<SiteConfig> {
   return request<SiteConfig>("/api/configs/public");

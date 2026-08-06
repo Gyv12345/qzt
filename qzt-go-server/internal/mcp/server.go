@@ -52,6 +52,7 @@ func buildServer() *server.MCPServer {
 
 	// 注册 CRM tools
 	registerCustomerTools(s)
+	registerLeadTools(s)
 	registerOpportunityTools(s)
 	registerContractTools(s)
 	registerProductTools(s)

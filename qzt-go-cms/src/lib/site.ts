@@ -12,5 +12,4 @@ export const NAV = [
   { href: "/partners", label: "合作伙伴" },
   { href: "/team", label: "团队" },
   { href: "/news", label: "新闻动态" },
-  { href: "/about", label: "关于我们" },
 ] as const;

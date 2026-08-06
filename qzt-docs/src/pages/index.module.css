@@ -1,0 +1,317 @@
+/**
+ * 首页样式
+ */
+
+/* Hero 区域 */
+.heroBanner {
+  padding: 5rem 0 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%);
+}
+
+[data-theme='dark'] .heroBanner {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #3b6cff 0%, #2f54eb 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+
+.heroTitle {
+  font-size: 3.5rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 8px !important;
+  background: linear-gradient(135deg, #1a1a2e 0%, #3b6cff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme='dark'] .heroTitle {
+  background: linear-gradient(135deg, #fff 0%, #6ea8fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heroSubtitle {
+  font-size: 1.5rem;
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .heroSubtitle {
+  color: #aaa;
+}
+
+.heroDesc {
+  font-size: 1rem;
+  color: #888;
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+
+[data-theme='dark'] .heroDesc {
+  color: #888;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 技术栈标签 */
+.techStack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 36px;
+}
+
+.techBadge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 16px;
+  border: 1.5px solid;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme='dark'] .techBadge {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* 功能区 */
+.features {
+  padding: 4rem 0;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.featureCard {
+  padding: 28px;
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .featureCard {
+  background: #1e1e2e;
+  border-color: #333;
+}
+
+.featureCard:hover {
+  border-color: #3b6cff;
+  box-shadow: 0 8px 24px rgba(59, 108, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.featureIcon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.featureTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.featureDesc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+[data-theme='dark'] .featureDesc {
+  color: #999;
+}
+
+/* 收费模式区域 */
+.pricingSection {
+  padding: 4rem 0;
+}
+
+.pricingSubtitle {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #888;
+  margin-top: -2rem;
+  margin-bottom: 3rem;
+}
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.pricingCard {
+  position: relative;
+  padding: 32px 28px;
+  border-radius: 16px;
+  border: 2px solid #e8e8e8;
+  background: #fff;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+[data-theme='dark'] .pricingCard {
+  background: #1e1e2e;
+  border-color: #333;
+}
+
+.pricingCard:hover {
+  border-color: #3b6cff;
+  box-shadow: 0 8px 32px rgba(59, 108, 255, 0.1);
+  transform: translateY(-4px);
+}
+
+.pricingCardHighlight {
+  border-color: #3b6cff;
+  box-shadow: 0 4px 24px rgba(59, 108, 255, 0.15);
+}
+
+.pricingBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #3b6cff 0%, #2f54eb 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pricingIcon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.pricingTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.pricingPrice {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #3b6cff;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.pricingUnit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #999;
+}
+
+.pricingDesc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+[data-theme='dark'] .pricingDesc {
+  color: #999;
+}
+
+.pricingList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.pricingList li {
+  font-size: 13px;
+  color: #555;
+  line-height: 2;
+}
+
+[data-theme='dark'] .pricingList li {
+  color: #aaa;
+}
+
+.pricingNote {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 14px;
+  color: #888;
+}
+
+@media screen and (max-width: 996px) {
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CTA 区域 */
+.ctaSection {
+  padding: 4rem 0;
+  text-align: center;
+  background: #f0f5ff;
+}
+
+[data-theme='dark'] .ctaSection {
+  background: #16213e;
+}
+
+.ctaTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ctaDesc {
+  font-size: 1.1rem;
+  color: #888;
+  margin-bottom: 24px;
+}
+
+/* 响应式 */
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 3rem 1rem;
+  }
+  .heroTitle {
+    font-size: 2.5rem !important;
+  }
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -86,8 +86,11 @@ export interface CmsPage {
   id: number;
   title: string;
   slug: string;
+  link_type: "page" | "link";
+  external_url: string;
   content: string;
   status: number;
+  sort: number;
 }
 
 /** 站点公共配置 key->value */

@@ -84,6 +84,16 @@ func (h *PageHandler) PublicGetBySlug(c *gin.Context) {
 	response.OK(c, page)
 }
 
+// PublicList 公开列表(仅返回启用的单页,供官网导航渲染)。
+func (h *PageHandler) PublicList(c *gin.Context) {
+	list, err := h.svc.ListEnabled(c.Request.Context())
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, list)
+}
+
 // Create 创建单页
 // @Summary      创建单页
 // @Tags         单页管理

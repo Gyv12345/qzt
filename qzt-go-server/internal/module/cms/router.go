@@ -35,6 +35,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		public.GET("/categories", categoryHandler.PublicTree)
 		public.GET("/tags", tagHandler.PublicList)
 		public.GET("/pages/:slug", pageHandler.PublicGetBySlug)
+		public.GET("/pages", pageHandler.PublicList)
 	}
 
 	// 已认证路由（仅 JWT，无 RBAC）：下拉与树查询。

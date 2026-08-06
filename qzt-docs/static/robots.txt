@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# AI 爬虫显式放行
+User-agent: Bytespider
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://docs.devlovecode.com/sitemap.xml

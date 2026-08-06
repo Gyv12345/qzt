@@ -1,0 +1,35 @@
+# 企智通 · 一站式企业管理平台
+
+> 企智通(QZT)是一款面向中小企业的全功能企业管理平台,包含 CRM 客户管理、审批流程、进销存、财务、HRM、CMS、AI 助手等模块。软件免费,支持私有化部署,数据完全自主可控。
+
+## 产品模块
+
+- [CRM 客户关系管理](https://docs.devlovecode.com/modules/crm) — 线索→客户→商机→合同→回款全生命周期,公海池,团队协作,跟进管理
+- [审批流程中心](https://docs.devlovecode.com/modules/approval) — 可视化拖拽流程设计器,条件分支,会签加签,审批通过自动更新业务状态
+- [PSI 进销存](https://docs.devlovecode.com/modules/psi) — 采购,销售,库存,供应商,仓库,出入库流水实时联动
+- [财务管理](https://docs.devlovecode.com/modules/finance) — 会计科目,记账凭证,发票管理,回款自动生成财务凭证
+- [HRM 人事管理](https://docs.devlovecode.com/modules/hrm) — 组织架构,员工全生命周期,考勤薪资,离职一键交接
+- [AI 智能助手](https://docs.devlovecode.com/modules/ai) — 回访话术生成,跟进记录AI提取,日报周报,Agent可配置prompt,MCP协议
+- [系统管理](https://docs.devlovecode.com/modules/system) — 用户角色RBAC,数据权限,操作日志,业务编号,一键数据重置
+- [CMS 内容管理](https://docs.devlovecode.com/modules/cms) — Markdown富文本,分类标签,同步企业官网
+
+## 技术架构
+
+- [整体架构](https://docs.devlovecode.com/architecture/overview) — 后端为唯一数据源,admin/cms/mobile 三端消费
+- [后端架构](https://docs.devlovecode.com/architecture/backend) — Go 1.25 + Gin + GORM + Casbin,模块化设计
+- [前端架构](https://docs.devlovecode.com/architecture/frontend) — React 19 + TypeScript + antd 5,动态路由,ISR
+- [数据库设计](https://docs.devlovecode.com/architecture/database) — MySQL,utf8mb4,软删除,SQL文件建表
+- [认证与权限](https://docs.devlovecode.com/architecture/auth) — JWT双令牌,Casbin RBAC,四级数据权限
+
+## 部署
+
+- [部署概述](https://docs.devlovecode.com/deployment/overview) — 四服务架构,nginx,Let's Encrypt
+- [后端部署](https://docs.devlovecode.com/deployment/server) — Go交叉编译,systemd
+- [前端部署](https://docs.devlovecode.com/deployment/admin) — Vite build,rsync
+
+## 技术栈
+
+后端: Go 1.25, Gin, GORM, Casbin, Redis, MySQL, Aliyun OSS
+前端: React 19, TypeScript, Vite 7, antd 5, ProComponents, Next.js 15, Tailwind CSS
+基础设施: nginx, pm2, systemd, Docker可选
+AI: OpenAI兼容接口(DeepSeek/通义千问/GPT), MCP协议

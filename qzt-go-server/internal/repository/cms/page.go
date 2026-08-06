@@ -18,7 +18,7 @@ func NewPageRepo() *PageRepo { return &PageRepo{} }
 
 // Update 仅更新基础列。
 func (r *PageRepo) Update(ctx context.Context, m *cmsmodel.CmsPage) error {
-	return r.BaseRepo.Update(ctx, m, "Title", "Slug", "Content", "Status", "Sort")
+	return r.BaseRepo.Update(ctx, m, "Title", "Slug", "LinkType", "ExternalURL", "Content", "Status", "Sort")
 }
 
 // GetBySlug 按 slug 查询单页（公开访问用）。

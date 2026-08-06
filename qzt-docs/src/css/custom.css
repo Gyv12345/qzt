@@ -1,0 +1,77 @@
+/**
+ * 全局自定义样式 - 企智通文档站
+ */
+
+:root {
+  --ifm-color-primary: #3b6cff;
+  --ifm-color-primary-dark: #2f54eb;
+  --ifm-color-primary-darker: #1d39c4;
+  --ifm-color-primary-darkest: #10239e;
+  --ifm-color-primary-light: #5b8aff;
+  --ifm-color-primary-lighter: #7da0ff;
+  --ifm-color-primary-lightest: #a3bcff;
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --ifm-heading-font-weight: 600;
+  --ifm-code-font-size: 90%;
+}
+
+/* 导航栏 */
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.navbar__link {
+  font-weight: 500;
+}
+
+/* 侧边栏 */
+.menu__link {
+  font-size: 14px;
+  border-radius: 6px;
+  margin: 2px 8px;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* 文档标题 */
+.markdown h1 {
+  font-size: 2rem;
+  border-bottom: 2px solid var(--ifm-color-primary-lightest);
+  padding-bottom: 12px;
+}
+
+/* 代码块圆角 */
+pre {
+  border-radius: 10px !important;
+}
+
+/* 引用块 */
+blockquote {
+  background: linear-gradient(135deg, #f0f5ff 0%, #e6f0ff 100%);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 20px;
+  margin: 16px 0;
+}
+
+[data-theme='dark'] blockquote {
+  background: rgba(59, 108, 255, 0.1);
+}
+
+/* footer */
+.footer__link-item {
+  font-size: 14px;
+}
+
+/* 暗色模式 */
+[data-theme='dark'] {
+  --ifm-background-color: #0d1117;
+  --ifm-background-surface-color: #161b22;
+}
+
+[data-theme='dark'] .markdown h1 {
+  border-bottom-color: #333;
+}

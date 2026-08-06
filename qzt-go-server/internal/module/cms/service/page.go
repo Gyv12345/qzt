@@ -21,11 +21,13 @@ func NewPageService() *PageService {
 
 // CreatePageRequest 创建单页请求。
 type CreatePageRequest struct {
-	Title   string `json:"title" binding:"required"`
-	Slug    string `json:"slug" binding:"required"`
-	Content string `json:"content"`
-	Status  *int8  `json:"status"`
-	Sort    int    `json:"sort"`
+	Title       string `json:"title" binding:"required"`
+	Slug        string `json:"slug" binding:"required"`
+	LinkType    string `json:"link_type"`
+	ExternalURL string `json:"external_url"`
+	Content     string `json:"content"`
+	Status      *int8  `json:"status"`
+	Sort        int    `json:"sort"`
 }
 
 func (s *PageService) Create(ctx context.Context, req *CreatePageRequest) error {
@@ -46,12 +48,18 @@ func (s *PageService) Create(ctx context.Context, req *CreatePageRequest) error 
 		}
 	}
 
+	linkType := req.LinkType
+	if linkType == "" {
+		linkType = "page"
+	}
 	page := &cmsmodel.CmsPage{
-		Title:   req.Title,
-		Slug:    req.Slug,
-		Content: req.Content,
-		Status:  status,
-		Sort:    req.Sort,
+		Title:       req.Title,
+		Slug:        req.Slug,
+		LinkType:    linkType,
+		ExternalURL: req.ExternalURL,
+		Content:     req.Content,
+		Status:      status,
+		Sort:        req.Sort,
 	}
 	if err := s.pageRepo.Create(ctx, page); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -79,13 +87,23 @@ func (s *PageService) GetBySlug(ctx context.Context, slug string) (*cmsmodel.Cms
 	return page, nil
 }
 
+// ListEnabled 返回所有启用的单页(公开导航用)。
+func (s *PageService) ListEnabled(ctx context.Context) ([]cmsmodel.CmsPage, error) {
+	return s.pageRepo.List(ctx, &repository.QueryOptions{
+		Where: map[string]interface{}{"status": cmsmodel.StatusEnabled},
+		Order: []string{"sort ASC"},
+	})
+}
+
 // UpdatePageRequest 更新单页请求。
 type UpdatePageRequest struct {
-	Title   string `json:"title" binding:"required"`
-	Slug    string `json:"slug" binding:"required"`
-	Content string `json:"content"`
-	Status  *int8  `json:"status"`
-	Sort    int    `json:"sort"`
+	Title       string `json:"title" binding:"required"`
+	Slug        string `json:"slug" binding:"required"`
+	LinkType    string `json:"link_type"`
+	ExternalURL string `json:"external_url"`
+	Content     string `json:"content"`
+	Status      *int8  `json:"status"`
+	Sort        int    `json:"sort"`
 }
 
 func (s *PageService) Update(ctx context.Context, id uint, req *UpdatePageRequest) error {
@@ -107,6 +125,11 @@ func (s *PageService) Update(ctx context.Context, id uint, req *UpdatePageReques
 
 	page.Title = req.Title
 	page.Slug = req.Slug
+	page.LinkType = req.LinkType
+	if page.LinkType == "" {
+		page.LinkType = "page"
+	}
+	page.ExternalURL = req.ExternalURL
 	page.Content = req.Content
 	if req.Status != nil {
 		page.Status = *req.Status

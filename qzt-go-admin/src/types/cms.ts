@@ -51,6 +51,9 @@ export interface CmsPage {
   id: number
   title: string
   slug: string
+  /** page内部页 link外部链接 */
+  link_type: string
+  external_url: string
   content: string
   /** 1启用 0禁用 */
   status: number
@@ -87,6 +90,8 @@ export interface CmsCategoryPayload {
 export interface CmsPagePayload {
   title: string
   slug: string
+  link_type?: string
+  external_url?: string
   content?: string
   status?: number
   sort?: number

@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
-import { App, Button, Col, Form, Popconfirm, Space } from 'antd'
+import { App, Button, Col, Form, Popconfirm, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   DrawerForm,
   ProForm,
+  ProFormDependency,
   ProFormDigit,
   ProFormRadio,
   ProFormText,
@@ -19,6 +20,8 @@ import type { CmsPage, CmsPagePayload } from '../../../types/cms'
 interface PageFormValues {
   title: string
   slug: string
+  link_type?: string
+  external_url?: string
   content?: string
   status: number
   sort?: number
@@ -34,7 +37,7 @@ export default function CmsPagePage() {
   const openCreate = () => {
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ status: 1 } as Partial<PageFormValues>)
+    form.setFieldsValue({ status: 1, link_type: 'page' } as Partial<PageFormValues>)
     setDrawerOpen(true)
   }
 
@@ -43,6 +46,8 @@ export default function CmsPagePage() {
     form.setFieldsValue({
       title: record.title,
       slug: record.slug,
+      link_type: record.link_type || 'page',
+      external_url: record.external_url || undefined,
       content: record.content,
       status: record.status,
       sort: record.sort,
@@ -54,6 +59,8 @@ export default function CmsPagePage() {
     const payload: CmsPagePayload = {
       title: values.title,
       slug: values.slug,
+      link_type: values.link_type || 'page',
+      external_url: values.external_url,
       content: values.content,
       status: values.status,
       sort: values.sort,
@@ -79,6 +86,9 @@ export default function CmsPagePage() {
     { title: '编号', valueType: 'indexBorder', width: 70, search: false },
     { title: '标题/别名', dataIndex: 'keyword', hideInTable: true },
     { title: '标题', dataIndex: 'title', width: 240, search: false },
+    { title: '类型', dataIndex: 'link_type', width: 80, search: false,
+      render: (_, r) => r.link_type === 'link' ? <Tag color="blue">外链</Tag> : <Tag>页面</Tag>,
+    },
     { title: '别名', dataIndex: 'slug', width: 160, copyable: true, search: false },
     {
       title: '状态',
@@ -166,11 +176,32 @@ export default function CmsPagePage() {
           placeholder="英文别名,访问路径用"
           colProps={{ span: 12 }}
         />
-        <Col span={24}>
-          <ProForm.Item name="content" label="内容">
-            <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
-          </ProForm.Item>
-        </Col>
+        <ProFormRadio.Group
+          name="link_type"
+          label="类型"
+          options={[
+            { label: '内部页面', value: 'page' },
+            { label: '外部链接', value: 'link' },
+          ]}
+          colProps={{ span: 12 }}
+        />
+        <ProFormDependency name={['link_type']}>
+          {({ link_type }) => (
+            link_type === 'link' ? (
+              <Col span={24}>
+                <ProForm.Item name="external_url" label="外部链接" rules={[{ required: true, message: '请输入外部链接URL' }]}>
+                  <ProFormText name="external_url" placeholder="https://docs.devlovecode.com" />
+                </ProForm.Item>
+              </Col>
+            ) : (
+              <Col span={24}>
+                <ProForm.Item name="content" label="内容">
+                  <MarkdownEditor height={420} placeholder="支持 Markdown 语法(标题/表格/图片/代码块等)" />
+                </ProForm.Item>
+              </Col>
+            )
+          )}
+        </ProFormDependency>
         <ProFormRadio.Group
           name="status"
           label="状态"
