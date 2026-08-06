@@ -25,6 +25,8 @@ type CreateUserRequest struct {
 	Nickname string `json:"nickname"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
+	DeptID   *uint  `json:"dept_id"`
+	LeaderID *uint  `json:"leader_id"`
 	Status   *int8  `json:"status"`
 	RoleIDs  []uint `json:"role_ids"`
 }
@@ -34,6 +36,8 @@ type UpdateUserRequest struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	Avatar   string `json:"avatar"`
+	DeptID   *uint  `json:"dept_id"`
+	LeaderID *uint  `json:"leader_id"`
 	Status   *int8  `json:"status"`
 	Password string `json:"password" binding:"omitempty,min=6,max=72"`
 	RoleIDs  []uint `json:"role_ids"`
@@ -64,6 +68,8 @@ func (s *UserService) Create(ctx context.Context, req *CreateUserRequest) error 
 		Nickname: req.Nickname,
 		Email:    req.Email,
 		Phone:    req.Phone,
+		DeptID:   req.DeptID,
+		LeaderID: req.LeaderID,
 		Status:   status,
 	}
 
@@ -104,6 +110,8 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 	if req.Avatar != "" {
 		user.Avatar = req.Avatar
 	}
+	user.DeptID = req.DeptID
+	user.LeaderID = req.LeaderID
 	if req.Status != nil {
 		user.Status = *req.Status
 	}

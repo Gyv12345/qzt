@@ -38,6 +38,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	collabHandler := handler.NewCollaborationHandler()
 	handoverHandler := handler.NewHandoverHandler()
 	changeLogHandler := handler.NewChangeLogHandler()
+	importExportHandler := handler.NewImportExportHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -108,6 +109,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 离职交接:批量转移用户名下的业务资源
 		auth.POST("/handover", handoverHandler.Handover)
+
+		// 导入导出
+		auth.GET("/import/template", importExportHandler.DownloadTemplate)
+		auth.POST("/import", importExportHandler.Import)
 
 		// 商机管理
 		auth.GET("/opportunities", opportunityHandler.List)

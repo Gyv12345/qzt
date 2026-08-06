@@ -22,7 +22,7 @@ export default function OwnerHistoryPanel({ customerId }: { customerId: number }
     const load = async () => {
       setLoading(true)
       try {
-        setList(await getCustomerOwnerHistory(customerId))
+        setList((await getCustomerOwnerHistory(customerId)) || [])
       } finally {
         setLoading(false)
       }

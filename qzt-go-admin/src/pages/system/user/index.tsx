@@ -91,6 +91,7 @@ interface UserFormValues {
   username: string
   nickname: string
   dept_id?: number | null
+  leader_id?: number | null
   password?: string
   email?: string
   phone?: string
@@ -195,6 +196,7 @@ export default function UserPage() {
       username: record.username,
       nickname: record.nickname,
       dept_id: record.dept_id ?? undefined,
+      leader_id: (record as any).leader_id ?? undefined,
       password: undefined,
       email: record.email,
       phone: record.phone,
@@ -208,6 +210,7 @@ export default function UserPage() {
     const payload = {
       nickname: values.nickname,
       dept_id: values.dept_id ?? null,
+      leader_id: values.leader_id ?? null,
       email: values.email,
       phone: values.phone,
       status: values.status ? 1 : 0,
@@ -411,6 +414,11 @@ export default function UserPage() {
               treeData={deptToTreeData(deptTree)}
               treeDefaultExpandAll
             />
+          </ProForm.Item>
+        </Col>
+        <Col span={12}>
+          <ProForm.Item name="leader_id" label="直属上级">
+            <UserSelect allowClear placeholder="选择直属上级(审批用)" />
           </ProForm.Item>
         </Col>
         <ProFormText.Password

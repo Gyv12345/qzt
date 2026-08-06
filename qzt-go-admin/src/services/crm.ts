@@ -140,6 +140,9 @@ export interface OpportunityQuery extends PageParams {
 export const listOpportunities = (params?: OpportunityQuery) =>
   request.get<unknown, CrmPageResult<CrmOpportunity>>('/crm/opportunities', { params })
 
+export const getOpportunity = (id: number) =>
+  request.get<unknown, CrmOpportunity>(`/crm/opportunities/${id}`)
+
 /** 看板: { [stage]: Opportunity[] } */
 export const getOpportunityBoard = () =>
   request.get<unknown, Record<string, CrmOpportunity[]>>('/crm/opportunities/board')

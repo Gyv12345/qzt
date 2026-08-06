@@ -35,7 +35,10 @@ import dayjs, { type Dayjs } from 'dayjs'
 import Auth from '../../../components/Auth'
 import CustomerSelect from '../../../components/CustomerSelect'
 import { DictTag } from '../../../components/DictSelect'
+import ExportButtons from '../../../components/ExportButtons'
 import UserSelect from '../../../components/UserSelect'
+import CustomerDetailDrawer from '../customer/DetailDrawer'
+import OpportunityDetailDrawer from './DetailDrawer'
 import {
   changeOpportunityStage,
   createOpportunity,
@@ -49,6 +52,7 @@ import {
 } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type {
+  CrmCustomer,
   CrmOpportunity,
   CrmOpportunityPayload,
   CrmStageRecord,
@@ -96,6 +100,10 @@ export default function OpportunityPage() {
 
   const [board, setBoard] = useState<Record<string, CrmOpportunity[]>>({})
   const [boardLoading, setBoardLoading] = useState(false)
+
+  // 客户详情抽屉(跨页面复用) / 商机详情抽屉
+  const [viewCustomer, setViewCustomer] = useState<CrmCustomer | null>(null)
+  const [viewOpportunity, setViewOpportunity] = useState<CrmOpportunity | null>(null)
 
   // 阶段配置挂载时加载一次,列表搜索/表单/看板共用
   useEffect(() => {
@@ -243,14 +251,35 @@ export default function OpportunityPage() {
       renderFormItem: () => <Select allowClear placeholder="选择阶段" options={stageOptions} />,
     },
     { title: '商机编号', dataIndex: 'opportunity_no', width: 140, search: false, render: (v) => v || '-' },
-    { title: '商机名称', dataIndex: 'name', width: 220, search: false },
+    {
+      title: '商机名称',
+      dataIndex: 'name',
+      width: 220,
+      search: false,
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setViewOpportunity(r)}>
+          {r.name}
+        </Button>
+      ),
+    },
     {
       title: '客户',
       key: 'customer_name',
       dataIndex: 'customer_id',
       width: 140,
       search: false,
-      render: (_, r) => customerMap[r.customer_id] ?? `#${r.customer_id}`,
+      render: (_, r) => (
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
+          onClick={() =>
+            setViewCustomer({ id: r.customer_id, name: customerMap[r.customer_id] ?? '' } as CrmCustomer)
+          }
+        >
+          {customerMap[r.customer_id] ?? `#${r.customer_id}`}
+        </Button>
+      ),
     },
     {
       title: '预期金额',
@@ -447,6 +476,15 @@ export default function OpportunityPage() {
                 新增商机
               </Button>
             </Auth>,
+            <ExportButtons
+              key="export"
+              fileName="商机列表"
+              columns={columns}
+              fetchAll={async () => {
+                const res = await listOpportunities({ page: 1, page_size: 1000 })
+                return res.list
+              }}
+            />,
           ]}
         />
       ) : (
@@ -551,6 +589,19 @@ export default function OpportunityPage() {
           pagination={false}
         />
       </Drawer>
+      {/* 客户详情抽屉(点击列表客户名打开) */}
+      <CustomerDetailDrawer
+        customer={viewCustomer}
+        open={!!viewCustomer}
+        onClose={() => setViewCustomer(null)}
+      />
+      {/* 商机详情抽屉(点击列表商机名称打开) */}
+      <OpportunityDetailDrawer
+        opportunityId={viewOpportunity?.id ?? null}
+        customerName={viewOpportunity ? customerMap[viewOpportunity.customer_id] : undefined}
+        open={!!viewOpportunity}
+        onClose={() => setViewOpportunity(null)}
+      />
     </>
   )
 }

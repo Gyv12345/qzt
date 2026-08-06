@@ -1,29 +1,30 @@
 import { useEffect, useState } from 'react'
-import { App, Button, DatePicker, Form, Input, Space, Timeline } from 'antd'
-import { EditOutlined } from '@ant-design/icons'
-import { ModalForm } from '@ant-design/pro-components'
-import dayjs, { type Dayjs } from 'dayjs'
-import DictSelect, { DictTag } from '../../../components/DictSelect'
+import { App, Button, Input, Select, Space, Timeline } from 'antd'
+import { SendOutlined } from '@ant-design/icons'
+import { DictTag } from '../../../components/DictSelect'
 import { createFollowRecord, getFollowTimeline } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type { CrmFollowRecord } from '../../../types/crm'
 
-interface FollowFormValues {
-  type: string
-  content: string
-  follow_time: Dayjs
-}
+const FOLLOW_TYPE_OPTIONS = [
+  { label: '微信', value: 'WECHAT' },
+  { label: '电话', value: 'PHONE' },
+  { label: '拜访', value: 'VISIT' },
+  { label: '邮件', value: 'EMAIL' },
+  { label: '其他', value: 'OTHER' },
+]
 
-/** 客户详情 - 跟进记录面板(时间线) */
+/** 客户详情 - 跟进记录面板(顶部快速写跟进 + 下方时间线列表) */
 export default function FollowPanel({ customerId }: { customerId: number }) {
   const { message } = App.useApp()
   const nickname = useUserStore((s) => s.nickname)
   const [records, setRecords] = useState<CrmFollowRecord[]>([])
-  const [form] = Form.useForm<FollowFormValues>()
-  const [modalOpen, setModalOpen] = useState(false)
+  const [content, setContent] = useState('')
+  const [followType, setFollowType] = useState('WECHAT')
+  const [submitting, setSubmitting] = useState(false)
 
   const load = async () => {
-    const res = await getFollowTimeline('customer_id', customerId)
+    const res = (await getFollowTimeline('customer_id', customerId)) || []
     setRecords([...res].sort((a, b) => b.follow_time.localeCompare(a.follow_time)))
   }
 
@@ -32,81 +33,99 @@ export default function FollowPanel({ customerId }: { customerId: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerId])
 
-  const openWrite = () => {
-    form.resetFields()
-    form.setFieldsValue({ follow_time: dayjs() })
-    setModalOpen(true)
-  }
-
-  const handleSubmit = async (values: FollowFormValues) => {
-    await createFollowRecord({
-      type: values.type,
-      content: values.content,
-      follow_time: values.follow_time.format('YYYY-MM-DD HH:mm:ss'),
-      customer_id: customerId,
-    })
-    message.success('跟进记录已创建')
-    load()
-    return true
+  const handleSubmit = async () => {
+    if (!content.trim()) {
+      message.warning('请输入跟进内容')
+      return
+    }
+    setSubmitting(true)
+    try {
+      await createFollowRecord({
+        type: followType,
+        content: content.trim(),
+        follow_time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+        customer_id: customerId,
+      })
+      message.success('跟进记录已添加')
+      setContent('')
+      load()
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
-    <>
-      <div style={{ marginBottom: 16, textAlign: 'right' }}>
-        <Button type="primary" size="small" icon={<EditOutlined />} onClick={openWrite}>
-          写跟进
-        </Button>
+    <div>
+      {/* 快速写跟进 */}
+      <div
+        style={{
+          marginBottom: 24,
+          padding: 16,
+          borderRadius: 10,
+          border: '1px solid #e8e8e8',
+          background: '#fafafa',
+        }}
+      >
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <Select
+            value={followType}
+            onChange={setFollowType}
+            options={FOLLOW_TYPE_OPTIONS}
+            style={{ width: 110, flexShrink: 0 }}
+            size="large"
+          />
+          <div style={{ flex: 1 }}>
+            <Input.TextArea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="记录本次跟进要点..."
+              autoSize={{ minRows: 3, maxRows: 6 }}
+              onPressEnter={(e) => {
+                if (e.ctrlKey || e.metaKey) handleSubmit()
+              }}
+              style={{ border: 'none', background: 'transparent', resize: 'none' }}
+              size="large"
+            />
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingLeft: 122 }}>
+          <span style={{ fontSize: 12, color: '#999' }}>Ctrl+Enter 快捷提交</span>
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            loading={submitting}
+            onClick={handleSubmit}
+            disabled={!content.trim()}
+            size="middle"
+          >
+            提交跟进
+          </Button>
+        </div>
       </div>
+
+      {/* 跟进记录时间线 */}
       {records.length ? (
         <Timeline
           items={records.map((r) => ({
-            key: r.id,
+            color: 'blue',
             children: (
               <div>
-                <Space size="small" wrap>
+                <Space size={8} style={{ marginBottom: 4 }}>
                   <DictTag code="FOLLOW_UP_TYPE" value={r.type} />
-                  <span>{nickname(r.owner_id)}</span>
-                  <span style={{ color: '#999' }}>{r.follow_time}</span>
+                  <span style={{ color: '#999', fontSize: 12 }}>
+                    {nickname(r.owner_id)} · {r.follow_time}
+                  </span>
                 </Space>
-                <div style={{ marginTop: 4 }}>{r.content}</div>
+                <div style={{ fontSize: 14, lineHeight: 1.7, color: '#333', whiteSpace: 'pre-wrap' }}>
+                  {r.content}
+                </div>
               </div>
             ),
           }))}
         />
       ) : (
-        <div style={{ color: '#999', textAlign: 'center', padding: 24 }}>暂无跟进记录</div>
+        <div style={{ color: '#999', textAlign: 'center', padding: 32 }}>暂无跟进记录</div>
       )}
-      <ModalForm<FollowFormValues>
-        title="写跟进"
-        form={form}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        modalProps={{ destroyOnHidden: true, maskClosable: false }}
-        onFinish={handleSubmit}
-        width={480}
-      >
-        <Form.Item
-          name="type"
-          label="跟进方式"
-          rules={[{ required: true, message: '请选择跟进方式' }]}
-        >
-          <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进方式" />
-        </Form.Item>
-        <Form.Item
-          name="content"
-          label="跟进内容"
-          rules={[{ required: true, message: '请输入跟进内容' }]}
-        >
-          <Input.TextArea rows={4} placeholder="记录本次沟通内容" />
-        </Form.Item>
-        <Form.Item
-          name="follow_time"
-          label="跟进时间"
-          rules={[{ required: true, message: '请选择跟进时间' }]}
-        >
-          <DatePicker showTime style={{ width: '100%' }} />
-        </Form.Item>
-      </ModalForm>
-    </>
+    </div>
   )
 }

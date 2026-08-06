@@ -11,6 +11,8 @@ import {
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
+import ExportButtons from '../../../components/ExportButtons'
+import ImportButton from '../../../components/ImportButton'
 import UserSelect from '../../../components/UserSelect'
 import {
   createCustomer,
@@ -178,7 +180,11 @@ export default function CustomerPage() {
       dataIndex: 'customer_no',
       width: 150,
       search: false,
-      render: (v) => v || '-',
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailCustomer(r)}>
+          {r.customer_no || '-'}
+        </Button>
+      ),
     },
     {
       title: '客户名称',
@@ -187,7 +193,9 @@ export default function CustomerPage() {
       search: false,
       render: (_, r) => (
         <Space size={4}>
-          {r.name}
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailCustomer(r)}>
+            {r.name}
+          </Button>
           {r.in_pool === 1 && <Tag color="orange">公海</Tag>}
         </Space>
       ),
@@ -328,6 +336,16 @@ export default function CustomerPage() {
               新增客户
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="客户列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listCustomers({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
+          <ImportButton key="import" bizType="customer" onImported={() => actionRef.current?.reload()} />,
         ]}
         headerTitle="客户列表"
       />

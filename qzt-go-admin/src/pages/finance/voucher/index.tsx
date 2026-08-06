@@ -14,6 +14,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import ExportButtons from '../../../components/ExportButtons'
 import { confirmVoucher, createVoucher, listAccounts, listVouchers } from '../../../services/finance'
 import type { CreateVoucherPayload, FinAccount, FinVoucher } from '../../../types/finance'
 
@@ -176,6 +177,15 @@ export default function VoucherPage() {
               新增凭证
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="记账凭证"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listVouchers({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="记账凭证"
       />

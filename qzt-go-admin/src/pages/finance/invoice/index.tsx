@@ -14,6 +14,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import ExportButtons from '../../../components/ExportButtons'
 import { createInvoice, listInvoices } from '../../../services/finance'
 import type { CreateInvoicePayload, FinInvoice } from '../../../types/finance'
 
@@ -145,6 +146,15 @@ export default function InvoicePage() {
               新增发票
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="发票列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listInvoices({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="发票管理"
       />

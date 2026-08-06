@@ -14,6 +14,7 @@ import {
 } from '@ant-design/pro-components'
 import dayjs, { type Dayjs } from 'dayjs'
 import Auth from '../../../components/Auth'
+import ExportButtons from '../../../components/ExportButtons'
 import UserSelect from '../../../components/UserSelect'
 import {
   createEmployee,
@@ -311,6 +312,15 @@ export default function EmployeePage() {
               新增员工
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="员工列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listEmployees({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="员工列表"
       />

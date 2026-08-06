@@ -37,6 +37,7 @@ func (h *FollowHandler) CreateRecord(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
+	req.OwnerID = middleware.GetUserID(c) // 从当前登录用户获取,前端不需要传
 	rec, err := h.svc.CreateRecord(c.Request.Context(), &req)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

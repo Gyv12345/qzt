@@ -13,6 +13,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import ExportButtons from '../../../components/ExportButtons'
 import UserSelect from '../../../components/UserSelect'
 import {
   createWarehouse,
@@ -180,6 +181,15 @@ export default function WarehousePage() {
               新增仓库
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="仓库列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listWarehouses({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="仓库列表"
       />

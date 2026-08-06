@@ -43,7 +43,7 @@ type CreateRecordRequest struct {
 	Type          string    `json:"type" binding:"required"`
 	Content       string    `json:"content" binding:"required"`
 	FollowTime    xtime.DateTime `json:"follow_time" binding:"required"`
-	OwnerID       uint      `json:"owner_id" binding:"required"`
+	OwnerID       uint      `json:"owner_id"`
 	CustomerID    *uint     `json:"customer_id"`
 	OpportunityID *uint     `json:"opportunity_id"`
 	ContactID     *uint     `json:"contact_id"`

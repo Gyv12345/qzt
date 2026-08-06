@@ -22,6 +22,7 @@ import {
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
+import ExportButtons from '../../../components/ExportButtons'
 import MarkdownEditor from '../../../components/MarkdownEditor'
 import ImageUpload from '../../../components/ImageUpload'
 import {
@@ -239,6 +240,15 @@ export default function ProductPage() {
               新增产品
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="产品列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listProducts({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="产品列表"
       />

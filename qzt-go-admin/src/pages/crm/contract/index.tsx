@@ -36,7 +36,10 @@ import dayjs, { type Dayjs } from 'dayjs'
 import Auth from '../../../components/Auth'
 import CustomerSelect from '../../../components/CustomerSelect'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
+import ExportButtons from '../../../components/ExportButtons'
 import UserSelect from '../../../components/UserSelect'
+import CustomerDetailDrawer from '../customer/DetailDrawer'
+import OpportunityDetailDrawer from '../opportunity/DetailDrawer'
 import {
   createContract,
   createContractItem,
@@ -123,6 +126,10 @@ export default function ContractPage() {
   // 客户 id -> 名称(列表展示)
   const [customers, setCustomers] = useState<CrmCustomer[]>([])
   const customerMap = useMemo(() => new Map(customers.map((c) => [c.id, c.name])), [customers])
+
+  // 客户/商机详情抽屉(点击关联对象打开)
+  const [viewCustomer, setViewCustomer] = useState<CrmCustomer | null>(null)
+  const [viewOpportunityId, setViewOpportunityId] = useState<number | null>(null)
 
   // 详情抽屉 + 回款数据
   const [detail, setDetail] = useState<CrmContract | null>(null)
@@ -431,7 +438,18 @@ export default function ContractPage() {
       dataIndex: 'customer_id',
       width: 140,
       search: false,
-      render: (_, r) => customerMap.get(r.customer_id) ?? `#${r.customer_id}`,
+      render: (_, r) => (
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
+          onClick={() =>
+            setViewCustomer({ id: r.customer_id, name: customerMap.get(r.customer_id) ?? '' } as CrmCustomer)
+          }
+        >
+          {customerMap.get(r.customer_id) ?? `#${r.customer_id}`}
+        </Button>
+      ),
     },
     {
       title: '合同金额',
@@ -612,6 +630,15 @@ export default function ContractPage() {
               新增合同
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="合同列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listContracts({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="合同列表"
       />
@@ -723,12 +750,37 @@ export default function ContractPage() {
                       {
                         key: 'customer',
                         label: '客户',
-                        children: customerMap.get(detail.customer_id) ?? `#${detail.customer_id}`,
+                        children: (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={() =>
+                              setViewCustomer({
+                                id: detail.customer_id,
+                                name: customerMap.get(detail.customer_id) ?? '',
+                              } as CrmCustomer)
+                            }
+                          >
+                            {customerMap.get(detail.customer_id) ?? `#${detail.customer_id}`}
+                          </Button>
+                        ),
                       },
                       {
                         key: 'opportunity_id',
                         label: '关联商机',
-                        children: detail.opportunity_id ?? '-',
+                        children: detail.opportunity_id ? (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={() => setViewOpportunityId(detail.opportunity_id!)}
+                          >
+                            #{detail.opportunity_id}
+                          </Button>
+                        ) : (
+                          '-'
+                        ),
                       },
                       {
                         key: 'total_amount',
@@ -1085,6 +1137,20 @@ export default function ContractPage() {
           )}
         </Spin>
       </Modal>
+
+      {/* 客户详情抽屉(点击列表/详情中的客户名打开) */}
+      <CustomerDetailDrawer
+        customer={viewCustomer}
+        open={!!viewCustomer}
+        onClose={() => setViewCustomer(null)}
+      />
+      {/* 商机详情抽屉(点击详情中的关联商机打开) */}
+      <OpportunityDetailDrawer
+        opportunityId={viewOpportunityId}
+        customerName={detail ? customerMap.get(detail.customer_id) : undefined}
+        open={!!viewOpportunityId}
+        onClose={() => setViewOpportunityId(null)}
+      />
     </>
   )
 }

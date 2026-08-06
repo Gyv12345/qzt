@@ -14,6 +14,7 @@ import remarkGfm from 'remark-gfm'
 import Auth from '../../../components/Auth'
 import { generateScript } from '../../../services/ai'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
+import ExportButtons from '../../../components/ExportButtons'
 import UserSelect from '../../../components/UserSelect'
 import {
   convertLead,
@@ -366,6 +367,15 @@ export default function LeadPage() {
               新增线索
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="线索列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listLeads({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="线索列表"
       />

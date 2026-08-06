@@ -43,7 +43,8 @@ func (h *ChangeLogHandler) List(c *gin.Context) {
 		return
 	}
 
-	var logs []model.SysFieldChangeLog
+	// make(..., 0) 保证无记录时序列化为 [] 而不是 null,前端可直接迭代。
+	logs := make([]model.SysFieldChangeLog, 0)
 	if err := repository.DBFrom(c.Request.Context()).
 		Where("biz_type = ? AND resource_id = ?", bizType, resourceID).
 		Order("created_at DESC, id DESC").
@@ -52,5 +53,5 @@ func (h *ChangeLogHandler) List(c *gin.Context) {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}
-	response.OK(c, gin.H{"list": logs})
+	response.OK(c, logs)
 }

@@ -11,6 +11,7 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import ExportButtons from '../../../components/ExportButtons'
 import {
   createSupplier,
   deleteSupplier,
@@ -170,6 +171,15 @@ export default function SupplierPage() {
               新增供应商
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="供应商列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listSuppliers({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
         headerTitle="供应商列表"
       />

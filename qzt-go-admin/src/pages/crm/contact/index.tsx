@@ -12,6 +12,7 @@ import {
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import CustomerSelect from '../../../components/CustomerSelect'
+import ExportButtons from '../../../components/ExportButtons'
 import {
   createContact,
   deleteContact,
@@ -178,6 +179,15 @@ export default function ContactPage() {
               新增联系人
             </Button>
           </Auth>,
+          <ExportButtons
+            key="export"
+            fileName="联系人列表"
+            columns={columns}
+            fetchAll={async () => {
+              const res = await listContacts({ page: 1, page_size: 1000 })
+              return res.list
+            }}
+          />,
         ]}
       />
 

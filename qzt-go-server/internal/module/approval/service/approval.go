@@ -367,8 +367,8 @@ func (s *ApprovalService) resolveApprovers(ctx context.Context, node *apprmodel.
 		// ROLE 类型:approverList 是 role_id 数组,需查 sys_user_role 解析
 		return nil, nil
 	case apprmodel.ApproverTypeSuperior:
-		// SUPERIOR:查提交人的 leader_id(sys_user 暂无此字段)
-		return nil, nil
+		// SUPERIOR:查提交人的直属上级(sys_user.leader_id)
+		return resolveSuperior(ctx, submitterID)
 	default:
 		return parseUintArray(cfg.ApproverList), nil
 	}
@@ -386,6 +386,19 @@ func resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
 	}
 	var leaderID *uint
 	repoDB(ctx).Table("hrm_department").Where("id = ? AND status = 1", *deptID).Select("leader_id").Scan(&leaderID)
+	if leaderID == nil || *leaderID == 0 {
+		return nil, nil
+	}
+	return []uint{*leaderID}, nil
+}
+
+// resolveSuperior 解析直属上级:查 sys_user.leader_id。
+func resolveSuperior(ctx context.Context, submitterID uint) ([]uint, error) {
+	if submitterID == 0 {
+		return nil, nil
+	}
+	var leaderID *uint
+	repoDB(ctx).Table("sys_user").Where("id = ?", submitterID).Select("leader_id").Scan(&leaderID)
 	if leaderID == nil || *leaderID == 0 {
 		return nil, nil
 	}

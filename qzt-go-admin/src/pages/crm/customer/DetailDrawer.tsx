@@ -57,52 +57,70 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
       destroyOnHidden
     >
       {c && (
+        <>
+        {/* 基本信息(固定在 Tab 上方) */}
+        <Descriptions bordered size="small" column={2} style={{ marginBottom: 16 }}>
+          <Descriptions.Item label="客户名称">{c.name}</Descriptions.Item>
+          <Descriptions.Item label="客户编号">{c.customer_no || '-'}</Descriptions.Item>
+          <Descriptions.Item label="等级">
+            <DictTag code="CUSTOMER_LEVEL" value={c.level} />
+          </Descriptions.Item>
+          <Descriptions.Item label="来源">
+            <DictTag code="CUSTOMER_SOURCE" value={c.source} />
+          </Descriptions.Item>
+          <Descriptions.Item label="行业">
+            <DictTag code="INDUSTRY" value={c.industry} />
+          </Descriptions.Item>
+          <Descriptions.Item label="状态">
+            {STATUS_MAP[c.status] ? (
+              <Tag color={STATUS_MAP[c.status].color}>{STATUS_MAP[c.status].text}</Tag>
+            ) : (
+              c.status
+            )}
+          </Descriptions.Item>
+          <Descriptions.Item label="负责人">
+            {c.in_pool === 1 ? <Tag color="orange">公海</Tag> : nickname(c.owner_id)}
+          </Descriptions.Item>
+          <Descriptions.Item label="最新跟进时间">
+            {c.follow_time ?? '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="创建时间">{c.created_at}</Descriptions.Item>
+          <Descriptions.Item label="更新时间">{c.updated_at}</Descriptions.Item>
+          {customFields.map((f) => (
+            <Descriptions.Item key={f.id} label={f.name}>
+              {detail?.fields?.[f.id] || '-'}
+            </Descriptions.Item>
+          ))}
+        </Descriptions>
+
         <Tabs
+          defaultActiveKey="follow"
           items={[
             {
-              key: 'info',
-              label: '基本信息',
-              children: (
-                <Descriptions bordered size="small" column={2}>
-                  <Descriptions.Item label="客户名称">{c.name}</Descriptions.Item>
-                  <Descriptions.Item label="客户编号">{c.customer_no || '-'}</Descriptions.Item>
-                  <Descriptions.Item label="等级">
-                    <DictTag code="CUSTOMER_LEVEL" value={c.level} />
-                  </Descriptions.Item>
-                  <Descriptions.Item label="来源">
-                    <DictTag code="CUSTOMER_SOURCE" value={c.source} />
-                  </Descriptions.Item>
-                  <Descriptions.Item label="行业">
-                    <DictTag code="INDUSTRY" value={c.industry} />
-                  </Descriptions.Item>
-                  <Descriptions.Item label="状态">
-                    {STATUS_MAP[c.status] ? (
-                      <Tag color={STATUS_MAP[c.status].color}>{STATUS_MAP[c.status].text}</Tag>
-                    ) : (
-                      c.status
-                    )}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="负责人">
-                    {c.in_pool === 1 ? <Tag color="orange">公海</Tag> : nickname(c.owner_id)}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="最新跟进时间">
-                    {c.follow_time ?? '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="创建时间">{c.created_at}</Descriptions.Item>
-                  <Descriptions.Item label="更新时间">{c.updated_at}</Descriptions.Item>
-                  {customFields.map((f) => (
-                    <Descriptions.Item key={f.id} label={f.name}>
-                      {detail?.fields?.[f.id] || '-'}
-                    </Descriptions.Item>
-                  ))}
-                </Descriptions>
-              ),
+              key: 'follow',
+              label: '跟进记录',
+              children: <FollowPanel customerId={c.id} />,
             },
-            { key: 'contacts', label: '联系人', children: <ContactsPanel customerId={c.id} /> },
-            { key: 'team', label: '团队', children: <TeamPanel customerId={c.id} /> },
-            { key: 'opportunities', label: '商机', children: <OpportunitiesPanel customerId={c.id} /> },
-            { key: 'contracts', label: '合同', children: <ContractsPanel customerId={c.id} /> },
-            { key: 'follow', label: '跟进记录', children: <FollowPanel customerId={c.id} /> },
+            {
+              key: 'contacts',
+              label: '联系人',
+              children: <ContactsPanel customerId={c.id} />,
+            },
+            {
+              key: 'team',
+              label: '团队',
+              children: <TeamPanel customerId={c.id} />,
+            },
+            {
+              key: 'opportunities',
+              label: '商机',
+              children: <OpportunitiesPanel customerId={c.id} />,
+            },
+            {
+              key: 'contracts',
+              label: '合同',
+              children: <ContractsPanel customerId={c.id} />,
+            },
             {
               key: 'history',
               label: '归属历史',
@@ -115,6 +133,7 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
             },
           ]}
         />
+        </>
       )}
     </Drawer>
   )
