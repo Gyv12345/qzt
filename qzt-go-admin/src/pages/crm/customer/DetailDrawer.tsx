@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Descriptions, Drawer, Tabs, Tag } from 'antd'
+import { Button, Descriptions, Drawer, Spin, Tabs, Tag } from 'antd'
+import { MailOutlined } from '@ant-design/icons'
+import AttachmentsPanel from '../../../components/AttachmentsPanel'
+import Auth from '../../../components/Auth'
+import MailComposeModal from '../../../components/MailComposeModal'
 import { DictTag } from '../../../components/DictSelect'
 import { getCustomer, listCustomFields } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
@@ -29,6 +33,8 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
   const nickname = useUserStore((s) => s.nickname)
   const [detail, setDetail] = useState<CrmCustomerDetail | null>(null)
   const [customFields, setCustomFields] = useState<CrmCustomField[]>([])
+  const [loading, setLoading] = useState(false)
+  const [mailOpen, setMailOpen] = useState(false)
 
   useEffect(() => {
     if (!open || !customer) {
@@ -36,12 +42,20 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
       return
     }
     const load = async () => {
-      const [d, fields] = await Promise.all([
-        getCustomer(customer.id),
-        listCustomFields('CUSTOMER'),
-      ])
-      setDetail(d)
-      setCustomFields(fields)
+      setLoading(true)
+      try {
+        const [d, fields] = await Promise.all([
+          getCustomer(customer.id),
+          listCustomFields('CUSTOMER'),
+        ])
+        setDetail(d)
+        setCustomFields(fields)
+      } catch {
+        // 失败时 fallback 到外部传入的 customer 基本信息(与原行为一致)
+        setDetail(null)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [open, customer])
@@ -49,14 +63,23 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
   const c = detail?.customer ?? customer
 
   return (
-    <Drawer
-      title={c ? `客户详情:${c.name}` : '客户详情'}
-      width={720}
-      open={open}
-      onClose={onClose}
-      destroyOnHidden
-    >
+    <>
+      <Drawer
+        title={c ? `客户详情:${c.name}` : '客户详情'}
+        width={720}
+        open={open}
+        onClose={onClose}
+        destroyOnHidden
+        extra={
+          <Auth perm="mail:send">
+            <Button size="small" icon={<MailOutlined />} onClick={() => setMailOpen(true)}>
+              发邮件
+            </Button>
+          </Auth>
+        }
+      >
       {c && (
+        <Spin spinning={loading}>
         <>
         {/* 基本信息(固定在 Tab 上方) */}
         <Descriptions bordered size="small" column={2} style={{ marginBottom: 16 }}>
@@ -131,10 +154,27 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
               label: '变更历史',
               children: <ChangeLogPanel bizType="CUSTOMER" resourceId={c.id} />,
             },
+            {
+              key: 'attachments',
+              label: '附件',
+              children: (
+                <AttachmentsPanel
+                  bizType="CUSTOMER"
+                  resourceId={c.id}
+                  uploadPerm="crm:customer:edit"
+                  deletePerm="crm:customer:edit"
+                />
+              ),
+            },
           ]}
         />
         </>
+        </Spin>
       )}
-    </Drawer>
+      </Drawer>
+
+      {/* 写邮件(客户无主邮箱,收件人在弹窗中手动填写,可从联系人 Tab 复制) */}
+      <MailComposeModal open={mailOpen} onClose={() => setMailOpen(false)} defaultToName={c?.name} />
+    </>
   )
 }

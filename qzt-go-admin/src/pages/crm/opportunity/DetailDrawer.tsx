@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Descriptions, Drawer, Table, Tabs, type TableProps } from 'antd'
+import { Button, Descriptions, Drawer, Spin, Table, Tabs, type TableProps } from 'antd'
+import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import { DictTag } from '../../../components/DictSelect'
 import { getOpportunity, getOpportunityStageHistory } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type { CrmOpportunity, CrmStageRecord } from '../../../types/crm'
+import { formatMoney } from '../../../utils/format'
 
 interface DetailDrawerProps {
   /** 商机 ID,null 表示关闭 */
@@ -14,10 +16,15 @@ interface DetailDrawerProps {
   onClose: () => void
 }
 
-/** 商机详情抽屉:基本信息 + 阶段历史 */
+/**
+ * 商机详情抽屉:基本信息 + 阶段历史。
+ * 客户字段可点击,在新标签页打开客户列表页(避免与客户抽屉形成循环嵌套:
+ * 客户→商机是抽屉内单向下钻,商机→客户走整页,拓扑保持 DAG)。
+ */
 export default function DetailDrawer({ opportunityId, customerName, open, onClose }: DetailDrawerProps) {
   const nickname = useUserStore((s) => s.nickname)
   const [detail, setDetail] = useState<CrmOpportunity | null>(null)
+  const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState<CrmStageRecord[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
 
@@ -27,9 +34,11 @@ export default function DetailDrawer({ opportunityId, customerName, open, onClos
       setHistory([])
       return
     }
+    setLoading(true)
     getOpportunity(opportunityId)
       .then(setDetail)
-      .catch(() => {})
+      .catch(() => setDetail(null))
+      .finally(() => setLoading(false))
     setHistoryLoading(true)
     getOpportunityStageHistory(opportunityId)
       .then((res) => setHistory(res ?? []))
@@ -66,78 +75,103 @@ export default function DetailDrawer({ opportunityId, customerName, open, onClos
       onClose={onClose}
       destroyOnHidden
     >
-      {o && (
-        <Tabs
-          items={[
-            {
-              key: 'info',
-              label: '基本信息',
-              children: (
-                <Descriptions
-                  bordered
-                  size="small"
-                  column={2}
-                  items={[
-                    { key: 'no', label: '商机编号', children: o.opportunity_no || '-' },
-                    { key: 'name', label: '商机名称', children: o.name },
-                    {
-                      key: 'customer',
-                      label: '客户',
-                      children: customerName ?? `#${o.customer_id}`,
-                    },
-                    {
-                      key: 'amount',
-                      label: '预期金额',
-                      children: o.expected_amount ? `¥${o.expected_amount}` : '-',
-                    },
-                    {
-                      key: 'stage',
-                      label: '阶段',
-                      children: <DictTag code="OPPORTUNITY_STAGE" value={o.stage} />,
-                    },
-                    {
-                      key: 'probability',
-                      label: '成交概率',
-                      children:
-                        o.probability !== null && o.probability !== undefined
-                          ? `${o.probability}%`
-                          : '-',
-                    },
-                    {
-                      key: 'close_date',
-                      label: '预计成交日',
-                      children: o.expected_close_date ?? '-',
-                    },
-                    { key: 'owner', label: '负责人', children: nickname(o.owner_id) },
-                    {
-                      key: 'description',
-                      label: '描述',
-                      span: 2,
-                      children: o.description || '-',
-                    },
-                    { key: 'created_at', label: '创建时间', children: o.created_at },
-                    { key: 'updated_at', label: '更新时间', children: o.updated_at },
-                  ]}
-                />
-              ),
-            },
-            {
-              key: 'history',
-              label: '阶段历史',
-              children: (
-                <Table<CrmStageRecord>
-                  rowKey="id"
-                  size="small"
-                  loading={historyLoading}
-                  dataSource={history}
-                  columns={historyColumns}
-                  pagination={false}
-                />
-              ),
-            },
-          ]}
-        />
-      )}
+      <Spin spinning={loading && !o}>
+        {o && (
+          <Tabs
+            items={[
+              {
+                key: 'info',
+                label: '基本信息',
+                children: (
+                  <Descriptions
+                    bordered
+                    size="small"
+                    column={2}
+                    items={[
+                      { key: 'no', label: '商机编号', children: o.opportunity_no || '-' },
+                      { key: 'name', label: '商机名称', children: o.name },
+                      {
+                        key: 'customer',
+                        label: '客户',
+                        children: (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={() =>
+                              window.open(`/crm/customer?customer_id=${o.customer_id}`, '_blank')
+                            }
+                          >
+                            {customerName ?? `#${o.customer_id}`}
+                          </Button>
+                        ),
+                      },
+                      {
+                        key: 'amount',
+                        label: '预期金额',
+                        children: o.expected_amount ? formatMoney(o.expected_amount) : '-',
+                      },
+                      {
+                        key: 'stage',
+                        label: '阶段',
+                        children: <DictTag code="OPPORTUNITY_STAGE" value={o.stage} />,
+                      },
+                      {
+                        key: 'probability',
+                        label: '成交概率',
+                        children:
+                          o.probability !== null && o.probability !== undefined
+                            ? `${o.probability}%`
+                            : '-',
+                      },
+                      {
+                        key: 'close_date',
+                        label: '预计成交日',
+                        children: o.expected_close_date ?? '-',
+                      },
+                      { key: 'owner', label: '负责人', children: nickname(o.owner_id) },
+                      {
+                        key: 'description',
+                        label: '描述',
+                        span: 2,
+                        children: o.description || '-',
+                      },
+                      { key: 'created_at', label: '创建时间', children: o.created_at },
+                      { key: 'updated_at', label: '更新时间', children: o.updated_at },
+                    ]}
+                  />
+                ),
+              },
+              {
+                key: 'history',
+                label: '阶段历史',
+                children: (
+                  <Table<CrmStageRecord>
+                    rowKey="id"
+                    size="small"
+                    loading={historyLoading}
+                    dataSource={history}
+                    columns={historyColumns}
+                    pagination={false}
+                  />
+                ),
+              },
+              {
+                key: 'attachments',
+                label: '附件',
+                children: (
+                  <AttachmentsPanel
+                    bizType="OPPORTUNITY"
+                    resourceId={o.id}
+                    uploadPerm="crm:opportunity:edit"
+                    deletePerm="crm:opportunity:edit"
+                  />
+                ),
+              },
+            ]}
+          />
+        )}
+      </Spin>
     </Drawer>
   )
 }

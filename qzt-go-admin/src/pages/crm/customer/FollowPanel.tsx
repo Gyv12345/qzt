@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { App, Button, Input, Select, Space, Timeline } from 'antd'
 import { SendOutlined } from '@ant-design/icons'
+import dayjs from 'dayjs'
 import { DictTag } from '../../../components/DictSelect'
 import { createFollowRecord, getFollowTimeline } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
@@ -43,7 +44,7 @@ export default function FollowPanel({ customerId }: { customerId: number }) {
       await createFollowRecord({
         type: followType,
         content: content.trim(),
-        follow_time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+        follow_time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
         customer_id: customerId,
       })
       message.success('跟进记录已添加')

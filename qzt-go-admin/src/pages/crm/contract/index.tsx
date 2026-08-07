@@ -21,7 +21,7 @@ import {
   Tag,
   type TableProps,
 } from 'antd'
-import { PlusOutlined, PrinterOutlined } from '@ant-design/icons'
+import { PaperClipOutlined, PlusOutlined, PrinterOutlined } from '@ant-design/icons'
 import {
   ProForm,
   ModalForm,
@@ -34,6 +34,7 @@ import {
 } from '@ant-design/pro-components'
 import dayjs, { type Dayjs } from 'dayjs'
 import Auth from '../../../components/Auth'
+import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import CustomerSelect from '../../../components/CustomerSelect'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
@@ -42,6 +43,7 @@ import UserSelect from '../../../components/UserSelect'
 import { pushApproval } from '../../../services/approval'
 import CustomerDetailDrawer from '../customer/DetailDrawer'
 import OpportunityDetailDrawer from '../opportunity/DetailDrawer'
+import { formatMoney } from '../../../utils/format'
 import {
   createContract,
   createContractItem,
@@ -119,8 +121,8 @@ const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
   REVOKED: { text: '已撤回', color: 'warning' },
 }
 
-/** 金额显示: ¥ 前缀 + 两位小数 */
-const money = (v: string | number | null | undefined) => `¥${Number(v ?? 0).toFixed(2)}`
+/** 金额显示:复用全站 formatMoney(¥ + 千分位 + 两位小数) */
+const money = formatMoney
 
 const formatDate = (v: Dayjs | undefined) => (v ? v.format('YYYY-MM-DD') : undefined)
 
@@ -160,6 +162,9 @@ export default function ContractPage() {
   const [recordForm] = Form.useForm<RecordFormValues>()
   const [recordModalOpen, setRecordModalOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<CrmPaymentRecord | null>(null)
+
+  // 回款记录附件
+  const [paymentAttachTarget, setPaymentAttachTarget] = useState<CrmPaymentRecord | null>(null)
 
   // 产品明细
   const [items, setItems] = useState<CrmContractItem[]>([])
@@ -639,9 +644,17 @@ export default function ContractPage() {
     {
       title: '操作',
       key: 'action',
-      width: 130,
+      width: 180,
       render: (_, r) => (
         <Space>
+          <Button
+            type="link"
+            size="small"
+            icon={<PaperClipOutlined />}
+            onClick={() => setPaymentAttachTarget(r)}
+          >
+            附件
+          </Button>
           <Auth perm="crm:payment:edit">
             <Button type="link" size="small" onClick={() => openRecordEdit(r)}>
               编辑
@@ -1015,7 +1028,41 @@ export default function ContractPage() {
                   </Space>
                 ),
               },
+              {
+                key: 'attachments',
+                label: '附件',
+                children: (
+                  <AttachmentsPanel
+                    bizType="CONTRACT"
+                    resourceId={detail.id}
+                    uploadPerm="crm:contract:edit"
+                    deletePerm="crm:contract:edit"
+                  />
+                ),
+              },
             ]}
+          />
+        )}
+      </Drawer>
+
+      {/* 回款记录附件 */}
+      <Drawer
+        title={
+          paymentAttachTarget
+            ? `回款附件:¥${paymentAttachTarget.amount}(${paymentAttachTarget.received_date ?? '-'})`
+            : '回款附件'
+        }
+        width={560}
+        open={!!paymentAttachTarget}
+        onClose={() => setPaymentAttachTarget(null)}
+        destroyOnHidden
+      >
+        {paymentAttachTarget && (
+          <AttachmentsPanel
+            bizType="CONTRACT_PAYMENT"
+            resourceId={paymentAttachTarget.id}
+            uploadPerm="crm:payment:edit"
+            deletePerm="crm:payment:edit"
           />
         )}
       </Drawer>
