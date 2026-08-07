@@ -51,11 +51,11 @@ func RegisterPaymentListener(ctx context.Context) error {
 			return
 		}
 
-		// 查合同名作为摘要
+		// 查合同名作为摘要(合同列是 name;title_id 是工商抬头ID,勿混用)
 		var contractName string
 		repository.DBFrom(ctx).Model(&crmmodel.CrmContract{}).
 			Where("id = ?", contractID).
-			Select("title").Scan(&contractName)
+			Select("name").Scan(&contractName)
 		if contractName == "" {
 			contractName = fmt.Sprintf("合同#%d", contractID)
 		}

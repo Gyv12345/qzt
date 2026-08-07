@@ -24,10 +24,12 @@ func (r *ContractRepo) Update(ctx context.Context, m *crmmodel.CrmContract) erro
 		"OwnerID", "FollowerID", "FollowTime", "Content")
 }
 
-// AddReceivedAmount 在 received_amount 上原子加 amount(回款累计用)。
+// AddReceivedAmount 在 received_amount 上原子加 amount(回款累计用);amount 为负即扣减。
+// 用 GREATEST 兜底 0,避免删除记录反向扣减时出现负数。
 func (r *ContractRepo) AddReceivedAmount(ctx context.Context, id uint, amount string) error {
 	return repoDB(ctx).Model(&crmmodel.CrmContract{}).Where("id = ?", id).
-		UpdateColumn("received_amount", gorm.Expr("received_amount + ?", amount)).Error
+		UpdateColumn("received_amount",
+			gorm.Expr("GREATEST(received_amount + ?, 0)", amount)).Error
 }
 
 // ListByCustomer 按客户列合同。
@@ -57,10 +59,11 @@ func (r *PaymentPlanRepo) ListByContract(ctx context.Context, contractID uint) (
 	})
 }
 
-// AddPlanReceived 原子加计划已回款金额。
+// AddPlanReceived 原子加计划已回款金额(amount 为负即扣减);GREATEST 兜底 0。
 func (r *PaymentPlanRepo) AddPlanReceived(ctx context.Context, id uint, amount string) error {
 	return repoDB(ctx).Model(&crmmodel.CrmContractPaymentPlan{}).Where("id = ?", id).
-		UpdateColumn("received_amount", gorm.Expr("received_amount + ?", amount)).Error
+		UpdateColumn("received_amount",
+			gorm.Expr("GREATEST(received_amount + ?, 0)", amount)).Error
 }
 
 // ── 回款记录 ──

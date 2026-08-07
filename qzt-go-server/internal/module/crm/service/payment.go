@@ -191,41 +191,37 @@ func (s *PaymentService) GetRecord(ctx context.Context, id uint) (*crmmodel.CrmC
 	return rec, notFoundOr(err, "回款记录不存在")
 }
 
-// DeleteRecord 删除回款记录并反向扣减累计金额(floor 0)。
+// DeleteRecord 删除回款记录并原子反向扣减累计金额(floor 0,与 CreateRecord 走同一套原子路径,
+// 避免读改写并发丢更新)。
 func (s *PaymentService) DeleteRecord(ctx context.Context, id uint) error {
 	rec, err := s.recordRepo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "回款记录不存在")
 	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
-		// 反向扣减计划累计
+		// 反向扣减计划累计(负数 + GREATEST 兜底 0),并重算计划状态
 		if rec.PlanID != nil {
 			plan, err := s.planRepo.GetByID(ctx, *rec.PlanID)
 			if err == nil && plan != nil && plan.ContractID == rec.ContractID {
-				newReceived := plan.ReceivedAmount.Sub(rec.Amount)
-				if newReceived.LessThan(decimal.Zero) {
-					newReceived = decimal.Zero
+				// 原子扣减计划已回款
+				if err := s.planRepo.AddPlanReceived(ctx, plan.ID, "-"+rec.Amount.String()); err != nil {
+					return err
 				}
-				plan.ReceivedAmount = newReceived
-				plan.Status = computePlanStatus(plan.ReceivedAmount, plan.PlanAmount)
-				if err := s.planRepo.Update(ctx, plan); err != nil {
+				// 重算状态:用扣减后的实际值重新读 plan(received_amount 由 DB 原子更新,内存值不可信)
+				fresh, err := s.planRepo.GetByID(ctx, plan.ID)
+				if err != nil {
+					return err
+				}
+				fresh.Status = computePlanStatus(fresh.ReceivedAmount, fresh.PlanAmount)
+				if err := s.planRepo.Update(ctx, fresh); err != nil {
 					return err
 				}
 			} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err
 			}
 		}
-		// 反向扣减合同累计(floor 0):received_amount = max(received - amount, 0)
-		contract, err := s.contractRepo.GetByID(ctx, rec.ContractID)
-		if err != nil {
-			return notFoundOr(err, "合同不存在")
-		}
-		newContractReceived := contract.ReceivedAmount.Sub(rec.Amount)
-		if newContractReceived.LessThan(decimal.Zero) {
-			newContractReceived = decimal.Zero
-		}
-		contract.ReceivedAmount = newContractReceived
-		if err := s.contractRepo.Update(ctx, contract); err != nil {
+		// 反向扣减合同累计(原子,负数 + GREATEST 兜底 0)
+		if err := s.contractRepo.AddReceivedAmount(ctx, rec.ContractID, "-"+rec.Amount.String()); err != nil {
 			return err
 		}
 		return s.recordRepo.Delete(ctx, id)

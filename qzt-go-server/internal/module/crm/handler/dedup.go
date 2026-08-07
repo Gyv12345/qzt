@@ -58,9 +58,13 @@ func (h *DedupHandler) Check(c *gin.Context) {
 	leads := make([]DedupLeadItem, 0)
 	customers := make([]DedupCustomerItem, 0)
 
+	// 注:.Table() 原生查询不走 GORM 软删除自动过滤,需手动补 deleted_at IS NULL
+	// (crm_lead / crm_customer / crm_customer_contact 均为软删除表)。
+
 	// ---- 线索:名称模糊(名称/联系人/公司) 或 电话精确 ----
 	leadQuery := db.Table("crm_lead").
 		Select("id, name, contact_name, phone, company, status, owner_id").
+		Where("crm_lead.deleted_at IS NULL").
 		Limit(5)
 	if name != "" && phone != "" {
 		leadQuery = leadQuery.Where(
@@ -81,6 +85,7 @@ func (h *DedupHandler) Check(c *gin.Context) {
 	// ---- 客户:名称模糊;电话精确则经联系人表关联 ----
 	custQuery := db.Table("crm_customer").
 		Select("crm_customer.id, crm_customer.name, crm_customer.customer_no, crm_customer.status, crm_customer.owner_id").
+		Where("crm_customer.deleted_at IS NULL").
 		Limit(5)
 	if name != "" && phone != "" {
 		custQuery = custQuery.Where("crm_customer.name LIKE ?", "%"+name+"%")
@@ -88,7 +93,8 @@ func (h *DedupHandler) Check(c *gin.Context) {
 		var phoneHits []DedupCustomerItem
 		db.Table("crm_customer").
 			Select("crm_customer.id, crm_customer.name, crm_customer.customer_no, crm_customer.status, crm_customer.owner_id").
-			Joins("JOIN crm_customer_contact cc ON cc.customer_id = crm_customer.id AND cc.phone = ?", phone).
+			Joins("JOIN crm_customer_contact cc ON cc.customer_id = crm_customer.id AND cc.phone = ? AND cc.deleted_at IS NULL", phone).
+			Where("crm_customer.deleted_at IS NULL").
 			Limit(5).
 			Scan(&phoneHits)
 		if err := custQuery.Scan(&customers).Error; err != nil {
@@ -103,7 +109,7 @@ func (h *DedupHandler) Check(c *gin.Context) {
 		}
 	} else {
 		if err := custQuery.
-			Joins("JOIN crm_customer_contact cc ON cc.customer_id = crm_customer.id AND cc.phone = ?", phone).
+			Joins("JOIN crm_customer_contact cc ON cc.customer_id = crm_customer.id AND cc.phone = ? AND cc.deleted_at IS NULL", phone).
 			Scan(&customers).Error; err != nil {
 			response.Fail(c, errcode.ErrServer, err.Error())
 			return
