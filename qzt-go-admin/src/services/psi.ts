@@ -1,5 +1,6 @@
 import request from '../utils/request'
 import type {
+  PsiAsset,
   PsiPurchaseOrder,
   PsiPurchaseOrderPayload,
   PsiPurchaseSummaryItem,
@@ -220,3 +221,38 @@ export const getSalesRanking = (params?: {
   end_date?: string
   limit?: number
 }) => request.get<unknown, PsiSalesRankItem[]>('/psi/reports/sales-ranking', { params })
+
+// ---------- 固定资产 ----------
+
+export interface AssetQuery extends PageParams {
+  keyword?: string
+  category?: string
+  status?: number
+  owner_id?: number
+  dept_id?: number
+}
+
+export const listAssets = (params: AssetQuery) =>
+  request.get<unknown, PsiPageResult<PsiAsset>>('/psi/assets', { params })
+
+export const createAsset = (data: {
+  name: string
+  category?: string
+  spec?: string
+  serial_no?: string
+  dept_id?: number
+  owner_id?: number
+  purchase_date?: string
+  purchase_price?: string
+  useful_life?: number
+  location?: string
+  remark?: string
+}) => request.post('/psi/assets', data)
+
+export const updateAsset = (id: number, data: Partial<Parameters<typeof createAsset>[0]> & {
+  depreciation?: string
+  net_value?: string
+  status?: number
+}) => request.put(`/psi/assets/${id}`, data)
+
+export const deleteAsset = (id: number) => request.delete(`/psi/assets/${id}`)

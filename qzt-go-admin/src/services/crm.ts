@@ -3,6 +3,8 @@ import type {
   CrmContact,
   CrmContactPayload,
   CrmContract,
+  CrmTicket,
+  TicketDetail,
   CrmContractPayload,
   CrmContractItem,
   CrmContractItemPayload,
@@ -372,3 +374,41 @@ export const updateCollaboration = (id: number, data: { collaboration_type: stri
   request.put('/crm/collaborations/' + id, data)
 export const deleteCollaboration = (id: number) =>
   request.delete('/crm/collaborations/' + id)
+
+// ── 售后工单 ──
+
+export interface TicketQuery extends PageParams {
+  keyword?: string
+  category?: string
+  status?: number
+  priority?: number
+  customer_id?: number
+  handler_id?: number
+}
+
+export const listTickets = (params: TicketQuery) =>
+  request.get<unknown, CrmPageResult<CrmTicket>>('/crm/tickets', { params })
+
+export const getTicket = (id: number) =>
+  request.get<unknown, TicketDetail>(`/crm/tickets/${id}`)
+
+export const createTicket = (data: {
+  title: string
+  description?: string
+  customer_id?: number
+  customer_name?: string
+  contract_id?: number
+  contact_name?: string
+  contact_phone?: string
+  category?: string
+  priority?: number
+}) => request.post<unknown, CrmTicket>('/crm/tickets', data)
+
+export const updateTicket = (id: number, data: Partial<Parameters<typeof createTicket>[0]> & {
+  handler_id?: number
+}) => request.put(`/crm/tickets/${id}`, data)
+
+export const changeTicketStatus = (id: number, status: number, solution?: string, comment?: string) =>
+  request.put(`/crm/tickets/${id}/status`, { status, solution, comment })
+
+export const deleteTicket = (id: number) => request.delete(`/crm/tickets/${id}`)

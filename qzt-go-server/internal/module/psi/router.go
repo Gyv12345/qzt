@@ -23,6 +23,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	salesHandler := handler.NewSalesHandler()
 	stockIOHandler := handler.NewStockIOHandler()
 	reportHandler := handler.NewReportHandler()
+	assetHandler := handler.NewAssetHandler()
 
 	// 已认证路由(仅 JWT,无 RBAC):库存结余、收发明细、报表等查询类。
 	// 静态路径须先于 :id 注册,避免与参数路由冲突。
@@ -94,5 +95,12 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/stock-out-orders", stockIOHandler.ListOut)
 		auth.POST("/stock-out-orders", stockIOHandler.CreateOut)
 		auth.GET("/stock-out-orders/:id", stockIOHandler.GetOutByID)
+
+		// 固定资产
+		auth.GET("/assets", assetHandler.List)
+		auth.POST("/assets", assetHandler.Create)
+		auth.GET("/assets/:id", assetHandler.GetByID)
+		auth.PUT("/assets/:id", assetHandler.Update)
+		auth.DELETE("/assets/:id", assetHandler.Delete)
 	}
 }

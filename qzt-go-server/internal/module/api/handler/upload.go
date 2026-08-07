@@ -7,6 +7,8 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -14,6 +16,7 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gin-gonic/gin"
 
+	"qzt-go-server/config"
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/pkg/storage"
@@ -23,17 +26,19 @@ import (
 const (
 	bytesPerMegabyte        int64 = 1024 * 1024
 	multipartOverheadBytes int64 = 1024 * 1024
+	defaultSignTTL               = time.Hour // 私有文件签名下载 URL 有效期
 )
 
 // fileUploader 文件存储抽象，便于测试注入替身。
 type fileUploader interface {
 	Save(file *multipart.FileHeader, folders ...string) (*storage.UploadedFile, error)
+	SavePrivate(file *multipart.FileHeader, folders ...string) (*storage.UploadedFile, error)
+	SignURL(objectKey string, ttl time.Duration) (string, error)
 }
 
-// UploadHandler 文件上传 handler。
+// UploadHandler 文件上传与签名下载 handler(双桶)。
 type UploadHandler struct {
-	uploader          fileUploader
-	getResourceDomain func() string
+	uploader fileUploader
 }
 
 // UploadResult 上传结果，包含文件信息与资源访问域名。
@@ -43,27 +48,24 @@ type UploadResult struct {
 }
 
 func NewUploadHandler() *UploadHandler {
-	return &UploadHandler{
-		uploader: app.Uploader,
-		getResourceDomain: func() string {
-			return app.StorageResourceDomain()
-		},
-	}
+	return &UploadHandler{uploader: app.Uploader}
 }
 
-// Upload 文件上传
+// Upload 文件上传(双桶)。
+// query 参数 visibility: public(默认,公共桶直链)/ private(私有桶,返回 objectKey)。
 // @Summary      文件上传
-// @Description  上传文件,返回文件信息与资源访问域名
+// @Description  上传文件,支持公共桶(visibility=public)与私有桶(visibility=private)
 // @Tags         公共接口
 // @Accept       multipart/form-data
 // @Produce      json
-// @Param        file    formData  file    true   "上传的文件"
-// @Param        folder  formData  string  false  "存储文件夹"
+// @Param        file         formData  file    true   "上传的文件"
+// @Param        folder       formData  string  false  "存储文件夹"
+// @Param        visibility   query     string  false  "可见性: public(默认)/private"  Enums(public, private)
 // @Success      200  {object}  xresponse.Response{data=UploadResult}
 // @Router       /api/upload [post]
 func (h *UploadHandler) Upload(c *gin.Context) {
 	// 限制请求体大小，超出直接由 MaxBytesReader 返回错误
-	if maxMB := app.StorageMaxUploadMB(); maxMB > 0 {
+	if maxMB := config.Get().Storage.MaxUploadMB; maxMB > 0 {
 		maxBodyBytes := int64(maxMB)*bytesPerMegabyte + multipartOverheadBytes
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
 	}
@@ -84,18 +86,27 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	// 每次上传取最新的 Uploader(配置可能被后台动态修改)
+	// 每次上传取最新的 Uploader(配置在启动时固定,但保留取最新实例的习惯)
 	uploader := app.GetUploader()
 	if uploader == nil {
 		uploader = h.uploader
 	}
-	result, err := uploader.Save(file, c.PostForm("folder"))
+
+	visibility := strings.ToLower(strings.TrimSpace(c.DefaultQuery("visibility", storage.VisibilityPublic)))
+	folder := c.PostForm("folder")
+
+	var result *storage.UploadedFile
+	switch visibility {
+	case storage.VisibilityPrivate:
+		result, err = uploader.SavePrivate(file, folder)
+	default:
+		visibility = storage.VisibilityPublic
+		result, err = uploader.Save(file, folder)
+	}
+
 	switch {
 	case err == nil:
-		resourceDomain := ""
-		if h.getResourceDomain != nil {
-			resourceDomain = strings.TrimRight(strings.TrimSpace(h.getResourceDomain()), "/")
-		}
+		resourceDomain := strings.TrimRight(strings.TrimSpace(config.Get().Storage.ResourceDomain), "/")
 		response.OK(c, &UploadResult{
 			UploadedFile:   result,
 			ResourceDomain: resourceDomain,
@@ -108,9 +119,11 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "不支持的文件类型")
 	case errors.Is(err, storage.ErrInvalidFolder):
 		response.Fail(c, errcode.ErrParam, "文件夹名称不合法")
+	case errors.Is(err, storage.ErrPrivateBucketDisabled):
+		response.Fail(c, errcode.ErrServer, "私有存储未配置,请在配置文件中设置 private_bucket_name / private_path")
 	default:
 		if app.Log != nil {
-			app.Log.Errorw("upload file failed", "err", err)
+			app.Log.Errorw("upload file failed", "err", err, "visibility", visibility)
 		}
 		response.Fail(c, errcode.ErrServer, "文件上传失败")
 	}
@@ -118,25 +131,26 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 
 // STSResult 前端直传 OSS 所需的预签名 URL。
 type STSResult struct {
-	Driver       string `json:"driver"`         // oss / local(local 时前端走后端上传)
-	UploadURL    string `json:"upload_url"`     // OSS PUT 预签名 URL(前端直接 PUT 文件)
-	FileURL      string `json:"file_url"`       // 上传成功后的 CDN/自定义域名访问 URL
-	ContentType  string `json:"content_type"`   // 文件 MIME(PUT 时需带 Content-Type header)
+	Driver      string `json:"driver"`       // oss / local(local 时前端走后端上传)
+	UploadURL   string `json:"upload_url"`   // OSS PUT 预签名 URL(前端直接 PUT 文件)
+	FileURL     string `json:"file_url"`     // 上传成功后的访问 URL(公共桶=CDN明文;私有桶=objectKey)
+	ContentType string `json:"content_type"` // 文件 MIME(PUT 时需带 Content-Type header)
 }
 
 // STS 返回前端直传 OSS 的预签名 URL。
-// 前端拿到后直接 PUT 文件到 upload_url,成功后用 file_url 作为图片地址。
+// query 参数 private: true 时给私有桶签名(返回 objectKey 而非明文 URL)。
 // @Summary  获取 OSS 直传预签名 URL
 // @Tags     公共接口
 // @Produce  json
 // @Security BearerAuth
 // @Param    filename  query  string  true   "文件名(用于推断扩展名)"
 // @Param    folder    query  string  false  "存储文件夹(默认 uploads)"
+// @Param    private   query  bool    false  "是否上传到私有桶(默认 false)"
 // @Success  200  {object}  xresponse.Response
 // @Router   /api/upload/sts [get]
 func (h *UploadHandler) STS(c *gin.Context) {
-	cfg := app.GetStorageConfig()
-	if cfg == nil || cfg.Driver != "oss" {
+	storageCfg := config.Get().Storage
+	if storageCfg.Driver != config.StorageDriverOSS {
 		response.OK(c, &STSResult{Driver: "local"})
 		return
 	}
@@ -147,6 +161,7 @@ func (h *UploadHandler) STS(c *gin.Context) {
 		return
 	}
 	folder := c.DefaultQuery("folder", "uploads")
+	usePrivate := c.Query("private") == "true" || c.Query("visibility") == storage.VisibilityPrivate
 
 	// 推断扩展名和 content-type
 	ext := strings.ToLower(filepath.Ext(filename))
@@ -160,34 +175,54 @@ func (h *UploadHandler) STS(c *gin.Context) {
 	objectKey := strings.Trim(folder, "/") + "/" + now.Format("20060102") + "/" + randomHex(16) + ext
 
 	// 用 OSS SDK 签 PUT URL(15 分钟有效)
-	endpoint := cfg.OSSEndpoint
-	client, err := oss.New(endpoint, cfg.OSSAccessKeyID, cfg.OSSAccessKeySecret)
+	endpoint := storageCfg.OSS.Endpoint
+	client, err := oss.New(endpoint, storageCfg.OSS.AccessKeyID, storageCfg.OSS.AccessKeySecret)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, "创建 OSS 客户端失败: "+err.Error())
 		return
 	}
-	bucket, err := client.Bucket(cfg.OSSBucketName)
+
+	bucketName := storageCfg.OSS.BucketName
+	if usePrivate {
+		bucketName = storageCfg.OSS.PrivateBucketName
+	}
+	if bucketName == "" {
+		response.Fail(c, errcode.ErrServer, "私有桶未配置,请在配置文件设置 oss.private_bucket_name")
+		return
+	}
+
+	bucket, err := client.Bucket(bucketName)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, "获取 bucket 失败: "+err.Error())
 		return
 	}
 
+	// 公共桶: inline 预览;私有桶: attachment 触发下载
+	disposition := "inline"
+	if usePrivate {
+		disposition = "attachment"
+	}
 	uploadURL, err := bucket.SignURL(objectKey, oss.HTTPPut, 900,
 		oss.ContentType(contentType),
-		oss.ContentDisposition("inline"),
+		oss.ContentDisposition(disposition),
 	)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, "签名失败: "+err.Error())
 		return
 	}
 
-	// 拼最终访问 URL
-	cdnDomain := cfg.OSSCustomDomain
-	if cdnDomain == "" {
-		cdnDomain = cfg.ResourceDomain
+	// 拼最终访问 URL:公共桶用 CDN 明文,私有桶返回 objectKey(前端落库,后续走 /api/file/sign 取下载 URL)
+	var fileURL string
+	if usePrivate {
+		fileURL = objectKey
+	} else {
+		cdnDomain := storageCfg.OSS.CustomDomain
+		if cdnDomain == "" {
+			cdnDomain = storageCfg.ResourceDomain
+		}
+		cdnDomain = strings.TrimRight(cdnDomain, "/")
+		fileURL = cdnDomain + "/" + objectKey
 	}
-	cdnDomain = strings.TrimRight(cdnDomain, "/")
-	fileURL := cdnDomain + "/" + objectKey
 
 	response.OK(c, &STSResult{
 		Driver:      "oss",
@@ -195,6 +230,129 @@ func (h *UploadHandler) STS(c *gin.Context) {
 		FileURL:     fileURL,
 		ContentType: contentType,
 	})
+}
+
+// SignResult 私有文件签名下载 URL。
+type SignResult struct {
+	URL string `json:"url"` // 短期有效的私有文件下载 URL
+}
+
+// Sign 为私有文件签发短期下载 URL(1 小时有效)。前端拿到后可直接 <img src>/window.open。
+// @Summary  获取私有文件下载 URL
+// @Description  为私有桶/私有目录的文件签发短期(1h)下载 URL,无需 Authorization header
+// @Tags        公共接口
+// @Produce     json
+// @Security    BearerAuth
+// @Param       key   query  string  true  "文件 objectKey(上传时返回的 file_url)"
+// @Success     200  {object}  xresponse.Response{data=SignResult}
+// @Router      /api/file/sign [get]
+func (h *UploadHandler) Sign(c *gin.Context) {
+	key := c.Query("key")
+	if key == "" {
+		response.Fail(c, errcode.ErrParam, "key 必填")
+		return
+	}
+
+	uploader := app.GetUploader()
+	if uploader == nil {
+		uploader = h.uploader
+	}
+	if uploader == nil {
+		response.Fail(c, errcode.ErrServer, "文件存储服务未初始化")
+		return
+	}
+
+	signedURL, err := uploader.SignURL(key, defaultSignTTL)
+	if err != nil {
+		if errors.Is(err, storage.ErrPrivateBucketDisabled) {
+			response.Fail(c, errcode.ErrServer, "私有存储未配置")
+			return
+		}
+		if app.Log != nil {
+			app.Log.Errorw("sign private url failed", "err", err, "key", key)
+		}
+		response.Fail(c, errcode.ErrServer, "生成下载链接失败")
+		return
+	}
+
+	response.OK(c, &SignResult{URL: signedURL})
+}
+
+// Download 本地私有文件代理下载(仅 driver=local 时使用)。
+// OSS 模式的 SignURL 返回阿里云预签名 URL,浏览器直连 OSS,不走本接口。
+// 鉴权靠 token(由 SignURL 签发,无需 Authorization header),校验后 c.File() 流式返回。
+// @Summary  下载私有文件(local 模式)
+// @Description  解析 token 后流式返回私有目录文件。OSS 模式不会调用此接口。
+// @Tags       公共接口
+// @Produce    application/octet-stream
+// @Param      t   query  string  true  "签名 token(由 /api/file/sign 返回 URL 中的 t 参数)"
+// @Param      k   query  string  true  "文件 objectKey"
+// @Router     /api/file/dl [get]
+func (h *UploadHandler) Download(c *gin.Context) {
+	token := c.Query("t")
+	key := c.Query("k")
+	if token == "" || key == "" {
+		response.Fail(c, errcode.ErrParam, "t 和 k 必填")
+		return
+	}
+
+	// 解析 token,校验签名 + key 匹配 + 未过期
+	gotKey, _, err := storage.VerifySignToken(token, config.Get().JWT.JwtSecret)
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, "下载链接无效或已过期: "+err.Error())
+		return
+	}
+
+	// 防路径穿越:校验 token 内的 key 与 query 的 k 一致,且 key 不含 .. 等危险路径
+	if gotKey != key {
+		response.Fail(c, errcode.ErrParam, "下载链接与文件不匹配")
+		return
+	}
+	cleanKey := filepath.Clean("/" + key) // 前缀 / 防止逃逸,Clean 后形如 /a/b/c
+	cleanKey = strings.TrimPrefix(cleanKey, "/")
+	if strings.Contains(cleanKey, "..") {
+		response.Fail(c, errcode.ErrParam, "非法文件路径")
+		return
+	}
+
+	// 定位私有目录:从当前 Uploader 拿(OSS 模式不该走到这里,但防御性判断 driver)
+	storageCfg := config.Get().Storage
+	privateDir := storageCfg.PrivatePath
+	if privateDir == "" {
+		privateDir = "./storage/private"
+	}
+
+	// 解码 URL 编码的 key
+	decodedKey, err := url.QueryUnescape(cleanKey)
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, "非法文件路径")
+		return
+	}
+
+	filePath := filepath.Join(privateDir, filepath.FromSlash(decodedKey))
+	// 再次确认解析后的绝对路径仍在私有目录内
+	absPrivate, err := filepath.Abs(privateDir)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, "解析私有目录失败")
+		return
+	}
+	absFile, err := filepath.Abs(filePath)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, "解析文件路径失败")
+		return
+	}
+	if !strings.HasPrefix(absFile, absPrivate+string(filepath.Separator)) {
+		response.Fail(c, errcode.ErrParam, "非法文件路径")
+		return
+	}
+
+	if _, err := os.Stat(filePath); err != nil {
+		response.Fail(c, errcode.ErrNotFound, "文件不存在")
+		return
+	}
+
+	// attachment 触发下载(私有文件默认不内联)
+	c.FileAttachment(filePath, filepath.Base(decodedKey))
 }
 
 // randomHex 生成 n 字节的随机十六进制字符串。

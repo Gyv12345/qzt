@@ -48,17 +48,27 @@ docker compose -f deploy/docker-compose.yaml up -d mysql redis
 ### 2. 配置
 
 ```bash
-cp config/config.dev.yaml config/config.yaml
-# 按需修改数据库连接、JWT 密钥等
+cp config/config.yaml.example config/config.dev.yaml   # 按环境复制
+cp .env.example .env                                    # 填入本地 DB/Redis/JWT/OSS 敏感配置
+# 按需修改数据库连接、JWT 密钥等（端口固定 9000，8000 被本机占用）
 ```
 
-### 3. 运行
+### 3. 建表与种子数据
+
+**建表和种子数据已从 Go 代码中移除**，统一走 SQL 脚本（见 `AGENTS.md` 约定）。首次部署执行：
 
 ```bash
-make run        # 首次启动会自动建表 + 写入种子数据（admin 角色 / 超管账号）
+# 通过 DBX MCP 或 mysql 手动执行 docs/sql/ 下的脚本
+# 核心脚本：qztgo.sql（表结构 + 系统地基种子，含超管角色/用户/菜单/API/字典）
+mysql -h <host> -u <user> -p qztgo < docs/sql/qztgo.sql
 ```
 
 默认管理员账号：`admin` / `admin123`
+
+### 4. 运行
+
+```bash
+make run        # 加载 .env + config/config.<env>.yaml，不自动建表/写种子
 
 ### 4. 构建
 
@@ -79,10 +89,16 @@ Router -> Middleware -> Handler(API) -> Service -> Repository -> GORM -> MySQL/R
 
 详见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 与 [docs/CODING.md](docs/CODING.md)。
 
-## 模块规划
+## 已实现模块
 
-- ✅ **第一阶段（本仓库）**：基础平台 + RBAC 权限中心 + 系统管理
-- 🔜 CRM / CMS / 进销存 / HRM / EMR：按需新增 `internal/module/<name>/`，互不耦合
+12 个业务模块 + MCP Server，详见 [docs/FEATURES.md](docs/FEATURES.md)：
+
+- **system**（系统地基）、**crm**（客户关系）、**hrm**（人力资源）、**psi**（进销存）
+- **cms**（内容管理）、**approval**（审批引擎）、**finance**（财务）、**oa**（协同办公）
+- **enterprise**（企业服务）、**project**（项目）、**ai**（AI 助手）、**api**（公共接口）
+- **mcp**（AI 工具层，90+ 工具，对接大模型）
+
+新增业务模块：在 `internal/module/<name>/` 下实现 `Module` 接口，在 `cmd/server/main.go` 注册即可。
 
 ## 部署
 
@@ -91,3 +107,6 @@ make up         # docker-compose 启动 mysql + redis + app
 ```
 
 最低配置：CPU 2 核 / 内存 4G / 硬盘 40G / Linux。
+
+容量与压测评估见 [docs/CAPACITY.md](docs/CAPACITY.md)（2C4G + 2C2G 单机承载约 150-400 在线用户，优化后可到 800）。
+文件存储（本地/OSS 双桶）见 [docs/OSS.md](docs/OSS.md)。

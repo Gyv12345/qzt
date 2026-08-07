@@ -42,7 +42,7 @@ type LeaveRepo struct {
 func NewLeaveRepo() *LeaveRepo { return &LeaveRepo{} }
 
 func (r *LeaveRepo) Update(ctx context.Context, m *hrmmodel.HrmLeave) error {
-	return r.BaseRepo.Update(ctx, m, "LeaveNo", "LeaveType", "StartDate", "EndDate", "DurationDays", "Reason", "Status", "ApproverID", "ApproveTime", "ApproveRemark")
+	return r.BaseRepo.Update(ctx, m, "LeaveNo", "LeaveType", "StartDate", "EndDate", "DurationDays", "Reason", "Status", "ApprovalStatus", "ApproverID", "ApproveTime", "ApproveRemark")
 }
 
 // ── 加班 ──

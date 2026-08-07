@@ -45,6 +45,64 @@ export interface CrmCustomerDetail {
   contacts?: CrmContact[]
 }
 
+// ── 线索 ──
+
+/** 线索状态: 1新建 2跟进中 3已转化 4无效 */
+export interface CrmLead {
+  id: number
+  name: string
+  lead_no: string
+  contact_name: string
+  phone: string
+  email: string
+  company: string
+  /** 级别, 字典 LEAD_LEVEL */
+  level: string
+  /** 来源, 字典 LEAD_SOURCE */
+  source: string
+  status: number
+  /** 行业, 字典 INDUSTRY */
+  industry: string
+  /** 负责人, null=公海 */
+  owner_id: number | null
+  follower_id: number | null
+  follow_time: string | null
+  /** 0私海 1公海 */
+  in_pool: number
+  pool_id: number | null
+  collection_time: string | null
+  pool_reason: string
+  converted_customer_id: number | null
+  converted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+// ── 查重(跨线索+客户) ──
+
+export interface DedupLeadItem {
+  id: number
+  name: string
+  contact_name: string
+  phone: string
+  company: string
+  status: number
+  owner_id: number | null
+}
+
+export interface DedupCustomerItem {
+  id: number
+  name: string
+  customer_no: string
+  status: number
+  owner_id: number | null
+}
+
+export interface DedupResult {
+  leads: DedupLeadItem[]
+  customers: DedupCustomerItem[]
+}
+
 /** 商机阶段:PROSPECTING/QUALIFIED/PROPOSAL/NEGOTIATION/WON/LOST */
 export interface CrmOpportunity {
   id: number
@@ -85,4 +143,61 @@ export interface CrmContract {
   content: string
   created_at: string
   updated_at: string
+}
+
+// ── 产品 ──
+
+export interface CrmProduct {
+  id: number
+  product_no: string
+  name: string
+  category: string
+  spec: string
+  unit: string
+  price: string
+  description: string
+  status: number
+}
+
+// ── 售后工单 ──
+
+export interface CrmTicket {
+  id: number
+  ticket_no: string
+  title: string
+  description: string
+  customer_id: number | null
+  customer_name: string
+  contact_name: string
+  contact_phone: string
+  category: string
+  priority: number
+  status: number
+  handler_id: number | null
+  solution: string
+  resolved_at: string | null
+  created_at: string
+}
+
+export interface CrmTicketLog {
+  id: number
+  ticket_id: number
+  content: string
+  operator_id: number
+  old_status: number
+  new_status: number
+  created_at: string
+}
+
+export interface TicketDetail {
+  ticket: CrmTicket
+  logs: CrmTicketLog[]
+}
+
+export const TICKET_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '待处理', color: 'danger' },
+  2: { text: '处理中', color: 'warning' },
+  3: { text: '已解决', color: 'success' },
+  4: { text: '已关闭', color: 'default' },
+  5: { text: '已重开', color: 'warning' },
 }

@@ -4,36 +4,26 @@ import (
 	"fmt"
 	"sync"
 
-	"qzt-go-server/internal/model"
+	"qzt-go-server/config"
 	"qzt-go-server/internal/pkg/storage"
 )
 
 const bytesPerMegabyte int64 = 1024 * 1024
 
-// uploaderMu 保护 uploader 的读写(配置变更时重建)。
+// uploaderMu 保护 uploader 的读写(启动时写入一次)。
 var uploaderMu sync.RWMutex
 
-// uploader 当前文件存储驱动实例。
+// uploader 当前文件存储驱动实例(双桶:公共+私有)。
 var uploader storage.Uploader
 
-// storageCfgCache 缓存当前存储配置(从 DB 读取,Update 时刷新)。
-var storageCfgCache *model.SysStorageConfig
-
-// GetUploader 线程安全地获取当前 Uploader(上传时每次调用取最新)。
+// GetUploader 线程安全地获取当前 Uploader。
 func GetUploader() storage.Uploader {
 	uploaderMu.RLock()
 	defer uploaderMu.RUnlock()
 	return uploader
 }
 
-// GetStorageConfig 线程安全地获取当前存储配置缓存(含 OSS AK/SK,供签名接口用)。
-func GetStorageConfig() *model.SysStorageConfig {
-	uploaderMu.RLock()
-	defer uploaderMu.RUnlock()
-	return storageCfgCache
-}
-
-// setUploader 线程安全地替换 Uploader(配置变更后调用)。
+// setUploader 线程安全地替换 Uploader。
 func setUploader(u storage.Uploader) {
 	uploaderMu.Lock()
 	defer uploaderMu.Unlock()
@@ -59,40 +49,23 @@ var defaultAllowedTypes = map[string]string{
 	"zip":  "application/zip",
 }
 
-// InitStorage 启动时初始化文件存储(必须在数据库初始化之后调用)。
-// configLoader 由调用方传入(避免 app→repository 循环依赖),从 DB 读取存储配置。
-// 返回 nil 配置时使用默认 local 驱动。
-func InitStorage(configLoader func() (*model.SysStorageConfig, error)) error {
-	var cfg *model.SysStorageConfig
-	if configLoader != nil {
-		c, err := configLoader()
-		if err == nil {
-			cfg = c
-		}
-	}
-	if cfg == nil {
-		Log.Infof("从数据库读取存储配置失败或无记录,使用默认 local 驱动")
-		cfg = &model.SysStorageConfig{
-			Driver:        model.StorageDriverLocal,
-			LocalPath:     "./storage/uploads",
-			ResourceDomain: "",
-			MaxUploadMB:   20,
-		}
-	}
-	storageCfgCache = cfg
-
+// InitStorage 从 config.StorageConfig 构建全局 Uploader(启动时调用一次)。
+// 存储配置走配置文件(config.{env}.yaml + .env),不再从 DB 读取;
+// 改配置需重启服务(运维级配置,热重载反而危险)。
+func InitStorage() error {
+	cfg := config.Get().Storage
 	u, err := buildUploader(cfg)
 	if err != nil {
 		return err
 	}
 	setUploader(u)
 	Uploader = u
-	Log.Infof("文件存储已初始化(来自数据库): driver=%s", cfg.Driver)
+	Log.Infof("文件存储已初始化: driver=%s", cfg.Driver)
 	return nil
 }
 
-// buildUploader 根据存储配置构建 Uploader。
-func buildUploader(cfg *model.SysStorageConfig) (storage.Uploader, error) {
+// buildUploader 根据存储配置构建 Uploader(双桶:公共+私有)。
+func buildUploader(cfg config.StorageConfig) (storage.Uploader, error) {
 	maxBytes := int64(20) * bytesPerMegabyte
 	if cfg.MaxUploadMB > 0 {
 		maxBytes = int64(cfg.MaxUploadMB) * bytesPerMegabyte
@@ -102,59 +75,39 @@ func buildUploader(cfg *model.SysStorageConfig) (storage.Uploader, error) {
 	case "", "local":
 		localPath := cfg.LocalPath
 		if localPath == "" {
-			localPath = "./storage/uploads"
+			localPath = "./storage/public"
 		}
+		privatePath := cfg.PrivatePath
+		if privatePath == "" {
+			privatePath = "./storage/private"
+		}
+		// local 私有文件代理下载 URL 的签名密钥复用 JWT secret(已在启动时校验非空)。
+		signSecret := config.Get().JWT.JwtSecret
 		u, err := storage.NewLocal(storage.LocalConfig{
-			Directory:    localPath,
-			PublicURL:    cfg.ResourceDomain,
-			MaxBytes:     maxBytes,
-			AllowedTypes: defaultAllowedTypes,
+			Directory:        localPath,
+			PrivateDirectory: privatePath,
+			PublicURL:        cfg.ResourceDomain,
+			SignSecret:       signSecret,
+			MaxBytes:         maxBytes,
+			AllowedTypes:     defaultAllowedTypes,
 		})
 		return u, err
 
 	case "oss":
 		u, err := storage.NewOSS(storage.OSSConfig{
-			Endpoint:        cfg.OSSEndpoint,
-			AccessKeyID:     cfg.OSSAccessKeyID,
-			AccessKeySecret: cfg.OSSAccessKeySecret,
-			BucketName:      cfg.OSSBucketName,
-			CustomDomain:    cfg.OSSCustomDomain,
-			MaxBytes:        maxBytes,
-			AllowedTypes:    defaultAllowedTypes,
+			Endpoint:            cfg.OSS.Endpoint,
+			AccessKeyID:         cfg.OSS.AccessKeyID,
+			AccessKeySecret:     cfg.OSS.AccessKeySecret,
+			BucketName:          cfg.OSS.BucketName,
+			CustomDomain:        cfg.OSS.CustomDomain,
+			PrivateBucketName:   cfg.OSS.PrivateBucketName,
+			PrivateCustomDomain: cfg.OSS.PrivateCustomDomain,
+			MaxBytes:            maxBytes,
+			AllowedTypes:        defaultAllowedTypes,
 		})
 		return u, err
 
 	default:
 		return nil, fmt.Errorf("unsupported storage driver: %q (use local or oss)", cfg.Driver)
 	}
-}
-
-// ReloadUploader 根据存储配置重建 Uploader(配置变更后调用)。
-// 全部从传入参数构建,同时刷新内存缓存。
-func ReloadUploader(driver, localPath, resourceDomain, ossEndpoint, ossAK, ossSK, ossBucket, ossCustomDomain string, maxUploadMB int) error {
-	cfg := &model.SysStorageConfig{
-		Driver:          driver,
-		LocalPath:       localPath,
-		ResourceDomain:  resourceDomain,
-		OSSEndpoint:     ossEndpoint,
-		OSSAccessKeyID:  ossAK,
-		OSSAccessKeySecret: ossSK,
-		OSSBucketName:   ossBucket,
-		OSSCustomDomain: ossCustomDomain,
-		MaxUploadMB:     maxUploadMB,
-	}
-
-	u, err := buildUploader(cfg)
-	if err != nil {
-		return err
-	}
-
-	uploaderMu.Lock()
-	uploader = u
-	Uploader = u
-	storageCfgCache = cfg
-	uploaderMu.Unlock()
-
-	Log.Infof("文件存储已重建: %s", driver)
-	return nil
 }

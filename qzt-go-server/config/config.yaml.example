@@ -53,7 +53,16 @@ jwt:
   refresh_expiration_time: 168h
 
 storage:
-  driver: local
-  local_path: ./storage/uploads
+  driver: local                          # local | oss
+  local_path: ./storage/public           # 公共目录(driver=local,nginx 静态 serve)
+  private_path: ./storage/private        # 私有目录(driver=local,后端代理鉴权访问)
   resource_domain: http://localhost:8000
   max_upload_mb: 20
+  oss:                                   # driver=oss 时使用，敏感值通过 .env 注入
+    endpoint: ${OSS_ENDPOINT:-}
+    access_key_id: ${OSS_ACCESS_KEY_ID:-}
+    access_key_secret: ${OSS_ACCESS_KEY_SECRET:-}
+    bucket_name: ${OSS_BUCKET_NAME:-}                # 公共桶(public-read)
+    custom_domain: ${OSS_CUSTOM_DOMAIN:-}            # 公共桶 CDN/自定义域名
+    private_bucket_name: ${OSS_PRIVATE_BUCKET_NAME:-}        # 私有桶(留空则禁用私有附件)
+    private_custom_domain: ${OSS_PRIVATE_CUSTOM_DOMAIN:-}    # 私有桶自定义域名

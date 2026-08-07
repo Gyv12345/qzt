@@ -6,10 +6,11 @@ import type {
   CreateVoucherPayload,
   FinAccount,
   FinInvoice,
+  FinReceivable,
   FinVoucher,
   IncomeStatement,
 } from '../types/finance'
-import type { PageParams } from '../types'
+import type { PageParams, PageResult } from '../types'
 
 /** 财务分页结构(只有 list+total,与 PSI/CRM 一致) */
 export interface FinancePageResult<T> {
@@ -68,3 +69,36 @@ export const getIncomeStatement = (params: { start_date: string; end_date: strin
 
 export const getBalanceSheet = (params: { end_date: string }) =>
   request.get<unknown, BalanceSheet>('/finance/reports/balance-sheet', { params })
+
+// ---------- 应收应付 ----------
+
+export interface ReceivableQuery extends PageParams {
+  direction?: string
+  party_type?: string
+  party_id?: number
+  status?: number
+  biz_type?: string
+  keyword?: string
+}
+
+export const listReceivables = (params: ReceivableQuery) =>
+  request.get<unknown, PageResult<FinReceivable>>('/finance/receivables', { params })
+
+export const getReceivable = (id: number) =>
+  request.get<unknown, FinReceivable>(`/finance/receivables/${id}`)
+
+export const createReceivable = (data: {
+  direction: string
+  party_name: string
+  occur_date: string
+  original_amount: string
+  party_type?: string
+  party_id?: number
+  due_date?: string
+  biz_type?: string
+  biz_id?: number
+  remark?: string
+}) => request.post<unknown, FinReceivable>('/finance/receivables', data)
+
+export const settleReceivable = (id: number, amount: string, remark?: string) =>
+  request.post<unknown, FinReceivable>(`/finance/receivables/${id}/settle`, { amount, remark })

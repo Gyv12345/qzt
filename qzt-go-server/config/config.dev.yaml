@@ -49,12 +49,15 @@ jwt:
 
 storage:
   driver: ${STORAGE_DRIVER:-local}  # 存储驱动：local（本地磁盘）| oss（阿里云 OSS）
-  local_path: ./storage/uploads  # 本地存储根目录（driver=local 时使用）
+  local_path: ./storage/public      # 公共存储根目录（driver=local，nginx 静态 serve）
+  private_path: ./storage/private   # 私有存储根目录（driver=local，后端代理鉴权访问）
   resource_domain: http://localhost:9000  # 本地资源访问域名
   max_upload_mb: 20            # 单文件大小上限(MB)
   oss:                         # 阿里云 OSS 配置（driver=oss 时使用，敏感值通过 .env 注入）
     endpoint: ${OSS_ENDPOINT:-}
     access_key_id: ${OSS_ACCESS_KEY_ID:-}
     access_key_secret: ${OSS_ACCESS_KEY_SECRET:-}
-    bucket_name: ${OSS_BUCKET_NAME:-}
-    custom_domain: ${OSS_CUSTOM_DOMAIN:-}  # CDN/自定义域名（空则用默认域名）
+    bucket_name: ${OSS_BUCKET_NAME:-}                # 公共桶(public-read)
+    custom_domain: ${OSS_CUSTOM_DOMAIN:-}            # 公共桶 CDN/自定义域名（空则用默认域名）
+    private_bucket_name: ${OSS_PRIVATE_BUCKET_NAME:-}        # 私有桶(private,留空则禁用私有附件)
+    private_custom_domain: ${OSS_PRIVATE_CUSTOM_DOMAIN:-}    # 私有桶自定义域名（一般留空）

@@ -36,4 +36,30 @@ func init() {
 			return n, err
 		},
 	})
+
+	// 招聘职位 ZP
+	numbergen.Register("job", numbergen.Rule{
+		Enabled: true, Prefix: "ZP", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: func(ctx context.Context, prefix, datePart string) (int64, error) {
+			var n int64
+			err := repository.DBFrom(ctx).Model(&hrmmodel.HrmJob{}).
+				Where("job_no LIKE ?", prefix+datePart+"%").
+				Where("job_no != ''").
+				Count(&n).Error
+			return n, err
+		},
+	})
+
+	// 绩效考核 JX
+	numbergen.Register("performance", numbergen.Rule{
+		Enabled: true, Prefix: "JX", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: func(ctx context.Context, prefix, datePart string) (int64, error) {
+			var n int64
+			err := repository.DBFrom(ctx).Model(&hrmmodel.HrmPerformance{}).
+				Where("perf_no LIKE ?", prefix+datePart+"%").
+				Where("perf_no != ''").
+				Count(&n).Error
+			return n, err
+		},
+	})
 }

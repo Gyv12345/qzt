@@ -275,7 +275,12 @@ func isValidFormType(t string) bool {
 		apprmodel.FormTypeOrder, apprmodel.FormTypeInvoice,
 		// PSI 进销存单据
 		apprmodel.FormTypePurchaseOrder, apprmodel.FormTypeSalesOrder,
-		apprmodel.FormTypePurchaseReturn, apprmodel.FormTypeSalesReturn:
+		apprmodel.FormTypePurchaseReturn, apprmodel.FormTypeSalesReturn,
+		// OA 办公流程
+		apprmodel.FormTypeExpense,
+		apprmodel.FormTypeLeave,
+		apprmodel.FormTypeTrip,
+		apprmodel.FormTypeLoan:
 		return true
 	}
 	return false

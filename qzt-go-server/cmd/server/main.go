@@ -24,8 +24,11 @@ import (
 	entmod "qzt-go-server/internal/module/enterprise"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
 	hrmmod "qzt-go-server/internal/module/hrm"
+	mailmod "qzt-go-server/internal/module/mail"
 	psimod "qzt-go-server/internal/module/psi"
 	"qzt-go-server/internal/module/system"
+	oamod "qzt-go-server/internal/module/oa"
+	projmod "qzt-go-server/internal/module/project"
 	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/server"
 	"qzt-go-server/pkg/xcolor"
@@ -59,7 +62,7 @@ func main() {
 	// 数据库表结构和种子数据请通过 docs/sql/ 下的 SQL 脚本手动执行。
 	setting.Warm(context.Background())
 
-	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / ai 模块）
+	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa / ai / mail 模块）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -70,7 +73,10 @@ func main() {
 		hrmmod.New(),
 		psimod.New(),
 		finmod.New(),
+		oamod.New(),
+		projmod.New(),
 		aimod.New(),
+		mailmod.New(),
 	)
 
 	// 4.45 注册 MCP Server(挂载 /mcp 到 gin engine,API Key 认证)

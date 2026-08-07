@@ -3,6 +3,7 @@ import { Card, ErrorBlock, List, NavBar, SpinLoading, Tag } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getCustomer } from '../../services/crm'
 import type { CrmCustomerDetail } from '../../types/crm'
+import { dialWithDedup } from '../../utils/dial'
 
 const STATUS_TEXT: Record<number, string> = { 1: '正常', 2: '冻结', 3: '流失' }
 
@@ -12,6 +13,16 @@ export default function CustomerDetail() {
   const [detail, setDetail] = useState<CrmCustomerDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+
+  // 联系人拨号:查重拦截后拨号,弹窗内"查看"跳转已有线索/客户
+  const onDialContact = (phone: string, name?: string) => {
+    dialWithDedup(phone, {
+      name,
+      onPickExisting: (type, rid) => {
+        navigate(type === 'customer' ? `/customer/${rid}` : `/lead/${rid}`)
+      },
+    })
+  }
 
   useEffect(() => {
     if (!id) return
@@ -68,7 +79,17 @@ export default function CustomerDetail() {
                 key={ct.id}
                 description={
                   <span style={{ fontSize: 12 }}>
-                    {ct.phone ? `📞 ${ct.phone}` : ''}
+                    {ct.phone && (
+                      <span
+                        style={{ color: 'var(--brand)', textDecoration: 'underline' }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDialContact(ct.phone, ct.name)
+                        }}
+                      >
+                        📞 {ct.phone}
+                      </span>
+                    )}
                     {ct.email ? ` · ✉ ${ct.email}` : ''}
                   </span>
                 }

@@ -123,12 +123,14 @@ func (s *JobService) ListEnabled(ctx context.Context) ([]entmodel.SysJob, error)
 }
 
 // RunOnce 手动触发执行一次任务。
+// 注意:用独立 context 而非请求 ctx —— goroutine 在响应返回后继续执行,
+// 请求 ctx 会被取消导致任务内的 DB 查询报 "context canceled"。
 func (s *JobService) RunOnce(ctx context.Context, id uint) error {
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "任务不存在")
 	}
-	go s.executeJob(ctx, job, entmodel.JobTriggerManual)
+	go s.executeJob(context.Background(), job, entmodel.JobTriggerManual)
 	return nil
 }
 

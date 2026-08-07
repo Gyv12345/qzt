@@ -11,7 +11,7 @@
                 │            cmd/server/main.go        │  启动入口
                 └───────────────┬─────────────────────┘
                                 │ app.Init（配置→时区→日志→存储→DB→Redis→Casbin→JWT）
-                                │ AutoMigrate + SeedData + setting.Warm
+                                │ setting.Warm（运行时配置预热）
                                 ▼
                 ┌─────────────────────────────────────┐
                 │         internal/server              │  NewRouter 装配
@@ -109,6 +109,13 @@ err := repository.Transaction(ctx, func(ctx context.Context) error {
 - **业务代码必须用 Ctx 变体**：`xlogger.InfofCtx(ctx, ...)` / `ErrorfCtx`，自动注入 trace_id。
 - 访问日志中间件对敏感字段脱敏。
 
+### 3.7 文件存储：双桶 + 双驱动
+
+- `internal/pkg/storage` 定义 `Uploader` 接口，`*Local`（本地磁盘）与 `*OSS`（阿里云 OSS）都实现它，启动时按 `config.driver` 切换。
+- **双桶模型**：公共桶（public-read，直链/CDN，存可公开资源）+ 私有桶（private，签名 GET 访问，存合同/凭证等敏感文件）。
+- 配置走 `config.{env}.yaml` + `.env`（敏感字段环境变量注入），**已从数据库表迁移到配置文件**，改配置需重启。
+- 详细设计与 API 见 [OSS.md](OSS.md)。
+
 ## 4. 启动顺序
 
 `app.Init` 严格按序初始化，任一失败即终止：
@@ -124,6 +131,6 @@ config → timezone → logger → storage → database → redis → casbin →
 1. 在 `internal/module/<name>/` 下创建 `router.go`（实现 `server.Module` 接口）、`handler/`、`service/`。
 2. model 放 `internal/model/`，repo 放 `internal/repository/`（共享，非每模块独立）。
 3. 在 `cmd/server/main.go` 的 `server.NewRouter(...)` 中注册新模块。
-4. 在 `internal/model/migrate.go` 的 `allModels()` 登记新表。
+4. **建表 + 种子数据写 SQL 脚本**（`docs/sql/<模块>.sql`，幂等），手动执行。**不要**用 `db.AutoMigrate()`，也不要往 `migrate.go`/`seed_data.go` 挂函数（这两类已从代码移除，详见工作区 `AGENTS.md`）。
 
 参考 `module/system` 与 `module/api` 的实现。

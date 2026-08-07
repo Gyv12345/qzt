@@ -31,7 +31,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	resetHandler := handler.NewResetHandler()
 	configHandler := handler.NewConfigHandler()
 	oauthConfigHandler := handler.NewOauthConfigHandler()
-	storageConfigHandler := handler.NewStorageConfigHandler()
 	apiKeyHandler := handler.NewApiKeyHandler()
 	siteConfigHandler := handler.NewSiteConfigHandler()
 
@@ -142,12 +141,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.PUT("/oauth-configs/:id", oauthConfigHandler.Update)
 		auth.DELETE("/oauth-configs/:id", oauthConfigHandler.Delete)
 		auth.PUT("/oauth-configs/:id/enable", oauthConfigHandler.Enable)
-
-		// 文件存储配置
-		auth.GET("/storage-config", storageConfigHandler.Get)
-		auth.PUT("/storage-config", storageConfigHandler.Update)
-		auth.POST("/storage-config/test", storageConfigHandler.TestConnection)
-		auth.PUT("/storage-config/reload", storageConfigHandler.Reload)
 
 		// 站点信息设置
 		auth.PUT("/site-config", siteConfigHandler.Update)

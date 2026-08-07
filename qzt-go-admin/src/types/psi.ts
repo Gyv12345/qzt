@@ -292,3 +292,39 @@ export interface PsiSalesRankItem {
   quantity?: string
   amount?: string
 }
+
+// ---------- 固定资产 ----------
+
+export interface PsiAsset {
+  id: number
+  asset_no: string
+  name: string
+  category: string
+  spec: string
+  serial_no: string
+  warehouse_id: number | null
+  dept_id: number | null
+  owner_id: number | null
+  purchase_date: string | null
+  purchase_price: string
+  depreciation: string
+  net_value: string
+  useful_life: number
+  status: number
+  location: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+export const ASSET_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '使用中', color: 'success' },
+  2: { text: '闲置', color: 'default' },
+  3: { text: '维修中', color: 'warning' },
+  4: { text: '已报废', color: 'error' },
+  5: { text: '丢失', color: 'error' },
+}
+
+export const ASSET_CATEGORY: Record<string, string> = {
+  电脑: '电脑', 设备: '设备', 家具: '家具', 车辆: '车辆', 其他: '其他',
+}

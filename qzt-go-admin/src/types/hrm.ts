@@ -102,3 +102,149 @@ export interface HrmEmployeeChange {
   created_at: string
   updated_at: string
 }
+
+// ---------- 请假 ----------
+
+/** 请假单 */
+export interface HrmLeave {
+  id: number
+  leave_no: string
+  employee_id: number
+  /** 请假类型, 字典 LEAVE_TYPE: PERSONAL/SICK/ANNUAL/MARRIAGE/MATERNITY/OTHER */
+  leave_type: string
+  /** yyyy-MM-dd HH:mm:ss */
+  start_date: string
+  end_date: string
+  /** 请假天数(decimal 字符串) */
+  duration_days: string
+  reason: string
+  /** 旧审批状态(兼容): PENDING/APPROVED/REJECTED/CANCELED */
+  status: string
+  /** 审批引擎状态: NONE/APPROVING/APPROVED/REJECTED/REVOKED */
+  approval_status: string
+  approver_id: number | null
+  approve_time: string | null
+  approve_remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 审批状态映射 */
+export const LEAVE_APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
+  NONE: { text: '未提交', color: 'default' },
+  APPROVING: { text: '审批中', color: 'processing' },
+  APPROVED: { text: '已通过', color: 'success' },
+  REJECTED: { text: '已驳回', color: 'error' },
+  REVOKED: { text: '已撤回', color: 'warning' },
+}
+
+// ---------- 招聘 ----------
+
+/** 招聘职位 */
+export interface HrmJob {
+  id: number
+  job_no: string
+  title: string
+  dept_id: number | null
+  dept_name: string
+  position_id: number | null
+  headcount: number
+  salary_range: string
+  education: string
+  experience: string
+  description: string
+  requirement: string
+  hiring_manager_id: number | null
+  /** 1草稿 2招聘中 3暂停 4已关闭 5已满编 */
+  status: number
+  publish_date: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** 候选人 */
+export interface HrmCandidate {
+  id: number
+  job_id: number
+  name: string
+  phone: string
+  email: string
+  gender: string
+  age: number
+  education: string
+  experience: string
+  company: string
+  resume_url: string
+  /** 1新简历 2筛选 3面试 4offer 5录用 6淘汰 */
+  status: number
+  source: string
+  interview_date: string
+  remark: string
+  evaluator_id: number | null
+  created_at: string
+  updated_at: string
+}
+
+export const JOB_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '草稿', color: 'default' },
+  2: { text: '招聘中', color: 'processing' },
+  3: { text: '暂停', color: 'warning' },
+  4: { text: '已关闭', color: 'default' },
+  5: { text: '已满编', color: 'success' },
+}
+
+export const CANDIDATE_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '新简历', color: 'default' },
+  2: { text: '筛选中', color: 'blue' },
+  3: { text: '面试中', color: 'processing' },
+  4: { text: '已发offer', color: 'warning' },
+  5: { text: '已录用', color: 'success' },
+  6: { text: '已淘汰', color: 'error' },
+}
+
+// ---------- 绩效考核 ----------
+
+export interface HrmPerformance {
+  id: number
+  perf_no: string
+  title: string
+  employee_id: number
+  employee_name: string
+  dept_id: number | null
+  dept_name: string
+  period: string
+  start_date: string
+  end_date: string
+  status: number
+  reviewer_id: number | null
+  self_score: string
+  self_comment: string
+  self_time: string | null
+  review_score: string
+  review_comment: string
+  review_time: string | null
+  final_score: string
+  grade: string
+  created_at: string
+  updated_at: string
+}
+
+export interface HrmPerfItem {
+  id: number
+  perf_id: number
+  item_name: string
+  weight: string
+  target_desc: string
+  self_score: string
+  review_score: string
+  remark: string
+}
+
+export const PERF_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '草稿', color: 'default' },
+  2: { text: '进行中', color: 'processing' },
+  3: { text: '自评完成', color: 'blue' },
+  4: { text: '评审中', color: 'warning' },
+  5: { text: '已完成', color: 'success' },
+  6: { text: '已取消', color: 'default' },
+}

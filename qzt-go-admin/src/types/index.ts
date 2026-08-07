@@ -359,38 +359,6 @@ export interface OauthConfigPayload {
   remark?: string
 }
 
-// ---------- 存储配置 ----------
-
-export interface SysStorageConfig {
-  id: number
-  /** local / oss */
-  driver: string
-  local_path: string
-  resource_domain: string
-  oss_endpoint: string
-  oss_access_key_id: string
-  oss_access_key_secret?: string
-  oss_bucket_name: string
-  oss_custom_domain: string
-  max_upload_mb: number
-  remark: string
-  created_at: string
-  updated_at: string
-}
-
-export interface UpdateStorageConfigRequest {
-  driver: string
-  local_path?: string
-  resource_domain?: string
-  oss_endpoint?: string
-  oss_access_key_id?: string
-  oss_access_key_secret?: string
-  oss_bucket_name?: string
-  oss_custom_domain?: string
-  max_upload_mb?: number
-  remark?: string
-}
-
 // ---------- 站点信息(网站基础元数据) ----------
 
 export interface SysSiteConfig {
@@ -440,4 +408,25 @@ export interface UpdateSiteConfigRequest {
   keywords?: string
   analytics_code?: string
   copyright?: string
+}
+
+// ---------- 邮件 ----------
+
+/** 邮件附件(前端 FileUpload 产出的文件信息) */
+export interface MailAttachment {
+  /** 下载直链或 objectKey(私有文件) */
+  url: string
+  /** 附件显示名 */
+  file_name: string
+  /** MIME(可空) */
+  content_type?: string
+}
+
+/** 发送邮件请求(body 为 Markdown,后端渲染成 HTML) */
+export interface SendMailRequest {
+  to: string[]
+  cc?: string[]
+  subject: string
+  body: string
+  attachments?: MailAttachment[]
 }

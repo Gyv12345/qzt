@@ -21,6 +21,7 @@ import {
   type CrmContactListItem,
 } from '../../../services/crm'
 import type { CrmContactPayload } from '../../../types/crm'
+import DetailDrawer from './DetailDrawer'
 
 interface ContactFormValues {
   name: string
@@ -40,6 +41,7 @@ export default function ContactPage() {
   const [form] = Form.useForm<ContactFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmContactListItem | null>(null)
+  const [detailTarget, setDetailTarget] = useState<CrmContactListItem | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -102,7 +104,17 @@ export default function ContactPage() {
       hideInTable: true,
       fieldProps: { placeholder: '搜索姓名/电话/邮箱' },
     },
-    { title: '姓名', dataIndex: 'name', width: 120, search: false },
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      width: 120,
+      search: false,
+      render: (v, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailTarget(r)}>
+          {v}
+        </Button>
+      ),
+    },
     { title: '客户', dataIndex: 'customer_name', width: 180, search: false, ellipsis: true },
     { title: '职务', dataIndex: 'position', width: 120, search: false, render: (v) => v || '-' },
     { title: '部门', dataIndex: 'department', width: 120, search: false, render: (v) => v || '-' },
@@ -128,10 +140,13 @@ export default function ContactPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 130,
+      width: 170,
       fixed: 'right',
       render: (_, record) => (
         <Space size={0}>
+          <Button type="link" size="small" onClick={() => setDetailTarget(record)}>
+            详情
+          </Button>
           <Auth perm="crm:contact:edit">
             <Button type="link" size="small" onClick={() => openEdit(record)}>
               编辑
@@ -237,6 +252,13 @@ export default function ContactPage() {
         </Col>
         <ProFormTextArea name="remark" label="备注" fieldProps={{ rows: 3 }} colProps={{ span: 24 }} />
       </ModalForm>
+
+      {/* 联系人详情抽屉 */}
+      <DetailDrawer
+        contact={detailTarget}
+        open={!!detailTarget}
+        onClose={() => setDetailTarget(null)}
+      />
     </>
   )
 }

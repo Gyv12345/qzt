@@ -9,6 +9,18 @@ import {
   CheckShieldOutline,
   MessageOutline,
   SoundOutline,
+  FlagOutline,
+  ReceiptOutline,
+  CompassOutline,
+  PayCircleOutline,
+  AppstoreOutline,
+  BankcardOutline,
+  UserOutline,
+  CheckOutline,
+  ShopbagOutline,
+  FileWrongOutline,
+  UnorderedListOutline,
+  GiftOutline,
 } from 'antd-mobile-icons'
 import type { CSSProperties, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -74,6 +86,7 @@ export default function Home() {
   // 常用业务宫格
   const primaryEntries: GridEntry[] = [
     { key: 'customer', label: '客户', icon: <TeamOutline />, iconBg: 'var(--icon-bg-crm)', path: '/customer' },
+    { key: 'lead', label: '线索', icon: <FlagOutline />, iconBg: 'var(--icon-bg-crm)', path: '/lead' },
     { key: 'opp', label: '商机', icon: <CheckShieldOutline />, iconBg: 'var(--icon-bg-opp)', path: '/opportunity' },
     { key: 'contract', label: '合同', icon: <FileOutline />, iconBg: 'var(--icon-bg-contract)', path: '/contract' },
     {
@@ -84,6 +97,35 @@ export default function Home() {
       path: '/approval',
       badge: todoCount || undefined,
     },
+    { key: 'ticket', label: '工单', icon: <FileWrongOutline />, iconBg: 'var(--icon-bg-crm)', path: '/ticket' },
+    { key: 'product', label: '产品', icon: <ShopbagOutline />, iconBg: 'var(--icon-bg-opp)', path: '/product' },
+  ]
+
+  // 进销存宫格
+  const psiEntries: GridEntry[] = [
+    { key: 'purchase', label: '采购', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-contract)', path: '/psi/purchase' },
+    { key: 'sales', label: '销售', icon: <ShopbagOutline />, iconBg: 'var(--icon-bg-opp)', path: '/psi/sales' },
+    { key: 'stock', label: '库存', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-crm)', path: '/psi/stock' },
+    { key: 'asset', label: '资产', icon: <GiftOutline />, iconBg: 'var(--icon-bg-settings)', path: '/psi/asset' },
+  ]
+
+  // OA 办公宫格
+  const oaEntries: GridEntry[] = [
+    { key: 'expense', label: '报销', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-approval)', path: '/expense' },
+    { key: 'trip', label: '出差', icon: <CompassOutline />, iconBg: 'var(--icon-bg-crm)', path: '/trip' },
+    { key: 'loan', label: '借款', icon: <PayCircleOutline />, iconBg: 'var(--icon-bg-contract)', path: '/loan' },
+  ]
+
+  // 财务+项目宫格
+  const bizEntries: GridEntry[] = [
+    { key: 'receivable', label: '应收应付', icon: <BankcardOutline />, iconBg: 'var(--icon-bg-contract)', path: '/finance/receivable' },
+    { key: 'project', label: '项目', icon: <AppstoreOutline />, iconBg: 'var(--icon-bg-opp)', path: '/project' },
+  ]
+
+  // 人事宫格
+  const hrmEntries: GridEntry[] = [
+    { key: 'employee', label: '员工', icon: <UserOutline />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/employee' },
+    { key: 'leave', label: '请假', icon: <CheckOutline />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
   ]
 
   // 更多宫格
@@ -147,11 +189,37 @@ export default function Home() {
 
       {/* 常用业务 */}
       <div className="home-section">
+        <div className="home-section-title">常用业务</div>
         <div className="home-grid">{renderGrid(primaryEntries)}</div>
+      </div>
+
+      {/* OA 办公 */}
+      <div className="home-section">
+        <div className="home-section-title">OA 办公</div>
+        <div className="home-grid">{renderGrid(oaEntries)}</div>
+      </div>
+
+      {/* 财务·项目 */}
+      <div className="home-section">
+        <div className="home-section-title">财务 · 项目</div>
+        <div className="home-grid">{renderGrid(bizEntries)}</div>
+      </div>
+
+      {/* 人事 */}
+      <div className="home-section">
+        <div className="home-section-title">人事</div>
+        <div className="home-grid">{renderGrid(hrmEntries)}</div>
+      </div>
+
+      {/* 进销存 */}
+      <div className="home-section">
+        <div className="home-section-title">进销存</div>
+        <div className="home-grid">{renderGrid(psiEntries)}</div>
       </div>
 
       {/* 更多 */}
       <div className="home-section">
+        <div className="home-section-title">更多</div>
         <div className="home-grid">{renderGrid(moreEntries)}</div>
       </div>
 

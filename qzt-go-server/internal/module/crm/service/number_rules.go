@@ -50,6 +50,11 @@ func init() {
 		Enabled: true, Prefix: "GJ", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: countLike(&crmmodel.FollowUpRecord{}, "follow_no"),
 	})
+	// 售后工单 GD
+	numbergen.Register("ticket", numbergen.Rule{
+		Enabled: true, Prefix: "GD", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&crmmodel.CrmTicket{}, "ticket_no"),
+	})
 
 	_ = datePart
 }

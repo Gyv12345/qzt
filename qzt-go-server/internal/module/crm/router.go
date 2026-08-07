@@ -40,6 +40,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	changeLogHandler := handler.NewChangeLogHandler()
 	importExportHandler := handler.NewImportExportHandler()
 	dedupHandler := handler.NewDedupHandler()
+	ticketHandler := handler.NewTicketHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -81,6 +82,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 客户/线索查重(录入防重,名称模糊+电话精确)
 		authenticated.GET("/dedup", dedupHandler.Check)
+
+		// 跟进预警配置(阈值天数 + 开关,只读)
+		authenticated.GET("/followup/warn-config", followHandler.WarnConfig)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):CRUD 与写操作。
@@ -175,6 +179,14 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/products/:id/prices", productPriceHandler.CreatePrice)
 		auth.PUT("/product-prices/:id", productPriceHandler.UpdatePrice)
 		auth.DELETE("/product-prices/:id", productPriceHandler.DeletePrice)
+
+		// 售后工单
+		auth.GET("/tickets", ticketHandler.List)
+		auth.POST("/tickets", ticketHandler.Create)
+		auth.GET("/tickets/:id", ticketHandler.GetByID)
+		auth.PUT("/tickets/:id", ticketHandler.Update)
+		auth.PUT("/tickets/:id/status", ticketHandler.ChangeStatus)
+		auth.DELETE("/tickets/:id", ticketHandler.Delete)
 
 		// 跟进记录
 		auth.POST("/follow-records", followHandler.CreateRecord)

@@ -21,6 +21,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	employeeHandler := handler.NewEmployeeHandler()
 	attendanceHandler := handler.NewAttendanceHandler()
 	payrollHandler := handler.NewPayrollHandler()
+	recruitmentHandler := handler.NewRecruitmentHandler()
+	performanceHandler := handler.NewPerformanceHandler()
 
 	// 已认证路由(仅 JWT,无 RBAC):部门树/岗位下拉(供其他模块表单选择)。
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
@@ -74,5 +76,26 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/payroll", payrollHandler.PayrollList)
 		auth.PUT("/payroll/:id/confirm", payrollHandler.ConfirmPayroll)
 		auth.PUT("/payroll/:id/paid", payrollHandler.MarkPaid)
+
+		// 招聘管理
+		auth.GET("/jobs", recruitmentHandler.ListJobs)
+		auth.POST("/jobs", recruitmentHandler.CreateJob)
+		auth.GET("/jobs/:id", recruitmentHandler.GetJob)
+		auth.PUT("/jobs/:id", recruitmentHandler.UpdateJob)
+		auth.DELETE("/jobs/:id", recruitmentHandler.DeleteJob)
+
+		// 候选人
+		auth.GET("/candidates", recruitmentHandler.ListCandidates)
+		auth.POST("/candidates", recruitmentHandler.CreateCandidate)
+		auth.PUT("/candidates/:id", recruitmentHandler.UpdateCandidate)
+		auth.DELETE("/candidates/:id", recruitmentHandler.DeleteCandidate)
+
+		// 绩效考核
+		auth.GET("/performances", performanceHandler.List)
+		auth.POST("/performances", performanceHandler.Create)
+		auth.GET("/performances/:id", performanceHandler.GetByID)
+		auth.PUT("/performances/:id/self-review", performanceHandler.SelfReview)
+		auth.PUT("/performances/:id/review", performanceHandler.Review)
+		auth.DELETE("/performances/:id", performanceHandler.Delete)
 	}
 }

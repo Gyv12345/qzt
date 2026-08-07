@@ -67,8 +67,9 @@ func buildServer() *server.MCPServer {
 	// 注册 CRM 合同模板 tools
 	registerContractTemplateTools(s)
 
-	// 注册 CMS tools(文章)
+	// 注册 CMS tools(文章/分类/标签/单页)
 	registerArticleTools(s)
+	registerCmsExtraTools(s)
 
 	// 注册审批 tools(流程/待办/实例)
 	registerApprovalTools(s)

@@ -62,18 +62,19 @@ func (HrmAttendanceClock) TableName() string { return "hrm_attendance_clock" }
 
 // HrmLeave 请假单。
 type HrmLeave struct {
-	ID           uint               `json:"id" gorm:"primaryKey"`
-	LeaveNo      string             `json:"leave_no" gorm:"size:64;comment:请假单号"`
-	EmployeeID   uint               `json:"employee_id" gorm:"index;not null;comment:员工ID"`
-	LeaveType    string             `json:"leave_type" gorm:"size:32;not null;comment:请假类型"`
-	StartDate    xtime.DateTime     `json:"start_date" gorm:"type:datetime;not null;comment:开始时间"`
-	EndDate      xtime.DateTime     `json:"end_date" gorm:"type:datetime;not null;comment:结束时间"`
-	DurationDays decimal.Decimal    `json:"duration_days" gorm:"type:decimal(5,1);not null;comment:请假天数"`
-	Reason       string             `json:"reason" gorm:"size:500;comment:请假事由"`
-	Status       string             `json:"status" gorm:"size:20;default:PENDING;index;comment:审批状态"`
-	ApproverID   *uint              `json:"approver_id" gorm:"comment:审批人ID"`
-	ApproveTime  xtime.NullDateTime `json:"approve_time" gorm:"type:datetime;comment:审批时间"`
-	ApproveRemark string            `json:"approve_remark" gorm:"size:500;comment:审批意见"`
+	ID             uint               `json:"id" gorm:"primaryKey"`
+	LeaveNo        string             `json:"leave_no" gorm:"size:64;comment:请假单号"`
+	EmployeeID     uint               `json:"employee_id" gorm:"index;not null;comment:员工ID"`
+	LeaveType      string             `json:"leave_type" gorm:"size:32;not null;comment:请假类型"`
+	StartDate      xtime.DateTime     `json:"start_date" gorm:"type:datetime;not null;comment:开始时间"`
+	EndDate        xtime.DateTime     `json:"end_date" gorm:"type:datetime;not null;comment:结束时间"`
+	DurationDays   decimal.Decimal    `json:"duration_days" gorm:"type:decimal(5,1);not null;comment:请假天数"`
+	Reason         string             `json:"reason" gorm:"size:500;comment:请假事由"`
+	Status         string             `json:"status" gorm:"size:20;default:PENDING;index;comment:旧审批状态(兼容)"`
+	ApprovalStatus string             `json:"approval_status" gorm:"size:20;default:NONE;index;comment:审批引擎状态(NONE/APPROVING/APPROVED/REJECTED/REVOKED)"`
+	ApproverID     *uint              `json:"approver_id" gorm:"comment:审批人ID"`
+	ApproveTime    xtime.NullDateTime `json:"approve_time" gorm:"type:datetime;comment:审批时间"`
+	ApproveRemark  string             `json:"approve_remark" gorm:"size:500;comment:审批意见"`
 	base.BaseModel
 }
 

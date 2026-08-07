@@ -12,27 +12,31 @@ import (
 // oss.go 阿里云 OSS 对象存储实现。
 // 通过 config.driver=oss 启用。文件校验逻辑与 local 一致(复用 validateUpload)。
 
-// OSSConfig 阿里云 OSS 配置。
+// OSSConfig 阿里云 OSS 配置（双桶：公共桶 + 私有桶，共用一组 AK/SK）。
 type OSSConfig struct {
-	Endpoint        string // 如 oss-cn-hangzhou.aliyuncs.com
-	AccessKeyID     string
-	AccessKeySecret string
-	BucketName      string
-	CustomDomain    string // CDN/自定义域名(拼接 URL),空则用默认域名
-	MaxBytes        int64
-	AllowedTypes    map[string]string
+	Endpoint            string // 如 oss-cn-hangzhou.aliyuncs.com
+	AccessKeyID         string
+	AccessKeySecret     string
+	BucketName          string // 公共桶(public-read)
+	CustomDomain        string // 公共桶 CDN/自定义域名(拼接 URL),空则用默认域名
+	PrivateBucketName   string // 私有桶(private,签名 GET 访问);留空则私有功能禁用
+	PrivateCustomDomain string // 私有桶自定义域名(一般留空,签名 URL 直接走 OSS 源站)
+	MaxBytes            int64
+	AllowedTypes        map[string]string
 }
 
-// OSS 阿里云 OSS 存储实现。
+// OSS 阿里云 OSS 存储实现（双桶）。
 type OSS struct {
-	bucket       *oss.Bucket
-	customDomain string
-	maxBytes     int64
-	allowedTypes map[string]string
-	now          func() time.Time
+	bucket             *oss.Bucket // 公共桶
+	privateBucket      *oss.Bucket // 私有桶(为 nil 表示未配置)
+	customDomain       string
+	privateCustomDomain string
+	maxBytes           int64
+	allowedTypes       map[string]string
+	now                func() time.Time
 }
 
-// NewOSS 创建阿里云 OSS 存储实例。
+// NewOSS 创建阿里云 OSS 存储实例。私有桶为空时 privateBucket=nil(私有功能降级)。
 func NewOSS(cfg OSSConfig) (*OSS, error) {
 	if cfg.Endpoint == "" || cfg.AccessKeyID == "" || cfg.AccessKeySecret == "" || cfg.BucketName == "" {
 		return nil, fmt.Errorf("oss config incomplete: endpoint/access_key/bucket required")
@@ -43,8 +47,17 @@ func NewOSS(cfg OSSConfig) (*OSS, error) {
 	}
 	bucket, err := client.Bucket(cfg.BucketName)
 	if err != nil {
-		return nil, fmt.Errorf("get oss bucket %q: %w", cfg.BucketName, err)
+		return nil, fmt.Errorf("get oss public bucket %q: %w", cfg.BucketName, err)
 	}
+
+	var privateBucket *oss.Bucket
+	if strings.TrimSpace(cfg.PrivateBucketName) != "" {
+		privateBucket, err = client.Bucket(cfg.PrivateBucketName)
+		if err != nil {
+			return nil, fmt.Errorf("get oss private bucket %q: %w", cfg.PrivateBucketName, err)
+		}
+	}
+
 	// 与 NewLocal 一致:扩展名 key 归一化为带点小写(与 filepath.Ext 输出对齐),
 	// 否则 defaultAllowedTypes 的 "png"(无点)永远匹配不上 filepath.Ext 的 ".png"。
 	allowedTypes := make(map[string]string, len(cfg.AllowedTypes))
@@ -57,11 +70,13 @@ func NewOSS(cfg OSSConfig) (*OSS, error) {
 	}
 
 	return &OSS{
-		bucket:       bucket,
-		customDomain: strings.TrimSuffix(cfg.CustomDomain, "/"),
-		maxBytes:     cfg.MaxBytes,
-		allowedTypes: allowedTypes,
-		now:          time.Now,
+		bucket:              bucket,
+		privateBucket:       privateBucket,
+		customDomain:        strings.TrimSuffix(cfg.CustomDomain, "/"),
+		privateCustomDomain: strings.TrimSuffix(cfg.PrivateCustomDomain, "/"),
+		maxBytes:            cfg.MaxBytes,
+		allowedTypes:        allowedTypes,
+		now:                 time.Now,
 	}, nil
 }
 
@@ -104,13 +119,14 @@ func (s *OSS) Save(file *multipart.FileHeader, folders ...string) (*UploadedFile
 	}
 	defer src.Close()
 
-	// 上传到 OSS(Content-Disposition: inline 允许浏览器内联预览,覆盖 bucket 默认的 attachment)
+	// 上传到公共桶(显式 public-read,确保直链可访问;inline 允许浏览器内联预览)
 	objectKey := relativePath
 	if err := s.bucket.PutObject(objectKey, src,
 		oss.ContentType(val.contentType),
 		oss.ContentDisposition("inline"),
+		oss.ObjectACL(oss.ACLPublicRead),
 	); err != nil {
-		return nil, fmt.Errorf("upload to oss failed: %w", err)
+		return nil, fmt.Errorf("upload to oss public bucket failed: %w", err)
 	}
 
 	// 拼接 URL
@@ -123,10 +139,84 @@ func (s *OSS) Save(file *multipart.FileHeader, folders ...string) (*UploadedFile
 		URL:          url,
 		Size:         file.Size,
 		ContentType:  val.contentType,
+		Visibility:   VisibilityPublic,
 	}, nil
 }
 
-// buildURL 拼接文件访问 URL。有自定义域名用自定义域名,否则用默认 OSS 域名。
+// SavePrivate 上传文件到私有桶(ACL private),返回的 URL 为 objectKey。
+// 私有桶未配置时返回 ErrPrivateBucketDisabled。
+func (s *OSS) SavePrivate(file *multipart.FileHeader, folders ...string) (*UploadedFile, error) {
+	if s.privateBucket == nil {
+		return nil, ErrPrivateBucketDisabled
+	}
+	if file == nil {
+		return nil, ErrEmptyFile
+	}
+	if len(folders) > 1 {
+		return nil, ErrInvalidFolder
+	}
+
+	val, err := validateUpload(file, s.maxBytes, s.allowedTypes)
+	if err != nil {
+		return nil, err
+	}
+
+	folder := ""
+	if len(folders) == 1 {
+		folder = folders[0]
+	}
+	relativeFolder, err := s.resolveFolder(folder)
+	if err != nil {
+		return nil, err
+	}
+
+	fileName, err := randomFileName(val.extension)
+	if err != nil {
+		return nil, err
+	}
+	relativePath := relativeFolder + "/" + fileName
+
+	src, err := file.Open()
+	if err != nil {
+		return nil, fmt.Errorf("open upload file: %w", err)
+	}
+	defer src.Close()
+
+	// 上传到私有桶(显式 private;attachment 触发下载而非内联,更安全)
+	objectKey := relativePath
+	if err := s.privateBucket.PutObject(objectKey, src,
+		oss.ContentType(val.contentType),
+		oss.ContentDisposition("attachment"),
+		oss.ObjectACL(oss.ACLPrivate),
+	); err != nil {
+		return nil, fmt.Errorf("upload to oss private bucket failed: %w", err)
+	}
+
+	// 私有文件 URL 存 objectKey(非明文),调用方用 SignURL 取短期下载 URL。
+	return &UploadedFile{
+		OriginalName: file.Filename,
+		FileName:     fileName,
+		RelativePath: relativePath,
+		URL:          relativePath,
+		Size:         file.Size,
+		ContentType:  val.contentType,
+		Visibility:   VisibilityPrivate,
+	}, nil
+}
+
+// SignURL 为私有桶文件生成阿里云预签名 GET URL(带过期时间)。
+func (s *OSS) SignURL(objectKey string, ttl time.Duration) (string, error) {
+	if s.privateBucket == nil {
+		return "", ErrPrivateBucketDisabled
+	}
+	url, err := s.privateBucket.SignURL(objectKey, oss.HTTPGet, int64(ttl.Seconds()))
+	if err != nil {
+		return "", fmt.Errorf("sign oss private get url: %w", err)
+	}
+	return url, nil
+}
+
+// buildURL 拼接公共桶文件访问 URL。有自定义域名用自定义域名,否则用默认 OSS 域名。
 func (s *OSS) buildURL(objectKey string) string {
 	if s.customDomain != "" {
 		return s.customDomain + "/" + objectKey

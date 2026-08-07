@@ -6,135 +6,14 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-
-	"qzt-go-server/internal/app"
-	"qzt-go-server/internal/repository"
-	syservice "qzt-go-server/internal/module/system/service"
 )
 
-// tools_config.go 系统配置相关 MCP tools(存储/OSS、企业微信、站点设置)。
+// tools_config.go 系统配置相关 MCP tools(企业微信、站点设置)。
+// 注:存储配置已迁移到配置文件(config.{env}.yaml + .env),不再走 DB/后台,故无 MCP 工具。
 
 func registerConfigTools(s *server.MCPServer) {
-	registerStorageConfigTools(s)
 	registerWecomConfigTools(s)
 	registerSiteConfigTools(s)
-}
-
-// ═══════════════════════════════════════════
-// 存储/OSS 配置
-// ═══════════════════════════════════════════
-
-func registerStorageConfigTools(s *server.MCPServer) {
-	s.AddTool(
-		mcp.NewTool("storage_config_get",
-			mcp.WithDescription("获取当前文件存储配置(本地/OSS驱动、OSS Endpoint/Bucket等)。Secret脱敏不返回。"),
-		),
-		handleStorageConfigGet,
-	)
-
-	s.AddTool(
-		mcp.NewTool("storage_config_update",
-			mcp.WithDescription("更新文件存储配置并自动重建上传驱动(无需重启服务)"),
-			mcp.WithString("driver", mcp.Required(), mcp.Description("存储驱动: local 或 oss")),
-			mcp.WithString("local_path", mcp.Description("本地存储路径(driver=local)")),
-			mcp.WithString("resource_domain", mcp.Description("本地资源访问域名(driver=local)")),
-			mcp.WithString("oss_endpoint", mcp.Description("OSS Endpoint(driver=oss),如 oss-cn-hangzhou.aliyuncs.com")),
-			mcp.WithString("oss_access_key_id", mcp.Description("OSS AccessKeyID")),
-			mcp.WithString("oss_access_key_secret", mcp.Description("OSS AccessKeySecret(空=不改)")),
-			mcp.WithString("oss_bucket_name", mcp.Description("OSS Bucket名称")),
-			mcp.WithString("oss_custom_domain", mcp.Description("OSS CDN/自定义域名")),
-			mcp.WithNumber("max_upload_mb", mcp.Description("单文件大小上限(MB)")),
-		),
-		handleStorageConfigUpdate,
-	)
-
-	s.AddTool(
-		mcp.NewTool("storage_config_test",
-			mcp.WithDescription("测试OSS连接是否有效(不修改已保存的配置)。local模式检查目录权限。"),
-			mcp.WithString("driver", mcp.Required(), mcp.Description("local 或 oss")),
-			mcp.WithString("oss_endpoint", mcp.Description("OSS Endpoint")),
-			mcp.WithString("oss_access_key_id", mcp.Description("OSS AK")),
-			mcp.WithString("oss_access_key_secret", mcp.Description("OSS SK")),
-			mcp.WithString("oss_bucket_name", mcp.Description("OSS Bucket")),
-		),
-		handleStorageConfigTest,
-	)
-}
-
-func handleStorageConfigGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	repo := repository.NewStorageConfigRepo()
-	cfg, err := repo.Get(ctx)
-	if err != nil {
-		return resultError("存储配置不存在,请先在后台设置")
-	}
-	return resultText(cfg)
-}
-
-func handleStorageConfigUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	repo := repository.NewStorageConfigRepo()
-	cfg, err := repo.Get(ctx)
-	if err != nil {
-		return resultError("存储配置不存在")
-	}
-
-	driver := req.GetString("driver", cfg.Driver)
-	if driver != "local" && driver != "oss" {
-		return resultError("driver 只能是 local 或 oss")
-	}
-
-	cfg.Driver = driver
-	cfg.LocalPath = req.GetString("local_path", cfg.LocalPath)
-	cfg.ResourceDomain = req.GetString("resource_domain", cfg.ResourceDomain)
-	cfg.OSSEndpoint = req.GetString("oss_endpoint", cfg.OSSEndpoint)
-	cfg.OSSAccessKeyID = req.GetString("oss_access_key_id", cfg.OSSAccessKeyID)
-	cfg.OSSBucketName = req.GetString("oss_bucket_name", cfg.OSSBucketName)
-	cfg.OSSCustomDomain = req.GetString("oss_custom_domain", cfg.OSSCustomDomain)
-	if secret := req.GetString("oss_access_key_secret", ""); secret != "" {
-		cfg.OSSAccessKeySecret = secret
-	}
-	if mb := int(req.GetFloat("max_upload_mb", 0)); mb > 0 {
-		cfg.MaxUploadMB = mb
-	}
-
-	if err := repo.Update(ctx, cfg); err != nil {
-		return resultError(fmt.Sprintf("保存失败: %v", err))
-	}
-
-	// 重建 Uploader
-	if err := app.ReloadUploader(
-		cfg.Driver, cfg.LocalPath, cfg.ResourceDomain,
-		cfg.OSSEndpoint, cfg.OSSAccessKeyID, cfg.OSSAccessKeySecret,
-		cfg.OSSBucketName, cfg.OSSCustomDomain, cfg.MaxUploadMB,
-	); err != nil {
-		return resultError(fmt.Sprintf("配置已保存但重建驱动失败: %v", err))
-	}
-
-	return resultText(map[string]interface{}{"message": "存储配置已更新并生效", "driver": cfg.Driver})
-}
-
-func handleStorageConfigTest(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	driver := req.GetString("driver", "")
-	if driver == "local" {
-		return resultText(map[string]interface{}{"message": "local 模式无需测试连接"})
-	}
-
-	endpoint := req.GetString("oss_endpoint", "")
-	ak := req.GetString("oss_access_key_id", "")
-	sk := req.GetString("oss_access_key_secret", "")
-	bucket := req.GetString("oss_bucket_name", "")
-	if endpoint == "" || ak == "" || sk == "" || bucket == "" {
-		return resultError("OSS 配置不完整: endpoint/access_key_id/access_key_secret/bucket 均必填")
-	}
-
-	svc := newSystemStorageSvc()
-	err := svc.TestConnection(ctx, &syservice.UpdateStorageConfigRequest{
-		Driver: driver, OSSEndpoint: endpoint,
-		OSSAccessKeyID: ak, OSSAccessKeySecret: sk, OSSBucketName: bucket,
-	})
-	if err != nil {
-		return resultError(fmt.Sprintf("OSS 连接失败: %v", err))
-	}
-	return resultText(map[string]interface{}{"message": "OSS 连接成功"})
 }
 
 // ═══════════════════════════════════════════

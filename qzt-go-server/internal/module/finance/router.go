@@ -17,6 +17,7 @@ func (m *Module) Name() string { return "finance" }
 
 func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	financeHandler := handler.NewFinanceHandler()
+	receivableHandler := handler.NewReceivableHandler()
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC)
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
@@ -29,6 +30,12 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/vouchers", financeHandler.VoucherList)
 		auth.POST("/vouchers", financeHandler.CreateVoucher)
 		auth.PUT("/vouchers/:id/confirm", financeHandler.ConfirmVoucher)
+
+		// 应收应付往来
+		auth.GET("/receivables", receivableHandler.List)
+		auth.GET("/receivables/:id", receivableHandler.GetByID)
+		auth.POST("/receivables", receivableHandler.Create)
+		auth.POST("/receivables/:id/settle", receivableHandler.Settle)
 
 		// 发票管理
 		auth.GET("/invoices", financeHandler.InvoiceList)

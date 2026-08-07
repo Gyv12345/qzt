@@ -8,10 +8,6 @@ import (
 // config_service.go MCP tools 调用的系统配置 service 封装。
 // 复用 system service,简化参数。
 
-// ── 存储/OSS ──
-
-func newSystemStorageSvc() *syservice.StorageConfigService { return syservice.NewStorageConfigService() }
-
 // ── 企业微信(OAuth) ──
 
 func newOauthSvc() *syservice.OauthConfigService { return syservice.NewOauthConfigService() }

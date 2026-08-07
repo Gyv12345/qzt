@@ -71,6 +71,12 @@ const (
 	FormTypeSalesOrder     = "SALES_ORDER"     // 销售订单
 	FormTypePurchaseReturn = "PURCHASE_RETURN" // 采购退货
 	FormTypeSalesReturn    = "SALES_RETURN"    // 销售退货
+
+	// OA 办公流程
+	FormTypeExpense = "EXPENSE" // 报销单
+	FormTypeLeave   = "LEAVE"   // 请假单
+	FormTypeTrip    = "TRIP"    // 出差申请
+	FormTypeLoan    = "LOAN"    // 备用金/借款
 )
 
 // ExecuteTiming 触发时机。
@@ -128,4 +134,10 @@ var FormTable = map[string]string{
 	FormTypeSalesOrder:     "psi_sales_order",
 	FormTypePurchaseReturn: "psi_purchase_return",
 	FormTypeSalesReturn:    "psi_sales_return",
+
+	// OA 办公流程
+	FormTypeExpense: "oa_expense",
+	FormTypeLeave:   "hrm_leave",
+	FormTypeTrip:    "oa_business_trip",
+	FormTypeLoan:    "oa_loan",
 }

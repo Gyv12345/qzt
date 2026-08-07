@@ -169,3 +169,35 @@ export interface BalanceSheet {
   /** 所有者权益(decimal 字符串) */
   total_equity: string
 }
+
+// ── 应收应付往来 ──
+
+/** 往来款(应收/应付) */
+export interface FinReceivable {
+  id: number
+  doc_no: string
+  /** RECEIVABLE 应收 / PAYABLE 应付 */
+  direction: string
+  /** CUSTOMER/SUPPLIER/EMPLOYEE */
+  party_type: string
+  party_id: number | null
+  party_name: string
+  occur_date: string
+  due_date: string | null
+  original_amount: string
+  settled_amount: string
+  biz_type: string
+  biz_id: number | null
+  /** 0未结算 1部分 2已结清 */
+  status: number
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 结算状态映射 */
+export const SETTLE_STATUS: Record<number, { text: string; color: string }> = {
+  0: { text: '未结算', color: 'default' },
+  1: { text: '部分', color: 'warning' },
+  2: { text: '已结清', color: 'success' },
+}

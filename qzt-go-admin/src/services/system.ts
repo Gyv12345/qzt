@@ -20,12 +20,10 @@ import type {
   SysOperationLog,
   SysRole,
   SysSiteConfig,
-  SysStorageConfig,
   SysUser,
   UpdateConfigRequest,
   UpdateRoleRequest,
   UpdateSiteConfigRequest,
-  UpdateStorageConfigRequest,
   UpdateUserRequest,
 } from '../types'
 
@@ -167,20 +165,6 @@ export const deleteOauthConfig = (id: number) => request.delete(`/system/oauth-c
 /** 启用/禁用第三方登录 */
 export const setOauthConfigEnable = (id: number, enable: number) =>
   request.put(`/system/oauth-configs/${id}/enable`, { enable })
-
-// ---------- 存储配置 ----------
-
-export const getStorageConfig = () =>
-  request.get<unknown, SysStorageConfig>('/system/storage-config')
-
-export const updateStorageConfig = (data: UpdateStorageConfigRequest) =>
-  request.put('/system/storage-config', data)
-
-/** 重建上传驱动(无请求体) */
-export const reloadStorageDriver = () => request.put('/system/storage-config/reload')
-
-/** 测试存储连接(无请求体) */
-export const testStorageConnection = () => request.post('/system/storage-config/test')
 
 // ---------- 站点信息 ----------
 
