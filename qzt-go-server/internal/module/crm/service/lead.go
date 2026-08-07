@@ -267,6 +267,19 @@ func (s *LeadService) OwnerHistory(ctx context.Context, id uint) ([]crmmodel.Crm
 	return s.historyRepo.ListByLead(ctx, id)
 }
 
+// UpdateFollow 更新线索的跟进人/跟进时间(跟进记录创建后由 follow service 调用)。
+// 这是线索公海自动回收判定的关键依据:follow_time 为 NULL 或过期的线索会被回收到公海。
+// 语义与 CustomerService.UpdateFollow 一致:关联可选,GetByID 失败时静默忽略。
+func (s *LeadService) UpdateFollow(ctx context.Context, id, followerID uint, followTime time.Time) error {
+	lead, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil // 线索可能不存在(关联可选),静默忽略
+	}
+	lead.FollowerID = &followerID
+	lead.FollowTime = xtime.NewNullDateTimeFromTime(followTime)
+	return s.repo.Update(ctx, lead)
+}
+
 // ── 转化为客户 ──
 
 // Convert 将线索转化为客户:创建 CrmCustomer(复制基本信息),回写线索转化状态。

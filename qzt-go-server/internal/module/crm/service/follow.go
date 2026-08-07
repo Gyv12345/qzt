@@ -20,6 +20,7 @@ import (
 type FollowService struct {
 	recordRepo     *crrepo.FollowUpRecordRepo
 	planRepo       *crrepo.FollowUpPlanRepo
+	leadSvc        *LeadService
 	customerSvc    *CustomerService
 	opportunitySvc *OpportunityService
 	contractSvc    *ContractService
@@ -29,6 +30,7 @@ func NewFollowService() *FollowService {
 	return &FollowService{
 		recordRepo:     crrepo.NewFollowUpRecordRepo(),
 		planRepo:       crrepo.NewFollowUpPlanRepo(),
+		leadSvc:        NewLeadService(),
 		customerSvc:    NewCustomerService(),
 		opportunitySvc: NewOpportunityService(),
 		contractSvc:    NewContractService(),
@@ -44,6 +46,7 @@ type CreateRecordRequest struct {
 	Content       string    `json:"content" binding:"required"`
 	FollowTime    xtime.DateTime `json:"follow_time" binding:"required"`
 	OwnerID       uint      `json:"owner_id"`
+	LeadID        *uint     `json:"lead_id"`
 	CustomerID    *uint     `json:"customer_id"`
 	OpportunityID *uint     `json:"opportunity_id"`
 	ContactID     *uint     `json:"contact_id"`
@@ -52,8 +55,8 @@ type CreateRecordRequest struct {
 
 // CreateRecord 创建跟进记录;若关联客户,非事务地更新客户的跟进人/跟进时间(失败仅记日志)。
 func (s *FollowService) CreateRecord(ctx context.Context, req *CreateRecordRequest) (*crmmodel.FollowUpRecord, error) {
-	if req.CustomerID == nil && req.OpportunityID == nil && req.ContactID == nil && req.ContractID == nil {
-		return nil, errors.New("跟进记录至少关联一个资源(客户/商机/联系人/合同)")
+	if req.LeadID == nil && req.CustomerID == nil && req.OpportunityID == nil && req.ContactID == nil && req.ContractID == nil {
+		return nil, errors.New("跟进记录至少关联一个资源(线索/客户/商机/联系人/合同)")
 	}
 	followNo := req.FollowNo
 	if followNo == "" {
@@ -62,13 +65,18 @@ func (s *FollowService) CreateRecord(ctx context.Context, req *CreateRecordReque
 	rec := &crmmodel.FollowUpRecord{
 		FollowNo: followNo,
 		Type: req.Type, Content: req.Content, FollowTime: req.FollowTime, OwnerID: req.OwnerID,
-		CustomerID: req.CustomerID, OpportunityID: req.OpportunityID,
+		LeadID: req.LeadID, CustomerID: req.CustomerID, OpportunityID: req.OpportunityID,
 		ContactID: req.ContactID, ContractID: req.ContractID,
 	}
 	if err := s.recordRepo.Create(ctx, rec); err != nil {
 		return nil, err
 	}
 	// 联动更新跟进人/时间(REQUIRES_NEW 语义:失败仅记日志不回滚)
+	if req.LeadID != nil {
+		if err := s.leadSvc.UpdateFollow(ctx, *req.LeadID, req.OwnerID, req.FollowTime.Time()); err != nil {
+			xlogger.ErrorfCtx(ctx, "更新线索跟进信息失败 leadID=%d: %v", *req.LeadID, err)
+		}
+	}
 	if req.CustomerID != nil {
 		if err := s.customerSvc.UpdateFollow(ctx, *req.CustomerID, req.OwnerID, req.FollowTime.Time()); err != nil {
 			xlogger.ErrorfCtx(ctx, "更新客户跟进信息失败 customerID=%d: %v", *req.CustomerID, err)
@@ -132,6 +140,7 @@ type CreatePlanRequest struct {
 	PlanTime      xtime.DateTime     `json:"plan_time" binding:"required"`
 	RemindTime    xtime.NullDateTime `json:"remind_time"`
 	OwnerID       uint       `json:"owner_id" binding:"required"`
+	LeadID        *uint      `json:"lead_id"`
 	CustomerID    *uint      `json:"customer_id"`
 	OpportunityID *uint      `json:"opportunity_id"`
 	ContactID     *uint      `json:"contact_id"`
@@ -143,7 +152,7 @@ func (s *FollowService) CreatePlan(ctx context.Context, req *CreatePlanRequest) 
 	plan := &crmmodel.FollowUpPlan{
 		Type: req.Type, Content: req.Content, PlanTime: req.PlanTime, RemindTime: req.RemindTime,
 		OwnerID: req.OwnerID, Status: crmmodel.PlanStatusTodo,
-		CustomerID: req.CustomerID, OpportunityID: req.OpportunityID,
+		LeadID: req.LeadID, CustomerID: req.CustomerID, OpportunityID: req.OpportunityID,
 		ContactID: req.ContactID, ContractID: req.ContractID,
 	}
 	if err := s.planRepo.Create(ctx, plan); err != nil {
@@ -200,7 +209,7 @@ func (s *FollowService) ConvertPlanToRecord(ctx context.Context, id, operatorID 
 	rec := &crmmodel.FollowUpRecord{
 		FollowNo: planFollowNo,
 		Type: plan.Type, Content: plan.Content, FollowTime: xtime.NewDateTime(now), OwnerID: operatorID,
-		CustomerID: plan.CustomerID, OpportunityID: plan.OpportunityID,
+		LeadID: plan.LeadID, CustomerID: plan.CustomerID, OpportunityID: plan.OpportunityID,
 		ContactID: plan.ContactID, ContractID: plan.ContractID, PlanID: &plan.ID,
 	}
 	err = repository.Transaction(ctx, func(ctx context.Context) error {

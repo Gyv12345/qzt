@@ -122,7 +122,7 @@ func (h *FollowHandler) DeleteRecord(c *gin.Context) {
 // @Tags     跟进管理
 // @Produce  json
 // @Security BearerAuth
-// @Param    field  query  string  true  "资源列名(customer_id/opportunity_id/contact_id/contract_id)"
+// @Param    field  query  string  true  "资源列名(lead_id/customer_id/opportunity_id/contact_id/contract_id)"
 // @Param    value  query  int     true  "资源ID"
 // @Success  200  {object}  xresponse.Response
 // @Router   /crm/follow-records/timeline [get]
@@ -298,4 +298,16 @@ func (h *FollowHandler) MyTodos(c *gin.Context) {
 		return
 	}
 	response.OK(c, list)
+}
+
+// WarnConfig 跟进预警配置(阈值天数 + 开关,从 sys_config 读取)。
+// 供前端列表判断"是否标红"用。只读。
+// @Summary  跟进预警配置
+// @Tags     跟进管理
+// @Produce  json
+// @Security BearerAuth
+// @Success  200  {object}  xresponse.Response
+// @Router   /crm/followup/warn-config [get]
+func (h *FollowHandler) WarnConfig(c *gin.Context) {
+	response.OK(c, service.LoadWarnConfig(c.Request.Context()))
 }

@@ -23,7 +23,7 @@ const (
 	PlanStatusSkipped  int8 = 2 // 已跳过
 )
 
-// FollowUpRecord 跟进记录。customer/opportunity/clue/contact/contract 五选一关联(至少一个)。
+// FollowUpRecord 跟进记录。lead/customer/opportunity/contact/contract 五选一关联(至少一个)。
 type FollowUpRecord struct {
 	ID            uint       `json:"id" gorm:"primaryKey"`
 	FollowNo      string     `json:"follow_no" gorm:"size:64;comment:跟进编号"`
@@ -31,6 +31,7 @@ type FollowUpRecord struct {
 	Content       string     `json:"content" gorm:"type:text;not null;comment:跟进内容"`
 	FollowTime    xtime.DateTime  `json:"follow_time" gorm:"type:datetime;not null;comment:跟进发生时间"`
 	OwnerID       uint       `json:"owner_id" gorm:"index;not null;comment:负责人"`
+	LeadID        *uint      `json:"lead_id" gorm:"index;comment:关联线索"`
 	CustomerID    *uint      `json:"customer_id" gorm:"index;comment:关联客户"`
 	OpportunityID *uint      `json:"opportunity_id" gorm:"index;comment:关联商机"`
 	ContactID     *uint      `json:"contact_id" gorm:"index;comment:关联联系人"`
@@ -49,6 +50,7 @@ type FollowUpPlan struct {
 	PlanTime      xtime.DateTime     `json:"plan_time" gorm:"type:datetime;not null;comment:计划跟进时间"`
 	RemindTime    xtime.NullDateTime `json:"remind_time" gorm:"type:datetime;comment:提醒时间(早于plan_time)"`
 	OwnerID       uint       `json:"owner_id" gorm:"index;not null;comment:负责人"`
+	LeadID        *uint      `json:"lead_id" gorm:"index;comment:关联线索"`
 	CustomerID    *uint      `json:"customer_id" gorm:"index;comment:关联客户"`
 	OpportunityID *uint      `json:"opportunity_id" gorm:"index;comment:关联商机"`
 	ContactID     *uint      `json:"contact_id" gorm:"index;comment:关联联系人"`
