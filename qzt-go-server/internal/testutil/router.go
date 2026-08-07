@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	aimod "qzt-go-server/internal/module/ai"
 	apimod "qzt-go-server/internal/module/api"
 	apprmod "qzt-go-server/internal/module/approval"
 	"qzt-go-server/internal/module/cms"
@@ -16,6 +17,9 @@ import (
 	finmod "qzt-go-server/internal/module/finance"
 	entmod "qzt-go-server/internal/module/enterprise"
 	hrmmod "qzt-go-server/internal/module/hrm"
+	mailmod "qzt-go-server/internal/module/mail"
+	oamod "qzt-go-server/internal/module/oa"
+	projmod "qzt-go-server/internal/module/project"
 	psimod "qzt-go-server/internal/module/psi"
 	"qzt-go-server/internal/module/system"
 	"qzt-go-server/internal/server"
@@ -26,7 +30,7 @@ var (
 	testServer     *httptest.Server
 )
 
-// NewTestServer 返回进程内 httptest.Server(挂载全部 9 个模块 + MCP)。
+// NewTestServer 返回进程内 httptest.Server(挂载全部 13 个模块,与 cmd/server/main.go 对齐)。
 // 进程级单例:同一进程所有测试共享一个 server,baseURL 一致。
 // 调用方无需 Close,进程退出自动回收。
 func NewTestServer(t *testing.T) (baseURL string) {
@@ -45,6 +49,10 @@ func NewTestServer(t *testing.T) (baseURL string) {
 			hrmmod.New(),
 			psimod.New(),
 			finmod.New(),
+			oamod.New(),
+			projmod.New(),
+			aimod.New(),
+			mailmod.New(),
 		)
 		testServer = httptest.NewServer(engine)
 	})
