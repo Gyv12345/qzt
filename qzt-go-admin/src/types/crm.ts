@@ -59,6 +59,7 @@ export interface CrmFollowPlan {
   plan_time: string
   remind_time: string | null
   owner_id: number
+  lead_id: number | null
   customer_id: number | null
   opportunity_id: number | null
   contact_id: number | null
@@ -78,6 +79,7 @@ export interface CrmFollowRecord {
   content: string
   follow_time: string
   owner_id: number
+  lead_id: number | null
   customer_id: number | null
   opportunity_id: number | null
   contact_id: number | null
@@ -347,6 +349,7 @@ export interface CrmFollowPlanPayload {
   plan_time: string
   remind_time?: string
   owner_id?: number
+  lead_id?: number
   customer_id?: number
   opportunity_id?: number
   contact_id?: number
@@ -358,6 +361,7 @@ export interface CrmFollowRecordPayload {
   content: string
   follow_time: string
   owner_id?: number
+  lead_id?: number
   customer_id?: number
   opportunity_id?: number
   contact_id?: number
@@ -531,3 +535,60 @@ export const CUSTOM_FIELD_TYPES = [
   'SUB_PRODUCT',
   'SUB_PRICE',
 ] as const
+
+// ── 售后工单 ──
+
+/** 工单状态 */
+export const TICKET_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '待处理', color: 'error' },
+  2: { text: '处理中', color: 'processing' },
+  3: { text: '已解决', color: 'success' },
+  4: { text: '已关闭', color: 'default' },
+  5: { text: '已重开', color: 'warning' },
+}
+
+/** 工单优先级 */
+export const TICKET_PRIORITY: Record<number, { text: string; color: string }> = {
+  1: { text: '低', color: 'default' },
+  2: { text: '中', color: 'blue' },
+  3: { text: '高', color: 'orange' },
+  4: { text: '紧急', color: 'red' },
+}
+
+/** 售后工单 */
+export interface CrmTicket {
+  id: number
+  ticket_no: string
+  title: string
+  description: string
+  customer_id: number | null
+  customer_name: string
+  contract_id: number | null
+  contact_name: string
+  contact_phone: string
+  category: string
+  priority: number
+  status: number
+  handler_id: number | null
+  solution: string
+  resolved_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** 工单处理日志 */
+export interface CrmTicketLog {
+  id: number
+  ticket_id: number
+  content: string
+  operator_id: number
+  old_status: number
+  new_status: number
+  created_at: string
+}
+
+/** 工单详情(含日志) */
+export interface TicketDetail {
+  ticket: CrmTicket
+  logs: CrmTicketLog[]
+}

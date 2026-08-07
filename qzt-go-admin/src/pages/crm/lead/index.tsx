@@ -1,6 +1,10 @@
 import { useRef, useState } from 'react'
-import { App, Button, Col, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tag } from 'antd'
-import { PlusOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { App, Button, Col, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tabs, Tag } from 'antd'
+import { MailOutlined, PlusOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import AttachmentsPanel from '../../../components/AttachmentsPanel'
+import FollowPanel from '../customer/FollowPanel'
+import Auth from '../../../components/Auth'
+import MailComposeModal from '../../../components/MailComposeModal'
 import {
   ProForm,
   ModalForm,
@@ -11,7 +15,6 @@ import {
 } from '@ant-design/pro-components'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import Auth from '../../../components/Auth'
 import DedupAlert from '../../../components/DedupAlert'
 import { generateScript } from '../../../services/ai'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
@@ -77,6 +80,7 @@ export default function LeadPage() {
   const [history, setHistory] = useState<CrmLeadOwnerHistory[]>([])
   const [poolOptions, setPoolOptions] = useState<{ label: string; value: number }[]>([])
   const [detailTarget, setDetailTarget] = useState<CrmLead | null>(null)
+  const [mailOpen, setMailOpen] = useState(false)
   const [scriptOpen, setScriptOpen] = useState(false)
   const [scriptLoading, setScriptLoading] = useState(false)
   const [scriptContent, setScriptContent] = useState('')
@@ -537,6 +541,13 @@ export default function LeadPage() {
         extra={
           detailTarget && (
             <Space>
+              {detailTarget.email && (
+                <Auth perm="mail:send">
+                  <Button size="small" icon={<MailOutlined />} onClick={() => setMailOpen(true)}>
+                    发邮件
+                  </Button>
+                </Auth>
+              )}
               <Button
                 size="small"
                 icon={<ThunderboltOutlined />}
@@ -561,63 +572,90 @@ export default function LeadPage() {
         }
       >
         {detailTarget && (
-          <Descriptions column={2} bordered size="small">
-            <Descriptions.Item label="线索编号">{detailTarget.lead_no || '-'}</Descriptions.Item>
-            <Descriptions.Item label="状态">
-              {(() => {
-                const m: Record<number, { text: string; color: string }> = {
-                  1: { text: '新建', color: 'blue' },
-                  2: { text: '跟进中', color: 'orange' },
-                  3: { text: '已转化', color: 'green' },
-                  4: { text: '无效', color: 'default' },
-                }
-                const s = m[detailTarget.status]
-                return s ? <Tag color={s.color}>{s.text}</Tag> : '-'
-              })()}
-            </Descriptions.Item>
-            <Descriptions.Item label="线索名称" span={2}>
-              <Space size={4}>
-                {detailTarget.name}
-                {detailTarget.in_pool === 1 && <Tag color="orange">公海</Tag>}
-              </Space>
-            </Descriptions.Item>
-            <Descriptions.Item label="联系人">{detailTarget.contact_name || '-'}</Descriptions.Item>
-            <Descriptions.Item label="电话">{detailTarget.phone || '-'}</Descriptions.Item>
-            <Descriptions.Item label="邮箱" span={2}>{detailTarget.email || '-'}</Descriptions.Item>
-            <Descriptions.Item label="公司" span={2}>{detailTarget.company || '-'}</Descriptions.Item>
-            <Descriptions.Item label="级别">
-              <DictTag code="LEAD_LEVEL" value={detailTarget.level} />
-            </Descriptions.Item>
-            <Descriptions.Item label="来源">
-              <DictTag code="LEAD_SOURCE" value={detailTarget.source} />
-            </Descriptions.Item>
-            <Descriptions.Item label="行业">
-              <DictTag code="INDUSTRY" value={detailTarget.industry} />
-            </Descriptions.Item>
-            <Descriptions.Item label="负责人">
-              {detailTarget.in_pool === 1 ? '公海' : nickname(detailTarget.owner_id)}
-            </Descriptions.Item>
-            <Descriptions.Item label="所属">{detailTarget.in_pool === 1 ? '公海池' : '私海'}</Descriptions.Item>
-            <Descriptions.Item label="转化客户">
-              {detailTarget.converted_customer_id ? `#${detailTarget.converted_customer_id}` : '-'}
-            </Descriptions.Item>
-            {detailTarget.follow_time && (
-              <Descriptions.Item label="最近跟进" span={2}>
-                {detailTarget.follow_time}
-              </Descriptions.Item>
-            )}
-            {detailTarget.converted_at && (
-              <Descriptions.Item label="转化时间" span={2}>
-                {detailTarget.converted_at}
-              </Descriptions.Item>
-            )}
-            <Descriptions.Item label="创建时间" span={2}>
-              {detailTarget.created_at}
-            </Descriptions.Item>
-            <Descriptions.Item label="更新时间" span={2}>
-              {detailTarget.updated_at}
-            </Descriptions.Item>
-          </Descriptions>
+          <Tabs
+            items={[
+              {
+                key: 'info',
+                label: '基本信息',
+                children: (
+                  <Descriptions column={2} bordered size="small">
+                    <Descriptions.Item label="线索编号">{detailTarget.lead_no || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="状态">
+                      {(() => {
+                        const m: Record<number, { text: string; color: string }> = {
+                          1: { text: '新建', color: 'blue' },
+                          2: { text: '跟进中', color: 'orange' },
+                          3: { text: '已转化', color: 'green' },
+                          4: { text: '无效', color: 'default' },
+                        }
+                        const s = m[detailTarget.status]
+                        return s ? <Tag color={s.color}>{s.text}</Tag> : '-'
+                      })()}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="线索名称" span={2}>
+                      <Space size={4}>
+                        {detailTarget.name}
+                        {detailTarget.in_pool === 1 && <Tag color="orange">公海</Tag>}
+                      </Space>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="联系人">{detailTarget.contact_name || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="电话">{detailTarget.phone || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="邮箱" span={2}>{detailTarget.email || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="公司" span={2}>{detailTarget.company || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="级别">
+                      <DictTag code="LEAD_LEVEL" value={detailTarget.level} />
+                    </Descriptions.Item>
+                    <Descriptions.Item label="来源">
+                      <DictTag code="LEAD_SOURCE" value={detailTarget.source} />
+                    </Descriptions.Item>
+                    <Descriptions.Item label="行业">
+                      <DictTag code="INDUSTRY" value={detailTarget.industry} />
+                    </Descriptions.Item>
+                    <Descriptions.Item label="负责人">
+                      {detailTarget.in_pool === 1 ? '公海' : nickname(detailTarget.owner_id)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="所属">{detailTarget.in_pool === 1 ? '公海池' : '私海'}</Descriptions.Item>
+                    <Descriptions.Item label="转化客户">
+                      {detailTarget.converted_customer_id ? `#${detailTarget.converted_customer_id}` : '-'}
+                    </Descriptions.Item>
+                    {detailTarget.follow_time && (
+                      <Descriptions.Item label="最近跟进" span={2}>
+                        {detailTarget.follow_time}
+                      </Descriptions.Item>
+                    )}
+                    {detailTarget.converted_at && (
+                      <Descriptions.Item label="转化时间" span={2}>
+                        {detailTarget.converted_at}
+                      </Descriptions.Item>
+                    )}
+                    <Descriptions.Item label="创建时间" span={2}>
+                      {detailTarget.created_at}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="更新时间" span={2}>
+                      {detailTarget.updated_at}
+                    </Descriptions.Item>
+                  </Descriptions>
+                ),
+              },
+              {
+                key: 'follow',
+                label: '跟进记录',
+                children: <FollowPanel leadId={detailTarget.id} />,
+              },
+              {
+                key: 'attachments',
+                label: '附件',
+                children: (
+                  <AttachmentsPanel
+                    bizType="LEAD"
+                    resourceId={detailTarget.id}
+                    uploadPerm="crm:lead:edit"
+                    deletePerm="crm:lead:edit"
+                  />
+                ),
+              },
+            ]}
+          />
         )}
       </Drawer>
 
@@ -653,6 +691,14 @@ export default function LeadPage() {
           )}
         </Spin>
       </Modal>
+
+      {/* 写邮件 */}
+      <MailComposeModal
+        open={mailOpen}
+        onClose={() => setMailOpen(false)}
+        defaultTo={detailTarget?.email || ''}
+        defaultToName={detailTarget?.name}
+      />
     </>
   )
 }

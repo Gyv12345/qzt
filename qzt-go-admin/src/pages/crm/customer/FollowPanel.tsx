@@ -15,8 +15,18 @@ const FOLLOW_TYPE_OPTIONS = [
   { label: '其他', value: 'OTHER' },
 ]
 
-/** 客户详情 - 跟进记录面板(顶部快速写跟进 + 下方时间线列表) */
-export default function FollowPanel({ customerId }: { customerId: number }) {
+interface FollowPanelProps {
+  /** 关联客户(与 leadId 二选一) */
+  customerId?: number
+  /** 关联线索(与 customerId 二选一) */
+  leadId?: number
+}
+
+/**
+ * 跟进记录面板(顶部快速写跟进 + 下方时间线列表)。
+ * 客户/线索共用:传 customerId 关联客户,传 leadId 关联线索。
+ */
+export default function FollowPanel({ customerId, leadId }: FollowPanelProps) {
   const { message } = App.useApp()
   const nickname = useUserStore((s) => s.nickname)
   const [records, setRecords] = useState<CrmFollowRecord[]>([])
@@ -24,15 +34,20 @@ export default function FollowPanel({ customerId }: { customerId: number }) {
   const [followType, setFollowType] = useState('WECHAT')
   const [submitting, setSubmitting] = useState(false)
 
+  // 关联字段与 ID:客户用 customer_id,线索用 lead_id
+  const linkField = leadId ? 'lead_id' : 'customer_id'
+  const linkId = leadId ?? customerId ?? 0
+
   const load = async () => {
-    const res = (await getFollowTimeline('customer_id', customerId)) || []
+    if (!linkId) return
+    const res = (await getFollowTimeline(linkField, linkId)) || []
     setRecords([...res].sort((a, b) => b.follow_time.localeCompare(a.follow_time)))
   }
 
   useEffect(() => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerId])
+  }, [linkField, linkId])
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -45,7 +60,7 @@ export default function FollowPanel({ customerId }: { customerId: number }) {
         type: followType,
         content: content.trim(),
         follow_time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        customer_id: customerId,
+        ...(leadId ? { lead_id: leadId } : { customer_id: customerId }),
       })
       message.success('跟进记录已添加')
       setContent('')
