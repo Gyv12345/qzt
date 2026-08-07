@@ -121,6 +121,8 @@ func InjectDataScope(c *gin.Context, user *model.SysUser) {
 	ctx := context.WithValue(c.Request.Context(), datascope.CtxDeptIDKey, deptID)
 	ctx = context.WithValue(ctx, datascope.CtxDataScopeKey, scope)
 	ctx = context.WithValue(ctx, datascope.CtxUserIDKey, uid)
+	// 注入请求级缓存(DEPT/DEPT_AND_SUB 权限的用户翻页或聚合时复用部门用户集合)
+	ctx = datascope.WithCache(ctx)
 	c.Request = c.Request.WithContext(ctx)
 }
 

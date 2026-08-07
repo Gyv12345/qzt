@@ -47,6 +47,9 @@ type CreatePaymentPlanRequest struct {
 
 // CreatePlan 创建单条回款计划(received_amount 默认 0)。
 func (s *PaymentService) CreatePlan(ctx context.Context, req *CreatePaymentPlanRequest) (*crmmodel.CrmContractPaymentPlan, error) {
+	if req.PlanAmount.LessThanOrEqual(decimal.Zero) {
+		return nil, errors.New("计划回款金额必须大于 0")
+	}
 	plan := &crmmodel.CrmContractPaymentPlan{
 		ContractID: req.ContractID, PlanDate: req.PlanDate, PlanAmount: req.PlanAmount,
 		ReceivedAmount: decimal.Zero, Status: crmmodel.PaymentPlanUnpaid, Remark: req.Remark,
@@ -65,6 +68,9 @@ func (s *PaymentService) CreatePlanList(ctx context.Context, reqs []CreatePaymen
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		for i := range reqs {
 			req := reqs[i]
+			if req.PlanAmount.LessThanOrEqual(decimal.Zero) {
+				return errors.New("计划回款金额必须大于 0")
+			}
 			plan := &crmmodel.CrmContractPaymentPlan{
 				ContractID: req.ContractID, PlanDate: req.PlanDate, PlanAmount: req.PlanAmount,
 				ReceivedAmount: decimal.Zero, Status: crmmodel.PaymentPlanUnpaid, Remark: req.Remark,
@@ -92,6 +98,9 @@ type UpdatePaymentPlanRequest struct {
 
 // UpdatePlan 更新回款计划(重算状态,因为 plan_amount 可能变化)。
 func (s *PaymentService) UpdatePlan(ctx context.Context, id uint, req *UpdatePaymentPlanRequest) error {
+	if req.PlanAmount.LessThanOrEqual(decimal.Zero) {
+		return errors.New("计划回款金额必须大于 0")
+	}
 	plan, err := s.planRepo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "回款计划不存在")

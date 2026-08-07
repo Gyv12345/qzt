@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -65,6 +66,9 @@ type CreateContractRequest struct {
 
 // Create 创建合同(默认 stage=DRAFT,received_amount=0)。
 func (s *ContractService) Create(ctx context.Context, req *CreateContractRequest, currentUserID uint) (*crmmodel.CrmContract, error) {
+	if req.TotalAmount.LessThanOrEqual(decimal.Zero) {
+		return nil, errors.New("合同金额必须大于 0")
+	}
 	ownerID := req.OwnerID
 	if ownerID == nil {
 		ownerID = &currentUserID
@@ -109,6 +113,9 @@ type UpdateContractRequest struct {
 
 // Update 更新合同。
 func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContractRequest, operatorID uint) error {
+	if req.TotalAmount.LessThanOrEqual(decimal.Zero) {
+		return errors.New("合同金额必须大于 0")
+	}
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "合同不存在")
