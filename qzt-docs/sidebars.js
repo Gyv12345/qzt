@@ -13,6 +13,7 @@ const sidebars = {
     'architecture/frontend',
     'architecture/database',
     'architecture/auth',
+    'architecture/storage',
   ],
   modules: [
     'modules/crm',
@@ -30,6 +31,7 @@ const sidebars = {
     'deployment/admin',
     'deployment/cms',
     'deployment/mobile',
+    'deployment/capacity',
   ],
 };
 
