@@ -30,7 +30,8 @@ import {
   getSalesTrend,
 } from '../../services/dashboard'
 import { listMyTodos } from '../../services/approval'
-import { getNoticeFeed, getUnreadCount, listInbox } from '../../services/enterprise'
+import { getUnreadCount, listInbox } from '../../services/enterprise'
+import { getNoticeFeed } from '../../services/oa'
 import type {
   DashboardDistributionPoint,
   DashboardFinanceSummary,

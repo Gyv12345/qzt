@@ -78,6 +78,7 @@ const (
 	FormTypeTrip          = "TRIP"           // 出差申请
 	FormTypeLoan          = "LOAN"           // 备用金/借款
 	FormTypeMeetingBooking = "MEETING_BOOKING" // 会议预订
+	FormTypeCustomForm     = "OA_CUSTOM"        // 自定义表单
 )
 
 // ExecuteTiming 触发时机。
@@ -142,4 +143,5 @@ var FormTable = map[string]string{
 	FormTypeTrip:           "oa_business_trip",
 	FormTypeLoan:           "oa_loan",
 	FormTypeMeetingBooking: "oa_meeting_booking",
+	FormTypeCustomForm:     "oa_form_data",
 }

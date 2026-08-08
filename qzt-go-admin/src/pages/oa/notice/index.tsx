@@ -18,8 +18,8 @@ import {
   publishNotice,
   updateNotice,
   withdrawNotice,
-} from '../../../services/enterprise'
-import type { EntNotice } from '../../../types/enterprise'
+} from '../../../services/oa'
+import type { OaNotice } from '../../../types/oa'
 
 interface NoticeFormValues {
   title: string
@@ -32,8 +32,8 @@ export default function NoticePage() {
   const actionRef = useRef<ActionType>(null)
   const [form] = Form.useForm<NoticeFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState<EntNotice | null>(null)
-  const [previewing, setPreviewing] = useState<EntNotice | null>(null)
+  const [editing, setEditing] = useState<OaNotice | null>(null)
+  const [previewing, setPreviewing] = useState<OaNotice | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -42,7 +42,7 @@ export default function NoticePage() {
     setModalOpen(true)
   }
 
-  const openEdit = (record: EntNotice) => {
+  const openEdit = (record: OaNotice) => {
     setEditing(record)
     form.setFieldsValue({
       title: record.title,
@@ -69,25 +69,25 @@ export default function NoticePage() {
     return true
   }
 
-  const handlePublish = async (record: EntNotice) => {
+  const handlePublish = async (record: OaNotice) => {
     await publishNotice(record.id)
     message.success('公告已发布')
     actionRef.current?.reload()
   }
 
-  const handleWithdraw = async (record: EntNotice) => {
+  const handleWithdraw = async (record: OaNotice) => {
     await withdrawNotice(record.id)
     message.success('公告已撤回')
     actionRef.current?.reload()
   }
 
-  const handleDelete = async (record: EntNotice) => {
+  const handleDelete = async (record: OaNotice) => {
     await deleteNotice(record.id)
     message.success('公告已删除')
     actionRef.current?.reload()
   }
 
-  const columns: ProColumns<EntNotice>[] = [
+  const columns: ProColumns<OaNotice>[] = [
     { title: '编号', valueType: 'indexBorder', width: 70, search: false },
     { title: '标题', dataIndex: 'title', width: 240, ellipsis: true },
     {
@@ -119,13 +119,6 @@ export default function NoticePage() {
       render: (_, record) => record.publish_time ?? '-',
     },
     {
-      title: '创建时间',
-      dataIndex: 'created_at',
-      valueType: 'dateTime',
-      width: 170,
-      search: false,
-    },
-    {
       title: '操作',
       valueType: 'option',
       width: 240,
@@ -135,13 +128,13 @@ export default function NoticePage() {
           <Button type="link" size="small" onClick={() => setPreviewing(record)}>
             预览
           </Button>
-          <Auth perm="enterprise:notice:edit">
+          <Auth perm="oa:notice:edit">
             <Button type="link" size="small" onClick={() => openEdit(record)}>
               编辑
             </Button>
           </Auth>
           {record.status === 0 && (
-            <Auth perm="enterprise:notice:publish">
+            <Auth perm="oa:notice:publish">
               <Popconfirm
                 title="确认发布该公告?"
                 okText="发布"
@@ -155,7 +148,7 @@ export default function NoticePage() {
             </Auth>
           )}
           {record.status === 1 && (
-            <Auth perm="enterprise:notice:publish">
+            <Auth perm="oa:notice:publish">
               <Popconfirm
                 title="确认撤回该公告?"
                 okText="撤回"
@@ -168,7 +161,7 @@ export default function NoticePage() {
               </Popconfirm>
             </Auth>
           )}
-          <Auth perm="enterprise:notice:delete">
+          <Auth perm="oa:notice:delete">
             <Popconfirm
               title="确认删除该公告?"
               okText="删除"
@@ -188,7 +181,7 @@ export default function NoticePage() {
 
   return (
     <>
-      <ProTable<EntNotice>
+      <ProTable<OaNotice>
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
@@ -199,13 +192,13 @@ export default function NoticePage() {
         }}
         pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         toolBarRender={() => [
-          <Auth perm="enterprise:notice:add" key="add">
+          <Auth perm="oa:notice:add" key="add">
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
               新增公告
             </Button>
           </Auth>,
         ]}
-        headerTitle="公告列表"
+        headerTitle="公告管理"
       />
       <ModalForm<NoticeFormValues>
         title={editing ? '编辑公告' : '新增公告'}

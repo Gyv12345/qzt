@@ -10,6 +10,10 @@ import type {
   OaSchedule,
   OaMeetingRoom,
   OaMeetingBooking,
+  OaNotice,
+  OaNoticePayload,
+  OaFormTemplate,
+  OaFormData,
 } from '../types/oa'
 
 interface PageResult<T> {
@@ -300,3 +304,127 @@ export const deleteMeetingBooking = (id: number) =>
 /** 提交会议预订审批 */
 export const submitMeetingBookingApproval = (id: number) =>
   request.post('/approval/actions/push', { form_type: 'MEETING_BOOKING', resource_id: id })
+
+// ---------- 公告管理 ----------
+
+export interface NoticeQuery extends PageParams {
+  title?: string
+  type?: number
+  status?: number
+}
+
+/** 公告列表(管理端) */
+export const listNotices = (params?: NoticeQuery) =>
+  request.get<unknown, PageResult<OaNotice>>('/oa/notices', { params })
+
+/** 公告详情 */
+export const getNotice = (id: number) =>
+  request.get<unknown, OaNotice>(`/oa/notices/${id}`)
+
+/** 新建公告 */
+export const createNotice = (data: OaNoticePayload) =>
+  request.post('/oa/notices', data)
+
+/** 编辑公告 */
+export const updateNotice = (id: number, data: OaNoticePayload) =>
+  request.put(`/oa/notices/${id}`, data)
+
+/** 删除公告 */
+export const deleteNotice = (id: number) => request.delete(`/oa/notices/${id}`)
+
+/** 发布公告 */
+export const publishNotice = (id: number) =>
+  request.put(`/oa/notices/${id}/publish`)
+
+/** 撤回公告 */
+export const withdrawNotice = (id: number) =>
+  request.put(`/oa/notices/${id}/withdraw`)
+
+/** 首页公告流 */
+export const getNoticeFeed = (limit = 5) =>
+  request.get<unknown, OaNotice[]>('/oa/notices/feed', { params: { limit } })
+
+/** 已发布公告列表 */
+export const listPublishedNotices = (params?: { type?: number; limit?: number }) =>
+  request.get<unknown, OaNotice[]>('/oa/notices/published', { params })
+
+// ---------- 自定义表单模板管理 ----------
+
+export interface FormTemplateQuery extends PageParams {
+  name?: string
+  category?: string
+  status?: number
+}
+
+/** 表单模板列表(管理端) */
+export const listFormTemplates = (params?: FormTemplateQuery) =>
+  request.get<unknown, PageResult<OaFormTemplate>>('/oa/forms', { params })
+
+/** 启用的表单模板(用户端) */
+export const listEnabledForms = () =>
+  request.get<unknown, { list: OaFormTemplate[] }>('/oa/forms/enabled')
+
+/** 表单模板详情 */
+export const getFormTemplate = (id: number) =>
+  request.get<unknown, OaFormTemplate>(`/oa/forms/${id}`)
+
+/** 新建表单模板 */
+export const createFormTemplate = (data: {
+  form_key: string
+  name: string
+  icon?: string
+  description?: string
+  fields_config: string
+  category?: string
+  status?: number
+  sort?: number
+}) => request.post<unknown, OaFormTemplate>('/oa/forms', data)
+
+/** 编辑表单模板 */
+export const updateFormTemplate = (
+  id: number,
+  data: Partial<Parameters<typeof createFormTemplate>[0]>,
+) => request.put(`/oa/forms/${id}`, data)
+
+/** 启用/停用表单模板 */
+export const toggleFormTemplate = (id: number) =>
+  request.put(`/oa/forms/${id}/toggle`)
+
+/** 删除表单模板 */
+export const deleteFormTemplate = (id: number) =>
+  request.delete(`/oa/forms/${id}`)
+
+// ---------- 自定义表单数据(用户提交) ----------
+
+export interface FormDataQuery extends PageParams {
+  template_id?: number
+  submitter_id?: number
+  template_key?: string
+  approval_status?: string
+}
+
+/** 表单数据列表 */
+export const listFormData = (params?: FormDataQuery) =>
+  request.get<unknown, PageResult<OaFormData>>('/oa/form-data', { params })
+
+/** 表单数据详情 */
+export const getFormData = (id: number) =>
+  request.get<unknown, OaFormData>(`/oa/form-data/${id}`)
+
+/** 提交表单数据 */
+export const createFormData = (data: {
+  template_id: number
+  field_values: string
+}) => request.post<unknown, OaFormData>('/oa/form-data', data)
+
+/** 编辑表单数据 */
+export const updateFormData = (id: number, data: { field_values: string }) =>
+  request.put(`/oa/form-data/${id}`, data)
+
+/** 删除表单数据 */
+export const deleteFormData = (id: number) =>
+  request.delete(`/oa/form-data/${id}`)
+
+/** 提交表单数据审批 */
+export const submitFormDataApproval = (id: number) =>
+  request.post('/approval/actions/push', { form_type: 'OA_CUSTOM', resource_id: id })

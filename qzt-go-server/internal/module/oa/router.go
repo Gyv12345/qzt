@@ -23,6 +23,18 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	scheduleHandler := handler.NewScheduleHandler()
 	meetingRoomHandler := handler.NewMeetingRoomHandler()
 	meetingBookingHandler := handler.NewMeetingBookingHandler()
+	noticeHandler := handler.NewNoticeHandler()
+	formTemplateHandler := handler.NewFormTemplateHandler()
+	formDataHandler := handler.NewFormDataHandler()
+
+	// 已认证路由(仅 JWT,无 RBAC):公告流(首页用)、启用表单列表
+	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
+	{
+		authenticated.GET("/notices/feed", noticeHandler.Feed)
+		authenticated.GET("/notices/published", noticeHandler.Published)
+		authenticated.GET("/notices/:id", noticeHandler.GetByID)
+		authenticated.GET("/forms/enabled", formTemplateHandler.ListEnabled)
+	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC)
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
@@ -78,5 +90,28 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/meeting-bookings/:id", meetingBookingHandler.GetByID)
 		auth.PUT("/meeting-bookings/:id", meetingBookingHandler.Update)
 		auth.DELETE("/meeting-bookings/:id", meetingBookingHandler.Delete)
+
+		// 公告管理
+		auth.GET("/notices", noticeHandler.List)
+		auth.POST("/notices", noticeHandler.Create)
+		auth.PUT("/notices/:id", noticeHandler.Update)
+		auth.PUT("/notices/:id/publish", noticeHandler.Publish)
+		auth.PUT("/notices/:id/withdraw", noticeHandler.Withdraw)
+		auth.DELETE("/notices/:id", noticeHandler.Delete)
+
+		// 自定义表单模板管理
+		auth.GET("/forms", formTemplateHandler.List)
+		auth.POST("/forms", formTemplateHandler.Create)
+		auth.GET("/forms/:id", formTemplateHandler.GetByID)
+		auth.PUT("/forms/:id", formTemplateHandler.Update)
+		auth.PUT("/forms/:id/toggle", formTemplateHandler.ToggleStatus)
+		auth.DELETE("/forms/:id", formTemplateHandler.Delete)
+
+		// 自定义表单数据(用户提交)
+		auth.GET("/form-data", formDataHandler.List)
+		auth.POST("/form-data", formDataHandler.Create)
+		auth.GET("/form-data/:id", formDataHandler.GetByID)
+		auth.PUT("/form-data/:id", formDataHandler.Update)
+		auth.DELETE("/form-data/:id", formDataHandler.Delete)
 	}
 }

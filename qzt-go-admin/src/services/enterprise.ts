@@ -5,8 +5,6 @@ import type {
   EntJobPayload,
   EntMessage,
   EntMessagePayload,
-  EntNotice,
-  EntNoticePayload,
 } from '../types/enterprise'
 import type { PageParams } from '../types'
 
@@ -65,38 +63,4 @@ export const markAllMessagesRead = () => request.put('/enterprise/messages/read-
 export const getUnreadCount = () =>
   request.get<unknown, { unread_count: number }>('/enterprise/messages/unread-count')
 
-// ---------- 公告 ----------
-
-export interface NoticeQuery extends PageParams {
-  title?: string
-  /** 1 通知 2 公告 */
-  type?: number
-  /** 0 草稿 1 发布 */
-  status?: number
-}
-
-export const listNotices = (params?: NoticeQuery) =>
-  request.get<unknown, EntPageResult<EntNotice>>('/enterprise/notices', { params })
-
-export const getNotice = (id: number) => request.get<unknown, EntNotice>(`/enterprise/notices/${id}`)
-
-export const createNotice = (data: EntNoticePayload) => request.post('/enterprise/notices', data)
-
-export const updateNotice = (id: number, data: EntNoticePayload) =>
-  request.put(`/enterprise/notices/${id}`, data)
-
-export const deleteNotice = (id: number) => request.delete(`/enterprise/notices/${id}`)
-
-/** 发布公告(无请求体) */
-export const publishNotice = (id: number) => request.put(`/enterprise/notices/${id}/publish`)
-
-/** 撤回公告(无请求体) */
-export const withdrawNotice = (id: number) => request.put(`/enterprise/notices/${id}/withdraw`)
-
-/** 首页公告流 */
-export const getNoticeFeed = (limit = 5) =>
-  request.get<unknown, EntNotice[]>('/enterprise/notices/feed', { params: { limit } })
-
-/** 已发布公告 */
-export const listPublishedNotices = (params?: { type?: number; limit?: number }) =>
-  request.get<unknown, EntNotice[]>('/enterprise/notices/published', { params })
+// 公告已迁移到 OA 模块,见 services/oa.ts

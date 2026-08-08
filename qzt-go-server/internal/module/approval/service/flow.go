@@ -281,7 +281,8 @@ func isValidFormType(t string) bool {
 		apprmodel.FormTypeLeave,
 		apprmodel.FormTypeTrip,
 		apprmodel.FormTypeLoan,
-		apprmodel.FormTypeMeetingBooking:
+		apprmodel.FormTypeMeetingBooking,
+		apprmodel.FormTypeCustomForm:
 		return true
 	}
 	return false

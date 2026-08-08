@@ -5,13 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"qzt-go-server/internal/module/enterprise/service"
+	"qzt-go-server/internal/module/oa/service"
 	"qzt-go-server/internal/module/system/errcode"
 	syservice "qzt-go-server/internal/module/system/service"
 	response "qzt-go-server/pkg/xresponse"
 )
 
-// NoticeHandler 公告管理。
 type NoticeHandler struct {
 	svc *service.NoticeService
 }
@@ -20,17 +19,16 @@ func NewNoticeHandler() *NoticeHandler { return &NoticeHandler{svc: service.NewN
 
 // List 公告列表(管理端)
 // @Summary      公告列表
-// @Description  分页查询公告(支持标题/类型/状态过滤)
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
-// @Param        page       query  int  false  "页码(默认1)"
-// @Param        page_size  query  int  false  "每页条数(默认10,最大100)"
+// @Param        page       query  int     false  "页码"
+// @Param        page_size  query  int     false  "每页条数"
 // @Param        title      query  string  false  "标题关键词"
 // @Param        type       query  int     false  "类型(1通知 2公告)"
 // @Param        status     query  int     false  "状态(0草稿 1发布)"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices [get]
+// @Router       /oa/notices [get]
 func (h *NoticeHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	title := c.Query("title")
@@ -46,14 +44,13 @@ func (h *NoticeHandler) List(c *gin.Context) {
 
 // Published 已发布公告
 // @Summary      已发布公告
-// @Description  已发布公告列表(可选按类型过滤,首页公告流)
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
-// @Param        type   query  int  false  "类型(1通知 2公告)"
+// @Param        type   query  int  false  "类型"
 // @Param        limit  query  int  false  "返回条数(默认20)"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices/published [get]
+// @Router       /oa/notices/published [get]
 func (h *NoticeHandler) Published(c *gin.Context) {
 	noticeType, _ := strconv.Atoi(c.DefaultQuery("type", "0"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
@@ -65,15 +62,14 @@ func (h *NoticeHandler) Published(c *gin.Context) {
 	response.OK(c, list)
 }
 
-// Feed 首页公告流(已认证,免权限)
+// Feed 首页公告流
 // @Summary      首页公告流
-// @Description  返回最新已发布公告(首页轮播/公告栏用)
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
 // @Param        limit  query  int  false  "返回条数(默认5)"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices/feed [get]
+// @Router       /oa/notices/feed [get]
 func (h *NoticeHandler) Feed(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "5"))
 	list, err := h.svc.FindPublished(c.Request.Context(), 0, limit)
@@ -86,12 +82,12 @@ func (h *NoticeHandler) Feed(c *gin.Context) {
 
 // GetByID 公告详情
 // @Summary      公告详情
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path      int  true  "公告ID"
+// @Param        id  path  int  true  "公告ID"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices/{id} [get]
+// @Router       /oa/notices/{id} [get]
 func (h *NoticeHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -108,13 +104,13 @@ func (h *NoticeHandler) GetByID(c *gin.Context) {
 
 // Create 创建公告
 // @Summary      创建公告
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body  body      service.CreateNoticeRequest  true  "创建公告请求"
-// @Success      200   {object}  xresponse.Response
-// @Router       /enterprise/notices [post]
+// @Param        body  body  service.CreateNoticeRequest  true  "创建公告"
+// @Success      200  {object}  xresponse.Response
+// @Router       /oa/notices [post]
 func (h *NoticeHandler) Create(c *gin.Context) {
 	var req service.CreateNoticeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -131,14 +127,14 @@ func (h *NoticeHandler) Create(c *gin.Context) {
 
 // Update 更新公告
 // @Summary      更新公告
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id    path      int                        true  "公告ID"
-// @Param        body  body      service.UpdateNoticeRequest  true  "更新公告请求"
-// @Success      200   {object}  xresponse.Response
-// @Router       /enterprise/notices/{id} [put]
+// @Param        id    path  int  true  "公告ID"
+// @Param        body  body  service.UpdateNoticeRequest  true  "更新公告"
+// @Success      200  {object}  xresponse.Response
+// @Router       /oa/notices/{id} [put]
 func (h *NoticeHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -159,12 +155,12 @@ func (h *NoticeHandler) Update(c *gin.Context) {
 
 // Publish 发布公告
 // @Summary      发布公告
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path      int  true  "公告ID"
+// @Param        id  path  int  true  "公告ID"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices/{id}/publish [put]
+// @Router       /oa/notices/{id}/publish [put]
 func (h *NoticeHandler) Publish(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -180,12 +176,12 @@ func (h *NoticeHandler) Publish(c *gin.Context) {
 
 // Withdraw 撤回公告
 // @Summary      撤回公告
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path      int  true  "公告ID"
+// @Param        id  path  int  true  "公告ID"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices/{id}/withdraw [put]
+// @Router       /oa/notices/{id}/withdraw [put]
 func (h *NoticeHandler) Withdraw(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -201,12 +197,12 @@ func (h *NoticeHandler) Withdraw(c *gin.Context) {
 
 // Delete 删除公告
 // @Summary      删除公告
-// @Tags         公告管理
+// @Tags         OA-公告
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path      int  true  "公告ID"
+// @Param        id  path  int  true  "公告ID"
 // @Success      200  {object}  xresponse.Response
-// @Router       /enterprise/notices/{id} [delete]
+// @Router       /oa/notices/{id} [delete]
 func (h *NoticeHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

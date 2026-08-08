@@ -65,23 +65,5 @@ export interface EntMessagePayload {
   content: string
 }
 
-/** 公告 */
-export interface EntNotice {
-  id: number
-  title: string
-  content: string
-  /** 1 通知 2 公告 */
-  type: number
-  /** 0 草稿 1 发布 */
-  status: number
-  publish_time: string
-  created_at: string
-  updated_at: string
-}
+// 公告已迁移到 OA 模块,见 types/oa.ts (OaNotice)
 
-/** 创建/更新公告请求 */
-export interface EntNoticePayload {
-  title: string
-  content?: string
-  type?: number
-}

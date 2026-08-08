@@ -4,40 +4,34 @@ import (
 	"context"
 	"errors"
 
-	"gorm.io/gorm"
-
-	entmodel "qzt-go-server/internal/model/enterprise"
-	entrepo "qzt-go-server/internal/repository/enterprise"
+	oamodel "qzt-go-server/internal/model/oa"
+	oarepo "qzt-go-server/internal/repository/oa"
 )
 
-// notice.go 公告服务。
-// 草稿/发布/撤回,已发布列表(首页公告流)。
+// notice.go OA 公告服务(从 enterprise 迁移)。
 
-// NoticeService 公告服务。
 type NoticeService struct {
-	repo *entrepo.NoticeRepo
+	repo *oarepo.NoticeRepo
 }
 
-func NewNoticeService() *NoticeService { return &NoticeService{repo: entrepo.NewNoticeRepo()} }
+func NewNoticeService() *NoticeService { return &NoticeService{repo: oarepo.NewNoticeRepo()} }
 
-// CreateNoticeRequest 创建公告请求。
 type CreateNoticeRequest struct {
 	Title   string `json:"title" binding:"required"`
 	Content string `json:"content"`
 	Type    int8   `json:"type"`
 }
 
-// Create 创建公告(默认草稿)。
-func (s *NoticeService) Create(ctx context.Context, req *CreateNoticeRequest) (*entmodel.SysNotice, error) {
+func (s *NoticeService) Create(ctx context.Context, req *CreateNoticeRequest) (*oamodel.OaNotice, error) {
 	noticeType := req.Type
 	if noticeType == 0 {
-		noticeType = entmodel.NoticeTypeNotice
+		noticeType = oamodel.NoticeTypeNotice
 	}
-	n := &entmodel.SysNotice{
+	n := &oamodel.OaNotice{
 		Title:   req.Title,
 		Content: req.Content,
 		Type:    noticeType,
-		Status:  entmodel.NoticeStatusDraft,
+		Status:  oamodel.NoticeStatusDraft,
 	}
 	if err := s.repo.Create(ctx, n); err != nil {
 		return nil, err
@@ -45,20 +39,17 @@ func (s *NoticeService) Create(ctx context.Context, req *CreateNoticeRequest) (*
 	return n, nil
 }
 
-// GetByID 公告详情。
-func (s *NoticeService) GetByID(ctx context.Context, id uint) (*entmodel.SysNotice, error) {
+func (s *NoticeService) GetByID(ctx context.Context, id uint) (*oamodel.OaNotice, error) {
 	n, err := s.repo.GetByID(ctx, id)
 	return n, notFoundOr(err, "公告不存在")
 }
 
-// UpdateNoticeRequest 更新公告请求。
 type UpdateNoticeRequest struct {
 	Title   string `json:"title" binding:"required"`
 	Content string `json:"content"`
 	Type    int8   `json:"type"`
 }
 
-// Update 更新公告(仅草稿可改)。
 func (s *NoticeService) Update(ctx context.Context, id uint, req *UpdateNoticeRequest) error {
 	n, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -72,7 +63,6 @@ func (s *NoticeService) Update(ctx context.Context, id uint, req *UpdateNoticeRe
 	return s.repo.Update(ctx, n)
 }
 
-// Delete 删除公告。
 func (s *NoticeService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return notFoundOr(err, "公告不存在")
@@ -80,44 +70,32 @@ func (s *NoticeService) Delete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// Publish 发布公告。
 func (s *NoticeService) Publish(ctx context.Context, id uint) error {
 	n, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "公告不存在")
 	}
-	if n.Status == entmodel.NoticeStatusPublish {
+	if n.Status == oamodel.NoticeStatusPublish {
 		return errors.New("公告已发布")
 	}
 	return s.repo.Publish(ctx, id)
 }
 
-// Withdraw 撤回公告。
 func (s *NoticeService) Withdraw(ctx context.Context, id uint) error {
 	n, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "公告不存在")
 	}
-	if n.Status == entmodel.NoticeStatusDraft {
+	if n.Status == oamodel.NoticeStatusDraft {
 		return errors.New("公告已是草稿状态")
 	}
 	return s.repo.Withdraw(ctx, id)
 }
 
-// List 分页查询公告(管理端)。
-func (s *NoticeService) List(ctx context.Context, page, pageSize int, title string, noticeType, status int8) ([]entmodel.SysNotice, int64, error) {
+func (s *NoticeService) List(ctx context.Context, page, pageSize int, title string, noticeType, status int8) ([]oamodel.OaNotice, int64, error) {
 	return s.repo.PageList(ctx, page, pageSize, title, noticeType, status)
 }
 
-// FindPublished 已发布列表(首页公告流)。
-func (s *NoticeService) FindPublished(ctx context.Context, noticeType int8, limit int) ([]entmodel.SysNotice, error) {
+func (s *NoticeService) FindPublished(ctx context.Context, noticeType int8, limit int) ([]oamodel.OaNotice, error) {
 	return s.repo.FindPublished(ctx, noticeType, limit)
-}
-
-// notFoundOr 把 gorm.ErrRecordNotFound 翻译为友好消息。
-func notFoundOr(err error, notFoundMsg string) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New(notFoundMsg)
-	}
-	return err
 }

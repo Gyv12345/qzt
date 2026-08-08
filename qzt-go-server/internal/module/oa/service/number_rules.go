@@ -41,6 +41,11 @@ func init() {
 		Enabled: true, Prefix: "HY", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: countLike(&oamodel.OaMeetingBooking{}, "booking_no"),
 	})
+	// 自定义表单 BD
+	numbergen.Register("form", numbergen.Rule{
+		Enabled: true, Prefix: "BD", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&oamodel.OaFormData{}, "data_no"),
+	})
 }
 
 // countLike 统计指定 model 表中 column 列 LIKE "前缀+日期%" 的记录数。

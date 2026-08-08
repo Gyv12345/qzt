@@ -248,3 +248,88 @@ export interface OaMeetingBooking {
   created_at: string
   updated_at: string
 }
+
+// ==================== 公告管理 ====================
+
+/** 公告 */
+export interface OaNotice {
+  id: number
+  title: string
+  content: string
+  /** 1 通知 2 公告 */
+  type: number
+  /** 0 草稿 1 发布 */
+  status: number
+  publish_time: string
+  created_at: string
+  updated_at: string
+}
+
+/** 创建/更新公告请求 */
+export interface OaNoticePayload {
+  title: string
+  content?: string
+  type?: number
+}
+
+// ==================== 自定义表单引擎 ====================
+
+/** 表单字段定义 */
+export interface FormField {
+  /** 字段标识 */
+  key: string
+  /** 字段标题 */
+  title: string
+  /** 字段类型: text/number/date/datetime/select/textarea/radio/checkbox */
+  type: string
+  /** 是否必填 */
+  required?: boolean
+  /** 占位符 */
+  placeholder?: string
+  /** 默认值 */
+  default?: string | number
+  /** 下拉/单选/多选的选项 */
+  options?: { label: string; value: string }[]
+}
+
+/** 表单模板 */
+export interface OaFormTemplate {
+  id: number
+  form_key: string
+  name: string
+  icon: string
+  description: string
+  fields_config: string
+  category: string
+  status: number
+  sort: number
+  created_at: string
+  updated_at: string
+}
+
+/** 表单数据(用户提交) */
+export interface OaFormData {
+  id: number
+  data_no: string
+  template_id: number
+  template_key: string
+  template_name: string
+  submitter_id: number
+  dept_id: number | null
+  field_values: string
+  approval_status: string
+  created_at: string
+  updated_at: string
+}
+
+/** 字段类型选项 */
+export const FIELD_TYPE_OPTIONS = [
+  { label: '单行文本', value: 'text' },
+  { label: '多行文本', value: 'textarea' },
+  { label: '数字', value: 'number' },
+  { label: '日期', value: 'date' },
+  { label: '日期时间', value: 'datetime' },
+  { label: '下拉选择', value: 'select' },
+  { label: '单选', value: 'radio' },
+  { label: '多选', value: 'checkbox' },
+]
