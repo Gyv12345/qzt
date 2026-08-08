@@ -12,6 +12,7 @@ import (
 	crmmodel "qzt-go-server/internal/model/crm"
 	hrmmodel "qzt-go-server/internal/model/hrm"
 	psimodel "qzt-go-server/internal/model/psi"
+	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/repository"
 )
 
@@ -45,18 +46,54 @@ func (s *DashboardService) Overview(ctx context.Context, userID uint) (*Overview
 	data := &OverviewData{}
 	db := repository.DBFrom(ctx)
 
+	// data_scope 行级过滤(超管/ALL 返回 nil 表示不过滤)
+	// crmScopeScopes 对客户/商机/合同生效,均为 owner_id 列
+	dsCond := datascope.BuildCond(ctx, "owner_id")
+
 	// 客户统计
-	db.Table("crm_customer").Where("in_pool = ?", crmmodel.InPoolPrivate).Count(&data.CustomerTotal)
-	db.Table("crm_customer").Where("in_pool = ?", crmmodel.InPoolPublic).Count(&data.CustomerPublic)
+	custQ := db.Table("crm_customer").Where("in_pool = ?", crmmodel.InPoolPrivate)
+	if dsCond != nil {
+		custQ = custQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	custQ.Count(&data.CustomerTotal)
+
+	custPQ := db.Table("crm_customer").Where("in_pool = ?", crmmodel.InPoolPublic)
+	if dsCond != nil {
+		custPQ = custPQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	custPQ.Count(&data.CustomerPublic)
 
 	// 商机统计
-	db.Table("crm_opportunity").Count(&data.OpportunityTotal)
-	db.Table("crm_opportunity").Where("stage = ?", crmmodel.OppStageWon).Count(&data.OpportunityWon)
+	oppQ := db.Table("crm_opportunity")
+	if dsCond != nil {
+		oppQ = oppQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	oppQ.Count(&data.OpportunityTotal)
+
+	oppWonQ := db.Table("crm_opportunity").Where("stage = ?", crmmodel.OppStageWon)
+	if dsCond != nil {
+		oppWonQ = oppWonQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	oppWonQ.Count(&data.OpportunityWon)
 
 	// 合同统计
-	db.Table("crm_contract").Count(&data.ContractTotal)
-	db.Table("crm_contract").Select("COALESCE(SUM(total_amount),0)").Scan(&data.ContractAmount)
-	db.Table("crm_contract").Select("COALESCE(SUM(received_amount),0)").Scan(&data.ReceivedAmount)
+	contractQ := db.Table("crm_contract")
+	if dsCond != nil {
+		contractQ = contractQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	contractQ.Count(&data.ContractTotal)
+
+	contractAmtQ := db.Table("crm_contract")
+	if dsCond != nil {
+		contractAmtQ = contractAmtQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	contractAmtQ.Select("COALESCE(SUM(total_amount),0)").Scan(&data.ContractAmount)
+
+	contractRecvQ := db.Table("crm_contract")
+	if dsCond != nil {
+		contractRecvQ = contractRecvQ.Where(dsCond.Query, dsCond.Args...)
+	}
+	contractRecvQ.Select("COALESCE(SUM(received_amount),0)").Scan(&data.ReceivedAmount)
 
 	// 审批待办(当前用户)
 	db.Table("approval_task").
@@ -112,10 +149,13 @@ func (s *DashboardService) CustomerDistribution(ctx context.Context, dimension s
 	if !allowed[dimension] {
 		dimension = "level"
 	}
+	q := repository.DBFrom(ctx).Table("crm_customer").
+		Where(dimension + " != ''")
+	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+		q = q.Where(cond.Query, cond.Args...)
+	}
 	var rows []DistItem
-	err := repository.DBFrom(ctx).Table("crm_customer").
-		Select(dimension+" AS label, COUNT(*) AS count").
-		Where(dimension+" != ''").
+	err := q.Select(dimension+" AS label, COUNT(*) AS count").
 		Group(dimension).
 		Order("count DESC").
 		Scan(&rows).Error
@@ -133,9 +173,12 @@ type FunnelStage struct {
 
 // OpportunityFunnel 按阶段分组统计商机数量与金额。
 func (s *DashboardService) OpportunityFunnel(ctx context.Context) ([]FunnelStage, error) {
+	q := repository.DBFrom(ctx).Table("crm_opportunity")
+	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+		q = q.Where(cond.Query, cond.Args...)
+	}
 	var rows []FunnelStage
-	err := repository.DBFrom(ctx).Table("crm_opportunity").
-		Select("stage, COUNT(*) AS count, COALESCE(SUM(expected_amount),0) AS amount").
+	err := q.Select("stage, COUNT(*) AS count, COALESCE(SUM(expected_amount),0) AS amount").
 		Group("stage").
 		Order("count DESC").
 		Scan(&rows).Error
