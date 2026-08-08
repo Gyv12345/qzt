@@ -3,6 +3,8 @@ import {
   Alert,
   Avatar,
   Button,
+  Collapse,
+  Divider,
   Drawer,
   Empty,
   Form,
@@ -259,6 +261,119 @@ function WecomTab() {
   )
 }
 
+/** MCP 服务端点 */
+const MCP_PROD_URL = 'https://devlovecode.com/mcp'
+
+/**
+ * 生成各 MCP 客户端的配置文本。
+ * @param apiKey 明文 API Key(qzt_ 前缀);已有 Key 的用户传占位符
+ */
+function buildMcpConfigs(apiKey: string) {
+  return [
+    {
+      key: 'claude',
+      label: 'Claude Code / Claude Desktop',
+      filename: '.mcp.json(项目根目录)或 ~/.claude.json',
+      language: 'json',
+      content: JSON.stringify(
+        {
+          mcpServers: {
+            'qzt-erp': {
+              type: 'http',
+              url: MCP_PROD_URL,
+              headers: { Authorization: `Bearer ${apiKey}` },
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    },
+    {
+      key: 'codex',
+      label: 'Codex CLI (OpenAI)',
+      filename: '~/.codex/config.toml',
+      language: 'toml',
+      content: `[mcp_servers.qzt-erp]\ntransport = "http"\nurl = "${MCP_PROD_URL}"\nauth_token = "${apiKey}"`,
+    },
+    {
+      key: 'cursor',
+      label: 'Cursor',
+      filename: '.cursor/mcp.json(项目根目录)',
+      language: 'json',
+      content: JSON.stringify(
+        {
+          mcpServers: {
+            'qzt-erp': {
+              url: MCP_PROD_URL,
+              headers: { Authorization: `Bearer ${apiKey}` },
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    },
+    {
+      key: 'vscode',
+      label: 'VS Code (GitHub Copilot)',
+      filename: 'settings.json → github.copilot.chat.mcp.servers',
+      language: 'json',
+      content: JSON.stringify(
+        {
+          'qzt-erp': {
+            type: 'http',
+            url: MCP_PROD_URL,
+            headers: { Authorization: `Bearer ${apiKey}` },
+          },
+        },
+        null,
+        2,
+      ),
+    },
+  ]
+}
+
+/** MCP 配置展示区:Collapse 折叠,每个客户端一个面板,代码块可一键复制 */
+function McpConfigSection({ apiKey }: { apiKey: string }) {
+  const configs = buildMcpConfigs(apiKey)
+  return (
+    <Collapse
+      ghost
+      items={configs.map((c) => ({
+        key: c.key,
+        label: (
+          <span>
+            <Typography.Text strong>{c.label}</Typography.Text>{' '}
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {c.filename}
+            </Typography.Text>
+          </span>
+        ),
+        children: (
+          <pre
+            style={{
+              background: '#f5f5f5',
+              padding: 12,
+              borderRadius: 6,
+              fontSize: 12,
+              margin: 0,
+              overflowX: 'auto',
+              position: 'relative',
+            }}
+          >
+            <Typography.Text
+              copyable
+              style={{ position: 'absolute', top: 4, right: 8 }}
+            />
+            {c.content}
+          </pre>
+        ),
+      }))}
+    />
+  )
+}
+
 /** API Key 管理 */
 function ApiKeyTab() {
   const [keys, setKeys] = useState<SysApiKey[]>([])
@@ -370,9 +485,41 @@ function ApiKeyTab() {
           },
         ]}
       />
+      <Collapse
+        size="small"
+        style={{ marginTop: 16 }}
+        items={[
+          {
+            key: 'mcp',
+            label: (
+              <span>
+                🔗 MCP 配置说明
+                <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                  Claude Code / Codex / Cursor 等
+                </Typography.Text>
+              </span>
+            ),
+            children: (
+              <>
+                <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
+                  企智通 ERP 的 MCP 端点为
+                  <Typography.Text code copyable>
+                    {MCP_PROD_URL}
+                  </Typography.Text>
+                  ,使用 API Key 认证。将下方配置中的
+                  <Typography.Text code>YOUR_API_KEY</Typography.Text>
+                  替换为你的 Key 即可。
+                </Typography.Paragraph>
+                <McpConfigSection apiKey="YOUR_API_KEY" />
+              </>
+            ),
+          },
+        ]}
+      />
       <Modal
         title="API Key 创建成功"
         open={!!created}
+        width={560}
         footer={
           <Button type="primary" onClick={() => setCreated(null)}>
             我已保存
@@ -391,6 +538,15 @@ function ApiKeyTab() {
             {created?.api_key}
           </Typography.Text>
         </Typography.Paragraph>
+        <Divider style={{ margin: '16px 0' }} />
+        <Typography.Title level={5} style={{ marginTop: 0 }}>
+          🔗 MCP 客户端配置
+        </Typography.Title>
+        <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 4 }}>
+          将以下配置写入对应客户端,即可在你的 IDE / AI 助手里直接操作企智通 ERP。
+          下方已自动填入本次生成的 Key。
+        </Typography.Paragraph>
+        {created?.api_key && <McpConfigSection apiKey={created.api_key} />}
       </Modal>
     </div>
   )
