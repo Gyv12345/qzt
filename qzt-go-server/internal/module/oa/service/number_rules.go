@@ -26,6 +26,21 @@ func init() {
 		Enabled: true, Prefix: "JK", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: countLike(&oamodel.OaLoan{}, "loan_no"),
 	})
+	// 工作日志 RZ
+	numbergen.Register("worklog", numbergen.Rule{
+		Enabled: true, Prefix: "RZ", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&oamodel.OaWorkLog{}, "log_no"),
+	})
+	// 日程 RC
+	numbergen.Register("schedule", numbergen.Rule{
+		Enabled: true, Prefix: "RC", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&oamodel.OaSchedule{}, "schedule_no"),
+	})
+	// 会议预订 HY
+	numbergen.Register("meeting", numbergen.Rule{
+		Enabled: true, Prefix: "HY", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&oamodel.OaMeetingBooking{}, "booking_no"),
+	})
 }
 
 // countLike 统计指定 model 表中 column 列 LIKE "前缀+日期%" 的记录数。

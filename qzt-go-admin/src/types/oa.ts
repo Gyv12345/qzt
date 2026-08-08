@@ -95,3 +95,156 @@ export const LOAN_TYPE_OPTIONS = [
   { label: '个人借款', value: '个人借款' },
   { label: '其他', value: '其他' },
 ]
+
+// ==================== 工作日志 ====================
+
+/** 工作日志 */
+export interface OaWorkLog {
+  id: number
+  log_no: string
+  /** DAILY/WEEKLY/MONTHLY */
+  log_type: string
+  /** yyyy-MM-dd */
+  log_date: string
+  content: string
+  plan: string
+  problems: string
+  creator_id: number
+  dept_id: number | null
+  created_at: string
+  updated_at: string
+}
+
+/** 日志类型选项 */
+export const LOG_TYPE_OPTIONS = [
+  { label: '日报', value: 'DAILY' },
+  { label: '周报', value: 'WEEKLY' },
+  { label: '月报', value: 'MONTHLY' },
+]
+
+export const LOG_TYPE_MAP: Record<string, string> = {
+  DAILY: '日报',
+  WEEKLY: '周报',
+  MONTHLY: '月报',
+}
+
+// ==================== 日程安排 ====================
+
+/** 日程安排 */
+export interface OaSchedule {
+  id: number
+  schedule_no: string
+  title: string
+  /** MEETING/TASK/REMINDER/OUT/OTHER */
+  event_type: string
+  start_time: string
+  end_time: string
+  location: string
+  content: string
+  /** NONE/MIN5/MIN15/HOUR1/DAY1 */
+  remind_type: string
+  /** PENDING/DONE/CANCELED */
+  status: string
+  creator_id: number
+  created_at: string
+  updated_at: string
+}
+
+/** 日程类型选项 */
+export const SCHEDULE_TYPE_OPTIONS = [
+  { label: '会议', value: 'MEETING' },
+  { label: '任务', value: 'TASK' },
+  { label: '提醒', value: 'REMINDER' },
+  { label: '外出', value: 'OUT' },
+  { label: '其他', value: 'OTHER' },
+]
+
+export const SCHEDULE_TYPE_MAP: Record<string, { text: string; color: string }> = {
+  MEETING: { text: '会议', color: 'blue' },
+  TASK: { text: '任务', color: 'orange' },
+  REMINDER: { text: '提醒', color: 'purple' },
+  OUT: { text: '外出', color: 'cyan' },
+  OTHER: { text: '其他', color: 'default' },
+}
+
+/** 提醒类型选项 */
+export const REMIND_TYPE_OPTIONS = [
+  { label: '不提醒', value: 'NONE' },
+  { label: '提前5分钟', value: 'MIN5' },
+  { label: '提前15分钟', value: 'MIN15' },
+  { label: '提前1小时', value: 'HOUR1' },
+  { label: '提前1天', value: 'DAY1' },
+]
+
+/** 日程状态选项 */
+export const SCHEDULE_STATUS_OPTIONS = [
+  { label: '待处理', value: 'PENDING' },
+  { label: '已完成', value: 'DONE' },
+  { label: '已取消', value: 'CANCELED' },
+]
+
+export const SCHEDULE_STATUS_MAP: Record<string, { text: string; color: string }> = {
+  PENDING: { text: '待处理', color: 'processing' },
+  DONE: { text: '已完成', color: 'success' },
+  CANCELED: { text: '已取消', color: 'default' },
+}
+
+// ==================== 会议室 ====================
+
+/** 会议室 */
+export interface OaMeetingRoom {
+  id: number
+  name: string
+  location: string
+  capacity: number
+  equipment: string
+  /** ENABLED/DISABLED/MAINTENANCE */
+  status: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 会议室状态选项 */
+export const MEETING_ROOM_STATUS_OPTIONS = [
+  { label: '可用', value: 'ENABLED' },
+  { label: '停用', value: 'DISABLED' },
+  { label: '维护中', value: 'MAINTENANCE' },
+]
+
+export const MEETING_ROOM_STATUS_MAP: Record<string, { text: string; color: string }> = {
+  ENABLED: { text: '可用', color: 'success' },
+  DISABLED: { text: '停用', color: 'default' },
+  MAINTENANCE: { text: '维护中', color: 'warning' },
+}
+
+/** 常见设备列表 */
+export const EQUIPMENT_OPTIONS = [
+  { label: '投影仪', value: '投影仪' },
+  { label: '白板', value: '白板' },
+  { label: '视频会议', value: '视频会议' },
+  { label: '电话', value: '电话' },
+  { label: '空调', value: '空调' },
+  { label: '电视', value: '电视' },
+  { label: '音响', value: '音响' },
+]
+
+// ==================== 会议预订 ====================
+
+/** 会议预订 */
+export interface OaMeetingBooking {
+  id: number
+  booking_no: string
+  title: string
+  room_id: number
+  organizer_id: number
+  dept_id: number | null
+  start_time: string
+  end_time: string
+  attendees: number
+  topic: string
+  approval_status: string
+  remark: string
+  created_at: string
+  updated_at: string
+}

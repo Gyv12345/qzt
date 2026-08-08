@@ -73,10 +73,11 @@ const (
 	FormTypeSalesReturn    = "SALES_RETURN"    // 销售退货
 
 	// OA 办公流程
-	FormTypeExpense = "EXPENSE" // 报销单
-	FormTypeLeave   = "LEAVE"   // 请假单
-	FormTypeTrip    = "TRIP"    // 出差申请
-	FormTypeLoan    = "LOAN"    // 备用金/借款
+	FormTypeExpense       = "EXPENSE"        // 报销单
+	FormTypeLeave         = "LEAVE"          // 请假单
+	FormTypeTrip          = "TRIP"           // 出差申请
+	FormTypeLoan          = "LOAN"           // 备用金/借款
+	FormTypeMeetingBooking = "MEETING_BOOKING" // 会议预订
 )
 
 // ExecuteTiming 触发时机。
@@ -136,8 +137,9 @@ var FormTable = map[string]string{
 	FormTypeSalesReturn:    "psi_sales_return",
 
 	// OA 办公流程
-	FormTypeExpense: "oa_expense",
-	FormTypeLeave:   "hrm_leave",
-	FormTypeTrip:    "oa_business_trip",
-	FormTypeLoan:    "oa_loan",
+	FormTypeExpense:        "oa_expense",
+	FormTypeLeave:          "hrm_leave",
+	FormTypeTrip:           "oa_business_trip",
+	FormTypeLoan:           "oa_loan",
+	FormTypeMeetingBooking: "oa_meeting_booking",
 }
