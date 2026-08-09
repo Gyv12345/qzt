@@ -29,6 +29,7 @@ import (
 	"qzt-go-server/internal/module/system"
 	oamod "qzt-go-server/internal/module/oa"
 	oasvc "qzt-go-server/internal/module/oa/service"
+	kbmod "qzt-go-server/internal/module/kb"
 	projmod "qzt-go-server/internal/module/project"
 	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/server"
@@ -75,6 +76,7 @@ func main() {
 		psimod.New(),
 		finmod.New(),
 		oamod.New(),
+		kbmod.New(),
 		projmod.New(),
 		aimod.New(),
 		mailmod.New(),
