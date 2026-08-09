@@ -248,3 +248,19 @@ export const PERF_STATUS: Record<number, { text: string; color: string }> = {
   5: { text: '已完成', color: 'success' },
   6: { text: '已取消', color: 'default' },
 }
+
+/** 考勤汇总 */
+export interface HrmAttendanceSummary {
+  id: number
+  emp_no: string
+  emp_name: string
+  dept_name: string
+  year_month: string
+  should_days: number
+  actual_days: number
+  late_count: number
+  early_count: number
+  miss_count: number
+  leave_days: number
+  overtime_hours: number
+}

@@ -1,5 +1,6 @@
 import request from '../utils/request'
 import type {
+  HrmAttendanceSummary,
   HrmCandidate,
   HrmDepartment,
   HrmDepartmentPayload,
@@ -199,3 +200,14 @@ export const reviewPerformance = (id: number, data: { review_score: number; revi
   request.put(`/hrm/performances/${id}/review`, data)
 
 export const deletePerformance = (id: number) => request.delete(`/hrm/performances/${id}`)
+
+// ---------- 考勤 ----------
+
+export interface AttendanceSummaryQuery extends PageParams {
+  year_month?: string
+  department_id?: number
+}
+
+/** 考勤汇总列表 */
+export const listAttendanceSummary = (params?: AttendanceSummaryQuery) =>
+  request.get<unknown, HrmPageResult<HrmAttendanceSummary>>('/hrm/attendance/summary', { params })
