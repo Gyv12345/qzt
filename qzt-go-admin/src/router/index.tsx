@@ -37,6 +37,18 @@ function buildMenuRoutes(menus: SysMenu[]): RouteObject[] {
   return routes
 }
 
+/** 非菜单页面(不显示在侧栏,但需要路由,如编辑器/详情页) */
+const extraRoutes: { path: string; component: string }[] = [
+  { path: '/kb/document/editor', component: 'kb/document/editor' },
+]
+
+function buildExtraRoutes(): RouteObject[] {
+  return extraRoutes.map((r) => {
+    const Page = lazyPage(r.component)
+    return { path: r.path, element: <Page /> }
+  })
+}
+
 function RequireAuth({ children }: { children: ReactElement }) {
   const accessToken = useAuthStore((s) => s.accessToken)
   if (!accessToken) return <Navigate to="/login" replace />
@@ -79,6 +91,7 @@ export default function AppRoutes() {
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: '/dashboard', element: <Dashboard /> },
           ...buildMenuRoutes(menus),
+          ...buildExtraRoutes(),
         ],
       },
       { path: '*', element: <NotFound /> },
