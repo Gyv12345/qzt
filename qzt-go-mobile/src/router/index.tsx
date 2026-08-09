@@ -52,6 +52,13 @@ const AssetList = lazy(() => import('../pages/psi/asset'))
 const ProductList = lazy(() => import('../pages/product'))
 const TicketList = lazy(() => import('../pages/ticket'))
 const TicketDetail = lazy(() => import('../pages/ticket/detail'))
+// OA 新模块
+const WorkLogList = lazy(() => import('../pages/work-log'))
+const ScheduleList = lazy(() => import('../pages/schedule'))
+const MeetingBookingList = lazy(() => import('../pages/meeting'))
+const KbDocList = lazy(() => import('../pages/kb'))
+const KbDocDetail = lazy(() => import('../pages/kb/detail'))
+const CloudPage = lazy(() => import('../pages/cloud'))
 
 const pageFallback = (
   <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -268,6 +275,30 @@ export default function AppRoutes() {
           {
             path: '/ticket/:id',
             element: <Suspense fallback={pageFallback}><TicketDetail /></Suspense>,
+          },
+          {
+            path: '/work-log',
+            element: <Suspense fallback={pageFallback}><WorkLogList /></Suspense>,
+          },
+          {
+            path: '/schedule',
+            element: <Suspense fallback={pageFallback}><ScheduleList /></Suspense>,
+          },
+          {
+            path: '/meeting',
+            element: <Suspense fallback={pageFallback}><MeetingBookingList /></Suspense>,
+          },
+          {
+            path: '/kb',
+            element: <Suspense fallback={pageFallback}><KbDocList /></Suspense>,
+          },
+          {
+            path: '/kb/:id',
+            element: <Suspense fallback={pageFallback}><KbDocDetail /></Suspense>,
+          },
+          {
+            path: '/cloud',
+            element: <Suspense fallback={pageFallback}><CloudPage /></Suspense>,
           },
           {
             path: '/news',

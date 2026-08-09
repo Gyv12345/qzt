@@ -77,3 +77,65 @@ export const submitLoanApproval = (id: number) =>
 
 export const markLoanRepaid = (id: number) =>
   request.post(`/oa/loans/${id}/mark-repaid`)
+
+// ── 工作日志 ──
+
+export interface WorkLogQuery extends PageParams {
+  log_type?: string
+  start_date?: string
+  end_date?: string
+}
+
+export const listWorkLogs = (params: WorkLogQuery) =>
+  request.get<unknown, PageResult<any>>('/oa/work-logs', { params })
+
+export const createWorkLog = (data: { log_type?: string; log_date: string; content?: string; plan?: string; problems?: string }) =>
+  request.post('/oa/work-logs', data)
+
+// ── 日程安排 ──
+
+export interface ScheduleQuery extends PageParams {
+  event_type?: string
+  status?: string
+  start_date?: string
+  end_date?: string
+}
+
+export const listSchedules = (params: ScheduleQuery) =>
+  request.get<unknown, PageResult<any>>('/oa/schedules', { params })
+
+export const createSchedule = (data: { title: string; event_type?: string; start_time: string; end_time: string; location?: string; content?: string }) =>
+  request.post('/oa/schedules', data)
+
+// ── 会议预订 ──
+
+export const listMeetingBookings = (params: PageParams) =>
+  request.get<unknown, PageResult<any>>('/oa/meeting-bookings', { params })
+
+export const listMeetingRooms = () =>
+  request.get<unknown, { list: any[] }>('/oa/meeting-rooms', { params: { page: 1, page_size: 100 } })
+
+export const createMeetingBooking = (data: { title: string; room_id: number; start_time: string; end_time: string; attendees?: number; topic?: string }) =>
+  request.post('/oa/meeting-bookings', data)
+
+export const submitMeetingBookingApproval = (id: number) =>
+  request.post('/approval/actions/push', { form_type: 'MEETING_BOOKING', resource_id: id })
+
+// ── 知识库 ──
+
+export const listKbDocuments = (params: PageParams) =>
+  request.get<unknown, PageResult<any>>('/kb/documents', { params })
+
+export const getKbDocument = (id: number) =>
+  request.get<unknown, any>(`/kb/documents/${id}`)
+
+export const listKbCategories = () =>
+  request.get<unknown, { list: any[] }>('/kb/categories')
+
+// ── 网盘 ──
+
+export const listCloudFiles = (parentId = 0, scope = 'personal') =>
+  request.get<unknown, { list: any[] }>('/cloud/files', { params: { parent_id: parentId, scope } })
+
+export const createCloudFolder = (data: { parent_id: number; name: string; scope?: string }) =>
+  request.post('/cloud/folders', data)

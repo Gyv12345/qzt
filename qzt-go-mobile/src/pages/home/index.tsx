@@ -21,6 +21,7 @@ import {
   FileWrongOutline,
   UnorderedListOutline,
   GiftOutline,
+  UploadOutline,
 } from 'antd-mobile-icons'
 import type { CSSProperties, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -114,12 +115,18 @@ export default function Home() {
     { key: 'expense', label: '报销', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-approval)', path: '/expense' },
     { key: 'trip', label: '出差', icon: <CompassOutline />, iconBg: 'var(--icon-bg-crm)', path: '/trip' },
     { key: 'loan', label: '借款', icon: <PayCircleOutline />, iconBg: 'var(--icon-bg-contract)', path: '/loan' },
+    { key: 'leave', label: '请假', icon: <CheckOutline />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
+    { key: 'worklog', label: '日志', icon: <FileOutline />, iconBg: 'var(--icon-bg-crm)', path: '/work-log' },
+    { key: 'schedule', label: '日程', icon: <SetOutline />, iconBg: 'var(--icon-bg-opp)', path: '/schedule' },
+    { key: 'meeting', label: '会议', icon: <CheckCircleFill />, iconBg: 'var(--icon-bg-approval)', path: '/meeting' },
   ]
 
-  // 财务+项目宫格
+  // 财务+项目+知识宫格
   const bizEntries: GridEntry[] = [
     { key: 'receivable', label: '应收应付', icon: <BankcardOutline />, iconBg: 'var(--icon-bg-contract)', path: '/finance/receivable' },
     { key: 'project', label: '项目', icon: <AppstoreOutline />, iconBg: 'var(--icon-bg-opp)', path: '/project' },
+    { key: 'kb', label: '知识库', icon: <FileOutline />, iconBg: 'var(--icon-bg-crm)', path: '/kb' },
+    { key: 'cloud', label: '网盘', icon: <UploadOutline />, iconBg: 'var(--icon-bg-opp)', path: '/cloud' },
   ]
 
   // 人事宫格
