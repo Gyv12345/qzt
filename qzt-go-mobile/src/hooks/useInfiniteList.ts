@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface PageResult<T> {
   list: T[]
@@ -33,18 +33,24 @@ export function useInfiniteList<T>(
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const pageRef = useRef(0)
+  const loadedRef = useRef(false)
 
-  const hasMore = list.length < total
+  // hasMore 在首次加载完成前保持 true,确保 InfiniteScroll 能触发首次 loadMore
+  const hasMore = !loadedRef.current || list.length < total
 
   const loadMore = useCallback(async () => {
-    if (loading || list.length >= total && total > 0) return
+    if (loading || (loadedRef.current && list.length >= total)) return
     setLoading(true)
     try {
       const next = pageRef.current + 1
       const res = await fetcher({ page: next, page_size: pageSize })
       pageRef.current = next
-      setTotal(res.total ?? 0)
-      setList((prev) => (next === 1 ? res.list : [...prev, ...res.list]))
+      setTotal(res?.total ?? 0)
+      setList((prev) => (next === 1 ? (res?.list ?? []) : [...prev, ...(res?.list ?? [])]))
+      loadedRef.current = true
+    } catch (err) {
+      // 加载失败时不设置 loadedRef,允许 InfiniteScroll 重试
+      throw err
     } finally {
       setLoading(false)
     }
@@ -55,12 +61,19 @@ export function useInfiniteList<T>(
     try {
       const res = await fetcher({ page: 1, page_size: pageSize })
       pageRef.current = 1
-      setTotal(res.total ?? 0)
-      setList(res.list)
+      setTotal(res?.total ?? 0)
+      setList(res?.list ?? [])
+      loadedRef.current = true
     } finally {
       setLoading(false)
     }
   }, [fetcher, pageSize])
+
+  // 挂载时自动加载首页(不依赖 InfiniteScroll 的 IntersectionObserver)
+  useEffect(() => {
+    loadMore().catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return { list, total, loading, hasMore, loadMore, refresh }
 }

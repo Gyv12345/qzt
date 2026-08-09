@@ -24,9 +24,14 @@ export default function FormSheet({ visible, title, fields, onClose, onSubmit }:
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
 
-  const handleFinish = async (values: Record<string, any>) => {
+  const handleFinish = async (rawValues: Record<string, any>) => {
     setSubmitting(true)
     try {
+      // Selector 返回数组,展开为单值(取第一个元素)
+      const values: Record<string, any> = {}
+      for (const [k, v] of Object.entries(rawValues)) {
+        values[k] = Array.isArray(v) ? v[0] ?? null : v
+      }
       await onSubmit(values)
       Toast.show({ icon: 'success', content: '提交成功' })
       onClose()
@@ -56,7 +61,7 @@ export default function FormSheet({ visible, title, fields, onClose, onSubmit }:
           layout="horizontal"
           onFinish={handleFinish}
           footer={
-            <Button block type="submit" color="primary" size="large" loading={submitting}>
+            <Button block color="primary" size="large" loading={submitting} onClick={() => form.submit()}>
               提交
             </Button>
           }

@@ -98,3 +98,9 @@ body.dm-dark {
   min-height: 100vh;
   transition: background 0.25s ease, color 0.25s ease;
 }
+
+/* FloatingBubble 默认定位(右下角,避开底部 TabBar) */
+.adm-floating-bubble {
+  --initial-position-bottom: 80px;
+  --initial-position-right: 16px;
+}
