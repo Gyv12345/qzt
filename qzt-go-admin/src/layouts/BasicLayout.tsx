@@ -7,6 +7,7 @@ import { fetchUserInfo, logout } from '../services/auth'
 import MenuIcon from '../components/MenuIcon'
 import ErrorBoundary from '../components/ErrorBoundary'
 import MessageBox from '../components/layout/MessageBox'
+import NotificationHandler from '../components/layout/NotificationHandler'
 import LayoutSettings from '../components/layout/LayoutSettings'
 import ProfileCenter from '../components/layout/ProfileCenter'
 import type { SysMenu } from '../types'
@@ -309,6 +310,7 @@ export default function BasicLayout() {
       </div>
 
       <ProfileCenter open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <NotificationHandler />
     </div>
   )
 }

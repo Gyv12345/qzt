@@ -1,109 +1,110 @@
 import { BellOutlined, CheckOutlined, ReloadOutlined } from '@ant-design/icons'
-import { Badge, Button, Empty, List, Popover, Space, Spin, Tabs, Tag, Tooltip, Typography } from 'antd'
-import { useEffect, useState } from 'react'
-
-type MessageCategory = 'system' | 'notice'
-
-interface NoticeItem {
-  category: MessageCategory
-  title: string
-  message?: string
-  content?: string
-  time?: string
-  read: boolean
-  /** 点击后跳转的路径(可选) */
-  path?: string
-}
-
-const categoryMeta: Record<MessageCategory, { label: string; empty: string }> = {
-  system: { label: '系统', empty: '暂无系统消息' },
-  notice: { label: '通知', empty: '暂无通知公告' },
-}
+import { Badge, Button, Empty, List, Popover, Space, Spin, Tag, Tooltip, Typography } from 'antd'
+import { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getUnreadCount, listInbox, markAllMessagesRead, markMessageRead } from '../../services/enterprise'
+import type { EntMessage } from '../../types/enterprise'
+import { useNotificationStore } from '../../stores/notification'
 
 /**
- * 通知消息盒子。
- * TODO: 后端暂未提供消息接口,当前展示空态。接入时:
- *   1. 在 services/ 下新增消息 API 并替换 loadMessages 内的实现
- *   2. 按需补充已读/全部已读/跳转逻辑
+ * 通知消息盒子(顶部铃铛)。
+ * - Badge 数字从全局 notification store 获取(SSE 实时更新)
+ * - 打开弹窗拉历史收件箱
+ * - 支持单条已读 / 全部已读
  */
 export default function MessageBox() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [activeKey, setActiveKey] = useState<MessageCategory>('system')
-  const [items, setItems] = useState<NoticeItem[]>([])
+  const [items, setItems] = useState<EntMessage[]>([])
+  const { unreadCount, setUnreadCount, decrement } = useNotificationStore()
 
-  const loadMessages = async () => {
+  // 初始加载未读数
+  useEffect(() => {
+    getUnreadCount().then((res) => setUnreadCount(res.unread_count || 0)).catch(() => {})
+  }, [setUnreadCount])
+
+  const loadMessages = useCallback(async () => {
     setLoading(true)
     try {
-      // TODO: 替换为真实接口,如 getMessageBox()
-      setItems([])
+      const res = await listInbox({ page: 1, page_size: 20 })
+      setItems(res.list || [])
+    } catch {
+      // ignore
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (open) loadMessages()
-  }, [open])
+  }, [open, loadMessages])
 
-  const unreadCount = items.filter((i) => !i.read).length
-  const currentItems = items.filter((i) => i.category === activeKey)
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllMessagesRead()
+      setItems((prev) => prev.map((i) => ({ ...i, is_read: 1 })))
+      setUnreadCount(0)
+    } catch {
+      // ignore
+    }
+  }
 
-  const markAllRead = () => {
-    setItems((prev) => prev.map((i) => ({ ...i, read: true })))
-    // TODO: 调用批量已读接口
+  const handleMarkRead = async (id: number) => {
+    try {
+      await markMessageRead(id)
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, is_read: 1 } : i)))
+      decrement()
+    } catch {
+      // ignore
+    }
   }
 
   const content = (
     <div style={{ width: 340 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 8,
-        }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <Typography.Text strong>消息盒子</Typography.Text>
         <Space size={4}>
-          <Button type="link" size="small" icon={<ReloadOutlined />} onClick={loadMessages}>
-            刷新
-          </Button>
-          <Button type="link" size="small" icon={<CheckOutlined />} onClick={markAllRead}>
-            全部已读
-          </Button>
+          <Button type="link" size="small" icon={<ReloadOutlined />} onClick={loadMessages}>刷新</Button>
+          <Button type="link" size="small" icon={<CheckOutlined />} onClick={handleMarkAllRead} disabled={unreadCount === 0}>全部已读</Button>
         </Space>
       </div>
-      <Tabs
-        size="small"
-        activeKey={activeKey}
-        onChange={(k) => setActiveKey(k as MessageCategory)}
-        items={(Object.keys(categoryMeta) as MessageCategory[]).map((key) => ({
-          key,
-          label: `${categoryMeta[key].label} ${items.filter((i) => i.category === key).length}`,
-        }))}
-      />
       <Spin spinning={loading}>
-        <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-          {currentItems.length ? (
+        <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+          {items.length ? (
             <List
               size="small"
-              dataSource={currentItems}
+              dataSource={items}
               renderItem={(item) => (
-                <List.Item style={{ cursor: 'pointer' }}>
+                <List.Item
+                  style={{ cursor: 'pointer', background: item.is_read ? undefined : 'rgba(22,119,255,0.04)' }}
+                  onClick={() => {
+                    if (item.is_read === 0) handleMarkRead(item.id)
+                    // 根据标题跳转
+                    if (item.title?.includes('审批') || item.title?.includes('待办')) {
+                      navigate('/approval/todo')
+                      setOpen(false)
+                    } else if (item.title?.includes('公告') || item.title?.includes('通知')) {
+                      navigate('/oa/notice')
+                      setOpen(false)
+                    }
+                  }}
+                >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600 }}>{item.title}</div>
-                    {item.message && (
-                      <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 12 }}>{item.message}</div>
-                    )}
-                    {item.time && <div style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>{item.time}</div>}
+                    <div style={{ fontWeight: item.is_read ? 400 : 600 }}>{item.title}</div>
+                    <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.content}
+                    </div>
+                    <div style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>
+                      {item.created_at?.slice(0, 16)}
+                    </div>
                   </div>
-                  <Tag color={item.read ? 'default' : 'error'}>{item.read ? '已读' : '未读'}</Tag>
+                  {item.is_read === 0 && <Tag color="error">未读</Tag>}
                 </List.Item>
               )}
             />
           ) : (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={categoryMeta[activeKey].empty} />
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无消息" />
           )}
         </div>
       </Spin>
@@ -120,9 +121,9 @@ export default function MessageBox() {
       arrow={false}
       overlayInnerStyle={{ padding: 12 }}
     >
-      <Tooltip title="消息盒子">
-        <Badge count={unreadCount} size="small" offset={[-5, 5]}>
-          <Button type="text" className="qzt-header-icon" icon={<BellOutlined />} aria-label="消息盒子" />
+      <Tooltip title="消息通知">
+        <Badge count={unreadCount} size="small" offset={[-5, 5]} overflowCount={99}>
+          <Button type="text" className="qzt-header-icon" icon={<BellOutlined />} aria-label="消息通知" />
         </Badge>
       </Tooltip>
     </Popover>

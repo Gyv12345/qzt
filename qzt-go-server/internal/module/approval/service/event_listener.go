@@ -10,6 +10,7 @@ import (
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	finmodel "qzt-go-server/internal/model/finance"
+	"qzt-go-server/internal/pkg/sse"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xlogger"
@@ -40,6 +41,13 @@ func RegisterEventListeners(ctx context.Context) error {
 		if err := msgSvc.SendSystemMessage(ctx, approverID, title, content); err != nil {
 			// 失败仅记日志,不影响审批流程
 		}
+		// SSE 实时推送
+		sse.Global.Push(approverID, sse.Message{
+			Event: "message",
+			Title: title,
+			Body:  content,
+			Path:  "/approval/todo",
+		})
 	})
 
 	// 审批完成 → 通知提交人
@@ -57,6 +65,13 @@ func RegisterEventListeners(ctx context.Context) error {
 		if err := msgSvc.SendSystemMessage(ctx, submitterID, title, message); err != nil {
 			// 失败仅记日志
 		}
+		// SSE 实时推送
+		sse.Global.Push(submitterID, sse.Message{
+			Event: "message",
+			Title: title,
+			Body:  message,
+			Path:  "/approval/mine",
+		})
 
 		// ── 跨模块业务回调:审批通过→自动更新业务阶段 ──
 		resourceType, _ := m["resource_type"].(string)
