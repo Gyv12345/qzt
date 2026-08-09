@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tabs, Tag } from 'antd-mobile'
+import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tabs, Tag, FloatingBubble } from 'antd-mobile'
+import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
-import { listLeads } from '../../services/crm'
+import { listLeads, createLead } from '../../services/crm'
 import type { CrmLead } from '../../types/crm'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
+import FormSheet from '../../components/FormSheet'
 
 // 线索状态: 1新建 2跟进中 3已转化 4无效
 const STATUS_TEXT: Record<number, string> = { 1: '新建', 2: '跟进中', 3: '已转化', 4: '无效' }
@@ -27,6 +29,7 @@ export default function LeadList() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
   const [statusKey, setStatusKey] = useState('')
+  const [showNew, setShowNew] = useState(false)
 
   const fetcher = useCallback(
     (params: { page: number; page_size: number }) =>
@@ -95,6 +98,27 @@ export default function LeadList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <FormSheet
+        visible={showNew}
+        title="新建线索"
+        onClose={() => setShowNew(false)}
+        fields={[
+          { name: 'name', label: '线索名称', type: 'text', required: true },
+          { name: 'contact_name', label: '联系人', type: 'text' },
+          { name: 'phone', label: '电话', type: 'text' },
+          { name: 'company', label: '公司', type: 'text' },
+          { name: 'source', label: '来源', type: 'text' },
+        ]}
+        onSubmit={async (vals) => {
+          await createLead(vals as { name: string; contact_name?: string; phone?: string; company?: string; source?: string })
+          refresh()
+        }}
+      />
     </div>
   )
 }

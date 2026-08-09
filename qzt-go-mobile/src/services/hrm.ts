@@ -27,5 +27,15 @@ export interface LeaveQuery extends PageParams {
 export const listLeaves = (params: LeaveQuery) =>
   request.get<unknown, PageResult<HrmLeave>>('/hrm/attendance/leaves', { params })
 
+/** 申请请假 */
+export const applyLeave = (data: {
+  employee_id: number
+  leave_type: string
+  start_date: string
+  end_date: string
+  duration_days: string
+  reason?: string
+}) => request.post('/hrm/attendance/leaves', data)
+
 export const submitLeaveApproval = (id: number) =>
   request.post('/approval/actions/push', { form_type: 'LEAVE', resource_id: id })

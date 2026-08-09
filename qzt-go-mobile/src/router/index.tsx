@@ -43,7 +43,9 @@ const LeaveList = lazy(() => import('../pages/hrm/leave'))
 const LeaveDetail = lazy(() => import('../pages/hrm/leave/detail'))
 // PSI
 const PurchaseList = lazy(() => import('../pages/psi/purchase'))
+const PurchaseDetail = lazy(() => import('../pages/psi/purchase/detail'))
 const SalesList = lazy(() => import('../pages/psi/sales'))
+const SalesDetail = lazy(() => import('../pages/psi/sales/detail'))
 const StockList = lazy(() => import('../pages/psi/stock'))
 const AssetList = lazy(() => import('../pages/psi/asset'))
 // CRM 补充
@@ -236,8 +238,16 @@ export default function AppRoutes() {
             element: <Suspense fallback={pageFallback}><PurchaseList /></Suspense>,
           },
           {
+            path: '/psi/purchase/:id',
+            element: <Suspense fallback={pageFallback}><PurchaseDetail /></Suspense>,
+          },
+          {
             path: '/psi/sales',
             element: <Suspense fallback={pageFallback}><SalesList /></Suspense>,
+          },
+          {
+            path: '/psi/sales/:id',
+            element: <Suspense fallback={pageFallback}><SalesDetail /></Suspense>,
           },
           {
             path: '/psi/stock',

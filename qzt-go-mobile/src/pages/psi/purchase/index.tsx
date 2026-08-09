@@ -21,6 +21,7 @@ export default function PurchaseList() {
             return (
               <List.Item
                 key={p.id}
+                onClick={() => navigate(`/psi/purchase/${p.id}`)}
                 description={<span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{p.order_no} · {p.supplier_name || '-'}</span>}
                 extra={<span><div style={{ textAlign: 'right' }}>¥{Number(p.total_amount || 0).toFixed(2)}</div><Tag color={s.color} fill="outline">{s.text}</Tag></span>}
               >

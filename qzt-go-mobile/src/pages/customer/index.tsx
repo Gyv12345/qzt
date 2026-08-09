@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tag } from 'antd-mobile'
+import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tag, FloatingBubble } from 'antd-mobile'
+import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
-import { listCustomers } from '../../services/crm'
+import { listCustomers, createCustomer } from '../../services/crm'
 import type { CrmCustomer } from '../../types/crm'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
+import FormSheet from '../../components/FormSheet'
 
 const LEVEL_TEXT: Record<string, string> = { A: '重要', B: '普通', C: '低价值' }
 const LEVEL_COLOR: Record<string, string> = {
@@ -15,6 +17,7 @@ const LEVEL_COLOR: Record<string, string> = {
 export default function CustomerList() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  const [showNew, setShowNew] = useState(false)
 
   const fetcher = useCallback(
     (params: { page: number; page_size: number }) =>
@@ -33,7 +36,7 @@ export default function CustomerList() {
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
-      <NavBar onBack={() => navigate(-1)}>我的客户</NavBar>
+      <NavBar onBack={() => navigate(-1)} right={null}>我的客户</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
         <SearchBar placeholder="搜索客户名称" onSearch={onSearch} onClear={() => onSearch('')} />
       </div>
@@ -69,6 +72,31 @@ export default function CustomerList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble
+        style={{ '--size': '48px' } as any}
+        onClick={() => setShowNew(true)}
+      >
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <FormSheet
+        visible={showNew}
+        title="新建客户"
+        onClose={() => setShowNew(false)}
+        fields={[
+          { name: 'name', label: '客户名称', type: 'text', required: true },
+          { name: 'level', label: '客户级别', type: 'select', options: [
+            { label: '重要(A)', value: 'A' }, { label: '普通(B)', value: 'B' }, { label: '低价值(C)', value: 'C' },
+          ] },
+          { name: 'industry', label: '行业', type: 'text' },
+          { name: 'source', label: '来源', type: 'text' },
+        ]}
+        onSubmit={async (vals) => {
+          await createCustomer(vals as { name: string; level?: string; industry?: string; source?: string })
+          refresh()
+        }}
+      />
     </div>
   )
 }

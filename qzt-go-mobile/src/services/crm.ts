@@ -31,6 +31,14 @@ export const listCustomers = (params: CustomerQuery) =>
 export const getCustomer = (id: number) =>
   request.get<unknown, CrmCustomerDetail>(`/crm/customers/${id}`)
 
+/** 新建客户 */
+export const createCustomer = (data: {
+  name: string
+  level?: string
+  industry?: string
+  source?: string
+}) => request.post('/crm/customers', data)
+
 // ── 线索 ──
 
 export interface LeadQuery extends PageParams {
@@ -44,6 +52,16 @@ export const listLeads = (params: LeadQuery) =>
 
 /** 线索详情 */
 export const getLead = (id: number) => request.get<unknown, CrmLead>(`/crm/leads/${id}`)
+
+/** 新建线索 */
+export const createLead = (data: {
+  name: string
+  contact_name?: string
+  phone?: string
+  company?: string
+  industry?: string
+  source?: string
+}) => request.post('/crm/leads', data)
 
 /** 领取线索(从公海) */
 export const pickLead = (id: number) => request.post<unknown, unknown>(`/crm/leads/${id}/pick`)
@@ -76,6 +94,15 @@ export const listOpportunities = (params: OpportunityQuery) =>
 /** 商机详情 */
 export const getOpportunity = (id: number) =>
   request.get<unknown, CrmOpportunity>(`/crm/opportunities/${id}`)
+
+/** 新建商机 */
+export const createOpportunity = (data: {
+  name: string
+  customer_id: number
+  expected_amount?: number
+  expected_close_date?: string
+  description?: string
+}) => request.post('/crm/opportunities', data)
 
 // ── 合同 ──
 

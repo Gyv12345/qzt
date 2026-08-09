@@ -26,6 +26,7 @@ export default function SalesList() {
             return (
               <List.Item
                 key={s.id}
+                onClick={() => navigate(`/psi/sales/${s.id}`)}
                 description={<span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{s.order_no} · {s.customer_name || '-'}</span>}
                 extra={<span><div style={{ textAlign: 'right' }}>¥{Number(s.total_amount || 0).toFixed(2)}</div><Tag color={st.color} fill="outline">{st.text}</Tag></span>}
               >

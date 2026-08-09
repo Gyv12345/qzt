@@ -17,6 +17,15 @@ export interface ExpenseQuery extends PageParams {
 export const listExpenses = (params: ExpenseQuery) =>
   request.get<unknown, PageResult<OaExpense>>('/oa/expenses', { params })
 
+/** 新建报销 */
+export const createExpense = (data: {
+  title: string
+  expense_type: string
+  amount: string
+  occur_date?: string
+  description?: string
+}) => request.post('/oa/expenses', { ...data, items: [] })
+
 export const getExpense = (id: number) =>
   request.get<unknown, OaExpenseDetail>(`/oa/expenses/${id}`)
 
@@ -31,6 +40,17 @@ export interface TripQuery extends PageParams {
 
 export const listTrips = (params: TripQuery) =>
   request.get<unknown, PageResult<OaBusinessTrip>>('/oa/trips', { params })
+
+/** 新建出差申请 */
+export const createTrip = (data: {
+  title: string
+  destination: string
+  start_date: string
+  end_date: string
+  purpose?: string
+  transport?: string
+  budget_amount?: string
+}) => request.post('/oa/trips', data)
 
 export const getTrip = (id: number) =>
   request.get<unknown, OaBusinessTrip>(`/oa/trips/${id}`)
