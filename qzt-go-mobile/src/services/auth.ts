@@ -47,3 +47,18 @@ export async function fetchPublicConfigs(): Promise<Record<string, string>> {
   }
   return {}
 }
+
+/** 更新个人资料(昵称/头像/邮箱/手机) */
+export function updateProfile(data: {
+  nickname?: string
+  email?: string
+  phone?: string
+  avatar?: string
+}) {
+  return request.put('/system/auth/profile', data)
+}
+
+/** 修改密码 */
+export function changePassword(data: { old_password: string; new_password: string }) {
+  return request.put('/system/auth/password', data)
+}

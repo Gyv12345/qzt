@@ -27,6 +27,7 @@ interface AuthState extends TokenCache {
   userLoaded: boolean
   setTokens: (t: LoginResult) => void
   setUserInfo: (info: { profile: SysUser; permissions: string[]; menus: SysMenu[] }) => void
+  updateProfile: (patch: Partial<SysUser>) => void
   clearAuth: () => void
   hasPerm: (code?: string) => boolean
 }
@@ -50,6 +51,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   setUserInfo: ({ profile, permissions, menus }) =>
     set({ profile, permissions: permissions ?? [], menus: menus ?? [], userLoaded: true }),
+
+  updateProfile: (patch) =>
+    set((state) => (state.profile ? { profile: { ...state.profile, ...patch } } : state)),
 
   clearAuth: () => {
     localStorage.removeItem(TOKEN_KEY)
