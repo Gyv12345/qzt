@@ -11,18 +11,18 @@ export interface MessageQuery extends PageParams {}
 
 /** 收件箱 */
 export const listInbox = (params: MessageQuery) =>
-  request.get<unknown, EntPageResult<EntMessage>>('/enterprise/messages/inbox', { params })
+  request.get<unknown, EntPageResult<EntMessage>>('/oa/messages/inbox', { params })
 
 /** 未读消息数 */
 export const getUnreadCount = () =>
-  request.get<unknown, number>('/enterprise/messages/unread-count')
+  request.get<unknown, { unread_count: number }>('/oa/messages/unread-count')
 
 /** 标记已读 */
-export const markRead = (id: number) => request.put(`/enterprise/messages/${id}/read`)
+export const markRead = (id: number) => request.put(`/oa/messages/${id}/read`)
 
 /** 全部已读 */
-export const markAllRead = () => request.put('/enterprise/messages/read-all')
+export const markAllRead = () => request.put('/oa/messages/read-all')
 
 /** 已发布公告列表 */
 export const listNotices = (params: PageParams) =>
-  request.get<unknown, EntPageResult<EntNotice>>('/enterprise/notices/published', { params })
+  request.get<unknown, EntPageResult<EntNotice>>('/oa/notices/published', { params })

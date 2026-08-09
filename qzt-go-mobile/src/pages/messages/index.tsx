@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { Badge, InfiniteScroll, List, NavBar, PullToRefresh, Tabs, Toast } from 'antd-mobile'
 import { listInbox, listNotices, markRead, markAllRead, getUnreadCount } from '../../services/enterprise'
 import type { EntMessage, EntNotice } from '../../types/enterprise'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
+import { useSSE } from '../../hooks/useSSE'
 import dayjs from 'dayjs'
 
 type TabKey = 'messages' | 'notices'
@@ -10,10 +11,14 @@ type TabKey = 'messages' | 'notices'
 export default function Messages() {
   const [tab, setTab] = useState<TabKey>('messages')
   const [unread, setUnread] = useState(0)
+  const lastMsgId = useRef<string | null>(null)
+
+  // SSE 实时通知
+  const { lastMessage } = useSSE('/prod-api/oa/messages/stream')
 
   const loadUnread = () => {
     getUnreadCount()
-      .then(setUnread)
+      .then((res) => setUnread(res.unread_count || 0))
       .catch(() => {})
   }
   useEffect(loadUnread, [])
@@ -41,6 +46,25 @@ export default function Messages() {
     loadMore: noticeLoadMore,
     refresh: noticeRefresh,
   } = useInfiniteList<EntNotice>(noticeFetcher, { page_size: 20 })
+
+  // SSE 收到新消息 → 刷新列表 + 未读数 + Toast 通知
+  useEffect(() => {
+    if (!lastMessage) return
+    const msgKey = `${lastMessage.title}-${lastMessage.body}`
+    if (lastMsgId.current === msgKey) return // 去重
+    lastMsgId.current = msgKey
+
+    // 刷新数据
+    msgRefresh()
+    loadUnread()
+
+    // Toast 提示(顶部弹出)
+    Toast.show({
+      icon: 'mail',
+      content: `${lastMessage.title}: ${lastMessage.body?.slice(0, 30)}`,
+      duration: 3000,
+    })
+  }, [lastMessage, msgRefresh])
 
   const onOpenMessage = async (msg: EntMessage) => {
     if (msg.is_read === 0) {
@@ -82,7 +106,7 @@ export default function Messages() {
 
       <Tabs activeKey={tab} onChange={(k) => setTab(k as TabKey)}>
         <Tabs.Tab
-          title={unread > 0 ? <Badge content={unread}>消息</Badge> : '消息'}
+          title={unread > 0 ? <Badge content={unread > 99 ? '99+' : unread}>消息</Badge> : '消息'}
           key="messages"
         />
         <Tabs.Tab title="公告" key="notices" />
