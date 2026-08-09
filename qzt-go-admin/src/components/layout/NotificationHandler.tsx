@@ -13,7 +13,7 @@ import { useNotificationStore } from '../../stores/notification'
  * - 同时更新铃铛未读计数
  */
 export default function NotificationHandler() {
-  const { messages, clearMessages } = useSSE('/prod-api/enterprise/messages/stream')
+  const { messages, clearMessages } = useSSE('/prod-api/oa/messages/stream')
   const navigate = useNavigate()
   const { increment } = useNotificationStore()
   const processedRef = useRef<boolean[]>([])

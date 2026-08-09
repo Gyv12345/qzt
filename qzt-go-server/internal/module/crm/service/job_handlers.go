@@ -12,6 +12,7 @@ import (
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
+	oasvc "qzt-go-server/internal/module/oa/service"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xlogger"
 )
@@ -87,7 +88,7 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 		return nil
 	}
 	db := repository.DBFrom(ctx)
-	msgSvc := entsvc.NewMessageService()
+	msgSvc := oasvc.NewMessageService()
 
 	// 按负责人聚合待提醒项:ownerID -> []描述
 	bucket := map[uint][]string{}

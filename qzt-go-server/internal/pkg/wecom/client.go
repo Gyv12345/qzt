@@ -11,6 +11,7 @@
 package wecom
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -183,6 +184,69 @@ func (c *Client) GetMember(ctx context.Context, userID string) (*MemberInfo, err
 	return &MemberInfo{Name: resp.Name, Avatar: resp.Avatar}, nil
 }
 
+// ── 应用消息推送 ──
+
+// sendMessageRequest 企业微信消息发送请求体。
+type sendMessageRequest struct {
+	ToUser  string          `json:"touser"`
+	MsgType string          `json:"msgtype"`
+	AgentID string          `json:"agentid"`
+	Text    *msgText        `json:"text,omitempty"`
+	Markdown *msgMarkdown   `json:"markdown,omitempty"`
+}
+
+type msgText struct {
+	Content string `json:"content"`
+}
+
+type msgMarkdown struct {
+	Content string `json:"content"`
+}
+
+// sendMessageResponse 企业微信消息发送响应。
+type sendMessageResponse struct {
+	ErrCode int    `json:"errcode"`
+	ErrMsg  string `json:"errmsg"`
+	MsgID   string `json:"msgid"`
+}
+
+// SendMessage 发送应用消息到企业微信用户。
+// msgType: "text" 或 "markdown"
+func (c *Client) SendMessage(ctx context.Context, toUser, msgType, content string) error {
+	if !c.IsConfigured() {
+		return nil // 未配置企业微信,静默跳过
+	}
+
+	token, err := c.GetAccessToken(ctx)
+	if err != nil {
+		return fmt.Errorf("获取 access_token 失败: %w", err)
+	}
+
+	u := fmt.Sprintf("%s/message/send?access_token=%s", apiBase, url.QueryEscape(token))
+
+	reqBody := sendMessageRequest{
+		ToUser:  toUser,
+		MsgType: msgType,
+		AgentID: c.cfg.AgentID,
+	}
+	switch msgType {
+	case "markdown":
+		reqBody.Markdown = &msgMarkdown{Content: content}
+	default:
+		reqBody.MsgType = "text"
+		reqBody.Text = &msgText{Content: content}
+	}
+
+	var resp sendMessageResponse
+	if err := c.httpPostJSON(ctx, u, reqBody, &resp); err != nil {
+		return fmt.Errorf("企业微信发送消息失败: %w", err)
+	}
+	if resp.ErrCode != 0 {
+		return fmt.Errorf("企业微信返回错误: errcode=%d errmsg=%s", resp.ErrCode, resp.ErrMsg)
+	}
+	return nil
+}
+
 // ── 内部 HTTP 工具 ──
 
 // httpGetJSON 发 GET 请求并解析 JSON。
@@ -204,4 +268,30 @@ func (c *Client) httpGetJSON(ctx context.Context, url string, target interface{}
 		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
 	}
 	return json.Unmarshal(body, target)
+}
+
+// httpPostJSON 发 POST 请求(JSON body)并解析 JSON 响应。
+func (c *Client) httpPostJSON(ctx context.Context, url string, body interface{}, target interface{}) error {
+	jsonBytes, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(jsonBytes))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))
+	}
+	return json.Unmarshal(respBody, target)
 }

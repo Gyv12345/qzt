@@ -26,14 +26,28 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	noticeHandler := handler.NewNoticeHandler()
 	formTemplateHandler := handler.NewFormTemplateHandler()
 	formDataHandler := handler.NewFormDataHandler()
+	messageHandler := handler.NewMessageHandler()
+	sseHandler := handler.NewSSEHandler()
 
-	// 已认证路由(仅 JWT,无 RBAC):公告流(首页用)、启用表单列表
+	// 已认证路由(仅 JWT,无 RBAC):公告流(首页用)、启用表单列表、站内信、SSE 流
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
 	{
 		authenticated.GET("/notices/feed", noticeHandler.Feed)
 		authenticated.GET("/notices/published", noticeHandler.Published)
 		authenticated.GET("/notices/:id", noticeHandler.GetByID)
 		authenticated.GET("/forms/enabled", formTemplateHandler.ListEnabled)
+		// 站内信(个人,免 RBAC)
+		authenticated.GET("/messages/inbox", messageHandler.Inbox)
+		authenticated.GET("/messages/outbox", messageHandler.Outbox)
+		authenticated.GET("/messages/unread-count", messageHandler.UnreadCount)
+		authenticated.GET("/messages/:id", messageHandler.GetByID)
+		authenticated.POST("/messages", messageHandler.Send)
+		authenticated.PUT("/messages/:id/read", messageHandler.MarkAsRead)
+		authenticated.PUT("/messages/read-all", messageHandler.MarkAllAsRead)
+		authenticated.PUT("/messages/read-batch", messageHandler.MarkAsReadByIds)
+		authenticated.DELETE("/messages/:id", messageHandler.Delete)
+		// SSE 实时消息流
+		authenticated.GET("/messages/stream", sseHandler.MessageStream)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC)

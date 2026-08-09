@@ -30,7 +30,7 @@ import {
   getSalesTrend,
 } from '../../services/dashboard'
 import { listMyTodos } from '../../services/approval'
-import { getUnreadCount, listInbox } from '../../services/enterprise'
+import { getUnreadCount, listInbox } from '../../services/oa'
 import { getNoticeFeed } from '../../services/oa'
 import type {
   DashboardDistributionPoint,
@@ -168,7 +168,7 @@ export default function Dashboard() {
 
   // 「查看全部」链接仅在菜单树中存在对应页面时显示,避免无角色用户看到死链
   const showApprovalLink = menuHasPath(menus, '/approval/todo')
-  const showMessageLink = menuHasPath(menus, '/enterprise/message')
+  const showMessageLink = menuHasPath(menus, '/oa/message')
 
   return (
     <div>

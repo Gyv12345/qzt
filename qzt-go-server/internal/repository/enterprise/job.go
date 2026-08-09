@@ -3,11 +3,16 @@ package enterprise
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	entmodel "qzt-go-server/internal/model/enterprise"
 	"qzt-go-server/internal/repository"
 )
 
 // job.go 定时任务 repository。
+
+// repoDB 返回当前 context 下的 *gorm.DB。
+func repoDB(ctx context.Context) *gorm.DB { return repository.DBFrom(ctx) }
 // 含 ListEnabled(启动时加载已启用的任务)和 WriteLog(记录执行日志)。
 
 type JobRepo struct {

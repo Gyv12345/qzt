@@ -14,6 +14,7 @@ import type {
   OaNoticePayload,
   OaFormTemplate,
   OaFormData,
+  OaMessage,
 } from '../types/oa'
 
 interface PageResult<T> {
@@ -428,3 +429,38 @@ export const deleteFormData = (id: number) =>
 /** 提交表单数据审批 */
 export const submitFormDataApproval = (id: number) =>
   request.post('/approval/actions/push', { form_type: 'OA_CUSTOM', resource_id: id })
+
+// ---------- 站内信 ----------
+
+/** 收件箱 */
+export const listInbox = (params?: PageParams) =>
+  request.get<unknown, PageResult<OaMessage>>('/oa/messages/inbox', { params })
+
+/** 发件箱 */
+export const listOutbox = (params?: PageParams) =>
+  request.get<unknown, PageResult<OaMessage>>('/oa/messages/outbox', { params })
+
+/** 未读数 */
+export const getUnreadCount = () =>
+  request.get<unknown, { unread_count: number }>('/oa/messages/unread-count')
+
+/** 消息详情 */
+export const getMessage = (id: number) =>
+  request.get<unknown, OaMessage>(`/oa/messages/${id}`)
+
+/** 发送消息 */
+export const sendMessage = (data: { receiver_id: number; title: string; content: string; content_type?: string }) =>
+  request.post('/oa/messages', data)
+
+/** 删除消息 */
+export const deleteMessage = (id: number) => request.delete(`/oa/messages/${id}`)
+
+/** 标记已读 */
+export const markMessageRead = (id: number) => request.put(`/oa/messages/${id}/read`)
+
+/** 全部已读 */
+export const markAllMessagesRead = () => request.put('/oa/messages/read-all')
+
+/** 批量已读 */
+export const markMessagesRead = (ids: number[]) =>
+  request.put('/oa/messages/read-batch', { ids })

@@ -333,3 +333,29 @@ export const FIELD_TYPE_OPTIONS = [
   { label: '单选', value: 'radio' },
   { label: '多选', value: 'checkbox' },
 ]
+
+// ==================== 站内信 ====================
+
+/** 站内信 */
+export interface OaMessage {
+  id: number
+  sender_id: number
+  receiver_id: number
+  title: string
+  content: string
+  /** text / markdown */
+  content_type: string
+  /** 0未读 1已读 */
+  is_read: number
+  read_time: string
+  created_at: string
+  updated_at: string
+}
+
+/** 发送消息请求 */
+export interface OaMessagePayload {
+  receiver_id: number
+  title: string
+  content: string
+  content_type?: string
+}

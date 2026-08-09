@@ -2,8 +2,8 @@ import { BellOutlined, CheckOutlined, ReloadOutlined } from '@ant-design/icons'
 import { Badge, Button, Empty, List, Popover, Space, Spin, Tag, Tooltip, Typography } from 'antd'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getUnreadCount, listInbox, markAllMessagesRead, markMessageRead } from '../../services/enterprise'
-import type { EntMessage } from '../../types/enterprise'
+import { getUnreadCount, listInbox, markAllMessagesRead, markMessageRead } from '../../services/oa'
+import type { OaMessage } from '../../types/oa'
 import { useNotificationStore } from '../../stores/notification'
 
 /**
@@ -16,7 +16,7 @@ export default function MessageBox() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<EntMessage[]>([])
+  const [items, setItems] = useState<OaMessage[]>([])
   const { unreadCount, setUnreadCount, decrement } = useNotificationStore()
 
   // 初始加载未读数

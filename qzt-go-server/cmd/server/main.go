@@ -28,6 +28,7 @@ import (
 	psimod "qzt-go-server/internal/module/psi"
 	"qzt-go-server/internal/module/system"
 	oamod "qzt-go-server/internal/module/oa"
+	oasvc "qzt-go-server/internal/module/oa/service"
 	projmod "qzt-go-server/internal/module/project"
 	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/server"
@@ -83,7 +84,7 @@ func main() {
 	mcpmod.StartMCP(router)
 
 	// 4.5 审批引擎:注入站内信客户端 + 注册事件监听器(审批任务分配/完成 → 站内信 + 业务回调)
-	apprsvc.SetMessageClient(entsvc.NewMessageService())
+	apprsvc.SetMessageClient(oasvc.NewMessageService())
 	apprsvc.RegisterEventListeners(context.Background())
 
 	// 4.5.1 CRM 回款→财务凭证联动(回款创建后自动生成收入凭证)

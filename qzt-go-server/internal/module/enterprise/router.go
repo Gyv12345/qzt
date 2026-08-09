@@ -16,27 +16,7 @@ func New() *Module { return &Module{} }
 func (m *Module) Name() string { return "enterprise" }
 
 func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
-	msgHandler := handler.NewMessageHandler()
 	jobHandler := handler.NewJobHandler()
-	sseHandler := handler.NewSSEHandler()
-
-	// 已认证路由(仅 JWT,无 RBAC):个人消息 + SSE 流
-	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
-	{
-		// 消息中心(个人,免 RBAC)
-		authenticated.GET("/messages/inbox", msgHandler.Inbox)
-		authenticated.GET("/messages/outbox", msgHandler.Outbox)
-		authenticated.GET("/messages/unread-count", msgHandler.UnreadCount)
-		authenticated.GET("/messages/:id", msgHandler.GetByID)
-		authenticated.POST("/messages", msgHandler.Send)
-		authenticated.PUT("/messages/:id/read", msgHandler.MarkAsRead)
-		authenticated.PUT("/messages/read-all", msgHandler.MarkAllAsRead)
-		authenticated.PUT("/messages/read-batch", msgHandler.MarkAsReadByIds)
-		authenticated.DELETE("/messages/:id", msgHandler.Delete)
-
-		// SSE 实时消息流
-		authenticated.GET("/messages/stream", sseHandler.MessageStream)
-	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):定时任务管理
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
