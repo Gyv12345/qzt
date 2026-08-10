@@ -210,16 +210,16 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
       <style>{`
         .oa-field-tile { transition: all .15s; cursor: pointer; }
         .oa-field-tile:hover { border-color: #1677ff !important; color: #1677ff !important; background: #e6f4ff !important; }
-        .oa-preview-item .oa-field-actions { opacity: 0; transition: opacity .15s; }
+        .oa-preview-item .oa-field-actions { opacity: 0; transition: opacity .15s; pointer-events: none; }
         .oa-preview-item:hover .oa-field-actions,
-        .oa-preview-item.is-selected .oa-field-actions { opacity: 1; }
+        .oa-preview-item.is-selected .oa-field-actions { opacity: 1; pointer-events: auto; }
       `}</style>
 
       <Steps
         current={current}
         onChange={setCurrent}
         items={[{ title: '基础信息' }, { title: '表单设计' }]}
-        style={{ marginBottom: 24, maxWidth: 400 }}
+        style={{ marginBottom: 24 }}
       />
 
       {current === 0 && (
@@ -336,7 +336,6 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
                           className={`oa-preview-item${selected ? ' is-selected' : ''}`}
                           onClick={() => setSelectedIdx(idx)}
                           style={{
-                            position: 'relative',
                             padding: '12px 14px',
                             border: selected ? '1px solid #1677ff' : '1px solid #f0f0f0',
                             background: selected ? '#e6f4ff' : '#fafafa',
@@ -345,42 +344,37 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
                             transition: 'border-color .15s',
                           }}
                         >
-                          {/* 操作按钮 */}
-                          <div
-                            className="oa-field-actions"
-                            style={{
-                              position: 'absolute',
-                              top: -10,
-                              right: 6,
-                              display: 'flex',
-                              gap: 4,
-                              zIndex: 2,
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button
-                              size="small"
-                              icon={<ArrowUpOutlined />}
-                              disabled={idx === 0}
-                              onClick={() => handleMove(idx, 'up')}
-                            />
-                            <Button
-                              size="small"
-                              icon={<ArrowDownOutlined />}
-                              disabled={idx === fields.length - 1}
-                              onClick={() => handleMove(idx, 'down')}
-                            />
-                            <Popconfirm title="删除字段?" onConfirm={() => handleDelete(idx)}>
-                              <Button size="small" danger icon={<DeleteOutlined />} />
-                            </Popconfirm>
-                          </div>
                           {/* 字段名 + 类型 */}
-                          <div style={{ marginBottom: 4 }}>
-                            <span style={{ fontSize: 13, fontWeight: 500 }}>{f.title || '(未命名)'}</span>
-                            {f.required && <span style={{ color: '#ff4d4f', marginLeft: 4 }}>*</span>}
-                            <Tag style={{ marginLeft: 8, fontSize: 11 }}>
-                              {FIELD_META[f.type]?.label || f.type}
-                            </Tag>
+                          <div style={{ marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                              <span style={{ fontSize: 13, fontWeight: 500 }}>{f.title || '(未命名)'}</span>
+                              {f.required && <span style={{ color: '#ff4d4f', marginLeft: 4 }}>*</span>}
+                              <Tag style={{ marginLeft: 8, fontSize: 11 }}>
+                                {FIELD_META[f.type]?.label || f.type}
+                              </Tag>
+                            </div>
+                            {/* 操作按钮 */}
+                            <div
+                              className="oa-field-actions"
+                              style={{ display: 'flex', gap: 4 }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                size="small"
+                                icon={<ArrowUpOutlined />}
+                                disabled={idx === 0}
+                                onClick={() => handleMove(idx, 'up')}
+                              />
+                              <Button
+                                size="small"
+                                icon={<ArrowDownOutlined />}
+                                disabled={idx === fields.length - 1}
+                                onClick={() => handleMove(idx, 'down')}
+                              />
+                              <Popconfirm title="删除字段?" onConfirm={() => handleDelete(idx)}>
+                                <Button size="small" danger icon={<DeleteOutlined />} />
+                              </Popconfirm>
+                            </div>
                           </div>
                           {/* 预览控件 */}
                           <FieldPreview field={f} />
