@@ -25,8 +25,21 @@ export default function ApprovalMinePage() {
 
   const columns: ProColumns<ApprovalInstance>[] = [
     { title: '编号', valueType: 'indexBorder', width: 70, search: false },
-    { title: '类型', dataIndex: 'type', width: 110, search: false },
-    { title: '资源 ID', dataIndex: 'resource_id', width: 90, search: false },
+    {
+      title: '类型',
+      dataIndex: 'form_type_label',
+      width: 100,
+      search: false,
+      render: (_, record) => record.form_type_label || record.type || '-',
+    },
+    {
+      title: '标题',
+      dataIndex: 'resource_title',
+      width: 240,
+      search: false,
+      ellipsis: true,
+      render: (_, record) => record.resource_title || `#${record.resource_id}`,
+    },
     {
       title: '状态',
       dataIndex: 'approval_status',

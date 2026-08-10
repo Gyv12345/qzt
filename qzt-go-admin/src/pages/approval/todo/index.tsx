@@ -61,20 +61,19 @@ export default function ApprovalTodoPage() {
 
   const columns: ProColumns<ApprovalTask>[] = [
     { title: '编号', valueType: 'indexBorder', width: 70, search: false },
-    { title: '实例 ID', dataIndex: 'instance_id', width: 90, search: false },
     {
       title: '类型',
-      width: 110,
+      width: 100,
       search: false,
-      render: (_, record) => record.instance?.type || '-',
+      render: (_, record) => record.instance?.form_type_label || record.instance?.type || '-',
     },
     {
-      title: '资源 ID',
-      width: 90,
+      title: '标题',
+      width: 240,
       search: false,
-      render: (_, record) => record.instance?.resource_id ?? '-',
+      ellipsis: true,
+      render: (_, record) => record.instance?.resource_title || (record.instance ? `#${record.instance.resource_id}` : '-'),
     },
-    { title: '节点 ID', dataIndex: 'node_id', width: 90, search: false },
     { title: '轮次', dataIndex: 'node_round', width: 70, search: false },
     {
       title: '到达时间',

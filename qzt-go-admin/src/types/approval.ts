@@ -109,6 +109,10 @@ export interface ApprovalInstance {
   update_fields: string
   created_at: string
   updated_at: string
+  /** 资源标题(后端enrichment) */
+  resource_title?: string
+  /** 表单类型中文(后端enrichment) */
+  form_type_label?: string
 }
 
 /** 待办任务(我的待办列表项) */
@@ -141,6 +145,8 @@ export interface ApprovalRecord {
 
 /** 审批实例详情 */
 export interface ApprovalInstanceDetail extends ApprovalInstance {
+  resource_title?: string
+  form_type_label?: string
   tasks: ApprovalTask[] | null
   records: ApprovalRecord[] | null
 }

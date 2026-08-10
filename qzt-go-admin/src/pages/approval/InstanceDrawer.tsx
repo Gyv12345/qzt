@@ -45,8 +45,8 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
           <>
             <Descriptions column={1} bordered size="small">
               <Descriptions.Item label="实例 ID">{detail.id}</Descriptions.Item>
-              <Descriptions.Item label="类型">{detail.type || '-'}</Descriptions.Item>
-              <Descriptions.Item label="资源 ID">{detail.resource_id ?? '-'}</Descriptions.Item>
+              <Descriptions.Item label="类型">{detail.form_type_label || detail.type || '-'}</Descriptions.Item>
+              <Descriptions.Item label="标题">{detail.resource_title || `#${detail.resource_id}`}</Descriptions.Item>
               <Descriptions.Item label="状态">
                 {statusTag ? <Tag color={statusTag.color}>{statusTag.text}</Tag> : status || '-'}
               </Descriptions.Item>
