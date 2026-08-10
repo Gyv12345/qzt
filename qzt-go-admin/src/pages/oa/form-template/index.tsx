@@ -111,7 +111,7 @@ export default function FormTemplatePage() {
         open={editOpen}
         onClose={() => setEditOpen(false)}
         width="100%"
-        styles={{ body: { padding: 0, height: '100%' } }}
+        styles={{ body: { padding: 0, height: 'calc(100vh - 55px)', overflow: 'hidden' } }}
         destroyOnHidden
       >
         <FormTemplateEditModal

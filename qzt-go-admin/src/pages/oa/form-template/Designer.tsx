@@ -206,7 +206,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
   const selectedField = selectedIdx !== undefined ? fields[selectedIdx] : null
 
   return (
-    <div style={{ padding: 24, height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ padding: 24, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <style>{`
         .oa-field-tile { transition: all .15s; cursor: pointer; }
         .oa-field-tile:hover { border-color: #1677ff !important; color: #1677ff !important; background: #e6f4ff !important; }
