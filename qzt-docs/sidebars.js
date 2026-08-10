@@ -24,6 +24,13 @@ const sidebars = {
     'modules/ai',
     'modules/system',
     'modules/cms',
+    'modules/oa',
+    'modules/project',
+    'modules/enterprise',
+    'modules/kb',
+    'modules/cloud',
+    'modules/mail',
+    'modules/api',
   ],
   deployment: [
     'deployment/overview',

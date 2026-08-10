@@ -12,6 +12,13 @@
 - [AI 智能助手](https://docs.devlovecode.com/modules/ai) — 回访话术生成,跟进记录AI提取,日报周报,Agent可配置prompt,MCP协议
 - [系统管理](https://docs.devlovecode.com/modules/system) — 用户角色RBAC,数据权限,操作日志,业务编号,一键数据重置
 - [CMS 内容管理](https://docs.devlovecode.com/modules/cms) — Markdown富文本,分类标签,同步企业官网
+- [OA 办公自动化](https://docs.devlovecode.com/modules/oa) — 报销/出差/借款/工作日志/日程/会议室/公告/站内信SSE/自定义表单
+- [项目管理](https://docs.devlovecode.com/modules/project) — 项目立项,任务跟踪看板,CRM客户关联,进度管理
+- [定时任务](https://docs.devlovecode.com/modules/enterprise) — Cron调度,动态管理,手动触发,执行日志
+- [知识库](https://docs.devlovecode.com/modules/kb) — 分类树,富文本文档,版本历史,WebSocket实时协同编辑
+- [企业网盘](https://docs.devlovecode.com/modules/cloud) — 文件夹树,个人/部门/公开三种权限,回收站,空间用量
+- [邮件服务](https://docs.devlovecode.com/modules/mail) — SMTP发信,Markdown转HTML,附件签名,连接测试
+- [公共服务](https://docs.devlovecode.com/modules/api) — 文件上传双桶,附件元数据,BI仪表盘数据聚合,健康检查
 
 ## 技术架构
 

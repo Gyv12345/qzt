@@ -17,25 +17,32 @@ qzt-go-server/
 │   ├── app/                # 应用启动、依赖装配
 │   ├── config/             # 配置加载 (Viper)
 │   ├── middleware/         # 中间件实现
-│   ├── pkg/                # 通用工具（响应、错误、上下文）
-│   └── modules/            # 业务模块（核心）
-│       ├── crm/
+│   ├── mcp/                # MCP 协议服务端（AI 工具接口）
+│   ├── pkg/                # 通用工具（响应、错误、上下文、存储、邮件）
+│   └── module/             # 业务模块（核心）
+│       ├── crm/            # 客户关系管理
 │       │   ├── handler/    # HTTP 处理层
 │       │   ├── service/    # 业务逻辑层
 │       │   ├── repository/ # 数据访问层
 │       │   ├── model/      # 数据模型（GORM 结构体）
 │       │   ├── dto/        # 请求/响应数据传输对象
-│       │   └── module.go   # 模块注册入口
-│       ├── hrm/
-│       ├── approval/
-│       ├── psi/
-│       ├── finance/
-│       ├── cms/
-│       ├── ai/
-│       ├── system/
-│       └── mcp/
-├── migrations/             # SQL 迁移文件（建表走 SQL，不用 AutoMigrate）
-├── configs/                # 配置文件
+│       │   └── router.go   # 模块路由注册
+│       ├── approval/       # 审批中心
+│       ├── hrm/            # 人事管理
+│       ├── psi/            # 进销存
+│       ├── finance/        # 财务管理
+│       ├── oa/             # 办公自动化
+│       ├── project/        # 项目管理
+│       ├── enterprise/     # 定时任务
+│       ├── kb/             # 知识库
+│       ├── cloud/          # 企业网盘
+│       ├── mail/           # 邮件服务
+│       ├── cms/            # 内容管理
+│       ├── ai/             # AI 助手
+│       ├── api/            # 公共服务（文件上传、附件、BI 仪表盘）
+│       └── system/         # 系统管理
+├── docs/sql/               # 建表 DDL + 种子数据（手动执行）
+├── config/                 # 配置文件（dev / prod / uat）
 └── go.mod
 ```
 
@@ -178,7 +185,7 @@ main.go
 初始化基础组件: DB / Redis / OSS / Casbin / Logger
   │
   ▼
-扫描 internal/modules 下所有 Module 实现
+扫描 internal/module 下所有 Module 实现
   │
   ▼
 顺序执行每个模块的:
