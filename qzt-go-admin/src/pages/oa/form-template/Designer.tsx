@@ -206,7 +206,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
   const selectedField = selectedIdx !== undefined ? fields[selectedIdx] : null
 
   return (
-    <div style={{ padding: 24, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ padding: 24, minHeight: 'calc(100vh - 55px)' }}>
       <style>{`
         .oa-field-tile { transition: all .15s; cursor: pointer; }
         .oa-field-tile:hover { border-color: #1677ff !important; color: #1677ff !important; background: #e6f4ff !important; }
@@ -261,7 +261,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
       )}
 
       {current === 1 && (
-        <Row gutter={16} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <Row gutter={16}>
           {/* 左栏：字段类型 */}
           <Col span={6}>
             <div
@@ -269,8 +269,6 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
                 background: '#fff',
                 borderRadius: 8,
                 padding: 16,
-                height: '100%',
-                overflowY: 'auto',
                 border: '1px solid #f0f0f0',
               }}
             >
@@ -316,8 +314,6 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
                 background: '#fff',
                 borderRadius: 8,
                 padding: 16,
-                height: '100%',
-                overflowY: 'auto',
                 border: '1px solid #f0f0f0',
               }}
             >
@@ -394,8 +390,6 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
                 background: '#fff',
                 borderRadius: 8,
                 padding: 16,
-                height: '100%',
-                overflowY: 'auto',
                 border: '1px solid #f0f0f0',
               }}
             >
@@ -457,7 +451,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
       )}
 
       {/* 底部按钮 */}
-      <div style={{ marginTop: 16, paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#fff', position: 'relative', zIndex: 10 }}>
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         {current > 0 && <Button onClick={() => setCurrent(current - 1)}>上一步</Button>}
         {current < 1 && (
           <Button type="primary" onClick={() => basicForm.validateFields().then(() => setCurrent(1))}>
