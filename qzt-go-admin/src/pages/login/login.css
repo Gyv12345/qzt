@@ -18,7 +18,7 @@
   padding: 64px;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(135deg, #0c1428 0%, #1a2b5e 45%, #2f54eb 100%);
+  background: linear-gradient(135deg, #0a0e27 0%, #141b3d 50%, #1e3a8a 100%);
 }
 
 /* 网格底纹 */
@@ -27,25 +27,38 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 44px 44px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 60% at 30% 40%, #000 30%, transparent 100%);
-  mask-image: radial-gradient(ellipse 75% 60% at 30% 40%, #000 30%, transparent 100%);
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 65% at 35% 45%, #000 25%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 65% at 35% 45%, #000 25%, transparent 100%);
   pointer-events: none;
 }
 
-/* 光晕 */
+/* 光晕:右上蓝 */
 .login-hero::after {
   content: '';
   position: absolute;
-  width: 480px;
-  height: 480px;
-  right: -120px;
-  bottom: -160px;
+  width: 520px;
+  height: 520px;
+  right: -140px;
+  bottom: -180px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 108, 255, 0.35), transparent 70%);
+  background: radial-gradient(circle, rgba(59, 108, 255, 0.3), transparent 70%);
   pointer-events: none;
+}
+
+/* 光晕:左下紫(通过额外元素实现,伪元素只能 2 个) */
+.login-hero-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  left: -120px;
+  top: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.18), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .login-hero-inner {
@@ -54,17 +67,29 @@
   max-width: 480px;
 }
 
+/* 顶部高光细线 */
+.login-hero-inner::before {
+  content: '';
+  position: absolute;
+  top: -36px;
+  left: 0;
+  width: 56px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3b6cff, transparent);
+}
+
 .login-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 56px;
+  margin-bottom: 52px;
 }
 
 .login-brand-mark {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +97,7 @@
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #3b6cff, #2f54eb);
-  box-shadow: 0 4px 14px rgba(59, 108, 255, 0.5);
+  box-shadow: 0 4px 16px rgba(59, 108, 255, 0.35);
   flex-shrink: 0;
   object-fit: cover;
 }
@@ -85,31 +110,46 @@
 }
 
 .login-hero h1 {
-  font-size: 40px;
+  font-size: 42px;
   font-weight: 800;
-  line-height: 1.2;
-  margin: 0 0 20px;
+  line-height: 1.25;
+  margin: 0 0 22px;
   letter-spacing: -0.5px;
+  background: linear-gradient(180deg, #ffffff 0%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .login-hero .login-slogan {
   font-size: 16px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.78);
-  margin: 0 0 48px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0 0 44px;
 }
 
 /* 功能亮点列表 */
 .login-features {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
 }
 
 .login-feature {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  padding: 4px 0;
+  border-left: 2px solid transparent;
+  padding-left: 0;
+  transition: border-color 0.2s, padding-left 0.2s, background 0.2s;
+  border-radius: 0 8px 8px 0;
+}
+
+.login-feature:hover {
+  border-left-color: rgba(59, 108, 255, 0.8);
+  padding-left: 12px;
+  background: rgba(59, 108, 255, 0.06);
 }
 
 .login-feature-icon {
@@ -120,9 +160,11 @@
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(59, 108, 255, 0.18), rgba(47, 84, 235, 0.1));
+  border: 1px solid rgba(59, 108, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(59, 108, 255, 0.15);
   flex-shrink: 0;
+  color: #93b4ff;
 }
 
 .login-feature-title {
@@ -133,8 +175,26 @@
 
 .login-feature-desc {
   font-size: 13px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* 信任标签 */
+.login-trust {
+  display: flex;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+.login-trust-tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.3px;
 }
 
 /* ── 右侧:表单区 ── */

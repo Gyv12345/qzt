@@ -22,25 +22,27 @@ interface LoginForm {
 const FEATURES = [
   {
     icon: <TeamOutlined />,
-    title: 'CRM 客户全生命周期',
-    desc: '线索、公海、商机、合同、回款一体化管理',
+    title: 'CRM 全链路',
+    desc: '从线索到回款，一个系统跑完整个销售闭环',
   },
   {
     icon: <SafetyCertificateOutlined />,
-    title: '可视化审批流设计',
-    desc: '拖拽搭建企业审批流程,支持会签与条件分支',
+    title: '审批自动化',
+    desc: '拖拽搭建审批流程，审批通过即业务生效',
   },
   {
     icon: <BarChartOutlined />,
-    title: 'BI 数据看板',
-    desc: '销售趋势、商机漏斗、财务概览实时可视化',
+    title: '数据驾驶舱',
+    desc: '销售漏斗、财务概览、库存周转实时洞察',
   },
   {
     icon: <ApartmentOutlined />,
-    title: '进销存 · HRM · 财务',
-    desc: '模块自由组合,数据私有化部署',
+    title: '15 模块一体化',
+    desc: '进销存 · HRM · 财务 · OA · 项目管理开箱即用',
   },
 ]
+
+const TRUST_TAGS = ['开源免费', '私有化部署', '数据自主可控']
 
 export default function Login() {
   const { message } = App.useApp()
@@ -75,6 +77,7 @@ export default function Login() {
     <div className="login-wrap">
       {/* 左侧:品牌介绍区 */}
       <aside className="login-hero">
+        <span className="login-hero-glow" />
         <div className="login-hero-inner">
           <div className="login-brand">
             {logoUrl ? (
@@ -85,9 +88,10 @@ export default function Login() {
             <span className="login-brand-name">{siteName}</span>
           </div>
 
-          <h1>一站式企业管理平台</h1>
+          <h1>让企业管理<br />回归简单</h1>
           <p className="login-slogan">
-            私有化部署,数据完全归企业所有。CRM、审批流、进销存、财务、HRM、官网 CMS 全套模块,开箱即用。
+            15 个业务模块，一个平台搞定。<br />
+            从客户线索到财务入账，全链路打通。
           </p>
 
           <div className="login-features">
@@ -99,6 +103,12 @@ export default function Login() {
                   <div className="login-feature-desc">{f.desc}</div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          <div className="login-trust">
+            {TRUST_TAGS.map((tag) => (
+              <span className="login-trust-tag" key={tag}>{tag}</span>
             ))}
           </div>
         </div>
