@@ -128,7 +128,6 @@ function textToOptions(text: string): string {
 interface PropFormValues {
   name: string
   internal_key?: string
-  type: string
   placeholder?: string
   description?: string
   mobile: boolean
@@ -177,7 +176,6 @@ export default function CrmFieldPage() {
     propForm.setFieldsValue({
       name: selectedField.name,
       internal_key: selectedField.internal_key || undefined,
-      type: selectedField.type,
       mobile: selectedField.mobile === 1,
       readable: selectedField.readable === 1,
       editable: selectedField.editable === 1,
@@ -224,7 +222,7 @@ export default function CrmFieldPage() {
       await updateCustomField(selectedField.id, {
         name: values.name,
         internal_key: values.internal_key || undefined,
-        type: values.type,
+        type: selectedField.type,
         prop,
         mobile: values.mobile ? 1 : 0,
         pos: selectedField.pos,
