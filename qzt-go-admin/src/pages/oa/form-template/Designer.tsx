@@ -261,7 +261,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
       )}
 
       {current === 1 && (
-        <Row gutter={16} style={{ flex: 1, minHeight: 0 }}>
+        <Row gutter={16} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
           {/* 左栏：字段类型 */}
           <Col span={6}>
             <div
@@ -457,7 +457,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
       )}
 
       {/* 底部按钮 */}
-      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ marginTop: 16, paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#fff', position: 'relative', zIndex: 10 }}>
         {current > 0 && <Button onClick={() => setCurrent(current - 1)}>上一步</Button>}
         {current < 1 && (
           <Button type="primary" onClick={() => basicForm.validateFields().then(() => setCurrent(1))}>
