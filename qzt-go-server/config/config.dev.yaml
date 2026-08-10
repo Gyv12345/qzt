@@ -52,6 +52,7 @@ storage:
   local_path: ./storage/public      # 公共存储根目录（driver=local，nginx 静态 serve）
   private_path: ./storage/private   # 私有存储根目录（driver=local，后端代理鉴权访问）
   resource_domain: http://localhost:9000  # 本地资源访问域名
+  download_prefix: /prod-api/api/file/dl  # 私有文件代理下载 URL 前缀(vite 反代 /prod-api → 后端 /api)
   max_upload_mb: 20            # 单文件大小上限(MB)
   oss:                         # 阿里云 OSS 配置（driver=oss 时使用，敏感值通过 .env 注入）
     endpoint: ${OSS_ENDPOINT:-}

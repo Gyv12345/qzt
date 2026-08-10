@@ -39,6 +39,7 @@ type LocalConfig struct {
 	PrivateDirectory string            // 私有目录(后端代理鉴权访问,nginx 不直接 serve);留空则退化到 Directory
 	PublicURL        string            // 公共资源访问域名(拼接公共文件 URL)
 	SignSecret       string            // 私有文件代理下载 URL 的签名密钥(一般用 JWT secret)
+	DownloadPrefix   string            // 私有文件代理下载 URL 前缀;留空默认 /api/file/dl
 	MaxBytes         int64
 	AllowedTypes     map[string]string
 }
@@ -56,13 +57,14 @@ type UploadedFile struct {
 }
 
 type Local struct {
-	directory    string            // 公共目录绝对路径
-	privateDir   string            // 私有目录绝对路径(为空则退化到 directory)
-	publicURL    string            // 公共资源访问域名
-	signSecret   string            // 私有文件代理下载 URL 签名密钥
-	maxBytes     int64
-	allowedTypes map[string]string
-	now          func() time.Time
+	directory      string            // 公共目录绝对路径
+	privateDir     string            // 私有目录绝对路径(为空则退化到 directory)
+	publicURL      string            // 公共资源访问域名
+	signSecret     string            // 私有文件代理下载 URL 签名密钥
+	downloadPrefix string            // 私有文件代理下载 URL 前缀
+	maxBytes       int64
+	allowedTypes   map[string]string
+	now            func() time.Time
 }
 
 func NewLocal(cfg LocalConfig) (*Local, error) {
@@ -114,13 +116,14 @@ func NewLocal(cfg LocalConfig) (*Local, error) {
 	}
 
 	return &Local{
-		directory:    directory,
-		privateDir:   privateDir,
-		publicURL:    strings.TrimRight(cfg.PublicURL, "/"),
-		signSecret:   cfg.SignSecret,
-		maxBytes:     cfg.MaxBytes,
-		allowedTypes: allowedTypes,
-		now:          time.Now,
+		directory:      directory,
+		privateDir:     privateDir,
+		publicURL:      strings.TrimRight(cfg.PublicURL, "/"),
+		signSecret:     cfg.SignSecret,
+		downloadPrefix: strings.TrimSpace(cfg.DownloadPrefix),
+		maxBytes:       cfg.MaxBytes,
+		allowedTypes:   allowedTypes,
+		now:            time.Now,
 	}, nil
 }
 
@@ -368,7 +371,8 @@ func (s *Local) SavePrivate(file *multipart.FileHeader, folders ...string) (*Upl
 	}, nil
 }
 
-// SignURL 为本地私有文件生成后端代理下载 URL: /api/file/dl?t=<token>&k=<key>。
+// SignURL 为本地私有文件生成后端代理下载 URL: <prefix>?t=<token>&k=<key>。
+// prefix 默认 /api/file/dl(直连后端);前端反代时配 storage.download_prefix 为 /prod-api/api/file/dl。
 // token = base64url(payload) + "." + base64url(hmac-sha256(payload, secret)),
 // payload = "<expUnixSec>|<key>"。token 无需 Authorization header,可直接放 <img src>。
 func (s *Local) SignURL(objectKey string, ttl time.Duration) (string, error) {
@@ -381,7 +385,11 @@ func (s *Local) SignURL(objectKey string, ttl time.Duration) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "/api/file/dl?t=" + token + "&k=" + url.QueryEscape(objectKey), nil
+	prefix := s.downloadPrefix
+	if prefix == "" {
+		prefix = "/api/file/dl"
+	}
+	return prefix + "?t=" + token + "&k=" + url.QueryEscape(objectKey), nil
 }
 
 // VerifySignToken 校验代理下载 token,返回 objectKey;过期或签名不符返回 error。

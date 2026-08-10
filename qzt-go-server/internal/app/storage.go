@@ -88,6 +88,7 @@ func buildUploader(cfg config.StorageConfig) (storage.Uploader, error) {
 			PrivateDirectory: privatePath,
 			PublicURL:        cfg.ResourceDomain,
 			SignSecret:       signSecret,
+			DownloadPrefix:   cfg.DownloadPrefix,
 			MaxBytes:         maxBytes,
 			AllowedTypes:     defaultAllowedTypes,
 		})

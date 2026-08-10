@@ -135,6 +135,9 @@ type StorageConfig struct {
 	PrivatePath string `mapstructure:"private_path"`
 	// ResourceDomain 资源访问域名（本地存储公共目录拼接文件可访问 URL）。
 	ResourceDomain string `mapstructure:"resource_domain"`
+	// DownloadPrefix 私有文件代理下载 URL 前缀（driver=local 时使用）。
+	// 默认 /api/file/dl(直连后端);前端通过 /prod-api 反代时应填 /prod-api/api/file/dl。
+	DownloadPrefix string `mapstructure:"download_prefix"`
 	// MaxUploadMB 单文件上传大小上限（MB）。
 	MaxUploadMB int `mapstructure:"max_upload_mb"`
 	// OSS 阿里云 OSS 配置（driver=oss 时使用）。
