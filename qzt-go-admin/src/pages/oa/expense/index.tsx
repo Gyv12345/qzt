@@ -8,6 +8,7 @@ import { deleteExpense, listExpenses, markExpensePaid, submitExpenseApproval } f
 import { APPROVAL_STATUS_MAP, type OaExpense } from '../../../types/oa'
 import ExpenseEditModal from './EditModal'
 import ExpenseDetailDrawer from './DetailDrawer'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 export default function ExpensePage() {
   const { message } = App.useApp()
@@ -179,7 +180,12 @@ export default function ExpensePage() {
             </Button>
           </Auth>,
         ]}
-        headerTitle="报销管理"
+        headerTitle={
+          <Space align="center">
+            <span>报销管理</span>
+            <ApprovalFlowSetup formType="EXPENSE" label="报销审批" />
+          </Space>
+        }
       />
       <ExpenseEditModal
         open={editOpen}

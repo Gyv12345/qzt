@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteFormTemplate, listFormTemplates, toggleFormTemplate } from '../../../services/oa'
 import type { OaFormTemplate } from '../../../types/oa'
 import FormTemplateEditModal from './EditModal'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 export default function FormTemplatePage() {
   const { message } = App.useApp()
@@ -98,7 +99,12 @@ export default function FormTemplatePage() {
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新建表单</Button>
           </Auth>,
         ]}
-        headerTitle="表单管理"
+        headerTitle={
+          <Space align="center">
+            <span>表单管理</span>
+            <ApprovalFlowSetup formType="OA_CUSTOM" label="自定义表单审批" />
+          </Space>
+        }
       />
       <FormTemplateEditModal open={editOpen} editingId={editingId} onOpenChange={setEditOpen} onSuccess={() => actionRef.current?.reload()} />
     </>

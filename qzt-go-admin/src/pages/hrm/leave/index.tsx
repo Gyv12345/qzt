@@ -7,6 +7,7 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import { approveLeave, listLeaves, submitLeaveApproval } from '../../../services/hrm'
 import { LEAVE_APPROVAL_STATUS, type HrmLeave } from '../../../types/hrm'
 import LeaveEditModal from './EditModal'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 export default function LeavePage() {
   const { message } = App.useApp()
@@ -101,7 +102,12 @@ export default function LeavePage() {
             </Button>
           </Auth>,
         ]}
-        headerTitle="请假管理"
+        headerTitle={
+          <Space align="center">
+            <span>请假管理</span>
+            <ApprovalFlowSetup formType="LEAVE" label="请假审批" />
+          </Space>
+        }
       />
       <LeaveEditModal
         open={editOpen}

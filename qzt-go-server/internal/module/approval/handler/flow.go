@@ -37,6 +37,28 @@ func (h *FlowHandler) List(c *gin.Context) {
 	response.OK(c, gin.H{"list": list, "total": total})
 }
 
+// GetByFormType 按表单类型查流程(不存在则自动创建预置)。
+// @Summary      按表单类型获取审批流程
+// @Tags         审批流程
+// @Produce      json
+// @Security     BearerAuth
+// @Param        form_type  query  string  true  "表单类型(如 CONTRACT/EXPENSE/TRIP 等)"
+// @Success      200  {object}  xresponse.Response
+// @Router       /approval/flows/by-type [get]
+func (h *FlowHandler) GetByFormType(c *gin.Context) {
+	formType := c.Query("form_type")
+	if formType == "" {
+		response.Fail(c, errcode.ErrParam, "参数错误: form_type 不能为空")
+		return
+	}
+	flow, err := h.svc.GetByFormType(c.Request.Context(), formType)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, flow)
+}
+
 // GetByID 流程详情(含节点图)
 // @Summary      审批流程详情
 // @Tags         审批流程

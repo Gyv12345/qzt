@@ -41,6 +41,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
 	{
 		auth.GET("/flows", flowHandler.List)
+		auth.GET("/flows/by-type", flowHandler.GetByFormType)
 		auth.POST("/flows", flowHandler.Create)
 		auth.GET("/flows/:id", flowHandler.GetByID)
 		auth.PUT("/flows/:id/design", flowHandler.SaveDesign)

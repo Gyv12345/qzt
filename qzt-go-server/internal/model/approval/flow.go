@@ -24,6 +24,7 @@ type ApprovalFlow struct {
 	DuplicateApproverRule string `json:"duplicate_approver_rule" gorm:"size:20;default:FIRST_ONLY;comment:重复审批人规则"`
 	RequireComment       int8   `json:"require_comment" gorm:"default:0;comment:强制备注"`
 	Enable               int8   `json:"enable" gorm:"default:1;index;comment:启用(1是0否)"`
+	IsPreset             int8   `json:"is_preset" gorm:"default:0;comment:系统预置(1是0否),预置流程不可删除"`
 	StatusPermissions    string `json:"status_permissions" gorm:"type:text;comment:基于业务状态的字段权限JSON"`
 	Description          string `json:"description" gorm:"size:3000;comment:描述"`
 	base.BaseModel

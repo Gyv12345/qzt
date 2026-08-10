@@ -110,6 +110,52 @@ func (s *FlowService) List(ctx context.Context, page, pageSize int) ([]apprmodel
 	return s.flowRepo.PageList(ctx, page, pageSize, nil)
 }
 
+// formTypeMeta 预置流程的名称/描述映射。
+var formTypeMeta = map[string]string{
+	apprmodel.FormTypeContract:       "合同审批",
+	apprmodel.FormTypeQuotation:      "报价单审批",
+	apprmodel.FormTypeOrder:          "订单审批",
+	apprmodel.FormTypeInvoice:        "发票审批",
+	apprmodel.FormTypePurchaseOrder:  "采购订单审批",
+	apprmodel.FormTypeSalesOrder:     "销售订单审批",
+	apprmodel.FormTypePurchaseReturn: "采购退货审批",
+	apprmodel.FormTypeSalesReturn:    "销售退货审批",
+	apprmodel.FormTypeExpense:        "报销审批",
+	apprmodel.FormTypeLeave:          "请假审批",
+	apprmodel.FormTypeTrip:           "出差审批",
+	apprmodel.FormTypeLoan:           "借款审批",
+	apprmodel.FormTypeMeetingBooking: "会议预订审批",
+	apprmodel.FormTypeCustomForm:     "自定义表单审批",
+}
+
+// GetByFormType 按 form_type 查流程;不存在则自动创建预置流程(不启用)。
+// 供各业务模块通过 form_type 直接获取审批流配置入口。
+func (s *FlowService) GetByFormType(ctx context.Context, formType string) (*apprmodel.ApprovalFlow, error) {
+	if !isValidFormType(formType) {
+		return nil, errors.New("不支持的表单类型: " + formType)
+	}
+	// 查已有流程(含禁用的)
+	flow, err := s.flowRepo.GetEnabledFlow(ctx, formType)
+	if err == nil && flow != nil {
+		return flow, nil
+	}
+	// 不存在 → 自动创建预置流程(不启用,无节点图)
+	name := formTypeMeta[formType]
+	if name == "" {
+		name = formType + "审批"
+	}
+	preset := &apprmodel.ApprovalFlow{
+		Name:     name,
+		FormType: formType,
+		Enable:   0,
+		IsPreset: 1,
+	}
+	if err := s.flowRepo.Create(ctx, preset); err != nil {
+		return nil, err
+	}
+	return preset, nil
+}
+
 // SaveDesignRequest 保存流程设计(节点图)。每次保存创建新版本。
 // 节点用 Number 字段作为前端标识,Links 的 FromNodeID/ToNodeID 填前端节点的 Number(转 uint)。
 // 也可以直接传已保存的真实 NodeID(编辑已有版本时)。

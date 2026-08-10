@@ -40,6 +40,7 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
 import OpportunitySelect from '../../../components/OpportunitySelect'
 import UserSelect from '../../../components/UserSelect'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 import { pushApproval } from '../../../services/approval'
 import CustomerDetailDrawer from '../customer/DetailDrawer'
 import OpportunityDetailDrawer from '../opportunity/DetailDrawer'
@@ -710,7 +711,12 @@ export default function ContractPage() {
             }}
           />,
         ]}
-        headerTitle="合同列表"
+        headerTitle={
+          <Space align="center">
+            <span>合同列表</span>
+            <ApprovalFlowSetup formType="CONTRACT" label="合同审批" />
+          </Space>
+        }
       />
 
       {/* 新增/编辑合同 */}

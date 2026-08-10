@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteTrip, listTrips, submitTripApproval } from '../../../services/oa'
 import { APPROVAL_STATUS_MAP, type OaBusinessTrip } from '../../../types/oa'
 import TripEditModal from './EditModal'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 export default function TripPage() {
   const { message } = App.useApp()
@@ -89,7 +90,12 @@ export default function TripPage() {
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新增出差</Button>
           </Auth>,
         ]}
-        headerTitle="出差管理"
+        headerTitle={
+          <Space align="center">
+            <span>出差管理</span>
+            <ApprovalFlowSetup formType="TRIP" label="出差审批" />
+          </Space>
+        }
       />
       <TripEditModal open={editOpen} editingId={editingId} onOpenChange={setEditOpen} onSuccess={() => actionRef.current?.reload()} />
     </>

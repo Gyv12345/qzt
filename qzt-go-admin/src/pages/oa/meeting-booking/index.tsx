@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteMeetingBooking, listMeetingBookings, listMeetingRooms, submitMeetingBookingApproval } from '../../../services/oa'
 import { APPROVAL_STATUS_MAP, type OaMeetingBooking, type OaMeetingRoom } from '../../../types/oa'
 import MeetingBookingEditModal from './EditModal'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 export default function MeetingBookingPage() {
   const { message } = App.useApp()
@@ -110,7 +111,12 @@ export default function MeetingBookingPage() {
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新增预订</Button>
           </Auth>,
         ]}
-        headerTitle="会议预订"
+        headerTitle={
+          <Space align="center">
+            <span>会议预订</span>
+            <ApprovalFlowSetup formType="MEETING_BOOKING" label="会议预订审批" />
+          </Space>
+        }
       />
       <MeetingBookingEditModal open={editOpen} editingId={editingId} onOpenChange={setEditOpen} onSuccess={() => actionRef.current?.reload()} />
     </>

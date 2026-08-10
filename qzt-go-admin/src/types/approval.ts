@@ -18,6 +18,8 @@ export interface ApprovalFlow {
   require_comment: number
   /** 1 启用 0 禁用 */
   enable: number
+  /** 1 系统预置 0 用户创建 */
+  is_preset: number
   status_permissions: string
   description: string
   created_at: string

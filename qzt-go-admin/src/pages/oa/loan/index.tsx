@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteLoan, listLoans, markLoanRepaid, submitLoanApproval } from '../../../services/oa'
 import { APPROVAL_STATUS_MAP, type OaLoan } from '../../../types/oa'
 import LoanEditModal from './EditModal'
+import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 const REPAY_TEXT: Record<number, string> = { 0: '未还', 1: '部分', 2: '已还清' }
 const REPAY_COLOR: Record<number, string> = { 0: 'default', 1: 'warning', 2: 'success' }
@@ -110,7 +111,12 @@ export default function LoanPage() {
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新增借款</Button>
           </Auth>,
         ]}
-        headerTitle="借款管理"
+        headerTitle={
+          <Space align="center">
+            <span>借款管理</span>
+            <ApprovalFlowSetup formType="LOAN" label="借款审批" />
+          </Space>
+        }
       />
       <LoanEditModal open={editOpen} editingId={editingId} onOpenChange={setEditOpen} onSuccess={() => actionRef.current?.reload()} />
     </>
