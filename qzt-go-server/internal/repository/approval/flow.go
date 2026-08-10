@@ -32,6 +32,16 @@ func (r *FlowRepo) GetEnabledFlow(ctx context.Context, formType string) (*apprmo
 	return &flow, nil
 }
 
+// GetByFormType 按 form_type 查流程(不限启用状态)。供 GetByFormType API 使用。
+func (r *FlowRepo) GetByFormType(ctx context.Context, formType string) (*apprmodel.ApprovalFlow, error) {
+	var flow apprmodel.ApprovalFlow
+	err := repoDB(ctx).Where("form_type = ?", formType).First(&flow).Error
+	if err != nil {
+		return nil, err
+	}
+	return &flow, nil
+}
+
 // Update 覆写泛型版本。
 func (r *FlowRepo) Update(ctx context.Context, m *apprmodel.ApprovalFlow) error {
 	return r.BaseRepo.Update(ctx, m, "Number", "Name", "CreateExecute", "UpdateExecute",

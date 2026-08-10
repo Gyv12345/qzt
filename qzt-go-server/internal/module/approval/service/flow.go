@@ -135,7 +135,7 @@ func (s *FlowService) GetByFormType(ctx context.Context, formType string) (*appr
 		return nil, errors.New("不支持的表单类型: " + formType)
 	}
 	// 查已有流程(含禁用的)
-	flow, err := s.flowRepo.GetEnabledFlow(ctx, formType)
+	flow, err := s.flowRepo.GetByFormType(ctx, formType)
 	if err == nil && flow != nil {
 		return flow, nil
 	}
