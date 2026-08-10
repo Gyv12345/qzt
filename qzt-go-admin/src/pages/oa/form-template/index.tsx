@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Drawer, Popconfirm, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { deleteFormTemplate, listFormTemplates, toggleFormTemplate } from '../../../services/oa'
 import type { OaFormTemplate } from '../../../types/oa'
-import FormTemplateEditModal from './EditModal'
+import FormTemplateEditModal from './Designer'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
 export default function FormTemplatePage() {
@@ -106,7 +106,24 @@ export default function FormTemplatePage() {
           </Space>
         }
       />
-      <FormTemplateEditModal open={editOpen} editingId={editingId} onOpenChange={setEditOpen} onSuccess={() => actionRef.current?.reload()} />
+      <Drawer
+        title={editingId ? '编辑表单模板' : '新建表单模板'}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        width="100%"
+        styles={{ body: { padding: 0, height: '100%' } }}
+        destroyOnHidden
+      >
+        <FormTemplateEditModal
+          open={editOpen}
+          editingId={editingId}
+          onClose={() => setEditOpen(false)}
+          onSuccess={() => {
+            setEditOpen(false)
+            actionRef.current?.reload()
+          }}
+        />
+      </Drawer>
     </>
   )
 }
