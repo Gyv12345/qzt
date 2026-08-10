@@ -39,6 +39,7 @@ type CrmLead struct {
 	PoolReason         string             `json:"pool_reason" gorm:"size:64;comment:进公海原因"`
 	ConvertedCustomerID *uint             `json:"converted_customer_id" gorm:"index;comment:转化后的客户ID"`
 	ConvertedAt        xtime.NullDateTime `json:"converted_at" gorm:"type:datetime;comment:转化时间"`
+	Remark             string             `json:"remark" gorm:"type:text;comment:留言内容(官网表单)"`
 	base.BaseModel
 }
 

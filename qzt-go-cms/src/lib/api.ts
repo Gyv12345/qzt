@@ -119,3 +119,30 @@ export async function getSiteConfig(): Promise<SiteInfo> {
 }
 
 export const apiBase = API_BASE;
+
+// ── 官网留言 → CRM 线索 ──
+
+export interface ContactPayload {
+  name: string;
+  phone: string;
+  email?: string;
+  company?: string;
+  message: string;
+}
+
+/**
+ * 提交官网留言(公开接口,无需鉴权)。
+ * 后端自动创建 CRM 线索到公海池并通知管理员。
+ */
+export async function submitContact(data: ContactPayload): Promise<{ lead_no: string }> {
+  const res = await fetch(API_BASE + "/crm/public/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const body = (await res.json()) as ApiResponse<{ lead_no: string }>;
+  if (body.code !== 0) {
+    throw new Error(body.msg || "提交失败");
+  }
+  return body.data;
+}

@@ -48,6 +48,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		public.GET("/products", productHandler.PublicList)
 		public.GET("/products/:id", productHandler.PublicGetByID)
 		public.GET("/partners", customerHandler.PublicList)
+		public.POST("/contact", leadHandler.PublicContact) // 官网留言 → 线索入公海
 	}
 
 	// 已认证路由(仅 JWT,无 RBAC):看板、下拉、时间线、待办、变更历史、回款汇总等查询。

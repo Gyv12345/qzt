@@ -58,6 +58,7 @@ type CreateLeadRequest struct {
 	Source      string `json:"source"`
 	Industry    string `json:"industry"`
 	OwnerID     *uint  `json:"owner_id"`
+	Remark      string `json:"remark"`
 }
 
 // Create 创建线索(默认私海,owner 默认当前用户)。
@@ -86,6 +87,7 @@ func (s *LeadService) Create(ctx context.Context, req *CreateLeadRequest, curren
 		OwnerID:     ownerID,
 		InPool:      crmmodel.InPoolPrivate,
 		CollectionTime: xtime.NewNullDateTimeFromTime(now),
+		Remark:      req.Remark,
 	}
 	err := repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.repo.Create(ctx, lead); err != nil {
