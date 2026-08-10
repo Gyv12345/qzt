@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Dialog, Form, Input, NavBar, Popup, Button, Toast } from 'antd-mobile'
+import { Dialog, Form, Input, Popup, Button, Toast } from 'antd-mobile'
 import {
+  CloseOutline,
   GlobalOutline,
   RightOutline,
   SetOutline,
@@ -18,7 +19,7 @@ import type { DashboardOverview } from '../../types/dashboard'
 import './mine.css'
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
-  { value: 'auto', label: '跟随系统' },
+  { value: 'auto', label: '系统' },
   { value: 'light', label: '浅色' },
   { value: 'dark', label: '深色' },
 ]
@@ -34,6 +35,18 @@ interface MenuItem {
   onClick?: () => void
 }
 
+/** 底部弹窗统一头部 */
+function PopupHeader({ title, onClose }: { title: string; onClose: () => void }) {
+  return (
+    <div className="mine-popup-header">
+      <span className="mine-popup-title">{title}</span>
+      <button className="mine-popup-close" onClick={onClose}>
+        <CloseOutline />
+      </button>
+    </div>
+  )
+}
+
 export default function Mine() {
   const profile = useAuthStore((s) => s.profile)
   const updateProfileStore = useAuthStore((s) => s.updateProfile)
@@ -42,15 +55,12 @@ export default function Mine() {
   const setMode = useThemeStore((s) => s.setMode)
   const [overview, setOverview] = useState<DashboardOverview | null>(null)
 
-  // 弹窗状态
   const [showProfile, setShowProfile] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
 
   useEffect(() => {
-    getDashboardOverview()
-      .then(setOverview)
-      .catch(() => {})
+    getDashboardOverview().then(setOverview).catch(() => {})
   }, [])
 
   const onLogout = async () => {
@@ -71,57 +81,25 @@ export default function Mine() {
     : []
 
   const accountMenus: MenuItem[] = [
-    {
-      icon: <UserOutline />,
-      iconBg: 'var(--icon-bg-crm)',
-      label: '个人资料',
-      arrow: true,
-      onClick: () => setShowProfile(true),
-    },
-    {
-      icon: <UnorderedListOutline />,
-      iconBg: 'var(--icon-bg-approval)',
-      label: '修改密码',
-      arrow: true,
-      onClick: () => setShowPassword(true),
-    },
+    { icon: <UserOutline />, iconBg: 'var(--icon-bg-crm)', label: '个人资料', arrow: true, onClick: () => setShowProfile(true) },
+    { icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-approval)', label: '修改密码', arrow: true, onClick: () => setShowPassword(true) },
   ]
 
   const generalMenus: MenuItem[] = [
+    { icon: <SoundOutline />, iconBg: 'var(--icon-bg-notice)', label: '消息通知', arrow: true, onClick: () => Toast.show({ content: '功能开发中' }) },
     {
-      icon: <SoundOutline />,
-      iconBg: 'var(--icon-bg-notice)',
-      label: '消息通知',
-      arrow: true,
-      onClick: () => Toast.show({ content: '功能开发中' }),
-    },
-    {
-      icon: <SetOutline />,
-      iconBg: 'var(--icon-bg-settings)',
-      label: '清除缓存',
-      onClick: () => {
-        localStorage.removeItem('qzt-mobile:cached')
-        Toast.show({ icon: 'success', content: '缓存已清除' })
-      },
+      icon: <SetOutline />, iconBg: 'var(--icon-bg-settings)', label: '清除缓存',
+      onClick: () => { localStorage.removeItem('qzt-mobile:cached'); Toast.show({ icon: 'success', content: '缓存已清除' }) },
     },
   ]
 
   const aboutMenus: MenuItem[] = [
-    {
-      icon: <GlobalOutline />,
-      iconBg: 'var(--icon-bg-news)',
-      label: '关于企智通',
-      extra: APP_VERSION,
-      arrow: true,
-      onClick: () => setShowAbout(true),
-    },
+    { icon: <GlobalOutline />, iconBg: 'var(--icon-bg-news)', label: '关于企智通', extra: APP_VERSION, arrow: true, onClick: () => setShowAbout(true) },
   ]
 
   const renderMenu = (item: MenuItem, i: number) => (
     <div className="mine-menu-item" key={i} onClick={item.onClick}>
-      <span className="mine-menu-icon" style={{ background: item.iconBg, color: 'var(--brand)' }}>
-        {item.icon}
-      </span>
+      <span className="mine-menu-icon" style={{ background: item.iconBg, color: 'var(--brand)' }}>{item.icon}</span>
       <span className="mine-menu-label">{item.label}</span>
       {item.extra && <span className="mine-menu-extra">{item.extra}</span>}
       {item.arrow && <RightOutline className="mine-arrow" />}
@@ -137,25 +115,15 @@ export default function Mine() {
         <div className="mine-profile">
           <div className="mine-avatar">
             {profile?.avatar ? (
-              <img
-                src={profile.avatar}
-                alt=""
-                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-              />
-            ) : (
-              initial
-            )}
+              <img src={profile.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : initial}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="mine-name">{profile?.nickname || '用户'}</div>
             <div className="mine-username">@{profile?.username}</div>
             {profile?.roles && profile.roles.length > 0 && (
               <div className="mine-roles">
-                {profile.roles.map((r) => (
-                  <span className="mine-role-tag" key={r.id}>
-                    {r.name}
-                  </span>
-                ))}
+                {profile.roles.map((r) => (<span className="mine-role-tag" key={r.id}>{r.name}</span>))}
               </div>
             )}
           </div>
@@ -174,21 +142,15 @@ export default function Mine() {
         </div>
       )}
 
-      {/* 深色模式设置(独立卡片) */}
+      {/* 外观 */}
       <div className="mine-group">
         <div className="mine-group-title">外观</div>
         <div className="mine-menu-item">
-          <span className="mine-menu-icon" style={{ background: 'var(--icon-bg-settings)', color: 'var(--brand)' }}>
-            <SetOutline />
-          </span>
+          <span className="mine-menu-icon" style={{ background: 'var(--icon-bg-settings)', color: 'var(--brand)' }}><SetOutline /></span>
           <span className="mine-menu-label">深色模式</span>
           <div className="mine-theme-options">
             {THEME_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                className={`mine-theme-chip${mode === opt.value ? ' active' : ''}`}
-                onClick={() => setMode(opt.value)}
-              >
+              <button key={opt.value} className={`mine-theme-chip${mode === opt.value ? ' active' : ''}`} onClick={() => setMode(opt.value)}>
                 {opt.label}
               </button>
             ))}
@@ -214,80 +176,32 @@ export default function Mine() {
         {aboutMenus.map(renderMenu)}
       </div>
 
-      {/* 退出登录 */}
-      <button className="mine-logout" onClick={onLogout}>
-        退出登录
-      </button>
+      {/* 退出 */}
+      <button className="mine-logout" onClick={onLogout}>退出登录</button>
 
-      {/* ── 个人资料弹窗 ── */}
-      <ProfilePopup
-        visible={showProfile}
-        onClose={() => setShowProfile(false)}
-        profile={profile}
-        onSaved={(patch) => updateProfileStore(patch)}
-      />
-
-      {/* ── 修改密码弹窗 ── */}
+      {/* ── 弹窗 ── */}
+      <ProfilePopup visible={showProfile} onClose={() => setShowProfile(false)} profile={profile} onSaved={(patch) => updateProfileStore(patch)} />
       <PasswordPopup visible={showPassword} onClose={() => setShowPassword(false)} />
-
-      {/* ── 关于弹窗 ── */}
-      <Popup
-        visible={showAbout}
-        onMaskClick={() => setShowAbout(false)}
-        bodyStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
-        position="bottom"
-      >
-        <div style={{ padding: '28px 24px 36px', textAlign: 'center' }}>
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 18,
-              background: 'var(--brand-gradient)',
-              color: '#fff',
-              fontSize: 36,
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
-            企
+      <Popup visible={showAbout} onMaskClick={() => setShowAbout(false)} bodyStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16 }} position="bottom">
+        <div style={{ padding: '32px 28px 40px', textAlign: 'center' }}>
+          <div style={{ width: 76, height: 76, borderRadius: 20, background: 'var(--brand-gradient)', color: '#fff', fontSize: 38, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(47, 84, 235, 0.25)' }}>企</div>
+          <div style={{ fontSize: 19, fontWeight: 700 }}>企智通</div>
+          <div style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 6 }}>企业级业务管理平台 {APP_VERSION}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 20 }}>
+            {['CRM', 'OA办公', '进销存', '财务', '人事', '审批', '知识库', '网盘'].map((t) => (
+              <span key={t} style={{ fontSize: 12, padding: '4px 12px', borderRadius: 12, background: 'var(--bg)', color: 'var(--text-secondary)' }}>{t}</span>
+            ))}
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>企智通</div>
-          <div style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 4 }}>
-            企业级业务管理平台 {APP_VERSION}
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 16, lineHeight: 1.8 }}>
-            客户 · 商机 · 合同 · 审批
-            <br />
-            OA办公 · 进销存 · 财务 · 人事
-          </div>
-          <Button
-            block
-            color="primary"
-            size="large"
-            style={{ marginTop: 24 }}
-            onClick={() => setShowAbout(false)}
-          >
-            知道了
-          </Button>
+          <Button block color="primary" size="large" style={{ marginTop: 28, borderRadius: 12 }} onClick={() => setShowAbout(false)}>知道了</Button>
         </div>
       </Popup>
     </div>
   )
 }
 
-// ── 个人资料弹窗组件 ──
-function ProfilePopup({
-  visible,
-  onClose,
-  profile,
-  onSaved,
-}: {
-  visible: boolean
-  onClose: () => void
+// ── 个人资料弹窗 ──
+function ProfilePopup({ visible, onClose, profile, onSaved }: {
+  visible: boolean; onClose: () => void
   profile: { nickname?: string; email?: string; phone?: string } | null
   onSaved: (patch: { nickname?: string; email?: string; phone?: string }) => void
 }) {
@@ -301,102 +215,50 @@ function ProfilePopup({
       onSaved(values)
       Toast.show({ icon: 'success', content: '资料已更新' })
       onClose()
-    } catch {
-      // 错误由 request 拦截器 Toast
-    } finally {
-      setSubmitting(false)
-    }
+    } catch { /* request 拦截器 Toast */ } finally { setSubmitting(false) }
   }
 
   return (
-    <Popup
-      visible={visible}
-      onMaskClick={onClose}
-      bodyStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: '85vh', overflowY: 'auto' }}
-      position="bottom"
-      destroyOnClose
-    >
-      <div style={{ padding: '16px 16px 24px' }}>
-        <NavBar onBack={onClose} right={null}>个人资料</NavBar>
+    <Popup visible={visible} onMaskClick={onClose} bodyStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '85vh', overflowY: 'auto' }} position="bottom" destroyOnClose>
+      <div style={{ padding: '0 20px 28px' }}>
+        <PopupHeader title="个人资料" onClose={onClose} />
         <Form
-          form={form}
-          layout="horizontal"
-          onFinish={handleFinish}
-          initialValues={{
-            nickname: profile?.nickname || '',
-            email: profile?.email || '',
-            phone: profile?.phone || '',
-          }}
-          footer={
-            <Button block color="primary" size="large" loading={submitting} onClick={() => form.submit()}>
-              保存
-            </Button>
-          }
+          form={form} layout="horizontal" onFinish={handleFinish}
+          initialValues={{ nickname: profile?.nickname || '', email: profile?.email || '', phone: profile?.phone || '' }}
+          footer={<Button block color="primary" size="large" loading={submitting} onClick={() => form.submit()} style={{ borderRadius: 12, marginTop: 8 }}>保存</Button>}
         >
-          <Form.Item name="nickname" label="昵称">
-            <Input placeholder="请输入昵称" />
-          </Form.Item>
-          <Form.Item name="email" label="邮箱">
-            <Input placeholder="请输入邮箱" type="email" />
-          </Form.Item>
-          <Form.Item name="phone" label="手机号">
-            <Input placeholder="请输入手机号" type="tel" />
-          </Form.Item>
+          <Form.Item name="nickname" label="昵称"><Input placeholder="请输入昵称" /></Form.Item>
+          <Form.Item name="email" label="邮箱"><Input placeholder="请输入邮箱" type="email" /></Form.Item>
+          <Form.Item name="phone" label="手机号"><Input placeholder="请输入手机号" type="tel" /></Form.Item>
         </Form>
       </div>
     </Popup>
   )
 }
 
-// ── 修改密码弹窗组件 ──
+// ── 修改密码弹窗 ──
 function PasswordPopup({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
 
   const handleFinish = async (values: { old_password: string; new_password: string; confirm: string }) => {
-    if (values.new_password !== values.confirm) {
-      Toast.show({ icon: 'fail', content: '两次输入的新密码不一致' })
-      return
-    }
-    if (values.new_password.length < 6) {
-      Toast.show({ icon: 'fail', content: '新密码至少6位' })
-      return
-    }
+    if (values.new_password !== values.confirm) { Toast.show({ icon: 'fail', content: '两次输入的新密码不一致' }); return }
+    if (values.new_password.length < 6) { Toast.show({ icon: 'fail', content: '新密码至少6位' }); return }
     setSubmitting(true)
     try {
-      await changePassword({
-        old_password: values.old_password,
-        new_password: values.new_password,
-      })
+      await changePassword({ old_password: values.old_password, new_password: values.new_password })
       Toast.show({ icon: 'success', content: '密码修改成功' })
-      form.resetFields()
-      onClose()
-    } catch {
-      // 错误由 request 拦截器 Toast
-    } finally {
-      setSubmitting(false)
-    }
+      form.resetFields(); onClose()
+    } catch { /* request 拦截器 Toast */ } finally { setSubmitting(false) }
   }
 
   return (
-    <Popup
-      visible={visible}
-      onMaskClick={onClose}
-      bodyStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: '85vh', overflowY: 'auto' }}
-      position="bottom"
-      destroyOnClose
-    >
-      <div style={{ padding: '16px 16px 24px' }}>
-        <NavBar onBack={onClose} right={null}>修改密码</NavBar>
+    <Popup visible={visible} onMaskClick={onClose} bodyStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '85vh', overflowY: 'auto' }} position="bottom" destroyOnClose>
+      <div style={{ padding: '0 20px 28px' }}>
+        <PopupHeader title="修改密码" onClose={onClose} />
         <Form
-          form={form}
-          layout="horizontal"
-          onFinish={handleFinish}
-          footer={
-            <Button block color="primary" size="large" loading={submitting} onClick={() => form.submit()}>
-              确认修改
-            </Button>
-          }
+          form={form} layout="horizontal" onFinish={handleFinish}
+          footer={<Button block color="primary" size="large" loading={submitting} onClick={() => form.submit()} style={{ borderRadius: 12, marginTop: 8 }}>确认修改</Button>}
         >
           <Form.Item name="old_password" label="当前密码" rules={[{ required: true, message: '请输入当前密码' }]}>
             <Input placeholder="请输入当前密码" type="password" />
@@ -404,7 +266,7 @@ function PasswordPopup({ visible, onClose }: { visible: boolean; onClose: () => 
           <Form.Item name="new_password" label="新密码" rules={[{ required: true, message: '请输入新密码' }]}>
             <Input placeholder="6-72位" type="password" />
           </Form.Item>
-          <Form.Item name="confirm" label="确认新密码" rules={[{ required: true, message: '请再次输入新密码' }]}>
+          <Form.Item name="confirm" label="确认密码" rules={[{ required: true, message: '请再次输入新密码' }]}>
             <Input placeholder="请再次输入新密码" type="password" />
           </Form.Item>
         </Form>

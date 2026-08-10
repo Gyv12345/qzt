@@ -2,188 +2,272 @@
 
 .mine-page {
   min-height: 100%;
-  padding-bottom: 32px;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
-/* ── 头部资料卡(品牌渐变) ── */
+/* ── 头部资料卡(品牌渐变 + 微纹理) ── */
 .mine-header {
   position: relative;
-  padding: calc(env(safe-area-inset-top) + 28px) 24px 40px;
+  padding: calc(env(safe-area-inset-top) + 36px) 24px 56px;
   background: var(--brand-gradient);
   color: var(--text-on-brand);
   overflow: hidden;
 }
+
+/* 装饰性大圆 1(右上) */
+.mine-header::before {
+  content: '';
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  right: -80px;
+  top: -120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+/* 装饰性大圆 2(左下,更小) */
 .mine-header::after {
   content: '';
   position: absolute;
-  width: 280px;
-  height: 280px;
-  right: -60px;
-  top: -100px;
+  width: 180px;
+  height: 180px;
+  left: -40px;
+  bottom: -60px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent 70%);
   pointer-events: none;
 }
+
 .mine-profile {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
+
 .mine-avatar {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.35);
-  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
+  letter-spacing: 1px;
 }
+
 .mine-name {
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 700;
+  letter-spacing: 0.5px;
 }
+
 .mine-username {
   font-size: 13px;
-  opacity: 0.8;
+  opacity: 0.75;
   margin-top: 3px;
 }
+
 .mine-roles {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 8px;
-}
-.mine-role-tag {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
+  margin-top: 10px;
 }
 
-/* ── 数据条 ── */
+.mine-role-tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ── 数据条(浮起卡片,与头部重叠) ── */
 .mine-stats-bar {
   display: flex;
-  margin: -24px 12px 0;
+  margin: -36px 16px 0;
   background: var(--bg-card);
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   position: relative;
   z-index: 1;
   overflow: hidden;
 }
+
 .mine-stats-item {
   flex: 1;
   text-align: center;
-  padding: 16px 0;
+  padding: 18px 0;
 }
+
 .mine-stats-item + .mine-stats-item {
   border-left: 1px solid var(--divider);
 }
+
 .mine-stats-num {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
+  letter-spacing: 0.5px;
 }
+
 .mine-stats-label {
   font-size: 11px;
   color: var(--text-tertiary);
-  margin-top: 2px;
+  margin-top: 3px;
+  letter-spacing: 1px;
 }
 
 /* ── 分组卡片 ── */
 .mine-group {
-  margin: 16px 12px 0;
+  margin: 14px 16px 0;
   background: var(--bg-card);
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
 }
+
 .mine-group-title {
   font-size: 12px;
+  font-weight: 600;
   color: var(--text-tertiary);
-  padding: 16px 16px 6px;
-  font-weight: 500;
+  padding: 16px 18px 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
+
 .mine-menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 14px;
+  padding: 15px 18px;
   cursor: pointer;
   transition: background 0.15s;
 }
+
 .mine-menu-item:active {
   background: var(--bg-tap);
 }
+
 .mine-menu-item + .mine-menu-item {
   border-top: 1px solid var(--divider);
 }
+
 .mine-menu-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 18px;
   flex-shrink: 0;
 }
+
 .mine-menu-label {
   flex: 1;
   font-size: 15px;
+  font-weight: 500;
   color: var(--text);
 }
+
 .mine-menu-extra {
   font-size: 13px;
   color: var(--text-tertiary);
 }
+
 .mine-arrow {
   color: var(--text-tertiary);
   font-size: 14px;
+  opacity: 0.6;
 }
 
 /* ── 主题选择器(内嵌菜单项) ── */
 .mine-theme-options {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-left: auto;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 3px;
 }
+
 .mine-theme-chip {
-  padding: 4px 12px;
-  border-radius: 14px;
+  padding: 5px 14px;
+  border-radius: 8px;
   font-size: 12px;
-  border: 1px solid var(--border);
+  font-weight: 500;
+  border: none;
   color: var(--text-secondary);
   background: transparent;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
+
 .mine-theme-chip.active {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
+  background: var(--bg-card);
+  color: var(--brand);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* ── 退出按钮 ── */
 .mine-logout {
-  margin: 24px 12px 0;
-  height: 50px;
-  border-radius: 14px;
+  margin: 20px 16px 0;
+  height: 52px;
+  border-radius: 16px;
   background: var(--bg-card);
   color: var(--danger);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   border: none;
-  width: calc(100% - 24px);
+  width: calc(100% - 32px);
   cursor: pointer;
   transition: background 0.15s;
 }
+
 .mine-logout:active {
   background: var(--bg-tap);
+}
+
+/* ── 弹窗内表单美化 ── */
+.mine-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 8px;
+}
+
+.mine-popup-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.mine-popup-close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  color: var(--text-tertiary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
