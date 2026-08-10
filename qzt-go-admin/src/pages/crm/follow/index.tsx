@@ -9,7 +9,6 @@ import {
   InputNumber,
   Popconfirm,
   Space,
-  Tabs,
   Typography,
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
@@ -28,7 +27,6 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import {
   convertFollowPlan,
   createFollowPlan,
-  createFollowRecord,
   deleteFollowPlan,
   listCustomers,
   listMyTodoPlans,
@@ -67,23 +65,12 @@ interface ConvertFormValues {
   follow_time: Dayjs
 }
 
-interface RecordFormValues {
-  type: string
-  content: string
-  follow_time: Dayjs
-  customer_id?: number
-  opportunity_id?: number
-  contact_id?: number
-  contract_id?: number
-}
-
 export default function CrmFollowPage() {
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [createForm] = Form.useForm<PlanFormValues>()
   const [editForm] = Form.useForm<PlanEditFormValues>()
   const [convertForm] = Form.useForm<ConvertFormValues>()
-  const [recordForm] = Form.useForm<RecordFormValues>()
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [convertOpen, setConvertOpen] = useState(false)
@@ -190,22 +177,6 @@ export default function CrmFollowPage() {
     actionRef.current?.reload()
   }
 
-  const handleCreateRecord = async (values: RecordFormValues) => {
-    const payload: CrmFollowRecordPayload = {
-      type: values.type,
-      content: values.content,
-      follow_time: values.follow_time.format(TIME_FORMAT),
-      customer_id: values.customer_id,
-      opportunity_id: values.opportunity_id,
-      contact_id: values.contact_id,
-      contract_id: values.contract_id,
-    }
-    await createFollowRecord(payload)
-    message.success('跟进记录已创建')
-    recordForm.resetFields()
-    recordForm.setFieldValue('follow_time', dayjs())
-  }
-
   const relationFields = (
     <>
       <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
@@ -296,84 +267,24 @@ export default function CrmFollowPage() {
 
   return (
     <Card>
-      <Tabs
-        items={[
-          {
-            key: 'todo',
-            label: '我的待办计划',
-            children: (
-              <ProTable<CrmFollowPlan>
-                rowKey="id"
-                actionRef={actionRef}
-                columns={columns}
-                scroll={{ x: 'max-content' }}
-                search={false}
-                pagination={false}
-                request={async () => {
-                  const data = await listMyTodoPlans()
-                  return { data, success: true }
-                }}
-                headerTitle="待办计划"
-                toolBarRender={() => [
-                  <Auth perm="crm:follow:add" key="add">
-                    <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-                      新建跟进计划
-                    </Button>
-                  </Auth>,
-                ]}
-              />
-            ),
-          },
-          {
-            key: 'record',
-            label: '写跟进记录',
-            children: (
-              <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16 }}>
-                <Auth perm="crm:follow:add">
-                  <ProForm<RecordFormValues>
-                    form={recordForm}
-                    style={{ width: 640 }}
-                    grid
-                    initialValues={{ follow_time: dayjs() }}
-                    submitter={{ searchConfig: { submitText: '提交', resetText: '重置' } }}
-                    onFinish={handleCreateRecord}
-                  >
-                    <Col span={12}>
-                      <ProForm.Item
-                        name="type"
-                        label="跟进类型"
-                        rules={[{ required: true, message: '请选择跟进类型' }]}
-                      >
-                        <DictSelect code="FOLLOW_UP_TYPE" placeholder="选择跟进类型" />
-                      </ProForm.Item>
-                    </Col>
-                    <Col span={12}>
-                      <ProForm.Item name="customer_id" label="关联客户">
-                        <CustomerSelect />
-                      </ProForm.Item>
-                    </Col>
-                    <ProFormTextArea
-                      name="content"
-                      label="跟进内容"
-                      fieldProps={{ rows: 4, placeholder: '记录本次跟进的内容' }}
-                      rules={[{ required: true, message: '请输入跟进内容' }]}
-                      colProps={{ span: 24 }}
-                    />
-                    <Col span={12}>
-                      <ProForm.Item
-                        name="follow_time"
-                        label="跟进时间"
-                        rules={[{ required: true, message: '请选择跟进时间' }]}
-                      >
-                        <DatePicker showTime style={{ width: '100%' }} placeholder="选择跟进时间" />
-                      </ProForm.Item>
-                    </Col>
-                    {relationFields}
-                  </ProForm>
-                </Auth>
-              </div>
-            ),
-          },
+      <ProTable<CrmFollowPlan>
+        rowKey="id"
+        actionRef={actionRef}
+        columns={columns}
+        scroll={{ x: 'max-content' }}
+        search={false}
+        pagination={false}
+        request={async () => {
+          const data = await listMyTodoPlans()
+          return { data, success: true }
+        }}
+        headerTitle="待办计划"
+        toolBarRender={() => [
+          <Auth perm="crm:follow:add" key="add">
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+              新建跟进计划
+            </Button>
+          </Auth>,
         ]}
       />
 
