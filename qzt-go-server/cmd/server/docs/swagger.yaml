@@ -3009,6 +3009,34 @@ paths:
       summary: 删除附件记录
       tags:
       - 附件
+  /api/calendar:
+    get:
+      description: 聚合各业务模块(日程/跟进/商机/回款/会议/出差/请假/工作日志/项目/任务/应收/绩效)带日期的待办,仅返回当前用户的
+      parameters:
+      - description: 开始日期(YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期(YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: 来源(逗号分隔),省略=全部。可选:schedule,followup,opportunity,payment,meeting,trip,leave,worklog,project,task,receivable,performance
+        in: query
+        name: sources
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 统一日历
+      tags:
+      - 日历
   /api/configs/public:
     get:
       description: 返回标记为 is_public 的配置项(key->value),供前端启动引导使用,免鉴权
@@ -11272,6 +11300,29 @@ paths:
       tags:
       - 认证
   /system/auth/wecom/bind-callback:
+    get:
+      description: 企业微信扫码后重定向到此端点,后端完成绑定后 302 跳到前端结果页
+      parameters:
+      - description: 企业微信授权码
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: CSRF state
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect
+          schema:
+            type: string
+      summary: 企业微信绑定回调重定向(公开)
+      tags:
+      - 认证
     post:
       consumes:
       - application/json

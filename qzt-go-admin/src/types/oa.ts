@@ -189,6 +189,39 @@ export const SCHEDULE_STATUS_MAP: Record<string, { text: string; color: string }
   CANCELED: { text: '已取消', color: 'default' },
 }
 
+// ==================== 统一日历(聚合各模块待办) ====================
+
+/** 统一日历事件(后端 GET /api/calendar 返回) */
+export interface CalendarEvent {
+  id: number
+  /** 来源:schedule/followup/opportunity/payment/meeting/trip/leave/worklog/project/task/receivable/performance */
+  source: string
+  title: string
+  /** datetime 或 date 字符串 */
+  start_time: string
+  end_time: string
+  all_day: boolean
+}
+
+/** 日历来源配置:标签 / antd Badge 颜色 / 点击跳转链接 */
+export const CALENDAR_SOURCE_CONFIG: Record<string, { label: string; color: string; link: (id: number) => string }> = {
+  schedule: { label: '日程', color: 'blue', link: () => '/oa/schedule' },
+  followup: { label: '跟进计划', color: 'gold', link: () => '/crm/follow' },
+  opportunity: { label: '商机', color: 'green', link: () => '/crm/opportunity' },
+  payment: { label: '回款', color: 'cyan', link: () => '/crm/contract' },
+  meeting: { label: '会议', color: 'purple', link: () => '/oa/meeting-booking' },
+  trip: { label: '出差', color: 'orange', link: () => '/oa/trip' },
+  leave: { label: '请假', color: 'red', link: () => '/oa/leave' },
+  worklog: { label: '工作日志', color: 'default', link: () => '/oa/work-log' },
+  project: { label: '项目', color: 'geekblue', link: () => '/project/list' },
+  task: { label: '任务', color: 'lime', link: () => '/project/list' },
+  receivable: { label: '应收应付', color: 'magenta', link: () => '/finance/receivable' },
+  performance: { label: '绩效', color: 'volcano', link: () => '/hrm/performance' },
+}
+
+/** 全部来源 key(用于默认全选) */
+export const CALENDAR_SOURCE_KEYS = Object.keys(CALENDAR_SOURCE_CONFIG)
+
 // ==================== 会议室 ====================
 
 /** 会议室 */

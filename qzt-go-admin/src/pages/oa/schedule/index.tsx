@@ -1,52 +1,81 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { App, Button, Calendar, Card, Popconfirm, Space, Tag, Badge } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { App, Button, Calendar, Card, Checkbox, Popconfirm, Space, Tag } from 'antd'
 import type { Dayjs } from 'dayjs'
 import { PlusOutlined, TableOutlined, CalendarOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
-import { deleteSchedule, listSchedules, listScheduleCalendar } from '../../../services/oa'
-import { SCHEDULE_TYPE_MAP, SCHEDULE_STATUS_MAP, type OaSchedule } from '../../../types/oa'
+import { deleteSchedule, listSchedules } from '../../../services/oa'
+import { listCalendarEvents } from '../../../services/dashboard'
+import {
+  SCHEDULE_TYPE_MAP,
+  SCHEDULE_STATUS_MAP,
+  CALENDAR_SOURCE_CONFIG,
+  CALENDAR_SOURCE_KEYS,
+  type OaSchedule,
+  type CalendarEvent,
+} from '../../../types/oa'
 import ScheduleEditModal from './EditModal'
 
 export default function SchedulePage() {
   const { message } = App.useApp()
+  const navigate = useNavigate()
   const actionRef = useRef<ActionType>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
-  const [calendarData, setCalendarData] = useState<OaSchedule[]>([])
+  const [calendarData, setCalendarData] = useState<CalendarEvent[]>([])
   const [calendarMonth, setCalendarMonth] = useState<Dayjs>()
+  // 来源筛选(默认全选)
+  const [sources, setSources] = useState<string[]>(CALENDAR_SOURCE_KEYS)
 
-  // 加载日历数据
-  const loadCalendar = useCallback(async (month: Dayjs) => {
+  // 加载日历聚合数据
+  const loadCalendar = useCallback(async (month: Dayjs, selectedSources: string[]) => {
+    // 来源全取消时直接清空(后端约定 sources 为空=全部,前端需显式区分)
+    if (selectedSources.length === 0) {
+      setCalendarData([])
+      return
+    }
     const startDate = month.startOf('month').subtract(7, 'day').format('YYYY-MM-DD')
     const endDate = month.endOf('month').add(7, 'day').format('YYYY-MM-DD')
-    const res = await listScheduleCalendar(startDate, endDate)
-    setCalendarData(res.list || [])
+    try {
+      const res = await listCalendarEvents(startDate, endDate, selectedSources)
+      setCalendarData(res.list || [])
+    } catch {
+      setCalendarData([])
+    }
   }, [])
 
   useEffect(() => {
     if (viewMode === 'calendar' && calendarMonth) {
-      loadCalendar(calendarMonth)
+      loadCalendar(calendarMonth, sources)
     }
-  }, [viewMode, calendarMonth, loadCalendar])
+  }, [viewMode, calendarMonth, sources, loadCalendar])
 
-  // 获取某天的日程
-  const getSchedulesByDay = (date: Dayjs): OaSchedule[] => {
+  // 获取某天的事件(按 start_time 的日期部分匹配)
+  const getEventsByDay = (date: Dayjs): CalendarEvent[] => {
     const dayStr = date.format('YYYY-MM-DD')
-    return calendarData.filter((s) => {
-      const startDay = s.start_time?.slice(0, 10)
-      return startDay === dayStr
-    })
+    return calendarData.filter((e) => (e.start_time || '').slice(0, 10) === dayStr)
   }
 
   const handleDelete = async (id: number) => {
     await deleteSchedule(id)
     message.success('已删除')
     if (viewMode === 'calendar' && calendarMonth) {
-      loadCalendar(calendarMonth)
+      loadCalendar(calendarMonth, sources)
     }
     actionRef.current?.reload()
+  }
+
+  // 点击事件:schedule 来源→打开编辑弹窗;其他来源→跳转对应模块
+  const handleEventClick = (ev: CalendarEvent) => {
+    if (ev.source === 'schedule') {
+      setEditingId(ev.id)
+      setEditOpen(true)
+      return
+    }
+    const cfg = CALENDAR_SOURCE_CONFIG[ev.source]
+    if (cfg) navigate(cfg.link(ev.id))
   }
 
   const columns: ProColumns<OaSchedule>[] = [
@@ -108,21 +137,46 @@ export default function SchedulePage() {
     },
   ]
 
-  // 日历单元格渲染
+  // 日历单元格渲染:按来源配色,点击交互
   const dateCellRender = (date: Dayjs) => {
-    const list = getSchedulesByDay(date)
+    const list = getEventsByDay(date)
     if (list.length === 0) return null
     return (
       <div style={{ maxHeight: 80, overflow: 'hidden' }}>
-        {list.slice(0, 3).map((s) => {
-          const m = SCHEDULE_TYPE_MAP[s.event_type] ?? SCHEDULE_TYPE_MAP.OTHER
+        {list.slice(0, 3).map((ev) => {
+          const cfg = CALENDAR_SOURCE_CONFIG[ev.source] || { color: 'default' }
+          const timePrefix = ev.all_day ? '' : (ev.start_time?.slice(11, 16) + ' ')
           return (
-            <div key={s.id} style={{ marginBottom: 2 }}>
-              <Badge color={m.color === 'default' ? '#d9d9d9' : undefined} status={m.color === 'default' ? 'default' : ('processing' as const)} text={
-                <span style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', maxWidth: 80 }}>
-                  {s.start_time?.slice(11, 16)} {s.title}
-                </span>
-              } />
+            <div
+              key={ev.source + '_' + ev.id}
+              onClick={() => handleEventClick(ev)}
+              style={{ marginBottom: 2, cursor: 'pointer' }}
+              title={ev.title}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: dotColor(cfg.color),
+                  marginRight: 4,
+                  verticalAlign: 'middle',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 12,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  display: 'inline-block',
+                  maxWidth: 88,
+                  verticalAlign: 'middle',
+                }}
+              >
+                {timePrefix}{ev.title}
+              </span>
             </div>
           )
         })}
@@ -138,7 +192,7 @@ export default function SchedulePage() {
 
   const onSuccess = () => {
     if (viewMode === 'calendar' && calendarMonth) {
-      loadCalendar(calendarMonth)
+      loadCalendar(calendarMonth, sources)
     }
     actionRef.current?.reload()
   }
@@ -148,7 +202,7 @@ export default function SchedulePage() {
       <Card
         title="日程安排"
         extra={
-          <Space>
+          <Space wrap>
             <Button
               type={viewMode === 'calendar' ? 'primary' : 'default'}
               icon={<CalendarOutlined />}
@@ -170,13 +224,30 @@ export default function SchedulePage() {
         }
       >
         {viewMode === 'calendar' ? (
-          <Calendar
-            onPanelChange={(date) => setCalendarMonth(date)}
-            cellRender={(date, info) => {
-              if (info.type === 'date') return dateCellRender(date)
-              return info.originNode
-            }}
-          />
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <Checkbox.Group
+                value={sources}
+                onChange={(vals) => setSources(vals as string[])}
+                options={CALENDAR_SOURCE_KEYS.map((k) => ({
+                  label: (
+                    <span>
+                      <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: dotColor(CALENDAR_SOURCE_CONFIG[k].color), marginRight: 6, verticalAlign: 'middle' }} />
+                      {CALENDAR_SOURCE_CONFIG[k].label}
+                    </span>
+                  ),
+                  value: k,
+                }))}
+              />
+            </div>
+            <Calendar
+              onPanelChange={(date) => setCalendarMonth(date)}
+              cellRender={(date, info) => {
+                if (info.type === 'date') return dateCellRender(date)
+                return info.originNode
+              }}
+            />
+          </>
         ) : (
           <ProTable<OaSchedule>
             rowKey="id"
@@ -197,4 +268,14 @@ export default function SchedulePage() {
       <ScheduleEditModal open={editOpen} editingId={editingId} onOpenChange={setEditOpen} onSuccess={onSuccess} />
     </>
   )
+}
+
+// antd 预设色名 → 可用 CSS 颜色(用于日历圆点,非 Badge 组件场景)
+const COLOR_MAP: Record<string, string> = {
+  blue: '#1677ff', gold: '#faad14', green: '#52c41a', cyan: '#13c2c2',
+  purple: '#722ed1', orange: '#fa8c16', red: '#f5222d', default: '#d9d9d9',
+  geekblue: '#2f54eb', lime: '#a0d911', magenta: '#eb2f96', volcano: '#fa541c',
+}
+function dotColor(c: string): string {
+  return COLOR_MAP[c] || '#d9d9d9'
 }

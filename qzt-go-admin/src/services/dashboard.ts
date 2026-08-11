@@ -69,3 +69,13 @@ export const getStockValueByWarehouse = () =>
 
 export const getSalesVsPurchase = (months = 6) =>
   request.get<unknown, SalesVsPurchaseItem[]>('/api/dashboard/sales-vs-purchase', { params: { months } })
+
+// ---------- 统一日历(聚合各模块待办) ----------
+
+import type { CalendarEvent } from '../types/oa'
+
+/** 统一日历:聚合各业务模块带日期的待办(仅当前用户)。sources 省略=全部 */
+export const listCalendarEvents = (startDate: string, endDate: string, sources?: string[]) =>
+  request.get<unknown, { list: CalendarEvent[] }>('/api/calendar', {
+    params: { start_date: startDate, end_date: endDate, sources: sources?.join(',') },
+  })

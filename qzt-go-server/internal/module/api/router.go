@@ -25,6 +25,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	uploadHandler := handler.NewUploadHandler()
 	attachmentHandler := handler.NewAttachmentHandler()
 	dashboardHandler := handler.NewDashboardHandler()
+	calendarHandler := handler.NewCalendarHandler()
 
 	// 公开路由(无需鉴权)
 	rg.GET("/health", healthHandler.Health)
@@ -63,5 +64,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// BI 扩展:进销存
 		authenticated.GET("/dashboard/stock-value-by-warehouse", dashboardHandler.StockValueByWarehouse)
 		authenticated.GET("/dashboard/sales-vs-purchase", dashboardHandler.SalesVsPurchase)
+
+		// 统一日历:聚合各业务模块带日期的待办(仅当前用户)
+		authenticated.GET("/calendar", calendarHandler.Calendar)
 	}
 }

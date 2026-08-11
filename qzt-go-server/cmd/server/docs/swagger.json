@@ -121,6 +121,51 @@
                 }
             }
         },
+        "/api/calendar": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "聚合各业务模块(日程/跟进/商机/回款/会议/出差/请假/工作日志/项目/任务/应收/绩效)带日期的待办,仅返回当前用户的",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "日历"
+                ],
+                "summary": "统一日历",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始日期(YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束日期(YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "来源(逗号分隔),省略=全部。可选:schedule,followup,opportunity,payment,meeting,trip,leave,worklog,project,task,receivable,performance",
+                        "name": "sources",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/configs/public": {
             "get": {
                 "description": "返回标记为 is_public 的配置项(key-\u003evalue),供前端启动引导使用,免鉴权",
@@ -13556,6 +13601,40 @@
             }
         },
         "/system/auth/wecom/bind-callback": {
+            "get": {
+                "description": "企业微信扫码后重定向到此端点,后端完成绑定后 302 跳到前端结果页",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "企业微信绑定回调重定向(公开)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "企业微信授权码",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CSRF state",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "跨设备扫码绑定的回调端点,用 state 关联用户,无需登录态",
                 "consumes": [
