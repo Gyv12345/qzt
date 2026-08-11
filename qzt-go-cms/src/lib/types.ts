@@ -110,4 +110,35 @@ export interface SiteInfo {
   icp_beian: string;
   public_security_beian: string;
   public_security_beian_url: string;
+  hero_badge?: string;
+  hero_title?: string;
+  hero_subtitle?: string;
+  favicon_url?: string;
+  keywords?: string;
+}
+
+// ── 首页板块配置(来自 /system/public/homepage-config) ──
+
+export interface HomepageSectionItem {
+  id: number;
+  name: string;
+  image_url?: string;
+  description?: string;
+  category?: string;
+  level?: string;
+  industry?: string;
+  source?: string;
+  avatar?: string;
+  position?: string;
+}
+
+export interface HomepageSection {
+  enabled: boolean;
+  items: HomepageSectionItem[];
+}
+
+export interface HomepageConfig {
+  product?: HomepageSection;
+  partner?: HomepageSection;
+  team?: HomepageSection;
 }

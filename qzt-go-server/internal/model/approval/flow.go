@@ -14,7 +14,8 @@ type ApprovalFlow struct {
 	CurrentVersionID     *uint  `json:"current_version_id" gorm:"comment:当前激活版本ID"`
 	Number               string `json:"number" gorm:"size:50;comment:流程编号"`
 	Name                 string `json:"name" gorm:"size:255;not null;comment:流程名称"`
-	FormType             string `json:"form_type" gorm:"size:50;not null;uniqueIndex:uk_flow_form_type;comment:表单类型(CONTRACT/QUOTATION/ORDER/INVOICE)"`
+	FormType             string `json:"form_type" gorm:"size:50;not null;uniqueIndex:uk_flow_form_type,priority:1;comment:表单类型(CONTRACT/QUOTATION/ORDER/INVOICE)"`
+	FormKey              string `json:"form_key" gorm:"size:64;not null;default:'';uniqueIndex:uk_flow_form_type,priority:2;comment:表单标识(OA_CUSTOM 按模板细分,空=通用)"`
 	CreateExecute        int8   `json:"create_execute" gorm:"default:1;comment:新建触发(1启用0禁用)"`
 	UpdateExecute        int8   `json:"update_execute" gorm:"default:1;comment:更新触发"`
 	SubmitterCanRevoke   int8   `json:"submitter_can_revoke" gorm:"default:1;comment:提交人可撤回"`
@@ -23,7 +24,7 @@ type ApprovalFlow struct {
 	AllowAddSign         int8   `json:"allow_add_sign" gorm:"default:0;comment:允许加签"`
 	DuplicateApproverRule string `json:"duplicate_approver_rule" gorm:"size:20;default:FIRST_ONLY;comment:重复审批人规则"`
 	RequireComment       int8   `json:"require_comment" gorm:"default:0;comment:强制备注"`
-	Enable               int8   `json:"enable" gorm:"default:1;index;comment:启用(1是0否)"`
+	Enable               int8   `json:"enable" gorm:"index;comment:启用(1是0否);不带default标签,否则GORM插入0时会被DB默认值1覆盖"`
 	IsPreset             int8   `json:"is_preset" gorm:"default:0;comment:系统预置(1是0否),预置流程不可删除"`
 	StatusPermissions    string `json:"status_permissions" gorm:"type:text;comment:基于业务状态的字段权限JSON"`
 	Description          string `json:"description" gorm:"size:3000;comment:描述"`

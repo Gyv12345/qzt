@@ -33,6 +33,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	oauthConfigHandler := handler.NewOauthConfigHandler()
 	apiKeyHandler := handler.NewApiKeyHandler()
 	siteConfigHandler := handler.NewSiteConfigHandler()
+	homepageConfigHandler := handler.NewHomepageConfigHandler()
 
 	// 公开路由（无需鉴权）：登录、刷新令牌、企业微信扫码登录、已启用第三方登录列表
 	rg.POST("/auth/login", middleware.LoginLimit(), authHandler.Login)
@@ -46,6 +47,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 	// 公开路由(免鉴权):官网团队展示
 	rg.GET("/public/team", userHandler.PublicTeam)
+
+	// 公开路由(免鉴权):CMS 首页板块配置
+	rg.GET("/public/homepage-config", homepageConfigHandler.PublicHomepage)
 
 	// 已认证路由（仅 JWT，无 RBAC）：个人资料、下拉选项等查询
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
@@ -144,5 +148,11 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 站点信息设置
 		auth.PUT("/site-config", siteConfigHandler.Update)
+
+		// 首页板块配置
+		auth.GET("/homepage-config", homepageConfigHandler.GetConfig)
+		auth.PUT("/homepage-config/toggle", homepageConfigHandler.ToggleModule)
+		auth.PUT("/homepage-config/sync", homepageConfigHandler.SyncFeatures)
+		auth.DELETE("/homepage-config/features/:id", homepageConfigHandler.RemoveFeature)
 	}
 }

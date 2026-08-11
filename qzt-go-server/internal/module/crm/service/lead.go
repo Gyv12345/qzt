@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"qzt-go-server/internal/model"
+	"qzt-go-server/internal/model/base"
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/pkg/diff"
@@ -36,6 +37,7 @@ type LeadService struct {
 	repo        *crrepo.LeadRepo
 	historyRepo *crrepo.LeadOwnerHistoryRepo
 	custRepo    *crrepo.CustomerRepo
+	contactRepo *crrepo.CustomerContactRepo
 }
 
 func NewLeadService() *LeadService {
@@ -43,6 +45,7 @@ func NewLeadService() *LeadService {
 		repo:        crrepo.NewLeadRepo(),
 		historyRepo: crrepo.NewLeadOwnerHistoryRepo(),
 		custRepo:    crrepo.NewCustomerRepo(),
+		contactRepo: crrepo.NewCustomerContactRepo(),
 	}
 }
 
@@ -284,7 +287,8 @@ func (s *LeadService) UpdateFollow(ctx context.Context, id, followerID uint, fol
 
 // ── 转化为客户 ──
 
-// Convert 将线索转化为客户:创建 CrmCustomer(复制基本信息),回写线索转化状态。
+// Convert 将线索转化为客户:创建 CrmCustomer(复制基本信息),并在线索带有联系人信息时
+// 同步创建一条 CrmCustomerContact(电话/邮箱/姓名带过去),最后回写线索转化状态。
 // 已转化的线索不可重复转化。
 func (s *LeadService) Convert(ctx context.Context, leadID, currentUserID uint) (*crmmodel.CrmCustomer, error) {
 	lead, err := s.repo.GetByID(ctx, leadID)
@@ -313,6 +317,25 @@ func (s *LeadService) Convert(ctx context.Context, leadID, currentUserID uint) (
 	err = repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.custRepo.Create(ctx, customer); err != nil {
 			return err
+		}
+		// 线索带有联系人信息时,同步创建一条联系人(Name 缺失则用线索名兜底,避免丢电话/邮箱)。
+		if lead.ContactName != "" || lead.Phone != "" || lead.Email != "" {
+			contactName := lead.ContactName
+			if contactName == "" {
+				contactName = lead.Name
+			}
+			contactNo, _ := numbergen.Generate(ctx, "contact")
+			contact := &crmmodel.CrmCustomerContact{
+				CustomerID: customer.ID,
+				Name:       contactName,
+				ContactNo:  contactNo,
+				Phone:      lead.Phone,
+				Email:      lead.Email,
+				Status:     base.StatusEnabled,
+			}
+			if err := s.contactRepo.Create(ctx, contact); err != nil {
+				return err
+			}
 		}
 		lead.ConvertedCustomerID = &customer.ID
 		lead.ConvertedAt = xtime.NewNullDateTimeFromTime(now)

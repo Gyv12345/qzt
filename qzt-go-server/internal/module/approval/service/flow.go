@@ -47,6 +47,7 @@ type FlowDetail struct {
 type CreateFlowRequest struct {
 	Name      string `json:"name" binding:"required"`
 	FormType  string `json:"form_type" binding:"required"`
+	FormKey   string `json:"form_key"`
 	Number    string `json:"number"`
 	Enable    int8   `json:"enable"`
 }
@@ -56,8 +57,8 @@ func (s *FlowService) Create(ctx context.Context, req *CreateFlowRequest) (*appr
 	if !isValidFormType(req.FormType) {
 		return nil, errors.New("不支持的表单类型: " + req.FormType)
 	}
-	// 检查 formType 是否已有流程(每个 formType 仅一个)
-	if existing, err := s.flowRepo.GetEnabledFlow(ctx, req.FormType); err == nil && existing != nil {
+	// 检查 formType+formKey 是否已有流程(每个组合仅一个)
+	if existing, err := s.flowRepo.GetByFormType(ctx, req.FormType, req.FormKey); err == nil && existing != nil {
 		return nil, errors.New("表单类型 " + req.FormType + " 已有流程")
 	}
 	enable := int8(1)
@@ -67,6 +68,7 @@ func (s *FlowService) Create(ctx context.Context, req *CreateFlowRequest) (*appr
 	flow := &apprmodel.ApprovalFlow{
 		Name:    req.Name,
 		FormType: req.FormType,
+		FormKey: req.FormKey,
 		Number:  req.Number,
 		Enable:  enable,
 	}
@@ -128,14 +130,15 @@ var formTypeMeta = map[string]string{
 	apprmodel.FormTypeCustomForm:     "自定义表单审批",
 }
 
-// GetByFormType 按 form_type 查流程;不存在则自动创建预置流程(不启用)。
+// GetByFormType 按 form_type(+form_key) 查流程;不存在则自动创建预置流程(不启用)。
 // 供各业务模块通过 form_type 直接获取审批流配置入口。
-func (s *FlowService) GetByFormType(ctx context.Context, formType string) (*apprmodel.ApprovalFlow, error) {
+// form_key 仅 OA_CUSTOM 使用:每个表单模板一条独立审批流;空串=该类型的通用流程。
+func (s *FlowService) GetByFormType(ctx context.Context, formType, formKey string) (*apprmodel.ApprovalFlow, error) {
 	if !isValidFormType(formType) {
 		return nil, errors.New("不支持的表单类型: " + formType)
 	}
 	// 查已有流程(含禁用的)
-	flow, err := s.flowRepo.GetByFormType(ctx, formType)
+	flow, err := s.flowRepo.GetByFormType(ctx, formType, formKey)
 	if err == nil && flow != nil {
 		return flow, nil
 	}
@@ -144,9 +147,13 @@ func (s *FlowService) GetByFormType(ctx context.Context, formType string) (*appr
 	if name == "" {
 		name = formType + "审批"
 	}
+	if formKey != "" {
+		name = formKey + "审批"
+	}
 	preset := &apprmodel.ApprovalFlow{
 		Name:     name,
 		FormType: formType,
+		FormKey:  formKey,
 		Enable:   0,
 		IsPreset: 1,
 	}

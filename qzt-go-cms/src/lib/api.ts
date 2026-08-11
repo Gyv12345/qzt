@@ -3,6 +3,7 @@ import type {
   Article,
   Category,
   CmsPage,
+  HomepageConfig,
   PageData,
   Partner,
   Product,
@@ -101,6 +102,11 @@ export async function getPages(): Promise<CmsPage[]> {
   } catch {
     return [];
   }
+}
+
+// ── 首页板块配置(公开, 免鉴权) ──
+export function getHomepageConfig(): Promise<HomepageConfig> {
+  return request<HomepageConfig>("/system/public/homepage-config");
 }
 
 // ── 站点配置 ──

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { App, Button, Drawer, Popconfirm, Space, Tag } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { App, Button, Drawer, Modal, Popconfirm, Space, Tag } from 'antd'
+import { PlusOutlined, SettingOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { deleteFormTemplate, listFormTemplates, toggleFormTemplate } from '../../../services/oa'
@@ -13,6 +13,7 @@ export default function FormTemplatePage() {
   const actionRef = useRef<ActionType>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [flowTpl, setFlowTpl] = useState<OaFormTemplate | null>(null)
 
   const handleDelete = async (id: number) => {
     await deleteFormTemplate(id)
@@ -60,12 +61,15 @@ export default function FormTemplatePage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 180,
+      width: 250,
       fixed: 'right',
       render: (_, record) => (
         <Space>
           <Auth perm="oa:form:edit">
             <Button type="link" size="small" onClick={() => { setEditingId(record.id); setEditOpen(true) }}>设计</Button>
+          </Auth>
+          <Auth perm="approval:flow:design">
+            <Button type="link" size="small" icon={<SettingOutlined />} onClick={() => setFlowTpl(record)}>审批流</Button>
           </Auth>
           <Auth perm="oa:form:edit">
             <Button type="link" size="small" onClick={() => handleToggle(record.id)}>
@@ -99,12 +103,7 @@ export default function FormTemplatePage() {
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新建表单</Button>
           </Auth>,
         ]}
-        headerTitle={
-          <Space align="center">
-            <span>表单管理</span>
-            <ApprovalFlowSetup formType="OA_CUSTOM" label="自定义表单审批" />
-          </Space>
-        }
+        headerTitle="表单管理"
       />
       <Drawer
         title={editingId ? '编辑表单模板' : '新建表单模板'}
@@ -124,6 +123,18 @@ export default function FormTemplatePage() {
           }}
         />
       </Drawer>
+      {/* 每个表单模板一条独立审批流(OA_CUSTOM + form_key) */}
+      <Modal
+        title={flowTpl ? `审批流配置 - ${flowTpl.name}` : '审批流配置'}
+        open={flowTpl !== null}
+        onCancel={() => setFlowTpl(null)}
+        footer={null}
+        destroyOnHidden
+      >
+        {flowTpl && (
+          <ApprovalFlowSetup formType="OA_CUSTOM" formKey={flowTpl.form_key} label={flowTpl.name} />
+        )}
+      </Modal>
     </>
   )
 }

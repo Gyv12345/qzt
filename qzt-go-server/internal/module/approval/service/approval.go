@@ -7,8 +7,9 @@ import (
 	"fmt"
 
 	apprmodel "qzt-go-server/internal/model/approval"
-	apprrepo "qzt-go-server/internal/repository/approval"
 	"qzt-go-server/internal/repository"
+	apprrepo "qzt-go-server/internal/repository/approval"
+	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xlogger"
 	"qzt-go-server/pkg/xtime"
@@ -27,6 +28,7 @@ type ApprovalService struct {
 	instanceRepo *apprrepo.InstanceRepo
 	taskRepo     *apprrepo.TaskRepo
 	recordRepo   *apprrepo.RecordRepo
+	formDataRepo *oarepo.FormDataRepo
 }
 
 func NewApprovalService() *ApprovalService {
@@ -38,6 +40,7 @@ func NewApprovalService() *ApprovalService {
 		instanceRepo: apprrepo.NewInstanceRepo(),
 		taskRepo:     apprrepo.NewTaskRepo(),
 		recordRepo:   apprrepo.NewRecordRepo(),
+		formDataRepo: oarepo.NewFormDataRepo(),
 	}
 }
 
@@ -54,7 +57,18 @@ func (s *ApprovalService) Push(ctx context.Context, req *PushRequest, submitterI
 	if !isValidFormType(req.FormType) {
 		return nil, errors.New("不支持的表单类型: " + req.FormType)
 	}
-	flow, err := s.flowRepo.GetEnabledFlow(ctx, req.FormType)
+	// OA_CUSTOM 按 resource 查 template_key,实现每个表单模板一条独立审批流;
+	// 找不到模板专属启用流程时回退到 OA_CUSTOM 通用流程(form_key='')。
+	formKey := ""
+	if req.FormType == apprmodel.FormTypeCustomForm {
+		if fd, err := s.formDataRepo.GetByID(ctx, req.ResourceID); err == nil && fd != nil {
+			formKey = fd.TemplateKey
+		}
+	}
+	flow, err := s.flowRepo.GetEnabledFlow(ctx, req.FormType, formKey)
+	if err != nil && formKey != "" {
+		flow, err = s.flowRepo.GetEnabledFlow(ctx, req.FormType, "")
+	}
 	if err != nil {
 		return nil, errors.New("未启用审批流程: " + req.FormType)
 	}

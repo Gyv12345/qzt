@@ -1,27 +1,58 @@
 import Link from "next/link";
-import { getArticles, getPartners, getProducts, getSiteConfig, getTeam } from "@/lib/api";
+import { getArticles, getHomepageConfig, getSiteConfig } from "@/lib/api";
 import { ArticleCard, PartnerCard, ProductCard, TeamCard } from "@/components/Cards";
 import { EmptyState } from "@/components/EmptyState";
 import { SITE } from "@/lib/site";
+import type { HomepageSectionItem, Partner, Product, TeamMember } from "@/lib/types";
 
 // 首页 ISR: 每 5 分钟重新生成, 兼顾实时数据与性能。
 export const revalidate = 300;
 
+// 将首页配置返回的通用条目映射为卡片所需的类型。
+function toProduct(item: HomepageSectionItem): Product {
+  return {
+    id: item.id,
+    name: item.name,
+    product_no: "",
+    category: item.category || "",
+    unit: "",
+    standard_price: "0",
+    status: 1,
+    image_url: item.image_url || "",
+    description: item.description || "",
+  };
+}
+function toPartner(item: HomepageSectionItem): Partner {
+  return { id: item.id, name: item.name, level: item.level || "", industry: item.industry || "", source: item.source || "" };
+}
+function toTeamMember(item: HomepageSectionItem): TeamMember {
+  return { id: item.id, nickname: item.name, avatar: item.avatar || "", position: item.position || "" };
+}
+
 export default async function HomePage() {
-  // 并行拉取各板块数据。任一接口失败不阻断整页, 该板块降级为空。
-  const [productsRes, partnersRes, teamRes, newsRes, siteCfg] = await Promise.all([
-    getProducts({ page_size: 6 }).catch(() => ({ list: [], total: 0 })),
-    getPartners({ page_size: 8 }).catch(() => ({ list: [], total: 0 })),
-    getTeam({ page_size: 4 }).catch(() => ({ list: [], total: 0 })),
+  // 并行拉取首页板块配置 + 新闻 + 站点配置。
+  // 首页配置接口返回各板块的开关状态和精选条目详情;
+  // 接口失败时降级为空(不渲染对应板块)。
+  const [homeCfg, newsRes, siteCfg] = await Promise.all([
+    getHomepageConfig().catch(() => null),
     getArticles({ page_size: 4 }).catch(() => ({ list: [], total: 0 })),
     getSiteConfig().catch(() => null),
   ]);
 
   // Hero 区域配置(从站点配置读,留空回退到站点名称/描述)
-  const heroBadge = (siteCfg as { hero_badge?: string } | null)?.hero_badge || "企业级业务管理平台";
-  const heroTitle = (siteCfg as { hero_title?: string } | null)?.hero_title || SITE.name;
-  const heroSubtitle = (siteCfg as { hero_subtitle?: string } | null)?.hero_subtitle
+  const heroBadge = siteCfg?.hero_badge || "企业级业务管理平台";
+  const heroTitle = siteCfg?.hero_title || SITE.name;
+  const heroSubtitle = siteCfg?.hero_subtitle
     || `${SITE.description}。即时的产品、团队与合作客户信息, 数据来源于业务系统实时同步。`;
+
+  // 从首页配置中提取各板块数据
+  const showProducts = homeCfg?.product?.enabled !== false;
+  const showPartners = homeCfg?.partner?.enabled !== false;
+  const showTeam = homeCfg?.team?.enabled !== false;
+
+  const products = homeCfg?.product?.items?.map(toProduct) ?? [];
+  const partners = homeCfg?.partner?.items?.map(toPartner) ?? [];
+  const team = homeCfg?.team?.items?.map(toTeamMember) ?? [];
 
   return (
     <>
@@ -40,12 +71,14 @@ export default async function HomePage() {
             {heroSubtitle}
           </p>
           <div className="fade-in-up delay-300 mt-10 flex justify-center gap-4">
-            <Link
-              href="/products"
-              className="rounded-lg bg-gradient-to-r from-brand-600 to-brand-700 px-7 py-3 text-sm font-semibold text-white no-underline shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
-            >
-              查看产品
-            </Link>
+            {showProducts && (
+              <Link
+                href="/products"
+                className="rounded-lg bg-gradient-to-r from-brand-600 to-brand-700 px-7 py-3 text-sm font-semibold text-white no-underline shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
+              >
+                查看产品
+              </Link>
+            )}
             <Link
               href="/about"
               className="rounded-lg border border-ink-200 bg-white/80 px-7 py-3 text-sm font-semibold text-ink-700 no-underline backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-700"
@@ -57,66 +90,72 @@ export default async function HomePage() {
       </section>
 
       {/* 产品精选 */}
-      <section className="container py-20">
-        <div className="fade-in-up mb-10 flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">产品与服务</h2>
-            <p className="mt-2 text-ink-500">即时的产品信息, 来源于业务系统</p>
-          </div>
-          <Link href="/products" className="text-sm font-medium no-underline hover:text-brand-dark">
-            查看全部 →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
-          {productsRes.list.length > 0 ? (
-            productsRes.list.map((p) => <ProductCard key={p.id} product={p} />)
-          ) : (
-            <EmptyState text="暂无产品数据" />
-          )}
-        </div>
-      </section>
-
-      {/* 合作伙伴 */}
-      <section className="bg-ink-50/50 py-20">
-        <div className="container">
+      {showProducts && (
+        <section className="container py-20">
           <div className="fade-in-up mb-10 flex items-end justify-between">
             <div>
-              <h2 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">合作伙伴</h2>
-              <p className="mt-2 text-ink-500">我们服务的客户</p>
+              <h2 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">产品与服务</h2>
+              <p className="mt-2 text-ink-500">即时的产品信息, 来源于业务系统</p>
             </div>
-            <Link href="/partners" className="text-sm font-medium no-underline hover:text-brand-dark">
+            <Link href="/products" className="text-sm font-medium no-underline hover:text-brand-dark">
               查看全部 →
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
-            {partnersRes.list.length > 0 ? (
-              partnersRes.list.map((p) => <PartnerCard key={p.id} partner={p} />)
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+            {products.length > 0 ? (
+              products.map((p) => <ProductCard key={p.id} product={p} />)
             ) : (
-              <EmptyState text="暂无合作方数据" />
+              <EmptyState text="暂无产品数据" />
             )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* 合作伙伴 */}
+      {showPartners && (
+        <section className="bg-ink-50/50 py-20">
+          <div className="container">
+            <div className="fade-in-up mb-10 flex items-end justify-between">
+              <div>
+                <h2 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">合作伙伴</h2>
+                <p className="mt-2 text-ink-500">我们服务的客户</p>
+              </div>
+              <Link href="/partners" className="text-sm font-medium no-underline hover:text-brand-dark">
+                查看全部 →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+              {partners.length > 0 ? (
+                partners.map((p) => <PartnerCard key={p.id} partner={p} />)
+              ) : (
+                <EmptyState text="暂无合作方数据" />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 团队 */}
-      <section className="container py-20">
-        <div className="fade-in-up mb-10 flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">我们的团队</h2>
-            <p className="mt-2 text-ink-500">专业的人才, 为您服务</p>
+      {showTeam && (
+        <section className="container py-20">
+          <div className="fade-in-up mb-10 flex items-end justify-between">
+            <div>
+              <h2 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">我们的团队</h2>
+              <p className="mt-2 text-ink-500">专业的人才, 为您服务</p>
+            </div>
+            <Link href="/team" className="text-sm font-medium no-underline hover:text-brand-dark">
+              查看全部 →
+            </Link>
           </div>
-          <Link href="/team" className="text-sm font-medium no-underline hover:text-brand-dark">
-            查看全部 →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-4">
-          {teamRes.list.length > 0 ? (
-            teamRes.list.map((m) => <TeamCard key={m.id} member={m} />)
-          ) : (
-            <EmptyState text="暂无团队成员" />
-          )}
-        </div>
-      </section>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-4">
+            {team.length > 0 ? (
+              team.map((m) => <TeamCard key={m.id} member={m} />)
+            ) : (
+              <EmptyState text="暂无团队成员" />
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 新闻动态 */}
       <section className="bg-ink-50/50 py-20">

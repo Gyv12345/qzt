@@ -22,9 +22,11 @@ export interface ApprovalPageResult<T> {
 export const listApprovalFlows = (params?: PageParams) =>
   request.get<unknown, ApprovalPageResult<ApprovalFlow>>('/approval/flows', { params })
 
-/** 按表单类型获取审批流程(不存在则自动创建预置流程) */
-export const getFlowByFormType = (formType: string) =>
-  request.get<unknown, ApprovalFlow>('/approval/flows/by-type', { params: { form_type: formType } })
+/** 按表单类型获取审批流程(不存在则自动创建预置流程);formKey 仅 OA_CUSTOM 按模板细分 */
+export const getFlowByFormType = (formType: string, formKey?: string) =>
+  request.get<unknown, ApprovalFlow>('/approval/flows/by-type', {
+    params: { form_type: formType, ...(formKey ? { form_key: formKey } : {}) },
+  })
 
 export const getApprovalFlow = (id: number) =>
   request.get<unknown, ApprovalFlowDetail>(`/approval/flows/${id}`)

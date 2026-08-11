@@ -65,11 +65,11 @@ func (h *JobHandler) GetByID(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body  body      service.CreateJobRequest  true  "创建任务请求"
+// @Param        body  body      service.CreateSysJobRequest  true  "创建任务请求"
 // @Success      200   {object}  xresponse.Response
 // @Router       /enterprise/jobs [post]
 func (h *JobHandler) Create(c *gin.Context) {
-	var req service.CreateJobRequest
+	var req service.CreateSysJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
@@ -89,7 +89,7 @@ func (h *JobHandler) Create(c *gin.Context) {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id    path      int                       true  "任务ID"
-// @Param        body  body      service.UpdateJobRequest  true  "更新任务请求"
+// @Param        body  body      service.UpdateSysJobRequest  true  "更新任务请求"
 // @Success      200   {object}  xresponse.Response
 // @Router       /enterprise/jobs/{id} [put]
 func (h *JobHandler) Update(c *gin.Context) {
@@ -98,7 +98,7 @@ func (h *JobHandler) Update(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误")
 		return
 	}
-	var req service.UpdateJobRequest
+	var req service.UpdateSysJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return

@@ -34,7 +34,7 @@ func (h *CategoryHandler) List(c *gin.Context) {
 }
 
 func (h *CategoryHandler) Create(c *gin.Context) {
-	var req service.CreateCategoryRequest
+	var req service.CreateKbCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
@@ -49,7 +49,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 
 func (h *CategoryHandler) Update(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	var req service.CreateCategoryRequest
+	var req service.CreateKbCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误")
 		return

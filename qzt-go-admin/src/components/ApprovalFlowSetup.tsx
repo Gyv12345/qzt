@@ -14,6 +14,8 @@ interface ApprovalFlowSetupProps {
   formType: string
   /** 模块中文名，如「合同审批」「报销审批」 */
   label: string
+  /** 表单标识（仅 OA_CUSTOM：每个表单模板一条独立审批流） */
+  formKey?: string
 }
 
 /**
@@ -21,7 +23,7 @@ interface ApprovalFlowSetupProps {
  * 嵌入各业务模块页面，用 form_type 获取对应的预置审批流，
  * 提供启用/禁用开关 + 设计流程入口。
  */
-export default function ApprovalFlowSetup({ formType, label }: ApprovalFlowSetupProps) {
+export default function ApprovalFlowSetup({ formType, label, formKey }: ApprovalFlowSetupProps) {
   const { message } = App.useApp()
   const [flow, setFlow] = useState<ApprovalFlow | null>(null)
   const [loading, setLoading] = useState(false)
@@ -30,7 +32,7 @@ export default function ApprovalFlowSetup({ formType, label }: ApprovalFlowSetup
   const load = async () => {
     setLoading(true)
     try {
-      const data = await getFlowByFormType(formType)
+      const data = await getFlowByFormType(formType, formKey)
       setFlow(data)
     } catch {
       // 拦截器已提示
@@ -42,7 +44,7 @@ export default function ApprovalFlowSetup({ formType, label }: ApprovalFlowSetup
   useEffect(() => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formType])
+  }, [formType, formKey])
 
   const handleToggle = async (checked: boolean) => {
     if (!flow) return

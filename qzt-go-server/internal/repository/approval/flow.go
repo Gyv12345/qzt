@@ -22,20 +22,20 @@ type FlowRepo struct {
 
 func NewFlowRepo() *FlowRepo { return &FlowRepo{} }
 
-// GetEnabledFlow 按 formType 获取启用的流程。
-func (r *FlowRepo) GetEnabledFlow(ctx context.Context, formType string) (*apprmodel.ApprovalFlow, error) {
+// GetEnabledFlow 按 formType+formKey 获取启用的流程。
+func (r *FlowRepo) GetEnabledFlow(ctx context.Context, formType, formKey string) (*apprmodel.ApprovalFlow, error) {
 	var flow apprmodel.ApprovalFlow
-	err := repoDB(ctx).Where("form_type = ? AND enable = 1", formType).First(&flow).Error
+	err := repoDB(ctx).Where("form_type = ? AND form_key = ? AND enable = 1", formType, formKey).First(&flow).Error
 	if err != nil {
 		return nil, err
 	}
 	return &flow, nil
 }
 
-// GetByFormType 按 form_type 查流程(不限启用状态)。供 GetByFormType API 使用。
-func (r *FlowRepo) GetByFormType(ctx context.Context, formType string) (*apprmodel.ApprovalFlow, error) {
+// GetByFormType 按 form_type+form_key 查流程(不限启用状态)。供 GetByFormType API 使用。
+func (r *FlowRepo) GetByFormType(ctx context.Context, formType, formKey string) (*apprmodel.ApprovalFlow, error) {
 	var flow apprmodel.ApprovalFlow
-	err := repoDB(ctx).Where("form_type = ?", formType).First(&flow).Error
+	err := repoDB(ctx).Where("form_type = ? AND form_key = ?", formType, formKey).First(&flow).Error
 	if err != nil {
 		return nil, err
 	}

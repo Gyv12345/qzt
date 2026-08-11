@@ -16,13 +16,16 @@ type CategoryService struct {
 
 func NewCategoryService() *CategoryService { return &CategoryService{repo: kbrepo.NewCategoryRepo()} }
 
-type CreateCategoryRequest struct {
+// CreateKbCategoryRequest 创建/更新知识库分类请求。
+// 注:不能用 CreateCategoryRequest——与 cms/service 的包名+类型名完全相同,
+// swag 按「包名.类型名」注册会冲突,导致 cms 的注解解析失败。
+type CreateKbCategoryRequest struct {
 	ParentID uint   `json:"parent_id"`
 	Name     string `json:"name" binding:"required"`
 	Sort     int    `json:"sort"`
 }
 
-func (s *CategoryService) Create(ctx context.Context, req *CreateCategoryRequest, userID uint) (*kbmodel.KbCategory, error) {
+func (s *CategoryService) Create(ctx context.Context, req *CreateKbCategoryRequest, userID uint) (*kbmodel.KbCategory, error) {
 	cat := &kbmodel.KbCategory{
 		ParentID:  req.ParentID,
 		Name:      req.Name,
@@ -40,7 +43,7 @@ func (s *CategoryService) ListAll(ctx context.Context) ([]kbmodel.KbCategory, er
 	return s.repo.ListAll(ctx)
 }
 
-func (s *CategoryService) Update(ctx context.Context, id uint, req *CreateCategoryRequest) error {
+func (s *CategoryService) Update(ctx context.Context, id uint, req *CreateKbCategoryRequest) error {
 	cat, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return errors.New("分类不存在")

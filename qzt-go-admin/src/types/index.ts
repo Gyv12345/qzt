@@ -410,6 +410,26 @@ export interface UpdateSiteConfigRequest {
   copyright?: string
 }
 
+// ---------- 首页板块配置 ----------
+
+export interface HomepageFeature {
+  id: number
+  module: string
+  item_id: number
+  sort: number
+  item_name: string
+  sub_info: string
+}
+
+export interface HomepageModule {
+  id: number
+  module: string
+  module_name: string
+  enabled: boolean
+  sort: number
+  features: HomepageFeature[]
+}
+
 // ---------- 邮件 ----------
 
 /** 邮件附件(前端 FileUpload 产出的文件信息) */

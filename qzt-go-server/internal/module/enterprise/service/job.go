@@ -40,8 +40,8 @@ func NewJobService() *JobService {
 	return &JobService{repo: entrepo.NewJobRepo(), logRepo: entrepo.NewJobLogRepo()}
 }
 
-// CreateJobRequest 创建任务请求。
-type CreateJobRequest struct {
+// CreateSysJobRequest 创建任务请求。
+type CreateSysJobRequest struct {
 	JobName        string `json:"job_name" binding:"required"`
 	JobGroup       string `json:"job_group"`
 	CronExpression string `json:"cron_expression" binding:"required"`
@@ -51,7 +51,7 @@ type CreateJobRequest struct {
 }
 
 // Create 创建任务。
-func (s *JobService) Create(ctx context.Context, req *CreateJobRequest) (*entmodel.SysJob, error) {
+func (s *JobService) Create(ctx context.Context, req *CreateSysJobRequest) (*entmodel.SysJob, error) {
 	if _, ok := JobHandlerRegistry[req.BeanClass]; !ok {
 		return nil, fmt.Errorf("处理器 %q 未注册", req.BeanClass)
 	}
@@ -79,8 +79,8 @@ func (s *JobService) GetByID(ctx context.Context, id uint) (*entmodel.SysJob, er
 	return job, notFoundOr(err, "任务不存在")
 }
 
-// UpdateJobRequest 更新任务请求。
-type UpdateJobRequest struct {
+// UpdateSysJobRequest 更新任务请求。
+type UpdateSysJobRequest struct {
 	JobName        string `json:"job_name" binding:"required"`
 	JobGroup       string `json:"job_group"`
 	CronExpression string `json:"cron_expression" binding:"required"`
@@ -90,7 +90,7 @@ type UpdateJobRequest struct {
 }
 
 // Update 更新任务。
-func (s *JobService) Update(ctx context.Context, id uint, req *UpdateJobRequest) error {
+func (s *JobService) Update(ctx context.Context, id uint, req *UpdateSysJobRequest) error {
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "任务不存在")

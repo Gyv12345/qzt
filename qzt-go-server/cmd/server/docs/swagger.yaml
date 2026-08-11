@@ -26,6 +26,29 @@ definitions:
       pool_id:
         type: integer
     type: object
+  handler.PublicContactRequest:
+    properties:
+      company:
+        type: string
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - message
+    - name
+    - phone
+    type: object
+  handler.SignResult:
+    properties:
+      url:
+        description: 短期有效的私有文件下载 URL
+        type: string
+    type: object
   handler.UploadResult:
     properties:
       content_type:
@@ -42,6 +65,9 @@ definitions:
         type: integer
       url:
         type: string
+      visibility:
+        description: public / private
+        type: string
     type: object
   handler.batchUpdateConfigReq:
     properties:
@@ -51,6 +77,11 @@ definitions:
         type: array
     required:
     - items
+    type: object
+  handler.resetRequest:
+    properties:
+      confirm:
+        type: string
     type: object
   model.SysAPI:
     properties:
@@ -234,6 +265,8 @@ definitions:
         type: string
       created_at:
         type: string
+      data_scope:
+        type: integer
       id:
         type: integer
       menus:
@@ -257,9 +290,13 @@ definitions:
         type: string
       created_at:
         type: string
+      dept_id:
+        type: integer
       email:
         type: string
       id:
+        type: integer
+      leader_id:
         type: integer
       nickname:
         type: string
@@ -277,6 +314,17 @@ definitions:
         type: string
       wecom_user_id:
         type: string
+    type: object
+  service.AddCollaboratorRequest:
+    properties:
+      collaboration_type:
+        description: READ_ONLY / COLLABORATION
+        type: string
+      user_id:
+        type: integer
+    required:
+    - collaboration_type
+    - user_id
     type: object
   service.ApproveRequest:
     properties:
@@ -321,6 +369,17 @@ definitions:
     required:
     - new_password
     - old_password
+    type: object
+  service.ChangeStatusRequest:
+    properties:
+      comment:
+        type: string
+      solution:
+        type: string
+      status:
+        type: integer
+    required:
+    - status
     type: object
   service.ClockInRequest:
     properties:
@@ -426,6 +485,31 @@ definitions:
     required:
     - title
     type: object
+  service.CreateAttachmentRequest:
+    properties:
+      biz_type:
+        type: string
+      content_type:
+        type: string
+      file_name:
+        type: string
+      object_key:
+        type: string
+      resource_id:
+        type: integer
+      size:
+        type: integer
+      url:
+        type: string
+      visibility:
+        description: 留空默认 private
+        type: string
+    required:
+    - biz_type
+    - file_name
+    - resource_id
+    - url
+    type: object
   service.CreateCategoryRequest:
     properties:
       name:
@@ -469,6 +553,9 @@ definitions:
     type: object
   service.CreateContactRequest:
     properties:
+      contact_no:
+        description: 留空则自动生成
+        type: string
       customer_id:
         type: integer
       department:
@@ -493,6 +580,9 @@ definitions:
     properties:
       content:
         type: string
+      contract_no:
+        description: 留空则自动生成
+        type: string
       customer_id:
         type: integer
       end_date:
@@ -516,8 +606,25 @@ definitions:
     - name
     - total_amount
     type: object
+  service.CreateContractTemplateRequest:
+    properties:
+      content:
+        type: string
+      enabled:
+        type: integer
+      name:
+        type: string
+      remark:
+        type: string
+    required:
+    - content
+    - name
+    type: object
   service.CreateCustomerRequest:
     properties:
+      customer_no:
+        description: 留空则自动生成
+        type: string
       fields:
         items:
           $ref: '#/definitions/service.FieldValue'
@@ -617,12 +724,58 @@ definitions:
     - name
     - position_id
     type: object
+  service.CreateExpenseRequest:
+    properties:
+      amount:
+        type: string
+      applicant_id:
+        type: integer
+      dept_id:
+        type: integer
+      description:
+        type: string
+      expense_type:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/service.ExpenseItemInput'
+        type: array
+      occur_date:
+        type: string
+      title:
+        type: string
+    required:
+    - amount
+    - expense_type
+    - title
+    type: object
   service.CreateFieldRequest:
+    type: object
+  service.CreateFileRequest:
+    properties:
+      content_type:
+        type: string
+      name:
+        type: string
+      object_key:
+        type: string
+      parent_id:
+        type: integer
+      scope:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    required:
+    - name
     type: object
   service.CreateFlowRequest:
     properties:
       enable:
         type: integer
+      form_key:
+        type: string
       form_type:
         type: string
       name:
@@ -631,6 +784,50 @@ definitions:
         type: string
     required:
     - form_type
+    - name
+    type: object
+  service.CreateFolderRequest:
+    properties:
+      name:
+        type: string
+      parent_id:
+        type: integer
+      scope:
+        type: string
+    required:
+    - name
+    type: object
+  service.CreateFormDataRequest:
+    properties:
+      field_values:
+        type: string
+      template_id:
+        type: integer
+    required:
+    - field_values
+    - template_id
+    type: object
+  service.CreateFormTemplateRequest:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      fields_config:
+        type: string
+      form_key:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: integer
+    required:
+    - fields_config
+    - form_key
     - name
     type: object
   service.CreateInvoiceRequest:
@@ -665,28 +862,71 @@ definitions:
     - invoice_no
     - invoice_type
     type: object
-  service.CreateJobRequest:
+  service.CreateKeyRequest:
     properties:
-      bean_class:
+      name:
         type: string
-      cron_expression:
+    required:
+    - name
+    type: object
+  service.CreateLoanRequest:
+    properties:
+      amount:
         type: string
-      job_group:
+      applicant_id:
+        type: integer
+      dept_id:
+        type: integer
+      expected_date:
         type: string
-      job_name:
+      loan_type:
+        type: string
+      reason:
+        type: string
+      title:
+        type: string
+    required:
+    - amount
+    - loan_type
+    - title
+    type: object
+  service.CreateMeetingBookingRequest:
+    properties:
+      attendees:
+        type: integer
+      dept_id:
+        type: integer
+      end_time:
+        type: string
+      remark:
+        type: string
+      room_id:
+        type: integer
+      start_time:
+        type: string
+      title:
+        type: string
+      topic:
+        type: string
+    required:
+    - end_time
+    - room_id
+    - start_time
+    - title
+    type: object
+  service.CreateMeetingRoomRequest:
+    properties:
+      capacity:
+        type: integer
+      equipment:
+        type: string
+      location:
+        type: string
+      name:
         type: string
       remark:
         type: string
       status:
-        type: integer
-    required:
-    - bean_class
-    - cron_expression
-    - job_name
-    type: object
-  service.CreateKeyRequest:
-    properties:
-      name:
         type: string
     required:
     - name
@@ -766,6 +1006,9 @@ definitions:
         type: string
       name:
         type: string
+      opportunity_no:
+        description: 留空则自动生成
+        type: string
       owner_id:
         type: integer
       probability:
@@ -779,6 +1022,10 @@ definitions:
   service.CreatePageRequest:
     properties:
       content:
+        type: string
+      external_url:
+        type: string
+      link_type:
         type: string
       slug:
         type: string
@@ -833,6 +1080,8 @@ definitions:
       contract_id:
         type: integer
       customer_id:
+        type: integer
+      lead_id:
         type: integer
       opportunity_id:
         type: integer
@@ -911,6 +1160,8 @@ definitions:
         type: number
       description:
         type: string
+      image_url:
+        type: string
       name:
         type: string
       product_no:
@@ -918,6 +1169,33 @@ definitions:
       standard_price:
         type: number
       unit:
+        type: string
+    required:
+    - name
+    type: object
+  service.CreateProjectRequest:
+    properties:
+      contract_id:
+        type: integer
+      customer_id:
+        type: integer
+      customer_name:
+        type: string
+      description:
+        type: string
+      end_date:
+        type: string
+      manager_id:
+        type: integer
+      member_ids:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      start_date:
+        type: string
+      tags:
         type: string
     required:
     - name
@@ -968,6 +1246,34 @@ definitions:
     - supplier_id
     - warehouse_id
     type: object
+  service.CreateReceivableRequest:
+    properties:
+      biz_id:
+        type: integer
+      biz_type:
+        type: string
+      direction:
+        type: string
+      due_date:
+        type: string
+      occur_date:
+        type: string
+      original_amount:
+        type: string
+      party_id:
+        type: integer
+      party_name:
+        type: string
+      party_type:
+        type: string
+      remark:
+        type: string
+    required:
+    - direction
+    - occur_date
+    - original_amount
+    - party_name
+    type: object
   service.CreateRecordRequest:
     properties:
       contact_id:
@@ -978,8 +1284,13 @@ definitions:
         type: integer
       customer_id:
         type: integer
+      follow_no:
+        description: 留空则自动生成
+        type: string
       follow_time:
         type: string
+      lead_id:
+        type: integer
       opportunity_id:
         type: integer
       owner_id:
@@ -989,7 +1300,6 @@ definitions:
     required:
     - content
     - follow_time
-    - owner_id
     - type
     type: object
   service.CreateRoleRequest:
@@ -1010,6 +1320,8 @@ definitions:
     type: object
   service.CreateSalesOrderRequest:
     properties:
+      contract_id:
+        type: integer
       customer_id:
         type: integer
       discount_amount:
@@ -1051,6 +1363,29 @@ definitions:
     - customer_id
     - items
     - warehouse_id
+    type: object
+  service.CreateScheduleRequest:
+    properties:
+      content:
+        type: string
+      end_time:
+        type: string
+      event_type:
+        type: string
+      location:
+        type: string
+      remind_type:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    required:
+    - end_time
+    - start_time
+    - title
     type: object
   service.CreateStockInRequest:
     properties:
@@ -1119,6 +1454,25 @@ definitions:
     required:
     - name
     type: object
+  service.CreateSysJobRequest:
+    properties:
+      bean_class:
+        type: string
+      cron_expression:
+        type: string
+      job_group:
+        type: string
+      job_name:
+        type: string
+      remark:
+        type: string
+      status:
+        type: integer
+    required:
+    - bean_class
+    - cron_expression
+    - job_name
+    type: object
   service.CreateTagRequest:
     properties:
       name:
@@ -1132,10 +1486,83 @@ definitions:
     required:
     - name
     type: object
+  service.CreateTaskRequest:
+    properties:
+      assignee_id:
+        type: integer
+      description:
+        type: string
+      due_date:
+        type: string
+      priority:
+        type: integer
+      project_id:
+        type: integer
+      title:
+        type: string
+    required:
+    - project_id
+    - title
+    type: object
+  service.CreateTicketRequest:
+    properties:
+      category:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
+      contract_id:
+        type: integer
+      customer_id:
+        type: integer
+      customer_name:
+        type: string
+      description:
+        type: string
+      priority:
+        type: integer
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  service.CreateTripRequest:
+    properties:
+      applicant_id:
+        type: integer
+      budget_amount:
+        type: string
+      dept_id:
+        type: integer
+      description:
+        type: string
+      destination:
+        type: string
+      end_date:
+        type: string
+      purpose:
+        type: string
+      start_date:
+        type: string
+      title:
+        type: string
+      transport:
+        type: string
+    required:
+    - destination
+    - end_date
+    - start_date
+    - title
+    type: object
   service.CreateUserRequest:
     properties:
+      dept_id:
+        type: integer
       email:
         type: string
+      leader_id:
+        type: integer
       nickname:
         type: string
       password:
@@ -1207,6 +1634,38 @@ definitions:
     - code
     - name
     type: object
+  service.CreateWorkLogRequest:
+    properties:
+      content:
+        type: string
+      dept_id:
+        type: integer
+      log_date:
+        type: string
+      log_type:
+        type: string
+      plan:
+        type: string
+      problems:
+        type: string
+    required:
+    - log_date
+    type: object
+  service.ExpenseItemInput:
+    properties:
+      amount:
+        type: string
+      invoice_no:
+        type: string
+      item_type:
+        type: string
+      occur_date:
+        type: string
+      remark:
+        type: string
+    required:
+    - amount
+    type: object
   service.FieldValue:
     properties:
       field_id:
@@ -1232,6 +1691,9 @@ definitions:
       employee_id:
         type: integer
       end_date:
+        type: string
+      leave_no:
+        description: 留空则自动生成
         type: string
       leave_type:
         type: string
@@ -1305,6 +1767,9 @@ definitions:
       employee_id:
         type: integer
       end_date:
+        type: string
+      overtime_no:
+        description: 留空则自动生成
         type: string
       reason:
         type: string
@@ -1430,9 +1895,36 @@ definitions:
     required:
     - employee_id
     type: object
+  service.SendMailRequest:
+    properties:
+      attachments:
+        description: 附件
+        items:
+          $ref: '#/definitions/service.mailAttachment'
+        type: array
+      body:
+        description: HTML 正文(前端 Markdown 转 HTML)
+        type: string
+      cc:
+        items:
+          type: string
+        type: array
+      subject:
+        type: string
+      to:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - subject
+    - to
+    type: object
   service.SendMessageRequest:
     properties:
       content:
+        type: string
+      content_type:
         type: string
       receiver_id:
         type: integer
@@ -1476,6 +1968,15 @@ definitions:
     required:
     - menu_ids
     type: object
+  service.SettleRequest:
+    properties:
+      amount:
+        type: string
+      remark:
+        type: string
+    required:
+    - amount
+    type: object
   service.StageDef:
     properties:
       color:
@@ -1514,6 +2015,26 @@ definitions:
     required:
     - product_id
     - quantity
+    type: object
+  service.SyncFeaturesRequest:
+    properties:
+      item_ids:
+        items:
+          type: integer
+        type: array
+      module:
+        type: string
+    required:
+    - module
+    type: object
+  service.ToggleModuleRequest:
+    properties:
+      enabled:
+        type: boolean
+      module:
+        type: string
+    required:
+    - module
     type: object
   service.UpdateAPIRequest:
     properties:
@@ -1571,6 +2092,13 @@ definitions:
         type: integer
     required:
     - name
+    type: object
+  service.UpdateCollaboratorRequest:
+    properties:
+      collaboration_type:
+        type: string
+    required:
+    - collaboration_type
     type: object
   service.UpdateConfigRequest:
     properties:
@@ -1642,6 +2170,17 @@ definitions:
     - customer_id
     - name
     - total_amount
+    type: object
+  service.UpdateContractTemplateRequest:
+    properties:
+      content:
+        type: string
+      enabled:
+        type: integer
+      name:
+        type: string
+      remark:
+        type: string
     type: object
   service.UpdateCustomerRequest:
     properties:
@@ -1730,26 +2269,110 @@ definitions:
     - name
     - position_id
     type: object
+  service.UpdateExpenseRequest:
+    properties:
+      amount:
+        type: string
+      dept_id:
+        type: integer
+      description:
+        type: string
+      expense_type:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/service.ExpenseItemInput'
+        type: array
+      occur_date:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
   service.UpdateFieldRequest:
     type: object
-  service.UpdateJobRequest:
+  service.UpdateFileRequest:
     properties:
-      bean_class:
+      name:
         type: string
-      cron_expression:
+      parent_id:
+        type: integer
+    type: object
+  service.UpdateFormDataRequest:
+    properties:
+      field_values:
         type: string
-      job_group:
+    required:
+    - field_values
+    type: object
+  service.UpdateFormTemplateRequest:
+    properties:
+      category:
         type: string
-      job_name:
+      description:
+        type: string
+      fields_config:
+        type: string
+      form_key:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: integer
+    type: object
+  service.UpdateLoanRequest:
+    properties:
+      amount:
+        type: string
+      dept_id:
+        type: integer
+      expected_date:
+        type: string
+      loan_type:
+        type: string
+      reason:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  service.UpdateMeetingBookingRequest:
+    properties:
+      attendees:
+        type: integer
+      end_time:
+        type: string
+      remark:
+        type: string
+      room_id:
+        type: integer
+      start_time:
+        type: string
+      title:
+        type: string
+      topic:
+        type: string
+    type: object
+  service.UpdateMeetingRoomRequest:
+    properties:
+      capacity:
+        type: integer
+      equipment:
+        type: string
+      location:
+        type: string
+      name:
         type: string
       remark:
         type: string
       status:
-        type: integer
-    required:
-    - bean_class
-    - cron_expression
-    - job_name
+        type: string
     type: object
   service.UpdateMenuRequest:
     properties:
@@ -1833,6 +2456,10 @@ definitions:
   service.UpdatePageRequest:
     properties:
       content:
+        type: string
+      external_url:
+        type: string
+      link_type:
         type: string
       slug:
         type: string
@@ -1942,6 +2569,8 @@ definitions:
         type: number
       description:
         type: string
+      image_url:
+        type: string
       name:
         type: string
       product_no:
@@ -1966,6 +2595,37 @@ definitions:
       phone:
         type: string
     type: object
+  service.UpdateProjectRequest:
+    properties:
+      contract_id:
+        type: integer
+      customer_id:
+        type: integer
+      customer_name:
+        type: string
+      description:
+        type: string
+      end_date:
+        type: string
+      manager_id:
+        type: integer
+      member_ids:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      progress:
+        type: integer
+      start_date:
+        type: string
+      status:
+        type: integer
+      tags:
+        type: string
+    required:
+    - name
+    type: object
   service.UpdateRecordRequest:
     properties:
       content:
@@ -1981,6 +2641,8 @@ definitions:
     type: object
   service.UpdateRoleRequest:
     properties:
+      data_scope:
+        type: integer
       name:
         type: string
       remark:
@@ -1989,6 +2651,25 @@ definitions:
         type: integer
       status:
         type: integer
+    type: object
+  service.UpdateScheduleRequest:
+    properties:
+      content:
+        type: string
+      end_time:
+        type: string
+      event_type:
+        type: string
+      location:
+        type: string
+      remind_type:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
     type: object
   service.UpdateSiteConfigRequest:
     properties:
@@ -2009,6 +2690,12 @@ definitions:
       description:
         type: string
       favicon_url:
+        type: string
+      hero_badge:
+        type: string
+      hero_subtitle:
+        type: string
+      hero_title:
         type: string
       icp_beian:
         type: string
@@ -2032,31 +2719,6 @@ definitions:
         type: string
       work_hours:
         type: string
-    type: object
-  service.UpdateStorageConfigRequest:
-    properties:
-      driver:
-        type: string
-      local_path:
-        type: string
-      max_upload_mb:
-        type: integer
-      oss_access_key_id:
-        type: string
-      oss_access_key_secret:
-        type: string
-      oss_bucket_name:
-        type: string
-      oss_custom_domain:
-        type: string
-      oss_endpoint:
-        type: string
-      remark:
-        type: string
-      resource_domain:
-        type: string
-    required:
-    - driver
     type: object
   service.UpdateSupplierRequest:
     properties:
@@ -2083,6 +2745,25 @@ definitions:
     required:
     - name
     type: object
+  service.UpdateSysJobRequest:
+    properties:
+      bean_class:
+        type: string
+      cron_expression:
+        type: string
+      job_group:
+        type: string
+      job_name:
+        type: string
+      remark:
+        type: string
+      status:
+        type: integer
+    required:
+    - bean_class
+    - cron_expression
+    - job_name
+    type: object
   service.UpdateTagRequest:
     properties:
       name:
@@ -2096,12 +2777,81 @@ definitions:
     required:
     - name
     type: object
+  service.UpdateTaskRequest:
+    properties:
+      assignee_id:
+        type: integer
+      description:
+        type: string
+      due_date:
+        type: string
+      priority:
+        type: integer
+      sort_order:
+        type: integer
+      status:
+        type: integer
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  service.UpdateTicketRequest:
+    properties:
+      category:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
+      contract_id:
+        type: integer
+      customer_id:
+        type: integer
+      customer_name:
+        type: string
+      description:
+        type: string
+      handler_id:
+        type: integer
+      priority:
+        type: integer
+      title:
+        type: string
+    type: object
+  service.UpdateTripRequest:
+    properties:
+      budget_amount:
+        type: string
+      dept_id:
+        type: integer
+      description:
+        type: string
+      destination:
+        type: string
+      end_date:
+        type: string
+      purpose:
+        type: string
+      start_date:
+        type: string
+      title:
+        type: string
+      transport:
+        type: string
+    required:
+    - title
+    type: object
   service.UpdateUserRequest:
     properties:
       avatar:
         type: string
+      dept_id:
+        type: integer
       email:
         type: string
+      leader_id:
+        type: integer
       nickname:
         type: string
       password:
@@ -2141,6 +2891,33 @@ definitions:
     - code
     - name
     type: object
+  service.UpdateWorkLogRequest:
+    properties:
+      content:
+        type: string
+      dept_id:
+        type: integer
+      log_date:
+        type: string
+      log_type:
+        type: string
+      plan:
+        type: string
+      problems:
+        type: string
+    type: object
+  service.mailAttachment:
+    properties:
+      content_type:
+        description: MIME(可空)
+        type: string
+      file_name:
+        description: 附件显示名
+        type: string
+      url:
+        description: 下载直链或 objectKey(私有)
+        type: string
+    type: object
   xresponse.Response:
     properties:
       code:
@@ -2162,6 +2939,76 @@ info:
   title: 企业级业务管理平台 API
   version: "1.0"
 paths:
+  /api/attachments:
+    get:
+      description: 按 biz_type + resource_id 查询附件列表
+      parameters:
+      - description: 业务类型,如 CUSTOMER/CONTRACT
+        in: query
+        name: biz_type
+        required: true
+        type: string
+      - description: 资源ID
+        in: query
+        name: resource_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 附件列表
+      tags:
+      - 附件
+    post:
+      consumes:
+      - application/json
+      description: 前端先上传文件(/api/upload 或 /api/upload/sts),再调本接口落库附件元数据
+      parameters:
+      - description: 附件信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateAttachmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建附件记录
+      tags:
+      - 附件
+  /api/attachments/{id}:
+    delete:
+      description: 软删除附件记录。仅上传人或超级管理员可删除。注意:不删除存储层实际文件。
+      parameters:
+      - description: 附件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除附件记录
+      tags:
+      - 附件
   /api/configs/public:
     get:
       description: 返回标记为 is_public 的配置项(key->value),供前端启动引导使用,免鉴权
@@ -2175,6 +3022,25 @@ paths:
       summary: 公共配置
       tags:
       - 公共接口
+  /api/dashboard/contract-trend:
+    get:
+      parameters:
+      - description: 月数(默认6)
+        in: query
+        name: months
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同签约趋势
+      tags:
+      - 仪表盘
   /api/dashboard/customer-distribution:
     get:
       description: 按维度(level/source/industry/status)分组统计客户
@@ -2269,6 +3135,52 @@ paths:
       summary: 回款趋势
       tags:
       - 仪表盘
+  /api/file/dl:
+    get:
+      description: 解析 token 后流式返回私有目录文件。OSS 模式不会调用此接口。
+      parameters:
+      - description: 签名 token(由 /api/file/sign 返回 URL 中的 t 参数)
+        in: query
+        name: t
+        required: true
+        type: string
+      - description: 文件 objectKey
+        in: query
+        name: k
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses: {}
+      summary: 下载私有文件(local 模式)
+      tags:
+      - 公共接口
+  /api/file/sign:
+    get:
+      description: 为私有桶/私有目录的文件签发短期(1h)下载 URL,无需 Authorization header
+      parameters:
+      - description: 文件 objectKey(上传时返回的 file_url)
+        in: query
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.SignResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取私有文件下载 URL
+      tags:
+      - 公共接口
   /api/health:
     get:
       description: 存活探针,进程能响应即 ok
@@ -2286,7 +3198,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: 上传文件,返回文件信息与资源访问域名
+      description: 上传文件,支持公共桶(visibility=public)与私有桶(visibility=private)
       parameters:
       - description: 上传的文件
         in: formData
@@ -2296,6 +3208,13 @@ paths:
       - description: 存储文件夹
         in: formData
         name: folder
+        type: string
+      - description: '可见性: public(默认)/private'
+        enum:
+        - public
+        - private
+        in: query
+        name: visibility
         type: string
       produces:
       - application/json
@@ -2310,6 +3229,34 @@ paths:
                   $ref: '#/definitions/handler.UploadResult'
               type: object
       summary: 文件上传
+      tags:
+      - 公共接口
+  /api/upload/sts:
+    get:
+      parameters:
+      - description: 文件名(用于推断扩展名)
+        in: query
+        name: filename
+        required: true
+        type: string
+      - description: 存储文件夹(默认 uploads)
+        in: query
+        name: folder
+        type: string
+      - description: 是否上传到私有桶(默认 false)
+        in: query
+        name: private
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取 OSS 直传预签名 URL
       tags:
       - 公共接口
   /approval/actions/approve:
@@ -2504,6 +3451,30 @@ paths:
       summary: 启用/禁用流程
       tags:
       - 审批流程
+  /approval/flows/by-type:
+    get:
+      parameters:
+      - description: 表单类型(如 CONTRACT/EXPENSE/TRIP 等)
+        in: query
+        name: form_type
+        required: true
+        type: string
+      - description: 表单标识(仅 OA_CUSTOM 按模板细分)
+        in: query
+        name: form_key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 按表单类型获取审批流程
+      tags:
+      - 审批流程
   /approval/initiated:
     get:
       description: 当前用户提交的审批实例
@@ -2618,6 +3589,135 @@ paths:
       summary: 我的待办
       tags:
       - 审批待办
+  /cloud/files:
+    get:
+      parameters:
+      - description: 文件夹ID(0=根)
+        in: query
+        name: parent_id
+        type: integer
+      - description: 空间(personal/dept/public)
+        in: query
+        name: scope
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 网盘文件列表
+      tags:
+      - 网盘
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文件
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 上传文件
+      tags:
+      - 网盘
+  /cloud/files/{id}:
+    delete:
+      parameters:
+      - description: 文件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除文件
+      tags:
+      - 网盘
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 重命名/移动文件
+      tags:
+      - 网盘
+  /cloud/folders:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文件夹
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateFolderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建文件夹
+      tags:
+      - 网盘
+  /cloud/usage:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 个人空间用量
+      tags:
+      - 网盘
   /cms/articles:
     get:
       parameters:
@@ -3233,6 +4333,53 @@ paths:
       summary: 全部标签
       tags:
       - 文章标签
+  /crm/collaborations/{id}:
+    delete:
+      parameters:
+      - description: 协作ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 移除协作成员
+      tags:
+      - 客户团队协作
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 协作ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新协作成员请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateCollaboratorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新协作成员权限
+      tags:
+      - 客户团队协作
   /crm/contacts/{id}:
     delete:
       parameters:
@@ -3299,6 +4446,131 @@ paths:
       summary: 更新联系人
       tags:
       - 联系人
+  /crm/contract-templates:
+    get:
+      parameters:
+      - description: 名称关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 1启用 0停用,不传查全部
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同模板列表(name 模糊 + enabled 过滤,不含正文)
+      tags:
+      - 合同模板
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 新增合同模板请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateContractTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新增合同模板
+      tags:
+      - 合同模板
+  /crm/contract-templates/{id}:
+    delete:
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除合同模板
+      tags:
+      - 合同模板
+    get:
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同模板详情(含正文)
+      tags:
+      - 合同模板
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改合同模板请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateContractTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 修改合同模板
+      tags:
+      - 合同模板
+  /crm/contract-templates/variables:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 模板可用变量清单
+      tags:
+      - 合同模板
   /crm/contracts:
     get:
       parameters:
@@ -3536,6 +4808,31 @@ paths:
       summary: 合同回款汇总
       tags:
       - 回款管理
+  /crm/contracts/{id}/print-document:
+    get:
+      parameters:
+      - description: 合同ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 模板ID
+        in: query
+        name: template_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 套打合同文档(选模板渲染)
+      tags:
+      - 合同管理
   /crm/custom-fields:
     get:
       parameters:
@@ -3972,6 +5269,53 @@ paths:
       summary: 更新客户
       tags:
       - 客户管理
+  /crm/customers/{id}/collaborations:
+    get:
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 客户协作成员列表
+      tags:
+      - 客户团队协作
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 添加协作成员请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AddCollaboratorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 添加协作成员
+      tags:
+      - 客户团队协作
   /crm/customers/{id}/contacts:
     get:
       parameters:
@@ -4117,6 +5461,54 @@ paths:
       summary: 转移客户给其他用户
       tags:
       - 客户管理
+  /crm/dedup:
+    get:
+      parameters:
+      - description: 名称(模糊匹配:线索名称/联系人/公司、客户名称)
+        in: query
+        name: name
+        type: string
+      - description: 电话(精确匹配:线索电话、客户联系人电话)
+        in: query
+        name: phone
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 客户/线索查重
+      tags:
+      - CRM
+  /crm/field-changes:
+    get:
+      parameters:
+      - description: 业务类型(CUSTOMER/LEAD/OPPORTUNITY/CONTRACT)
+        in: query
+        name: biz_type
+        required: true
+        type: string
+      - description: 资源ID
+        in: query
+        name: resource_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 字段变更历史
+      tags:
+      - CRM
   /crm/follow-plans:
     post:
       consumes:
@@ -4352,7 +5744,7 @@ paths:
   /crm/follow-records/timeline:
     get:
       parameters:
-      - description: 资源列名(customer_id/opportunity_id/contact_id/contract_id)
+      - description: 资源列名(lead_id/customer_id/opportunity_id/contact_id/contract_id)
         in: query
         name: field
         required: true
@@ -4372,6 +5764,20 @@ paths:
       security:
       - BearerAuth: []
       summary: 按资源查跟进记录时间线
+      tags:
+      - 跟进管理
+  /crm/followup/warn-config:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 跟进预警配置
       tags:
       - 跟进管理
   /crm/opportunities:
@@ -4908,6 +6314,28 @@ paths:
       summary: 新增商品价格
       tags:
       - 商品管理
+  /crm/public/contact:
+    post:
+      consumes:
+      - application/json
+      description: 公开接口,创建线索到公海池并通知管理员
+      parameters:
+      - description: 留言内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.PublicContactRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 官网留言提交
+      tags:
+      - 公共接口
   /crm/public/partners:
     get:
       description: 返回正常状态(status=1)客户作为官网合作方展示,免鉴权
@@ -5036,6 +6464,169 @@ paths:
       summary: 更新阶段定义
       tags:
       - 阶段配置
+  /crm/tickets:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 问题类型
+        in: query
+        name: category
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      - description: 优先级
+        in: query
+        name: priority
+        type: integer
+      - description: 客户ID
+        in: query
+        name: customer_id
+        type: integer
+      - description: 处理人ID
+        in: query
+        name: handler_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 售后工单列表
+      tags:
+      - CRM-工单
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建工单
+      tags:
+      - CRM-工单
+  /crm/tickets/{id}:
+    delete:
+      parameters:
+      - description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除工单
+      tags:
+      - CRM-工单
+    get:
+      parameters:
+      - description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 工单详情
+      tags:
+      - CRM-工单
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 工单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑工单
+      tags:
+      - CRM-工单
+  /crm/tickets/{id}/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态变更
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ChangeStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 变更工单状态
+      tags:
+      - CRM-工单
   /enterprise/job-logs:
     get:
       parameters:
@@ -5095,7 +6686,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/service.CreateJobRequest'
+          $ref: '#/definitions/service.CreateSysJobRequest'
       produces:
       - application/json
       responses:
@@ -5161,7 +6752,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/service.UpdateJobRequest'
+          $ref: '#/definitions/service.UpdateSysJobRequest'
       produces:
       - application/json
       responses:
@@ -5195,396 +6786,6 @@ paths:
       summary: 手动触发任务
       tags:
       - 定时任务
-  /enterprise/messages:
-    post:
-      consumes:
-      - application/json
-      description: 当前用户向其他用户发送站内信
-      parameters:
-      - description: 发送消息请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.SendMessageRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 发送消息
-      tags:
-      - 消息中心
-  /enterprise/messages/{id}:
-    delete:
-      parameters:
-      - description: 消息ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 删除消息
-      tags:
-      - 消息中心
-    get:
-      parameters:
-      - description: 消息ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 消息详情
-      tags:
-      - 消息中心
-  /enterprise/messages/{id}/read:
-    put:
-      parameters:
-      - description: 消息ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 标记消息已读
-      tags:
-      - 消息中心
-  /enterprise/messages/inbox:
-    get:
-      description: 当前用户的收件箱(分页)
-      parameters:
-      - description: 页码(默认1)
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数(默认10,最大100)
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 收件箱
-      tags:
-      - 消息中心
-  /enterprise/messages/outbox:
-    get:
-      description: 当前用户的发件箱(分页)
-      parameters:
-      - description: 页码(默认1)
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数(默认10,最大100)
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 发件箱
-      tags:
-      - 消息中心
-  /enterprise/messages/read-all:
-    put:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 全部已读
-      tags:
-      - 消息中心
-  /enterprise/messages/read-batch:
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: 消息ID列表
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 批量已读
-      tags:
-      - 消息中心
-  /enterprise/messages/unread-count:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 未读消息数
-      tags:
-      - 消息中心
-  /enterprise/notices:
-    get:
-      description: 分页查询公告(支持标题/类型/状态过滤)
-      parameters:
-      - description: 页码(默认1)
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数(默认10,最大100)
-        in: query
-        name: page_size
-        type: integer
-      - description: 标题关键词
-        in: query
-        name: title
-        type: string
-      - description: 类型(1通知 2公告)
-        in: query
-        name: type
-        type: integer
-      - description: 状态(0草稿 1发布)
-        in: query
-        name: status
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 公告列表
-      tags:
-      - 公告管理
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 创建公告请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.CreateNoticeRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 创建公告
-      tags:
-      - 公告管理
-  /enterprise/notices/{id}:
-    delete:
-      parameters:
-      - description: 公告ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 删除公告
-      tags:
-      - 公告管理
-    get:
-      parameters:
-      - description: 公告ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 公告详情
-      tags:
-      - 公告管理
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: 公告ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 更新公告请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.UpdateNoticeRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 更新公告
-      tags:
-      - 公告管理
-  /enterprise/notices/{id}/publish:
-    put:
-      parameters:
-      - description: 公告ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 发布公告
-      tags:
-      - 公告管理
-  /enterprise/notices/{id}/withdraw:
-    put:
-      parameters:
-      - description: 公告ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 撤回公告
-      tags:
-      - 公告管理
-  /enterprise/notices/feed:
-    get:
-      description: 返回最新已发布公告(首页轮播/公告栏用)
-      parameters:
-      - description: 返回条数(默认5)
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 首页公告流
-      tags:
-      - 公告管理
-  /enterprise/notices/published:
-    get:
-      description: 已发布公告列表(可选按类型过滤,首页公告流)
-      parameters:
-      - description: 类型(1通知 2公告)
-        in: query
-        name: type
-        type: integer
-      - description: 返回条数(默认20)
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 已发布公告
-      tags:
-      - 公告管理
   /finance/accounts:
     get:
       parameters:
@@ -5683,6 +6884,123 @@ paths:
       summary: 创建发票
       tags:
       - 财务-发票
+  /finance/receivables:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: RECEIVABLE/PAYABLE
+        in: query
+        name: direction
+        type: string
+      - description: CUSTOMER/SUPPLIER/EMPLOYEE
+        in: query
+        name: party_type
+        type: string
+      - description: 往来方ID
+        in: query
+        name: party_id
+        type: integer
+      - description: 结算状态(0未结1部分2已结清)
+        in: query
+        name: status
+        type: integer
+      - description: 业务类型
+        in: query
+        name: biz_type
+        type: string
+      - description: 关键词(往来方/单号)
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 应收应付列表
+      tags:
+      - 财务-往来
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 往来款
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateReceivableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建应收/应付
+      tags:
+      - 财务-往来
+  /finance/receivables/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 往来款详情
+      tags:
+      - 财务-往来
+  /finance/receivables/{id}/settle:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 结算
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SettleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 结算往来款(支持部分结算)
+      tags:
+      - 财务-往来
   /finance/reports/balance-sheet:
     get:
       parameters:
@@ -6344,6 +7662,41 @@ paths:
       summary: 员工变更履历
       tags:
       - 人力资源管理
+  /hrm/jobs:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      - description: 部门ID
+        in: query
+        name: dept_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 招聘职位列表
+      tags:
+      - HRM-招聘
   /hrm/payroll:
     get:
       parameters:
@@ -6598,6 +7951,1891 @@ paths:
       summary: 启用岗位列表(下拉用,免RBAC)
       tags:
       - 人力资源管理
+  /mail/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 邮件内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SendMailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 发送邮件
+      tags:
+      - 邮件
+  /mail/test:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 测试 SMTP 连接
+      tags:
+      - 邮件
+  /oa/expenses:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 申请人ID
+        in: query
+        name: applicant_id
+        type: integer
+      - description: 费用类型
+        in: query
+        name: expense_type
+        type: string
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      - description: 打款状态
+        in: query
+        name: payment_status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 报销单列表
+      tags:
+      - OA-报销
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 报销单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateExpenseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建报销单
+      tags:
+      - OA-报销
+  /oa/expenses/{id}:
+    delete:
+      parameters:
+      - description: 报销单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除报销单
+      tags:
+      - OA-报销
+    get:
+      parameters:
+      - description: 报销单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 报销单详情
+      tags:
+      - OA-报销
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 报销单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 报销单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateExpenseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑报销单
+      tags:
+      - OA-报销
+  /oa/expenses/{id}/mark-paid:
+    post:
+      parameters:
+      - description: 报销单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 标记报销单已打款
+      tags:
+      - OA-报销
+  /oa/form-data:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 模板ID
+        in: query
+        name: template_id
+        type: integer
+      - description: 提交人ID
+        in: query
+        name: submitter_id
+        type: integer
+      - description: 模板标识
+        in: query
+        name: template_key
+        type: string
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 表单数据列表
+      tags:
+      - OA-表单提交
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 表单数据
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateFormDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 提交表单数据
+      tags:
+      - OA-表单提交
+  /oa/form-data/{id}:
+    delete:
+      parameters:
+      - description: 数据ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除表单数据
+      tags:
+      - OA-表单提交
+    get:
+      parameters:
+      - description: 数据ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 表单数据详情
+      tags:
+      - OA-表单提交
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 数据ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 表单数据
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateFormDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑表单数据
+      tags:
+      - OA-表单提交
+  /oa/forms:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 名称
+        in: query
+        name: name
+        type: string
+      - description: 分类
+        in: query
+        name: category
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 表单模板列表
+      tags:
+      - OA-表单管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 表单模板
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateFormTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建表单模板
+      tags:
+      - OA-表单管理
+  /oa/forms/{id}:
+    delete:
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除表单模板
+      tags:
+      - OA-表单管理
+    get:
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 表单模板详情
+      tags:
+      - OA-表单管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 表单模板
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateFormTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑表单模板
+      tags:
+      - OA-表单管理
+  /oa/forms/{id}/toggle:
+    put:
+      parameters:
+      - description: 模板ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 启用/停用表单模板
+      tags:
+      - OA-表单管理
+  /oa/forms/enabled:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 启用的表单模板
+      tags:
+      - OA-表单管理
+  /oa/loans:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 借款人ID
+        in: query
+        name: applicant_id
+        type: integer
+      - description: 借款类型
+        in: query
+        name: loan_type
+        type: string
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      - description: 还款状态
+        in: query
+        name: repaid_status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 借款/备用金列表
+      tags:
+      - OA-借款
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 借款单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateLoanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建借款/备用金
+      tags:
+      - OA-借款
+  /oa/loans/{id}:
+    delete:
+      parameters:
+      - description: 借款单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除借款/备用金
+      tags:
+      - OA-借款
+    get:
+      parameters:
+      - description: 借款单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 借款/备用金详情
+      tags:
+      - OA-借款
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 借款单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 借款单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateLoanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑借款/备用金
+      tags:
+      - OA-借款
+  /oa/loans/{id}/mark-repaid:
+    post:
+      parameters:
+      - description: 借款单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 标记借款已还清
+      tags:
+      - OA-借款
+  /oa/meeting-bookings:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 会议室ID
+        in: query
+        name: room_id
+        type: integer
+      - description: 预订人ID
+        in: query
+        name: organizer_id
+        type: integer
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 会议预订列表
+      tags:
+      - OA-会议预订
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 会议预订
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateMeetingBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建会议预订
+      tags:
+      - OA-会议预订
+  /oa/meeting-bookings/{id}:
+    delete:
+      parameters:
+      - description: 预订ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除会议预订
+      tags:
+      - OA-会议预订
+    get:
+      parameters:
+      - description: 预订ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 会议预订详情
+      tags:
+      - OA-会议预订
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 预订ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 会议预订
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateMeetingBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑会议预订
+      tags:
+      - OA-会议预订
+  /oa/meeting-rooms:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 名称
+        in: query
+        name: name
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 会议室列表
+      tags:
+      - OA-会议室
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 会议室
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateMeetingRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建会议室
+      tags:
+      - OA-会议室
+  /oa/meeting-rooms/{id}:
+    delete:
+      parameters:
+      - description: 会议室ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除会议室
+      tags:
+      - OA-会议室
+    get:
+      parameters:
+      - description: 会议室ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 会议室详情
+      tags:
+      - OA-会议室
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 会议室ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 会议室
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateMeetingRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑会议室
+      tags:
+      - OA-会议室
+  /oa/messages:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 发送消息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 发送消息
+      tags:
+      - OA-站内信
+  /oa/messages/{id}:
+    delete:
+      parameters:
+      - description: 消息ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除消息
+      tags:
+      - OA-站内信
+    get:
+      parameters:
+      - description: 消息ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 消息详情
+      tags:
+      - OA-站内信
+  /oa/messages/{id}/read:
+    put:
+      parameters:
+      - description: 消息ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 标记已读
+      tags:
+      - OA-站内信
+  /oa/messages/inbox:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 收件箱
+      tags:
+      - OA-站内信
+  /oa/messages/outbox:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 发件箱
+      tags:
+      - OA-站内信
+  /oa/messages/read-all:
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 全部已读
+      tags:
+      - OA-站内信
+  /oa/messages/read-batch:
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 批量已读
+      tags:
+      - OA-站内信
+  /oa/messages/stream:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: SSE 消息流
+      tags:
+      - OA-站内信
+  /oa/messages/unread-count:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 未读消息数
+      tags:
+      - OA-站内信
+  /oa/notices:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 标题关键词
+        in: query
+        name: title
+        type: string
+      - description: 类型(1通知 2公告)
+        in: query
+        name: type
+        type: integer
+      - description: 状态(0草稿 1发布)
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 公告列表
+      tags:
+      - OA-公告
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建公告
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateNoticeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建公告
+      tags:
+      - OA-公告
+  /oa/notices/{id}:
+    delete:
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除公告
+      tags:
+      - OA-公告
+    get:
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 公告详情
+      tags:
+      - OA-公告
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新公告
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateNoticeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新公告
+      tags:
+      - OA-公告
+  /oa/notices/{id}/publish:
+    put:
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 发布公告
+      tags:
+      - OA-公告
+  /oa/notices/{id}/withdraw:
+    put:
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 撤回公告
+      tags:
+      - OA-公告
+  /oa/notices/feed:
+    get:
+      parameters:
+      - description: 返回条数(默认5)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 首页公告流
+      tags:
+      - OA-公告
+  /oa/notices/published:
+    get:
+      parameters:
+      - description: 类型
+        in: query
+        name: type
+        type: integer
+      - description: 返回条数(默认20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 已发布公告
+      tags:
+      - OA-公告
+  /oa/schedules:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 类型
+        in: query
+        name: event_type
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 日程列表
+      tags:
+      - OA-日程
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 日程
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建日程
+      tags:
+      - OA-日程
+  /oa/schedules/{id}:
+    delete:
+      parameters:
+      - description: 日程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除日程
+      tags:
+      - OA-日程
+    get:
+      parameters:
+      - description: 日程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 日程详情
+      tags:
+      - OA-日程
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 日程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 日程
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑日程
+      tags:
+      - OA-日程
+  /oa/schedules/calendar:
+    get:
+      parameters:
+      - description: 开始日期
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 日程日历
+      tags:
+      - OA-日程
+  /oa/trips:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 申请人ID
+        in: query
+        name: applicant_id
+        type: integer
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 出差申请列表
+      tags:
+      - OA-出差
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 出差申请
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateTripRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建出差申请
+      tags:
+      - OA-出差
+  /oa/trips/{id}:
+    delete:
+      parameters:
+      - description: 出差单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除出差申请
+      tags:
+      - OA-出差
+    get:
+      parameters:
+      - description: 出差单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 出差申请详情
+      tags:
+      - OA-出差
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 出差单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 出差申请
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateTripRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑出差申请
+      tags:
+      - OA-出差
+  /oa/work-logs:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 类型(DAILY/WEEKLY/MONTHLY)
+        in: query
+        name: log_type
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 工作日志列表
+      tags:
+      - OA-工作日志
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作日志
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateWorkLogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建工作日志
+      tags:
+      - OA-工作日志
+  /oa/work-logs/{id}:
+    delete:
+      parameters:
+      - description: 日志ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除工作日志
+      tags:
+      - OA-工作日志
+    get:
+      parameters:
+      - description: 日志ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 工作日志详情
+      tags:
+      - OA-工作日志
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 日志ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 工作日志
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateWorkLogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑工作日志
+      tags:
+      - OA-工作日志
+  /project/projects:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      - description: 优先级
+        in: query
+        name: priority
+        type: integer
+      - description: 项目经理ID
+        in: query
+        name: manager_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 项目列表
+      tags:
+      - 项目管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 项目
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建项目
+      tags:
+      - 项目管理
+  /project/projects/{id}:
+    delete:
+      parameters:
+      - description: 项目ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除项目
+      tags:
+      - 项目管理
+    get:
+      parameters:
+      - description: 项目ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 项目详情
+      tags:
+      - 项目管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 项目ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 项目
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑项目
+      tags:
+      - 项目管理
+  /project/tasks:
+    get:
+      parameters:
+      - description: 项目ID
+        in: query
+        name: project_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 任务列表
+      tags:
+      - 项目管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建任务
+      tags:
+      - 项目管理
+  /project/tasks/{id}:
+    delete:
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除任务
+      tags:
+      - 项目管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 任务
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑任务
+      tags:
+      - 项目管理
+  /project/tasks/{id}/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: '{status: 1}'
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新任务状态
+      tags:
+      - 项目管理
   /psi/purchase-orders:
     get:
       parameters:
@@ -8374,6 +11612,133 @@ paths:
       summary: 全部字典
       tags:
       - 字典管理
+  /system/homepage-config:
+    get:
+      description: 返回各板块开关 + 精选条目列表(含业务名称)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取首页板块配置
+      tags:
+      - 站点设置
+  /system/homepage-config/features/{id}:
+    delete:
+      parameters:
+      - description: 精选条目ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除单条精选条目
+      tags:
+      - 站点设置
+  /system/homepage-config/sync:
+    put:
+      consumes:
+      - application/json
+      description: 全量替换某板块的精选条目(传入完整 ID 列表)
+      parameters:
+      - description: 精选条目
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SyncFeaturesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 同步精选条目
+      tags:
+      - 站点设置
+  /system/homepage-config/toggle:
+    put:
+      consumes:
+      - application/json
+      description: 开启/关闭某板块在 CMS 首页的显示
+      parameters:
+      - description: 板块开关
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ToggleModuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 切换板块开关
+      tags:
+      - 站点设置
+  /system/login-logs:
+    get:
+      description: 支持按用户名/成功与否/客户端IP/时间范围筛选
+      parameters:
+      - description: 页码(默认1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认10,最大100)
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 是否成功(true/false)
+        in: query
+        name: success
+        type: string
+      - description: 客户端IP
+        in: query
+        name: client_ip
+        type: string
+      - description: 开始时间
+        in: query
+        name: start_time
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 登录日志列表
+      tags:
+      - 登录日志
   /system/menus:
     post:
       consumes:
@@ -8766,6 +12131,19 @@ paths:
       summary: 操作日志详情
       tags:
       - 操作日志
+  /system/public/homepage-config:
+    get:
+      description: 返回各板块开关 + 条目详情, 免鉴权, 供 CMS 官网展示
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 首页板块配置(公开)
+      tags:
+      - CMS公开
   /system/public/team:
     get:
       description: 返回正常状态用户作为官网团队成员展示(仅 nickname/avatar/position),免鉴权
@@ -8788,6 +12166,31 @@ paths:
       summary: 团队成员列表(公开)
       tags:
       - CMS公开
+  /system/reset:
+    post:
+      consumes:
+      - application/json
+      description: 超管专用。硬删除所有 CRM/审批/HRM/财务/PSI/CMS 业务表数据,保留系统配置/字典/权限/组织架构等骨架。需 body
+        {confirm:"RESET"} 二次确认。
+      parameters:
+      - description: 确认信息(confirm 必须为 RESET)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.resetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 清理业务数据
+      tags:
+      - 系统重置
   /system/roles:
     get:
       parameters:
@@ -9050,83 +12453,6 @@ paths:
       summary: 更新站点信息
       tags:
       - 站点设置
-  /system/storage-config:
-    get:
-      description: 返回当前文件存储配置(OSS Secret 脱敏)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 获取存储配置
-      tags:
-      - 存储配置
-    put:
-      consumes:
-      - application/json
-      description: 修改后自动重建上传驱动,无需重启。OSS Secret 为空时保留原值。
-      parameters:
-      - description: 存储配置
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.UpdateStorageConfigRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 更新存储配置
-      tags:
-      - 存储配置
-  /system/storage-config/reload:
-    put:
-      description: 从数据库重新读取配置并重建 Uploader(配置缓存失效时手动调用)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 重建上传驱动
-      tags:
-      - 存储配置
-  /system/storage-config/test:
-    post:
-      consumes:
-      - application/json
-      description: OSS 模式验证 AK/SK/Bucket;local 模式验证目录权限。不修改已保存的配置。
-      parameters:
-      - description: 待测试的配置
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.UpdateStorageConfigRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 测试存储连接
-      tags:
-      - 存储配置
   /system/users:
     get:
       parameters:

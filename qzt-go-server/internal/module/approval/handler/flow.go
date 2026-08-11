@@ -42,7 +42,8 @@ func (h *FlowHandler) List(c *gin.Context) {
 // @Tags         审批流程
 // @Produce      json
 // @Security     BearerAuth
-// @Param        form_type  query  string  true  "表单类型(如 CONTRACT/EXPENSE/TRIP 等)"
+// @Param        form_type  query  string  true   "表单类型(如 CONTRACT/EXPENSE/TRIP 等)"
+// @Param        form_key   query  string  false  "表单标识(仅 OA_CUSTOM 按模板细分)"
 // @Success      200  {object}  xresponse.Response
 // @Router       /approval/flows/by-type [get]
 func (h *FlowHandler) GetByFormType(c *gin.Context) {
@@ -51,7 +52,7 @@ func (h *FlowHandler) GetByFormType(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: form_type 不能为空")
 		return
 	}
-	flow, err := h.svc.GetByFormType(c.Request.Context(), formType)
+	flow, err := h.svc.GetByFormType(c.Request.Context(), formType, c.Query("form_key"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

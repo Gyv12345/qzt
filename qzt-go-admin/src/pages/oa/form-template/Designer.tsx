@@ -171,7 +171,12 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
   // ── 提交 ──
 
   const handleSave = async () => {
-    const basic = await basicForm.validateFields()
+    const basic = await basicForm.validateFields().catch(() => {
+      message.error('请先完善第一步的基础信息')
+      setCurrent(0)
+      return null
+    })
+    if (!basic) return
     // 校验字段
     for (const f of fields) {
       if (!f.key?.trim() || !f.title?.trim()) {
@@ -222,8 +227,8 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
         style={{ marginBottom: 24 }}
       />
 
-      {current === 0 && (
-        <div style={{ maxWidth: 600 }}>
+      {/* 基础信息表单始终挂载（切到第 2 步时仅隐藏），否则 Form 卸载后字段注销，保存时取不到值 */}
+      <div style={{ maxWidth: 600, display: current === 0 ? 'block' : 'none' }}>
           <Form<BasicFormValues> form={basicForm} layout="vertical">
             <Row gutter={16}>
               <Col span={12}>
@@ -258,7 +263,6 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
             </Form.Item>
           </Form>
         </div>
-      )}
 
       {current === 1 && (
         <Row gutter={16}>

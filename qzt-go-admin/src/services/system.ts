@@ -5,6 +5,7 @@ import type {
   CreateRoleRequest,
   CreateUserRequest,
   DictPayload,
+  HomepageModule,
   LoginLogQuery,
   MenuPayload,
   OauthConfigPayload,
@@ -172,3 +173,17 @@ export const getSiteConfig = () => request.get<unknown, SysSiteConfig>('/system/
 
 export const updateSiteConfig = (data: UpdateSiteConfigRequest) =>
   request.put('/system/site-config', data)
+
+// ---------- 首页板块配置 ----------
+
+export const getHomepageConfig = () =>
+  request.get<unknown, { list: HomepageModule[] }>('/system/homepage-config')
+
+export const toggleHomepageModule = (module: string, enabled: boolean) =>
+  request.put('/system/homepage-config/toggle', { module, enabled })
+
+export const syncHomepageFeatures = (module: string, itemIds: number[]) =>
+  request.put('/system/homepage-config/sync', { module, item_ids: itemIds })
+
+export const removeHomepageFeature = (id: number) =>
+  request.delete(`/system/homepage-config/features/${id}`)

@@ -8,6 +8,8 @@ export interface ApprovalFlow {
   name: string
   /** 表单类型,如 CONTRACT */
   form_type: string
+  /** 表单标识(仅 OA_CUSTOM 按模板细分,空串=该类型通用流程) */
+  form_key: string
   create_execute: number
   update_execute: number
   submitter_can_revoke: number
