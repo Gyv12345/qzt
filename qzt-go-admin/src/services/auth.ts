@@ -69,11 +69,15 @@ export const changePassword = (data: ChangePasswordRequest) =>
 
 /** 获取企业微信绑定二维码 URL(企业微信未启用时业务报错) */
 export const getWecomBindQrcode = () =>
-  request.get<unknown, { url: string }>('/system/auth/wecom/bind-qrcode')
+  request.get<unknown, { url: string; state: string }>('/system/auth/wecom/bind-qrcode')
 
-/** 完成企业微信绑定(扫码回调携带 code/state) */
-export const bindWecom = (data: { code: string; state: string }) =>
-  request.post('/system/auth/wecom/bind', data)
+/** 企业微信绑定回调(公开接口,跨设备扫码用,无需JWT) */
+export const bindWecomCallback = (data: { code: string; state: string }) =>
+  request.post('/system/auth/wecom/bind-callback', data)
+
+/** 查询企业微信绑定状态(桌面端轮询用) */
+export const checkWecomBindStatus = () =>
+  request.get<unknown, { bound: boolean; wecom_user_id: string }>('/system/auth/wecom/bind-status')
 
 /** 解绑企业微信 */
 export const unbindWecom = () => request.delete('/system/auth/wecom/bind')

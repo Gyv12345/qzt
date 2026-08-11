@@ -52,8 +52,8 @@ func (r *HomepageFeatureRepo) ListByModule(ctx context.Context, module string) (
 // Sync 全量替换某模块的精选条目(事务内先删后插)。
 func (r *HomepageFeatureRepo) Sync(ctx context.Context, module string, itemIDs []uint) error {
 	db := dbFrom(ctx)
-	// 先删除该模块全部精选
-	if err := db.Where("module = ?", module).Delete(&model.CmsHomepageFeature{}).Error; err != nil {
+	// 先硬删除该模块全部精选(不用软删除, 否则唯一索引(module,item_id)冲突)
+	if err := db.Unscoped().Where("module = ?", module).Delete(&model.CmsHomepageFeature{}).Error; err != nil {
 		return err
 	}
 	// 再批量插入

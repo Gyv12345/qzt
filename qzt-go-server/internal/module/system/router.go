@@ -42,6 +42,11 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.POST("/auth/wecom/callback", authHandler.WecomCallback)
 	rg.GET("/oauth-configs/enabled", oauthConfigHandler.ListPublic)
 
+	// 企业微信绑定(公开,跨设备扫码用,无需JWT)
+	rg.GET("/auth/wecom/bind-oauth-url", authHandler.WecomBindOauthURL)
+	rg.GET("/auth/wecom/bind-callback", authHandler.WecomBindRedirect)
+	rg.POST("/auth/wecom/bind-callback", authHandler.WecomBindCallback)
+
 	// 站点信息(免鉴权,CMS/admin/h5 前台读取 logo/备案号等)
 	rg.GET("/site-config", siteConfigHandler.Get)
 
@@ -62,6 +67,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 企业微信绑定/解绑(已登录用户)
 		authenticated.GET("/auth/wecom/bind-qrcode", authHandler.WecomBindQrcode)
+		authenticated.GET("/auth/wecom/bind-status", authHandler.WecomBindStatus)
 		authenticated.POST("/auth/wecom/bind", authHandler.WecomBind)
 		authenticated.DELETE("/auth/wecom/bind", authHandler.WecomUnbind)
 		authenticated.GET("/menus/user", menuHandler.GetUserMenuTree)

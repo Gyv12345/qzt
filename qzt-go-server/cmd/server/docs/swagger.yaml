@@ -11271,6 +11271,28 @@ paths:
       summary: 绑定企业微信
       tags:
       - 认证
+  /system/auth/wecom/bind-callback:
+    post:
+      consumes:
+      - application/json
+      description: 跨设备扫码绑定的回调端点,用 state 关联用户,无需登录态
+      parameters:
+      - description: 回调参数
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 企业微信绑定回调(公开)
+      tags:
+      - 认证
   /system/auth/wecom/bind-qrcode:
     get:
       description: 返回企业微信授权页 URL,扫码后用 code 调 bind 接口完成绑定
@@ -11284,6 +11306,21 @@ paths:
       security:
       - BearerAuth: []
       summary: 获取企微绑定扫码URL
+      tags:
+      - 认证
+  /system/auth/wecom/bind-status:
+    get:
+      description: 返回当前用户是否已绑定企业微信,供桌面端轮询
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 企业微信绑定状态
       tags:
       - 认证
   /system/auth/wecom/callback:

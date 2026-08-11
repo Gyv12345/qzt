@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Popconfirm, Space, Tag } from 'antd'
+import { Alert, App, Button, Form, Popconfirm, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -97,8 +97,8 @@ export default function OauthConfigPage() {
   }
 
   const handleToggleEnable = async (record: SysOauthConfig) => {
-    await setOauthConfigEnable(record.id, record.status === 1 ? 0 : 1)
-    message.success(record.status === 1 ? '已禁用' : '已启用')
+    await setOauthConfigEnable(record.id, record.enabled === 1 ? 0 : 1)
+    message.success(record.enabled === 1 ? '已禁用' : '已启用')
     actionRef.current?.reload()
   }
 
@@ -130,7 +130,7 @@ export default function OauthConfigPage() {
     { title: '排序', dataIndex: 'sort', width: 70, search: false },
     {
       title: '状态',
-      dataIndex: 'status',
+      dataIndex: 'enabled',
       width: 80,
       search: false,
       valueEnum: {
@@ -153,7 +153,7 @@ export default function OauthConfigPage() {
           </Auth>
           <Auth perm="system:oauth:enable">
             <Button type="link" size="small" onClick={() => handleToggleEnable(record)}>
-              {record.status === 1 ? '禁用' : '启用'}
+              {record.enabled === 1 ? '禁用' : '启用'}
             </Button>
           </Auth>
           <Auth perm="system:oauth:delete">
@@ -176,6 +176,57 @@ export default function OauthConfigPage() {
 
   return (
     <>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="企业微信扫码登录配置指引"
+        description={
+          <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+            <p style={{ margin: '4px 0' }}>
+              <b>第一步</b>：登录{' '}
+              <a href="https://work.weixin.qq.com/wework_admin/frame" target="_blank" rel="noreferrer">
+                企业微信管理后台
+              </a>
+              ，在「应用管理 → 自建应用」创建或选择一个应用。
+            </p>
+            <p style={{ margin: '4px 0' }}>
+              <b>第二步</b>：获取以下信息填入表单 ——
+            </p>
+            <ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+              <li>
+                <b>AppID</b>（CorpID）：「我的企业 → 企业信息 → 企业ID」
+              </li>
+              <li>
+                <b>App Secret</b>：「自建应用 → Secret」点查看
+              </li>
+              <li>
+                <b>AgentID</b>：「自建应用 → AgentId」
+              </li>
+            </ul>
+            <p style={{ margin: '4px 0' }}>
+              <b>第三步</b>：设置回调地址 ——
+            </p>
+            <ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+              <li>
+                本系统回调地址（复制填入下方「回调地址」字段）：
+                <br />
+                <code style={{ background: '#f5f5f5', padding: '2px 6px', borderRadius: 4 }}>
+                  https://m.devlovecode.com/auth/wecom/bind
+                </code>
+              </li>
+              <li>
+                企业微信「自建应用 → 开发者接口 → 网页授权及JS-SDK → 可信域名」填写：
+                <br />
+                <code style={{ background: '#f5f5f5', padding: '2px 6px', borderRadius: 4 }}>
+                  m.devlovecode.com
+                </code>{' '}
+                （仅域名，不加 https://）
+              </li>
+            </ul>
+          </div>
+        }
+      />
       <ProTable<SysOauthConfig>
         rowKey="id"
         actionRef={actionRef}
@@ -242,8 +293,9 @@ export default function OauthConfigPage() {
         <ProFormText
           name="redirect_uri"
           label="回调地址"
-          placeholder="如 https://example.com/login/oauth/callback"
-          colProps={{ span: 12 }}
+          placeholder={`${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain'}/auth/wecom/bind`}
+          extra="企业微信授权后会带 code 跳到此地址，需与企业微信后台「可信域名」一致"
+          colProps={{ span: 24 }}
         />
         <ProFormDigit
           name="sort"

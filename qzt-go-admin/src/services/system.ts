@@ -164,8 +164,8 @@ export const updateOauthConfig = (id: number, data: OauthConfigPayload) =>
 export const deleteOauthConfig = (id: number) => request.delete(`/system/oauth-configs/${id}`)
 
 /** 启用/禁用第三方登录 */
-export const setOauthConfigEnable = (id: number, enable: number) =>
-  request.put(`/system/oauth-configs/${id}/enable`, { enable })
+export const setOauthConfigEnable = (id: number, enabled: number) =>
+  request.put(`/system/oauth-configs/${id}/enable`, { enabled })
 
 // ---------- 站点信息 ----------
 

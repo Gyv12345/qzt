@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -228,6 +229,93 @@ func (h *AuthHandler) WecomUnbind(c *gin.Context) {
 		return
 	}
 	response.OK(c, nil)
+}
+
+// WecomBindOauthURL 获取企业微信 OAuth 授权 URL(公开)。
+// 手机端 wecom-bind.html 页面加载后调用此接口,拿到 OAuth URL 再 JS 跳转。
+// 这样 OAuth 在企业微信浏览器内部触发,不会被扫码拦截。
+func (h *AuthHandler) WecomBindOauthURL(c *gin.Context) {
+	state := c.Query("state")
+	if state == "" {
+		response.Fail(c, errcode.ErrParam, "state 参数缺失")
+		return
+	}
+	oauthURL, err := h.wecomSvc.GetQrcodeURL(c.Request.Context(), state)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, gin.H{"url": oauthURL})
+}
+
+// WecomBindRedirect 企业微信绑定回调(GET,公开)。
+// 企业微信 OAuth 重定向到这里(302),后端直接完成绑定后跳转到前端结果页。
+// 这样不依赖 SPA 在手机上加载——即使 SPA 缓存打不开,绑定也已完成。
+// @Summary      企业微信绑定回调重定向(公开)
+// @Description  企业微信扫码后重定向到此端点,后端完成绑定后 302 跳到前端结果页
+// @Tags         认证
+// @Produce      json
+// @Param        code   query  string  true  "企业微信授权码"
+// @Param        state  query  string  true  "CSRF state"
+// @Success      302  {string}  string  "Redirect"
+// @Router       /system/auth/wecom/bind-callback [get]
+func (h *AuthHandler) WecomBindRedirect(c *gin.Context) {
+	code := c.Query("code")
+	state := c.Query("state")
+	result := "success"
+	msg := ""
+	if code == "" || state == "" {
+		result = "failed"
+		msg = "回调参数缺失"
+	} else if err := h.wecomSvc.BindByState(c.Request.Context(), code, state); err != nil {
+		result = "failed"
+		msg = err.Error()
+	}
+	// 302 跳到前端结果页
+	target := "https://" + c.Request.Host + "/auth/wecom/bind?result=" + result
+	if msg != "" {
+		target += "&msg=" + url.QueryEscape(msg)
+	}
+	c.Redirect(302, target)
+}
+
+// WecomBindCallback 企业微信绑定回调(公开,无需JWT)
+// @Summary      企业微信绑定回调(公开)
+// @Description  跨设备扫码绑定的回调端点,用 state 关联用户,无需登录态
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "回调参数"  example({"code":"AUTH_CODE","state":"bind_1_abc"})
+// @Success      200   {object}  xresponse.Response
+// @Router       /system/auth/wecom/bind-callback [post]
+func (h *AuthHandler) WecomBindCallback(c *gin.Context) {
+	var body struct {
+		Code  string `json:"code" binding:"required"`
+		State string `json:"state" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+	if err := h.wecomSvc.BindByState(c.Request.Context(), body.Code, body.State); err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, nil)
+}
+
+// WecomBindStatus 查询当前用户的企业微信绑定状态(桌面端轮询用)
+// @Summary      企业微信绑定状态
+// @Description  返回当前用户是否已绑定企业微信,供桌面端轮询
+// @Tags         认证
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  xresponse.Response
+// @Router       /system/auth/wecom/bind-status [get]
+func (h *AuthHandler) WecomBindStatus(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	bound, wecomUserID := h.wecomSvc.GetBindStatus(c.Request.Context(), userID)
+	response.OK(c, gin.H{"bound": bound, "wecom_user_id": wecomUserID})
 }
 
 // GetPermissions 当前用户权限

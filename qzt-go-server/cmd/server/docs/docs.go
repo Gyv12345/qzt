@@ -13561,6 +13561,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/system/auth/wecom/bind-callback": {
+            "post": {
+                "description": "跨设备扫码绑定的回调端点,用 state 关联用户,无需登录态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "企业微信绑定回调(公开)",
+                "parameters": [
+                    {
+                        "description": "回调参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/auth/wecom/bind-qrcode": {
             "get": {
                 "security": [
@@ -13576,6 +13610,31 @@ const docTemplate = `{
                     "认证"
                 ],
                 "summary": "获取企微绑定扫码URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/auth/wecom/bind-status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回当前用户是否已绑定企业微信,供桌面端轮询",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "企业微信绑定状态",
                 "responses": {
                     "200": {
                         "description": "OK",

@@ -60,13 +60,35 @@ type ConfigItem struct {
 }
 
 // BatchUpdate writes many values in one transaction, then re-syncs the cache.
+//
+// 对 DB 里尚不存在的 key 采用 upsert 语义:先查是否存在,存在则更新 value,
+// 不存在则插入一行。否则一个纯 UPDATE 打在缺失的 key 上会静默影响 0 行,
+// 接口仍返回成功 —— numbergen 这类「读不到用默认值、首存才落库」的配置
+// (number.{module}.* 不会预先 seed)就会表现为「保存了但不生效」。
 func (s *ConfigService) BatchUpdate(ctx context.Context, items []ConfigItem) error {
 	if len(items) == 0 {
 		return nil
 	}
 	if err := repository.Transaction(ctx, func(ctx context.Context) error {
 		for _, it := range items {
-			if err := s.repo.UpdateValue(ctx, it.Key, it.Value); err != nil {
+			exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
+				Where: map[string]interface{}{"key": it.Key},
+			})
+			if err != nil {
+				return err
+			}
+			if exists {
+				if err := s.repo.UpdateValue(ctx, it.Key, it.Value); err != nil {
+					return err
+				}
+				continue
+			}
+			// key 不存在 → 插入新行(group 取 key 第一段,如 number.customer.prefix → number)
+			if err := s.repo.Create(ctx, &model.SysConfig{
+				Key: it.Key, Value: it.Value,
+				Group: configGroupFromKey(it.Key), Name: it.Key,
+				Type: "string", Editable: true,
+			}); err != nil {
 				return err
 			}
 		}
@@ -75,6 +97,15 @@ func (s *ConfigService) BatchUpdate(ctx context.Context, items []ConfigItem) err
 		return err
 	}
 	return setting.RefreshAll(context.Background())
+}
+
+// configGroupFromKey 取 key 第一个 '.' 之前的段作为 group(如 number.customer.prefix → number);
+// 不含 '.' 则返回空串。
+func configGroupFromKey(key string) string {
+	if i := strings.IndexByte(key, '.'); i > 0 {
+		return key[:i]
+	}
+	return ""
 }
 
 type CreateConfigRequest struct {

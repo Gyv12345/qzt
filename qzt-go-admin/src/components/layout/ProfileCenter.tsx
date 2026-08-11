@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth'
 import {
   changePassword,
+  checkWecomBindStatus,
   createApiKey,
   deleteApiKey,
   disableApiKey,
@@ -172,6 +173,35 @@ function WecomTab() {
   const [refreshing, setRefreshing] = useState(false)
 
   const bound = !!profile?.wecom_user_id
+
+  // 生成二维码后自动轮询绑定状态(每 2s, 最多 5 分钟)
+  useEffect(() => {
+    if (!qrUrl || bound) return
+    let active = true
+    const maxAttempts = 150 // 2s * 150 = 5min
+    let attempts = 0
+    const timer = setInterval(async () => {
+      attempts++
+      if (attempts > maxAttempts) {
+        clearInterval(timer)
+        return
+      }
+      try {
+        const res = await checkWecomBindStatus()
+        if (active && res.bound) {
+          clearInterval(timer)
+          await fetchUserInfo()
+          message.success('企业微信绑定成功')
+        }
+      } catch {
+        // 忽略轮询错误
+      }
+    }, 2000)
+    return () => {
+      active = false
+      clearInterval(timer)
+    }
+  }, [qrUrl, bound])
 
   const loadQrcode = async () => {
     setLoading(true)

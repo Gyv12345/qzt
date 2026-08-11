@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -156,15 +158,22 @@ func randomHex(n int) string {
 
 // ── 企业微信绑定/解绑(已登录用户操作) ──
 
-// GetBindQrcodeURL 获取企微绑定扫码 URL(与登录扫码相同 URL,state 里带 bind_ 前缀区分)。
+// GetBindQrcodeURL 获取企微绑定扫码 URL(含 OAuth URL)。
 func (s *WecomAuthService) GetBindQrcodeURL(ctx context.Context, userID uint) (string, string, error) {
 	client, err := s.newWecomClient(ctx)
 	if err != nil {
 		return "", "", err
 	}
-	// state 带 bind_ 前缀 + userID,回调时识别为绑定操作
 	state := fmt.Sprintf("bind_%d_%s", userID, randomHex(8))
+	app.Redis.Set(ctx, "qzt:wecom:bind:"+state, strconv.FormatUint(uint64(userID), 10), 5*time.Minute)
 	return client.BuildAuthorizeURL(state), state, nil
+}
+
+// CreateBindState 生成绑定 state 并存入 Redis(不构造 OAuth URL,由前端页面触发)。
+func (s *WecomAuthService) CreateBindState(ctx context.Context, userID uint) (string, error) {
+	state := fmt.Sprintf("bind_%d_%s", userID, randomHex(8))
+	app.Redis.Set(ctx, "qzt:wecom:bind:"+state, strconv.FormatUint(uint64(userID), 10), 5*time.Minute)
+	return state, nil
 }
 
 // BindWecom 用企微 code 绑定到当前用户。若该 wecomUserID 已绑定其他账号则拒绝。
@@ -195,6 +204,21 @@ func (s *WecomAuthService) BindWecom(ctx context.Context, userID uint, code stri
 	return s.userRepo.Update(ctx, user)
 }
 
+// BindByState 公开绑定接口(无需 JWT): 用 state 从 Redis 反查 userID,再走绑定流程。
+// 用于跨设备扫码绑定——手机扫码后回调页面没有桌面端的 JWT,靠 state 关联用户。
+func (s *WecomAuthService) BindByState(ctx context.Context, code, state string) error {
+	// 从 Redis 原子取出并删除 state→userID(一次性)
+	val, err := app.Redis.GetDel(ctx, "qzt:wecom:bind:"+state).Result()
+	if err != nil || val == "" {
+		return errors.New("绑定状态已过期,请重新生成二维码")
+	}
+	userID, err := strconv.ParseUint(val, 10, 64)
+	if err != nil {
+		return errors.New("绑定状态无效")
+	}
+	return s.BindWecom(ctx, uint(userID), code)
+}
+
 // UnbindWecom 解绑企业微信(清空 wecom_user_id)。
 func (s *WecomAuthService) UnbindWecom(ctx context.Context, userID uint) error {
 	user, err := s.userRepo.GetByID(ctx, userID)
@@ -206,4 +230,13 @@ func (s *WecomAuthService) UnbindWecom(ctx context.Context, userID uint) error {
 	}
 	user.WecomUserID = ""
 	return s.userRepo.Update(ctx, user)
+}
+
+// GetBindStatus 返回用户的企微绑定状态(桌面端轮询用)。
+func (s *WecomAuthService) GetBindStatus(ctx context.Context, userID uint) (bool, string) {
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return false, ""
+	}
+	return user.WecomUserID != "", user.WecomUserID
 }

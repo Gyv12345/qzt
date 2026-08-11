@@ -341,7 +341,7 @@ export interface SysOauthConfig {
   extra: string
   sort: number
   /** 1 启用 0 禁用 */
-  status?: number
+  enabled?: number
   remark: string
   created_at: string
   updated_at: string

@@ -8,6 +8,7 @@ import Login from '../pages/login'
 import Home from '../pages/home'
 import Mine from '../pages/mine'
 import Messages from '../pages/messages'
+import WecomBind from '../pages/wecom-bind'
 import NotFound from '../pages/error/404'
 
 // 业务详情页懒加载(减少首屏体积)
@@ -91,6 +92,7 @@ export default function AppRoutes() {
   const routes = useMemo<RouteObject[]>(
     () => [
       { path: '/login', element: <Login /> },
+      { path: '/auth/wecom/bind', element: <WecomBind /> },
       {
         path: '/',
         element: (
