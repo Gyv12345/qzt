@@ -43,12 +43,12 @@ func (h *LeadHandler) GetByID(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误")
 		return
 	}
-	lead, err := h.svc.GetByID(c.Request.Context(), uint(id))
+	lead, fields, err := h.svc.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
 		response.Fail(c, errcode.ErrNotFound, err.Error())
 		return
 	}
-	response.OK(c, lead)
+	response.OK(c, gin.H{"lead": lead, "fields": fields})
 }
 
 // Update 更新线索

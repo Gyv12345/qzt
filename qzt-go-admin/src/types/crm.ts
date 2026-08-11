@@ -310,6 +310,8 @@ export interface CrmCustomField {
   editable: number
   /** 大属性 JSON 字符串(选项/校验等),仅 BLOB 类字段有 */
   prop?: string
+  /** 转化映射目标字段ID(线索字段→客户字段,仅 LEAD 模块用) */
+  convert_target_field?: string
 }
 
 /** 自定义字段值 */
@@ -495,6 +497,7 @@ export interface CrmCustomFieldPayload {
   prop?: string
   mobile?: number
   pos?: number
+  convert_target_field?: string
 }
 
 /** 自定义字段表单 key */
@@ -504,6 +507,7 @@ export const CRM_FORM_KEYS = [
   { label: '合同', value: 'CONTRACT' },
   { label: '商品', value: 'PRODUCT' },
   { label: '跟进记录', value: 'FOLLOW_UP_RECORD' },
+  { label: '线索', value: 'LEAD' },
 ] as const
 
 /** 自定义字段类型(27 种) */

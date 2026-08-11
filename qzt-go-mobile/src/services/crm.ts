@@ -50,8 +50,13 @@ export interface LeadQuery extends PageParams {
 export const listLeads = (params: LeadQuery) =>
   request.get<unknown, CrmPageResult<CrmLead>>('/crm/leads', { params })
 
-/** 线索详情 */
-export const getLead = (id: number) => request.get<unknown, CrmLead>(`/crm/leads/${id}`)
+/** 线索详情(后端返回 {lead, fields},mobile 暂未接入自定义字段,只取 lead) */
+export const getLead = async (id: number) => {
+  const res = await request.get<unknown, { lead: CrmLead; fields: Record<string, string> }>(
+    `/crm/leads/${id}`,
+  )
+  return res.lead
+}
 
 /** 新建线索 */
 export const createLead = (data: {

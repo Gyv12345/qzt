@@ -137,6 +137,7 @@ interface PropFormValues {
   fieldWidth: number
   optionsText?: string
   propRaw?: string
+  convertTargetField?: string
 }
 
 export default function CrmFieldPage() {
@@ -146,6 +147,7 @@ export default function CrmFieldPage() {
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [customerFields, setCustomerFields] = useState<CrmCustomField[]>([])
   const [propForm] = Form.useForm<PropFormValues>()
 
   const selectedField = fields.find((f) => f.id === selectedId)
@@ -167,6 +169,15 @@ export default function CrmFieldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentKey])
 
+  // 线索模块需要客户字段定义作为「转化映射」下拉选项
+  useEffect(() => {
+    if (currentKey !== 'LEAD') return
+    listCustomFields('CUSTOMER')
+      .then(setCustomerFields)
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentKey])
+
   // 右栏跟随选中字段回填
   useEffect(() => {
     if (!selectedField) {
@@ -183,6 +194,7 @@ export default function CrmFieldPage() {
       fieldWidth: 0.5,
       optionsText: OPTION_TYPES.has(selectedField.type) ? optionsToText(selectedField.prop) : '',
       propRaw: !OPTION_TYPES.has(selectedField.type) ? selectedField.prop || '' : '',
+      convertTargetField: selectedField.convert_target_field || undefined,
     })
   }, [selectedField, propForm])
 
@@ -226,6 +238,7 @@ export default function CrmFieldPage() {
         prop,
         mobile: values.mobile ? 1 : 0,
         pos: selectedField.pos,
+        convert_target_field: values.convertTargetField || undefined,
       })
       message.success('属性已保存')
       await loadFields()
@@ -451,6 +464,21 @@ export default function CrmFieldPage() {
                 <Form.Item name="internal_key" label="内部标识">
                   <Input placeholder="英文字段名,留空自动生成" />
                 </Form.Item>
+                {currentKey === 'LEAD' && (
+                  <Form.Item
+                    name="convertTargetField"
+                    label="转化为客户时映射到"
+                    tooltip="线索转化客户时,该字段的值会自动带入所选的客户自定义字段;不选则不映射"
+                  >
+                    <Select
+                      options={customerFields.map((f) => ({ label: f.name, value: f.id }))}
+                      allowClear
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="不映射"
+                    />
+                  </Form.Item>
+                )}
                 <Form.Item name="placeholder" label="占位提示">
                   <Input placeholder="输入框占位文字" />
                 </Form.Item>

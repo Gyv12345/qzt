@@ -122,7 +122,7 @@ func handleLeadGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	if id == 0 {
 		return resultError("线索ID(id)必填")
 	}
-	lead, err := svc.GetByID(ctx, id)
+	lead, _, err := svc.GetByID(ctx, id)
 	if err != nil {
 		return resultError(fmt.Sprintf("查询线索失败: %v", err))
 	}

@@ -11,32 +11,32 @@ package crm
 type FieldType string
 
 const (
-	FieldInput                FieldType = "INPUT"
-	FieldTextarea             FieldType = "TEXTAREA"
-	FieldInputNumber          FieldType = "INPUT_NUMBER"
-	FieldDateTime             FieldType = "DATE_TIME"
-	FieldRadio                FieldType = "RADIO"
-	FieldCheckbox             FieldType = "CHECKBOX"
-	FieldSelect               FieldType = "SELECT"
-	FieldSelectMultiple       FieldType = "SELECT_MULTIPLE"
-	FieldInputMultiple        FieldType = "INPUT_MULTIPLE"
-	FieldMember               FieldType = "MEMBER"
-	FieldMemberMultiple       FieldType = "MEMBER_MULTIPLE"
-	FieldDepartment           FieldType = "DEPARTMENT"
-	FieldDepartmentMultiple   FieldType = "DEPARTMENT_MULTIPLE"
-	FieldDivider              FieldType = "DIVIDER"
-	FieldPicture              FieldType = "PICTURE"
-	FieldLocation             FieldType = "LOCATION"
-	FieldPhone                FieldType = "PHONE"
-	FieldDataSource           FieldType = "DATA_SOURCE"
-	FieldDataSourceMultiple   FieldType = "DATA_SOURCE_MULTIPLE"
-	FieldSerialNumber         FieldType = "SERIAL_NUMBER"
-	FieldAttachment           FieldType = "ATTACHMENT"
-	FieldLink                 FieldType = "LINK"
-	FieldIndustry             FieldType = "INDUSTRY"
-	FieldFormula              FieldType = "FORMULA"
-	FieldSubProduct           FieldType = "SUB_PRODUCT"
-	FieldSubPrice             FieldType = "SUB_PRICE"
+	FieldInput              FieldType = "INPUT"
+	FieldTextarea           FieldType = "TEXTAREA"
+	FieldInputNumber        FieldType = "INPUT_NUMBER"
+	FieldDateTime           FieldType = "DATE_TIME"
+	FieldRadio              FieldType = "RADIO"
+	FieldCheckbox           FieldType = "CHECKBOX"
+	FieldSelect             FieldType = "SELECT"
+	FieldSelectMultiple     FieldType = "SELECT_MULTIPLE"
+	FieldInputMultiple      FieldType = "INPUT_MULTIPLE"
+	FieldMember             FieldType = "MEMBER"
+	FieldMemberMultiple     FieldType = "MEMBER_MULTIPLE"
+	FieldDepartment         FieldType = "DEPARTMENT"
+	FieldDepartmentMultiple FieldType = "DEPARTMENT_MULTIPLE"
+	FieldDivider            FieldType = "DIVIDER"
+	FieldPicture            FieldType = "PICTURE"
+	FieldLocation           FieldType = "LOCATION"
+	FieldPhone              FieldType = "PHONE"
+	FieldDataSource         FieldType = "DATA_SOURCE"
+	FieldDataSourceMultiple FieldType = "DATA_SOURCE_MULTIPLE"
+	FieldSerialNumber       FieldType = "SERIAL_NUMBER"
+	FieldAttachment         FieldType = "ATTACHMENT"
+	FieldLink               FieldType = "LINK"
+	FieldIndustry           FieldType = "INDUSTRY"
+	FieldFormula            FieldType = "FORMULA"
+	FieldSubProduct         FieldType = "SUB_PRODUCT"
+	FieldSubPrice           FieldType = "SUB_PRICE"
 )
 
 // IsBlob 判断字段类型是否存入 _field_blob 大值表(9 种)。
@@ -54,11 +54,12 @@ func (t FieldType) IsBlob() bool {
 type FormKey string
 
 const (
-	FormCustomer         FormKey = "CUSTOMER"
-	FormOpportunity      FormKey = "OPPORTUNITY"
-	FormContract         FormKey = "CONTRACT"
-	FormProduct          FormKey = "PRODUCT"
-	FormFollowUpRecord   FormKey = "FOLLOW_UP_RECORD"
+	FormCustomer       FormKey = "CUSTOMER"
+	FormOpportunity    FormKey = "OPPORTUNITY"
+	FormContract       FormKey = "CONTRACT"
+	FormProduct        FormKey = "PRODUCT"
+	FormFollowUpRecord FormKey = "FOLLOW_UP_RECORD"
+	FormLead           FormKey = "LEAD"
 )
 
 // SysModuleForm 模块表单配置。一个 formKey 对应一个表单(客户/商机/合同/产品/跟进记录)。
@@ -72,15 +73,16 @@ func (SysModuleForm) TableName() string { return "sys_module_form" }
 
 // SysModuleField 字段定义(主信息)。
 type SysModuleField struct {
-	ID          string    `json:"id" gorm:"primaryKey;size:32"`
-	FormID      string    `json:"form_id" gorm:"index:idx_form;size:32;not null;comment:所属表单ID"`
-	InternalKey string    `json:"internal_key" gorm:"index:idx_form_internal;size:255;comment:字段内置Key"`
-	Name        string    `json:"name" gorm:"size:255;not null;comment:字段名称"`
-	Type        FieldType `json:"type" gorm:"size:20;not null;comment:字段类型"`
-	Mobile      int8      `json:"mobile" gorm:"default:0;comment:是否移动端"`
-	Pos         int64     `json:"pos" gorm:"default:0;comment:排序"`
-	Readable    int8      `json:"readable" gorm:"default:1;comment:是否可见"`
-	Editable    int8      `json:"editable" gorm:"default:1;comment:是否可编辑"`
+	ID                 string    `json:"id" gorm:"primaryKey;size:32"`
+	FormID             string    `json:"form_id" gorm:"index:idx_form;size:32;not null;comment:所属表单ID"`
+	InternalKey        string    `json:"internal_key" gorm:"index:idx_form_internal;size:255;comment:字段内置Key"`
+	Name               string    `json:"name" gorm:"size:255;not null;comment:字段名称"`
+	Type               FieldType `json:"type" gorm:"size:20;not null;comment:字段类型"`
+	Mobile             int8      `json:"mobile" gorm:"default:0;comment:是否移动端"`
+	Pos                int64     `json:"pos" gorm:"default:0;comment:排序"`
+	Readable           int8      `json:"readable" gorm:"default:1;comment:是否可见"`
+	Editable           int8      `json:"editable" gorm:"default:1;comment:是否可编辑"`
+	ConvertTargetField string    `json:"convert_target_field" gorm:"column:convert_target_field;size:32;comment:转化映射目标字段ID(线索字段→客户字段)"`
 }
 
 func (SysModuleField) TableName() string { return "sys_module_field" }
@@ -191,3 +193,23 @@ type FollowUpRecordFieldBlob struct {
 }
 
 func (FollowUpRecordFieldBlob) TableName() string { return "follow_up_record_field_blob" }
+
+// LeadField 线索自定义字段值(单值)。
+type LeadField struct {
+	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	ResourceID string `json:"resource_id" gorm:"index:idx_lead_rfv,priority:1;size:32;not null;comment:线索ID"`
+	FieldID    string `json:"field_id" gorm:"index:idx_lead_rfv,priority:2;index;size:32;not null;comment:字段ID"`
+	FieldValue string `json:"field_value" gorm:"index:idx_lead_rfv,priority:3;size:255;not null;comment:字段值"`
+}
+
+func (LeadField) TableName() string { return "lead_field" }
+
+// LeadFieldBlob 线索自定义字段大值。
+type LeadFieldBlob struct {
+	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	ResourceID string `json:"resource_id" gorm:"index;size:32;not null"`
+	FieldID    string `json:"field_id" gorm:"size:32;not null"`
+	FieldValue string `json:"field_value" gorm:"type:text;not null"`
+}
+
+func (LeadFieldBlob) TableName() string { return "lead_field_blob" }

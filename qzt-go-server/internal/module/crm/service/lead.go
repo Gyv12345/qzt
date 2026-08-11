@@ -11,8 +11,8 @@ import (
 	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
-	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/internal/repository"
+	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -38,6 +38,7 @@ type LeadService struct {
 	historyRepo *crrepo.LeadOwnerHistoryRepo
 	custRepo    *crrepo.CustomerRepo
 	contactRepo *crrepo.CustomerContactRepo
+	fieldSvc    *CustomFieldService
 }
 
 func NewLeadService() *LeadService {
@@ -46,22 +47,24 @@ func NewLeadService() *LeadService {
 		historyRepo: crrepo.NewLeadOwnerHistoryRepo(),
 		custRepo:    crrepo.NewCustomerRepo(),
 		contactRepo: crrepo.NewCustomerContactRepo(),
+		fieldSvc:    NewCustomFieldService(),
 	}
 }
 
 // CreateLeadRequest 创建线索请求。
 type CreateLeadRequest struct {
-	Name        string `json:"name" binding:"required"`
-	LeadNo      string `json:"lead_no"` // 留空则自动生成
-	ContactName string `json:"contact_name"`
-	Phone       string `json:"phone"`
-	Email       string `json:"email"`
-	Company     string `json:"company"`
-	Level       string `json:"level"`
-	Source      string `json:"source"`
-	Industry    string `json:"industry"`
-	OwnerID     *uint  `json:"owner_id"`
-	Remark      string `json:"remark"`
+	Name        string       `json:"name" binding:"required"`
+	LeadNo      string       `json:"lead_no"` // 留空则自动生成
+	ContactName string       `json:"contact_name"`
+	Phone       string       `json:"phone"`
+	Email       string       `json:"email"`
+	Company     string       `json:"company"`
+	Level       string       `json:"level"`
+	Source      string       `json:"source"`
+	Industry    string       `json:"industry"`
+	OwnerID     *uint        `json:"owner_id"`
+	Remark      string       `json:"remark"`
+	Fields      []FieldValue `json:"fields"`
 }
 
 // Create 创建线索(默认私海,owner 默认当前用户)。
@@ -77,24 +80,30 @@ func (s *LeadService) Create(ctx context.Context, req *CreateLeadRequest, curren
 		leadNo, _ = numbergen.Generate(ctx, "lead")
 	}
 	lead := &crmmodel.CrmLead{
-		Name:        req.Name,
-		LeadNo:      leadNo,
-		ContactName: req.ContactName,
-		Phone:       req.Phone,
-		Email:       req.Email,
-		Company:     req.Company,
-		Level:       req.Level,
-		Source:      req.Source,
-		Industry:    req.Industry,
-		Status:      crmmodel.LeadStatusNew,
-		OwnerID:     ownerID,
-		InPool:      crmmodel.InPoolPrivate,
+		Name:           req.Name,
+		LeadNo:         leadNo,
+		ContactName:    req.ContactName,
+		Phone:          req.Phone,
+		Email:          req.Email,
+		Company:        req.Company,
+		Level:          req.Level,
+		Source:         req.Source,
+		Industry:       req.Industry,
+		Status:         crmmodel.LeadStatusNew,
+		OwnerID:        ownerID,
+		InPool:         crmmodel.InPoolPrivate,
 		CollectionTime: xtime.NewNullDateTimeFromTime(now),
-		Remark:      req.Remark,
+		Remark:         req.Remark,
 	}
 	err := repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.repo.Create(ctx, lead); err != nil {
 			return err
+		}
+		// 写自定义字段值
+		if len(req.Fields) > 0 {
+			if err := s.fieldSvc.SaveLeadValues(ctx, formatResourceID(lead.ID), req.Fields); err != nil {
+				return err
+			}
 		}
 		return s.historyRepo.Create(ctx, &crmmodel.CrmLeadOwnerHistory{
 			LeadID: lead.ID, OwnerID: ownerID, Action: crmmodel.OwnerActionTake,
@@ -107,23 +116,28 @@ func (s *LeadService) Create(ctx context.Context, req *CreateLeadRequest, curren
 	return lead, nil
 }
 
-// GetByID 线索详情。
-func (s *LeadService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmLead, error) {
+// GetByID 线索详情(含自定义字段值)。
+func (s *LeadService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmLead, map[string]string, error) {
 	lead, err := s.repo.GetByID(ctx, id)
-	return lead, notFoundOr(err, "线索不存在")
+	if err != nil {
+		return nil, nil, notFoundOr(err, "线索不存在")
+	}
+	fields, _ := s.fieldSvc.GetLeadValues(ctx, formatResourceID(id))
+	return lead, fields, nil
 }
 
 // UpdateLeadRequest 更新线索请求。
 type UpdateLeadRequest struct {
-	Name        string `json:"name" binding:"required"`
-	ContactName string `json:"contact_name"`
-	Phone       string `json:"phone"`
-	Email       string `json:"email"`
-	Company     string `json:"company"`
-	Level       string `json:"level"`
-	Source      string `json:"source"`
-	Status      *int8  `json:"status"`
-	Industry    string `json:"industry"`
+	Name        string       `json:"name" binding:"required"`
+	ContactName string       `json:"contact_name"`
+	Phone       string       `json:"phone"`
+	Email       string       `json:"email"`
+	Company     string       `json:"company"`
+	Level       string       `json:"level"`
+	Source      string       `json:"source"`
+	Status      *int8        `json:"status"`
+	Industry    string       `json:"industry"`
+	Fields      []FieldValue `json:"fields"`
 }
 
 // Update 更新线索。
@@ -153,16 +167,24 @@ func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadReques
 			return err
 		}
 		recordChanges(ctx, model.BizTypeLead, id, operatorID, changes)
+		if req.Fields != nil {
+			return s.fieldSvc.SaveLeadValues(ctx, formatResourceID(id), req.Fields)
+		}
 		return nil
 	})
 }
 
-// Delete 删除线索。
+// Delete 删除线索(清自定义字段值)。
 func (s *LeadService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return notFoundOr(err, "线索不存在")
 	}
-	return s.repo.Delete(ctx, id)
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.fieldSvc.DeleteLeadValues(ctx, formatResourceID(id)); err != nil {
+			return err
+		}
+		return s.repo.Delete(ctx, id)
+	})
 }
 
 // List 线索列表(分页 + 主字段过滤)。
@@ -316,6 +338,10 @@ func (s *LeadService) Convert(ctx context.Context, leadID, currentUserID uint) (
 
 	err = repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.custRepo.Create(ctx, customer); err != nil {
+			return err
+		}
+		// 自定义字段值按映射带转到新客户(线索字段定义上的 convert_target_field)
+		if err := s.fieldSvc.ConvertLeadFieldValues(ctx, leadID, customer.ID); err != nil {
 			return err
 		}
 		// 线索带有联系人信息时,同步创建一条联系人(Name 缺失则用线索名兜底,避免丢电话/邮箱)。

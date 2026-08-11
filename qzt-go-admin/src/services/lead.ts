@@ -1,5 +1,5 @@
 import request from '../utils/request'
-import type { CrmLead, CrmLeadOwnerHistory, CrmLeadPayload, CrmLeadPool } from '../types/lead'
+import type { CrmLead, CrmLeadDetail, CrmLeadOwnerHistory, CrmLeadPayload, CrmLeadPool } from '../types/lead'
 import type { CrmPoolPickRule, CrmPoolRecycleRule } from '../types/crm'
 import type { PageParams } from '../types'
 
@@ -22,7 +22,7 @@ export interface LeadQuery extends PageParams {
 export const listLeads = (params?: LeadQuery) =>
   request.get<unknown, LeadPageResult<CrmLead>>('/crm/leads', { params })
 
-export const getLead = (id: number) => request.get<unknown, CrmLead>(`/crm/leads/${id}`)
+export const getLead = (id: number) => request.get<unknown, CrmLeadDetail>(`/crm/leads/${id}`)
 
 export const createLead = (data: CrmLeadPayload) => request.post('/crm/leads', data)
 

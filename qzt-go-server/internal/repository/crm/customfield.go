@@ -31,7 +31,7 @@ type ModuleFieldRepo struct {
 func NewModuleFieldRepo() *ModuleFieldRepo { return &ModuleFieldRepo{} }
 
 func (r *ModuleFieldRepo) Update(ctx context.Context, m *crmmodel.SysModuleField) error {
-	return r.BaseRepo.Update(ctx, m, "InternalKey", "Name", "Type", "Mobile", "Pos", "Readable", "Editable")
+	return r.BaseRepo.Update(ctx, m, "InternalKey", "Name", "Type", "Mobile", "Pos", "Readable", "Editable", "ConvertTargetField")
 }
 
 // ListByForm 列出某表单的全部字段(按 pos 排序)。
@@ -118,6 +118,60 @@ func BulkCreateCustomerFields(ctx context.Context, values []crmmodel.CustomerFie
 
 // BulkCreateCustomerFieldBlobs 批量写入客户大值字段。
 func BulkCreateCustomerFieldBlobs(ctx context.Context, values []crmmodel.CustomerFieldBlob) error {
+	if len(values) == 0 {
+		return nil
+	}
+	return repoDB(ctx).Create(&values).Error
+}
+
+// ── 线索字段值(单值 + BLOB) ──
+
+type LeadFieldRepo struct {
+	repository.BaseRepo[crmmodel.LeadField]
+}
+
+func NewLeadFieldRepo() *LeadFieldRepo { return &LeadFieldRepo{} }
+
+func (r *LeadFieldRepo) ListByResource(ctx context.Context, resourceID string) ([]crmmodel.LeadField, error) {
+	return r.List(ctx, &repository.QueryOptions{Where: map[string]interface{}{"resource_id": resourceID}})
+}
+
+func (r *LeadFieldRepo) DeleteByResource(ctx context.Context, resourceID string) error {
+	return repoDB(ctx).Where("resource_id = ?", resourceID).Delete(&crmmodel.LeadField{}).Error
+}
+
+type LeadFieldBlobRepo struct {
+	repository.BaseRepo[crmmodel.LeadFieldBlob]
+}
+
+func NewLeadFieldBlobRepo() *LeadFieldBlobRepo { return &LeadFieldBlobRepo{} }
+
+func (r *LeadFieldBlobRepo) ListByResource(ctx context.Context, resourceID string) ([]crmmodel.LeadFieldBlob, error) {
+	return r.List(ctx, &repository.QueryOptions{Where: map[string]interface{}{"resource_id": resourceID}})
+}
+
+func (r *LeadFieldBlobRepo) DeleteByResource(ctx context.Context, resourceID string) error {
+	return repoDB(ctx).Where("resource_id = ?", resourceID).Delete(&crmmodel.LeadFieldBlob{}).Error
+}
+
+// DeleteLeadFieldValues 删除某线索的所有自定义字段值(单值 + BLOB)。删线索时调用。
+func DeleteLeadFieldValues(ctx context.Context, resourceID string) error {
+	if err := NewLeadFieldRepo().DeleteByResource(ctx, resourceID); err != nil {
+		return err
+	}
+	return NewLeadFieldBlobRepo().DeleteByResource(ctx, resourceID)
+}
+
+// BulkCreateLeadFields 批量写入线索单值字段。
+func BulkCreateLeadFields(ctx context.Context, values []crmmodel.LeadField) error {
+	if len(values) == 0 {
+		return nil
+	}
+	return repoDB(ctx).Create(&values).Error
+}
+
+// BulkCreateLeadFieldBlobs 批量写入线索大值字段。
+func BulkCreateLeadFieldBlobs(ctx context.Context, values []crmmodel.LeadFieldBlob) error {
 	if len(values) == 0 {
 		return nil
 	}

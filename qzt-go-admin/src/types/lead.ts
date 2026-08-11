@@ -1,4 +1,5 @@
 // CRM 线索模块类型,与 qzt-go-server internal/model/crm/lead.go 对齐
+import type { CrmFieldValue } from './crm'
 
 /** 线索状态: 1新建 2跟进中 3已转化 4无效(字典 LEAD_STATUS) */
 export interface CrmLead {
@@ -33,6 +34,12 @@ export interface CrmLead {
   updated_at: string
 }
 
+/** 线索详情(含自定义字段值,GET /crm/leads/:id 返回) */
+export interface CrmLeadDetail {
+  lead: CrmLead
+  fields: Record<string, string>
+}
+
 /** 创建/更新线索请求 */
 export interface CrmLeadPayload {
   name: string
@@ -46,6 +53,7 @@ export interface CrmLeadPayload {
   status?: number
   industry?: string
   owner_id?: number
+  fields?: CrmFieldValue[]
 }
 
 /** 线索归属历史 */

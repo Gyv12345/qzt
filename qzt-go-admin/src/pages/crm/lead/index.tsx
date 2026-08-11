@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { App, Button, Col, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tabs, Tag } from 'antd'
 import { MailOutlined, PlusOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
@@ -24,6 +24,7 @@ import {
   convertLead,
   createLead,
   deleteLead,
+  getLead,
   getLeadOwnerHistory,
   listEnabledLeadPools,
   listLeads,
@@ -34,7 +35,10 @@ import {
   type LeadQuery,
 } from '../../../services/lead'
 import { useUserStore } from '../../../stores/users'
+import { listCustomFields } from '../../../services/crm'
+import type { CrmCustomField } from '../../../types/crm'
 import type { CrmLead, CrmLeadOwnerHistory, CrmLeadPayload } from '../../../types/lead'
+import CustomFieldItem, { buildFieldValueMap, serializeFieldValues } from '../customer/CustomFields'
 
 interface LeadFormValues {
   name: string
@@ -84,6 +88,30 @@ export default function LeadPage() {
   const [scriptOpen, setScriptOpen] = useState(false)
   const [scriptLoading, setScriptLoading] = useState(false)
   const [scriptContent, setScriptContent] = useState('')
+  // 自定义字段定义与值(field_id -> value)
+  const [customFields, setCustomFields] = useState<CrmCustomField[]>([])
+  const [fieldValues, setFieldValues] = useState<Map<string, unknown>>(new Map())
+  const [detailFields, setDetailFields] = useState<Record<string, string>>({})
+
+  const ensureCustomFields = async () => {
+    if (customFields.length) return customFields
+    const defs = await listCustomFields('LEAD')
+    setCustomFields(defs)
+    return defs
+  }
+
+  // 详情抽屉打开时加载自定义字段值
+  useEffect(() => {
+    if (!detailTarget) {
+      setDetailFields({})
+      return
+    }
+    ensureCustomFields()
+    getLead(detailTarget.id)
+      .then((d) => setDetailFields(d.fields ?? {}))
+      .catch(() => setDetailFields({}))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailTarget])
 
   const handleGenerateScript = async () => {
     if (!detailTarget) return
@@ -108,23 +136,28 @@ export default function LeadPage() {
   const openCreate = () => {
     setEditing(null)
     form.resetFields()
+    setFieldValues(new Map())
+    ensureCustomFields()
     setModalOpen(true)
   }
 
-  const openEdit = (record: CrmLead) => {
-    setEditing(record)
+  const openEdit = async (record: CrmLead) => {
+    const defs = await ensureCustomFields()
+    const detail = await getLead(record.id)
+    setEditing(detail.lead)
     form.setFieldsValue({
-      name: record.name,
-      lead_no: record.lead_no || undefined,
-      contact_name: record.contact_name || undefined,
-      phone: record.phone || undefined,
-      email: record.email || undefined,
-      company: record.company || undefined,
-      level: record.level || undefined,
-      source: record.source || undefined,
-      industry: record.industry || undefined,
-      status: record.status,
+      name: detail.lead.name,
+      lead_no: detail.lead.lead_no || undefined,
+      contact_name: detail.lead.contact_name || undefined,
+      phone: detail.lead.phone || undefined,
+      email: detail.lead.email || undefined,
+      company: detail.lead.company || undefined,
+      level: detail.lead.level || undefined,
+      source: detail.lead.source || undefined,
+      industry: detail.lead.industry || undefined,
+      status: detail.lead.status,
     })
+    setFieldValues(buildFieldValueMap(defs, detail.fields ?? {}))
     setModalOpen(true)
   }
 
@@ -139,6 +172,7 @@ export default function LeadPage() {
       level: values.level,
       source: values.source,
       industry: values.industry,
+      fields: serializeFieldValues(fieldValues),
     }
     if (editing) {
       await updateLead(editing.id, { ...payload, status: values.status })
@@ -442,6 +476,22 @@ export default function LeadPage() {
             </ProForm.Item>
           </Col>
         )}
+        {customFields.map((f) => (
+          <Col span={12} key={f.id}>
+            <ProForm.Item label={f.name}>
+              <CustomFieldItem
+                field={f}
+                value={fieldValues.get(f.id)}
+                onChange={(v) => {
+                  const next = new Map(fieldValues)
+                  if (v === undefined || v === null || v === '') next.delete(f.id)
+                  else next.set(f.id, v)
+                  setFieldValues(next)
+                }}
+              />
+            </ProForm.Item>
+          </Col>
+        ))}
       </ModalForm>
 
       {/* 释放到公海 */}
@@ -634,6 +684,11 @@ export default function LeadPage() {
                     <Descriptions.Item label="更新时间" span={2}>
                       {detailTarget.updated_at}
                     </Descriptions.Item>
+                    {customFields.map((f) => (
+                      <Descriptions.Item label={f.name} key={f.id}>
+                        {detailFields[f.id] || '-'}
+                      </Descriptions.Item>
+                    ))}
                   </Descriptions>
                 ),
               },

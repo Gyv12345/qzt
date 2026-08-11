@@ -99,7 +99,7 @@ func (s *ScriptService) getTargetInfo(ctx context.Context, target_type string, i
 	}
 	switch target_type {
 	case "lead":
-		lead, err := s.leadSvc.GetByID(ctx, id)
+		lead, _, err := s.leadSvc.GetByID(ctx, id)
 		if err != nil {
 			return nil, fmt.Errorf("线索不存在")
 		}
