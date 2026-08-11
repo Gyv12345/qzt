@@ -105,8 +105,15 @@ export async function getPages(): Promise<CmsPage[]> {
 }
 
 // ── 首页板块配置(公开, 免鉴权) ──
-export function getHomepageConfig(): Promise<HomepageConfig> {
-  return request<HomepageConfig>("/system/public/homepage-config");
+// 不走 fetch Data Cache(cache: no-store),确保 admin 改完精选/开关后即时生效;
+// 否则会卡在 Next 的 fetch 缓存里(ISR revalidate 不稳定),出现「配置变了首页不变」。
+export async function getHomepageConfig(): Promise<HomepageConfig> {
+  const url = new URL(API_BASE + "/system/public/homepage-config");
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) throw new Error(`首页配置请求失败: ${res.status}`);
+  const body = (await res.json()) as ApiResponse<HomepageConfig>;
+  if (body.code !== 0) throw new Error(body.msg || "首页配置错误");
+  return body.data;
 }
 
 // ── 站点配置 ──
