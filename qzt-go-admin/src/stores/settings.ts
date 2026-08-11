@@ -11,6 +11,10 @@ export interface LayoutSettings {
   borderRadius: number
   /** 深色模式 */
   darkMode: boolean
+  /** 紧凑模式(叠加 antd compactAlgorithm,收紧间距提高信息密度) */
+  compactMode: boolean
+  /** 色弱模式(invert 滤镜,增强对比辅助色觉障碍用户) */
+  colorWeak: boolean
 }
 
 interface SettingsState extends LayoutSettings {
@@ -24,6 +28,8 @@ export const DEFAULT_SETTINGS: LayoutSettings = {
   // 数据密集型后台更适合小圆角(6),更显紧凑专业;8 偏消费级 App
   borderRadius: 6,
   darkMode: false,
+  compactMode: false,
+  colorWeak: false,
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -35,11 +41,14 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'qzt-go-admin:settings',
-      version: 2,
-      // v1 默认圆角是 8,v2 调整为 6;旧用户若仍是旧默认值则归正,自定义值保留
+      version: 3,
+      // v1 默认圆角 8 → v2 调整为 6(旧用户若仍是旧默认值则归正,自定义值保留);
+      // v3 新增 compactMode / colorWeak,旧数据缺失字段补默认值
       migrate: (persisted: unknown) => {
         const s = (persisted ?? {}) as Partial<LayoutSettings>
         if (s.borderRadius === 8) s.borderRadius = DEFAULT_SETTINGS.borderRadius
+        if (s.compactMode === undefined) s.compactMode = DEFAULT_SETTINGS.compactMode
+        if (s.colorWeak === undefined) s.colorWeak = DEFAULT_SETTINGS.colorWeak
         return s as LayoutSettings
       },
     },

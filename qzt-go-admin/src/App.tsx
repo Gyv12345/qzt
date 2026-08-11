@@ -13,7 +13,7 @@ const fallback = (
 )
 
 export default function App() {
-  const { colorPrimary, colorInfo, borderRadius, darkMode } = useSettingsStore()
+  const { colorPrimary, colorInfo, borderRadius, darkMode, compactMode, colorWeak } = useSettingsStore()
 
   useEffect(() => {
     // 启动引导:公共配置可覆盖站点标题
@@ -23,16 +23,21 @@ export default function App() {
     })
   }, [])
 
-  // 深色模式:给 body 挂 class,配合 basic-layout.css 适配自定义布局
+  // 深色模式 / 色弱模式:给 body 挂 class,配合 basic-layout.css 适配自定义布局
   useEffect(() => {
     document.body.classList.toggle('qzt-theme-dark', darkMode)
-  }, [darkMode])
+    document.body.classList.toggle('qzt-theme-weak', colorWeak)
+  }, [darkMode, colorWeak])
 
   return (
     <ConfigProvider
       locale={zhCN}
       theme={{
-        algorithm: darkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+        // algorithm 支持数组:基础(明/暗) + 可选叠加紧凑算法
+        algorithm: [
+          darkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+          ...(compactMode ? [antdTheme.compactAlgorithm] : []),
+        ],
         token: {
           colorPrimary,
           colorInfo,

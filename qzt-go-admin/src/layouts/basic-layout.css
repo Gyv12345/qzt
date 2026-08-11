@@ -340,3 +340,12 @@ body.qzt-theme-dark .qzt-side-leaf.active {
 body.qzt-theme-dark .qzt-content {
   background: #141414;
 }
+
+/* ===== 色弱模式(由设置里的「色弱模式」开启,App.tsx 给 body 挂 qzt-theme-weak) ===== */
+body.qzt-theme-weak {
+  filter: invert(80%);
+}
+/* 图片反转回来,避免内容失真 */
+body.qzt-theme-weak img {
+  filter: invert(100%);
+}
