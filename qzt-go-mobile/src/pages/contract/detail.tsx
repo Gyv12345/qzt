@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
-import { ErrorBlock, NavBar, Tag } from 'antd-mobile'
+import { Button, Dialog, ErrorBlock, NavBar, Tag, Toast } from 'antd-mobile'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getContract } from '../../services/crm'
-import type { CrmContract } from '../../types/crm'
+import { getPaymentSummary, listPaymentRecords, createPaymentPlan, createPaymentRecord } from '../../services/payment'
+import { pushApproval } from '../../services/approval'
+import FormSheet from '../../components/FormSheet'
+import { PAYMENT_METHODS, PAYMENT_PLAN_STATUS, type CrmContract, type PaymentPlan, type PaymentRecord, type PaymentSummary } from '../../types/crm'
 
 const STAGE_TEXT: Record<string, string> = {
   DRAFT: '草稿',
@@ -42,11 +45,40 @@ export default function ContractDetail() {
   const { id } = useParams()
   const [data, setData] = useState<CrmContract | null>(null)
   const [failed, setFailed] = useState(false)
+  const [summary, setSummary] = useState<PaymentSummary | null>(null)
+  const [records, setRecords] = useState<PaymentRecord[]>([])
+  const [planSheetOpen, setPlanSheetOpen] = useState(false)
+  const [recordSheetOpen, setRecordSheetOpen] = useState(false)
+  const [acting, setActing] = useState(false)
+
+  const loadPayment = (cid: number) => {
+    getPaymentSummary(cid).then(setSummary).catch(() => {})
+    listPaymentRecords(cid).then(setRecords).catch(() => {})
+  }
+
+  const onPushApproval = async () => {
+    if (!data) return
+    const ok = await Dialog.confirm({ content: '确定提交该合同审批?' })
+    if (!ok) return
+    setActing(true)
+    try {
+      await pushApproval('CONTRACT', data.id)
+      Toast.show({ icon: 'success', content: '已提交审批' })
+      getContract(data.id).then(setData).catch(() => {})
+    } catch {
+      // 拦截器已 toast
+    } finally {
+      setActing(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
     getContract(Number(id))
-      .then(setData)
+      .then((d) => {
+        setData(d)
+        loadPayment(d.id)
+      })
       .catch(() => setFailed(true))
   }, [id])
 
@@ -136,6 +168,115 @@ export default function ContractDetail() {
         <Row label="结束日期" value={data.end_date ? data.end_date.slice(0, 10) : '—'} />
         {data.content && <Row label="备注" value={data.content} />}
       </div>
+
+      {/* 回款计划 */}
+      <div style={{ margin: '8px 12px', padding: '0 16px', background: 'var(--bg-card)', borderRadius: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0' }}>
+          <span style={{ fontWeight: 600 }}>回款计划</span>
+          <Button size="small" color="primary" onClick={() => setPlanSheetOpen(true)}>
+            新建计划
+          </Button>
+        </div>
+        {summary && summary.plans && summary.plans.length > 0 ? (
+          summary.plans.map((p: PaymentPlan) => (
+            <div
+              key={p.id}
+              style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--divider)', fontSize: 14 }}
+            >
+              <span style={{ flex: 1 }}>{p.plan_date?.slice(0, 10)}</span>
+              <span style={{ flex: 1, textAlign: 'right' }}>¥{Number(p.plan_amount).toLocaleString()}</span>
+              <span style={{ width: 64, textAlign: 'right' }}>
+                <Tag color={PAYMENT_PLAN_STATUS[p.status]?.color || 'default'} fill="outline">
+                  {PAYMENT_PLAN_STATUS[p.status]?.text || '-'}
+                </Tag>
+              </span>
+            </div>
+          ))
+        ) : (
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 13, padding: '8px 0 16px' }}>暂无计划</div>
+        )}
+      </div>
+
+      {/* 回款记录 */}
+      <div style={{ margin: '8px 12px', padding: '0 16px', background: 'var(--bg-card)', borderRadius: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0' }}>
+          <span style={{ fontWeight: 600 }}>回款记录</span>
+          <Button size="small" color="success" onClick={() => setRecordSheetOpen(true)}>
+            登记回款
+          </Button>
+        </div>
+        {records.length > 0 ? (
+          records.map((r) => (
+            <div
+              key={r.id}
+              style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--divider)', fontSize: 14 }}
+            >
+              <span style={{ flex: 1 }}>{r.received_date?.slice(0, 10)}</span>
+              <span style={{ flex: 1, textAlign: 'right', color: 'var(--success)' }}>
+                ¥{Number(r.amount).toLocaleString()}
+              </span>
+              <span style={{ width: 80, textAlign: 'right', color: 'var(--text-tertiary)', fontSize: 12 }}>
+                {r.method || '-'}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 13, padding: '8px 0 16px' }}>暂无回款</div>
+        )}
+      </div>
+
+      {/* 操作 */}
+      {(!data.approval_status || data.approval_status === 'NONE' || data.approval_status === 'REVOKED') && (
+        <div style={{ margin: '8px 12px 24px' }}>
+          <Button block color="primary" fill="outline" loading={acting} onClick={onPushApproval}>
+            提交审批
+          </Button>
+        </div>
+      )}
+
+      <FormSheet
+        visible={planSheetOpen}
+        title="新建回款计划"
+        fields={[
+          { name: 'plan_date', label: '计划日期', type: 'text', required: true, placeholder: 'YYYY-MM-DD' },
+          { name: 'plan_amount', label: '计划金额', type: 'number', required: true, placeholder: '0.00' },
+          { name: 'remark', label: '备注', type: 'text' },
+        ]}
+        onClose={() => setPlanSheetOpen(false)}
+        onSubmit={async (v) => {
+          await createPaymentPlan(data.id, {
+            plan_date: v.plan_date,
+            plan_amount: Number(v.plan_amount),
+            remark: v.remark,
+          })
+          loadPayment(data.id)
+        }}
+      />
+      <FormSheet
+        visible={recordSheetOpen}
+        title="登记回款"
+        fields={[
+          { name: 'received_date', label: '回款日期', type: 'text', required: true, placeholder: 'YYYY-MM-DD' },
+          { name: 'amount', label: '回款金额', type: 'number', required: true, placeholder: '0.00' },
+          {
+            name: 'method',
+            label: '回款方式',
+            type: 'select',
+            options: PAYMENT_METHODS.map((m) => ({ label: m.label, value: m.value })),
+          },
+          { name: 'remark', label: '备注', type: 'text' },
+        ]}
+        onClose={() => setRecordSheetOpen(false)}
+        onSubmit={async (v) => {
+          await createPaymentRecord(data.id, {
+            received_date: v.received_date,
+            amount: Number(v.amount),
+            method: v.method,
+            remark: v.remark,
+          })
+          loadPayment(data.id)
+        }}
+      />
     </div>
   )
 }

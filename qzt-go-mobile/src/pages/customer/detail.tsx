@@ -6,6 +6,8 @@ import { listFollowTimeline } from '../../services/follow'
 import { FOLLOW_TYPE_TEXT, type CrmCustomerDetail, type FollowUpRecord } from '../../types/crm'
 import { dialWithDedup } from '../../utils/dial'
 import FollowRecordSheet from '../../components/FollowRecordSheet'
+import ContactSheet from '../../components/ContactSheet'
+import CustomFieldView from '../../components/CustomFieldView'
 
 const STATUS_TEXT: Record<number, string> = { 1: '正常', 2: '冻结', 3: '流失' }
 
@@ -15,6 +17,7 @@ export default function CustomerDetail() {
   const [detail, setDetail] = useState<CrmCustomerDetail | null>(null)
   const [follows, setFollows] = useState<FollowUpRecord[]>([])
   const [followSheetOpen, setFollowSheetOpen] = useState(false)
+  const [contactSheetOpen, setContactSheetOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -84,8 +87,18 @@ export default function CustomerDetail() {
         </List>
       </Card>
 
-      {contacts && contacts.length > 0 && (
-        <Card title={`联系人(${contacts.length})`} style={{ margin: 8 }}>
+      <Card
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 4 }}>
+            <span>联系人{contacts && contacts.length > 0 ? `(${contacts.length})` : ''}</span>
+            <Button size="small" color="primary" onClick={() => setContactSheetOpen(true)}>
+              新增
+            </Button>
+          </div>
+        }
+        style={{ margin: 8 }}
+      >
+        {contacts && contacts.length > 0 ? (
           <List>
             {contacts.map((ct) => (
               <List.Item
@@ -117,8 +130,10 @@ export default function CustomerDetail() {
               </List.Item>
             ))}
           </List>
-        </Card>
-      )}
+        ) : (
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 13, padding: '8px 0' }}>暂无联系人</div>
+        )}
+      </Card>
 
       <Card
         title="跟进记录"
@@ -151,6 +166,23 @@ export default function CustomerDetail() {
         onClose={() => setFollowSheetOpen(false)}
         customerId={customer.id}
         onSubmitted={() => loadFollows(customer.id)}
+      />
+
+      <CustomFieldView formKey="CUSTOMER" values={detail.fields} />
+
+      <ContactSheet
+        visible={contactSheetOpen}
+        onClose={() => setContactSheetOpen(false)}
+        customerId={customer.id}
+        onSubmitted={() => {
+          if (id)
+            getCustomer(Number(id))
+              .then((d) => {
+                setDetail(d)
+                loadFollows(d.customer.id)
+              })
+              .catch(() => {})
+        }}
       />
     </div>
   )

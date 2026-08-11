@@ -43,6 +43,8 @@ export interface CrmContact {
 export interface CrmCustomerDetail {
   customer: CrmCustomer
   contacts?: CrmContact[]
+  /** 自定义字段值 field_id -> value */
+  fields?: Record<string, string>
 }
 
 // ── 线索 ──
@@ -241,4 +243,99 @@ export interface CreateFollowRecordPayload {
   follow_time: string
   customer_id?: number
   lead_id?: number
+}
+
+// ── 合同回款 ──
+
+export interface PaymentPlan {
+  id: number
+  contract_id: number
+  plan_date: string
+  plan_amount: string
+  received_amount: string
+  status: number // 0未回款 1部分 2已回款
+  remark: string
+  created_at: string
+}
+
+export interface PaymentRecord {
+  id: number
+  contract_id: number
+  plan_id: number | null
+  received_date: string
+  amount: string
+  method: string
+  remark: string
+  created_at: string
+}
+
+export interface PaymentSummary {
+  total_amount: string
+  received_amount: string
+  plans: PaymentPlan[]
+}
+
+export const PAYMENT_METHODS = [
+  { label: '银行转账', value: '银行转账' },
+  { label: '微信', value: '微信' },
+  { label: '支付宝', value: '支付宝' },
+  { label: '现金', value: '现金' },
+] as const
+
+export const PAYMENT_PLAN_STATUS: Record<number, { text: string; color: string }> = {
+  0: { text: '未回款', color: 'default' },
+  1: { text: '部分', color: 'warning' },
+  2: { text: '已回款', color: 'success' },
+}
+
+// ── OA 公告 ──
+
+export interface OaNotice {
+  id: number
+  title: string
+  content: string
+  type: number // 1通知 2公告
+  status: number // 0草稿 1发布
+  publish_time: string
+  created_at: string
+}
+
+// ── 自定义字段定义(与 admin 对齐) ──
+
+export interface CrmCustomField {
+  id: string
+  form_id: string
+  internal_key: string
+  name: string
+  type: string
+  mobile: number
+  pos: number
+  readable: number
+  editable: number
+  convert_target_field?: string
+  /** 大属性 JSON(选项等),仅 BLOB 类型有 */
+  prop?: string
+}
+
+/** 从 prop 解析选项(多选/单选),失败返回 null */
+export function parseFieldOptions(field: CrmCustomField): { label: string; value: string }[] | null {
+  if (!field.prop) return null
+  try {
+    const parsed = JSON.parse(field.prop)
+    const arr = Array.isArray(parsed) ? parsed : parsed.options
+    if (!Array.isArray(arr) || arr.length === 0) return null
+    return arr.map((item: any) => {
+      if (item && typeof item === 'object') {
+        return { label: String(item.label ?? item.value ?? ''), value: String(item.value ?? item.label ?? '') }
+      }
+      return { label: String(item), value: String(item) }
+    })
+  } catch {
+    return null
+  }
+}
+
+/** 多选类型 */
+export function isMultipleFieldType(type: string): boolean {
+  return type === 'SELECT_MULTIPLE' || type === 'CHECKBOX'
 }

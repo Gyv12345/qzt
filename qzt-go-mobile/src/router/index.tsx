@@ -24,6 +24,8 @@ const ApprovalList = lazy(() => import('../pages/approval'))
 const ApprovalDetail = lazy(() => import('../pages/approval/detail'))
 const NewsList = lazy(() => import('../pages/news'))
 const NewsDetail = lazy(() => import('../pages/news/detail'))
+const NoticeList = lazy(() => import('../pages/notice'))
+const NoticeDetail = lazy(() => import('../pages/notice/detail'))
 // OA 办公
 const ExpenseList = lazy(() => import('../pages/expense'))
 const ExpenseDetail = lazy(() => import('../pages/expense/detail'))
@@ -317,6 +319,14 @@ export default function AppRoutes() {
                 <NewsDetail />
               </Suspense>
             ),
+          },
+          {
+            path: '/notice',
+            element: <Suspense fallback={pageFallback}><NoticeList /></Suspense>,
+          },
+          {
+            path: '/notice/:id',
+            element: <Suspense fallback={pageFallback}><NoticeDetail /></Suspense>,
           },
         ],
       },

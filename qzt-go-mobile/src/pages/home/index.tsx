@@ -139,7 +139,7 @@ export default function Home() {
   const moreEntries: GridEntry[] = [
     { key: 'msg', label: '消息', icon: <MessageOutline />, iconBg: 'var(--icon-bg-msg)', path: '/messages' },
     { key: 'news', label: '资讯', icon: <GlobalOutline />, iconBg: 'var(--icon-bg-news)', path: '/news' },
-    { key: 'notice', label: '公告', icon: <SoundOutline />, iconBg: 'var(--icon-bg-notice)', path: '/mine' },
+    { key: 'notice', label: '公告', icon: <SoundOutline />, iconBg: 'var(--icon-bg-notice)', path: '/notice' },
     { key: 'settings', label: '设置', icon: <SetOutline />, iconBg: 'var(--icon-bg-settings)', path: '/mine' },
   ]
 
