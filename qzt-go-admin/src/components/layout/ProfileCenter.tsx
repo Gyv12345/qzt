@@ -23,6 +23,7 @@ import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth'
+import ImageUpload from '../ImageUpload'
 import {
   changePassword,
   checkWecomBindStatus,
@@ -44,7 +45,7 @@ interface ProfileCenterProps {
 }
 
 /** 基本信息 */
-function BasicInfoTab() {
+export function BasicInfoTab() {
   const profile = useAuthStore((s) => s.profile)
   const [form] = Form.useForm<UpdateProfileRequest>()
   const [saving, setSaving] = useState(false)
@@ -90,8 +91,8 @@ function BasicInfoTab() {
         <Form.Item name="phone" label="手机">
           <Input placeholder="请输入手机号" maxLength={20} />
         </Form.Item>
-        <Form.Item name="avatar" label="头像 URL">
-          <Input placeholder="请输入头像图片地址" />
+        <Form.Item name="avatar" label="头像">
+          <ImageUpload folder="avatars" />
         </Form.Item>
         <Button type="primary" htmlType="submit" loading={saving} block>
           保存
@@ -102,7 +103,7 @@ function BasicInfoTab() {
 }
 
 /** 修改密码(成功后全部会话失效,强制重新登录) */
-function PasswordTab({ onClose }: { onClose: () => void }) {
+export function PasswordTab({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate()
   const [form] = Form.useForm<{ old_password: string; new_password: string; confirm: string }>()
   const [saving, setSaving] = useState(false)
@@ -112,7 +113,7 @@ function PasswordTab({ onClose }: { onClose: () => void }) {
     try {
       await changePassword({ old_password: values.old_password, new_password: values.new_password })
       message.success('密码已修改,请重新登录')
-      onClose()
+      onClose?.()
       await logout()
       navigate('/login', { replace: true })
     } catch {
@@ -165,7 +166,7 @@ function PasswordTab({ onClose }: { onClose: () => void }) {
 }
 
 /** 企业微信绑定 */
-function WecomTab() {
+export function WecomTab() {
   const profile = useAuthStore((s) => s.profile)
   const [qrUrl, setQrUrl] = useState('')
   const [qrError, setQrError] = useState('')
@@ -405,7 +406,7 @@ function McpConfigSection({ apiKey }: { apiKey: string }) {
 }
 
 /** API Key 管理 */
-function ApiKeyTab() {
+export function ApiKeyTab() {
   const [keys, setKeys] = useState<SysApiKey[]>([])
   const [loading, setLoading] = useState(false)
   const [created, setCreated] = useState<CreateApiKeyResult | null>(null)

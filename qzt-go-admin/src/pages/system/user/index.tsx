@@ -33,6 +33,7 @@ import { listAllRoles } from '../../../services/system'
 import { getDepartmentTree } from '../../../services/hrm'
 import type { HrmDepartment } from '../../../types/hrm'
 import type { SysUser } from '../../../types'
+import { maskPhone, maskEmail } from '../../../utils/mask'
 import './index.css'
 
 /** 全部部门根节点的 key(用一个负数避免与真实部门 id 冲突) */
@@ -250,8 +251,8 @@ export default function UserPage() {
       width: 140,
       render: (_, r) => (r.dept_id ? deptNameMap.get(r.dept_id) ?? `#${r.dept_id}` : <Tag>未分配</Tag>),
     },
-    { title: '邮箱', dataIndex: 'email', width: 180, render: (_, r) => r.email || '-' },
-    { title: '手机号', dataIndex: 'phone', width: 130, render: (_, r) => r.phone || '-' },
+    { title: '邮箱', dataIndex: 'email', width: 180, render: (_, r) => maskEmail(r.email) || '-' },
+    { title: '手机号', dataIndex: 'phone', width: 130, render: (_, r) => maskPhone(r.phone) || '-' },
     {
       title: '角色',
       dataIndex: 'roles',

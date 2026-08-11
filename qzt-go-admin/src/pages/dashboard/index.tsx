@@ -17,9 +17,9 @@ import {
   Typography,
 } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth'
-import ProfileCenter from '../../components/layout/ProfileCenter'
+
 import Chart, { funnelOption, lineOption, pieOption } from '../../components/Chart'
 import { menuHasPath } from '../../utils/menu'
 import {
@@ -119,7 +119,7 @@ const TREND_DAYS = 30
 
 export default function Dashboard() {
   const { profile, menus } = useAuthStore()
-  const [profileOpen, setProfileOpen] = useState(false)
+  const navigate = useNavigate()
 
   // 个人区块(仅 JWT 鉴权,所有登录用户可用)
   const todos = useSectionData(() => listMyTodos({ page: 1, page_size: 5 }))
@@ -202,7 +202,7 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-              <Button icon={<UserOutlined />} onClick={() => setProfileOpen(true)}>
+              <Button icon={<UserOutlined />} onClick={() => navigate('/profile')}>
                 个人中心
               </Button>
             </div>
@@ -437,8 +437,6 @@ export default function Dashboard() {
           )}
         </Row>
       )}
-
-      <ProfileCenter open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   )
 }

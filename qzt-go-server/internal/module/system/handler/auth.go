@@ -10,6 +10,7 @@ import (
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/module/system/service"
 	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/repository"
 	response "qzt-go-server/pkg/xresponse"
 )
 
@@ -115,7 +116,40 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 		response.Fail(c, errcode.ErrUserNotFound, err.Error())
 		return
 	}
-	response.OK(c, user)
+	// 查关联员工信息(工号/姓名/部门/岗位/入职日期)
+	type employeeBrief struct {
+		EmpNo     string `json:"emp_no"`
+		Name      string `json:"name"`
+		DeptName  string `json:"dept_name"`
+		PosName   string `json:"pos_name"`
+		EntryDate string `json:"entry_date"`
+		Status    int8   `json:"status"`
+	}
+	var emp *employeeBrief
+	repository.DBFrom(c.Request.Context()).
+		Table("hrm_employee e").
+		Select("e.emp_no, e.name, d.name as dept_name, p.name as pos_name, e.entry_date, e.status").
+		Joins("LEFT JOIN hrm_department d ON d.id = e.department_id AND d.deleted_at IS NULL").
+		Joins("LEFT JOIN hrm_position p ON p.id = e.position_id AND p.deleted_at IS NULL").
+		Where("e.user_id = ? AND e.deleted_at IS NULL", userID).
+		Scan(&emp)
+
+	response.OK(c, gin.H{
+		"id":            user.ID,
+		"username":      user.Username,
+		"nickname":      user.Nickname,
+		"avatar":        user.Avatar,
+		"email":         user.Email,
+		"phone":         user.Phone,
+		"status":        user.Status,
+		"wecom_user_id": user.WecomUserID,
+		"dept_id":       user.DeptID,
+		"leader_id":     user.LeaderID,
+		"roles":         user.Roles,
+		"created_at":    user.CreatedAt,
+		"updated_at":    user.UpdatedAt,
+		"employee":      emp,
+	})
 }
 
 // UpdateProfile 修改个人信息

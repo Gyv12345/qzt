@@ -9,7 +9,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import MessageBox from '../components/layout/MessageBox'
 import NotificationHandler from '../components/layout/NotificationHandler'
 import LayoutSettings from '../components/layout/LayoutSettings'
-import ProfileCenter from '../components/layout/ProfileCenter'
+
 import type { SysMenu } from '../types'
 import './basic-layout.css'
 
@@ -73,7 +73,6 @@ export default function BasicLayout() {
   const [error, setError] = useState(false)
   /** 左侧第二列展开的分组 id(用户点击分组但未跳转时也需要展开) */
   const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null)
-  const [profileOpen, setProfileOpen] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -234,7 +233,7 @@ export default function BasicLayout() {
               ],
               onClick: async ({ key }) => {
                 if (key === 'profile') {
-                  setProfileOpen(true)
+                  navigate('/profile')
                 } else if (key === 'settings' && systemModule) {
                   goModule(systemModule)
                 } else if (key === 'logout') {
@@ -309,7 +308,6 @@ export default function BasicLayout() {
         </main>
       </div>
 
-      <ProfileCenter open={profileOpen} onClose={() => setProfileOpen(false)} />
       <NotificationHandler />
     </div>
   )

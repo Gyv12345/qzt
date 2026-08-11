@@ -69,8 +69,20 @@ export interface SysUser {
   /** 已绑定的企业微信 UserID,未绑定为空 */
   wecom_user_id?: string
   roles?: SysRole[]
+  /** 关联员工档案(GetProfile 返回) */
+  employee?: EmployeeBrief | null
   created_at: string
   updated_at: string
+}
+
+/** 员工简要信息(GetProfile 附带) */
+export interface EmployeeBrief {
+  emp_no: string
+  name: string
+  dept_name: string
+  pos_name: string
+  entry_date: string
+  status: number
 }
 
 /** 菜单类型: 0=目录 1=菜单 2=按钮 */

@@ -9,6 +9,7 @@ import type { SysMenu } from '../types'
 import BasicLayout from '../layouts/BasicLayout'
 import Login from '../pages/login'
 import Dashboard from '../pages/dashboard'
+import Profile from '../pages/profile'
 import WecomBind from '../pages/wecom-bind'
 import NotFound from '../pages/error/404'
 
@@ -80,6 +81,7 @@ export default function AppRoutes() {
     () => [
       { path: '/login', element: <Login /> },
       { path: '/auth/wecom/bind', element: <WecomBind /> },
+      { path: '/profile', element: <RequireAuth><Profile /></RequireAuth> },
       {
         path: '/',
         element: (

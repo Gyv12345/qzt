@@ -32,6 +32,7 @@ import type {
   HrmEmployeePayload,
   HrmPosition,
 } from '../../../types/hrm'
+import { maskPhone, maskEmail } from '../../../utils/mask'
 
 interface EmployeeFormValues {
   emp_no: string
@@ -214,8 +215,8 @@ export default function EmployeePage() {
       search: false,
       render: (_, r) => positionName(r.position_id),
     },
-    { title: '手机', dataIndex: 'phone', width: 130, search: false, render: (_, r) => r.phone || '-' },
-    { title: '邮箱', dataIndex: 'email', width: 180, search: false, render: (_, r) => r.email || '-' },
+    { title: '手机', dataIndex: 'phone', width: 130, search: false, render: (_, r) => maskPhone(r.phone) || '-' },
+    { title: '邮箱', dataIndex: 'email', width: 180, search: false, render: (_, r) => maskEmail(r.email) || '-' },
     { title: '入职日期', dataIndex: 'entry_date', valueType: 'date', width: 110, search: false },
     {
       title: '状态',

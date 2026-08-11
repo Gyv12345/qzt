@@ -21,6 +21,7 @@ import {
   type CrmContactListItem,
 } from '../../../services/crm'
 import type { CrmContactPayload } from '../../../types/crm'
+import { maskPhone, maskEmail } from '../../../utils/mask'
 import DetailDrawer from './DetailDrawer'
 
 interface ContactFormValues {
@@ -118,8 +119,8 @@ export default function ContactPage() {
     { title: '客户', dataIndex: 'customer_name', width: 180, search: false, ellipsis: true },
     { title: '职务', dataIndex: 'position', width: 120, search: false, render: (v) => v || '-' },
     { title: '部门', dataIndex: 'department', width: 120, search: false, render: (v) => v || '-' },
-    { title: '电话', dataIndex: 'phone', width: 140, search: false, render: (v) => v || '-' },
-    { title: '邮箱', dataIndex: 'email', width: 200, search: false, ellipsis: true, render: (v) => v || '-' },
+    { title: '电话', dataIndex: 'phone', width: 140, search: false, render: (v) => maskPhone(v as string) || '-' },
+    { title: '邮箱', dataIndex: 'email', width: 200, search: false, ellipsis: true, render: (v) => maskEmail(v as string) || '-' },
     {
       title: '决策人',
       dataIndex: 'is_key_decision_maker',
