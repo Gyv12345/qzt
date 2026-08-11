@@ -29,9 +29,9 @@ async function request<T>(path: string, search?: Record<string, string | number 
   }
 
   const res = await fetch(url.toString(), {
-    // 服务端渲染时禁用缓存重验证由各调用方通过 next.revalidate 控制,
-    // 此处默认让 fetch 遵循 Next 的缓存语义。
-    next: { revalidate: 300 },
+    // 公开官网内容必须实时反映 admin 改动。Next 的 fetch Data Cache 在生产
+    // revalidate 不稳定(会卡死、一直返回旧数据),故一律 no-store 实时拉。
+    cache: "no-store",
   });
   if (!res.ok) {
     throw new Error(`请求失败: ${res.status} ${url.pathname}`);
