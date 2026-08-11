@@ -201,3 +201,44 @@ export const TICKET_STATUS: Record<number, { text: string; color: string }> = {
   4: { text: '已关闭', color: 'default' },
   5: { text: '已重开', color: 'warning' },
 }
+
+// ── 跟进记录 ──
+
+export interface FollowUpRecord {
+  id: number
+  follow_no: string
+  type: string
+  content: string
+  follow_time: string
+  owner_id: number
+  customer_id: number | null
+  lead_id: number | null
+  created_at: string
+}
+
+/** 跟进方式选项(与后端字典一致) */
+export const FOLLOW_TYPES = [
+  { label: '微信', value: 'WECHAT' },
+  { label: '电话', value: 'PHONE' },
+  { label: '拜访', value: 'VISIT' },
+  { label: '邮件', value: 'EMAIL' },
+  { label: '其他', value: 'OTHER' },
+] as const
+
+/** 跟进方式 → 中文 */
+export const FOLLOW_TYPE_TEXT: Record<string, string> = {
+  WECHAT: '微信',
+  PHONE: '电话',
+  VISIT: '拜访',
+  EMAIL: '邮件',
+  OTHER: '其他',
+}
+
+/** 创建跟进记录请求 */
+export interface CreateFollowRecordPayload {
+  type: string
+  content: string
+  follow_time: string
+  customer_id?: number
+  lead_id?: number
+}

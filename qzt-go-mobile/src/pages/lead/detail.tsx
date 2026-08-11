@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
 import { convertLead, getLead, pickLead, releaseLead } from '../../services/crm'
-import type { CrmLead } from '../../types/crm'
+import { listFollowTimeline } from '../../services/follow'
+import { FOLLOW_TYPE_TEXT, type CrmLead, type FollowUpRecord } from '../../types/crm'
+import FollowRecordSheet from '../../components/FollowRecordSheet'
 import { useAuthStore } from '../../stores/auth'
 import { dialWithDedup } from '../../utils/dial'
 
@@ -22,12 +24,23 @@ export default function LeadDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [acting, setActing] = useState(false)
+  const [follows, setFollows] = useState<FollowUpRecord[]>([])
+  const [followSheetOpen, setFollowSheetOpen] = useState(false)
+
+  const loadFollows = (lid: number) => {
+    listFollowTimeline('lead_id', lid)
+      .then(setFollows)
+      .catch(() => {})
+  }
 
   const load = () => {
     if (!id) return
     setLoading(true)
     getLead(Number(id))
-      .then((d) => setDetail(d))
+      .then((d) => {
+        setDetail(d)
+        loadFollows(d.id)
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }
@@ -158,6 +171,32 @@ export default function LeadDetail() {
         </List>
       </Card>
 
+      <Card
+        title="跟进记录"
+        style={{ margin: 8 }}
+        extra={
+          <Button size="small" color="primary" onClick={() => setFollowSheetOpen(true)}>
+            写跟进
+          </Button>
+        }
+      >
+        {follows.length === 0 ? (
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 13, padding: '8px 0' }}>暂无跟进记录</div>
+        ) : (
+          <List>
+            {follows.map((f) => (
+              <List.Item
+                key={f.id}
+                description={<span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{f.follow_time}</span>}
+                extra={<Tag fill="outline" color="primary">{FOLLOW_TYPE_TEXT[f.type] || f.type}</Tag>}
+              >
+                {f.content}
+              </List.Item>
+            ))}
+          </List>
+        )}
+      </Card>
+
       {/* 操作区 */}
       <Card title="操作" style={{ margin: 8 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -211,6 +250,13 @@ export default function LeadDetail() {
           </div>
         )}
       </Card>
+
+      <FollowRecordSheet
+        visible={followSheetOpen}
+        onClose={() => setFollowSheetOpen(false)}
+        leadId={lead.id}
+        onSubmitted={() => loadFollows(lead.id)}
+      />
     </div>
   )
 }

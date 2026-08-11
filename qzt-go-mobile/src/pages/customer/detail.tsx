@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Card, ErrorBlock, List, NavBar, SpinLoading, Tag } from 'antd-mobile'
+import { Button, Card, ErrorBlock, List, NavBar, SpinLoading, Tag } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getCustomer } from '../../services/crm'
-import type { CrmCustomerDetail } from '../../types/crm'
+import { listFollowTimeline } from '../../services/follow'
+import { FOLLOW_TYPE_TEXT, type CrmCustomerDetail, type FollowUpRecord } from '../../types/crm'
 import { dialWithDedup } from '../../utils/dial'
+import FollowRecordSheet from '../../components/FollowRecordSheet'
 
 const STATUS_TEXT: Record<number, string> = { 1: '正常', 2: '冻结', 3: '流失' }
 
@@ -11,8 +13,16 @@ export default function CustomerDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [detail, setDetail] = useState<CrmCustomerDetail | null>(null)
+  const [follows, setFollows] = useState<FollowUpRecord[]>([])
+  const [followSheetOpen, setFollowSheetOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+
+  const loadFollows = (cid: number) => {
+    listFollowTimeline('customer_id', cid)
+      .then(setFollows)
+      .catch(() => {})
+  }
 
   // 联系人拨号:查重拦截后拨号,弹窗内"查看"跳转已有线索/客户
   const onDialContact = (phone: string, name?: string) => {
@@ -28,7 +38,10 @@ export default function CustomerDetail() {
     if (!id) return
     setLoading(true)
     getCustomer(Number(id))
-      .then((d) => setDetail(d))
+      .then((d) => {
+        setDetail(d)
+        loadFollows(d.customer.id)
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [id])
@@ -106,6 +119,39 @@ export default function CustomerDetail() {
           </List>
         </Card>
       )}
+
+      <Card
+        title="跟进记录"
+        style={{ margin: 8 }}
+        extra={
+          <Button size="small" color="primary" onClick={() => setFollowSheetOpen(true)}>
+            写跟进
+          </Button>
+        }
+      >
+        {follows.length === 0 ? (
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 13, padding: '8px 0' }}>暂无跟进记录</div>
+        ) : (
+          <List>
+            {follows.map((f) => (
+              <List.Item
+                key={f.id}
+                description={<span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{f.follow_time}</span>}
+                extra={<Tag fill="outline" color="primary">{FOLLOW_TYPE_TEXT[f.type] || f.type}</Tag>}
+              >
+                {f.content}
+              </List.Item>
+            ))}
+          </List>
+        )}
+      </Card>
+
+      <FollowRecordSheet
+        visible={followSheetOpen}
+        onClose={() => setFollowSheetOpen(false)}
+        customerId={customer.id}
+        onSubmitted={() => loadFollows(customer.id)}
+      />
     </div>
   )
 }
