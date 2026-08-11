@@ -116,6 +116,7 @@ export default function FormTemplateEditModal({ open, editingId, onOpenChange, o
       modalProps={{ destroyOnHidden: true, maskClosable: false, width: 800 }}
       onFinish={handleSubmit}
       width={800}
+      grid
     >
       <ProFormText name="form_key" label="表单标识" rules={[{ required: true, message: '请输入' }]} placeholder="如 seal_apply" colProps={{ span: 8 }} />
       <ProFormText name="name" label="表单名称" rules={[{ required: true, message: '请输入' }]} placeholder="如 用印申请" colProps={{ span: 8 }} />

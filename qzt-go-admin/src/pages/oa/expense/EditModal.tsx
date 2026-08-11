@@ -179,6 +179,7 @@ export default function ExpenseEditModal({ open, editingId, onOpenChange, onSucc
       onFinish={handleSubmit}
       width={900}
       initialValues={{ items: [] }}
+      grid
     >
       <ProFormText
         name="title"

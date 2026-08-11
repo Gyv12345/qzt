@@ -102,6 +102,7 @@ export default function AssetEditModal({ open, editingId, onOpenChange, onSucces
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={640}
+      grid
     >
       <ProFormText name="name" label="资产名称" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 12 }} />
       <ProFormSelect name="category" label="类别" options={CATEGORY_OPTIONS} colProps={{ span: 12 }} />

@@ -117,6 +117,7 @@ export default function DynamicFormFillModal({ open, editingId, template, onOpen
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={640}
+      grid
     >
       {template.description && (
         <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>

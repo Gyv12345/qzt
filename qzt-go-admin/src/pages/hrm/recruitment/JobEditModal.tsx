@@ -81,6 +81,7 @@ export default function JobEditModal({ open, editingId, onOpenChange, onSuccess 
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={680}
+      grid
     >
       <ProFormText name="title" label="职位名称" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 12 }} />
       <ProFormText name="dept_name" label="部门" colProps={{ span: 12 }} />

@@ -91,6 +91,7 @@ export default function TicketEditModal({ open, editingId, onOpenChange, onSucce
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={600}
+      grid
     >
       <ProFormText name="title" label="标题" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProForm.Item name="customer_id" label="客户" colProps={{ span: 12 }}>

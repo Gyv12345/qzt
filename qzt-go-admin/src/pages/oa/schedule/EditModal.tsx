@@ -90,6 +90,7 @@ export default function ScheduleEditModal({ open, editingId, onOpenChange, onSuc
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={640}
+      grid
     >
       <ProFormText name="title" label="标题" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProFormSelect name="event_type" label="类型" options={SCHEDULE_TYPE_OPTIONS} colProps={{ span: 8 }} />

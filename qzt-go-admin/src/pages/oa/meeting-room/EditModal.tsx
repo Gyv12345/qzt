@@ -71,6 +71,7 @@ export default function MeetingRoomEditModal({ open, editingId, onOpenChange, on
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={560}
+      grid
     >
       <ProFormText name="name" label="会议室名称" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 12 }} />
       <ProFormText name="location" label="位置" colProps={{ span: 12 }} />

@@ -181,6 +181,7 @@ export default function ContractTemplatePage() {
         width={1100}
         onFinish={handleSubmit}
         modalProps={{ destroyOnHidden: true }}
+        grid
       >
         <ProFormText
           name="name"

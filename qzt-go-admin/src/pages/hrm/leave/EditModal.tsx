@@ -61,6 +61,7 @@ export default function LeaveEditModal({ open, onOpenChange, onSuccess }: EditMo
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={560}
+      grid
     >
       <ProFormSelect
         name="employee_id"

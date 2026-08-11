@@ -68,6 +68,7 @@ export default function LoanEditModal({ open, editingId, onOpenChange, onSuccess
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={560}
+      grid
     >
       <ProFormText name="title" label="借款标题" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProFormSelect name="loan_type" label="借款类型" options={LOAN_TYPE_OPTIONS} rules={[{ required: true, message: '请选择' }]} colProps={{ span: 12 }} />

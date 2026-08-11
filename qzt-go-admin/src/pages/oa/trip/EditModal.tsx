@@ -84,6 +84,7 @@ export default function TripEditModal({ open, editingId, onOpenChange, onSuccess
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={640}
+      grid
     >
       <ProFormText name="title" label="出差标题" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProFormText name="destination" label="目的地" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 12 }} />

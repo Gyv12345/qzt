@@ -99,6 +99,7 @@ export default function MeetingBookingEditModal({ open, editingId, onOpenChange,
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={640}
+      grid
     >
       <ProFormText name="title" label="会议标题" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProFormSelect

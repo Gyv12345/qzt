@@ -70,6 +70,7 @@ export default function WorkLogEditModal({ open, editingId, onOpenChange, onSucc
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={640}
+      grid
     >
       <ProFormSelect name="log_type" label="类型" options={LOG_TYPE_OPTIONS} colProps={{ span: 12 }} />
       <ProFormDatePicker name="log_date" label="日期" rules={[{ required: true, message: '请选择' }]} colProps={{ span: 12 }} />

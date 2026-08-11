@@ -90,6 +90,7 @@ export default function ProjectEditModal({ open, editingId, onOpenChange, onSucc
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={680}
+      grid
     >
       <ProFormText name="name" label="项目名称" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProForm.Item name="customer_id" label="关联客户" colProps={{ span: 12 }}>

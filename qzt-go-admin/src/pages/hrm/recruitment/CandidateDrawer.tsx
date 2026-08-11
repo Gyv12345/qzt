@@ -91,7 +91,7 @@ export default function CandidateDrawer({ open, jobId, onOpenChange }: Candidate
       ) : (
         <Table size="small" rowKey="id" dataSource={list} columns={columns} pagination={{ pageSize: 20 }} scroll={{ x: 'max-content' }} />
       )}
-      <ModalForm title="添加候选人" form={form} open={addOpen} onOpenChange={setAddOpen} onFinish={handleAdd} width={560} modalProps={{ destroyOnHidden: true }}>
+      <ModalForm title="添加候选人" form={form} open={addOpen} onOpenChange={setAddOpen} onFinish={handleAdd} width={560} grid modalProps={{ destroyOnHidden: true }}>
         <ProFormText name="name" label="姓名" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 12 }} />
         <ProFormText name="phone" label="电话" colProps={{ span: 12 }} />
         <ProFormText name="email" label="邮箱" colProps={{ span: 12 }} />

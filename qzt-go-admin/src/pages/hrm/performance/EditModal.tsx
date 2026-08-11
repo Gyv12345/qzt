@@ -60,6 +60,7 @@ export default function PerfEditModal({ open, onOpenChange, onSuccess }: EditMod
       onFinish={handleSubmit}
       width={680}
       initialValues={{ items: [{ item_name: '', weight: '100' }] }}
+      grid
     >
       <ProFormText name="title" label="考核标题" rules={[{ required: true, message: '请输入' }]} colProps={{ span: 24 }} />
       <ProFormSelect name="employee_id" label="被考核人" options={employees} rules={[{ required: true, message: '请选择' }]} colProps={{ span: 12 }} />

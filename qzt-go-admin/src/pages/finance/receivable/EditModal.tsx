@@ -49,6 +49,7 @@ export default function ReceivableEditModal({ open, onOpenChange, onSuccess }: E
       onFinish={handleSubmit}
       width={600}
       initialValues={{ direction: 'RECEIVABLE', party_type: 'CUSTOMER' }}
+      grid
     >
       <ProFormRadio.Group
         name="direction"
