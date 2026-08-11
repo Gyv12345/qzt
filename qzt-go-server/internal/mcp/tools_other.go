@@ -6,8 +6,10 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/shopspring/decimal"
 
 	apisvc "qzt-go-server/internal/module/api/service"
+	crmsvc "qzt-go-server/internal/module/crm/service"
 )
 
 // tools_other.go CRM 业务 tools(商机/合同/产品/联系人/回款/跟进/仪表盘)。
@@ -164,6 +166,38 @@ func registerProductTools(s *server.MCPServer) {
 		),
 		handleProductGet,
 	)
+
+	s.AddTool(
+		mcp.NewTool("crm_product_create",
+			mcp.WithDescription("创建产品(默认状态=上架,编号留空自动生成)"),
+			mcp.WithString("name", mcp.Required(), mcp.Description("产品名称")),
+			mcp.WithString("product_no", mcp.Description("产品编号(留空自动生成)")),
+			mcp.WithString("category", mcp.Description("分类")),
+			mcp.WithString("unit", mcp.Description("单位")),
+			mcp.WithNumber("standard_price", mcp.Description("标准价")),
+			mcp.WithNumber("cost_price", mcp.Description("成本价")),
+			mcp.WithString("image_url", mcp.Description("图片URL")),
+			mcp.WithString("description", mcp.Description("描述")),
+		),
+		handleProductCreate,
+	)
+
+	s.AddTool(
+		mcp.NewTool("crm_product_update",
+			mcp.WithDescription("更新产品信息(只传要修改的字段)"),
+			mcp.WithNumber("id", mcp.Required(), mcp.Description("产品ID")),
+			mcp.WithString("name", mcp.Required(), mcp.Description("产品名称")),
+			mcp.WithString("product_no", mcp.Description("产品编号")),
+			mcp.WithString("category", mcp.Description("分类")),
+			mcp.WithString("unit", mcp.Description("单位")),
+			mcp.WithNumber("standard_price", mcp.Description("标准价")),
+			mcp.WithNumber("cost_price", mcp.Description("成本价")),
+			mcp.WithNumber("status", mcp.Description("状态:1上架 2下架")),
+			mcp.WithString("image_url", mcp.Description("图片URL")),
+			mcp.WithString("description", mcp.Description("描述")),
+		),
+		handleProductUpdate,
+	)
 }
 
 func handleProductList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -198,6 +232,58 @@ func handleProductGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	return resultText(p)
 }
 
+func handleProductCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := crmsvc.NewProductService()
+	name := req.GetString("name", "")
+	if name == "" {
+		return resultError("产品名称(name)必填")
+	}
+	createReq := &crmsvc.CreateProductRequest{
+		Name:          name,
+		ProductNo:     req.GetString("product_no", ""),
+		Category:      req.GetString("category", ""),
+		Unit:          req.GetString("unit", ""),
+		StandardPrice: decimal.NewFromFloat(req.GetFloat("standard_price", 0)),
+		CostPrice:     decimal.NewFromFloat(req.GetFloat("cost_price", 0)),
+		ImageURL:      req.GetString("image_url", ""),
+		Description:   req.GetString("description", ""),
+	}
+	p, err := svc.Create(ctx, createReq)
+	if err != nil {
+		return resultError(fmt.Sprintf("创建产品失败: %v", err))
+	}
+	return resultText(p)
+}
+
+func handleProductUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := crmsvc.NewProductService()
+	id := uint(req.GetFloat("id", 0))
+	name := req.GetString("name", "")
+	if id == 0 || name == "" {
+		return resultError("产品ID(id)和名称(name)必填")
+	}
+	updateReq := &crmsvc.UpdateProductRequest{
+		Name:          name,
+		ProductNo:     req.GetString("product_no", ""),
+		Category:      req.GetString("category", ""),
+		Unit:          req.GetString("unit", ""),
+		StandardPrice: decimal.NewFromFloat(req.GetFloat("standard_price", 0)),
+		CostPrice:     decimal.NewFromFloat(req.GetFloat("cost_price", 0)),
+		ImageURL:      req.GetString("image_url", ""),
+		Description:   req.GetString("description", ""),
+	}
+	if args := req.GetArguments(); args != nil {
+		if _, ok := args["status"]; ok {
+			st := int8(req.GetFloat("status", 0))
+			updateReq.Status = &st
+		}
+	}
+	if err := svc.Update(ctx, id, updateReq); err != nil {
+		return resultError(fmt.Sprintf("更新产品失败: %v", err))
+	}
+	return resultText(map[string]interface{}{"message": "产品已更新", "id": id})
+}
+
 // ── Contact ──
 
 func registerContactTools(s *server.MCPServer) {
@@ -207,6 +293,45 @@ func registerContactTools(s *server.MCPServer) {
 			mcp.WithNumber("customer_id", mcp.Required(), mcp.Description("客户ID")),
 		),
 		handleContactList,
+	)
+
+	s.AddTool(
+		mcp.NewTool("crm_contact_create",
+			mcp.WithDescription("为客户新增联系人"),
+			mcp.WithNumber("customer_id", mcp.Required(), mcp.Description("客户ID")),
+			mcp.WithString("name", mcp.Required(), mcp.Description("联系人姓名")),
+			mcp.WithString("phone", mcp.Description("电话")),
+			mcp.WithString("email", mcp.Description("邮箱")),
+			mcp.WithString("position", mcp.Description("职位")),
+			mcp.WithString("department", mcp.Description("部门")),
+			mcp.WithNumber("is_key_decision_maker", mcp.Description("是否关键决策人:0否 1是")),
+			mcp.WithString("remark", mcp.Description("备注")),
+		),
+		handleContactCreate,
+	)
+
+	s.AddTool(
+		mcp.NewTool("crm_contact_update",
+			mcp.WithDescription("更新联系人信息(只传要修改的字段)"),
+			mcp.WithNumber("id", mcp.Required(), mcp.Description("联系人ID")),
+			mcp.WithString("name", mcp.Required(), mcp.Description("联系人姓名")),
+			mcp.WithString("phone", mcp.Description("电话")),
+			mcp.WithString("email", mcp.Description("邮箱")),
+			mcp.WithString("position", mcp.Description("职位")),
+			mcp.WithString("department", mcp.Description("部门")),
+			mcp.WithNumber("is_key_decision_maker", mcp.Description("是否关键决策人:0否 1是")),
+			mcp.WithNumber("status", mcp.Description("状态:1启用 2停用")),
+			mcp.WithString("remark", mcp.Description("备注")),
+		),
+		handleContactUpdate,
+	)
+
+	s.AddTool(
+		mcp.NewTool("crm_contact_delete",
+			mcp.WithDescription("删除联系人"),
+			mcp.WithNumber("id", mcp.Required(), mcp.Description("联系人ID")),
+		),
+		handleContactDelete,
 	)
 }
 
@@ -221,6 +346,77 @@ func handleContactList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 		return resultError(fmt.Sprintf("查询联系人失败: %v", err))
 	}
 	return resultText(list)
+}
+
+func handleContactCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := crmsvc.NewContactService()
+	customerID := uint(req.GetFloat("customer_id", 0))
+	name := req.GetString("name", "")
+	if customerID == 0 || name == "" {
+		return resultError("客户ID(customer_id)和联系人姓名(name)必填")
+	}
+	createReq := &crmsvc.CreateContactRequest{
+		CustomerID: customerID,
+		Name:       name,
+		Phone:      req.GetString("phone", ""),
+		Email:      req.GetString("email", ""),
+		Position:   req.GetString("position", ""),
+		Department: req.GetString("department", ""),
+		Remark:     req.GetString("remark", ""),
+	}
+	if args := req.GetArguments(); args != nil {
+		if _, ok := args["is_key_decision_maker"]; ok {
+			kdm := int8(req.GetFloat("is_key_decision_maker", 0))
+			createReq.IsKeyDecisionMaker = &kdm
+		}
+	}
+	if err := svc.Create(ctx, createReq); err != nil {
+		return resultError(fmt.Sprintf("创建联系人失败: %v", err))
+	}
+	return resultText(map[string]interface{}{"message": "联系人已创建", "customer_id": customerID, "name": name})
+}
+
+func handleContactUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := crmsvc.NewContactService()
+	id := uint(req.GetFloat("id", 0))
+	name := req.GetString("name", "")
+	if id == 0 || name == "" {
+		return resultError("联系人ID(id)和姓名(name)必填")
+	}
+	updateReq := &crmsvc.UpdateContactRequest{
+		Name:       name,
+		Phone:      req.GetString("phone", ""),
+		Email:      req.GetString("email", ""),
+		Position:   req.GetString("position", ""),
+		Department: req.GetString("department", ""),
+		Remark:     req.GetString("remark", ""),
+	}
+	if args := req.GetArguments(); args != nil {
+		if _, ok := args["is_key_decision_maker"]; ok {
+			kdm := int8(req.GetFloat("is_key_decision_maker", 0))
+			updateReq.IsKeyDecisionMaker = &kdm
+		}
+		if _, ok := args["status"]; ok {
+			st := int8(req.GetFloat("status", 0))
+			updateReq.Status = &st
+		}
+	}
+	if err := svc.Update(ctx, id, updateReq); err != nil {
+		return resultError(fmt.Sprintf("更新联系人失败: %v", err))
+	}
+	return resultText(map[string]interface{}{"message": "联系人已更新", "id": id})
+}
+
+func handleContactDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := crmsvc.NewContactService()
+	id := uint(req.GetFloat("id", 0))
+	if id == 0 {
+		return resultError("联系人ID(id)必填")
+	}
+	if err := svc.Delete(ctx, id); err != nil {
+		return resultError(fmt.Sprintf("删除联系人失败: %v", err))
+	}
+	return resultText(map[string]interface{}{"message": "联系人已删除", "id": id})
 }
 
 // ── Payment ──

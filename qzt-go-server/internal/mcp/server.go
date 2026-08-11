@@ -61,6 +61,10 @@ func buildServer() *server.MCPServer {
 	registerFollowupTools(s)
 	registerDashboardTools(s)
 
+	// 注册 CRM 自定义字段定义 + 售后工单 tools
+	registerCustomFieldTools(s)
+	registerTicketTools(s)
+
 	// 注册 CRM 写操作 tools(客户流转/商机/合同/回款/跟进/查重)
 	registerCrmWriteTools(s)
 
