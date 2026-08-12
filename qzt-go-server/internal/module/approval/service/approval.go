@@ -334,13 +334,13 @@ func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.A
 		return err
 	}
 	if len(approverIDs) == 0 {
-		// 空审批人:自动通过,直接流转
-		return s.onTaskApproved(ctx, &apprmodel.ApprovalTask{
-			InstanceID: instance.ID, NodeID: node.ID, NodeRound: s.getNodeRound(ctx, instance.ID, node.ID),
-		}, operator)
+		return s.handleEmptyApprover(ctx, node, instance, operator)
 	}
+	return s.createTasks(ctx, node, instance, approverIDs)
+}
 
-	// 创建任务
+// createTasks 为节点创建审批任务并通知审批人。
+func (s *ApprovalService) createTasks(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, approverIDs []uint) error {
 	round := s.getNodeRound(ctx, instance.ID, node.ID)
 	for _, aid := range approverIDs {
 		task := &apprmodel.ApprovalTask{
@@ -354,14 +354,63 @@ func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.A
 		if err := s.taskRepo.Create(ctx, task); err != nil {
 			return err
 		}
-		// 发站内信通知(事件总线)
 		xevent.Publish(ctx, "approval.task.assigned", map[string]any{
-			"approver_id": aid,
-			"instance_id": instance.ID,
+			"approver_id":  aid,
+			"instance_id":  instance.ID,
 			"resource_type": instance.Type,
 			"resource_id":  instance.ResourceID,
 		})
 	}
+	return nil
+}
+
+// handleEmptyApprover 审批节点无可用审批人时,按节点 empty_approver_action 配置处理:
+//   - AUTO_PASS: 自动通过
+//   - ASSIGN_SPECIFIC: 转交兜底人(fallback_approver);未配则退化为自动通过
+//   - ASSIGN_ADMIN: 转交超管(id=1)
+//   - REJECT 或未知: 实例判驳回,避免静默放行打穿审批
+func (s *ApprovalService) handleEmptyApprover(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, operator uint) error {
+	var cfg *apprmodel.ApprovalNodeApprover
+	if c, err := s.approverRepo.GetByNodeID(ctx, node.ID); err == nil {
+		cfg = c
+	}
+	action := apprmodel.EmptyApproverAutoPass
+	if cfg != nil && cfg.EmptyApproverAction != "" {
+		action = cfg.EmptyApproverAction
+	}
+	switch action {
+	case apprmodel.EmptyApproverAssignSpecific:
+		if cfg != nil && cfg.FallbackApprover != nil && *cfg.FallbackApprover > 0 {
+			return s.createTasks(ctx, node, instance, []uint{*cfg.FallbackApprover})
+		}
+		return s.autoPassNode(ctx, node, instance, operator)
+	case apprmodel.EmptyApproverAssignAdmin:
+		return s.createTasks(ctx, node, instance, []uint{1})
+	case apprmodel.EmptyApproverAutoPass:
+		return s.autoPassNode(ctx, node, instance, operator)
+	default:
+		return s.failInstance(ctx, instance, "审批节点「"+node.Name+"」无可用审批人,已自动驳回")
+	}
+}
+
+// autoPassNode 节点自动通过(空审批人 + AUTO_PASS,或 ASSIGN_SPECIFIC 未配兜底人时退化)。
+func (s *ApprovalService) autoPassNode(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, operator uint) error {
+	return s.onTaskApproved(ctx, &apprmodel.ApprovalTask{
+		InstanceID: instance.ID, NodeID: node.ID, NodeRound: s.getNodeRound(ctx, instance.ID, node.ID),
+	}, operator)
+}
+
+// failInstance 将实例标记为驳回(无可用审批人等异常终态)。
+// 写入驳回状态后返回 nil —— 驳回是正常终态,需提交事务而非回滚。
+func (s *ApprovalService) failInstance(ctx context.Context, instance *apprmodel.ApprovalInstance, reason string) error {
+	instance.ApprovalStatus = apprmodel.StatusUnapproved
+	instance.ApprovalTime = xtime.Now()
+	if err := s.instanceRepo.Update(ctx, instance); err != nil {
+		return err
+	}
+	s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusUnapproved)
+	s.sendFinishNotice(ctx, instance, reason)
+	xlogger.ErrorfCtx(ctx, "审批实例 %d 自动驳回: %s", instance.ID, reason)
 	return nil
 }
 
@@ -377,7 +426,7 @@ func (s *ApprovalService) resolveApprovers(ctx context.Context, node *apprmodel.
 	case apprmodel.ApproverTypeMember:
 		return parseUintArray(cfg.ApproverList), nil
 	case apprmodel.ApproverTypeDeptHead, apprmodel.ApproverTypeMultipleDeptHead:
-		// DEPT_HEAD:提交人 → sys_user.dept_id → hrm_department.leader_id
+		// DEPT_HEAD:提交人 → sys_user.dept_id → hrm_department.leader
 		return resolveDeptHead(ctx, submitterID)
 	case apprmodel.ApproverTypeRole:
 		// ROLE 类型:approverList 是 role_id 数组,需查 sys_user_role 解析
@@ -390,7 +439,7 @@ func (s *ApprovalService) resolveApprovers(ctx context.Context, node *apprmodel.
 	}
 }
 
-// resolveDeptHead 解析部门负责人:submitterID → sys_user.dept_id → hrm_department.leader_id。
+// resolveDeptHead 解析部门负责人:submitterID → sys_user.dept_id → hrm_department.leader。
 func resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
 	if submitterID == 0 {
 		return nil, nil
@@ -401,7 +450,7 @@ func resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
 		return nil, nil
 	}
 	var leaderID *uint
-	repoDB(ctx).Table("hrm_department").Where("id = ? AND status = 1", *deptID).Select("leader_id").Scan(&leaderID)
+	repoDB(ctx).Table("hrm_department").Where("id = ? AND status = 1", *deptID).Select("leader").Scan(&leaderID)
 	if leaderID == nil || *leaderID == 0 {
 		return nil, nil
 	}
