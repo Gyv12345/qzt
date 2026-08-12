@@ -41,6 +41,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	importExportHandler := handler.NewImportExportHandler()
 	dedupHandler := handler.NewDedupHandler()
 	ticketHandler := handler.NewTicketHandler()
+	esignHandler := handler.NewEsignHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -49,6 +50,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		public.GET("/products/:id", productHandler.PublicGetByID)
 		public.GET("/partners", customerHandler.PublicList)
 		public.POST("/contact", leadHandler.PublicContact) // 官网留言 → 线索入公海
+		public.POST("/esign/callback", esignHandler.Callback) // e签宝签署状态回调(免鉴权,VerifyCallback 验签)
 	}
 
 	// 已认证路由(仅 JWT,无 RBAC):看板、下拉、时间线、待办、变更历史、回款汇总等查询。
@@ -139,6 +141,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.DELETE("/contracts/:id", contractHandler.Delete)
 		// 合同套打(选模板渲染)
 		auth.GET("/contracts/:id/print-document", contractTemplateHandler.PrintDocument)
+
+		// 电子签(e签宝):发起签署 / 查询详情(半自动,审批通过自动生成 PDF 后由用户补签署方)
+		auth.POST("/contracts/:id/esign/initiate", esignHandler.Initiate)
+		auth.GET("/contracts/:id/esign", esignHandler.GetStatus)
 
 		// 合同模板(静态路径 variables 须先于 :id 注册)
 		auth.GET("/contract-templates/variables", contractTemplateHandler.Variables)

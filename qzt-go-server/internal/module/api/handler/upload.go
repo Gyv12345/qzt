@@ -33,6 +33,7 @@ const (
 type fileUploader interface {
 	Save(file *multipart.FileHeader, folders ...string) (*storage.UploadedFile, error)
 	SavePrivate(file *multipart.FileHeader, folders ...string) (*storage.UploadedFile, error)
+	SavePrivateBytes(name string, data []byte, contentType string, folders ...string) (*storage.UploadedFile, error)
 	SignURL(objectKey string, ttl time.Duration) (string, error)
 }
 

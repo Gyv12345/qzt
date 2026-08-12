@@ -27,6 +27,11 @@ type Uploader interface {
 	// 调用方需另外调用 SignURL 取短期下载 URL。
 	SavePrivate(file *multipart.FileHeader, folders ...string) (*UploadedFile, error)
 
+	// SavePrivateBytes 把内存字节存储到私有桶(无需 multipart 包装)。
+	// name 用于推断扩展名与原始文件名;contentType 如 "application/pdf"(留空则按扩展名映射)。
+	// 适用于代码生成的文件(如合同 PDF 渲染结果)直接落盘。仍校验扩展名白名单与大小上限。
+	SavePrivateBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error)
+
 	// SignURL 为私有桶文件生成短期有效的下载 URL。
 	// OSS 返回阿里云预签名 GET;local 返回后端代理下载 URL。
 	SignURL(objectKey string, ttl time.Duration) (string, error)

@@ -371,6 +371,92 @@ func (s *Local) SavePrivate(file *multipart.FileHeader, folders ...string) (*Upl
 	}, nil
 }
 
+// SavePrivateBytes 把内存字节存储到私有目录(无需 multipart 包装)。
+// name 用于推断扩展名 + OriginalName;contentType 留空则按扩展名白名单映射。
+// 校验:私有目录已配置、非空、不超上限、扩展名在白名单。
+func (s *Local) SavePrivateBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error) {
+	if s.privateDir == "" {
+		return nil, ErrPrivateBucketDisabled
+	}
+	if len(data) == 0 {
+		return nil, ErrEmptyFile
+	}
+	if int64(len(data)) > s.maxBytes {
+		return nil, ErrFileTooLarge
+	}
+	if len(folders) > 1 {
+		return nil, ErrInvalidFolder
+	}
+
+	folder := ""
+	if len(folders) == 1 {
+		folder = folders[0]
+	}
+	relativeFolder, err := s.resolveFolder(folder)
+	if err != nil {
+		return nil, err
+	}
+
+	extension := strings.ToLower(filepath.Ext(name))
+	expectedContentType, allowed := s.allowedTypes[extension]
+	if !allowed {
+		return nil, fmt.Errorf("%w: extension %q", ErrInvalidFileType, extension)
+	}
+	mediaType := strings.TrimSpace(contentType)
+	if mediaType == "" {
+		mediaType = expectedContentType
+	}
+
+	targetDirectory := filepath.Join(s.privateDir, filepath.FromSlash(relativeFolder))
+	if err := os.MkdirAll(targetDirectory, 0o755); err != nil {
+		return nil, fmt.Errorf("create private upload folder: %w", err)
+	}
+
+	randomName, err := randomFileName(extension)
+	if err != nil {
+		return nil, err
+	}
+
+	tempFile, err := os.CreateTemp(targetDirectory, ".upload-*")
+	if err != nil {
+		return nil, fmt.Errorf("create temporary private upload file: %w", err)
+	}
+	tempName := tempFile.Name()
+	defer os.Remove(tempName)
+
+	written, writeErr := tempFile.Write(data)
+	closeErr := tempFile.Close()
+	if writeErr != nil {
+		return nil, fmt.Errorf("write private upload file: %w", writeErr)
+	}
+	if closeErr != nil {
+		return nil, fmt.Errorf("close private upload file: %w", closeErr)
+	}
+	if written != len(data) {
+		return nil, fmt.Errorf("short write: %d/%d bytes", written, len(data))
+	}
+
+	if err := os.Chmod(tempName, 0o644); err != nil {
+		return nil, fmt.Errorf("set private upload file permissions: %w", err)
+	}
+
+	targetPath := filepath.Join(targetDirectory, randomName)
+	if err := os.Rename(tempName, targetPath); err != nil {
+		return nil, fmt.Errorf("save private upload file: %w", err)
+	}
+
+	relativePath := path.Join(relativeFolder, randomName)
+	return &UploadedFile{
+		OriginalName: name,
+		FileName:     randomName,
+		RelativePath: relativePath,
+		URL:          relativePath, // 私有文件存 objectKey,调用方用 SignURL 取短期下载 URL
+		Size:         int64(written),
+		ContentType:  mediaType,
+		Visibility:   VisibilityPrivate,
+	}, nil
+}
+
 // SignURL 为本地私有文件生成后端代理下载 URL: <prefix>?t=<token>&k=<key>。
 // prefix 默认 /api/file/dl(直连后端);前端反代时配 storage.download_prefix 为 /prod-api/api/file/dl。
 // token = base64url(payload) + "." + base64url(hmac-sha256(payload, secret)),

@@ -21,7 +21,8 @@ func (r *ContractRepo) Update(ctx context.Context, m *crmmodel.CrmContract) erro
 	return r.BaseRepo.Update(ctx, m,
 		"ContractNo", "Name", "CustomerID", "OpportunityID", "TitleID", "TotalAmount",
 		"ReceivedAmount", "SignedDate", "StartDate", "EndDate", "Stage",
-		"OwnerID", "FollowerID", "FollowTime", "Content")
+		"OwnerID", "FollowerID", "FollowTime", "Content",
+		"EsignEnabled", "TemplateID") // 电子签开关 + 模板(表单可编辑;esign_status/esign_flow_id 由 service 直写)
 }
 
 // AddReceivedAmount 在 received_amount 上原子加 amount(回款累计用);amount 为负即扣减。

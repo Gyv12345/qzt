@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
 	"mime/multipart"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -200,6 +202,67 @@ func (s *OSS) SavePrivate(file *multipart.FileHeader, folders ...string) (*Uploa
 		URL:          relativePath,
 		Size:         file.Size,
 		ContentType:  val.contentType,
+		Visibility:   VisibilityPrivate,
+	}, nil
+}
+
+// SavePrivateBytes 把内存字节上传到私有桶(无需 multipart 包装),返回的 URL 为 objectKey。
+// name 用于推断扩展名;contentType 留空则按扩展名白名单映射。私有桶未配置时返回 ErrPrivateBucketDisabled。
+func (s *OSS) SavePrivateBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error) {
+	if s.privateBucket == nil {
+		return nil, ErrPrivateBucketDisabled
+	}
+	if len(data) == 0 {
+		return nil, ErrEmptyFile
+	}
+	if int64(len(data)) > s.maxBytes {
+		return nil, ErrFileTooLarge
+	}
+	if len(folders) > 1 {
+		return nil, ErrInvalidFolder
+	}
+
+	extension := strings.ToLower(filepath.Ext(name))
+	expectedContentType, allowed := s.allowedTypes[extension]
+	if !allowed {
+		return nil, fmt.Errorf("%w: extension %q", ErrInvalidFileType, extension)
+	}
+	mediaType := strings.TrimSpace(contentType)
+	if mediaType == "" {
+		mediaType = expectedContentType
+	}
+
+	folder := ""
+	if len(folders) == 1 {
+		folder = folders[0]
+	}
+	relativeFolder, err := s.resolveFolder(folder)
+	if err != nil {
+		return nil, err
+	}
+
+	fileName, err := randomFileName(extension)
+	if err != nil {
+		return nil, err
+	}
+	relativePath := relativeFolder + "/" + fileName
+
+	objectKey := relativePath
+	if err := s.privateBucket.PutObject(objectKey, bytes.NewReader(data),
+		oss.ContentType(mediaType),
+		oss.ContentDisposition("attachment"),
+		oss.ObjectACL(oss.ACLPrivate),
+	); err != nil {
+		return nil, fmt.Errorf("upload to oss private bucket failed: %w", err)
+	}
+
+	return &UploadedFile{
+		OriginalName: name,
+		FileName:     fileName,
+		RelativePath: relativePath,
+		URL:          relativePath, // 私有文件存 objectKey
+		Size:         int64(len(data)),
+		ContentType:  mediaType,
 		Visibility:   VisibilityPrivate,
 	}, nil
 }

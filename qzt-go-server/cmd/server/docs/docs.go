@@ -2904,6 +2904,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/crm/contracts/{id}/esign": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "电子签"
+                ],
+                "summary": "查询电子签详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "合同ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/contracts/{id}/esign/initiate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "电子签"
+                ],
+                "summary": "发起电子签(补充签署方)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "合同ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "签署方列表",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.initiateEsignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/crm/contracts/{id}/payment-plans": {
             "get": {
                 "security": [
@@ -5568,6 +5646,32 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/crm/public/esign/callback": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "电子签"
+                ],
+                "summary": "e签宝签署回调",
+                "parameters": [
+                    {
+                        "description": "e签宝回调数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {}
             }
         },
         "/crm/public/partners": {
@@ -15888,6 +15992,30 @@ const docTemplate = `{
                 }
             }
         },
+        "esignclient.Signer": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "邮箱(可选,二选一与手机)",
+                    "type": "string"
+                },
+                "idNumber": {
+                    "description": "身份证(实名认证用,可选)",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "接收签署短信的手机号",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "signOrder": {
+                    "description": "签署顺序(1,2,3...)",
+                    "type": "integer"
+                }
+            }
+        },
         "handler.PublicContactRequest": {
             "type": "object",
             "required": [
@@ -15962,6 +16090,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/service.ConfigItem"
+                    }
+                }
+            }
+        },
+        "handler.initiateEsignRequest": {
+            "type": "object",
+            "required": [
+                "signers"
+            ],
+            "properties": {
+                "signers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/esignclient.Signer"
                     }
                 }
             }

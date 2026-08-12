@@ -78,6 +78,9 @@ func RegisterEventListeners(ctx context.Context) error {
 					UpdateColumn("stage", crmmodel.ContractStageSigned).Error; err != nil {
 					xlogger.ErrorfCtx(ctx, "审批回调:合同阶段更新失败 contract_id=%d: %v", resourceID, err)
 				}
+				// 电子签:若合同开启 esign 且选了模板,异步插入 PENDING 任务(cron 渲染 PDF)。
+				// 用独立 goroutine + context.Background(),避免阻塞审批回调、规避请求 ctx 已结束。
+				go createEsignTaskOnApproval(resourceID)
 			case "EXPENSE":
 				// 报销单审批通过 → 后续可在此生成财务凭证(当前仅记日志)
 				xlogger.InfofCtx(ctx, "审批回调:报销单 %d 审批通过,等待打款", resourceID)
@@ -157,4 +160,44 @@ type noopMessageClient struct{}
 
 func (n *noopMessageClient) SendSystemMessage(ctx context.Context, receiverID uint, title, content string) error {
 	return nil
+}
+
+// createEsignTaskOnApproval 合同审批通过后,若合同开启电子签且选了模板,插入 PENDING 签署任务。
+// cron(crm.esign.retry)随后渲染 PDF 并置 READY(半自动:停在「待补签署方」)。
+// 独立 goroutine 调用(不阻塞审批回调),用 context.Background() 取全局 DB;查重避免重复发起。
+func createEsignTaskOnApproval(contractID uint) {
+	ctx := context.Background()
+	var c struct {
+		EsignEnabled bool
+		TemplateID   *uint
+	}
+	if err := repository.DBFrom(ctx).Model(&crmmodel.CrmContract{}).
+		Select("esign_enabled, template_id").
+		Where("id = ?", contractID).Scan(&c).Error; err != nil {
+		xlogger.ErrorfCtx(ctx, "电子签:查询合同 esign 配置失败 contract_id=%d: %v", contractID, err)
+		return
+	}
+	if !c.EsignEnabled || c.TemplateID == nil || *c.TemplateID == 0 {
+		return
+	}
+	// 查重:已有进行中(PENDING/RUNNING/READY/INITIATED)任务则不重复创建
+	var exists int64
+	repository.DBFrom(ctx).Model(&crmmodel.CrmEsignTask{}).
+		Where("contract_id = ? AND status IN ?",
+			contractID,
+			[]string{crmmodel.EsignTaskPending, crmmodel.EsignTaskRunning, crmmodel.EsignTaskReady, crmmodel.EsignTaskInitiated}).
+		Count(&exists)
+	if exists > 0 {
+		return
+	}
+	task := &crmmodel.CrmEsignTask{
+		ContractID: contractID,
+		TemplateID: *c.TemplateID,
+		Status:     crmmodel.EsignTaskPending,
+	}
+	if err := repository.DBFrom(ctx).Create(task).Error; err != nil {
+		xlogger.ErrorfCtx(ctx, "电子签:创建签署任务失败 contract_id=%d: %v", contractID, err)
+		return
+	}
+	xlogger.InfofCtx(ctx, "电子签:合同 %d 审批通过,已创建签署任务 %d(cron 将渲染 PDF)", contractID, task.ID)
 }
