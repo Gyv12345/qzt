@@ -1,7 +1,13 @@
 import { useEffect, useRef } from 'react'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import { BarChart, FunnelChart, LineChart, PieChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import { Spin } from 'antd'
 import type { EChartsOption } from 'echarts'
+
+// 按需注册:仅引入实际用到的图表(pie/bar/line/funnel)与组件,避免全量打包 echarts 进首屏
+echarts.use([CanvasRenderer, PieChart, BarChart, LineChart, FunnelChart, GridComponent, LegendComponent, TooltipComponent])
 
 interface ChartProps {
   option: EChartsOption

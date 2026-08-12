@@ -8,7 +8,6 @@ import { fetchUserInfo } from '../services/auth'
 import type { SysMenu } from '../types'
 import BasicLayout from '../layouts/BasicLayout'
 import Login from '../pages/login'
-import Dashboard from '../pages/dashboard'
 import Profile from '../pages/profile'
 import WecomBind from '../pages/wecom-bind'
 import NotFound from '../pages/error/404'
@@ -21,6 +20,9 @@ function lazyPage(component: string) {
   if (!loader) return NotFound
   return lazy(loader as () => Promise<{ default: ComponentType }>)
 }
+
+// Dashboard 单独 lazy:它间接引入 echarts,懒加载可将 echarts 移出首屏 bundle
+const Dashboard = lazy(() => import('../pages/dashboard'))
 
 /** 将后端菜单树(type=1 且有 component)拍平为路由 */
 function buildMenuRoutes(menus: SysMenu[]): RouteObject[] {
@@ -57,7 +59,9 @@ function RequireAuth({ children }: { children: ReactElement }) {
 }
 
 export default function AppRoutes() {
-  const { accessToken, userLoaded, menus } = useAuthStore()
+  const accessToken = useAuthStore((s) => s.accessToken)
+  const userLoaded = useAuthStore((s) => s.userLoaded)
+  const menus = useAuthStore((s) => s.menus)
   const [loadError, setLoadError] = useState(false)
 
   // 刷新页面/深链接时,先加载用户信息(含菜单)再计算动态路由,避免误落 404

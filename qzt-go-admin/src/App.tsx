@@ -13,7 +13,14 @@ const fallback = (
 )
 
 export default function App() {
-  const { colorPrimary, colorInfo, borderRadius, darkMode, compactMode, colorWeak } = useSettingsStore()
+  // 单字段订阅:任一设置变化只重渲染 App 本身(此处必要,ConfigProvider 需这些 token),
+  // 避免无 selector 整体订阅导致 store 任意字段变更都触发重渲染
+  const colorPrimary = useSettingsStore((s) => s.colorPrimary)
+  const colorInfo = useSettingsStore((s) => s.colorInfo)
+  const borderRadius = useSettingsStore((s) => s.borderRadius)
+  const darkMode = useSettingsStore((s) => s.darkMode)
+  const compactMode = useSettingsStore((s) => s.compactMode)
+  const colorWeak = useSettingsStore((s) => s.colorWeak)
 
   useEffect(() => {
     // 启动引导:公共配置可覆盖站点标题

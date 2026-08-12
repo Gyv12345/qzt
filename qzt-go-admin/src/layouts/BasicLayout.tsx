@@ -68,7 +68,9 @@ function findChain(modules: SysMenu[], pathname: string): MenuChain | null {
 export default function BasicLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { userLoaded, menus, profile } = useAuthStore()
+  const userLoaded = useAuthStore((s) => s.userLoaded)
+  const menus = useAuthStore((s) => s.menus)
+  const profile = useAuthStore((s) => s.profile)
   const [loading, setLoading] = useState(!userLoaded)
   const [error, setError] = useState(false)
   /** 左侧第二列展开的分组 id(用户点击分组但未跳转时也需要展开) */

@@ -118,7 +118,8 @@ function SectionCard({ title, loading, failed, empty, extra, children }: Section
 const TREND_DAYS = 30
 
 export default function Dashboard() {
-  const { profile, menus } = useAuthStore()
+  const profile = useAuthStore((s) => s.profile)
+  const menus = useAuthStore((s) => s.menus)
   const navigate = useNavigate()
 
   // 个人区块(仅 JWT 鉴权,所有登录用户可用)
