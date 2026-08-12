@@ -61,6 +61,16 @@ func (r *InstanceRepo) Update(ctx context.Context, m *apprmodel.ApprovalInstance
 	return r.BaseRepo.Update(ctx, m, "CurrentNodeID", "ApprovalStatus", "ApprovalTime", "Comment")
 }
 
+// HasInstance 判断某业务资源是否已有审批实例(任何状态)。
+// 供各业务模块的 Delete 调用:已进入审批流程的记录不允许删除,避免出现孤儿审批实例。
+func HasInstance(ctx context.Context, formType string, resourceID uint) bool {
+	var cnt int64
+	repoDB(ctx).Model(&apprmodel.ApprovalInstance{}).
+		Where("type = ? AND resource_id = ?", formType, resourceID).
+		Count(&cnt)
+	return cnt > 0
+}
+
 // ── 任务 ──
 
 type TaskRepo struct {

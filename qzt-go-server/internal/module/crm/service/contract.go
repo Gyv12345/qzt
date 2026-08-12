@@ -13,6 +13,7 @@ import (
 	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
+	apprrepo "qzt-go-server/internal/repository/approval"
 	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
 )
@@ -152,6 +153,9 @@ func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContra
 func (s *ContractService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return notFoundOr(err, "合同不存在")
+	}
+	if apprrepo.HasInstance(ctx, "CONTRACT", id) {
+		return errors.New("该合同已进入审批流程,不能删除")
 	}
 	return s.repo.Delete(ctx, id)
 }

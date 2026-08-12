@@ -8,6 +8,7 @@ import (
 
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
+	apprrepo "qzt-go-server/internal/repository/approval"
 	psirepo "qzt-go-server/internal/repository/psi"
 )
 
@@ -190,6 +191,9 @@ func (s *PurchaseService) Delete(ctx context.Context, id uint) error {
 	}
 	if o.Status != psimodel.PurchaseStatusDraft {
 		return errors.New("采购单已入库,不可删除")
+	}
+	if apprrepo.HasInstance(ctx, "PURCHASE_ORDER", id) {
+		return errors.New("采购单已进入审批流程,不能删除")
 	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.orderDetailRepo.DeleteByOrder(ctx, id); err != nil {
