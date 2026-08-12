@@ -77,6 +77,8 @@ export interface CrmLeadPool {
   admin_user_ids: string
   enabled: number
   auto_recycle: number
+  /** 1默认池(不可删) */
+  is_default: number
   created_at: string
   updated_at: string
 }

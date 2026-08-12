@@ -96,10 +96,14 @@ func (s *PoolService) UpdatePool(ctx context.Context, id uint, req *UpdatePoolRe
 	return s.poolRepo.Update(ctx, p)
 }
 
-// DeletePool 删除公海池。
+// DeletePool 删除公海池(默认池不可删)。
 func (s *PoolService) DeletePool(ctx context.Context, id uint) error {
-	if _, err := s.poolRepo.GetByID(ctx, id); err != nil {
+	pool, err := s.poolRepo.GetByID(ctx, id)
+	if err != nil {
 		return notFoundOr(err, "公海池不存在")
+	}
+	if pool.IsDefault == 1 {
+		return errors.New("默认公海池不可删除")
 	}
 	return s.poolRepo.Delete(ctx, id)
 }

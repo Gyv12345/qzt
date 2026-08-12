@@ -104,7 +104,7 @@ func handleLeadList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 		pageSize = 20
 	}
 
-	list, total, err := svc.List(ctx, page, pageSize, keyword, level, source, status, industry)
+	list, total, err := svc.List(ctx, page, pageSize, keyword, level, source, status, industry, "", 0)
 	if err != nil {
 		return resultError(fmt.Sprintf("查询线索列表失败: %v", err))
 	}

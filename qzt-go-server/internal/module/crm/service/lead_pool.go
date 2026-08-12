@@ -91,8 +91,12 @@ func (s *LeadPoolService) UpdatePool(ctx context.Context, id uint, req *UpdateLe
 }
 
 func (s *LeadPoolService) DeletePool(ctx context.Context, id uint) error {
-	if _, err := s.poolRepo.GetByID(ctx, id); err != nil {
+	pool, err := s.poolRepo.GetByID(ctx, id)
+	if err != nil {
 		return notFoundOr(err, "线索公海池不存在")
+	}
+	if pool.IsDefault == 1 {
+		return errors.New("默认线索公海池不可删除")
 	}
 	return s.poolRepo.Delete(ctx, id)
 }

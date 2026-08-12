@@ -188,7 +188,7 @@ func (s *LeadService) Delete(ctx context.Context, id uint) error {
 }
 
 // List 线索列表(分页 + 主字段过滤)。
-func (s *LeadService) List(ctx context.Context, page, pageSize int, keyword, level, source, status, industry string) ([]crmmodel.CrmLead, int64, error) {
+func (s *LeadService) List(ctx context.Context, page, pageSize int, keyword, level, source, status, industry, poolFilter string, poolID uint) ([]crmmodel.CrmLead, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
 	where := map[string]interface{}{}
 	if keyword != "" {
@@ -206,11 +206,22 @@ func (s *LeadService) List(ctx context.Context, page, pageSize int, keyword, lev
 	if industry != "" {
 		where["industry"] = industry
 	}
+	// 公海/私海过滤:PUBLIC=公海(跳过 owner 数据权限);PRIVATE=私海;空=默认(走数据权限)
+	if poolFilter == "PUBLIC" {
+		where["in_pool"] = crmmodel.InPoolPublic
+		if poolID > 0 {
+			where["pool_id"] = poolID
+		}
+	} else {
+		if poolFilter == "PRIVATE" {
+			where["in_pool"] = crmmodel.InPoolPrivate
+		}
+		if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+			q.Conds = append(q.Conds, *cond)
+		}
+	}
 	if len(where) > 0 {
 		q.Where = where
-	}
-	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
-		q.Conds = append(q.Conds, *cond)
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
 }

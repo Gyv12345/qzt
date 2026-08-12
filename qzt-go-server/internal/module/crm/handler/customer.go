@@ -136,7 +136,9 @@ func (h *CustomerHandler) List(c *gin.Context) {
 	source := c.Query("source")
 	status := c.Query("status")
 	industry := c.Query("industry")
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword, level, source, status, industry)
+	poolFilter := c.Query("pool_filter")
+	poolID, _ := strconv.ParseUint(c.Query("pool_id"), 10, 64)
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword, level, source, status, industry, poolFilter, uint(poolID))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

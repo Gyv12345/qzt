@@ -23,7 +23,7 @@ func newCustomerService() *customerServiceWrapper {
 }
 
 func (w *customerServiceWrapper) List(ctx context.Context, page, pageSize int, keyword string) ([]crmmodel.CrmCustomer, int64, error) {
-	return w.svc.List(ctx, page, pageSize, keyword, "", "", "", "")
+	return w.svc.List(ctx, page, pageSize, keyword, "", "", "", "", "", 0)
 }
 
 func (w *customerServiceWrapper) GetByID(ctx context.Context, id uint) (*crmmodel.CrmCustomer, error) {

@@ -17,6 +17,9 @@ export interface LeadQuery extends PageParams {
   source?: string
   status?: string
   industry?: string
+  /** 公海筛选:PUBLIC=公海 PRIVATE=私海 不传=默认(走数据权限) */
+  pool_filter?: string
+  pool_id?: number
 }
 
 export const listLeads = (params?: LeadQuery) =>

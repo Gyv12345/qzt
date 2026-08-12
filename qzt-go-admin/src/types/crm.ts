@@ -240,6 +240,8 @@ export interface CrmCustomerPool {
   enabled: number
   /** 1开启自动回收 */
   auto_recycle: number
+  /** 1默认池(不可删) */
+  is_default: number
   created_at: string
   updated_at: string
 }

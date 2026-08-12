@@ -238,7 +238,7 @@ func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 }
 
 // List 客户列表(分页 + 主字段过滤)。
-func (s *CustomerService) List(ctx context.Context, page, pageSize int, keyword, level, source, status, industry string) ([]crmmodel.CrmCustomer, int64, error) {
+func (s *CustomerService) List(ctx context.Context, page, pageSize int, keyword, level, source, status, industry, poolFilter string, poolID uint) ([]crmmodel.CrmCustomer, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
 	where := map[string]interface{}{}
 	if keyword != "" {
@@ -256,12 +256,23 @@ func (s *CustomerService) List(ctx context.Context, page, pageSize int, keyword,
 	if industry != "" {
 		where["industry"] = industry
 	}
+	// 公海/私海过滤:PUBLIC=公海(跳过 owner 数据权限,公海公共可见);PRIVATE=私海;空=默认(走数据权限)
+	if poolFilter == "PUBLIC" {
+		where["in_pool"] = crmmodel.InPoolPublic
+		if poolID > 0 {
+			where["pool_id"] = poolID
+		}
+	} else {
+		if poolFilter == "PRIVATE" {
+			where["in_pool"] = crmmodel.InPoolPrivate
+		}
+		// 数据权限过滤(仅私海/默认模式应用)
+		if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
+			q.Conds = append(q.Conds, *cond)
+		}
+	}
 	if len(where) > 0 {
 		q.Where = where
-	}
-	// 数据权限过滤
-	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
-		q.Conds = append(q.Conds, *cond)
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
 }

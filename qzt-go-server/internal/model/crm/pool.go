@@ -24,6 +24,7 @@ type CrmCustomerPool struct {
 	AdminUserIDs string `json:"admin_user_ids" gorm:"type:text;comment:管理员用户ID集合(JSON数组)"`
 	Enabled      int8   `json:"enabled" gorm:"index;comment:1启用 0禁用"`
 	AutoRecycle  int8   `json:"auto_recycle" gorm:"comment:1开启自动回收 0关闭"`
+	IsDefault    int8   `json:"is_default" gorm:"default:0;comment:是否默认池(不可删)"`
 	base.BaseModel
 }
 

@@ -194,7 +194,17 @@ export default function LeadPoolPage() {
 
   const columns: ProColumns<CrmLeadPool>[] = [
     { title: '编号', valueType: 'indexBorder', width: 70 },
-    { title: '名称', dataIndex: 'name', width: 160 },
+    {
+      title: '名称',
+      dataIndex: 'name',
+      width: 160,
+      render: (_, r) => (
+        <Space size={4}>
+          {r.name}
+          {r.is_default === 1 ? <Tag color="blue">默认</Tag> : null}
+        </Space>
+      ),
+    },
     {
       title: '适用范围',
       key: 'scope',
@@ -273,19 +283,21 @@ export default function LeadPoolPage() {
               </Button>
             </Popconfirm>
           </Auth>
-          <Auth perm="crm:lead-pool:delete">
-            <Popconfirm
-              title="确认删除该线索池?"
-              okText="删除"
-              okButtonProps={{ danger: true }}
-              cancelText="取消"
-              onConfirm={() => handleDelete(record)}
-            >
-              <Button type="link" size="small" danger>
-                删除
-              </Button>
-            </Popconfirm>
-          </Auth>
+          {record.is_default !== 1 && (
+            <Auth perm="crm:lead-pool:delete">
+              <Popconfirm
+                title="确认删除该线索池?"
+                okText="删除"
+                okButtonProps={{ danger: true }}
+                cancelText="取消"
+                onConfirm={() => handleDelete(record)}
+              >
+                <Button type="link" size="small" danger>
+                  删除
+                </Button>
+              </Popconfirm>
+            </Auth>
+          )}
         </Space>
       ),
     },
