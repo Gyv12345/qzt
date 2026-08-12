@@ -27,6 +27,10 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 	if len(where) > 0 {
 		q.Where = where
 	}
+	// 低库存预警在 SQL 层过滤(避免 total 与 list 不一致:safety_stock>0 且 quantity<safety_stock)
+	if lowStock {
+		q.Conds = append(q.Conds, repository.Cond{Query: "safety_stock > 0 AND quantity < safety_stock"})
+	}
 	stocks, total, err := s.stockRepo.PageList(ctx, page, pageSize, q)
 	if err != nil {
 		return nil, 0, err
@@ -53,10 +57,7 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 	for _, st := range stocks {
 		p := pMap[st.ProductID] // 不存在则为零值
 		row := StockListRow{PsiStock: st, ProductName: p.Name, ProductNo: p.ProductNo, Unit: p.Unit, Category: p.Category}
-		// 低库存预警过滤:safety_stock>0 且 quantity<safety_stock
-		if lowStock && (st.SafetyStock.IsZero() || st.Quantity.GreaterThanOrEqual(st.SafetyStock)) {
-			continue
-		}
+		// 低库存过滤已下沉到 SQL(见上方 q.Conds),此处不再内存过滤
 		// 关键词过滤(商品名/编号)
 		if keyword != "" && !strings.Contains(p.Name, keyword) && !strings.Contains(p.ProductNo, keyword) {
 			continue

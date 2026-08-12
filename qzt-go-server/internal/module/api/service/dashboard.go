@@ -50,61 +50,61 @@ func (s *DashboardService) Overview(ctx context.Context, userID uint) (*Overview
 	// crmScopeScopes 对客户/商机/合同生效,均为 owner_id 列
 	dsCond := datascope.BuildCond(ctx, "owner_id")
 
-	// 客户统计
-	custQ := db.Table("crm_customer").Where("in_pool = ?", crmmodel.InPoolPrivate)
+	// 客户统计(私海/公海均需排除软删;Table 原生查询不自动过滤 deleted_at)
+	custQ := db.Table("crm_customer").Where("deleted_at IS NULL").Where("in_pool = ?", crmmodel.InPoolPrivate)
 	if dsCond != nil {
 		custQ = custQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	custQ.Count(&data.CustomerTotal)
 
-	custPQ := db.Table("crm_customer").Where("in_pool = ?", crmmodel.InPoolPublic)
+	custPQ := db.Table("crm_customer").Where("deleted_at IS NULL").Where("in_pool = ?", crmmodel.InPoolPublic)
 	if dsCond != nil {
 		custPQ = custPQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	custPQ.Count(&data.CustomerPublic)
 
 	// 商机统计
-	oppQ := db.Table("crm_opportunity")
+	oppQ := db.Table("crm_opportunity").Where("deleted_at IS NULL")
 	if dsCond != nil {
 		oppQ = oppQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	oppQ.Count(&data.OpportunityTotal)
 
-	oppWonQ := db.Table("crm_opportunity").Where("stage = ?", crmmodel.OppStageWon)
+	oppWonQ := db.Table("crm_opportunity").Where("deleted_at IS NULL").Where("stage = ?", crmmodel.OppStageWon)
 	if dsCond != nil {
 		oppWonQ = oppWonQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	oppWonQ.Count(&data.OpportunityWon)
 
 	// 合同统计
-	contractQ := db.Table("crm_contract")
+	contractQ := db.Table("crm_contract").Where("deleted_at IS NULL")
 	if dsCond != nil {
 		contractQ = contractQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	contractQ.Count(&data.ContractTotal)
 
-	contractAmtQ := db.Table("crm_contract")
+	contractAmtQ := db.Table("crm_contract").Where("deleted_at IS NULL")
 	if dsCond != nil {
 		contractAmtQ = contractAmtQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	contractAmtQ.Select("COALESCE(SUM(total_amount),0)").Scan(&data.ContractAmount)
 
-	contractRecvQ := db.Table("crm_contract")
+	contractRecvQ := db.Table("crm_contract").Where("deleted_at IS NULL")
 	if dsCond != nil {
 		contractRecvQ = contractRecvQ.Where(dsCond.Query, dsCond.Args...)
 	}
 	contractRecvQ.Select("COALESCE(SUM(received_amount),0)").Scan(&data.ReceivedAmount)
 
 	// 审批待办(当前用户)
-	db.Table("approval_task").
+	db.Table("approval_task").Where("deleted_at IS NULL").
 		Where("approver_id = ? AND status = ? AND node_round >= 0", userID, apprmodel.TaskStatusApproving).
 		Count(&data.ApprovalPending)
 
 	// 库存预警(数量 <= 安全库存)
-	db.Table("psi_stock").Where("quantity <= safety_stock").Count(&data.StockWarning)
+	db.Table("psi_stock").Where("deleted_at IS NULL").Where("quantity <= safety_stock").Count(&data.StockWarning)
 
 	// 未读消息(当前用户)
-	db.Table("sys_message").Where("receiver_id = ? AND is_read = 0", userID).Count(&data.UnreadMessage)
+	db.Table("sys_message").Where("deleted_at IS NULL").Where("receiver_id = ? AND is_read = 0", userID).Count(&data.UnreadMessage)
 
 	return data, nil
 }
