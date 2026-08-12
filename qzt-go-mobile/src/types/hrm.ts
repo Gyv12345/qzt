@@ -35,6 +35,22 @@ export interface HrmLeave {
   created_at: string
 }
 
+/** 考勤打卡记录 */
+export interface HrmClockRecord {
+  id: number
+  employee_id: number
+  /** 打卡日期 yyyy-MM-dd */
+  clock_date: string
+  /** CHECK_IN 上班 / CHECK_OUT 下班 */
+  clock_type: string
+  /** 打卡时间 */
+  clock_time: string
+  location: string
+  remark: string
+  /** 来源 APP / WECOM */
+  source: string
+}
+
 export const EMPLOYEE_STATUS: Record<number, string> = {
   1: '在职', 2: '试用', 3: '离职',
 }

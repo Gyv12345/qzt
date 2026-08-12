@@ -163,7 +163,7 @@ func handleHrmClockList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if employeeID == 0 {
 		return resultError("员工ID(employee_id)必填")
 	}
-	list, err := svc.ClockList(ctx, employeeID, req.GetString("start_date", ""), req.GetString("end_date", ""))
+	list, err := svc.ClockList(ctx, employeeID, 0, req.GetString("start_date", ""), req.GetString("end_date", ""))
 	if err != nil {
 		return resultError(fmt.Sprintf("查询打卡记录失败: %v", err))
 	}

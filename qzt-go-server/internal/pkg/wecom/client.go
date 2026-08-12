@@ -13,7 +13,10 @@ package wecom
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -58,6 +61,18 @@ func (c *Client) IsConfigured() bool {
 	return c.cfg.CorpID != "" && c.cfg.Secret != ""
 }
 
+// tokenCacheKey 按 secret 派生 access_token 缓存 key。
+// 企微不同数据域(通讯录/打卡/审批)用各自独立 Secret,access_token 必须按 secret 隔离缓存,
+// 否则打卡 Secret 换来的 token 会被通讯录 Secret 的 token 覆盖。
+// 空 secret 兜底用默认 key(等价旧行为,向后兼容)。
+func (c *Client) tokenCacheKey() string {
+	if c.cfg.Secret == "" {
+		return accessTokenKey
+	}
+	sum := sha1.Sum([]byte(c.cfg.Secret))
+	return accessTokenKey + ":" + hex.EncodeToString(sum[:8])
+}
+
 // BuildAuthorizeURL 构造企业微信 OAuth2 网页授权 URL(前端跳转到此 URL 显示扫码页)。
 // state 用于防 CSRF,由调用方生成。
 func (c *Client) BuildAuthorizeURL(state string) string {
@@ -83,7 +98,7 @@ func (c *Client) GetAccessToken(ctx context.Context) (string, error) {
 	// 1. 读缓存
 	store := cache.GetStore()
 	if store != nil {
-		if token, err := store.Get(accessTokenKey); err == nil && token != "" {
+		if token, err := store.Get(c.tokenCacheKey()); err == nil && token != "" {
 			return token, nil
 		}
 	}
@@ -102,7 +117,7 @@ func (c *Client) GetAccessToken(ctx context.Context) (string, error) {
 
 	// 3. 写缓存
 	if store != nil {
-		if err := store.Set(accessTokenKey, resp.AccessToken, accessTokenTTL); err != nil {
+		if err := store.Set(c.tokenCacheKey(), resp.AccessToken, accessTokenTTL); err != nil {
 			xlogger.ErrorfCtx(ctx, "缓存企业微信 access_token 失败(不影响本次调用): %v", err)
 		}
 	}
@@ -113,7 +128,7 @@ func (c *Client) GetAccessToken(ctx context.Context) (string, error) {
 func (c *Client) RefreshAccessToken(ctx context.Context) (string, error) {
 	store := cache.GetStore()
 	if store != nil {
-		_ = store.Set(accessTokenKey, "", 1*time.Second) // 立即过期
+		_ = store.Set(c.tokenCacheKey(), "", 1*time.Second) // 立即过期
 	}
 	return c.GetAccessToken(ctx)
 }
@@ -294,4 +309,65 @@ func (c *Client) httpPostJSON(ctx context.Context, url string, body interface{},
 		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))
 	}
 	return json.Unmarshal(respBody, target)
+}
+
+// ── 打卡数据(checkin/getcheckindata) ──
+// 注意:本接口必须用「打卡应用 Secret」换来的 access_token,故调用方需用 checkin_secret
+// 构造 Client 实例(NewClient(Config{Secret: checkin_secret})),不能复用通讯录/自建应用的 Client。
+
+// checkinDataRequest 企微打卡数据请求体。
+type checkinDataRequest struct {
+	OpenCheckinDataType int      `json:"opencheckindatatype"` // 1:上下班 2:外出 3:全部
+	StartTime           int64    `json:"starttime"`           // 秒级时间戳
+	EndTime             int64    `json:"endtime"`
+	UserIDList          []string `json:"useridlist"`          // 企微 userid 列表,≤100
+}
+
+// CheckinRecord 企微打卡记录(字段按企微文档裁剪)。
+type CheckinRecord struct {
+	UserID         string   `json:"userid"`
+	GroupName      string   `json:"groupname"`
+	CheckinType    string   `json:"checkin_type"`   // 上班打卡/下班打卡
+	ExceptionType  string   `json:"exception_type"`
+	CheckinTime    int64    `json:"checkin_time"`   // 秒级时间戳
+	LocationTitle  string   `json:"location_title"`
+	SchCheckinTime int64    `json:"sch_checkin_time"`
+	LocationDetail string   `json:"location_detail"`
+	MediaIDs       []string `json:"mediaids,omitempty"`
+}
+
+type checkinDataResponse struct {
+	ErrCode int             `json:"errcode"`
+	ErrMsg  string          `json:"errmsg"`
+	Data    []CheckinRecord `json:"checkindata"`
+}
+
+// GetCheckinData 拉取企微打卡记录。
+// dataType:1=上下班 2=外出 3=全部;start/end 为秒级时间戳;userIDs≤100。
+func (c *Client) GetCheckinData(ctx context.Context, dataType int, start, end int64, userIDs []string) ([]CheckinRecord, error) {
+	if !c.IsConfigured() {
+		return nil, errors.New("企业微信打卡未配置(checkin_secret 缺失)")
+	}
+	if len(userIDs) == 0 {
+		return nil, nil
+	}
+	token, err := c.GetAccessToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("获取 access_token 失败: %w", err)
+	}
+	u := fmt.Sprintf("%s/checkin/getcheckindata?access_token=%s", apiBase, url.QueryEscape(token))
+	reqBody := checkinDataRequest{
+		OpenCheckinDataType: dataType,
+		StartTime:           start,
+		EndTime:             end,
+		UserIDList:          userIDs,
+	}
+	var resp checkinDataResponse
+	if err := c.httpPostJSON(ctx, u, reqBody, &resp); err != nil {
+		return nil, fmt.Errorf("拉取企业微信打卡数据失败: %w", err)
+	}
+	if resp.ErrCode != 0 {
+		return nil, fmt.Errorf("企业微信返回错误: errcode=%d errmsg=%s", resp.ErrCode, resp.ErrMsg)
+	}
+	return resp.Data, nil
 }

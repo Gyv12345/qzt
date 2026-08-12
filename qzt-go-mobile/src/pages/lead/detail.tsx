@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
+import { ActionSheet, Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { convertLead, getLead, pickLead, releaseLead } from '../../services/crm'
+import { convertLead, getLead, listLeadPools, pickLead, releaseLead, type CrmPool } from '../../services/crm'
 import { listFollowTimeline } from '../../services/follow'
 import { FOLLOW_TYPE_TEXT, type CrmLead, type FollowUpRecord } from '../../types/crm'
 import FollowRecordSheet from '../../components/FollowRecordSheet'
+import CustomFieldView from '../../components/CustomFieldView'
+import LeadFormSheet from '../../components/LeadFormSheet'
 import { useAuthStore } from '../../stores/auth'
 import { dialWithDedup } from '../../utils/dial'
 
@@ -26,6 +28,9 @@ export default function LeadDetail() {
   const [acting, setActing] = useState(false)
   const [follows, setFollows] = useState<FollowUpRecord[]>([])
   const [followSheetOpen, setFollowSheetOpen] = useState(false)
+  const [pools, setPools] = useState<CrmPool[]>([])
+  const [fields, setFields] = useState<Record<string, string>>({})
+  const [showEdit, setShowEdit] = useState(false)
 
   const loadFollows = (lid: number) => {
     listFollowTimeline('lead_id', lid)
@@ -37,9 +42,10 @@ export default function LeadDetail() {
     if (!id) return
     setLoading(true)
     getLead(Number(id))
-      .then((d) => {
-        setDetail(d)
-        loadFollows(d.id)
+      .then((res) => {
+        setDetail(res.lead)
+        setFields(res.fields || {})
+        loadFollows(res.lead.id)
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
@@ -102,18 +108,43 @@ export default function LeadDetail() {
     }
   }
 
-  // 释放到公海(pool_id 默认 1)
+  // 释放到公海:单池直接确认,多池 ActionSheet 选池
   const onRelease = async () => {
-    const ok = await Dialog.confirm({ content: '确定释放到公海?' })
-    if (!ok) return
-    setActing(true)
-    try {
-      await releaseLead(lead.id, { pool_id: 1, reason: '手动释放' })
-      Toast.show({ icon: 'success', content: '已释放到公海' })
-      load()
-    } catch {
-    } finally {
-      setActing(false)
+    let ps = pools
+    if (ps.length === 0) {
+      try {
+        ps = await listLeadPools()
+        setPools(ps)
+      } catch {
+        return
+      }
+    }
+    if (ps.length === 0) {
+      Toast.show({ content: '暂无可用公海池' })
+      return
+    }
+    const doRelease = async (poolId: number) => {
+      setActing(true)
+      try {
+        await releaseLead(lead.id, { pool_id: poolId, reason: '手动释放' })
+        Toast.show({ icon: 'success', content: '已释放到公海' })
+        load()
+      } catch {
+      } finally {
+        setActing(false)
+      }
+    }
+    if (ps.length === 1) {
+      const ok = await Dialog.confirm({ content: `确定释放到公海「${ps[0].name}」?` })
+      if (ok) await doRelease(ps[0].id)
+    } else {
+      ActionSheet.show({
+        actions: ps.map((p) => ({ text: p.name, key: p.id })),
+        cancelText: '取消',
+        onAction: (_item, index) => {
+          doRelease(ps[index].id)
+        },
+      })
     }
   }
 
@@ -200,6 +231,11 @@ export default function LeadDetail() {
       {/* 操作区 */}
       <Card title="操作" style={{ margin: 8 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {hasPerm('crm:lead:edit') && !converted && (
+            <Button color="primary" size="large" fill="outline" onClick={() => setShowEdit(true)}>
+              编辑
+            </Button>
+          )}
           {lead.phone && (
             <Button color="primary" size="large" onClick={onDial} disabled={acting}>
               📞 拨打电话
@@ -256,6 +292,16 @@ export default function LeadDetail() {
         onClose={() => setFollowSheetOpen(false)}
         leadId={lead.id}
         onSubmitted={() => loadFollows(lead.id)}
+      />
+
+      <CustomFieldView formKey="LEAD" values={fields} />
+
+      <LeadFormSheet
+        visible={showEdit}
+        onClose={() => setShowEdit(false)}
+        lead={lead}
+        fields={fields}
+        onSubmitted={load}
       />
     </div>
   )

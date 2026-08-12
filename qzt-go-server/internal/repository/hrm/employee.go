@@ -48,3 +48,10 @@ func (r *EmployeeRepo) PageList(ctx context.Context, page, pageSize int, keyword
 	}
 	return r.BaseRepo.PageList(ctx, page, pageSize, q)
 }
+
+// GetByUserID 按关联系统用户ID查员工档案(user_id 已有索引)。用于打卡等场景从登录态推导 employee_id。
+func (r *EmployeeRepo) GetByUserID(ctx context.Context, userID uint) (*hrmmodel.HrmEmployee, error) {
+	var m hrmmodel.HrmEmployee
+	err := repository.DBFrom(ctx).Where("user_id = ?", userID).First(&m).Error
+	return &m, err
+}

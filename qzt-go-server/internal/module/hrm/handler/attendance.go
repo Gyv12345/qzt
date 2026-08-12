@@ -39,7 +39,7 @@ func (h *AttendanceHandler) ClockIn(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	result, err := h.svc.ClockIn(c.Request.Context(), &req)
+	result, err := h.svc.ClockIn(c.Request.Context(), &req, middleware.GetUserID(c))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
@@ -52,18 +52,14 @@ func (h *AttendanceHandler) ClockIn(c *gin.Context) {
 // @Tags         考勤管理
 // @Produce      json
 // @Security     BearerAuth
-// @Param        employee_id  query  int     true   "员工ID"
+// @Param        employee_id  query  int     false  "员工ID(不传则取当前登录用户)"
 // @Param        start_date   query  string  false  "开始日期(yyyy-MM-dd)"
 // @Param        end_date     query  string  false  "结束日期(yyyy-MM-dd)"
 // @Success      200  {object}  xresponse.Response
 // @Router       /hrm/attendance/clocks [get]
 func (h *AttendanceHandler) ClockList(c *gin.Context) {
 	empID, _ := strconv.ParseUint(c.Query("employee_id"), 10, 64)
-	if empID == 0 {
-		response.Fail(c, errcode.ErrParam, "employee_id 必填")
-		return
-	}
-	list, err := h.svc.ClockList(c.Request.Context(), uint(empID), c.Query("start_date"), c.Query("end_date"))
+	list, err := h.svc.ClockList(c.Request.Context(), uint(empID), middleware.GetUserID(c), c.Query("start_date"), c.Query("end_date"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

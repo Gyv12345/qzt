@@ -1,13 +1,20 @@
-import { useCallback, useState } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tabs, Tag, FloatingBubble } from 'antd-mobile'
-import { AddOutline } from 'antd-mobile-icons'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  InfiniteScroll,
+  List,
+  NavBar,
+  PullToRefresh,
+  SearchBar,
+  Tabs,
+  Tag,
+  Toast,
+} from 'antd-mobile'
 import { useNavigate } from 'react-router-dom'
-import { listLeads } from '../../services/crm'
+import { listLeads, listLeadPools, pickLead, type CrmPool } from '../../services/crm'
 import type { CrmLead } from '../../types/crm'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
-import LeadFormSheet from '../../components/LeadFormSheet'
+import { useAuthStore } from '../../stores/auth'
 
-// 线索状态: 1新建 2跟进中 3已转化 4无效
 const STATUS_TEXT: Record<number, string> = { 1: '新建', 2: '跟进中', 3: '已转化', 4: '无效' }
 const STATUS_COLOR: Record<number, string> = {
   1: 'primary',
@@ -16,29 +23,29 @@ const STATUS_COLOR: Record<number, string> = {
   4: 'default',
 }
 
-// Tab 选项: ''=全部 / '1'..'4'
-const STATUS_TABS = [
-  { key: '', label: '全部' },
-  { key: '1', label: '新建' },
-  { key: '2', label: '跟进中' },
-  { key: '3', label: '已转化' },
-  { key: '4', label: '无效' },
-]
-
-export default function LeadList() {
+/** 线索公海:浏览各公海池 + 领取 */
+export default function LeadPool() {
   const navigate = useNavigate()
+  const hasPerm = useAuthStore((s) => s.hasPerm)
   const [keyword, setKeyword] = useState('')
-  const [statusKey, setStatusKey] = useState('')
-  const [showNew, setShowNew] = useState(false)
+  const [poolKey, setPoolKey] = useState('')
+  const [pools, setPools] = useState<CrmPool[]>([])
+
+  useEffect(() => {
+    listLeadPools()
+      .then(setPools)
+      .catch(() => {})
+  }, [])
 
   const fetcher = useCallback(
     (params: { page: number; page_size: number }) =>
       listLeads({
         ...params,
         keyword: keyword || undefined,
-        status: statusKey ? Number(statusKey) : undefined,
+        pool_filter: 'PUBLIC',
+        pool_id: poolKey ? Number(poolKey) : undefined,
       }),
-    [keyword, statusKey],
+    [keyword, poolKey],
   )
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmLead>(fetcher, {
@@ -51,18 +58,30 @@ export default function LeadList() {
   }
 
   const onTabChange = (key: string) => {
-    setStatusKey(key)
+    setPoolKey(key)
     refresh()
   }
 
+  const onPick = async (l: CrmLead) => {
+    try {
+      await pickLead(l.id)
+      Toast.show({ icon: 'success', content: '领取成功' })
+      refresh()
+    } catch {
+      // 拦截器已 toast
+    }
+  }
+
+  const tabs = [{ key: '', label: '全部公海' }, ...pools.map((p) => ({ key: String(p.id), label: p.name }))]
+
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
-      <NavBar onBack={() => navigate(-1)}>线索</NavBar>
+      <NavBar onBack={() => navigate(-1)}>线索公海</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
         <SearchBar placeholder="搜索线索名称" onSearch={onSearch} onClear={() => onSearch('')} />
       </div>
-      <Tabs activeKey={statusKey} onChange={onTabChange}>
-        {STATUS_TABS.map((t) => (
+      <Tabs activeKey={poolKey} onChange={onTabChange}>
+        {tabs.map((t) => (
           <Tabs.Tab key={t.key} title={t.label} />
         ))}
       </Tabs>
@@ -81,9 +100,22 @@ export default function LeadList() {
                 </span>
               }
               extra={
-                <Tag color={STATUS_COLOR[l.status] || 'default'} fill="outline">
-                  {STATUS_TEXT[l.status] || '未知'}
-                </Tag>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                  <Tag color={STATUS_COLOR[l.status] || 'default'} fill="outline">
+                    {STATUS_TEXT[l.status] || '未知'}
+                  </Tag>
+                  {hasPerm('crm:lead:pick') && (
+                    <a
+                      style={{ fontSize: 12, color: 'var(--brand)' }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onPick(l)
+                      }}
+                    >
+                      领取
+                    </a>
+                  )}
+                </div>
               }
             >
               {l.name}
@@ -92,22 +124,12 @@ export default function LeadList() {
           ))}
           {list.length === 0 && (
             <List.Item>
-              <span style={{ color: 'var(--text-tertiary)' }}>暂无线索</span>
+              <span style={{ color: 'var(--text-tertiary)' }}>公海暂无线索</span>
             </List.Item>
           )}
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
-
-      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
-        <AddOutline fontSize={24} />
-      </FloatingBubble>
-
-      <LeadFormSheet
-        visible={showNew}
-        onClose={() => setShowNew(false)}
-        onSubmitted={refresh}
-      />
     </div>
   )
 }

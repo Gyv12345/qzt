@@ -39,9 +39,9 @@ func NewAttendanceService() *AttendanceService {
 
 // ── 打卡 ──
 
-// ClockInRequest 打卡请求。
+// ClockInRequest 打卡请求(employee_id 可选,不传时由 service 从登录态推导)。
 type ClockInRequest struct {
-	EmployeeID uint   `json:"employee_id" binding:"required"`
+	EmployeeID uint   `json:"employee_id"`
 	ClockType  string `json:"clock_type" binding:"required"` // CHECK_IN / CHECK_OUT
 	Location   string `json:"location"`
 	Longitude  string `json:"longitude"`
@@ -49,10 +49,18 @@ type ClockInRequest struct {
 	Remark     string `json:"remark"`
 }
 
-// ClockIn 打卡(上班/下班)。同一天同类型重复打卡则更新。
-func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest) (*hrmmodel.HrmAttendanceClock, error) {
+// ClockIn 打卡(上班/下班)。同一天同类型重复打卡则更新。employee_id 为 0 时从当前登录用户(userID)推导。
+func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest, userID uint) (*hrmmodel.HrmAttendanceClock, error) {
 	if req.ClockType != hrmmodel.ClockTypeCheckIn && req.ClockType != hrmmodel.ClockTypeCheckOut {
 		return nil, errors.New("clock_type 只能是 CHECK_IN 或 CHECK_OUT")
+	}
+	// employee_id 未传 → 从当前登录用户反查员工档案
+	if req.EmployeeID == 0 {
+		emp, err := s.resolveEmployeeID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		req.EmployeeID = emp
 	}
 	now := time.Now()
 	today := xtime.NewDateTime(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()))
@@ -72,6 +80,7 @@ func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest) (*
 		Longitude:  req.Longitude,
 		Latitude:   req.Latitude,
 		Remark:     req.Remark,
+		Source:     hrmmodel.ClockSourceApp,
 	}
 
 	if result.Error == nil {
@@ -91,9 +100,28 @@ func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest) (*
 	return clock, nil
 }
 
-// ClockList 按员工+日期范围查打卡记录。
-func (s *AttendanceService) ClockList(ctx context.Context, employeeID uint, startDate, endDate string) ([]hrmmodel.HrmAttendanceClock, error) {
+// ClockList 按员工+日期范围查打卡记录。employee_id 为 0 时从当前登录用户推导。
+func (s *AttendanceService) ClockList(ctx context.Context, employeeID, userID uint, startDate, endDate string) ([]hrmmodel.HrmAttendanceClock, error) {
+	if employeeID == 0 {
+		emp, err := s.resolveEmployeeID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		employeeID = emp
+	}
 	return s.clockRepo.ListByEmpDate(ctx, employeeID, startDate, endDate)
+}
+
+// resolveEmployeeID 从系统用户ID反查员工档案ID。
+func (s *AttendanceService) resolveEmployeeID(ctx context.Context, userID uint) (uint, error) {
+	if userID == 0 {
+		return 0, errors.New("缺少 employee_id 且无法从登录态推导")
+	}
+	emp, err := s.empRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		return 0, fmt.Errorf("当前登录用户未关联员工档案: %w", err)
+	}
+	return emp.ID, nil
 }
 
 // ── 请假 ──

@@ -14,8 +14,10 @@ import NotFound from '../pages/error/404'
 // 业务详情页懒加载(减少首屏体积)
 const CustomerList = lazy(() => import('../pages/customer'))
 const CustomerDetail = lazy(() => import('../pages/customer/detail'))
+const CustomerPool = lazy(() => import('../pages/customer/pool'))
 const LeadList = lazy(() => import('../pages/lead'))
 const LeadDetail = lazy(() => import('../pages/lead/detail'))
+const LeadPool = lazy(() => import('../pages/lead/pool'))
 const OpportunityList = lazy(() => import('../pages/opportunity'))
 const OpportunityDetail = lazy(() => import('../pages/opportunity/detail'))
 const ContractList = lazy(() => import('../pages/contract'))
@@ -44,6 +46,7 @@ const EmployeeList = lazy(() => import('../pages/hrm/employee'))
 const EmployeeDetail = lazy(() => import('../pages/hrm/employee/detail'))
 const LeaveList = lazy(() => import('../pages/hrm/leave'))
 const LeaveDetail = lazy(() => import('../pages/hrm/leave/detail'))
+const ClockPage = lazy(() => import('../pages/clock'))
 // PSI
 const PurchaseList = lazy(() => import('../pages/psi/purchase'))
 const PurchaseDetail = lazy(() => import('../pages/psi/purchase/detail'))
@@ -51,11 +54,21 @@ const SalesList = lazy(() => import('../pages/psi/sales'))
 const SalesDetail = lazy(() => import('../pages/psi/sales/detail'))
 const StockList = lazy(() => import('../pages/psi/stock'))
 const AssetList = lazy(() => import('../pages/psi/asset'))
+const SupplierList = lazy(() => import('../pages/psi/supplier'))
+const WarehouseList = lazy(() => import('../pages/psi/warehouse'))
+const MovementList = lazy(() => import('../pages/psi/movement'))
+const PurchaseReturnList = lazy(() => import('../pages/psi/purchase-return'))
+const PurchaseReturnDetail = lazy(() => import('../pages/psi/purchase-return/detail'))
+const SalesReturnList = lazy(() => import('../pages/psi/sales-return'))
+const SalesReturnDetail = lazy(() => import('../pages/psi/sales-return/detail'))
 // CRM 补充
+const DashboardPage = lazy(() => import('../pages/dashboard'))
 const ProductList = lazy(() => import('../pages/product'))
 const TicketList = lazy(() => import('../pages/ticket'))
 const TicketDetail = lazy(() => import('../pages/ticket/detail'))
 // OA 新模块
+const AiReportPage = lazy(() => import('../pages/ai-report'))
+const FollowPlanList = lazy(() => import('../pages/follow-plan'))
 const WorkLogList = lazy(() => import('../pages/work-log'))
 const ScheduleList = lazy(() => import('../pages/schedule'))
 const MeetingBookingList = lazy(() => import('../pages/meeting'))
@@ -105,6 +118,14 @@ export default function AppRoutes() {
         children: [
           { index: true, element: <Navigate to="/home" replace /> },
           { path: '/home', element: <Home /> },
+          {
+            path: '/dashboard',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <DashboardPage />
+              </Suspense>
+            ),
+          },
           { path: '/messages', element: <Messages /> },
           { path: '/mine', element: <Mine /> },
           // 非 TabBar 子路由(仍受 RequireAuth 保护,套 TabBarLayout)
@@ -113,6 +134,14 @@ export default function AppRoutes() {
             element: (
               <Suspense fallback={pageFallback}>
                 <CustomerList />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/customer/pool',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <CustomerPool />
               </Suspense>
             ),
           },
@@ -129,6 +158,14 @@ export default function AppRoutes() {
             element: (
               <Suspense fallback={pageFallback}>
                 <LeadList />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/lead/pool',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <LeadPool />
               </Suspense>
             ),
           },
@@ -245,6 +282,10 @@ export default function AppRoutes() {
             element: <Suspense fallback={pageFallback}><LeaveDetail /></Suspense>,
           },
           {
+            path: '/clock',
+            element: <Suspense fallback={pageFallback}><ClockPage /></Suspense>,
+          },
+          {
             path: '/psi/purchase',
             element: <Suspense fallback={pageFallback}><PurchaseList /></Suspense>,
           },
@@ -269,6 +310,34 @@ export default function AppRoutes() {
             element: <Suspense fallback={pageFallback}><AssetList /></Suspense>,
           },
           {
+            path: '/psi/supplier',
+            element: <Suspense fallback={pageFallback}><SupplierList /></Suspense>,
+          },
+          {
+            path: '/psi/warehouse',
+            element: <Suspense fallback={pageFallback}><WarehouseList /></Suspense>,
+          },
+          {
+            path: '/psi/movement',
+            element: <Suspense fallback={pageFallback}><MovementList /></Suspense>,
+          },
+          {
+            path: '/psi/purchase-return',
+            element: <Suspense fallback={pageFallback}><PurchaseReturnList /></Suspense>,
+          },
+          {
+            path: '/psi/purchase-return/:id',
+            element: <Suspense fallback={pageFallback}><PurchaseReturnDetail /></Suspense>,
+          },
+          {
+            path: '/psi/sales-return',
+            element: <Suspense fallback={pageFallback}><SalesReturnList /></Suspense>,
+          },
+          {
+            path: '/psi/sales-return/:id',
+            element: <Suspense fallback={pageFallback}><SalesReturnDetail /></Suspense>,
+          },
+          {
             path: '/product',
             element: <Suspense fallback={pageFallback}><ProductList /></Suspense>,
           },
@@ -283,6 +352,14 @@ export default function AppRoutes() {
           {
             path: '/work-log',
             element: <Suspense fallback={pageFallback}><WorkLogList /></Suspense>,
+          },
+          {
+            path: '/follow-plan',
+            element: <Suspense fallback={pageFallback}><FollowPlanList /></Suspense>,
+          },
+          {
+            path: '/ai-report',
+            element: <Suspense fallback={pageFallback}><AiReportPage /></Suspense>,
           },
           {
             path: '/schedule',

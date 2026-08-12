@@ -124,6 +124,31 @@ export interface CrmOpportunity {
   updated_at: string
 }
 
+/** 阶段定义(stage-config 中的单个阶段) */
+export interface StageDef {
+  key: string
+  label: string
+  color?: string
+  sort?: number
+  probability?: number
+}
+
+/** 阶段配置(GET /crm/stage-configs/:bizType 返回) */
+export interface StageConfig {
+  config?: unknown
+  stages: StageDef[]
+}
+
+/** 阶段变更历史记录 */
+export interface StageRecord {
+  id: number
+  from_stage: string
+  to_stage: string
+  operator_id: number
+  reason: string
+  created_at: string
+}
+
 /** 合同阶段:DRAFT/EXECUTING/COMPLETED/TERMINATED */
 export interface CrmContract {
   id: number
@@ -226,6 +251,26 @@ export const FOLLOW_TYPES = [
   { label: '邮件', value: 'EMAIL' },
   { label: '其他', value: 'OTHER' },
 ] as const
+
+/** 跟进计划(待办) */
+export interface CrmFollowPlan {
+  id: number
+  type: string
+  content: string
+  plan_time: string
+  remind_time: string | null
+  owner_id: number
+  /** 0待办 1已转记录 2已跳过 */
+  status: number
+  reminded: number
+  record_id: number | null
+  customer_id: number | null
+  lead_id: number | null
+  opportunity_id: number | null
+  contact_id: number | null
+  contract_id: number | null
+  created_at: string
+}
 
 /** 跟进方式 → 中文 */
 export const FOLLOW_TYPE_TEXT: Record<string, string> = {

@@ -16,6 +16,12 @@ const (
 	ClockTypeCheckOut = "CHECK_OUT" // 下班打卡
 )
 
+// 考勤打卡来源。
+const (
+	ClockSourceApp   = "APP"   // App 端打卡
+	ClockSourceWecom = "WECOM" // 企微打卡同步
+)
+
 // 考勤状态(日维度)。
 const (
 	AttendanceNormal    = "NORMAL"     // 正常
@@ -55,6 +61,7 @@ type HrmAttendanceClock struct {
 	Longitude  string         `json:"longitude" gorm:"size:32;comment:经度"`
 	Latitude   string         `json:"latitude" gorm:"size:32;comment:纬度"`
 	Remark     string         `json:"remark" gorm:"size:500;comment:备注"`
+	Source     string         `json:"source" gorm:"size:20;default:APP;comment:打卡来源(APP/WECOM)"`
 	base.BaseModel
 }
 

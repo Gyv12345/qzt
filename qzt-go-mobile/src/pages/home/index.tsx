@@ -7,6 +7,7 @@ import {
   SetOutline,
   TeamOutline,
   CheckShieldOutline,
+  TextOutline,
   MessageOutline,
   SoundOutline,
   FlagOutline,
@@ -86,6 +87,7 @@ export default function Home() {
 
   // 常用业务宫格
   const primaryEntries: GridEntry[] = [
+    { key: 'dashboard', label: '数据看板', icon: <AppstoreOutline />, iconBg: 'var(--icon-bg-opp)', path: '/dashboard' },
     { key: 'customer', label: '客户', icon: <TeamOutline />, iconBg: 'var(--icon-bg-crm)', path: '/customer' },
     { key: 'lead', label: '线索', icon: <FlagOutline />, iconBg: 'var(--icon-bg-crm)', path: '/lead' },
     { key: 'opp', label: '商机', icon: <CheckShieldOutline />, iconBg: 'var(--icon-bg-opp)', path: '/opportunity' },
@@ -100,6 +102,8 @@ export default function Home() {
     },
     { key: 'ticket', label: '工单', icon: <FileWrongOutline />, iconBg: 'var(--icon-bg-crm)', path: '/ticket' },
     { key: 'product', label: '产品', icon: <ShopbagOutline />, iconBg: 'var(--icon-bg-opp)', path: '/product' },
+    { key: 'customer-pool', label: '客户公海', icon: <GlobalOutline />, iconBg: 'var(--icon-bg-crm)', path: '/customer/pool' },
+    { key: 'lead-pool', label: '线索公海', icon: <GlobalOutline />, iconBg: 'var(--icon-bg-crm)', path: '/lead/pool' },
   ]
 
   // 进销存宫格
@@ -107,7 +111,12 @@ export default function Home() {
     { key: 'purchase', label: '采购', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-contract)', path: '/psi/purchase' },
     { key: 'sales', label: '销售', icon: <ShopbagOutline />, iconBg: 'var(--icon-bg-opp)', path: '/psi/sales' },
     { key: 'stock', label: '库存', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-crm)', path: '/psi/stock' },
+    { key: 'movement', label: '流水', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-approval)', path: '/psi/movement' },
+    { key: 'supplier', label: '供应商', icon: <ShopbagOutline />, iconBg: 'var(--icon-bg-crm)', path: '/psi/supplier' },
+    { key: 'warehouse', label: '仓库', icon: <GiftOutline />, iconBg: 'var(--icon-bg-contract)', path: '/psi/warehouse' },
     { key: 'asset', label: '资产', icon: <GiftOutline />, iconBg: 'var(--icon-bg-settings)', path: '/psi/asset' },
+    { key: 'purchase-return', label: '采购退货', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-contract)', path: '/psi/purchase-return' },
+    { key: 'sales-return', label: '销售退货', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-opp)', path: '/psi/sales-return' },
   ]
 
   // OA 办公宫格
@@ -119,6 +128,8 @@ export default function Home() {
     { key: 'worklog', label: '日志', icon: <FileOutline />, iconBg: 'var(--icon-bg-crm)', path: '/work-log' },
     { key: 'schedule', label: '日程', icon: <SetOutline />, iconBg: 'var(--icon-bg-opp)', path: '/schedule' },
     { key: 'meeting', label: '会议', icon: <CheckCircleFill />, iconBg: 'var(--icon-bg-approval)', path: '/meeting' },
+    { key: 'follow-plan', label: '跟进计划', icon: <CheckOutline />, iconBg: 'var(--icon-bg-opp)', path: '/follow-plan' },
+    { key: 'ai-report', label: 'AI 报告', icon: <TextOutline />, iconBg: 'var(--icon-bg-opp)', path: '/ai-report' },
   ]
 
   // 财务+项目+知识宫格
@@ -133,6 +144,7 @@ export default function Home() {
   const hrmEntries: GridEntry[] = [
     { key: 'employee', label: '员工', icon: <UserOutline />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/employee' },
     { key: 'leave', label: '请假', icon: <CheckOutline />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
+    { key: 'clock', label: '打卡', icon: <CheckCircleFill />, iconBg: 'var(--icon-bg-success, var(--brand))', path: '/clock' },
   ]
 
   // 更多宫格

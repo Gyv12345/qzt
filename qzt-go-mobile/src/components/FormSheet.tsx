@@ -1,5 +1,5 @@
 import { Popup, Form, Input, TextArea, Selector, Button, Toast } from 'antd-mobile'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 export interface FormField {
   name: string
@@ -15,14 +15,28 @@ interface FormSheetProps {
   visible: boolean
   title: string
   fields: FormField[]
+  /** 编辑回填初始值(键名与 fields.name 对应);不传则为新建模式 */
+  initialValues?: Record<string, any>
   onClose: () => void
   onSubmit: (values: Record<string, any>) => Promise<void>
 }
 
-/** 通用底部弹出表单(antd-mobile Popup + Form) */
-export default function FormSheet({ visible, title, fields, onClose, onSubmit }: FormSheetProps) {
+/** 通用底部弹出表单(antd-mobile Popup + Form)。支持新建(initialValues 不传)与编辑(传 initialValues 回填) */
+export default function FormSheet({ visible, title, fields, initialValues, onClose, onSubmit }: FormSheetProps) {
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
+
+  // Selector 回填需数组形式;编辑回填时把 select 类单值转成数组以便正确选中
+  const formInitialValues = useMemo(() => {
+    if (!initialValues) return undefined
+    const v: Record<string, any> = { ...initialValues }
+    for (const f of fields) {
+      if (f.type === 'select' && v[f.name] != null && !Array.isArray(v[f.name])) {
+        v[f.name] = [v[f.name]]
+      }
+    }
+    return v
+  }, [initialValues, fields])
 
   const handleFinish = async (rawValues: Record<string, any>) => {
     setSubmitting(true)
@@ -60,6 +74,7 @@ export default function FormSheet({ visible, title, fields, onClose, onSubmit }:
           form={form}
           layout="horizontal"
           onFinish={handleFinish}
+          initialValues={formInitialValues}
           footer={
             <Button block color="primary" size="large" loading={submitting} onClick={() => form.submit()}>
               提交

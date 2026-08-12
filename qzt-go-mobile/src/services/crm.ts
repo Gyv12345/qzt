@@ -8,8 +8,11 @@ import type {
   CrmContract,
   CrmProduct,
   CrmTicket,
+  CrmFollowPlan,
   DedupResult,
   TicketDetail,
+  StageConfig,
+  StageRecord,
 } from '../types/crm'
 
 interface CrmPageResult<T> {
@@ -21,6 +24,10 @@ export interface CustomerQuery extends PageParams {
   keyword?: string
   level?: string
   status?: number
+  /** 公海过滤:PUBLIC=公海(公共可见) / PRIVATE=私海;留空走数据权限 */
+  pool_filter?: 'PUBLIC' | 'PRIVATE'
+  /** 公海池 ID(配合 pool_filter=PUBLIC 按池过滤) */
+  pool_id?: number
 }
 
 /** 我的客户列表 */
@@ -37,26 +44,38 @@ export const createCustomer = (data: {
   level?: string
   industry?: string
   source?: string
+  fields?: { field_id: string; value: string }[]
 }) => request.post('/crm/customers', data)
+
+/** 更新客户 */
+export const updateCustomer = (
+  id: number,
+  data: {
+    name?: string
+    level?: string
+    industry?: string
+    source?: string
+    fields?: { field_id: string; value: string }[]
+  },
+) => request.put(`/crm/customers/${id}`, data)
 
 // ── 线索 ──
 
 export interface LeadQuery extends PageParams {
   keyword?: string
   status?: number
+  /** 公海过滤:PUBLIC=公海 / PRIVATE=私海;留空走数据权限 */
+  pool_filter?: 'PUBLIC' | 'PRIVATE'
+  pool_id?: number
 }
 
 /** 线索列表 */
 export const listLeads = (params: LeadQuery) =>
   request.get<unknown, CrmPageResult<CrmLead>>('/crm/leads', { params })
 
-/** 线索详情(后端返回 {lead, fields},mobile 暂未接入自定义字段,只取 lead) */
-export const getLead = async (id: number) => {
-  const res = await request.get<unknown, { lead: CrmLead; fields: Record<string, string> }>(
-    `/crm/leads/${id}`,
-  )
-  return res.lead
-}
+/** 线索详情(后端返回 {lead, fields}) */
+export const getLead = (id: number) =>
+  request.get<unknown, { lead: CrmLead; fields: Record<string, string> }>(`/crm/leads/${id}`)
 
 /** 新建线索 */
 export const createLead = (data: {
@@ -66,7 +85,23 @@ export const createLead = (data: {
   company?: string
   industry?: string
   source?: string
+  fields?: { field_id: string; value: string }[]
 }) => request.post('/crm/leads', data)
+
+/** 更新线索 */
+export const updateLead = (
+  id: number,
+  data: {
+    name?: string
+    contact_name?: string
+    phone?: string
+    company?: string
+    industry?: string
+    source?: string
+    status?: number
+    fields?: { field_id: string; value: string }[]
+  },
+) => request.put(`/crm/leads/${id}`, data)
 
 /** 领取线索(从公海) */
 export const pickLead = (id: number) => request.post<unknown, unknown>(`/crm/leads/${id}/pick`)
@@ -79,6 +114,36 @@ export const releaseLead = (id: number, body: { pool_id: number; reason?: string
 export const convertLead = (id: number) =>
   request.post<unknown, CrmCustomer>(`/crm/leads/${id}/convert`)
 
+// ── 公海池(客户/线索共用结构) ──
+
+export interface CrmPool {
+  id: number
+  name: string
+  is_default?: number
+  enabled?: number
+}
+
+/** 启用的客户公海池下拉 */
+export const listCustomerPools = () =>
+  request.get<unknown, CrmPool[]>('/crm/customer-pools/enabled')
+
+/** 启用的线索公海池下拉 */
+export const listLeadPools = () => request.get<unknown, CrmPool[]>('/crm/lead-pools/enabled')
+
+// ── 客户公海操作 ──
+
+/** 领取客户(从公海) */
+export const pickCustomer = (id: number) =>
+  request.post<unknown, unknown>(`/crm/customers/${id}/pick`)
+
+/** 释放客户到公海 */
+export const releaseCustomer = (id: number, body: { pool_id: number; reason?: string }) =>
+  request.post<unknown, unknown>(`/crm/customers/${id}/release`, body)
+
+/** 转移客户给其他负责人 */
+export const transferCustomer = (id: number, body: { to_user_id: number }) =>
+  request.post<unknown, unknown>(`/crm/customers/${id}/transfer`, body)
+
 // ── 查重 ──
 
 /** 客户/线索查重(名称模糊 + 电话精确,跨线索与客户) */
@@ -90,6 +155,7 @@ export const dedup = (params: { name?: string; phone?: string }) =>
 export interface OpportunityQuery extends PageParams {
   keyword?: string
   stage?: string
+  customer_id?: number
 }
 
 /** 商机列表 */
@@ -99,6 +165,18 @@ export const listOpportunities = (params: OpportunityQuery) =>
 /** 商机详情 */
 export const getOpportunity = (id: number) =>
   request.get<unknown, CrmOpportunity>(`/crm/opportunities/${id}`)
+
+/** 阶段配置(GET /crm/stage-configs/:bizType,bizType=OPPORTUNITY/CONTRACT) */
+export const getStageConfig = (bizType: string) =>
+  request.get<unknown, StageConfig>(`/crm/stage-configs/${bizType}`)
+
+/** 商机阶段推进(PUT /crm/opportunities/:id/stage) */
+export const changeOpportunityStage = (id: number, body: { stage: string; reason?: string }) =>
+  request.put(`/crm/opportunities/${id}/stage`, body)
+
+/** 商机阶段变更历史(GET /crm/opportunities/:id/stage-history) */
+export const getOpportunityStageHistory = (id: number) =>
+  request.get<unknown, StageRecord[]>(`/crm/opportunities/${id}/stage-history`)
 
 /** 新建商机 */
 export const createOpportunity = (data: {
@@ -114,6 +192,7 @@ export const createOpportunity = (data: {
 export interface ContractQuery extends PageParams {
   keyword?: string
   stage?: string
+  customer_id?: number
 }
 
 /** 合同列表 */
@@ -123,6 +202,37 @@ export const listContracts = (params: ContractQuery) =>
 /** 合同详情 */
 export const getContract = (id: number) =>
   request.get<unknown, CrmContract>(`/crm/contracts/${id}`)
+
+// ── 跟进计划 ──
+
+/** 我的跟进计划待办(GET /crm/follow-plans/my-todos,无分页) */
+export const listMyFollowPlans = () =>
+  request.get<unknown, CrmFollowPlan[]>('/crm/follow-plans/my-todos')
+
+/** 新建跟进计划(owner_id 后端自动填当前用户) */
+export const createFollowPlan = (data: {
+  type: string
+  content: string
+  plan_time: string
+  remind_time?: string
+  customer_id?: number
+  opportunity_id?: number
+  contact_id?: number
+  contract_id?: number
+  lead_id?: number
+}) => request.post('/crm/follow-plans', data)
+
+/** 跳过跟进计划 */
+export const skipFollowPlan = (id: number) => request.post(`/crm/follow-plans/${id}/skip`)
+
+/** 完成跟进计划(转为跟进记录) */
+export const convertFollowPlan = (
+  id: number,
+  body: { type: string; content: string; follow_time?: string },
+) => request.post(`/crm/follow-plans/${id}/convert`, body)
+
+/** 删除跟进计划 */
+export const deleteFollowPlan = (id: number) => request.delete(`/crm/follow-plans/${id}`)
 
 // ── 产品 ──
 
