@@ -128,6 +128,42 @@ export interface CrmContract {
   follower_id: number | null
   follow_time: string | null
   content: string
+  /** 是否开启电子签 */
+  esign_enabled: boolean
+  /** 合同模板ID(电子签渲染PDF用) */
+  template_id: number | null
+  /** e签宝流程ID */
+  esign_flow_id: string
+  /** 电子签状态: NONE/INITIATED/SIGNING/SIGNED/FAILED */
+  esign_status: string
+  created_at: string
+  updated_at: string
+}
+
+/** 电子签签署方 */
+export interface EsignSigner {
+  name: string
+  mobile?: string
+  email?: string
+  sign_order: number
+}
+
+/** 电子签任务详情(含短期 PDF 预览 URL) */
+export interface EsignTaskDetail {
+  id: number
+  contract_id: number
+  template_id: number
+  /** PENDING/RUNNING/READY/INITIATED/COMPLETED/FAILED */
+  status: string
+  flow_id: string
+  file_key: string
+  sign_url: string
+  /** 签署方 JSON 字符串(前端展示时 JSON.parse) */
+  signers: string
+  retry_count: number
+  error: string
+  /** 私有桶 PDF 短期预览 URL */
+  file_url?: string
   created_at: string
   updated_at: string
 }
@@ -395,6 +431,10 @@ export interface CrmContractPayload {
   stage?: string
   owner_id?: number
   content?: string
+  /** 开启电子签(审批通过自动生成签署PDF,半自动) */
+  esign_enabled?: boolean
+  /** 签署模板ID(esign_enabled=true 时必填) */
+  template_id?: number | null
 }
 
 // ── 合同模板 ──
