@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 
-	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/pkg/sse"
 	"qzt-go-server/internal/pkg/wecom"
 	"qzt-go-server/internal/repository"
@@ -32,12 +31,13 @@ func Dispatch(ctx context.Context, receiverID uint, title, content, path string)
 	pushWecom(ctx, receiverID, title, content)
 }
 
-// pushWecom 如果用户绑定了企业微信且全局开关开启,推送企业微信通知。
+// pushWecom 若企业微信已启用并配置凭证,且用户已绑定企业微信,则推送通知。
+// 凭证与启用状态都来自 sys_oauth_config(provider=wecom),与「第三方应用」配置页同源
+// (不再读 sys_config 的 wecom.*/notification.wecom.enabled,避免配置割裂)。
 func pushWecom(ctx context.Context, userID uint, title, content string) {
-	// 检查全局开关
-	enabled := setting.Get(ctx, "notification.wecom.enabled")
-	if enabled != "1" && enabled != "true" {
-		return
+	cfg, enabled := loadWecomConfig(ctx)
+	if !enabled || cfg.CorpID == "" || cfg.Secret == "" {
+		return // 未启用或未配置凭证
 	}
 
 	// 查用户的企业微信ID
@@ -49,13 +49,7 @@ func pushWecom(ctx context.Context, userID uint, title, content string) {
 		return // 用户未绑定企业微信
 	}
 
-	// 获取企业微信客户端
-	cfg := loadWecomConfig(ctx)
-	if cfg.CorpID == "" || cfg.Secret == "" {
-		return
-	}
 	client := wecom.NewClient(cfg)
-
 	// 发送(text 格式,兼容性最好)
 	msg := fmt.Sprintf("%s\n%s", title, content)
 	if err := client.SendMessage(ctx, wecomUserID, "text", msg); err != nil {
@@ -63,11 +57,22 @@ func pushWecom(ctx context.Context, userID uint, title, content string) {
 	}
 }
 
-// loadWecomConfig 从 sys_config 读取企业微信配置。
-func loadWecomConfig(ctx context.Context) wecom.Config {
-	return wecom.Config{
-		CorpID:  setting.Get(ctx, "wecom.corp_id"),
-		Secret:  setting.Get(ctx, "wecom.secret"),
-		AgentID: setting.Get(ctx, "wecom.agent_id"),
+// loadWecomConfig 从 sys_oauth_config 读取启用的企业微信凭证(优先 enabled 的那条)。
+// 返回凭证 + 是否启用;未配置或读取失败时 enabled=false。
+func loadWecomConfig(ctx context.Context) (wecom.Config, bool) {
+	var c struct {
+		AppID     string
+		AppSecret string
+		AgentID   string
+		Enabled   int
 	}
+	err := repository.DBFrom(ctx).Table("sys_oauth_config").
+		Where("provider = ? AND deleted_at IS NULL", "wecom").
+		Order("enabled DESC, sort ASC, id DESC").Limit(1).
+		Scan(&c).Error
+	if err != nil {
+		xlogger.ErrorfCtx(ctx, "企业微信通知:读取 sys_oauth_config 失败: %v", err)
+		return wecom.Config{}, false
+	}
+	return wecom.Config{CorpID: c.AppID, Secret: c.AppSecret, AgentID: c.AgentID}, c.Enabled == 1
 }
