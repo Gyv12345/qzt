@@ -7,6 +7,7 @@ import type {
   ApprovalInstanceDetail,
   ApprovalRecord,
   ApprovalTask,
+  FormField,
   SaveDesignRequest,
 } from '../types/approval'
 import type { PageParams } from '../types'
@@ -41,6 +42,12 @@ export const setApprovalFlowEnable = (id: number, enable: number) =>
 /** 保存流程设计(节点图,每次保存创建新版本) */
 export const saveApprovalFlowDesign = (id: number, data: SaveDesignRequest) =>
   request.put(`/approval/flows/${id}/design`, data)
+
+/** 审批条件字段元数据(固定+自定义,供流程设计器条件下拉用);formKey 仅 OA_CUSTOM 按模板 */
+export const getFormFields = (formType: string, formKey?: string) =>
+  request.get<unknown, { fields: FormField[] }>('/approval/flows/form-fields', {
+    params: { form_type: formType, ...(formKey ? { form_key: formKey } : {}) },
+  })
 
 // ---------- 审批实例 ----------
 

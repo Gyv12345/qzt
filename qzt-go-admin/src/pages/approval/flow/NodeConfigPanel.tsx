@@ -1,6 +1,9 @@
-import { useEffect } from 'react'
-import { Button, Card, Form, Input, InputNumber, Select, Space } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
+import { Button, Card, DatePicker, Form, Input, InputNumber, Select, Space, Spin } from 'antd'
+import dayjs from 'dayjs'
 import type { Node } from '@xyflow/react'
+import { getFormFields } from '../../../services/approval'
+import type { FormField, FormFieldType } from '../../../types/approval'
 
 interface ApprovalNodeData {
   name: string
@@ -13,6 +16,10 @@ interface ApprovalNodeData {
 
 interface NodeConfigPanelProps {
   node: Node<ApprovalNodeData>
+  /** 当前流程的表单类型(条件字段元数据加载用) */
+  formType?: string
+  /** 表单标识(仅 OA_CUSTOM 按模板取字段) */
+  formKey?: string
   onChange: (data: Partial<ApprovalNodeData>) => void
 }
 
@@ -49,7 +56,30 @@ const SAME_SUBMITTER_OPTIONS = [
   { label: '允许审批(ALLOW)', value: 'ALLOW' },
 ]
 
-const CONDITION_OPS = ['EQ', 'NE', 'GT', 'GTE', 'LT', 'LTE', 'IN']
+// ── 条件字段操作符(按字段类型联动,中文) ──
+const OPS_BY_TYPE: Record<FormFieldType, { label: string; value: string }[]> = {
+  number: [
+    { label: '等于', value: 'EQ' },
+    { label: '不等于', value: 'NE' },
+    { label: '大于', value: 'GT' },
+    { label: '大于等于', value: 'GTE' },
+    { label: '小于', value: 'LT' },
+    { label: '小于等于', value: 'LTE' },
+  ],
+  date: [
+    { label: '等于', value: 'EQ' },
+    { label: '晚于', value: 'GT' },
+    { label: '早于', value: 'LT' },
+  ],
+  enum: [
+    { label: '等于', value: 'EQ' },
+    { label: '不等于', value: 'NE' },
+  ],
+  string: [
+    { label: '等于', value: 'EQ' },
+    { label: '不等于', value: 'NE' },
+  ],
+}
 
 // ── 条件配置解析/序列化 ──
 interface ConditionItem {
@@ -80,12 +110,39 @@ function stringifyCondition(cfg: ConditionConfig): string {
   return JSON.stringify(cfg)
 }
 
-export default function NodeConfigPanel({ node, onChange }: NodeConfigPanelProps) {
+export default function NodeConfigPanel({ node, formType, formKey, onChange }: NodeConfigPanelProps) {
   const [form] = Form.useForm()
   const data = node.data
   const isApprover = data.nodeType === 'APPROVER'
   const isCondition = data.nodeType === 'CONDITION'
   const isStart = data.nodeType === 'START'
+
+  // 条件字段元数据(仅 CONDITION 节点加载)
+  const [fields, setFields] = useState<FormField[]>([])
+  const [fieldsLoading, setFieldsLoading] = useState(false)
+  useEffect(() => {
+    if (!isCondition || !formType) return
+    setFieldsLoading(true)
+    getFormFields(formType, formKey)
+      .then((res) => setFields(res.fields ?? []))
+      .finally(() => setFieldsLoading(false))
+  }, [isCondition, formType, formKey])
+
+  // key → 字段定义(联动操作符/值输入用)
+  const fieldMap = useMemo(() => new Map(fields.map((f) => [f.key, f])), [fields])
+  // 按 source 分组(固定字段 / 自定义字段)
+  const fieldGroups = useMemo(() => {
+    const fixed = fields.filter((f) => f.source === 'fixed')
+    const custom = fields.filter((f) => f.source === 'custom')
+    const groups: { label: string; options: { label: string; value: string }[] }[] = []
+    if (fixed.length) {
+      groups.push({ label: '固定字段', options: fixed.map((f) => ({ label: f.label, value: f.key })) })
+    }
+    if (custom.length) {
+      groups.push({ label: '自定义字段', options: custom.map((f) => ({ label: f.label, value: f.key })) })
+    }
+    return groups
+  }, [fields])
 
   // 跟随节点回填
   useEffect(() => {
@@ -122,6 +179,20 @@ export default function NodeConfigPanel({ node, onChange }: NodeConfigPanelProps
   }
 
   const condCfg = parseCondition(data.conditionConfig)
+
+  // 条件项更新辅助
+  const updateConditionItem = (i: number, patch: Partial<ConditionItem>) => {
+    const next = [...condCfg.conditions]
+    next[i] = { ...next[i], ...patch }
+    onConditionChange({ ...condCfg, conditions: next })
+  }
+  // 选中字段后,若当前操作符不被新字段类型支持,则重置为 EQ;并清空值
+  const onFieldChange = (i: number, fieldKey: string) => {
+    const fd = fieldMap.get(fieldKey)
+    const allowedOps = fd ? OPS_BY_TYPE[fd.type].map((o) => o.value) : ['EQ']
+    const keepOp = allowedOps.includes(condCfg.conditions[i].op) ? condCfg.conditions[i].op : 'EQ'
+    updateConditionItem(i, { field: fieldKey, op: keepOp, value: '' })
+  }
 
   return (
     <div
@@ -216,55 +287,47 @@ export default function NodeConfigPanel({ node, onChange }: NodeConfigPanelProps
                   onChange={(v) => onConditionChange({ ...condCfg, logic: v })}
                 />
               </Form.Item>
+              {fieldsLoading && <Spin size="small" style={{ display: 'block', margin: '8px auto' }} />}
               <div style={{ marginBottom: 8 }}>
-                {condCfg.conditions.map((c, i) => (
-                  <Space key={i} direction="vertical" size={4} style={{ display: 'flex', marginBottom: 8 }}>
-                    <Input
-                      size="small"
-                      placeholder="字段名(如 amount)"
-                      value={c.field}
-                      onChange={(e) => {
-                        const next = [...condCfg.conditions]
-                        next[i] = { ...c, field: e.target.value }
-                        onConditionChange({ ...condCfg, conditions: next })
-                      }}
-                    />
-                    <Space size={4}>
+                {condCfg.conditions.map((c, i) => {
+                  const fd = fieldMap.get(c.field)
+                  return (
+                    <Space key={i} direction="vertical" size={4} style={{ display: 'flex', marginBottom: 8 }}>
                       <Select
                         size="small"
-                        style={{ width: 90 }}
-                        value={c.op}
-                        options={CONDITION_OPS.map((op) => ({ label: op, value: op }))}
-                        onChange={(v) => {
-                          const next = [...condCfg.conditions]
-                          next[i] = { ...c, op: v }
-                          onConditionChange({ ...condCfg, conditions: next })
-                        }}
+                        style={{ width: '100%' }}
+                        placeholder="选择字段"
+                        value={c.field || undefined}
+                        options={fieldGroups}
+                        onChange={(v) => onFieldChange(i, v)}
                       />
-                      <Input
-                        size="small"
-                        style={{ width: 160 }}
-                        placeholder="值"
-                        value={c.value}
-                        onChange={(e) => {
-                          const next = [...condCfg.conditions]
-                          next[i] = { ...c, value: e.target.value }
-                          onConditionChange({ ...condCfg, conditions: next })
-                        }}
-                      />
-                      <Button
-                        size="small"
-                        danger
-                        onClick={() => {
-                          const next = condCfg.conditions.filter((_, idx) => idx !== i)
-                          onConditionChange({ ...condCfg, conditions: next })
-                        }}
-                      >
-                        ×
-                      </Button>
+                      <Space size={4} style={{ display: 'flex' }}>
+                        <Select
+                          size="small"
+                          style={{ width: 90 }}
+                          value={c.op}
+                          options={fd ? OPS_BY_TYPE[fd.type] : OPS_BY_TYPE.string}
+                          onChange={(v) => updateConditionItem(i, { op: v })}
+                        />
+                        <ConditionValueInput
+                          field={fd}
+                          value={c.value}
+                          onChange={(val) => updateConditionItem(i, { value: val })}
+                        />
+                        <Button
+                          size="small"
+                          danger
+                          onClick={() => {
+                            const next = condCfg.conditions.filter((_, idx) => idx !== i)
+                            onConditionChange({ ...condCfg, conditions: next })
+                          }}
+                        >
+                          ×
+                        </Button>
+                      </Space>
                     </Space>
-                  </Space>
-                ))}
+                  )
+                })}
                 <Button
                   size="small"
                   type="dashed"
@@ -278,6 +341,11 @@ export default function NodeConfigPanel({ node, onChange }: NodeConfigPanelProps
                 >
                   + 添加条件
                 </Button>
+                {!fieldsLoading && fields.length === 0 && (
+                  <div style={{ color: '#999', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
+                    该表单暂无可配置的字段
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -291,4 +359,58 @@ export default function NodeConfigPanel({ node, onChange }: NodeConfigPanelProps
       </Card>
     </div>
   )
+}
+
+// ── 条件值输入(按字段类型联动) ──
+function ConditionValueInput({
+  field,
+  value,
+  onChange,
+}: {
+  field?: FormField
+  value: string
+  onChange: (val: string) => void
+}) {
+  // 未选字段时按文本兜底
+  if (!field) {
+    return (
+      <Input size="small" style={{ width: 160 }} placeholder="值" value={value} onChange={(e) => onChange(e.target.value)} />
+    )
+  }
+  switch (field.type) {
+    case 'number':
+      return (
+        <InputNumber
+          size="small"
+          style={{ width: 160 }}
+          placeholder="数值"
+          value={value === '' ? null : Number(value)}
+          onChange={(v) => onChange(v == null ? '' : String(v))}
+        />
+      )
+    case 'date':
+      return (
+        <DatePicker
+          size="small"
+          style={{ width: 160 }}
+          value={value ? dayjs(value) : null}
+          onChange={(d) => onChange(d ? d.format('YYYY-MM-DD') : '')}
+        />
+      )
+    case 'enum':
+      return (
+        <Select
+          size="small"
+          style={{ width: 160 }}
+          placeholder="选择值"
+          value={value || undefined}
+          options={field.options?.map((o) => ({ label: o.label, value: o.value }))}
+          onChange={onChange}
+        />
+      )
+    default:
+      return (
+        <Input size="small" style={{ width: 160 }} placeholder="值" value={value} onChange={(e) => onChange(e.target.value)} />
+      )
+  }
 }

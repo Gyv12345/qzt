@@ -558,6 +558,8 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
         {selectedNode && (
           <NodeConfigPanel
             node={selectedNode}
+            formType={detail?.form_type}
+            formKey={detail?.form_key || undefined}
             onChange={(data) => handleNodeDataChange(selectedNode.id, data)}
           />
         )}

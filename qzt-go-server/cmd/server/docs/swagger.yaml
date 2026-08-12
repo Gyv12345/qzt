@@ -424,7 +424,6 @@ definitions:
         type: string
     required:
     - clock_type
-    - employee_id
     type: object
   service.ConditionsDesign:
     properties:
@@ -3527,6 +3526,31 @@ paths:
       security:
       - BearerAuth: []
       summary: 按表单类型获取审批流程
+      tags:
+      - 审批流程
+  /approval/flows/form-fields:
+    get:
+      description: 按 form_type 返回可作为审批条件的字段清单(固定字段 + 自定义字段),含类型与枚举选项
+      parameters:
+      - description: 表单类型(如 CONTRACT/EXPENSE/OA_CUSTOM)
+        in: query
+        name: form_type
+        required: true
+        type: string
+      - description: 表单标识(仅 OA_CUSTOM 按模板取字段)
+        in: query
+        name: form_key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 审批表单条件字段
       tags:
       - 审批流程
   /approval/initiated:
@@ -7273,10 +7297,9 @@ paths:
   /hrm/attendance/clocks:
     get:
       parameters:
-      - description: 员工ID
+      - description: 员工ID(不传则取当前登录用户)
         in: query
         name: employee_id
-        required: true
         type: integer
       - description: 开始日期(yyyy-MM-dd)
         in: query

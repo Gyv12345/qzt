@@ -207,3 +207,27 @@ export interface SaveDesignRequest {
   conditions: ConditionsDesign[]
   links: LinkDesign[]
 }
+
+// ── 审批条件字段元数据(流程设计器条件配置用) ──
+
+/** 条件字段类型 */
+export type FormFieldType = 'number' | 'date' | 'enum' | 'string'
+
+/** 条件字段来源(前端分组展示) */
+export type FormFieldSource = 'fixed' | 'custom'
+
+/** 枚举选项 */
+export interface FieldOption {
+  label: string
+  value: string
+}
+
+/** 条件字段元数据(后端 GET /approval/flows/form-fields 返回) */
+export interface FormField {
+  /** 固定字段=列名;CRM自定义=field_id;OA_CUSTOM=字段key */
+  key: string
+  label: string
+  type: FormFieldType
+  source: FormFieldSource
+  options?: FieldOption[]
+}

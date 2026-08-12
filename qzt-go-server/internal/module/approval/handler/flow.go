@@ -163,3 +163,27 @@ func (h *FlowHandler) Enable(c *gin.Context) {
 	}
 	response.OK(c, nil)
 }
+
+// FormFields 表单可条件字段元数据(供流程设计器条件下拉用)。
+// @Summary      审批表单条件字段
+// @Description  按 form_type 返回可作为审批条件的字段清单(固定字段 + 自定义字段),含类型与枚举选项
+// @Tags         审批流程
+// @Produce      json
+// @Security     BearerAuth
+// @Param        form_type  query  string  true   "表单类型(如 CONTRACT/EXPENSE/OA_CUSTOM)"
+// @Param        form_key   query  string  false  "表单标识(仅 OA_CUSTOM 按模板取字段)"
+// @Success      200  {object}  xresponse.Response
+// @Router       /approval/flows/form-fields [get]
+func (h *FlowHandler) FormFields(c *gin.Context) {
+	formType := c.Query("form_type")
+	if formType == "" {
+		response.Fail(c, errcode.ErrParam, "参数错误: form_type 不能为空")
+		return
+	}
+	fields, err := service.GetFormFields(c.Request.Context(), formType, c.Query("form_key"))
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, gin.H{"fields": fields})
+}

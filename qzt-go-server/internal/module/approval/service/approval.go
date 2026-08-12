@@ -24,6 +24,7 @@ type ApprovalService struct {
 	flowRepo     *apprrepo.FlowRepo
 	nodeRepo     *apprrepo.NodeRepo
 	approverRepo *apprrepo.NodeApproverRepo
+	condRepo     *apprrepo.NodeConditionRepo
 	linkRepo     *apprrepo.NodeLinkRepo
 	instanceRepo *apprrepo.InstanceRepo
 	taskRepo     *apprrepo.TaskRepo
@@ -36,6 +37,7 @@ func NewApprovalService() *ApprovalService {
 		flowRepo:     apprrepo.NewFlowRepo(),
 		nodeRepo:     apprrepo.NewNodeRepo(),
 		approverRepo: apprrepo.NewNodeApproverRepo(),
+		condRepo:     apprrepo.NewNodeConditionRepo(),
 		linkRepo:     apprrepo.NewNodeLinkRepo(),
 		instanceRepo: apprrepo.NewInstanceRepo(),
 		taskRepo:     apprrepo.NewTaskRepo(),
@@ -105,7 +107,7 @@ func (s *ApprovalService) Push(ctx context.Context, req *PushRequest, submitterI
 	s.updateResourceStatus(ctx, req.FormType, req.ResourceID, apprmodel.StatusApproving)
 
 	// 找 START 的下一节点
-	nextNode, err := s.getNextNode(ctx, vid, startNode.ID)
+	nextNode, err := s.getNextNode(ctx, instance, startNode.ID)
 	if err != nil {
 		return nil, fmt.Errorf("查找首节点失败: %w", err)
 	}
@@ -283,7 +285,7 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 	s.taskRepo.SoftDeleteByInstanceNode(ctx, task.InstanceID, task.NodeID)
 
 	// 找下一节点
-	nextNode, err := s.getNextNode(ctx, instance.FlowVersionID, task.NodeID)
+	nextNode, err := s.getNextNode(ctx, instance, task.NodeID)
 	if err != nil {
 		return fmt.Errorf("查找下一节点失败: %w", err)
 	}
@@ -309,7 +311,7 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, operator uint) error {
 	if node.NodeType != apprmodel.NodeTypeApprover {
 		// 非 APPROVER 节点(如 DEFAULT),直接尝试流转到下一节点
-		nextNode, err := s.getNextNode(ctx, node.FlowVersionID, node.ID)
+		nextNode, err := s.getNextNode(ctx, instance, node.ID)
 		if err != nil {
 			return err
 		}
@@ -431,16 +433,64 @@ func (s *ApprovalService) getNodeRound(ctx context.Context, instanceID, nodeID u
 	return maxRound + 1
 }
 
-// getNextNode 获取下一节点(沿 link 找,CONDITION 节点求值分支)。
-func (s *ApprovalService) getNextNode(ctx context.Context, versionID, fromNodeID uint) (*apprmodel.ApprovalNode, error) {
-	links, err := s.linkRepo.ListByFromNode(ctx, versionID, fromNodeID)
+// getNextNode 获取下一节点。
+//
+// 流转规则:
+//   - 0 条出边 → END(流程结束)
+//   - 出边目标全是普通节点 → 走 sort 第一条(普通顺序流转)
+//   - 出边目标含 CONDITION 节点(条件分叉) → 用业务表单数据(buildFormData)逐个求值,
+//     第一个 conditionConfig 匹配的 CONDITION 节点胜出(由 createNodeTasks 穿透到真正审批节点);
+//     全不匹配时,若存在非 CONDITION 目标则走它作兜底,否则返回 error("条件分支无匹配")。
+func (s *ApprovalService) getNextNode(ctx context.Context, instance *apprmodel.ApprovalInstance, fromNodeID uint) (*apprmodel.ApprovalNode, error) {
+	links, err := s.linkRepo.ListByFromNode(ctx, instance.FlowVersionID, fromNodeID)
 	if err != nil || len(links) == 0 {
 		// 无连线 → END
 		return &apprmodel.ApprovalNode{NodeType: apprmodel.NodeTypeEnd}, nil
 	}
-	// 简化:取第一条连线的目标(CONDITION 分支求值后续实现)
-	nextID := links[0].ToNodeID
-	return s.nodeRepo.GetByID(ctx, nextID)
+
+	// 预取目标节点,判断是否条件分叉
+	targets := make([]*apprmodel.ApprovalNode, 0, len(links))
+	for _, l := range links {
+		tgt, e := s.nodeRepo.GetByID(ctx, l.ToNodeID)
+		if e != nil {
+			continue
+		}
+		targets = append(targets, tgt)
+	}
+	hasCondition := false
+	for _, t := range targets {
+		if t.NodeType == apprmodel.NodeTypeCondition {
+			hasCondition = true
+			break
+		}
+	}
+	if !hasCondition {
+		// 普通流转:走第一条(已按 sort 排序)
+		if len(targets) > 0 {
+			return targets[0], nil
+		}
+		return &apprmodel.ApprovalNode{NodeType: apprmodel.NodeTypeEnd}, nil
+	}
+
+	// 条件分叉:逐个求值 CONDITION 节点
+	data := s.buildFormData(ctx, instance)
+	var fallback *apprmodel.ApprovalNode // 第一个非 CONDITION 目标作兜底
+	for _, tgt := range targets {
+		if tgt.NodeType == apprmodel.NodeTypeCondition {
+			cond, e := s.condRepo.GetByNodeID(ctx, tgt.ID)
+			if e == nil && cond != nil && evalCondition(cond.ConditionConfig, data) {
+				return tgt, nil // 匹配,返回 CONDITION(由 createNodeTasks 穿透)
+			}
+			continue
+		}
+		if fallback == nil {
+			fallback = tgt
+		}
+	}
+	if fallback != nil {
+		return fallback, nil // 兜底分支
+	}
+	return nil, errors.New("条件分支无匹配,请检查审批流条件配置")
 }
 
 // loadAndCheckTask 加载并校验任务(审批人=当前用户,状态=指定)。

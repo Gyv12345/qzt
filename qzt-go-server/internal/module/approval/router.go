@@ -42,6 +42,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	{
 		auth.GET("/flows", flowHandler.List)
 		auth.GET("/flows/by-type", flowHandler.GetByFormType)
+		auth.GET("/flows/form-fields", flowHandler.FormFields)
 		auth.POST("/flows", flowHandler.Create)
 		auth.GET("/flows/:id", flowHandler.GetByID)
 		auth.PUT("/flows/:id/design", flowHandler.SaveDesign)

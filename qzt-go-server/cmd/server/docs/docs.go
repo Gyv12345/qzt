@@ -807,6 +807,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/approval/flows/form-fields": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按 form_type 返回可作为审批条件的字段清单(固定字段 + 自定义字段),含类型与枚举选项",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批流程"
+                ],
+                "summary": "审批表单条件字段",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "表单类型(如 CONTRACT/EXPENSE/OA_CUSTOM)",
+                        "name": "form_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "表单标识(仅 OA_CUSTOM 按模板取字段)",
+                        "name": "form_key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/approval/flows/{id}": {
             "get": {
                 "security": [
@@ -7003,10 +7043,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "员工ID",
+                        "description": "员工ID(不传则取当前登录用户)",
                         "name": "employee_id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -16571,8 +16610,7 @@ const docTemplate = `{
         "service.ClockInRequest": {
             "type": "object",
             "required": [
-                "clock_type",
-                "employee_id"
+                "clock_type"
             ],
             "properties": {
                 "clock_type": {
