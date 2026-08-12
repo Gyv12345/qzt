@@ -182,7 +182,7 @@ func (s *JobService) executeJob(ctx context.Context, job *entmodel.SysJob, trigg
 func (s *JobService) ListLogs(ctx context.Context, page, pageSize int, jobID uint) ([]entmodel.SysJobLog, int64, error) {
 	opts := &repository.QueryOptions{Order: []string{"id DESC"}}
 	if jobID > 0 {
-		opts.Where = map[string]interface{}{"job_id": jobID}
+		opts.Where = map[string]any{"job_id": jobID}
 	}
 	return s.logRepo.PageList(ctx, page, pageSize, opts)
 }

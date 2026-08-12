@@ -132,7 +132,7 @@ func (s *StockIOService) GetInByID(ctx context.Context, id uint) (*StockInDetail
 // ListIn 其他入库单列表。
 func (s *StockIOService) ListIn(ctx context.Context, page, pageSize int, warehouseID uint, bizType string) ([]psimodel.PsiStockInOrder, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if warehouseID > 0 {
 		where["warehouse_id"] = warehouseID
 	}
@@ -246,7 +246,7 @@ func (s *StockIOService) GetOutByID(ctx context.Context, id uint) (*StockOutDeta
 // ListOut 其他出库单列表。
 func (s *StockIOService) ListOut(ctx context.Context, page, pageSize int, warehouseID uint, bizType string) ([]psimodel.PsiStockOutOrder, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if warehouseID > 0 {
 		where["warehouse_id"] = warehouseID
 	}

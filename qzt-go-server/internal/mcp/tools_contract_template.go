@@ -91,7 +91,7 @@ func handleContractTemplateList(ctx context.Context, req mcp.CallToolRequest) (*
 	if err != nil {
 		return resultError(fmt.Sprintf("查询合同模板列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"list":  list,
 		"total": total,
 		"page":  page,
@@ -158,7 +158,7 @@ func handleContractTemplateUpdate(ctx context.Context, req mcp.CallToolRequest) 
 	if err := svc.Update(ctx, id, updateReq); err != nil {
 		return resultError(fmt.Sprintf("更新合同模板失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"id": id, "message": "更新成功"})
+	return resultText(map[string]any{"id": id, "message": "更新成功"})
 }
 
 func handleContractTemplateVariables(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {

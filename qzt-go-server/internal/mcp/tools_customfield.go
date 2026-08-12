@@ -95,7 +95,7 @@ func handleCustomFieldCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err := svc.CreateField(ctx, createReq); err != nil {
 		return resultError(fmt.Sprintf("创建字段失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "字段已创建", "form_key": formKey, "name": name})
+	return resultText(map[string]any{"message": "字段已创建", "form_key": formKey, "name": name})
 }
 
 func handleCustomFieldUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -118,7 +118,7 @@ func handleCustomFieldUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err := svc.UpdateField(ctx, fieldID, updateReq); err != nil {
 		return resultError(fmt.Sprintf("更新字段失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "字段已更新", "id": fieldID})
+	return resultText(map[string]any{"message": "字段已更新", "id": fieldID})
 }
 
 func handleCustomFieldDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -130,5 +130,5 @@ func handleCustomFieldDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err := svc.DeleteField(ctx, fieldID); err != nil {
 		return resultError(fmt.Sprintf("删除字段失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "字段已删除", "id": fieldID})
+	return resultText(map[string]any{"message": "字段已删除", "id": fieldID})
 }

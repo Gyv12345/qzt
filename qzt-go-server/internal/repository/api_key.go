@@ -45,5 +45,5 @@ func (r *ApiKeyRepo) Update(ctx context.Context, m *model.SysApiKey) error {
 // UpdateLastUsed 更新最后使用时间和 IP。
 func (r *ApiKeyRepo) UpdateLastUsed(ctx context.Context, id uint, ip string) {
 	dbFrom(ctx).Model(&model.SysApiKey{}).Where("id = ?", id).
-		Updates(map[string]interface{}{"last_used_at": time.Now(), "last_used_ip": ip})
+		Updates(map[string]any{"last_used_at": time.Now(), "last_used_ip": ip})
 }

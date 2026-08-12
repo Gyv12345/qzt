@@ -25,7 +25,7 @@ func (s *AgentService) List(ctx context.Context, scene string) ([]aimodel.AiAgen
 		Order: []string{"sort ASC", "id ASC"},
 	}
 	if scene != "" {
-		opts.Where = map[string]interface{}{"scene": scene}
+		opts.Where = map[string]any{"scene": scene}
 	}
 	return s.repo.List(ctx, opts)
 }
@@ -33,7 +33,7 @@ func (s *AgentService) List(ctx context.Context, scene string) ([]aimodel.AiAgen
 // GetByScene 取指定场景下第一个启用的 Agent。
 func (s *AgentService) GetByScene(ctx context.Context, scene string) (*aimodel.AiAgent, error) {
 	return s.repo.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"scene": scene, "status": 1},
+		Where: map[string]any{"scene": scene, "status": 1},
 		Order: []string{"sort ASC"},
 	})
 }
@@ -53,7 +53,7 @@ type CreateAgentRequest struct {
 func (s *AgentService) Create(ctx context.Context, req *CreateAgentRequest) (*aimodel.AiAgent, error) {
 	code := strings.TrimSpace(req.Code)
 	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-		Conds: []repository.Cond{{Query: "code = ?", Args: []interface{}{code}}},
+		Conds: []repository.Cond{{Query: "code = ?", Args: []any{code}}},
 	})
 	if err != nil {
 		return nil, err

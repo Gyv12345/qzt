@@ -132,7 +132,7 @@ func handleHrmEmployeeList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err != nil {
 		return resultError(fmt.Sprintf("查询员工列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleHrmEmployeeGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

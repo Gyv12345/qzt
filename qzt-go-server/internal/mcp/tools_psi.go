@@ -155,7 +155,7 @@ func handlePsiSupplierList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err != nil {
 		return resultError(fmt.Sprintf("查询供应商列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiSupplierGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -178,7 +178,7 @@ func handlePsiWarehouseList(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	if err != nil {
 		return resultError(fmt.Sprintf("查询仓库列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiWarehouseGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -206,7 +206,7 @@ func handlePsiPurchaseList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err != nil {
 		return resultError(fmt.Sprintf("查询采购订单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiPurchaseGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -234,7 +234,7 @@ func handlePsiSalesList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err != nil {
 		return resultError(fmt.Sprintf("查询销售订单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiSalesGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -261,7 +261,7 @@ func handlePsiStockList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err != nil {
 		return resultError(fmt.Sprintf("查询库存失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiStockMovements(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -275,7 +275,7 @@ func handlePsiStockMovements(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err != nil {
 		return resultError(fmt.Sprintf("查询库存流水失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiStockInList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -288,7 +288,7 @@ func handlePsiStockInList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err != nil {
 		return resultError(fmt.Sprintf("查询入库单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePsiStockOutList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -301,7 +301,7 @@ func handlePsiStockOutList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err != nil {
 		return resultError(fmt.Sprintf("查询出库单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 // mcpPage 解析分页参数(页码默认1,每页默认20,上限100)。

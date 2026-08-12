@@ -95,7 +95,7 @@ func (d *DateTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Value 实现 driver.Valuer,GORM 写入时调用。返回 interface{} 以兼容 MySQL 驱动。
+// Value 实现 driver.Valuer,GORM 写入时调用。返回 any 以兼容 MySQL 驱动。
 func (d DateTime) Value() (driver.Value, error) {
 	t := time.Time(d)
 	if t.IsZero() {
@@ -105,7 +105,7 @@ func (d DateTime) Value() (driver.Value, error) {
 }
 
 // Scan 实现 sql.Scanner,GORM 读取时调用。
-func (d *DateTime) Scan(value interface{}) error {
+func (d *DateTime) Scan(value any) error {
 	if value == nil {
 		*d = DateTime{}
 		return nil
@@ -213,7 +213,7 @@ func (n NullDateTime) Value() (driver.Value, error) {
 }
 
 // Scan 实现 sql.Scanner。
-func (n *NullDateTime) Scan(value interface{}) error {
+func (n *NullDateTime) Scan(value any) error {
 	if value == nil {
 		*n = NullDateTime{}
 		return nil

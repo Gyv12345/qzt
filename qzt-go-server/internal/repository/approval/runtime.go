@@ -50,7 +50,7 @@ func (r *InstanceRepo) PageByApprover(ctx context.Context, page, pageSize int, a
 // PageBySubmitter 按提交人分页查询(我发起的)。
 func (r *InstanceRepo) PageBySubmitter(ctx context.Context, page, pageSize int, submitterID uint) ([]apprmodel.ApprovalInstance, int64, error) {
 	q := &repository.QueryOptions{
-		Where: map[string]interface{}{"submitter_id": submitterID},
+		Where: map[string]any{"submitter_id": submitterID},
 		Order: []string{"id DESC"},
 	}
 	return r.PageList(ctx, page, pageSize, q)

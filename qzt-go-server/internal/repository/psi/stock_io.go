@@ -34,7 +34,7 @@ func NewStockInOrderDetailRepo() *StockInOrderDetailRepo { return &StockInOrderD
 
 func (r *StockInOrderDetailRepo) ListByOrder(ctx context.Context, orderID uint) ([]psimodel.PsiStockInOrderDetail, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"order_id": orderID},
+		Where: map[string]any{"order_id": orderID},
 		Order: []string{"id ASC"},
 	})
 }
@@ -64,7 +64,7 @@ func NewStockOutOrderDetailRepo() *StockOutOrderDetailRepo { return &StockOutOrd
 
 func (r *StockOutOrderDetailRepo) ListByOrder(ctx context.Context, orderID uint) ([]psimodel.PsiStockOutOrderDetail, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"order_id": orderID},
+		Where: map[string]any{"order_id": orderID},
 		Order: []string{"id ASC"},
 	})
 }

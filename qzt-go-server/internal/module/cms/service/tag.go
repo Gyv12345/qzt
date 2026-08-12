@@ -35,7 +35,7 @@ func (s *TagService) Create(ctx context.Context, req *CreateTagRequest) error {
 
 	if req.Slug != "" {
 		exists, err := s.tagRepo.Exists(ctx, &repository.QueryOptions{
-			Where: map[string]interface{}{"slug": req.Slug},
+			Where: map[string]any{"slug": req.Slug},
 		})
 		if err != nil {
 			return err
@@ -83,7 +83,7 @@ func (s *TagService) Update(ctx context.Context, id uint, req *UpdateTagRequest)
 	}
 	if req.Slug != "" && req.Slug != tag.Slug {
 		exists, err := s.tagRepo.Exists(ctx, &repository.QueryOptions{
-			Where: map[string]interface{}{"slug": req.Slug},
+			Where: map[string]any{"slug": req.Slug},
 		})
 		if err != nil {
 			return err

@@ -26,7 +26,7 @@ func (r *EmployeeRepo) Update(ctx context.Context, m *hrmmodel.HrmEmployee) erro
 // PageList 分页查询(支持 keyword 姓名/工号模糊 + 部门/岗位/状态过滤)。
 func (r *EmployeeRepo) PageList(ctx context.Context, page, pageSize int, keyword string, deptID, positionID uint, status int8) ([]hrmmodel.HrmEmployee, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if deptID > 0 {
 		where["department_id"] = deptID
 	}
@@ -43,7 +43,7 @@ func (r *EmployeeRepo) PageList(ctx context.Context, page, pageSize int, keyword
 		// 姓名 OR 工号模糊:用 Conds 表达 OR
 		q.Conds = []repository.Cond{{
 			Query: "name LIKE ? OR emp_no LIKE ?",
-			Args:  []interface{}{"%" + keyword + "%", "%" + keyword + "%"},
+			Args:  []any{"%" + keyword + "%", "%" + keyword + "%"},
 		}}
 	}
 	return r.BaseRepo.PageList(ctx, page, pageSize, q)

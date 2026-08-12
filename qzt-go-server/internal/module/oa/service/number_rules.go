@@ -49,7 +49,7 @@ func init() {
 }
 
 // countLike 统计指定 model 表中 column 列 LIKE "前缀+日期%" 的记录数。
-func countLike(model interface{}, column string) func(ctx context.Context, prefix, datePart string) (int64, error) {
+func countLike(model any, column string) func(ctx context.Context, prefix, datePart string) (int64, error) {
 	return func(ctx context.Context, prefix, datePart string) (int64, error) {
 		var n int64
 		err := repository.DBFrom(ctx).Model(model).

@@ -159,7 +159,7 @@ func (s *ContractService) Delete(ctx context.Context, id uint) error {
 // List 合同列表(分页 + keyword 名称模糊 + customerID + stage 过滤)。
 func (s *ContractService) List(ctx context.Context, page, pageSize int, keyword string, customerID uint, stage string) ([]crmmodel.CrmContract, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword}
 	}

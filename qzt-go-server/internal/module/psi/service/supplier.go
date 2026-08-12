@@ -106,7 +106,7 @@ func (s *SupplierService) Delete(ctx context.Context, id uint) error {
 // List 供应商列表(分页 + keyword 名称模糊 + status 过滤)。
 func (s *SupplierService) List(ctx context.Context, page, pageSize int, keyword string, status int8) ([]psimodel.PsiSupplier, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword, "supplier_no": keyword}
 	}

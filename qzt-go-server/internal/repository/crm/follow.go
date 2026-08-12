@@ -23,7 +23,7 @@ func (r *FollowUpRecordRepo) Update(ctx context.Context, m *crmmodel.FollowUpRec
 // field 为列名(customer_id/opportunity_id/contact_id/contract_id),value 为资源 ID。
 func (r *FollowUpRecordRepo) Timeline(ctx context.Context, field string, value uint) ([]crmmodel.FollowUpRecord, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{field: value},
+		Where: map[string]any{field: value},
 		Order: []string{"follow_time DESC"},
 	})
 }
@@ -43,7 +43,7 @@ func (r *FollowUpPlanRepo) Update(ctx context.Context, m *crmmodel.FollowUpPlan)
 // MyTodos 查某用户的待办计划(status=0)。
 func (r *FollowUpPlanRepo) MyTodos(ctx context.Context, ownerID uint) ([]crmmodel.FollowUpPlan, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"owner_id": ownerID, "status": crmmodel.PlanStatusTodo},
+		Where: map[string]any{"owner_id": ownerID, "status": crmmodel.PlanStatusTodo},
 		Order: []string{"plan_time ASC"},
 	})
 }

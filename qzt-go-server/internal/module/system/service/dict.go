@@ -39,7 +39,7 @@ type CreateDictItem struct {
 func (s *DictService) Create(ctx context.Context, req *CreateDictRequest) error {
 	// 编码唯一性预检
 	exists, err := s.dictRepo.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"code": req.Code},
+		Where: map[string]any{"code": req.Code},
 	})
 	if err != nil {
 		return err

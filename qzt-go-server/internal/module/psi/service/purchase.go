@@ -202,7 +202,7 @@ func (s *PurchaseService) Delete(ctx context.Context, id uint) error {
 // List 采购单列表(分页 + 关键字单号 + 供应商/状态/审批状态过滤)。
 func (s *PurchaseService) List(ctx context.Context, page, pageSize int, keyword string, supplierID uint, status int8, approvalStatus string) ([]psimodel.PsiPurchaseOrder, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"order_no": keyword}
 	}
@@ -347,7 +347,7 @@ func (s *PurchaseService) GetReturnByID(ctx context.Context, id uint) (*Purchase
 // ListReturns 采购退货列表。
 func (s *PurchaseService) ListReturns(ctx context.Context, page, pageSize int, keyword string, supplierID uint, status int8) ([]psimodel.PsiPurchaseReturn, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"return_no": keyword}
 	}

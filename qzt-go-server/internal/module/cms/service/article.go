@@ -88,7 +88,7 @@ func (s *ArticleService) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsArt
 // GetBySlug 按 slug 查询已发布文章（公开访问），并原子递增浏览量。
 func (s *ArticleService) GetBySlug(ctx context.Context, slug string) (*cmsmodel.CmsArticle, error) {
 	article, err := s.articleRepo.GetOne(ctx, &repository.QueryOptions{
-		Where:    map[string]interface{}{"slug": slug, "status": cmsmodel.ArticleStatusPublished},
+		Where:    map[string]any{"slug": slug, "status": cmsmodel.ArticleStatusPublished},
 		Preloads: []string{"Category", "Tags"},
 	})
 	if err != nil {
@@ -187,13 +187,13 @@ func (s *ArticleService) List(ctx context.Context, page, pageSize int, q *ListAr
 		}
 		if q.CategoryID > 0 {
 			if opts.Where == nil {
-				opts.Where = map[string]interface{}{}
+				opts.Where = map[string]any{}
 			}
 			opts.Where["category_id"] = q.CategoryID
 		}
 		if q.Status != nil {
 			if opts.Where == nil {
-				opts.Where = map[string]interface{}{}
+				opts.Where = map[string]any{}
 			}
 			opts.Where["status"] = *q.Status
 		}
@@ -204,7 +204,7 @@ func (s *ArticleService) List(ctx context.Context, page, pageSize int, q *ListAr
 // ListPublished 公开已发布文章分页列表。
 func (s *ArticleService) ListPublished(ctx context.Context, page, pageSize int, keyword, categoryIDStr string) ([]cmsmodel.CmsArticle, int64, error) {
 	opts := &repository.QueryOptions{
-		Where:    map[string]interface{}{"status": cmsmodel.ArticleStatusPublished},
+		Where:    map[string]any{"status": cmsmodel.ArticleStatusPublished},
 		Preloads: []string{"Category"},
 		Order:    []string{"is_top DESC", "sort ASC", "id DESC"},
 	}

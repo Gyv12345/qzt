@@ -24,7 +24,7 @@ func (r *NoticeRepo) Update(ctx context.Context, m *oamodel.OaNotice) error {
 func (r *NoticeRepo) Publish(ctx context.Context, id uint) error {
 	now := xtime.Now()
 	return repository.DBFrom(ctx).Model(&oamodel.OaNotice{}).Where("id = ?", id).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"status":       oamodel.NoticeStatusPublish,
 			"publish_time": now,
 			"updated_at":   now,
@@ -35,7 +35,7 @@ func (r *NoticeRepo) Publish(ctx context.Context, id uint) error {
 func (r *NoticeRepo) Withdraw(ctx context.Context, id uint) error {
 	now := xtime.Now()
 	return repository.DBFrom(ctx).Model(&oamodel.OaNotice{}).Where("id = ?", id).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"status":     oamodel.NoticeStatusDraft,
 			"updated_at": now,
 		}).Error

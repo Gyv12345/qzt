@@ -38,7 +38,7 @@ func NewPurchaseOrderDetailRepo() *PurchaseOrderDetailRepo { return &PurchaseOrd
 // ListByOrder 按采购单列明细。
 func (r *PurchaseOrderDetailRepo) ListByOrder(ctx context.Context, orderID uint) ([]psimodel.PsiPurchaseOrderDetail, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"order_id": orderID},
+		Where: map[string]any{"order_id": orderID},
 		Order: []string{"id ASC"},
 	})
 }
@@ -77,7 +77,7 @@ func NewPurchaseReturnDetailRepo() *PurchaseReturnDetailRepo { return &PurchaseR
 
 func (r *PurchaseReturnDetailRepo) ListByReturn(ctx context.Context, returnID uint) ([]psimodel.PsiPurchaseReturnDetail, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"return_id": returnID},
+		Where: map[string]any{"return_id": returnID},
 		Order: []string{"id ASC"},
 	})
 }

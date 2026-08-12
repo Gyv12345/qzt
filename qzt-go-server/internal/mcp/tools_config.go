@@ -102,7 +102,7 @@ func handleWecomConfigUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err := svc.Update(ctx, id, updateReq.toService()); err != nil {
 		return resultError(fmt.Sprintf("更新失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "企业微信配置已更新"})
+	return resultText(map[string]any{"message": "企业微信配置已更新"})
 }
 
 func handleWecomConfigEnable(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -115,7 +115,7 @@ func handleWecomConfigEnable(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err := svc.Enable(ctx, id, enabled); err != nil {
 		return resultError(fmt.Sprintf("操作失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "企业微信登录已" + map[int8]string{0: "禁用", 1: "启用"}[enabled]})
+	return resultText(map[string]any{"message": "企业微信登录已" + map[int8]string{0: "禁用", 1: "启用"}[enabled]})
 }
 
 // ═══════════════════════════════════════════
@@ -188,5 +188,5 @@ func handleSiteConfigUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	if err := svc.Update(ctx, updateReq.toService()); err != nil {
 		return resultError(fmt.Sprintf("更新失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "站点信息已更新"})
+	return resultText(map[string]any{"message": "站点信息已更新"})
 }

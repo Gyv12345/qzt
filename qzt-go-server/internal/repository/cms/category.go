@@ -24,7 +24,7 @@ func (r *CategoryRepo) Update(ctx context.Context, m *cmsmodel.CmsCategory) erro
 // GetBySlug 按 slug 查询单个分类。
 func (r *CategoryRepo) GetBySlug(ctx context.Context, slug string) (*cmsmodel.CmsCategory, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"slug": slug},
+		Where: map[string]any{"slug": slug},
 	})
 }
 
@@ -38,6 +38,6 @@ func (r *CategoryRepo) ListAll(ctx context.Context) ([]cmsmodel.CmsCategory, err
 // HasChildren 是否存在子分类（删除前校验）。
 func (r *CategoryRepo) HasChildren(ctx context.Context, id uint) (bool, error) {
 	return r.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"parent_id": id},
+		Where: map[string]any{"parent_id": id},
 	})
 }

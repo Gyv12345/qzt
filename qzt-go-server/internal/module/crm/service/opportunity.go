@@ -141,7 +141,7 @@ func (s *OpportunityService) Delete(ctx context.Context, id uint) error {
 // List 商机列表(分页 + keyword 名称模糊 + customerID + stage 过滤)。
 func (s *OpportunityService) List(ctx context.Context, page, pageSize int, keyword string, customerID uint, stage string) ([]crmmodel.CrmOpportunity, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword}
 	}

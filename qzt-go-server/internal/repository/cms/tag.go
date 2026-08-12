@@ -24,7 +24,7 @@ func (r *TagRepo) Update(ctx context.Context, m *cmsmodel.CmsTag) error {
 // GetBySlug 按 slug 查询单个标签。
 func (r *TagRepo) GetBySlug(ctx context.Context, slug string) (*cmsmodel.CmsTag, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"slug": slug},
+		Where: map[string]any{"slug": slug},
 	})
 }
 

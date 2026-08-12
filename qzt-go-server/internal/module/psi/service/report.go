@@ -101,7 +101,7 @@ type SummaryRow struct {
 // PurchaseSummary 采购汇总(按日聚合,基于已入库的采购单)。
 func (s *ReportService) PurchaseSummary(ctx context.Context, startDate, endDate string) ([]SummaryRow, error) {
 	return summaryByDate(ctx, "psi_purchase_order", "order_date", "total_amount", startDate, endDate,
-		map[string]interface{}{"status": psimodel.PurchaseStatusReceipt})
+		map[string]any{"status": psimodel.PurchaseStatusReceipt})
 }
 
 // parseTime 把日期字符串解析为 *time.Time(用于 created_at 范围过滤)。
@@ -119,7 +119,7 @@ func parseTime(s string) *time.Time {
 
 // summaryByDate 按日期字段聚合某表的金额(内部通用)。
 // dateCol/amountCol 为可信的 SQL 列名(非客户端输入)。
-func summaryByDate(ctx context.Context, table, dateCol, amountCol, startDate, endDate string, extraWhere map[string]interface{}) ([]SummaryRow, error) {
+func summaryByDate(ctx context.Context, table, dateCol, amountCol, startDate, endDate string, extraWhere map[string]any) ([]SummaryRow, error) {
 	db := repository.DBFrom(ctx).Table(table).
 		Select("DATE("+dateCol+") AS date, COUNT(*) AS count, COALESCE(SUM("+amountCol+"),0) AS amount").
 		Group("DATE(" + dateCol + ")").

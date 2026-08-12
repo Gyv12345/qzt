@@ -25,7 +25,7 @@ func (r *SupplierRepo) Update(ctx context.Context, m *psimodel.PsiSupplier) erro
 // ListEnabled 列出启用的供应商(下拉用)。
 func (r *SupplierRepo) ListEnabled(ctx context.Context) ([]psimodel.PsiSupplier, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"status": psimodel.StatusEnabled},
+		Where: map[string]any{"status": psimodel.StatusEnabled},
 		Order: []string{"id ASC"},
 	})
 }

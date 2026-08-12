@@ -34,7 +34,7 @@ func (r *ProductPriceRepo) Update(ctx context.Context, m *crmmodel.CrmProductPri
 
 func (r *ProductPriceRepo) ListByProduct(ctx context.Context, productID uint) ([]crmmodel.CrmProductPrice, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"product_id": productID},
+		Where: map[string]any{"product_id": productID},
 		Order: []string{"id ASC"},
 	})
 }

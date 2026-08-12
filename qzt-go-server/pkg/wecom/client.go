@@ -170,7 +170,7 @@ func (c *Client) GetMember(ctx context.Context, userID string) (*MemberInfo, err
 
 // ── 内部 HTTP 工具 ──
 
-func (c *Client) httpGetJSON(ctx context.Context, url string, target interface{}) error {
+func (c *Client) httpGetJSON(ctx context.Context, url string, target any) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err

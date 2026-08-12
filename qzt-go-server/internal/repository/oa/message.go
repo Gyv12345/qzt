@@ -28,7 +28,7 @@ func (r *MessageRepo) MarkAsRead(ctx context.Context, id, receiverID uint) (int6
 	now := xtime.Now()
 	result := repository.DBFrom(ctx).Model(&oamodel.OaMessage{}).
 		Where("id = ? AND receiver_id = ? AND is_read = ?", id, receiverID, oamodel.MsgUnread).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"is_read":    oamodel.MsgRead,
 			"read_time":  now,
 			"updated_at": now,
@@ -40,7 +40,7 @@ func (r *MessageRepo) MarkAllAsRead(ctx context.Context, receiverID uint) (int64
 	now := xtime.Now()
 	result := repository.DBFrom(ctx).Model(&oamodel.OaMessage{}).
 		Where("receiver_id = ? AND is_read = ?", receiverID, oamodel.MsgUnread).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"is_read":    oamodel.MsgRead,
 			"read_time":  now,
 			"updated_at": now,
@@ -55,7 +55,7 @@ func (r *MessageRepo) MarkAsReadByIds(ctx context.Context, ids []uint, receiverI
 	now := xtime.Now()
 	result := repository.DBFrom(ctx).Model(&oamodel.OaMessage{}).
 		Where("id IN ? AND receiver_id = ? AND is_read = ?", ids, receiverID, oamodel.MsgUnread).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"is_read":    oamodel.MsgRead,
 			"read_time":  now,
 			"updated_at": now,

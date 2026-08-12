@@ -14,14 +14,14 @@ import (
 // SQL (GORM does not parameterize identifiers). Build them only from trusted
 // server-side code, never directly from client input, to avoid SQL injection.
 type QueryOptions struct {
-	Where    map[string]interface{} // equality conditions (ANDed)
+	Where    map[string]any // equality conditions (ANDed)
 	Search   map[string]string      // field -> keyword, rendered as "field LIKE %kw%"
 	Conds    []Cond                 // raw conditions for ranges/ORs Where/Search can't express
 	Order    []string               // e.g. ["created_at DESC", "id ASC"]
 	Preloads []string               // associations to preload
 	Select   []string               // projection columns
 	Group    string
-	Having   map[string]interface{}
+	Having   map[string]any
 }
 
 // Cond is a raw query fragment for predicates that Where (equality) and Search
@@ -30,7 +30,7 @@ type QueryOptions struct {
 // server-side SQL, never raw client input.
 type Cond struct {
 	Query string
-	Args  []interface{}
+	Args  []any
 }
 
 // applyFilter applies only the row-filtering parts (shared by List and Count).

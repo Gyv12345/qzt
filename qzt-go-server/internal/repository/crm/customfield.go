@@ -19,7 +19,7 @@ type ModuleFormRepo struct {
 func NewModuleFormRepo() *ModuleFormRepo { return &ModuleFormRepo{} }
 
 func (r *ModuleFormRepo) GetByKey(ctx context.Context, key crmmodel.FormKey) (*crmmodel.SysModuleForm, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"form_key": key}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"form_key": key}})
 }
 
 // ── 字段定义 ──
@@ -37,14 +37,14 @@ func (r *ModuleFieldRepo) Update(ctx context.Context, m *crmmodel.SysModuleField
 // ListByForm 列出某表单的全部字段(按 pos 排序)。
 func (r *ModuleFieldRepo) ListByForm(ctx context.Context, formID string) ([]crmmodel.SysModuleField, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"form_id": formID},
+		Where: map[string]any{"form_id": formID},
 		Order: []string{"pos ASC", "id ASC"},
 	})
 }
 
 // GetByStringID 按字符串主键取字段(BaseRepo.GetByID 是 uint,字段主键是 UUID 字符串)。
 func (r *ModuleFieldRepo) GetByStringID(ctx context.Context, id string) (*crmmodel.SysModuleField, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"id": id}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"id": id}})
 }
 
 // ── 字段大属性 ──
@@ -61,13 +61,13 @@ func (r *ModuleFieldBlobRepo) GetByIDs(ctx context.Context, ids []string) ([]crm
 		return nil, nil
 	}
 	return r.List(ctx, &repository.QueryOptions{
-		Conds: []repository.Cond{{Query: "id IN ?", Args: []interface{}{ids}}},
+		Conds: []repository.Cond{{Query: "id IN ?", Args: []any{ids}}},
 	})
 }
 
 // GetByStringID 按字符串主键取字段大属性。
 func (r *ModuleFieldBlobRepo) GetByStringID(ctx context.Context, id string) (*crmmodel.SysModuleFieldBlob, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"id": id}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"id": id}})
 }
 
 // ── 客户字段值(单值 + BLOB) ──
@@ -79,7 +79,7 @@ type CustomerFieldRepo struct {
 func NewCustomerFieldRepo() *CustomerFieldRepo { return &CustomerFieldRepo{} }
 
 func (r *CustomerFieldRepo) ListByResource(ctx context.Context, resourceID string) ([]crmmodel.CustomerField, error) {
-	return r.List(ctx, &repository.QueryOptions{Where: map[string]interface{}{"resource_id": resourceID}})
+	return r.List(ctx, &repository.QueryOptions{Where: map[string]any{"resource_id": resourceID}})
 }
 
 func (r *CustomerFieldRepo) DeleteByResource(ctx context.Context, resourceID string) error {
@@ -93,7 +93,7 @@ type CustomerFieldBlobRepo struct {
 func NewCustomerFieldBlobRepo() *CustomerFieldBlobRepo { return &CustomerFieldBlobRepo{} }
 
 func (r *CustomerFieldBlobRepo) ListByResource(ctx context.Context, resourceID string) ([]crmmodel.CustomerFieldBlob, error) {
-	return r.List(ctx, &repository.QueryOptions{Where: map[string]interface{}{"resource_id": resourceID}})
+	return r.List(ctx, &repository.QueryOptions{Where: map[string]any{"resource_id": resourceID}})
 }
 
 func (r *CustomerFieldBlobRepo) DeleteByResource(ctx context.Context, resourceID string) error {
@@ -133,7 +133,7 @@ type LeadFieldRepo struct {
 func NewLeadFieldRepo() *LeadFieldRepo { return &LeadFieldRepo{} }
 
 func (r *LeadFieldRepo) ListByResource(ctx context.Context, resourceID string) ([]crmmodel.LeadField, error) {
-	return r.List(ctx, &repository.QueryOptions{Where: map[string]interface{}{"resource_id": resourceID}})
+	return r.List(ctx, &repository.QueryOptions{Where: map[string]any{"resource_id": resourceID}})
 }
 
 func (r *LeadFieldRepo) DeleteByResource(ctx context.Context, resourceID string) error {
@@ -147,7 +147,7 @@ type LeadFieldBlobRepo struct {
 func NewLeadFieldBlobRepo() *LeadFieldBlobRepo { return &LeadFieldBlobRepo{} }
 
 func (r *LeadFieldBlobRepo) ListByResource(ctx context.Context, resourceID string) ([]crmmodel.LeadFieldBlob, error) {
-	return r.List(ctx, &repository.QueryOptions{Where: map[string]interface{}{"resource_id": resourceID}})
+	return r.List(ctx, &repository.QueryOptions{Where: map[string]any{"resource_id": resourceID}})
 }
 
 func (r *LeadFieldBlobRepo) DeleteByResource(ctx context.Context, resourceID string) error {

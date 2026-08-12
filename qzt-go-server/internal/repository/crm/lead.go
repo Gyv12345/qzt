@@ -36,14 +36,14 @@ func (r *LeadRepo) Update(ctx context.Context, m *crmmodel.CrmLead) error {
 // CountByOwner 统计某用户私海线索数(容量校验用)。
 func (r *LeadRepo) CountByOwner(ctx context.Context, ownerID uint) (int64, error) {
 	return r.Count(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
+		Where: map[string]any{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
 	})
 }
 
 // ListPrivateSeaByOwner 列出某负责人私海线索(回收扫描用)。
 func (r *LeadRepo) ListPrivateSeaByOwner(ctx context.Context, ownerID uint) ([]crmmodel.CrmLead, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
+		Where: map[string]any{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
 	})
 }
 
@@ -58,7 +58,7 @@ func NewLeadOwnerHistoryRepo() *LeadOwnerHistoryRepo { return &LeadOwnerHistoryR
 // ListByLead 按线索列归属变更历史。
 func (r *LeadOwnerHistoryRepo) ListByLead(ctx context.Context, leadID uint) ([]crmmodel.CrmLeadOwnerHistory, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"lead_id": leadID},
+		Where: map[string]any{"lead_id": leadID},
 		Order: []string{"id DESC"},
 	})
 }
@@ -83,7 +83,7 @@ func (r *LeadPoolRepo) Update(ctx context.Context, m *crmmodel.CrmLeadPool) erro
 // ListEnabled 列出启用的线索公海池(enabled=1)。
 func (r *LeadPoolRepo) ListEnabled(ctx context.Context) ([]crmmodel.CrmLeadPool, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"enabled": 1},
+		Where: map[string]any{"enabled": 1},
 		Order: []string{"id ASC"},
 	})
 }
@@ -104,7 +104,7 @@ type LeadPoolPickRuleRepo struct {
 func NewLeadPoolPickRuleRepo() *LeadPoolPickRuleRepo { return &LeadPoolPickRuleRepo{} }
 
 func (r *LeadPoolPickRuleRepo) GetByPool(ctx context.Context, poolID uint) (*crmmodel.CrmLeadPoolPickRule, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"pool_id": poolID}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"pool_id": poolID}})
 }
 
 // ── 线索回收规则 ──
@@ -116,5 +116,5 @@ type LeadPoolRecycleRuleRepo struct {
 func NewLeadPoolRecycleRuleRepo() *LeadPoolRecycleRuleRepo { return &LeadPoolRecycleRuleRepo{} }
 
 func (r *LeadPoolRecycleRuleRepo) GetByPool(ctx context.Context, poolID uint) (*crmmodel.CrmLeadPoolRecycleRule, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"pool_id": poolID}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"pool_id": poolID}})
 }

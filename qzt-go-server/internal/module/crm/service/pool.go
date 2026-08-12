@@ -193,7 +193,7 @@ func (s *PoolService) ManualRecycle(ctx context.Context, poolID, operatorID uint
 		return 0, notFoundOr(err, "回收规则不存在")
 	}
 	customers, err := s.customerRepo.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"in_pool": crmmodel.InPoolPrivate},
+		Where: map[string]any{"in_pool": crmmodel.InPoolPrivate},
 	})
 	if err != nil {
 		return 0, err

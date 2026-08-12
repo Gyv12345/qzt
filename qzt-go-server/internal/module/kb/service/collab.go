@@ -67,7 +67,7 @@ func SaveSnapshot(ctx context.Context, docID uint, editorID uint, content string
 
 	// 更新文档内容
 	if err := db.Table("kb_document").Where("id = ?", docID).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"content":        content,
 			"last_editor_id": editorID,
 			"updated_at":     "NOW()",
@@ -78,7 +78,7 @@ func SaveSnapshot(ctx context.Context, docID uint, editorID uint, content string
 	// 创建版本历史
 	var maxVer int
 	db.Table("kb_version").Where("document_id = ?", docID).Select("COALESCE(MAX(version_number), 0)").Scan(&maxVer)
-	return db.Table("kb_version").Create(map[string]interface{}{
+	return db.Table("kb_version").Create(map[string]any{
 		"document_id":    docID,
 		"content":        content,
 		"editor_id":      editorID,

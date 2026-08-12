@@ -185,7 +185,7 @@ func (s *SalesService) Delete(ctx context.Context, id uint) error {
 // List 销售单列表。
 func (s *SalesService) List(ctx context.Context, page, pageSize int, keyword string, customerID uint, status int8, approvalStatus string) ([]psimodel.PsiSalesOrder, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"order_no": keyword}
 	}
@@ -337,7 +337,7 @@ func (s *SalesService) GetReturnByID(ctx context.Context, id uint) (*SalesReturn
 // ListReturns 销售退货列表。
 func (s *SalesService) ListReturns(ctx context.Context, page, pageSize int, keyword string, customerID uint, status int8) ([]psimodel.PsiSalesReturn, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"return_no": keyword}
 	}

@@ -108,7 +108,7 @@ func handleLeadList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	if err != nil {
 		return resultError(fmt.Sprintf("查询线索列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"list":  list,
 		"total": total,
 		"page":  page,
@@ -149,7 +149,7 @@ func handleLeadCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err != nil {
 		return resultError(fmt.Sprintf("创建线索失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"message": "线索创建成功",
 		"id":      lead.ID,
 		"lead_no": lead.LeadNo,
@@ -184,7 +184,7 @@ func handleLeadUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Update(ctx, id, leadReq, userID); err != nil {
 		return resultError(fmt.Sprintf("更新线索失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "线索更新成功"})
+	return resultText(map[string]any{"message": "线索更新成功"})
 }
 
 func handleLeadConvert(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -198,7 +198,7 @@ func handleLeadConvert(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	if err != nil {
 		return resultError(fmt.Sprintf("线索转化失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"message":          "线索已转化为客户",
 		"customer_id":      customer.ID,
 		"customer_name":    customer.Name,

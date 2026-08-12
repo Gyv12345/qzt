@@ -61,7 +61,7 @@ type CreateCustomerRequest struct {
 // Create 创建客户(默认私海,owner 默认当前用户;写自定义字段值)。
 func (s *CustomerService) Create(ctx context.Context, req *CreateCustomerRequest, currentUserID uint) (*crmmodel.CrmCustomer, error) {
 	// 名称唯一性预检
-	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]interface{}{"name": req.Name}})
+	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"name": req.Name}})
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ type PublicPartnerDTO struct {
 // ListPartners 公开合作方分页列表(只返回 status=正常 的客户,作为官网展示的合作客户)。
 func (s *CustomerService) ListPartners(ctx context.Context, page, pageSize int, keyword, industry string) ([]PublicPartnerDTO, int64, error) {
 	opts := &repository.QueryOptions{
-		Where:  map[string]interface{}{"status": crmmodel.CustomerStatusNormal},
+		Where:  map[string]any{"status": crmmodel.CustomerStatusNormal},
 		Select: []string{"id", "name", "level", "industry", "source"},
 		Order:  []string{"id DESC"},
 	}
@@ -182,7 +182,7 @@ func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustom
 	// 名称唯一性(排除自身)
 	if req.Name != customer.Name {
 		exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-			Conds: []repository.Cond{{Query: "name = ? AND id != ?", Args: []interface{}{req.Name, id}}},
+			Conds: []repository.Cond{{Query: "name = ? AND id != ?", Args: []any{req.Name, id}}},
 		})
 		if err != nil {
 			return err
@@ -240,7 +240,7 @@ func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 // List 客户列表(分页 + 主字段过滤)。
 func (s *CustomerService) List(ctx context.Context, page, pageSize int, keyword, level, source, status, industry, poolFilter string, poolID uint) ([]crmmodel.CrmCustomer, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword}
 	}
@@ -398,6 +398,6 @@ func crrepoDeleteCollaborationsByCustomer(ctx context.Context, customerID uint) 
 }
 
 // crrepoDeleteByColumn 按列名软删除(GORM 软删除自动加 deleted_at 条件)。
-func crrepoDeleteByColumn(ctx context.Context, model interface{}, column string, value uint) error {
+func crrepoDeleteByColumn(ctx context.Context, model any, column string, value uint) error {
 	return crrepo.DeleteByColumn(ctx, model, column, value)
 }

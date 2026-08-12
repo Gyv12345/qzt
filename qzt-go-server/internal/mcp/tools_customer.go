@@ -65,7 +65,7 @@ func handleCustomerList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err != nil {
 		return resultError(fmt.Sprintf("查询客户列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"list":  list,
 		"total": total,
 		"page":  page,

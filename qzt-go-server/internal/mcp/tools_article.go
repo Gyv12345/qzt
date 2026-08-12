@@ -101,7 +101,7 @@ func handleArticleList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	if err != nil {
 		return resultError(fmt.Sprintf("查询文章列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"list":  list,
 		"total": total,
 		"page":  page,
@@ -181,7 +181,7 @@ func handleArticleUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if err := svc.Update(ctx, id, updateReq, userIDFromContext(ctx), existing.AuthorName); err != nil {
 		return resultError(fmt.Sprintf("更新文章失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"id": id, "message": "更新成功"})
+	return resultText(map[string]any{"id": id, "message": "更新成功"})
 }
 
 // ── 辅助:参数缺省回退 ──

@@ -24,7 +24,7 @@ func (r *WarehouseRepo) Update(ctx context.Context, m *psimodel.PsiWarehouse) er
 // ListEnabled 列出启用的仓库(下拉用)。
 func (r *WarehouseRepo) ListEnabled(ctx context.Context) ([]psimodel.PsiWarehouse, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"status": psimodel.StatusEnabled},
+		Where: map[string]any{"status": psimodel.StatusEnabled},
 		Order: []string{"sort ASC", "id ASC"},
 	})
 }

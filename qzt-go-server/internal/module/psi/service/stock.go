@@ -20,7 +20,7 @@ import (
 // lowStock=true 时仅返回 quantity < safety_stock(且 safety_stock>0)的预警行。
 func (s *StockService) StockList(ctx context.Context, page, pageSize int, warehouseID uint, keyword string, lowStock bool) ([]StockListRow, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if warehouseID > 0 {
 		where["warehouse_id"] = warehouseID
 	}
@@ -70,7 +70,7 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 // MovementDetail 收发明细查询。按仓库/商品/业务类型过滤,分页,按 id 倒序。
 func (s *StockService) MovementDetail(ctx context.Context, page, pageSize int, warehouseID, productID uint, bizType string) ([]psimodel.PsiStockMovement, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if warehouseID > 0 {
 		where["warehouse_id"] = warehouseID
 	}

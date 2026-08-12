@@ -118,7 +118,7 @@ type PublicProductDTO struct {
 // ListPublished 公开上架商品分页列表(只返回 status=上架)。
 func (s *ProductService) ListPublished(ctx context.Context, page, pageSize int, keyword, category string) ([]crmmodel.CrmProduct, int64, error) {
 	opts := &repository.QueryOptions{
-		Where: map[string]interface{}{"status": crmmodel.ProductStatusOn},
+		Where: map[string]any{"status": crmmodel.ProductStatusOn},
 		Order: []string{"id DESC"},
 	}
 	if keyword != "" {
@@ -133,7 +133,7 @@ func (s *ProductService) ListPublished(ctx context.Context, page, pageSize int, 
 // GetPublishedByID 公开商品详情(仅上架)。附带多价格,隐藏成本价。
 func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*PublicProductDTO, error) {
 	p, err := s.repo.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"id": id, "status": crmmodel.ProductStatusOn},
+		Where: map[string]any{"id": id, "status": crmmodel.ProductStatusOn},
 	})
 	if err != nil {
 		return nil, notFoundOr(err, "商品不存在")
@@ -152,7 +152,7 @@ func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*Public
 // List 商品列表(分页 + keyword 名称模糊 + category + status 过滤)。
 func (s *ProductService) List(ctx context.Context, page, pageSize int, keyword, category string, status int8) ([]crmmodel.CrmProduct, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword}
 	}

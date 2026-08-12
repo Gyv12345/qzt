@@ -53,7 +53,7 @@ func handleOpportunityList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err != nil {
 		return resultError(fmt.Sprintf("查询商机列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleOpportunityGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -116,7 +116,7 @@ func handleContractList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err != nil {
 		return resultError(fmt.Sprintf("查询合同列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleContractGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -216,7 +216,7 @@ func handleProductList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	if err != nil {
 		return resultError(fmt.Sprintf("查询产品列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleProductGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -281,7 +281,7 @@ func handleProductUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if err := svc.Update(ctx, id, updateReq); err != nil {
 		return resultError(fmt.Sprintf("更新产品失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "产品已更新", "id": id})
+	return resultText(map[string]any{"message": "产品已更新", "id": id})
 }
 
 // ── Contact ──
@@ -373,7 +373,7 @@ func handleContactCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if err := svc.Create(ctx, createReq); err != nil {
 		return resultError(fmt.Sprintf("创建联系人失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "联系人已创建", "customer_id": customerID, "name": name})
+	return resultText(map[string]any{"message": "联系人已创建", "customer_id": customerID, "name": name})
 }
 
 func handleContactUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -404,7 +404,7 @@ func handleContactUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if err := svc.Update(ctx, id, updateReq); err != nil {
 		return resultError(fmt.Sprintf("更新联系人失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "联系人已更新", "id": id})
+	return resultText(map[string]any{"message": "联系人已更新", "id": id})
 }
 
 func handleContactDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -416,7 +416,7 @@ func handleContactDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除联系人失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "联系人已删除", "id": id})
+	return resultText(map[string]any{"message": "联系人已删除", "id": id})
 }
 
 // ── Payment ──

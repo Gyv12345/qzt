@@ -59,7 +59,7 @@ func LoginAdmin(t *testing.T, baseURL string) string {
 // DoJSON 发送 JSON 请求并返回响应信封。
 //   - token 为空则不带 Authorization header(用于公开接口)
 //   - body 为 nil 则发空 body(GET 场景)
-func DoJSON(t *testing.T, baseURL, method, path, token string, body interface{}) *Envelope {
+func DoJSON(t *testing.T, baseURL, method, path, token string, body any) *Envelope {
 	t.Helper()
 	var bodyReader io.Reader
 	if body != nil {

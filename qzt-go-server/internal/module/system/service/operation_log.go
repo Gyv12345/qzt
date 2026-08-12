@@ -31,7 +31,7 @@ type ListOperationLogRequest struct {
 // Search can't express) go in Conds.
 func (s *OperationLogService) List(ctx context.Context, page, pageSize int, req *ListOperationLogRequest) ([]model.SysOperationLog, int64, error) {
 	q := &repository.QueryOptions{
-		Where: map[string]interface{}{},
+		Where: map[string]any{},
 		Order: []string{"id DESC"},
 	}
 	if req.Username != "" {
@@ -47,14 +47,14 @@ func (s *OperationLogService) List(ctx context.Context, page, pageSize int, req 
 		q.Where["success"] = *req.Success
 	}
 	if start := parseTimeRange(req.StartTime); !start.IsZero() {
-		q.Conds = append(q.Conds, repository.Cond{Query: "created_at >= ?", Args: []interface{}{start}})
+		q.Conds = append(q.Conds, repository.Cond{Query: "created_at >= ?", Args: []any{start}})
 	}
 	if end := parseTimeRange(req.EndTime); !end.IsZero() {
-		q.Conds = append(q.Conds, repository.Cond{Query: "created_at <= ?", Args: []interface{}{end}})
+		q.Conds = append(q.Conds, repository.Cond{Query: "created_at <= ?", Args: []any{end}})
 	}
 	if req.Keyword != "" {
 		kw := "%" + req.Keyword + "%"
-		q.Conds = append(q.Conds, repository.Cond{Query: "action LIKE ? OR path LIKE ?", Args: []interface{}{kw, kw}})
+		q.Conds = append(q.Conds, repository.Cond{Query: "action LIKE ? OR path LIKE ?", Args: []any{kw, kw}})
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
 }

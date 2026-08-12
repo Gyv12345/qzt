@@ -153,7 +153,7 @@ func handleApprovalFlowList(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	if err != nil {
 		return resultError(fmt.Sprintf("查询审批流列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleApprovalFlowGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -184,7 +184,7 @@ func handleApprovalTodoList(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	if err != nil {
 		return resultError(fmt.Sprintf("查询待办失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleApprovalProcessedList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -202,7 +202,7 @@ func handleApprovalProcessedList(ctx context.Context, req mcp.CallToolRequest) (
 	if err != nil {
 		return resultError(fmt.Sprintf("查询已办失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleApprovalInitiatedList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -220,7 +220,7 @@ func handleApprovalInitiatedList(ctx context.Context, req mcp.CallToolRequest) (
 	if err != nil {
 		return resultError(fmt.Sprintf("查询我发起的失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleApprovalInstanceGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -280,7 +280,7 @@ func handleApprovalFlowSaveDesign(ctx context.Context, req mcp.CallToolRequest) 
 	if err := svc.SaveDesign(ctx, flowID, &design); err != nil {
 		return resultError(fmt.Sprintf("保存流程设计失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"message":     "流程设计已保存(新版本已创建)",
 		"flow_id":     flowID,
 		"nodes_count": len(design.Nodes),
@@ -305,7 +305,7 @@ func handleApprovalFlowEnable(ctx context.Context, req mcp.CallToolRequest) (*mc
 	if enable == 1 {
 		action = "已启用"
 	}
-	return resultText(map[string]interface{}{"message": fmt.Sprintf("审批流%s", action), "flow_id": id})
+	return resultText(map[string]any{"message": fmt.Sprintf("审批流%s", action), "flow_id": id})
 }
 
 // ── 审批操作 handlers ──
@@ -323,7 +323,7 @@ func handleApprovalApprove(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	}, userID); err != nil {
 		return resultError(fmt.Sprintf("审批通过失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "审批已通过", "task_id": taskID})
+	return resultText(map[string]any{"message": "审批已通过", "task_id": taskID})
 }
 
 func handleApprovalReject(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -340,7 +340,7 @@ func handleApprovalReject(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	}, userID); err != nil {
 		return resultError(fmt.Sprintf("驳回失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "审批已驳回", "task_id": taskID})
+	return resultText(map[string]any{"message": "审批已驳回", "task_id": taskID})
 }
 
 func handleApprovalRevoke(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -353,7 +353,7 @@ func handleApprovalRevoke(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err := svc.Revoke(ctx, instanceID, userID); err != nil {
 		return resultError(fmt.Sprintf("撤回失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "审批已撤回", "instance_id": instanceID})
+	return resultText(map[string]any{"message": "审批已撤回", "instance_id": instanceID})
 }
 
 func handleApprovalPush(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -372,7 +372,7 @@ func handleApprovalPush(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err != nil {
 		return resultError(fmt.Sprintf("发起审批失败: %v", err))
 	}
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"message":     "审批已发起",
 		"instance_id": instance.ID,
 		"status":      instance.ApprovalStatus,

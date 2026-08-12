@@ -53,7 +53,7 @@ type CreateEmployeeRequest struct {
 // Create 创建员工(写一条入职履历)。
 func (s *EmployeeService) Create(ctx context.Context, req *CreateEmployeeRequest, operatorID uint) (*hrmmodel.HrmEmployee, error) {
 	// 工号唯一性预检
-	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]interface{}{"emp_no": req.EmpNo}})
+	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"emp_no": req.EmpNo}})
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (s *EmployeeService) Update(ctx context.Context, id uint, req *UpdateEmploy
 	// 工号唯一性(排除自身)
 	if req.EmpNo != emp.EmpNo {
 		exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-			Conds: []repository.Cond{{Query: "emp_no = ? AND id != ?", Args: []interface{}{req.EmpNo, id}}},
+			Conds: []repository.Cond{{Query: "emp_no = ? AND id != ?", Args: []any{req.EmpNo, id}}},
 		})
 		if err != nil {
 			return err

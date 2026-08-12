@@ -83,7 +83,7 @@ func handleUserList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	if err != nil {
 		return resultError(fmt.Sprintf("查询用户列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleUserGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -119,7 +119,7 @@ func handleUserCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Create(ctx, cr); err != nil {
 		return resultError(fmt.Sprintf("创建用户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "用户已创建", "username": username})
+	return resultText(map[string]any{"message": "用户已创建", "username": username})
 }
 
 func handleUserUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -144,7 +144,7 @@ func handleUserUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Update(ctx, id, ur); err != nil {
 		return resultError(fmt.Sprintf("更新用户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "用户已更新", "id": id})
+	return resultText(map[string]any{"message": "用户已更新", "id": id})
 }
 
 func handleUserDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -156,7 +156,7 @@ func handleUserDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Delete(ctx, id, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("删除用户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "用户已删除", "id": id})
+	return resultText(map[string]any{"message": "用户已删除", "id": id})
 }
 
 // ════════════════════════════════════════════════
@@ -268,7 +268,7 @@ func handleRoleCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Create(ctx, cr); err != nil {
 		return resultError(fmt.Sprintf("创建角色失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "角色已创建", "code": code})
+	return resultText(map[string]any{"message": "角色已创建", "code": code})
 }
 
 func handleRoleUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -289,7 +289,7 @@ func handleRoleUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Update(ctx, id, ur); err != nil {
 		return resultError(fmt.Sprintf("更新角色失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "角色已更新", "id": id})
+	return resultText(map[string]any{"message": "角色已更新", "id": id})
 }
 
 func handleRoleDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -301,7 +301,7 @@ func handleRoleDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除角色失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "角色已删除", "id": id})
+	return resultText(map[string]any{"message": "角色已删除", "id": id})
 }
 
 func handleRoleAssignMenus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -314,7 +314,7 @@ func handleRoleAssignMenus(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err := svc.SetMenus(ctx, roleID, menuIDs); err != nil {
 		return resultError(fmt.Sprintf("分配菜单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "菜单权限已分配", "role_id": roleID, "menu_count": len(menuIDs)})
+	return resultText(map[string]any{"message": "菜单权限已分配", "role_id": roleID, "menu_count": len(menuIDs)})
 }
 
 func handleRoleAssignAPIs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -331,7 +331,7 @@ func handleRoleAssignAPIs(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err := svc.SetAPIs(ctx, roleID, apis); err != nil {
 		return resultError(fmt.Sprintf("分配API失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "API权限已分配", "role_id": roleID, "api_count": len(apis)})
+	return resultText(map[string]any{"message": "API权限已分配", "role_id": roleID, "api_count": len(apis)})
 }
 
 func handleRoleGetAPIs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -426,7 +426,7 @@ func handleMenuCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Create(ctx, cr); err != nil {
 		return resultError(fmt.Sprintf("创建菜单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "菜单已创建", "name": name})
+	return resultText(map[string]any{"message": "菜单已创建", "name": name})
 }
 
 func handleMenuUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -448,7 +448,7 @@ func handleMenuUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Update(ctx, id, ur); err != nil {
 		return resultError(fmt.Sprintf("更新菜单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "菜单已更新", "id": id})
+	return resultText(map[string]any{"message": "菜单已更新", "id": id})
 }
 
 func handleMenuDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -460,7 +460,7 @@ func handleMenuDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除菜单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "菜单已删除", "id": id})
+	return resultText(map[string]any{"message": "菜单已删除", "id": id})
 }
 
 // ════════════════════════════════════════════════
@@ -505,7 +505,7 @@ func handleAPIList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	if err != nil {
 		return resultError(fmt.Sprintf("查询API列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleAPICreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -521,7 +521,7 @@ func handleAPICreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	}); err != nil {
 		return resultError(fmt.Sprintf("创建API失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "API已创建", "path": path, "method": method})
+	return resultText(map[string]any{"message": "API已创建", "path": path, "method": method})
 }
 
 func handleAPIDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -533,7 +533,7 @@ func handleAPIDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除API失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "API已删除", "id": id})
+	return resultText(map[string]any{"message": "API已删除", "id": id})
 }
 
 // ════════════════════════════════════════════════
@@ -595,7 +595,7 @@ func handleDictList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	if err != nil {
 		return resultError(fmt.Sprintf("查询字典列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleDictGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -628,7 +628,7 @@ func handleDictCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}); err != nil {
 		return resultError(fmt.Sprintf("创建字典失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "字典已创建", "code": code, "item_count": len(items)})
+	return resultText(map[string]any{"message": "字典已创建", "code": code, "item_count": len(items)})
 }
 
 func handleDictUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -649,7 +649,7 @@ func handleDictUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}); err != nil {
 		return resultError(fmt.Sprintf("更新字典失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "字典已更新", "id": id, "item_count": len(items)})
+	return resultText(map[string]any{"message": "字典已更新", "id": id, "item_count": len(items)})
 }
 
 func handleDictDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -661,7 +661,7 @@ func handleDictDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除字典失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "字典已删除", "id": id})
+	return resultText(map[string]any{"message": "字典已删除", "id": id})
 }
 
 // ════════════════════════════════════════════════

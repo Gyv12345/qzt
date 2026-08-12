@@ -21,7 +21,7 @@ func (r *ContractItemRepo) Update(ctx context.Context, m *crmmodel.CrmContractIt
 
 func (r *ContractItemRepo) ListByContract(ctx context.Context, contractID uint) ([]crmmodel.CrmContractItem, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"contract_id": contractID},
+		Where: map[string]any{"contract_id": contractID},
 		Order: []string{"id ASC"},
 	})
 }

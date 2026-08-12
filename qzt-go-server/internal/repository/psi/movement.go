@@ -20,14 +20,14 @@ func NewStockMovementRepo() *StockMovementRepo { return &StockMovementRepo{} }
 // biz_order_type + biz_order_id 唯一标识一笔业务单据的出入库动作。
 func (r *StockMovementRepo) ExistsByOrder(ctx context.Context, bizOrderType string, bizOrderID uint) (bool, error) {
 	return r.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"biz_order_type": bizOrderType, "biz_order_id": bizOrderID},
+		Where: map[string]any{"biz_order_type": bizOrderType, "biz_order_id": bizOrderID},
 	})
 }
 
 // ListByProduct 列出某商品的全部流水(收发明细,按时间倒序)。
 func (r *StockMovementRepo) ListByProduct(ctx context.Context, productID uint) ([]psimodel.PsiStockMovement, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"product_id": productID},
+		Where: map[string]any{"product_id": productID},
 		Order: []string{"id DESC"},
 	})
 }

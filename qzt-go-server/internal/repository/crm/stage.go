@@ -21,7 +21,7 @@ func (r *StageConfigRepo) Update(ctx context.Context, m *crmmodel.StageConfig) e
 
 // GetByBizType 按业务类型取阶段配置。
 func (r *StageConfigRepo) GetByBizType(ctx context.Context, bizType string) (*crmmodel.StageConfig, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"biz_type": bizType}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"biz_type": bizType}})
 }
 
 // ── 阶段记录 ──
@@ -35,7 +35,7 @@ func NewStageRecordRepo() *StageRecordRepo { return &StageRecordRepo{} }
 // ListByResource 按业务类型+资源ID列阶段变更历史。
 func (r *StageRecordRepo) ListByResource(ctx context.Context, bizType string, resourceID uint) ([]crmmodel.StageRecord, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"biz_type": bizType, "resource_id": resourceID},
+		Where: map[string]any{"biz_type": bizType, "resource_id": resourceID},
 		Order: []string{"id DESC"},
 	})
 }

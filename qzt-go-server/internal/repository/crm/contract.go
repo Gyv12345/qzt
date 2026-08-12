@@ -36,7 +36,7 @@ func (r *ContractRepo) AddReceivedAmount(ctx context.Context, id uint, amount st
 // ListByCustomer 按客户列合同。
 func (r *ContractRepo) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmContract, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"customer_id": customerID},
+		Where: map[string]any{"customer_id": customerID},
 		Order: []string{"id DESC"},
 	})
 }
@@ -55,7 +55,7 @@ func (r *PaymentPlanRepo) Update(ctx context.Context, m *crmmodel.CrmContractPay
 
 func (r *PaymentPlanRepo) ListByContract(ctx context.Context, contractID uint) ([]crmmodel.CrmContractPaymentPlan, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"contract_id": contractID},
+		Where: map[string]any{"contract_id": contractID},
 		Order: []string{"plan_date ASC"},
 	})
 }
@@ -81,7 +81,7 @@ func (r *PaymentRecordRepo) Update(ctx context.Context, m *crmmodel.CrmContractP
 
 func (r *PaymentRecordRepo) ListByContract(ctx context.Context, contractID uint) ([]crmmodel.CrmContractPaymentRecord, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"contract_id": contractID},
+		Where: map[string]any{"contract_id": contractID},
 		Order: []string{"received_date DESC"},
 	})
 }

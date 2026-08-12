@@ -153,7 +153,7 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 // ── 辅助函数 ──
 
 // resultText 把任意数据序列化为 JSON 文本返回给 AI。
-func resultText(data interface{}) (*mcp.CallToolResult, error) {
+func resultText(data any) (*mcp.CallToolResult, error) {
 	b, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("序列化失败: %v", err)), nil

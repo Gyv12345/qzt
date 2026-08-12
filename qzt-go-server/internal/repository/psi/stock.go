@@ -25,7 +25,7 @@ func NewStockRepo() *StockRepo { return &StockRepo{} }
 // GetByProductWarehouse 按 商品+仓库 读取结余;不存在返回 gorm.ErrRecordNotFound。
 func (r *StockRepo) GetByProductWarehouse(ctx context.Context, productID, warehouseID uint) (*psimodel.PsiStock, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"product_id": productID, "warehouse_id": warehouseID},
+		Where: map[string]any{"product_id": productID, "warehouse_id": warehouseID},
 	})
 }
 
@@ -49,7 +49,7 @@ func (r *StockRepo) UpsertAdjust(ctx context.Context, productID, warehouseID uin
 	}
 	// 增减现有结余
 	s.Quantity = s.Quantity.Add(delta)
-	if err := db.Model(&s).Select("quantity", "safety_stock").Updates(map[string]interface{}{
+	if err := db.Model(&s).Select("quantity", "safety_stock").Updates(map[string]any{
 		"quantity":     s.Quantity,
 		"safety_stock": safetyStock,
 	}).Error; err != nil {

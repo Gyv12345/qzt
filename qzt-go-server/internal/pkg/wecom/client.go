@@ -265,7 +265,7 @@ func (c *Client) SendMessage(ctx context.Context, toUser, msgType, content strin
 // ── 内部 HTTP 工具 ──
 
 // httpGetJSON 发 GET 请求并解析 JSON。
-func (c *Client) httpGetJSON(ctx context.Context, url string, target interface{}) error {
+func (c *Client) httpGetJSON(ctx context.Context, url string, target any) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -286,7 +286,7 @@ func (c *Client) httpGetJSON(ctx context.Context, url string, target interface{}
 }
 
 // httpPostJSON 发 POST 请求(JSON body)并解析 JSON 响应。
-func (c *Client) httpPostJSON(ctx context.Context, url string, body interface{}, target interface{}) error {
+func (c *Client) httpPostJSON(ctx context.Context, url string, body any, target any) error {
 	jsonBytes, err := json.Marshal(body)
 	if err != nil {
 		return err

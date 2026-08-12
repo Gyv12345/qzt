@@ -17,7 +17,7 @@ func NewConfigRepo() *ConfigRepo {
 // GetByKey fetches a config by its unique key (returns gorm.ErrRecordNotFound
 // when absent, so callers can errors.Is it).
 func (d *ConfigRepo) GetByKey(ctx context.Context, key string) (*model.SysConfig, error) {
-	return d.GetOne(ctx, &QueryOptions{Where: map[string]interface{}{"key": key}})
+	return d.GetOne(ctx, &QueryOptions{Where: map[string]any{"key": key}})
 }
 
 // ListAll returns every config ordered for stable display.
@@ -29,7 +29,7 @@ func (d *ConfigRepo) ListAll(ctx context.Context) ([]model.SysConfig, error) {
 // bootstrap endpoint).
 func (d *ConfigRepo) ListPublic(ctx context.Context) ([]model.SysConfig, error) {
 	return d.List(ctx, &QueryOptions{
-		Where: map[string]interface{}{"is_public": true},
+		Where: map[string]any{"is_public": true},
 		Order: []string{"sort ASC", "id ASC"},
 	})
 }

@@ -42,7 +42,7 @@ func (s *CategoryService) Create(ctx context.Context, req *CreateCategoryRequest
 	// slug 唯一性预检（slug 非空时）
 	if req.Slug != "" {
 		exists, err := s.categoryRepo.Exists(ctx, &repository.QueryOptions{
-			Where: map[string]interface{}{"slug": req.Slug},
+			Where: map[string]any{"slug": req.Slug},
 		})
 		if err != nil {
 			return err
@@ -99,7 +99,7 @@ func (s *CategoryService) Update(ctx context.Context, id uint, req *UpdateCatego
 	// slug 变更时做唯一性预检
 	if req.Slug != "" && req.Slug != cat.Slug {
 		exists, err := s.categoryRepo.Exists(ctx, &repository.QueryOptions{
-			Where: map[string]interface{}{"slug": req.Slug},
+			Where: map[string]any{"slug": req.Slug},
 		})
 		if err != nil {
 			return err
@@ -141,7 +141,7 @@ func (s *CategoryService) Delete(ctx context.Context, id uint) error {
 	}
 	// 校验无关联文章
 	hasArticles, err := s.articleRepo.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"category_id": id},
+		Where: map[string]any{"category_id": id},
 	})
 	if err != nil {
 		return err

@@ -190,7 +190,7 @@ func (s *LeadService) Delete(ctx context.Context, id uint) error {
 // List 线索列表(分页 + 主字段过滤)。
 func (s *LeadService) List(ctx context.Context, page, pageSize int, keyword, level, source, status, industry, poolFilter string, poolID uint) ([]crmmodel.CrmLead, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword}
 	}

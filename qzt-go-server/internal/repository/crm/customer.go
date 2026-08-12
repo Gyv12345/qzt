@@ -35,7 +35,7 @@ func (r *CustomerRepo) Update(ctx context.Context, m *crmmodel.CrmCustomer) erro
 // CountByOwner 统计某用户私海客户数(容量校验用)。
 func (r *CustomerRepo) CountByOwner(ctx context.Context, ownerID uint) (int64, error) {
 	return r.Count(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
+		Where: map[string]any{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
 	})
 }
 
@@ -55,7 +55,7 @@ func (r *CustomerContactRepo) Update(ctx context.Context, m *crmmodel.CrmCustome
 // ListByCustomer 按客户列联系人。
 func (r *CustomerContactRepo) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmCustomerContact, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"customer_id": customerID},
+		Where: map[string]any{"customer_id": customerID},
 		Order: []string{"id ASC"},
 	})
 }
@@ -110,7 +110,7 @@ func (r *CustomerCollaborationRepo) Update(ctx context.Context, m *crmmodel.CrmC
 // ListByCustomer 按客户列协作成员。
 func (r *CustomerCollaborationRepo) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmCustomerCollaboration, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"customer_id": customerID},
+		Where: map[string]any{"customer_id": customerID},
 		Order: []string{"id ASC"},
 	})
 }
@@ -118,6 +118,6 @@ func (r *CustomerCollaborationRepo) ListByCustomer(ctx context.Context, customer
 // IsCollaborator 判断用户是否为某客户的协作成员。
 func (r *CustomerCollaborationRepo) IsCollaborator(ctx context.Context, customerID, userID uint) (bool, error) {
 	return r.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"customer_id": customerID, "user_id": userID},
+		Where: map[string]any{"customer_id": customerID, "user_id": userID},
 	})
 }

@@ -24,7 +24,7 @@ func (r *DepartmentRepo) Update(ctx context.Context, m *hrmmodel.HrmDepartment) 
 // CountChildren 统计子部门数量(删除校验用)。
 func (r *DepartmentRepo) CountChildren(ctx context.Context, parentID uint) (int64, error) {
 	return r.Count(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"parent_id": parentID},
+		Where: map[string]any{"parent_id": parentID},
 	})
 }
 

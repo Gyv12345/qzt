@@ -24,6 +24,6 @@ func (r *PageRepo) Update(ctx context.Context, m *cmsmodel.CmsPage) error {
 // GetBySlug 按 slug 查询单页（公开访问用）。
 func (r *PageRepo) GetBySlug(ctx context.Context, slug string) (*cmsmodel.CmsPage, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"slug": slug},
+		Where: map[string]any{"slug": slug},
 	})
 }

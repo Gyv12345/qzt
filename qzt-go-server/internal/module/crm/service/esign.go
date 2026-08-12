@@ -136,7 +136,7 @@ func (s *EsignService) renderPDF(ctx context.Context, task *crmmodel.CrmEsignTas
 		s.failTask(ctx, task, fmt.Errorf("存储签署 PDF 失败: %w", err))
 		return
 	}
-	if err := s.taskRepo.UpdateColumns(ctx, task.ID, map[string]interface{}{
+	if err := s.taskRepo.UpdateColumns(ctx, task.ID, map[string]any{
 		"status":   crmmodel.EsignTaskReady,
 		"file_key": up.URL,
 		"error":    "",
@@ -156,7 +156,7 @@ func (s *EsignService) failTask(ctx context.Context, task *crmmodel.CrmEsignTask
 	if backoff > 24*time.Hour {
 		backoff = 24 * time.Hour
 	}
-	if err := s.taskRepo.UpdateColumns(ctx, task.ID, map[string]interface{}{
+	if err := s.taskRepo.UpdateColumns(ctx, task.ID, map[string]any{
 		"status":        crmmodel.EsignTaskFailed,
 		"retry_count":   retry,
 		"next_retry_at": time.Now().Add(backoff),
@@ -226,7 +226,7 @@ func (s *EsignService) Initiate(ctx context.Context, contractID uint, signers []
 	}
 
 	signersJSON, _ := json.Marshal(signers)
-	if err := s.taskRepo.UpdateColumns(ctx, task.ID, map[string]interface{}{
+	if err := s.taskRepo.UpdateColumns(ctx, task.ID, map[string]any{
 		"status":   crmmodel.EsignTaskInitiated,
 		"flow_id":  result.FlowID,
 		"sign_url": result.ShortUrl,
@@ -238,7 +238,7 @@ func (s *EsignService) Initiate(ctx context.Context, contractID uint, signers []
 	// 合同 esign 状态直写(ContractRepo.Update 白名单不含 esign 字段)
 	if err := repository.DBFrom(ctx).Model(&crmmodel.CrmContract{}).
 		Where("id = ?", contractID).
-		UpdateColumns(map[string]interface{}{
+		UpdateColumns(map[string]any{
 			"esign_status":   crmmodel.ContractEsignInitiated,
 			"esign_flow_id":  result.FlowID,
 		}).Error; err != nil {
@@ -295,7 +295,7 @@ func (s *EsignService) archiveSignedFile(ctx context.Context, task *crmmodel.Crm
 		xlogger.ErrorfCtx(ctx, "电子签:存档签署件失败 task=%d: %v", task.ID, err)
 		return
 	}
-	s.taskRepo.UpdateColumns(ctx, task.ID, map[string]interface{}{"file_key": up.URL})
+	s.taskRepo.UpdateColumns(ctx, task.ID, map[string]any{"file_key": up.URL})
 }
 
 // GetDetail 取合同电子签详情(任务 + 私有 PDF 短期预览 URL)。
@@ -316,7 +316,7 @@ func (s *EsignService) GetDetail(ctx context.Context, contractID uint) (*EsignTa
 // ── 内部辅助 ──
 
 func (s *EsignService) updateTaskStatus(ctx context.Context, id uint, status, errStr string) {
-	cols := map[string]interface{}{"status": status}
+	cols := map[string]any{"status": status}
 	if errStr != "" {
 		cols["error"] = errStr
 	}
@@ -327,7 +327,7 @@ func (s *EsignService) updateTaskStatus(ctx context.Context, id uint, status, er
 
 // updateContractEsign 直写合同 esign 状态(绕过 ContractRepo.Update 白名单)。
 func (s *EsignService) updateContractEsign(ctx context.Context, contractID uint, status, flowID string) {
-	cols := map[string]interface{}{"esign_status": status}
+	cols := map[string]any{"esign_status": status}
 	if flowID != "" {
 		cols["esign_flow_id"] = flowID
 	}

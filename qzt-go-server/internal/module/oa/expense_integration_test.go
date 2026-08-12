@@ -20,7 +20,7 @@ func TestExpenseCRUD(t *testing.T) {
 	token := testutil.LoginAdmin(t, baseURL)
 
 	// 1. 创建报销单(必填 title / expense_type / amount;applicant_id 留空由 token 注入)
-	createBody := map[string]interface{}{
+	createBody := map[string]any{
 		"title":        "集成测试-差旅报销",
 		"expense_type": "TRAVEL",
 		"amount":       "1280.50",

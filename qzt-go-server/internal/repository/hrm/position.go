@@ -24,7 +24,7 @@ func (r *PositionRepo) Update(ctx context.Context, m *hrmmodel.HrmPosition) erro
 // ListByDepartment 按部门列岗位。
 func (r *PositionRepo) ListByDepartment(ctx context.Context, deptID uint) ([]hrmmodel.HrmPosition, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"department_id": deptID},
+		Where: map[string]any{"department_id": deptID},
 		Order: []string{"sort ASC", "id ASC"},
 	})
 }
@@ -32,7 +32,7 @@ func (r *PositionRepo) ListByDepartment(ctx context.Context, deptID uint) ([]hrm
 // ListEnabled 列出所有启用岗位(下拉用)。
 func (r *PositionRepo) ListEnabled(ctx context.Context) ([]hrmmodel.HrmPosition, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"status": 1},
+		Where: map[string]any{"status": 1},
 		Order: []string{"sort ASC", "id ASC"},
 	})
 }

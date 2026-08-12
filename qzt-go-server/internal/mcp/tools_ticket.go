@@ -98,7 +98,7 @@ func handleTicketList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err != nil {
 		return resultError(fmt.Sprintf("查询工单列表失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handleTicketGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -169,7 +169,7 @@ func handleTicketUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err := svc.Update(ctx, id, updateReq); err != nil {
 		return resultError(fmt.Sprintf("更新工单失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "工单已更新", "id": id})
+	return resultText(map[string]any{"message": "工单已更新", "id": id})
 }
 
 func handleTicketChangeStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -187,5 +187,5 @@ func handleTicketChangeStatus(ctx context.Context, req mcp.CallToolRequest) (*mc
 	if err := svc.ChangeStatus(ctx, id, changeReq, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("变更工单状态失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "工单状态已变更", "id": id, "status": status})
+	return resultText(map[string]any{"message": "工单状态已变更", "id": id, "status": status})
 }

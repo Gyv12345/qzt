@@ -28,7 +28,7 @@ func (r *CustomerPoolRepo) Update(ctx context.Context, m *crmmodel.CrmCustomerPo
 // ListEnabled 列出启用的公海池(enabled=1)。
 func (r *CustomerPoolRepo) ListEnabled(ctx context.Context) ([]crmmodel.CrmCustomerPool, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"enabled": 1},
+		Where: map[string]any{"enabled": 1},
 		Order: []string{"id ASC"},
 	})
 }
@@ -49,7 +49,7 @@ type PoolPickRuleRepo struct {
 func NewPoolPickRuleRepo() *PoolPickRuleRepo { return &PoolPickRuleRepo{} }
 
 func (r *PoolPickRuleRepo) GetByPool(ctx context.Context, poolID uint) (*crmmodel.CrmCustomerPoolPickRule, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"pool_id": poolID}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"pool_id": poolID}})
 }
 
 // ── 回收规则 ──
@@ -61,7 +61,7 @@ type PoolRecycleRuleRepo struct {
 func NewPoolRecycleRuleRepo() *PoolRecycleRuleRepo { return &PoolRecycleRuleRepo{} }
 
 func (r *PoolRecycleRuleRepo) GetByPool(ctx context.Context, poolID uint) (*crmmodel.CrmCustomerPoolRecycleRule, error) {
-	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]interface{}{"pool_id": poolID}})
+	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"pool_id": poolID}})
 }
 
 // ── 容量 ──
@@ -87,7 +87,7 @@ func NewCustomerOwnerHistoryRepo() *CustomerOwnerHistoryRepo { return &CustomerO
 // ListByCustomer 按客户列归属变更历史。
 func (r *CustomerOwnerHistoryRepo) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmCustomerOwnerHistory, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"customer_id": customerID},
+		Where: map[string]any{"customer_id": customerID},
 		Order: []string{"id DESC"},
 	})
 }
@@ -95,6 +95,6 @@ func (r *CustomerOwnerHistoryRepo) ListByCustomer(ctx context.Context, customerI
 // ListPrivateSeaByOwner 列出某负责人私海客户 ID(回收扫描用)。
 func (r *CustomerRepo) ListPrivateSeaByOwner(ctx context.Context, ownerID uint) ([]crmmodel.CrmCustomer, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
+		Where: map[string]any{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
 	})
 }

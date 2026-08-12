@@ -18,7 +18,7 @@ func NewPositionChangeRepo() *PositionChangeRepo { return &PositionChangeRepo{} 
 // ListByEmployee 按员工列变更履历(时间倒序)。
 func (r *PositionChangeRepo) ListByEmployee(ctx context.Context, employeeID uint) ([]hrmmodel.HrmPositionChange, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"employee_id": employeeID},
+		Where: map[string]any{"employee_id": employeeID},
 		Order: []string{"id DESC"},
 	})
 }

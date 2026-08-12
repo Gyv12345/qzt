@@ -22,7 +22,7 @@ func NewEsignTaskRepo() *EsignTaskRepo { return &EsignTaskRepo{} }
 // 一个合同可能有多条历史任务(失败重发等),取最新一条展示当前签署状态。
 func (r *EsignTaskRepo) GetByContractID(ctx context.Context, contractID uint) (*crmmodel.CrmEsignTask, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"contract_id": contractID},
+		Where: map[string]any{"contract_id": contractID},
 		Order: []string{"id DESC"},
 	})
 }
@@ -30,7 +30,7 @@ func (r *EsignTaskRepo) GetByContractID(ctx context.Context, contractID uint) (*
 // GetByFlowID 按 e签宝流程 ID 查任务(签署回调定位用)。
 func (r *EsignTaskRepo) GetByFlowID(ctx context.Context, flowID string) (*crmmodel.CrmEsignTask, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"flow_id": flowID},
+		Where: map[string]any{"flow_id": flowID},
 	})
 }
 
@@ -58,7 +58,7 @@ func (r *EsignTaskRepo) MarkRunning(ctx context.Context, id uint) (int64, error)
 }
 
 // UpdateColumns 批量更新指定列(状态机流转、回填 flow_id/file_key/sign_url/signers 等)。
-func (r *EsignTaskRepo) UpdateColumns(ctx context.Context, id uint, cols map[string]interface{}) error {
+func (r *EsignTaskRepo) UpdateColumns(ctx context.Context, id uint, cols map[string]any) error {
 	return repoDB(ctx).Model(&crmmodel.CrmEsignTask{}).Where("id = ?", id).UpdateColumns(cols).Error
 }
 
@@ -66,7 +66,7 @@ func (r *EsignTaskRepo) UpdateColumns(ctx context.Context, id uint, cols map[str
 // 用于审批通过插任务前查重,避免重复发起。
 func (r *EsignTaskRepo) HasActiveTask(ctx context.Context, contractID uint) (bool, error) {
 	count, err := r.Count(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{
+		Where: map[string]any{
 			"contract_id": contractID,
 			"status": []string{
 				crmmodel.EsignTaskPending,

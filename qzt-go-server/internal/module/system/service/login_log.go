@@ -22,7 +22,7 @@ func NewLoginLogService() *LoginLogService {
 // 时间范围用 Conds(>= start, <= end),与 operation_log 同一思路。
 func (s *LoginLogService) List(ctx context.Context, page, pageSize int, username, success, clientIP, startDate, endDate string) ([]model.SysLoginLog, int64, error) {
 	q := &repository.QueryOptions{
-		Where: map[string]interface{}{},
+		Where: map[string]any{},
 		Order: []string{"id DESC"},
 	}
 	if username != "" {
@@ -36,10 +36,10 @@ func (s *LoginLogService) List(ctx context.Context, page, pageSize int, username
 		q.Where["success"] = success == "true" || success == "1"
 	}
 	if start := parseTimeRange(startDate); !start.IsZero() {
-		q.Conds = append(q.Conds, repository.Cond{Query: "created_at >= ?", Args: []interface{}{start}})
+		q.Conds = append(q.Conds, repository.Cond{Query: "created_at >= ?", Args: []any{start}})
 	}
 	if end := parseTimeRange(endDate); !end.IsZero() {
-		q.Conds = append(q.Conds, repository.Cond{Query: "created_at <= ?", Args: []interface{}{end}})
+		q.Conds = append(q.Conds, repository.Cond{Query: "created_at <= ?", Args: []any{end}})
 	}
 	list, total, err := s.repo.PageList(ctx, page, pageSize, q)
 	if err != nil {

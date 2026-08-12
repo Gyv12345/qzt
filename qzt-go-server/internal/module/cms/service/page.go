@@ -38,7 +38,7 @@ func (s *PageService) Create(ctx context.Context, req *CreatePageRequest) error 
 
 	if req.Slug != "" {
 		exists, err := s.pageRepo.Exists(ctx, &repository.QueryOptions{
-			Where: map[string]interface{}{"slug": req.Slug},
+			Where: map[string]any{"slug": req.Slug},
 		})
 		if err != nil {
 			return err
@@ -90,7 +90,7 @@ func (s *PageService) GetBySlug(ctx context.Context, slug string) (*cmsmodel.Cms
 // ListEnabled 返回所有启用的单页(公开导航用)。
 func (s *PageService) ListEnabled(ctx context.Context) ([]cmsmodel.CmsPage, error) {
 	return s.pageRepo.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"status": cmsmodel.StatusEnabled},
+		Where: map[string]any{"status": cmsmodel.StatusEnabled},
 		Order: []string{"sort ASC"},
 	})
 }
@@ -113,7 +113,7 @@ func (s *PageService) Update(ctx context.Context, id uint, req *UpdatePageReques
 	}
 	if req.Slug != "" && req.Slug != page.Slug {
 		exists, err := s.pageRepo.Exists(ctx, &repository.QueryOptions{
-			Where: map[string]interface{}{"slug": req.Slug},
+			Where: map[string]any{"slug": req.Slug},
 		})
 		if err != nil {
 			return err

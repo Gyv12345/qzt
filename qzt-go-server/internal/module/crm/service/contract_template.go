@@ -106,7 +106,7 @@ func (s *ContractTemplateService) List(ctx context.Context, page, pageSize int, 
 		Order:  []string{"id DESC"},
 	}
 	if enabled != nil {
-		opts.Where = map[string]interface{}{"enabled": *enabled}
+		opts.Where = map[string]any{"enabled": *enabled}
 	}
 	return s.repo.PageList(ctx, page, pageSize, opts)
 }

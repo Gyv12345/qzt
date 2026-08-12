@@ -107,7 +107,7 @@ func (s *WarehouseService) Delete(ctx context.Context, id uint) error {
 // List 仓库列表(分页 + keyword 名称模糊 + status 过滤)。
 func (s *WarehouseService) List(ctx context.Context, page, pageSize int, keyword string, status int8) ([]psimodel.PsiWarehouse, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"sort ASC", "id DESC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword, "code": keyword}
 	}

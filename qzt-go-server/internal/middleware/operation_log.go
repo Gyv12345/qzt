@@ -210,7 +210,7 @@ func redactJSON(raw []byte) string {
 	if len(raw) == 0 {
 		return ""
 	}
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(raw, &v); err != nil {
 		return string(raw)
 	}
@@ -222,9 +222,9 @@ func redactJSON(raw []byte) string {
 	return string(b)
 }
 
-func redactValue(v interface{}) {
+func redactValue(v any) {
 	switch t := v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for k := range t {
 			if _, ok := sensitiveKeys[strings.ToLower(k)]; ok {
 				t[k] = "***"
@@ -232,7 +232,7 @@ func redactValue(v interface{}) {
 				redactValue(t[k])
 			}
 		}
-	case []interface{}:
+	case []any:
 		for _, item := range t {
 			redactValue(item)
 		}

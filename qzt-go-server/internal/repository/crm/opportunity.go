@@ -25,7 +25,7 @@ func (r *OpportunityRepo) Update(ctx context.Context, m *crmmodel.CrmOpportunity
 func (r *OpportunityRepo) ListByStage(ctx context.Context, stage string) ([]crmmodel.CrmOpportunity, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
 	if stage != "" {
-		q.Where = map[string]interface{}{"stage": stage}
+		q.Where = map[string]any{"stage": stage}
 	}
 	return r.List(ctx, q)
 }

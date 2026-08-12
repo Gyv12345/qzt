@@ -35,7 +35,7 @@ func AssertError(t *testing.T, env *Envelope, msgSubstr ...string) {
 }
 
 // UnmarshalData 把信封 data 反序列化到 target。
-func UnmarshalData(t *testing.T, env *Envelope, target interface{}) {
+func UnmarshalData(t *testing.T, env *Envelope, target any) {
 	t.Helper()
 	if err := json.Unmarshal(env.Data, target); err != nil {
 		t.Fatalf("反序列化 data 失败: %v, raw: %s", err, truncate(env.Data, 500))
@@ -63,7 +63,7 @@ func AssertPaged(t *testing.T, env *Envelope) *PageData {
 }
 
 // PageToList 把分页 list 反序列化到 target slice(如 *[]Foo)。
-func PageToList(t *testing.T, env *Envelope, target interface{}) {
+func PageToList(t *testing.T, env *Envelope, target any) {
 	t.Helper()
 	pd := AssertPaged(t, env)
 	if err := json.Unmarshal(pd.List, target); err != nil {

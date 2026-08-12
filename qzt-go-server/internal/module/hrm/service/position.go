@@ -33,7 +33,7 @@ type CreatePositionRequest struct {
 // Create 创建岗位。
 func (s *PositionService) Create(ctx context.Context, req *CreatePositionRequest) (*hrmmodel.HrmPosition, error) {
 	// Code 唯一性预检
-	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]interface{}{"code": req.Code}})
+	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"code": req.Code}})
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (s *PositionService) Update(ctx context.Context, id uint, req *UpdatePositi
 	// Code 唯一性(排除自身)
 	if req.Code != pos.Code {
 		exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-			Conds: []repository.Cond{{Query: "code = ? AND id != ?", Args: []interface{}{req.Code, id}}},
+			Conds: []repository.Cond{{Query: "code = ? AND id != ?", Args: []any{req.Code, id}}},
 		})
 		if err != nil {
 			return err
@@ -119,7 +119,7 @@ func (s *PositionService) Delete(ctx context.Context, id uint) error {
 // List 岗位列表(可选按部门/状态过滤)。
 func (s *PositionService) List(ctx context.Context, deptID uint, status int8) ([]hrmmodel.HrmPosition, error) {
 	q := &repository.QueryOptions{Order: []string{"sort ASC", "id ASC"}}
-	where := map[string]interface{}{}
+	where := map[string]any{}
 	if deptID > 0 {
 		where["department_id"] = deptID
 	}

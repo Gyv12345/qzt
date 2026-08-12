@@ -24,7 +24,7 @@ func (r *HomepageModuleRepo) ListAll(ctx context.Context) ([]model.CmsHomepageMo
 
 // GetByModule 按模块标识查板块。
 func (r *HomepageModuleRepo) GetByModule(ctx context.Context, module string) (*model.CmsHomepageModule, error) {
-	return r.GetOne(ctx, &QueryOptions{Where: map[string]interface{}{"module": module}})
+	return r.GetOne(ctx, &QueryOptions{Where: map[string]any{"module": module}})
 }
 
 // SetEnabled 更新板块开关。
@@ -44,7 +44,7 @@ func NewHomepageFeatureRepo() *HomepageFeatureRepo { return &HomepageFeatureRepo
 // ListByModule 按模块查精选条目(按 sort 排序)。
 func (r *HomepageFeatureRepo) ListByModule(ctx context.Context, module string) ([]model.CmsHomepageFeature, error) {
 	return r.List(ctx, &QueryOptions{
-		Where: map[string]interface{}{"module": module},
+		Where: map[string]any{"module": module},
 		Order: []string{"sort ASC", "id ASC"},
 	})
 }

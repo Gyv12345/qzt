@@ -114,7 +114,7 @@ func BuildCond(ctx context.Context, ownerColumn string) *repository.Cond {
 	case model.DataScopeSelf:
 		return &repository.Cond{
 			Query: ownerColumn + " = ?",
-			Args:  []interface{}{userID},
+			Args:  []any{userID},
 		}
 
 	case model.DataScopeDept:
@@ -124,7 +124,7 @@ func BuildCond(ctx context.Context, ownerColumn string) *repository.Cond {
 		}
 		return &repository.Cond{
 			Query: ownerColumn + " IN (?)",
-			Args:  []interface{}{userIDs},
+			Args:  []any{userIDs},
 		}
 
 	case model.DataScopeDeptAndSub:
@@ -135,7 +135,7 @@ func BuildCond(ctx context.Context, ownerColumn string) *repository.Cond {
 		}
 		return &repository.Cond{
 			Query: ownerColumn + " IN (?)",
-			Args:  []interface{}{userIDs},
+			Args:  []any{userIDs},
 		}
 	}
 

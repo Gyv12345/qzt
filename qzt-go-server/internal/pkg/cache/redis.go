@@ -85,7 +85,7 @@ func (s *RedisStore) HGet(key, field string) (string, error) {
 	return s.client.HGet(s.ctx(), s.key(key), field).Result()
 }
 
-func (s *RedisStore) HSet(key string, values ...interface{}) error {
+func (s *RedisStore) HSet(key string, values ...any) error {
 	return s.client.HSet(s.ctx(), s.key(key), values...).Err()
 }
 
@@ -113,17 +113,17 @@ func (s *RedisStore) HLen(key string) (int64, error) {
 	return s.client.HLen(s.ctx(), s.key(key)).Result()
 }
 
-func (s *RedisStore) HMGet(key string, fields ...string) ([]interface{}, error) {
+func (s *RedisStore) HMGet(key string, fields ...string) ([]any, error) {
 	return s.client.HMGet(s.ctx(), s.key(key), fields...).Result()
 }
 
 // ── List ──
 
-func (s *RedisStore) LPush(key string, values ...interface{}) (int64, error) {
+func (s *RedisStore) LPush(key string, values ...any) (int64, error) {
 	return s.client.LPush(s.ctx(), s.key(key), values...).Result()
 }
 
-func (s *RedisStore) RPush(key string, values ...interface{}) (int64, error) {
+func (s *RedisStore) RPush(key string, values ...any) (int64, error) {
 	return s.client.RPush(s.ctx(), s.key(key), values...).Result()
 }
 
@@ -143,7 +143,7 @@ func (s *RedisStore) LLen(key string) (int64, error) {
 	return s.client.LLen(s.ctx(), s.key(key)).Result()
 }
 
-func (s *RedisStore) LRem(key string, count int64, value interface{}) (int64, error) {
+func (s *RedisStore) LRem(key string, count int64, value any) (int64, error) {
 	return s.client.LRem(s.ctx(), s.key(key), count, value).Result()
 }
 
@@ -157,11 +157,11 @@ func (s *RedisStore) LTrim(key string, start, stop int64) error {
 
 // ── Set ──
 
-func (s *RedisStore) SAdd(key string, members ...interface{}) (int64, error) {
+func (s *RedisStore) SAdd(key string, members ...any) (int64, error) {
 	return s.client.SAdd(s.ctx(), s.key(key), members...).Result()
 }
 
-func (s *RedisStore) SRem(key string, members ...interface{}) (int64, error) {
+func (s *RedisStore) SRem(key string, members ...any) (int64, error) {
 	return s.client.SRem(s.ctx(), s.key(key), members...).Result()
 }
 
@@ -169,7 +169,7 @@ func (s *RedisStore) SMembers(key string) ([]string, error) {
 	return s.client.SMembers(s.ctx(), s.key(key)).Result()
 }
 
-func (s *RedisStore) SIsMember(key string, member interface{}) (bool, error) {
+func (s *RedisStore) SIsMember(key string, member any) (bool, error) {
 	return s.client.SIsMember(s.ctx(), s.key(key), member).Result()
 }
 

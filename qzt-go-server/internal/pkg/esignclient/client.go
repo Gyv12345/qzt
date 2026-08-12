@@ -254,7 +254,7 @@ func VerifyCallback(timestamp, signature string, body []byte, appSecret string) 
 // ── 内部 HTTP(带 V3 签名)──
 
 // doGet 发带签名的 GET。
-func (c *Client) doGet(ctx context.Context, path string, target interface{}) error {
+func (c *Client) doGet(ctx context.Context, path string, target any) error {
 	url := c.cfg.BaseURL + path
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -265,7 +265,7 @@ func (c *Client) doGet(ctx context.Context, path string, target interface{}) err
 }
 
 // doPost 发带签名的 POST(JSON body)。
-func (c *Client) doPost(ctx context.Context, path string, body []byte, target interface{}) error {
+func (c *Client) doPost(ctx context.Context, path string, body []byte, target any) error {
 	url := c.cfg.BaseURL + path
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
@@ -307,7 +307,7 @@ func (c *Client) signReq(req *http.Request, method string, body []byte, path str
 }
 
 // do 执行请求并解析 e签宝统一响应。
-func (c *Client) do(req *http.Request, target interface{}) error {
+func (c *Client) do(req *http.Request, target any) error {
 	resp, err := c.hc.Do(req)
 	if err != nil {
 		return err

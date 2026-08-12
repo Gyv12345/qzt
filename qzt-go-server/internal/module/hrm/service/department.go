@@ -35,7 +35,7 @@ type CreateDepartmentRequest struct {
 // Create 创建部门。
 func (s *DepartmentService) Create(ctx context.Context, req *CreateDepartmentRequest) (*hrmmodel.HrmDepartment, error) {
 	// Code 唯一性预检
-	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]interface{}{"code": req.Code}})
+	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"code": req.Code}})
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (s *DepartmentService) Create(ctx context.Context, req *CreateDepartmentReq
 	}
 	// 父部门存在性校验(根部门 ParentID=0 跳过)
 	if req.ParentID > 0 {
-		ok, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]interface{}{"id": req.ParentID}})
+		ok, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"id": req.ParentID}})
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func (s *DepartmentService) Update(ctx context.Context, id uint, req *UpdateDepa
 	// Code 唯一性(排除自身)
 	if req.Code != dept.Code {
 		exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-			Conds: []repository.Cond{{Query: "code = ? AND id != ?", Args: []interface{}{req.Code, id}}},
+			Conds: []repository.Cond{{Query: "code = ? AND id != ?", Args: []any{req.Code, id}}},
 		})
 		if err != nil {
 			return err
@@ -110,7 +110,7 @@ func (s *DepartmentService) Update(ctx context.Context, id uint, req *UpdateDepa
 			return errors.New("不能将部门设为自身的子部门")
 		}
 		if *req.ParentID > 0 {
-			ok, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]interface{}{"id": *req.ParentID}})
+			ok, err := s.repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"id": *req.ParentID}})
 			if err != nil {
 				return err
 			}
@@ -154,7 +154,7 @@ func (s *DepartmentService) Delete(ctx context.Context, id uint) error {
 func (s *DepartmentService) List(ctx context.Context, keyword string, status int8) ([]hrmmodel.HrmDepartment, error) {
 	q := &repository.QueryOptions{Order: []string{"sort ASC", "id ASC"}}
 	if status > 0 {
-		q.Where = map[string]interface{}{"status": status}
+		q.Where = map[string]any{"status": status}
 	}
 	if keyword != "" {
 		q.Search = map[string]string{"name": keyword}

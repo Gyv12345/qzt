@@ -258,7 +258,7 @@ func handleCustomerUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err := svc.Update(ctx, id, updateReq, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("更新客户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "客户已更新", "id": id})
+	return resultText(map[string]any{"message": "客户已更新", "id": id})
 }
 
 func handleCustomerTransfer(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -271,7 +271,7 @@ func handleCustomerTransfer(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	if err := svc.Transfer(ctx, id, toUserID, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("转移客户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "客户已转移", "id": id, "to_user_id": toUserID})
+	return resultText(map[string]any{"message": "客户已转移", "id": id, "to_user_id": toUserID})
 }
 
 func handleCustomerRelease(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -284,7 +284,7 @@ func handleCustomerRelease(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	if err := svc.ReleaseToPool(ctx, id, poolID, userIDFromContext(ctx), req.GetString("reason", "")); err != nil {
 		return resultError(fmt.Sprintf("释放客户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "客户已释放到公海", "id": id, "pool_id": poolID})
+	return resultText(map[string]any{"message": "客户已释放到公海", "id": id, "pool_id": poolID})
 }
 
 func handleCustomerPick(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -297,7 +297,7 @@ func handleCustomerPick(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err := svc.PickFromPool(ctx, id, userID); err != nil {
 		return resultError(fmt.Sprintf("捡入客户失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "已从公海捡入", "id": id, "owner_id": userID})
+	return resultText(map[string]any{"message": "已从公海捡入", "id": id, "owner_id": userID})
 }
 
 // ── 线索公海 handlers ──
@@ -312,7 +312,7 @@ func handleLeadTransfer(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	if err := svc.Transfer(ctx, id, toUserID, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("转移线索失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "线索已转移", "id": id, "to_user_id": toUserID})
+	return resultText(map[string]any{"message": "线索已转移", "id": id, "to_user_id": toUserID})
 }
 
 func handleLeadRelease(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -325,7 +325,7 @@ func handleLeadRelease(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	if err := svc.ReleaseToPool(ctx, id, poolID, userIDFromContext(ctx), req.GetString("reason", "")); err != nil {
 		return resultError(fmt.Sprintf("释放线索失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "线索已释放到公海", "id": id, "pool_id": poolID})
+	return resultText(map[string]any{"message": "线索已释放到公海", "id": id, "pool_id": poolID})
 }
 
 func handleLeadPick(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -338,7 +338,7 @@ func handleLeadPick(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	if err := svc.PickFromPool(ctx, id, userID); err != nil {
 		return resultError(fmt.Sprintf("领取线索失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "已从公海领取线索", "id": id, "owner_id": userID})
+	return resultText(map[string]any{"message": "已从公海领取线索", "id": id, "owner_id": userID})
 }
 
 // ── 商机 handlers ──
@@ -425,7 +425,7 @@ func handleOpportunityUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err := svc.Update(ctx, id, updateReq, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("更新商机失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "商机已更新", "id": id})
+	return resultText(map[string]any{"message": "商机已更新", "id": id})
 }
 
 func handleOpportunityChangeStage(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -438,7 +438,7 @@ func handleOpportunityChangeStage(ctx context.Context, req mcp.CallToolRequest) 
 	if err := svc.ChangeStage(ctx, id, toStage, userIDFromContext(ctx), req.GetString("reason", "")); err != nil {
 		return resultError(fmt.Sprintf("变更阶段失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "商机阶段已变更", "id": id, "to_stage": toStage})
+	return resultText(map[string]any{"message": "商机阶段已变更", "id": id, "to_stage": toStage})
 }
 
 // ── 合同 handlers ──
@@ -554,7 +554,7 @@ func handleContractUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err := svc.Update(ctx, id, updateReq, userIDFromContext(ctx)); err != nil {
 		return resultError(fmt.Sprintf("更新合同失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "合同已更新", "id": id})
+	return resultText(map[string]any{"message": "合同已更新", "id": id})
 }
 
 // ── 回款 handlers ──
@@ -764,7 +764,7 @@ func handleCrmDedup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 		}
 	}
 
-	return resultText(map[string]interface{}{
+	return resultText(map[string]any{
 		"leads":     leads,
 		"customers": customers,
 		"hint":      "若存在相似记录,建议先核对再决定是否新建",

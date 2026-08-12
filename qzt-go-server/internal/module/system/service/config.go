@@ -49,7 +49,7 @@ func validateConfigDef(typ, options string) error {
 func (s *ConfigService) List(ctx context.Context, group string) ([]model.SysConfig, error) {
 	q := &repository.QueryOptions{Order: []string{"sort ASC", "id ASC"}}
 	if group != "" {
-		q.Where = map[string]interface{}{"group": group}
+		q.Where = map[string]any{"group": group}
 	}
 	return s.repo.List(ctx, q)
 }
@@ -72,7 +72,7 @@ func (s *ConfigService) BatchUpdate(ctx context.Context, items []ConfigItem) err
 	if err := repository.Transaction(ctx, func(ctx context.Context) error {
 		for _, it := range items {
 			exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-				Where: map[string]interface{}{"key": it.Key},
+				Where: map[string]any{"key": it.Key},
 			})
 			if err != nil {
 				return err
@@ -129,7 +129,7 @@ func (s *ConfigService) Create(ctx context.Context, req *CreateConfigRequest) er
 		return err
 	}
 	exists, err := s.repo.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"key": req.Key},
+		Where: map[string]any{"key": req.Key},
 	})
 	if err != nil {
 		return err

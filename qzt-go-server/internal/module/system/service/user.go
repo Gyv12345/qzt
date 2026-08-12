@@ -184,7 +184,7 @@ type PublicTeamMemberDTO struct {
 // 职位用其角色名拼接展示;邮箱/电话/密码等敏感字段一律不输出。
 func (s *UserService) ListTeam(ctx context.Context, page, pageSize int) ([]PublicTeamMemberDTO, int64, error) {
 	users, total, err := s.userRepo.PageList(ctx, page, pageSize, &repository.QueryOptions{
-		Where:    map[string]interface{}{"status": 1},
+		Where:    map[string]any{"status": 1},
 		Preloads: []string{"Roles"},
 		Order:    []string{"id ASC"},
 	})

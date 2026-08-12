@@ -93,7 +93,7 @@ func handleCategoryCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err != nil {
 		return resultError(fmt.Sprintf("创建分类失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "分类已创建"})
+	return resultText(map[string]any{"message": "分类已创建"})
 }
 
 func handleCategoryUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -118,7 +118,7 @@ func handleCategoryUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err != nil {
 		return resultError(fmt.Sprintf("更新分类失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"id": id, "message": "更新成功"})
+	return resultText(map[string]any{"id": id, "message": "更新成功"})
 }
 
 func handleCategoryDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -130,7 +130,7 @@ func handleCategoryDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除分类失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "已删除"})
+	return resultText(map[string]any{"message": "已删除"})
 }
 
 // ── 标签 ──
@@ -198,7 +198,7 @@ func handleTagCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	if err != nil {
 		return resultError(fmt.Sprintf("创建标签失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "标签已创建"})
+	return resultText(map[string]any{"message": "标签已创建"})
 }
 
 func handleTagUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -221,7 +221,7 @@ func handleTagUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	if err != nil {
 		return resultError(fmt.Sprintf("更新标签失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"id": id, "message": "更新成功"})
+	return resultText(map[string]any{"id": id, "message": "更新成功"})
 }
 
 func handleTagDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -233,7 +233,7 @@ func handleTagDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除标签失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "已删除"})
+	return resultText(map[string]any{"message": "已删除"})
 }
 
 // ── 单页 ──
@@ -306,7 +306,7 @@ func handlePageList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	if err != nil {
 		return resultError(fmt.Sprintf("查询单页失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"list": list, "total": total, "page": page, "size": pageSize})
+	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
 
 func handlePageGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -343,7 +343,7 @@ func handlePageCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err != nil {
 		return resultError(fmt.Sprintf("创建单页失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "单页已创建"})
+	return resultText(map[string]any{"message": "单页已创建"})
 }
 
 func handlePageUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -370,7 +370,7 @@ func handlePageUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err != nil {
 		return resultError(fmt.Sprintf("更新单页失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"id": id, "message": "更新成功"})
+	return resultText(map[string]any{"id": id, "message": "更新成功"})
 }
 
 func handlePageDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -382,5 +382,5 @@ func handlePageDelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err := svc.Delete(ctx, id); err != nil {
 		return resultError(fmt.Sprintf("删除单页失败: %v", err))
 	}
-	return resultText(map[string]interface{}{"message": "已删除"})
+	return resultText(map[string]any{"message": "已删除"})
 }

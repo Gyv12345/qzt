@@ -35,7 +35,7 @@ func NewSalesOrderDetailRepo() *SalesOrderDetailRepo { return &SalesOrderDetailR
 
 func (r *SalesOrderDetailRepo) ListByOrder(ctx context.Context, orderID uint) ([]psimodel.PsiSalesOrderDetail, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"order_id": orderID},
+		Where: map[string]any{"order_id": orderID},
 		Order: []string{"id ASC"},
 	})
 }
@@ -73,7 +73,7 @@ func NewSalesReturnDetailRepo() *SalesReturnDetailRepo { return &SalesReturnDeta
 
 func (r *SalesReturnDetailRepo) ListByReturn(ctx context.Context, returnID uint) ([]psimodel.PsiSalesReturnDetail, error) {
 	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]interface{}{"return_id": returnID},
+		Where: map[string]any{"return_id": returnID},
 		Order: []string{"id ASC"},
 	})
 }

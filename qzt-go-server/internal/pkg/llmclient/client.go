@@ -93,7 +93,7 @@ func ChatComplete(ctx context.Context, messages []Message, opts Options) (string
 	}
 
 	// 构造请求体(与 OpenAI API 完全兼容)
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"model":       model,
 		"messages":    messages,
 		"temperature": temp,
