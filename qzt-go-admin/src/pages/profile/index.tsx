@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Avatar, Button, Card, Col, Descriptions, Row, Space, Spin, Statistic, Tabs, Tag, Typography } from 'antd'
 import { ArrowLeftOutlined, CheckCircleOutlined, EditOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
@@ -13,6 +13,13 @@ export default function ProfilePage() {
   const [overview, setOverview] = useState<DashboardOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('basic')
+  const tabsRef = useRef<HTMLDivElement>(null)
+
+  // 「编辑资料」按钮:切到基本信息 tab 并滚动聚焦到右栏编辑区
+  const focusEdit = () => {
+    setActiveTab('basic')
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   useEffect(() => {
     getDashboardOverview()
@@ -90,7 +97,7 @@ export default function ProfilePage() {
             <Button
               type="primary"
               icon={<EditOutlined />}
-              onClick={() => setActiveTab('basic')}
+              onClick={focusEdit}
             >
               编辑资料
             </Button>
@@ -153,6 +160,7 @@ export default function ProfilePage() {
 
           {/* ── 右栏：Tabs ── */}
           <Col xs={24} lg={16}>
+            <div ref={tabsRef}>
             <Card>
               <Tabs
                 activeKey={activeTab}
@@ -165,6 +173,7 @@ export default function ProfilePage() {
                 ]}
               />
             </Card>
+            </div>
           </Col>
         </Row>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Descriptions, Drawer, Empty, Spin, Tag, Timeline, Typography } from 'antd'
 import { getApprovalInstance } from '../../services/approval'
 import type { ApprovalInstanceDetail } from '../../types/approval'
@@ -38,13 +38,43 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
   const status = detail?.approval_status
   const statusTag = status ? STATUS_TAG[status] : undefined
 
+  // 审批记录时间线:以「提交审批」为起点,追加每条审批操作(通过/驳回)。
+  // 避免审批中的实例因暂无操作记录而显示「暂无审批记录」,看起来像异常。
+  const recordItems: { color: string; children: ReactNode }[] = []
+  if (detail?.submit_time) {
+    recordItems.push({
+      color: 'blue',
+      children: (
+        <>
+          <div>提交审批</div>
+          <Typography.Text type="secondary">{detail.submit_time}</Typography.Text>
+        </>
+      ),
+    })
+  }
+  ;(detail?.records || []).forEach((r) => {
+    const tag = RESULT_TAG[r.result]
+    recordItems.push({
+      color: r.result === 'REJECT' ? 'red' : 'green',
+      children: (
+        <>
+          <div>
+            第 {r.node_round} 轮审批{' '}
+            {tag ? <Tag color={tag.color}>{tag.text}</Tag> : <Tag>{r.result}</Tag>}
+          </div>
+          {r.comment ? <div>意见:{r.comment}</div> : null}
+          <Typography.Text type="secondary">{r.created_at}</Typography.Text>
+        </>
+      ),
+    })
+  })
+
   return (
     <Drawer title="审批详情" width={520} open={open} onClose={onClose} destroyOnHidden>
       <Spin spinning={loading}>
         {detail ? (
           <>
             <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="实例 ID">{detail.id}</Descriptions.Item>
               <Descriptions.Item label="类型">{detail.form_type_label || detail.type || '-'}</Descriptions.Item>
               <Descriptions.Item label="标题">{detail.resource_title || `#${detail.resource_id}`}</Descriptions.Item>
               <Descriptions.Item label="状态">
@@ -57,25 +87,8 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
             <Typography.Title level={5} style={{ marginTop: 24 }}>
               审批记录
             </Typography.Title>
-            {detail.records && detail.records.length > 0 ? (
-              <Timeline
-                items={detail.records.map((r) => {
-                  const tag = RESULT_TAG[r.result]
-                  return {
-                    color: r.result === 'REJECT' ? 'red' : 'green',
-                    children: (
-                      <>
-                        <div>
-                          节点 {r.node_id}(第 {r.node_round} 轮){' '}
-                          {tag ? <Tag color={tag.color}>{tag.text}</Tag> : <Tag>{r.result}</Tag>}
-                        </div>
-                        {r.comment ? <div>意见:{r.comment}</div> : null}
-                        <Typography.Text type="secondary">{r.created_at}</Typography.Text>
-                      </>
-                    ),
-                  }
-                })}
-              />
+            {recordItems.length > 0 ? (
+              <Timeline items={recordItems} />
             ) : (
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无审批记录" />
             )}
