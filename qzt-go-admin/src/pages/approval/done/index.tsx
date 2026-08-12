@@ -17,7 +17,6 @@ export default function ApprovalDonePage() {
 
   const columns: ProColumns<ApprovalRecord>[] = [
     { title: '编号', valueType: 'indexBorder', width: 70, search: false },
-    { title: '实例 ID', dataIndex: 'instance_id', width: 90, search: false },
     { title: '轮次', dataIndex: 'node_round', width: 70, search: false },
     {
       title: '结果',

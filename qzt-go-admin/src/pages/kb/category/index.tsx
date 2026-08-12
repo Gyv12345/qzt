@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { App, Button, Popconfirm, Space, Tree } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { ModalForm, ProFormText, ProFormDigit } from '@ant-design/pro-components'
+import { ModalForm, ProFormText, ProFormDigit, ProFormTreeSelect } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { listCategories, createCategory, updateCategory, deleteCategory } from '../../../services/kb'
 import type { KbCategory } from '../../../types/kb'
@@ -72,6 +72,21 @@ export default function CategoryPage() {
       }))
   }
 
+  // 构建可选父分类树(排除当前编辑节点及其子孙,避免把自己/子嗣设为父级形成环)
+  const buildParentOptions = (parentId: number, excludeId?: number): any[] => {
+    return list
+      .filter((item) => item.parent_id === parentId && item.id !== excludeId)
+      .map((item) => ({
+        title: item.name,
+        value: item.id,
+        children: buildParentOptions(item.id, excludeId),
+      }))
+  }
+  const parentTreeData = [
+    { title: '顶级分类(无父级)', value: 0 },
+    ...buildParentOptions(0, editing?.id),
+  ]
+
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
@@ -96,7 +111,15 @@ export default function CategoryPage() {
         width={480}
       >
         <ProFormText name="name" label="分类名称" rules={[{ required: true, message: '请输入' }]} />
-        <ProFormText name="parent_id" label="父分类ID" placeholder="0=顶级分类" />
+        <ProFormTreeSelect
+          name="parent_id"
+          label="父级分类"
+          fieldProps={{
+            treeData: parentTreeData,
+            treeDefaultExpandAll: true,
+            placeholder: '默认为顶级分类',
+          }}
+        />
         <ProFormDigit name="sort" label="排序" min={0} />
       </ModalForm>
     </div>

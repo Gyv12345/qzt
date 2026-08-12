@@ -268,7 +268,7 @@ export const updatePaymentRecord = (id: number, data: Partial<CrmPaymentRecordPa
 
 export const deletePaymentRecord = (id: number) => request.delete(`/crm/payment-records/${id}`)
 
-// ---------- 商品管理 ----------
+// ---------- 产品管理 ----------
 
 export interface ProductQuery extends PageParams {
   keyword?: string

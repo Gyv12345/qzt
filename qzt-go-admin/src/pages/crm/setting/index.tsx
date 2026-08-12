@@ -242,7 +242,7 @@ export default function CrmSettingPage() {
             children: (
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                 <Card size="small" type="inner" title="自定义字段" extra={<Button type="link" size="small" onClick={() => navigate('/crm/field')}>前往 ›</Button>}>
-                  <span style={{ color: '#888' }}>配置客户/商机/合同/商品/跟进记录的表单字段。</span>
+                  <span style={{ color: '#888' }}>配置客户/商机/合同/产品/跟进记录的表单字段。</span>
                 </Card>
                 <Card size="small" type="inner" title="阶段配置" extra={<Button type="link" size="small" onClick={() => navigate('/crm/stage')}>前往 ›</Button>}>
                   <span style={{ color: '#888' }}>配置商机/合同的阶段标签与颜色。</span>

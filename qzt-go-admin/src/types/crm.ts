@@ -544,12 +544,12 @@ export interface CrmCustomFieldPayload {
 
 /** 自定义字段表单 key */
 export const CRM_FORM_KEYS = [
+  { label: '线索', value: 'LEAD' },
   { label: '客户', value: 'CUSTOMER' },
   { label: '商机', value: 'OPPORTUNITY' },
   { label: '合同', value: 'CONTRACT' },
-  { label: '商品', value: 'PRODUCT' },
+  { label: '产品', value: 'PRODUCT' },
   { label: '跟进记录', value: 'FOLLOW_UP_RECORD' },
-  { label: '线索', value: 'LEAD' },
 ] as const
 
 /** 自定义字段类型(27 种) */
