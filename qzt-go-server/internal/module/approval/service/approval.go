@@ -120,6 +120,7 @@ func (s *ApprovalService) Push(ctx context.Context, req *PushRequest, submitterI
 		instance.CurrentNodeID = &nextNode.ID
 		s.instanceRepo.Update(ctx, instance)
 		s.updateResourceStatus(ctx, req.FormType, req.ResourceID, apprmodel.StatusApproved)
+		s.saveAutoPassRecord(ctx, instance.ID, nextNode.ID, 1, "流程无审批节点,系统自动通过")
 		s.sendFinishNotice(ctx, instance, "审批通过")
 		return instance, nil
 	}
@@ -321,6 +322,7 @@ func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.A
 			instance.CurrentNodeID = &nextNode.ID
 			s.instanceRepo.Update(ctx, instance)
 			s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusApproved)
+			s.saveAutoPassRecord(ctx, instance.ID, nextNode.ID, 1, "流程无审批节点,系统自动通过")
 			s.sendFinishNotice(ctx, instance, "审批通过")
 			return nil
 		}
@@ -395,8 +397,10 @@ func (s *ApprovalService) handleEmptyApprover(ctx context.Context, node *apprmod
 
 // autoPassNode 节点自动通过(空审批人 + AUTO_PASS,或 ASSIGN_SPECIFIC 未配兜底人时退化)。
 func (s *ApprovalService) autoPassNode(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, operator uint) error {
+	round := s.getNodeRound(ctx, instance.ID, node.ID)
+	s.saveAutoPassRecord(ctx, instance.ID, node.ID, round, "节点「"+node.Name+"」无审批人,系统自动通过")
 	return s.onTaskApproved(ctx, &apprmodel.ApprovalTask{
-		InstanceID: instance.ID, NodeID: node.ID, NodeRound: s.getNodeRound(ctx, instance.ID, node.ID),
+		InstanceID: instance.ID, NodeID: node.ID, NodeRound: round,
 	}, operator)
 }
 
@@ -571,6 +575,22 @@ func (s *ApprovalService) saveRecord(ctx context.Context, task *apprmodel.Approv
 		Comment:    comment,
 	}
 	return s.recordRepo.Create(ctx, record)
+}
+
+// saveAutoPassRecord 写一条"自动通过"审批记录(无审批人操作的节点/流程完成时留痕),
+// 让审批详情能完整呈现「提交 → 自动通过 → 完成」轨迹,而非空白。
+func (s *ApprovalService) saveAutoPassRecord(ctx context.Context, instanceID, nodeID uint, nodeRound int, comment string) {
+	record := &apprmodel.ApprovalRecord{
+		InstanceID: instanceID,
+		TaskID:     nil, // 自动通过无审批任务
+		NodeID:     nodeID,
+		NodeRound:  nodeRound,
+		Result:     "AUTO_PASS",
+		Comment:    comment,
+	}
+	if err := s.recordRepo.Create(ctx, record); err != nil {
+		xlogger.ErrorfCtx(ctx, "写自动通过审批记录失败 instance=%d node=%d: %v", instanceID, nodeID, err)
+	}
 }
 
 // updateResourceStatus 更新业务资源的审批状态(白名单表名,防注入)。

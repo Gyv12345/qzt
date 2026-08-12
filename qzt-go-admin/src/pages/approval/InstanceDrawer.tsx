@@ -19,6 +19,7 @@ const STATUS_TAG: Record<string, { color: string; text: string }> = {
 const RESULT_TAG: Record<string, { color: string; text: string }> = {
   APPROVE: { color: 'success', text: '通过' },
   REJECT: { color: 'error', text: '驳回' },
+  AUTO_PASS: { color: 'default', text: '自动通过' },
 }
 
 /** 审批实例详情抽屉(只读):基本信息 + 审批记录时间线 */
