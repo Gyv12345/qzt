@@ -34,13 +34,15 @@ interface DedupAlertProps {
   /** 排除自身(编辑场景传当前记录 id+类型) */
   excludeType?: 'LEAD' | 'CUSTOMER'
   excludeId?: number
+  /** 额外排除的客户 id(如线索编辑时排除该线索已转化成的客户) */
+  excludeCustomerIds?: number[]
 }
 
 /**
  * 录入查重提示:名称/电话输入后 500ms 防抖查询,
  * 跨线索+客户检索相似记录,仅提示不拦截。无相似记录时不渲染。
  */
-export default function DedupAlert({ name, phone, excludeType, excludeId }: DedupAlertProps) {
+export default function DedupAlert({ name, phone, excludeType, excludeId, excludeCustomerIds }: DedupAlertProps) {
   const nickname = useUserStore((s) => s.nickname)
   const [result, setResult] = useState<DedupResult | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -66,7 +68,7 @@ export default function DedupAlert({ name, phone, excludeType, excludeId }: Dedu
 
   const leads = (result?.leads ?? []).filter((l) => !(excludeType === 'LEAD' && l.id === excludeId))
   const customers = (result?.customers ?? []).filter(
-    (c) => !(excludeType === 'CUSTOMER' && c.id === excludeId),
+    (c) => !(excludeType === 'CUSTOMER' && c.id === excludeId) && !excludeCustomerIds?.includes(c.id),
   )
   if (leads.length === 0 && customers.length === 0) return null
 

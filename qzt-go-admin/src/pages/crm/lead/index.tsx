@@ -434,7 +434,13 @@ export default function LeadPage() {
         grid
       >
         <Col span={24}>
-          <DedupAlert name={watchName} phone={watchPhone} excludeType="LEAD" excludeId={editing?.id} />
+          <DedupAlert
+            name={watchName}
+            phone={watchPhone}
+            excludeType="LEAD"
+            excludeId={editing?.id}
+            excludeCustomerIds={editing?.converted_customer_id ? [editing.converted_customer_id] : undefined}
+          />
         </Col>
         <ProFormText
           name="name"
