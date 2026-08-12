@@ -48,5 +48,8 @@ yarn-debug.log*
 # ── GUI 测试截图(临时产物) ──
 gui-test-screenshots/
 
+# ── 软著申请材料(私有文档,不入库)──
+软著申请材料/
+
 # ── TypeScript 构建信息 ──
 *.tsbuildinfo
