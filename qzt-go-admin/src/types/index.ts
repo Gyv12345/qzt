@@ -183,6 +183,8 @@ export interface SysLoginLog {
   success: boolean
   error_msg: string
   client_ip: string
+  /** IP 归属地(后端查询时解析填充) */
+  region: string
   user_agent: string
   created_at: string
 }

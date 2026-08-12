@@ -32,6 +32,7 @@ import (
 	kbmod "qzt-go-server/internal/module/kb"
 	cloudmod "qzt-go-server/internal/module/cloud"
 	projmod "qzt-go-server/internal/module/project"
+	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/server"
 	"qzt-go-server/pkg/xcolor"
@@ -64,6 +65,11 @@ func main() {
 	// 2. 预热运行时配置缓存（失败不阻断启动）
 	// 数据库表结构和种子数据请通过 docs/sql/ 下的 SQL 脚本手动执行。
 	setting.Warm(context.Background())
+
+	// 3. 加载离线 IP 归属地库(登录日志展示 IP 大概地址;缺失仅记日志,不阻断)
+	if err := ipregion.Init("data/ip2region.xdb"); err != nil {
+		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
+	}
 
 	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa / ai / mail 模块）
 	router := server.NewRouter(

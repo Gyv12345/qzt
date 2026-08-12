@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"qzt-go-server/internal/model"
+	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/repository"
 )
 
@@ -40,5 +41,13 @@ func (s *LoginLogService) List(ctx context.Context, page, pageSize int, username
 	if end := parseTimeRange(endDate); !end.IsZero() {
 		q.Conds = append(q.Conds, repository.Cond{Query: "created_at <= ?", Args: []interface{}{end}})
 	}
-	return s.repo.PageList(ctx, page, pageSize, q)
+	list, total, err := s.repo.PageList(ctx, page, pageSize, q)
+	if err != nil {
+		return nil, 0, err
+	}
+	// 查询时实时解析 IP 归属地(历史数据也能显示;ipregion 未加载则 Region 为空)
+	for i := range list {
+		list[i].Region = ipregion.Lookup(list[i].ClientIP)
+	}
+	return list, total, nil
 }

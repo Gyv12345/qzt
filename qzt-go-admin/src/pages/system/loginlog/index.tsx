@@ -25,6 +25,13 @@ export default function LoginLogPage() {
     },
     { title: 'IP 地址', dataIndex: 'client_ip', width: 140 },
     {
+      title: '归属地',
+      dataIndex: 'region',
+      width: 200,
+      search: false,
+      render: (_, r) => r.region || '-',
+    },
+    {
       title: 'User-Agent',
       dataIndex: 'user_agent',
       width: 280,

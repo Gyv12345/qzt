@@ -12,6 +12,7 @@ type SysLoginLog struct {
 	Action    string `json:"action" gorm:"size:32;comment:动作(登录/登出/企业微信扫码登录)"`
 	Success   bool   `json:"success" gorm:"index;comment:是否成功"`
 	ClientIP  string `json:"client_ip" gorm:"size:64;index;comment:客户端IP"`
+	Region    string `json:"region" gorm:"-"` // IP 归属地(查询时由 ipregion 解析填充,不入库)
 	UserAgent string `json:"user_agent" gorm:"size:255;comment:User-Agent"`
 	ErrorMsg  string `json:"error_msg" gorm:"type:text;comment:失败原因"`
 	base.BaseModel
