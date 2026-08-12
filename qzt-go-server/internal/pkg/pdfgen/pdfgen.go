@@ -1,23 +1,27 @@
-// Package pdfgen 用 wkhtmltopdf 把 Markdown / HTML 渲染成 PDF。
+// Package pdfgen 用 weasyprint 把 Markdown / HTML 渲染成 PDF。
 //
-// 依赖系统的 wkhtmltopdf 二进制:
-//   - macOS:brew install wkhtmltopdf
-//   - 生产 linux:apt install wkhtmltopdf fonts-noto-cjk(中文字体)
+// 依赖系统的 weasyprint(HTML/CSS → PDF,基于 cairo/pango):
+//   - 生产 linux(Ubuntu):apt install weasyprint fonts-noto-cjk(中文字体)+ fontconfig
+//   - macOS:brew install weasyprint
 //
-// 链路:Markdown → blackfriday(HTML 片段)→ 包合同 CSS(完整 HTML 文档)→ wkhtmltopdf → PDF bytes。
+// 链路:Markdown → blackfriday(HTML 片段)→ 包合同 CSS(完整 HTML 文档)→ weasyprint → PDF bytes。
+//
+// 选 weasyprint 而非 wkhtmltopdf:wkhtmltopdf 上游已停更,Ubuntu 24.04+ 仓库已下架;
+// weasyprint 活跃维护、CSS Paged Media 支持好、中文渲染良好(fonts-noto-cjk + fontconfig)。
+// 代价:每次生成 PDF fork 一个 Python 进程(冷启动 ~1s),合同签署低频,可接受。
 package pdfgen
 
 import (
 	"bytes"
 	"fmt"
-	"strings"
+	"os"
+	"os/exec"
 
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/russross/blackfriday/v2"
 )
 
 // contractCSS 合同正文样式(中文字体优先、A4、表格、段首缩进)。
-// 中文字体由系统 fonts-noto-cjk 提供,wkhtmltopdf 自动查找。
+// 中文字体由系统 fonts-noto-cjk 提供,weasyprint 通过 fontconfig 自动查找。
 const contractCSS = `
 body { font-family: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif; font-size: 14px; line-height: 1.8; color: #222; }
 h1 { font-size: 22px; text-align: center; margin: 24px 0; }
@@ -32,7 +36,7 @@ strong { font-weight: 600; }
 @page { margin: 25mm 20mm; }
 `
 
-// GenerateFromMarkdown 把 Markdown 渲染成 PDF(MD→HTML→wkhtmltopdf→PDF bytes)。
+// GenerateFromMarkdown 把 Markdown 渲染成 PDF(MD→HTML→weasyprint→PDF bytes)。
 // title 作为文档大标题(H1)置顶。
 func GenerateFromMarkdown(markdown, title string) ([]byte, error) {
 	htmlBody := blackfriday.Run([]byte(markdown))
@@ -41,21 +45,31 @@ func GenerateFromMarkdown(markdown, title string) ([]byte, error) {
 	return GenerateFromHTML(html)
 }
 
-// GenerateFromHTML 把完整 HTML 文档渲染成 PDF。
+// GenerateFromHTML 把完整 HTML 文档渲染成 PDF(写临时文件 → weasyprint → 读回 bytes)。
+// weasyprint 不直接支持 stdin 完整 HTML 的稳定输入,故走临时文件。
 func GenerateFromHTML(html string) ([]byte, error) {
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+	tmpHTML, err := os.CreateTemp("", "esign-*.html")
 	if err != nil {
-		return nil, fmt.Errorf("初始化 PDF 生成器失败: %w", err)
+		return nil, fmt.Errorf("创建临时 HTML 文件失败: %w", err)
 	}
-	page := wkhtmltopdf.NewPageReader(strings.NewReader(html))
-	page.EnableLocalFileAccess.Set(true)
-	pdfg.AddPage(page)
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-	// 中文字体由系统提供(fonts-noto-cjk),wkhtmltopdf 渲染时自动使用
-	if err := pdfg.Create(); err != nil {
-		return nil, fmt.Errorf("生成 PDF 失败(请确认已安装 wkhtmltopdf 二进制): %w", err)
+	htmlPath := tmpHTML.Name()
+	defer os.Remove(htmlPath)
+	if _, err := tmpHTML.WriteString(html); err != nil {
+		tmpHTML.Close()
+		return nil, fmt.Errorf("写入临时 HTML 文件失败: %w", err)
 	}
-	return pdfg.Bytes(), nil
+	tmpHTML.Close()
+
+	pdfPath := htmlPath + ".pdf"
+	defer os.Remove(pdfPath)
+
+	cmd := exec.Command("weasyprint", htmlPath, pdfPath)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("weasyprint 生成 PDF 失败(请确认已安装 weasyprint): %w; stderr: %s", err, stderr.String())
+	}
+	return os.ReadFile(pdfPath)
 }
 
 // escapeHTML 转义标题中的 HTML 特殊字符。

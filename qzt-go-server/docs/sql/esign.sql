@@ -14,11 +14,13 @@ CREATE TABLE IF NOT EXISTS `crm_esign_task` (
   `retry_count` int NOT NULL DEFAULT 0,
   `next_retry_at` datetime DEFAULT NULL COMMENT '下次重试时间(失败退避)',
   `error` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '最近错误',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `deleted_at` datetime(3) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_esign_task_pending` (`status`,`next_retry_at`),
-  KEY `idx_esign_task_contract` (`contract_id`)
+  KEY `idx_esign_task_contract` (`contract_id`),
+  KEY `idx_esign_task_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2) 合同表加电子签字段(逐个幂等,MySQL 无 ADD COLUMN IF NOT EXISTS)
