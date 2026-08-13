@@ -20,3 +20,26 @@ export const listTasks = (projectId: number) =>
 
 export const updateTaskStatus = (id: number, status: number) =>
   request.put(`/project/tasks/${id}/status`, { status })
+
+// ── 项目 CRUD(补充) ──
+
+export const createProject = (data: {
+  name: string
+  description?: string
+  start_date?: string
+  end_date?: string
+  customer_id?: number
+  status?: number
+}) => request.post('/project/projects', data)
+
+export const updateProject = (id: number, data: Partial<Parameters<typeof createProject>[0]>) =>
+  request.put(`/project/projects/${id}`, data)
+
+export const deleteProject = (id: number) => request.delete(`/project/projects/${id}`)
+
+// ── 任务增删(补充) ──
+
+export const createTask = (data: { project_id: number; title: string; description?: string; due_date?: string; status?: number }) =>
+  request.post('/project/tasks', data)
+
+export const deleteTask = (id: number) => request.delete(`/project/tasks/${id}`)

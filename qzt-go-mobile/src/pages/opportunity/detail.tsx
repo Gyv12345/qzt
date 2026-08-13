@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
-import { ActionSheet, Button, Card, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
+import { ActionSheet, Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   changeOpportunityStage,
+  deleteOpportunity,
   getOpportunity,
   getOpportunityStageHistory,
   getStageConfig,
 } from '../../services/crm'
 import type { CrmOpportunity, StageDef, StageRecord } from '../../types/crm'
 import { useAuthStore } from '../../stores/auth'
+import OpportunityFormSheet from '../../components/OpportunityFormSheet'
 
 // 本地兜底阶段映射(stage-config 拉取失败时用)
 const STAGE_TEXT: Record<string, string> = {
@@ -40,6 +42,7 @@ export default function OpportunityDetail() {
   const [history, setHistory] = useState<StageRecord[]>([])
   const [failed, setFailed] = useState(false)
   const [acting, setActing] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   // stage-config 构建 key->label/color 映射
   const stageMap: Record<string, { label: string; color: string }> = {}
@@ -117,6 +120,21 @@ export default function OpportunityDetail() {
     })
   }
 
+  // 删除商机
+  const onDelete = async () => {
+    const ok = await Dialog.confirm({ content: `确定删除商机「${data?.name}」?此操作不可恢复。` })
+    if (!ok) return
+    setActing(true)
+    try {
+      await deleteOpportunity(data!.id)
+      Toast.show({ icon: 'success', content: '已删除' })
+      navigate(-1)
+    } catch {
+    } finally {
+      setActing(false)
+    }
+  }
+
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%', paddingBottom: 24 }}>
       <NavBar onBack={() => navigate(-1)}>商机详情</NavBar>
@@ -178,14 +196,20 @@ export default function OpportunityDetail() {
         )}
       </div>
 
-      {/* 推进阶段按钮 */}
-      {hasPerm('crm:opportunity:edit') && (
-        <div style={{ margin: 8 }}>
+      {/* 操作 */}
+      <div style={{ margin: 8, display: 'flex', gap: 8 }}>
+        {hasPerm('crm:opportunity:edit') && (
           <Button block color="primary" size="large" fill="outline" onClick={onAdvance} loading={acting}>
             推进阶段
           </Button>
-        </div>
-      )}
+        )}
+        <Button block color="primary" size="large" fill="outline" onClick={() => setShowEdit(true)}>
+          编辑
+        </Button>
+        <Button block color="danger" size="large" fill="outline" onClick={onDelete} loading={acting}>
+          删除
+        </Button>
+      </div>
 
       {/* 阶段历史 */}
       <Card title="阶段历史" style={{ margin: 8 }}>
@@ -207,6 +231,13 @@ export default function OpportunityDetail() {
           </List>
         )}
       </Card>
+
+      <OpportunityFormSheet
+        visible={showEdit}
+        onClose={() => setShowEdit(false)}
+        opportunity={data}
+        onSubmitted={reload}
+      />
     </div>
   )
 }

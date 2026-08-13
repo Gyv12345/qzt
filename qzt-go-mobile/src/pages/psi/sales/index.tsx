@@ -1,9 +1,11 @@
-import { useCallback } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { useCallback, useState } from 'react'
+import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
 import { listSalesOrders } from '../../../services/psi'
 import type { PsiSalesOrder } from '../../../types/psi'
 import { useInfiniteList } from '../../../hooks/useInfiniteList'
+import SalesOrderSheet from '../../../components/SalesOrderSheet'
 
 const SALES_STATUS: Record<number, { text: string; color: string }> = {
   1: { text: '待出库', color: 'warning' },
@@ -13,6 +15,7 @@ const SALES_STATUS: Record<number, { text: string; color: string }> = {
 
 export default function SalesList() {
   const navigate = useNavigate()
+  const [showNew, setShowNew] = useState(false)
   const fetcher = useCallback((params: { page: number; page_size: number }) => listSalesOrders(params), [])
   const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiSalesOrder>(fetcher, { page_size: 20 })
 
@@ -38,6 +41,12 @@ export default function SalesList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <SalesOrderSheet visible={showNew} onClose={() => setShowNew(false)} onSubmitted={refresh} />
     </div>
   )
 }

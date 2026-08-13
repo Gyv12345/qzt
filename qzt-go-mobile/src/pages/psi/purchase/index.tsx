@@ -1,13 +1,16 @@
-import { useCallback } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { useCallback, useState } from 'react'
+import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
 import { listPurchaseOrders } from '../../../services/psi'
 import type { PsiPurchaseOrder } from '../../../types/psi'
 import { PURCHASE_STATUS } from '../../../types/psi'
 import { useInfiniteList } from '../../../hooks/useInfiniteList'
+import PurchaseOrderSheet from '../../../components/PurchaseOrderSheet'
 
 export default function PurchaseList() {
   const navigate = useNavigate()
+  const [showNew, setShowNew] = useState(false)
   const fetcher = useCallback((params: { page: number; page_size: number }) => listPurchaseOrders(params), [])
   const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiPurchaseOrder>(fetcher, { page_size: 20 })
 
@@ -33,6 +36,12 @@ export default function PurchaseList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <PurchaseOrderSheet visible={showNew} onClose={() => setShowNew(false)} onSubmitted={refresh} />
     </div>
   )
 }

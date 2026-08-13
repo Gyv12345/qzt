@@ -1,10 +1,10 @@
 import { useCallback, useState, useEffect } from 'react'
-import { InfiniteScroll, NavBar, PullToRefresh, Tag, FloatingBubble, Card, Button, Toast } from 'antd-mobile'
+import { InfiniteScroll, NavBar, PullToRefresh, Tag, FloatingBubble, Card, Button, Dialog, Toast } from 'antd-mobile'
 import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
-import { listMeetingBookings, listMeetingRooms, createMeetingBooking, submitMeetingBookingApproval } from '../../services/oa'
+import { createMeetingBooking, deleteMeetingBooking, listMeetingBookings, listMeetingRooms, submitMeetingBookingApproval, updateMeetingBooking } from '../../services/oa'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
-import FormSheet from '../../components/FormSheet'
+import FormSheet, { type FormField } from '../../components/FormSheet'
 
 const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
   NONE: { text: '未提交', color: 'default' },
@@ -14,9 +14,19 @@ const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
   REVOKED: { text: '已撤回', color: 'warning' },
 }
 
+const FORM_FIELDS: FormField[] = [
+  { name: 'title', label: '会议标题', type: 'text', required: true },
+  { name: 'room_id', label: '会议室', type: 'select', required: true },
+  { name: 'start_time', label: '开始时间', type: 'date', datePrecision: 'datetime', required: true },
+  { name: 'end_time', label: '结束时间', type: 'date', datePrecision: 'datetime', required: true },
+  { name: 'attendees', label: '参会人数', type: 'number' },
+  { name: 'topic', label: '会议主题', type: 'textarea' },
+]
+
 export default function MeetingBookingList() {
   const navigate = useNavigate()
   const [showNew, setShowNew] = useState(false)
+  const [editing, setEditing] = useState<any>(null)
   const [rooms, setRooms] = useState<any[]>([])
   const fetcher = useCallback((params: { page: number; page_size: number }) => listMeetingBookings(params), [])
   const { list, hasMore, loadMore, refresh } = useInfiniteList<any>(fetcher, { page_size: 20 })
@@ -25,10 +35,27 @@ export default function MeetingBookingList() {
     listMeetingRooms().then((res) => setRooms((res.list || []).filter((r: any) => r.status === 'ENABLED')))
   }, [])
 
+  const fields: FormField[] = [
+    FORM_FIELDS[0],
+    { ...FORM_FIELDS[1], options: rooms.map((r) => ({ label: r.name, value: r.id })) },
+    ...FORM_FIELDS.slice(2),
+  ]
+
   const handleSubmit = async (id: number) => {
     await submitMeetingBookingApproval(id)
     Toast.show({ icon: 'success', content: '已提交审批' })
     refresh()
+  }
+
+  const onDelete = async (b: any) => {
+    const ok = await Dialog.confirm({ content: `确定删除预订「${b.title}」?` })
+    if (!ok) return
+    try {
+      await deleteMeetingBooking(b.id)
+      Toast.show({ icon: 'success', content: '已删除' })
+      refresh()
+    } catch {
+    }
   }
 
   return (
@@ -49,9 +76,11 @@ export default function MeetingBookingList() {
                 </div>
                 {b.attendees > 0 && <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>参会: {b.attendees}人</div>}
                 {b.approval_status === 'NONE' && (
-                  <Button size="mini" color="primary" fill="outline" style={{ marginTop: 8 }} onClick={() => handleSubmit(b.id)}>
-                    提交审批
-                  </Button>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <Button size="mini" color="primary" fill="outline" onClick={() => handleSubmit(b.id)}>提交审批</Button>
+                    <Button size="mini" color="primary" fill="none" onClick={() => setEditing(b)}>编辑</Button>
+                    <Button size="mini" color="danger" fill="none" onClick={() => onDelete(b)}>删除</Button>
+                  </div>
                 )}
               </Card>
             )
@@ -66,26 +95,30 @@ export default function MeetingBookingList() {
       </FloatingBubble>
 
       <FormSheet
-        visible={showNew}
-        title="预订会议"
-        onClose={() => setShowNew(false)}
-        fields={[
-          { name: 'title', label: '会议标题', type: 'text', required: true },
-          { name: 'room_id', label: '会议室', type: 'select', required: true, options: rooms.map((r) => ({ label: r.name, value: r.id })) },
-          { name: 'start_time', label: '开始(YYYY-MM-DD HH:mm:ss)', type: 'text', required: true, placeholder: '2026-08-09 14:00:00' },
-          { name: 'end_time', label: '结束(YYYY-MM-DD HH:mm:ss)', type: 'text', required: true, placeholder: '2026-08-09 15:00:00' },
-          { name: 'attendees', label: '参会人数', type: 'number' },
-          { name: 'topic', label: '会议主题', type: 'textarea' },
-        ]}
+        visible={showNew || !!editing}
+        title={editing ? '编辑预订' : '预订会议'}
+        fields={fields}
+        initialValues={
+          editing
+            ? { title: editing.title, room_id: editing.room_id, start_time: editing.start_time, end_time: editing.end_time, attendees: editing.attendees, topic: editing.topic }
+            : undefined
+        }
+        onClose={() => {
+          setShowNew(false)
+          setEditing(null)
+        }}
         onSubmit={async (vals) => {
-          await createMeetingBooking({
+          const payload = {
             title: vals.title,
             room_id: Number(vals.room_id),
             start_time: vals.start_time,
             end_time: vals.end_time,
             attendees: vals.attendees ? Number(vals.attendees) : 0,
             topic: vals.topic,
-          })
+          }
+          if (editing) await updateMeetingBooking(editing.id, payload)
+          else await createMeetingBooking(payload)
+          setEditing(null)
           refresh()
         }}
       />

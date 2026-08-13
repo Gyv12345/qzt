@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tag } from 'antd-mobile'
+import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tag } from 'antd-mobile'
 import { useNavigate } from 'react-router-dom'
 import { listContracts } from '../../services/crm'
 import type { CrmContract } from '../../types/crm'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
+import { AddOutline } from 'antd-mobile-icons'
+import ContractFormSheet from '../../components/ContractFormSheet'
 
 const STAGE_TEXT: Record<string, string> = {
   DRAFT: '草稿',
@@ -25,6 +27,7 @@ const formatAmount = (v?: string) =>
 export default function ContractList() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  const [showNew, setShowNew] = useState(false)
 
   const fetcher = useCallback(
     (params: { page: number; page_size: number }) =>
@@ -89,6 +92,12 @@ export default function ContractList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <ContractFormSheet visible={showNew} onClose={() => setShowNew(false)} onSubmitted={refresh} />
     </div>
   )
 }

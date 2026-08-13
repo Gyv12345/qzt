@@ -33,6 +33,7 @@ export default function FollowPlanList() {
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [showNew, setShowNew] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<CrmFollowPlan | null>(null)
   const [actingId, setActingId] = useState<number | null>(null)
 
   const load = () => {
@@ -97,12 +98,14 @@ export default function FollowPlanList() {
   const onMore = (p: CrmFollowPlan) => {
     ActionSheet.show({
       actions: [
+        { text: '编辑计划', key: 'edit' },
         { text: '跳过计划', key: 'skip' },
         { text: '删除计划', key: 'delete', danger: true },
       ],
       cancelText: '取消',
       onAction: (item) => {
-        if (item.key === 'skip') onSkip(p)
+        if (item.key === 'edit') setEditingPlan(p)
+        else if (item.key === 'skip') onSkip(p)
         else if (item.key === 'delete') onDelete(p)
       },
     })
@@ -201,8 +204,12 @@ export default function FollowPlanList() {
       </FloatingBubble>
 
       <FollowPlanSheet
-        visible={showNew}
-        onClose={() => setShowNew(false)}
+        visible={showNew || !!editingPlan}
+        plan={editingPlan}
+        onClose={() => {
+          setShowNew(false)
+          setEditingPlan(null)
+        }}
         onSubmitted={load}
       />
     </div>

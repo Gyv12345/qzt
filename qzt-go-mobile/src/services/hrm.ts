@@ -18,6 +18,29 @@ export const listEmployees = (params: EmployeeQuery) =>
 export const getEmployee = (id: number) =>
   request.get<unknown, HrmEmployee>(`/hrm/employees/${id}`)
 
+/** 新建员工 */
+export const createEmployee = (data: {
+  name: string
+  emp_no?: string
+  phone?: string
+  gender?: number
+  department_id?: number
+  position_id?: number
+  status?: number
+  entry_date?: string
+  id_card?: string
+  email?: string
+}) => request.post('/hrm/employees', data)
+
+/** 更新员工(亦可用于入职/离职:改 status) */
+export const updateEmployee = (
+  id: number,
+  data: Partial<Parameters<typeof createEmployee>[0]>,
+) => request.put(`/hrm/employees/${id}`, data)
+
+/** 删除员工 */
+export const deleteEmployee = (id: number) => request.delete(`/hrm/employees/${id}`)
+
 // ── 请假 ──
 
 export interface LeaveQuery extends PageParams {

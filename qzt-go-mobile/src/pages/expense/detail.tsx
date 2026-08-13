@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getExpense, submitExpenseApproval } from '../../services/oa'
+import { deleteExpense, getExpense, submitExpenseApproval, updateExpense } from '../../services/oa'
 import type { OaExpenseDetail } from '../../types/oa'
 import { APPROVAL_STATUS, EXPENSE_TYPE } from '../../types/oa'
+import FormSheet from '../../components/FormSheet'
 
 export default function ExpenseDetail() {
   const { id } = useParams<{ id: string }>()
@@ -11,12 +12,15 @@ export default function ExpenseDetail() {
   const [detail, setDetail] = useState<OaExpenseDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [acting, setActing] = useState(false)
 
-  useEffect(() => {
+  const reload = () => {
     if (!id) return
     setLoading(true)
     getExpense(Number(id)).then(setDetail).catch(() => setError(true)).finally(() => setLoading(false))
-  }, [id])
+  }
+  useEffect(reload, [id])
 
   if (loading) return <div style={{ paddingTop: '40vh', textAlign: 'center' }}><SpinLoading style={{ '--size': '40px' }} /></div>
   if (error || !detail) return <ErrorBlock status="default" title="加载失败" description="报销详情获取失败" />
@@ -30,6 +34,18 @@ export default function ExpenseDetail() {
     await submitExpenseApproval(e.id)
     Dialog.alert({ content: '已提交审批' })
     navigate(-1)
+  }
+
+  const onDelete = async () => {
+    const ok = await Dialog.confirm({ content: `确定删除报销「${e.title}」?` })
+    if (!ok) return
+    setActing(true)
+    try {
+      await deleteExpense(e.id)
+      navigate(-1)
+    } finally {
+      setActing(false)
+    }
   }
 
   return (
@@ -68,11 +84,39 @@ export default function ExpenseDetail() {
         </Card>
       )}
 
-      {e.approval_status === 'NONE' && (
-        <div style={{ padding: 16 }}>
+      <div style={{ padding: 16, display: 'flex', gap: 8 }}>
+        {e.approval_status === 'NONE' && (
           <Button block color="primary" onClick={handleSubmit}>提交审批</Button>
-        </div>
-      )}
+        )}
+        {e.approval_status === 'NONE' && (
+          <Button block color="primary" fill="outline" onClick={() => setShowEdit(true)}>编辑</Button>
+        )}
+        <Button block color="danger" fill="outline" onClick={onDelete} loading={acting}>删除</Button>
+      </div>
+
+      <FormSheet
+        visible={showEdit}
+        title="编辑报销"
+        fields={[
+          { name: 'title', label: '报销标题', type: 'text', required: true },
+          { name: 'expense_type', label: '费用类型', type: 'select', options: Object.entries(EXPENSE_TYPE).map(([k, v]) => ({ label: v as string, value: k })) },
+          { name: 'amount', label: '金额', type: 'number', required: true },
+          { name: 'occur_date', label: '发生日期', type: 'date', datePrecision: 'date' },
+          { name: 'description', label: '说明', type: 'textarea' },
+        ]}
+        initialValues={{ title: e.title, expense_type: e.expense_type, amount: e.amount, occur_date: e.occur_date?.slice(0, 10), description: e.description }}
+        onClose={() => setShowEdit(false)}
+        onSubmit={async (v) => {
+          await updateExpense(e.id, {
+            title: v.title,
+            expense_type: v.expense_type,
+            amount: v.amount ? String(v.amount) : '0',
+            occur_date: v.occur_date || undefined,
+            description: v.description || undefined,
+          })
+          reload()
+        }}
+      />
     </div>
   )
 }

@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Card, ErrorBlock, List, NavBar, SpinLoading, Tag, Selector } from 'antd-mobile'
+import { Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Selector, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getProject, updateTaskStatus } from '../../services/project'
+import { createTask, deleteProject, deleteTask, getProject, updateProject, updateTaskStatus } from '../../services/project'
 import type { ProjectDetail } from '../../types/project'
 import { PROJECT_STATUS, TASK_STATUS } from '../../types/project'
+import FormSheet from '../../components/FormSheet'
 
 const TASK_COLUMNS = [
   { status: 1, label: '待办' },
   { status: 2, label: '进行中' },
   { status: 3, label: '已完成' },
+]
+
+const STATUS_OPTIONS = [
+  { label: '未开始', value: 1 },
+  { label: '进行中', value: 2 },
+  { label: '已完成', value: 3 },
+  { label: '已搁置', value: 4 },
 ]
 
 export default function ProjectDetail() {
@@ -17,6 +25,9 @@ export default function ProjectDetail() {
   const [detail, setDetail] = useState<ProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showNewTask, setShowNewTask] = useState(false)
+  const [acting, setActing] = useState(false)
 
   const load = () => {
     if (!id) return
@@ -34,6 +45,29 @@ export default function ProjectDetail() {
   const handleStatusChange = async (taskId: number, status: number) => {
     await updateTaskStatus(taskId, status)
     load()
+  }
+
+  const onDeleteProject = async () => {
+    const ok = await Dialog.confirm({ content: `确定删除项目「${p.name}」?` })
+    if (!ok) return
+    setActing(true)
+    try {
+      await deleteProject(p.id)
+      navigate(-1)
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const onDeleteTask = async (taskId: number) => {
+    const ok = await Dialog.confirm({ content: '确定删除该任务?' })
+    if (!ok) return
+    try {
+      await deleteTask(taskId)
+      Toast.show({ icon: 'success', content: '已删除' })
+      load()
+    } catch {
+    }
   }
 
   return (
@@ -55,7 +89,20 @@ export default function ProjectDetail() {
         </List>
       </Card>
 
-      <Card title={`任务(${tasks.length})`} style={{ margin: 8 }}>
+      <div style={{ margin: 8, display: 'flex', gap: 8 }}>
+        <Button block color="primary" fill="outline" onClick={() => setShowEdit(true)}>编辑</Button>
+        <Button block color="danger" fill="outline" onClick={onDeleteProject} loading={acting}>删除</Button>
+      </div>
+
+      <Card
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>任务({tasks.length})</span>
+            <Button size="small" color="primary" onClick={() => setShowNewTask(true)}>新增</Button>
+          </div>
+        }
+        style={{ margin: 8 }}
+      >
         {tasks.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 20 }}>暂无任务</div>
         ) : (
@@ -68,6 +115,7 @@ export default function ProjectDetail() {
                   <div style={{ marginTop: 4 }}>
                     <Tag color={ts.color} fill="outline">{ts.text}</Tag>
                     {t.due_date && <span style={{ marginLeft: 8, fontSize: 12 }}>截止:{t.due_date.slice(0, 10)}</span>}
+                    <a style={{ marginLeft: 12, color: '#ff4d4f', fontSize: 12 }} onClick={() => onDeleteTask(t.id)}>删除</a>
                   </div>
                 }
                 extra={
@@ -85,6 +133,51 @@ export default function ProjectDetail() {
           })
         )}
       </Card>
+
+      <FormSheet
+        visible={showEdit}
+        title="编辑项目"
+        fields={[
+          { name: 'name', label: '项目名称', type: 'text', required: true },
+          { name: 'status', label: '状态', type: 'select', options: STATUS_OPTIONS },
+          { name: 'start_date', label: '开始日期', type: 'date', datePrecision: 'date' },
+          { name: 'end_date', label: '截止日期', type: 'date', datePrecision: 'date' },
+          { name: 'description', label: '描述', type: 'textarea' },
+        ]}
+        initialValues={{ name: p.name, status: p.status, start_date: p.start_date?.slice(0, 10), end_date: p.end_date?.slice(0, 10), description: p.description }}
+        onClose={() => setShowEdit(false)}
+        onSubmit={async (v) => {
+          await updateProject(p.id, {
+            name: v.name,
+            status: v.status ? Number(v.status) : undefined,
+            start_date: v.start_date || undefined,
+            end_date: v.end_date || undefined,
+            description: v.description || undefined,
+          })
+          load()
+        }}
+      />
+
+      <FormSheet
+        visible={showNewTask}
+        title="新增任务"
+        fields={[
+          { name: 'title', label: '任务标题', type: 'text', required: true },
+          { name: 'due_date', label: '截止日期', type: 'date', datePrecision: 'date' },
+          { name: 'description', label: '描述', type: 'textarea' },
+        ]}
+        onClose={() => setShowNewTask(false)}
+        onSubmit={async (v) => {
+          await createTask({
+            project_id: p.id,
+            title: v.title,
+            due_date: v.due_date || undefined,
+            description: v.description || undefined,
+          })
+          setShowNewTask(false)
+          load()
+        }}
+      />
     </div>
   )
 }

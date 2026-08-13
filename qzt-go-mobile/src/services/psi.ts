@@ -77,3 +77,75 @@ export const listSalesReturns = (params: PageParams) =>
 
 export const getSalesReturn = (id: number) =>
   request.get<unknown, PsiSalesReturn>(`/psi/sales-returns/${id}`)
+
+// ── 采购单 CRUD + 入库(补充) ──
+
+export interface OrderItemPayload {
+  product_id: number
+  quantity: number
+  unit_price: number
+}
+
+export const createPurchaseOrder = (data: {
+  supplier_id: number
+  warehouse_id: number
+  order_date?: string
+  remark?: string
+  items: OrderItemPayload[]
+}) => request.post('/psi/purchase-orders', data)
+export const updatePurchaseOrder = (id: number, data: Partial<Parameters<typeof createPurchaseOrder>[0]>) =>
+  request.put(`/psi/purchase-orders/${id}`, data)
+export const deletePurchaseOrder = (id: number) => request.delete(`/psi/purchase-orders/${id}`)
+export const stockInPurchaseOrder = (id: number) => request.post(`/psi/purchase-orders/${id}/stock-in`)
+
+// ── 销售单 CRUD + 出库(补充) ──
+
+export const createSalesOrder = (data: {
+  customer_id: number
+  warehouse_id: number
+  order_date?: string
+  remark?: string
+  items: OrderItemPayload[]
+}) => request.post('/psi/sales-orders', data)
+export const updateSalesOrder = (id: number, data: Partial<Parameters<typeof createSalesOrder>[0]>) =>
+  request.put(`/psi/sales-orders/${id}`, data)
+export const deleteSalesOrder = (id: number) => request.delete(`/psi/sales-orders/${id}`)
+export const stockOutSalesOrder = (id: number) => request.post(`/psi/sales-orders/${id}/stock-out`)
+
+// ── 退货(补充) ──
+
+export const createPurchaseReturn = (data: { supplier_id: number; warehouse_id: number; remark?: string; items: OrderItemPayload[] }) =>
+  request.post('/psi/purchase-returns', data)
+export const stockOutPurchaseReturn = (id: number) => request.post(`/psi/purchase-returns/${id}/stock-out`)
+export const createSalesReturn = (data: { customer_id: number; warehouse_id: number; remark?: string; items: OrderItemPayload[] }) =>
+  request.post('/psi/sales-returns', data)
+export const stockInSalesReturn = (id: number) => request.post(`/psi/sales-returns/${id}/stock-in`)
+
+// ── 其他出入库单(创建即生效,补充) ──
+
+export const createStockInOrder = (data: { warehouse_id: number; product_id: number; quantity: number; remark?: string }) =>
+  request.post('/psi/stock-in-orders', data)
+export const createStockOutOrder = (data: { warehouse_id: number; product_id: number; quantity: number; remark?: string }) =>
+  request.post('/psi/stock-out-orders', data)
+
+// ── 资产 / 供应商 / 仓库 CRUD(补充) ──
+
+export const createAsset = (data: { name: string; asset_no?: string; category?: string; spec?: string; warehouse_id?: number; quantity?: number; value?: string; remark?: string }) =>
+  request.post('/psi/assets', data)
+export const updateAsset = (id: number, data: Partial<Parameters<typeof createAsset>[0]>) =>
+  request.put(`/psi/assets/${id}`, data)
+export const deleteAsset = (id: number) => request.delete(`/psi/assets/${id}`)
+
+export const listEnabledSuppliers = () =>
+  request.get<unknown, PsiSupplier[]>('/psi/suppliers/enabled')
+export const createSupplier = (data: { name: string; supplier_no?: string; contact_name?: string; contact_phone?: string; address?: string; remark?: string }) =>
+  request.post('/psi/suppliers', data)
+export const updateSupplier = (id: number, data: Partial<Parameters<typeof createSupplier>[0]>) =>
+  request.put(`/psi/suppliers/${id}`, data)
+export const deleteSupplier = (id: number) => request.delete(`/psi/suppliers/${id}`)
+
+export const createWarehouse = (data: { name: string; code?: string; address?: string; manager?: string; remark?: string }) =>
+  request.post('/psi/warehouses', data)
+export const updateWarehouse = (id: number, data: Partial<Parameters<typeof createWarehouse>[0]>) =>
+  request.put(`/psi/warehouses/${id}`, data)
+export const deleteWarehouse = (id: number) => request.delete(`/psi/warehouses/${id}`)

@@ -59,6 +59,9 @@ export const updateCustomer = (
   },
 ) => request.put(`/crm/customers/${id}`, data)
 
+/** 删除客户 */
+export const deleteCustomer = (id: number) => request.delete(`/crm/customers/${id}`)
+
 // ── 线索 ──
 
 export interface LeadQuery extends PageParams {
@@ -114,6 +117,13 @@ export const releaseLead = (id: number, body: { pool_id: number; reason?: string
 export const convertLead = (id: number) =>
   request.post<unknown, CrmCustomer>(`/crm/leads/${id}/convert`)
 
+/** 转移线索给其他负责人 */
+export const transferLead = (id: number, body: { to_user_id: number }) =>
+  request.post<unknown, unknown>(`/crm/leads/${id}/transfer`, body)
+
+/** 删除线索 */
+export const deleteLead = (id: number) => request.delete(`/crm/leads/${id}`)
+
 // ── 公海池(客户/线索共用结构) ──
 
 export interface CrmPool {
@@ -128,7 +138,8 @@ export const listCustomerPools = () =>
   request.get<unknown, CrmPool[]>('/crm/customer-pools/enabled')
 
 /** 启用的线索公海池下拉 */
-export const listLeadPools = () => request.get<unknown, CrmPool[]>('/crm/lead-pools/enabled')
+export const listLeadPools = () =>
+  request.get<unknown, CrmPool[]>('/crm/lead-pools/enabled')
 
 // ── 客户公海操作 ──
 
@@ -187,6 +198,22 @@ export const createOpportunity = (data: {
   description?: string
 }) => request.post('/crm/opportunities', data)
 
+/** 更新商机 */
+export const updateOpportunity = (
+  id: number,
+  data: {
+    name?: string
+    customer_id?: number
+    expected_amount?: number
+    expected_close_date?: string
+    description?: string
+    probability?: number
+  },
+) => request.put(`/crm/opportunities/${id}`, data)
+
+/** 删除商机 */
+export const deleteOpportunity = (id: number) => request.delete(`/crm/opportunities/${id}`)
+
 // ── 合同 ──
 
 export interface ContractQuery extends PageParams {
@@ -202,6 +229,36 @@ export const listContracts = (params: ContractQuery) =>
 /** 合同详情 */
 export const getContract = (id: number) =>
   request.get<unknown, CrmContract>(`/crm/contracts/${id}`)
+
+/** 新建合同 */
+export const createContract = (data: {
+  name: string
+  customer_id: number
+  total_amount: number
+  signed_date?: string
+  start_date?: string
+  end_date?: string
+  stage?: string
+  content?: string
+}) => request.post('/crm/contracts', data)
+
+/** 更新合同 */
+export const updateContract = (
+  id: number,
+  data: {
+    name?: string
+    customer_id?: number
+    total_amount?: number
+    signed_date?: string
+    start_date?: string
+    end_date?: string
+    stage?: string
+    content?: string
+  },
+) => request.put(`/crm/contracts/${id}`, data)
+
+/** 删除合同 */
+export const deleteContract = (id: number) => request.delete(`/crm/contracts/${id}`)
 
 // ── 跟进计划 ──
 
@@ -222,6 +279,22 @@ export const createFollowPlan = (data: {
   lead_id?: number
 }) => request.post('/crm/follow-plans', data)
 
+/** 更新跟进计划 */
+export const updateFollowPlan = (
+  id: number,
+  data: {
+    type?: string
+    content?: string
+    plan_time?: string
+    remind_time?: string
+    customer_id?: number
+    opportunity_id?: number
+    contact_id?: number
+    contract_id?: number
+    lead_id?: number
+  },
+) => request.put(`/crm/follow-plans/${id}`, data)
+
 /** 跳过跟进计划 */
 export const skipFollowPlan = (id: number) => request.post(`/crm/follow-plans/${id}/skip`)
 
@@ -239,6 +312,41 @@ export const deleteFollowPlan = (id: number) => request.delete(`/crm/follow-plan
 export const listProducts = (params: { page: number; page_size: number; keyword?: string }) =>
   request.get<unknown, CrmPageResult<CrmProduct>>('/crm/products', { params })
 
+/** 产品详情 */
+export const getProduct = (id: number) =>
+  request.get<unknown, CrmProduct>(`/crm/products/${id}`)
+
+/** 新建产品 */
+export const createProduct = (data: {
+  name: string
+  product_no?: string
+  category?: string
+  spec?: string
+  unit?: string
+  standard_price?: number
+  cost_price?: number
+  description?: string
+}) => request.post('/crm/products', data)
+
+/** 更新产品 */
+export const updateProduct = (
+  id: number,
+  data: {
+    name?: string
+    product_no?: string
+    category?: string
+    spec?: string
+    unit?: string
+    standard_price?: number
+    cost_price?: number
+    description?: string
+    status?: number
+  },
+) => request.put(`/crm/products/${id}`, data)
+
+/** 删除产品 */
+export const deleteProduct = (id: number) => request.delete(`/crm/products/${id}`)
+
 // ── 售后工单 ──
 
 export const listTickets = (params: { page: number; page_size: number; keyword?: string; status?: number }) =>
@@ -246,3 +354,41 @@ export const listTickets = (params: { page: number; page_size: number; keyword?:
 
 export const getTicket = (id: number) =>
   request.get<unknown, TicketDetail>(`/crm/tickets/${id}`)
+
+/** 新建工单 */
+export const createTicket = (data: {
+  title: string
+  description?: string
+  customer_id?: number
+  customer_name?: string
+  contact_name?: string
+  contact_phone?: string
+  category?: string
+  priority?: number
+  contract_id?: number
+}) => request.post('/crm/tickets', data)
+
+/** 更新工单 */
+export const updateTicket = (
+  id: number,
+  data: {
+    title?: string
+    description?: string
+    customer_id?: number
+    customer_name?: string
+    contact_name?: string
+    contact_phone?: string
+    category?: string
+    priority?: number
+    handler_id?: number
+  },
+) => request.put(`/crm/tickets/${id}`, data)
+
+/** 变更工单状态(会记录处理日志;解决/关闭时可填 solution) */
+export const changeTicketStatus = (
+  id: number,
+  body: { status: number; comment?: string; solution?: string },
+) => request.put(`/crm/tickets/${id}/status`, body)
+
+/** 删除工单 */
+export const deleteTicket = (id: number) => request.delete(`/crm/tickets/${id}`)

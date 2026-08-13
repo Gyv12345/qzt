@@ -64,8 +64,10 @@ const SalesReturnDetail = lazy(() => import('../pages/psi/sales-return/detail'))
 // CRM 补充
 const DashboardPage = lazy(() => import('../pages/dashboard'))
 const ProductList = lazy(() => import('../pages/product'))
+const ProductDetail = lazy(() => import('../pages/product/detail'))
 const TicketList = lazy(() => import('../pages/ticket'))
 const TicketDetail = lazy(() => import('../pages/ticket/detail'))
+const ContactList = lazy(() => import('../pages/contact'))
 // OA 新模块
 const AiReportPage = lazy(() => import('../pages/ai-report'))
 const FollowPlanList = lazy(() => import('../pages/follow-plan'))
@@ -342,12 +344,20 @@ export default function AppRoutes() {
             element: <Suspense fallback={pageFallback}><ProductList /></Suspense>,
           },
           {
+            path: '/product/:id',
+            element: <Suspense fallback={pageFallback}><ProductDetail /></Suspense>,
+          },
+          {
             path: '/ticket',
             element: <Suspense fallback={pageFallback}><TicketList /></Suspense>,
           },
           {
             path: '/ticket/:id',
             element: <Suspense fallback={pageFallback}><TicketDetail /></Suspense>,
+          },
+          {
+            path: '/contact',
+            element: <Suspense fallback={pageFallback}><ContactList /></Suspense>,
           },
           {
             path: '/work-log',

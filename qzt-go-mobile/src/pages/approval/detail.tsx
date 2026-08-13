@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, Dialog, ErrorBlock, List, NavBar, Space, SpinLoading, Steps, Toast } from 'antd-mobile'
+import { Button, Card, Dialog, ErrorBlock, List, NavBar, Popup, Space, SpinLoading, Steps, TextArea, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { approve, getInstance, reject } from '../../services/approval'
+import { approve, getInstance, reject, revoke } from '../../services/approval'
 import type { ApprovalInstanceDetail } from '../../types/approval'
 
 const STATUS_TEXT: Record<string, string> = {
@@ -20,6 +20,8 @@ export default function ApprovalDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [acting, setActing] = useState(false)
+  const [showReject, setShowReject] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
 
   const load = () => {
     if (!id) return
@@ -62,14 +64,37 @@ export default function ApprovalDetail() {
     }
   }
 
-  const doReject = async () => {
+  const doReject = () => {
     if (!myTask) return
-    const confirmed = await Dialog.confirm({ content: '确认驳回该审批?' })
-    if (!confirmed) return
+    setRejectReason('')
+    setShowReject(true)
+  }
+
+  const confirmReject = async () => {
+    if (!myTask) return
+    if (!rejectReason.trim()) {
+      Toast.show({ content: '请填写驳回原因' })
+      return
+    }
+    setShowReject(false)
     setActing(true)
     try {
-      await reject({ task_id: myTask.id })
+      await reject({ task_id: myTask.id, comment: rejectReason })
       Toast.show({ icon: 'success', content: '已驳回' })
+      load()
+    } finally {
+      setActing(false)
+    }
+  }
+
+  // 撤回(审批中显示;后端校验是否发起人)
+  const doRevoke = async () => {
+    const ok = await Dialog.confirm({ content: '确认撤回该审批?' })
+    if (!ok) return
+    setActing(true)
+    try {
+      await revoke(inst.id)
+      Toast.show({ icon: 'success', content: '已撤回' })
       load()
     } finally {
       setActing(false)
@@ -123,6 +148,36 @@ export default function ApprovalDetail() {
           </Space>
         </div>
       )}
+
+      {/* 撤回(审批中、且非待我审批时显示;后端校验发起人身份) */}
+      {(inst.approval_status === 'PENDING' || inst.approval_status === 'APPROVING') && !canAct && (
+        <div style={{ padding: 16 }}>
+          <Button block color="warning" fill="outline" loading={acting} onClick={doRevoke}>
+            撤回审批
+          </Button>
+        </div>
+      )}
+
+      {/* 驳回原因输入 */}
+      <Popup
+        visible={showReject}
+        onMaskClick={() => setShowReject(false)}
+        bodyStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, padding: 16 }}
+        destroyOnClose
+      >
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>驳回原因</div>
+        <TextArea
+          placeholder="请填写驳回原因(必填)"
+          rows={3}
+          value={rejectReason}
+          onChange={setRejectReason}
+          maxLength={200}
+          showCount
+        />
+        <Button block color="danger" size="large" style={{ marginTop: 12 }} loading={acting} onClick={confirmReject}>
+          确认驳回
+        </Button>
+      </Popup>
     </div>
   )
 }

@@ -38,3 +38,33 @@ export const getContractTrend = (months = 6) =>
 /** 线索来源分布 */
 export const getLeadSourceDistribution = () =>
   request.get<unknown, DashboardLabelValue[]>('/api/dashboard/lead-source-distribution')
+
+// ── 财务维度(补充) ──
+
+/** 财务趋势(近 N 月) */
+export const getFinanceTrend = (months = 6) =>
+  request.get<unknown, DashboardMonthValue[]>('/api/dashboard/finance-trend', { params: { months } })
+
+/** 财务概要(收入/支出/利润等) */
+export const getFinanceSummary = () =>
+  request.get<unknown, Record<string, any>>('/api/dashboard/finance-summary')
+
+// ── 人事维度(补充) ──
+
+/** 员工分布(按部门/学历等) */
+export const getEmployeeDistribution = (dimension = 'dept') =>
+  request.get<unknown, DashboardDistItem[]>('/api/dashboard/employee-distribution', { params: { dimension } })
+
+/** 人数趋势(近 N 月) */
+export const getHeadcountTrend = (months = 6) =>
+  request.get<unknown, DashboardMonthValue[]>('/api/dashboard/headcount-trend', { params: { months } })
+
+// ── 进销存维度(补充) ──
+
+/** 各仓库库存价值 */
+export const getStockValueByWarehouse = () =>
+  request.get<unknown, DashboardDistItem[]>('/api/dashboard/stock-value-by-warehouse')
+
+/** 销采对比(近 N 月) */
+export const getSalesVsPurchase = (months = 6) =>
+  request.get<unknown, DashboardMonthValue[]>('/api/dashboard/sales-vs-purchase', { params: { months } })

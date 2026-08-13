@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tag } from 'antd-mobile'
+import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, SearchBar, Tag } from 'antd-mobile'
 import { useNavigate } from 'react-router-dom'
 import { listOpportunities } from '../../services/crm'
 import type { CrmOpportunity } from '../../types/crm'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
+import { AddOutline } from 'antd-mobile-icons'
+import OpportunityFormSheet from '../../components/OpportunityFormSheet'
 
 // 商机阶段映射
 const STAGE_TEXT: Record<string, string> = {
@@ -30,6 +32,7 @@ const formatAmount = (v?: string) =>
 export default function OpportunityList() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  const [showNew, setShowNew] = useState(false)
 
   const fetcher = useCallback(
     (params: { page: number; page_size: number }) =>
@@ -86,6 +89,12 @@ export default function OpportunityList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <OpportunityFormSheet visible={showNew} onClose={() => setShowNew(false)} onSubmitted={refresh} />
     </div>
   )
 }

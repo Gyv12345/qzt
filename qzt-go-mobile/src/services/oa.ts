@@ -139,3 +139,82 @@ export const listCloudFiles = (parentId = 0, scope = 'personal') =>
 
 export const createCloudFolder = (data: { parent_id: number; name: string; scope?: string }) =>
   request.post('/cloud/folders', data)
+
+// ── 借款新建(补充) ──
+
+export const createLoan = (data: {
+  title: string
+  loan_type: string
+  amount: string
+  expected_repay_date?: string
+  purpose?: string
+}) => request.post('/oa/loans', data)
+
+// ── 编辑 / 删除(补充) ──
+
+export const updateExpense = (
+  id: number,
+  data: { title?: string; expense_type?: string; amount?: string; occur_date?: string; description?: string },
+) => request.put(`/oa/expenses/${id}`, data)
+export const deleteExpense = (id: number) => request.delete(`/oa/expenses/${id}`)
+
+export const updateTrip = (id: number, data: Partial<Parameters<typeof createTrip>[0]>) =>
+  request.put(`/oa/trips/${id}`, data)
+export const deleteTrip = (id: number) => request.delete(`/oa/trips/${id}`)
+
+export const updateLoan = (id: number, data: Partial<Parameters<typeof createLoan>[0]>) =>
+  request.put(`/oa/loans/${id}`, data)
+export const deleteLoan = (id: number) => request.delete(`/oa/loans/${id}`)
+
+export const updateWorkLog = (id: number, data: Partial<Parameters<typeof createWorkLog>[0]>) =>
+  request.put(`/oa/work-logs/${id}`, data)
+export const deleteWorkLog = (id: number) => request.delete(`/oa/work-logs/${id}`)
+
+export const updateSchedule = (id: number, data: Partial<Parameters<typeof createSchedule>[0]>) =>
+  request.put(`/oa/schedules/${id}`, data)
+export const deleteSchedule = (id: number) => request.delete(`/oa/schedules/${id}`)
+
+export const updateMeetingBooking = (id: number, data: Partial<Parameters<typeof createMeetingBooking>[0]>) =>
+  request.put(`/oa/meeting-bookings/${id}`, data)
+export const deleteMeetingBooking = (id: number) => request.delete(`/oa/meeting-bookings/${id}`)
+
+// ── 自定义表单(补充) ──
+
+export interface OaFormData {
+  id: number
+  form_no: string
+  template_id: number
+  template_name?: string
+  title: string
+  form_data: Record<string, any>
+  approval_status: string
+  created_at: string
+}
+
+export const listFormData = (params: PageParams) =>
+  request.get<unknown, PageResult<OaFormData>>('/oa/form-data', { params })
+export const getFormData = (id: number) =>
+  request.get<unknown, OaFormData>(`/oa/form-data/${id}`)
+export const createFormData = (data: { template_id: number; title: string; form_data: Record<string, any> }) =>
+  request.post('/oa/form-data', data)
+export const updateFormData = (id: number, data: { title?: string; form_data?: Record<string, any> }) =>
+  request.put(`/oa/form-data/${id}`, data)
+export const deleteFormData = (id: number) => request.delete(`/oa/form-data/${id}`)
+export const submitFormDataApproval = (id: number) =>
+  request.post('/approval/actions/push', { form_type: 'OA_CUSTOM', resource_id: id })
+
+// ── 网盘文件管理(补充:上传元数据 / 删除 / 重命名移动) ──
+
+export const createCloudFile = (data: { parent_id: number; name: string; object_key?: string; url?: string; size?: number; scope?: string }) =>
+  request.post('/cloud/files', data)
+export const deleteCloudFile = (id: number) => request.delete(`/cloud/files/${id}`)
+export const renameCloudFile = (id: number, data: { name?: string; parent_id?: number }) =>
+  request.put(`/cloud/files/${id}`, data)
+
+// ── 知识库文档管理(补充) ──
+
+export const createKbDocument = (data: { title: string; content?: string; category_id?: number; status?: string }) =>
+  request.post('/kb/documents', data)
+export const updateKbDocument = (id: number, data: { title?: string; content?: string; category_id?: number; status?: string }) =>
+  request.put(`/kb/documents/${id}`, data)
+export const deleteKbDocument = (id: number) => request.delete(`/kb/documents/${id}`)

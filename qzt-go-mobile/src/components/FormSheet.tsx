@@ -1,14 +1,18 @@
-import { Popup, Form, Input, TextArea, Selector, Button, Toast } from 'antd-mobile'
+import { Popup, Form, Input, TextArea, Selector, Button, Toast, DatePicker } from 'antd-mobile'
 import { useMemo, useState } from 'react'
+
+export type FormFieldType = 'text' | 'textarea' | 'number' | 'select' | 'select-multiple' | 'date'
 
 export interface FormField {
   name: string
   label: string
-  type: 'text' | 'textarea' | 'number' | 'select' | 'date'
+  type: FormFieldType
   required?: boolean
   placeholder?: string
   options?: { label: string; value: string | number }[]
   defaultValue?: string | number
+  /** date 字段精度:日期或日期时间(默认 datetime) */
+  datePrecision?: 'date' | 'datetime'
 }
 
 interface FormSheetProps {
@@ -21,6 +25,63 @@ interface FormSheetProps {
   onSubmit: (values: Record<string, any>) => Promise<void>
 }
 
+function pad(n: number) {
+  return String(n).padStart(2, '0')
+}
+
+/** 把 Date 按精度格式化为字符串 */
+function formatDate(d: Date, precision: 'date' | 'datetime') {
+  const ymd = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  if (precision === 'date') return ymd
+  return `${ymd} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`
+}
+
+/** 日期选择字段:点击弹出 DatePicker。受控于 Form.Item 注入的 value/onChange */
+function DateField({
+  value,
+  onChange,
+  precision = 'datetime',
+  placeholder,
+}: {
+  value?: string
+  onChange?: (v: string) => void
+  precision?: 'date' | 'datetime'
+  placeholder?: string
+}) {
+  const [visible, setVisible] = useState(false)
+  const dateValue = useMemo(() => {
+    if (!value) return undefined
+    const d = new Date(value.replace(' ', 'T'))
+    return isNaN(d.getTime()) ? undefined : d
+  }, [value])
+  // antd-mobile DatePicker 的 precision 是单值(精确到哪一级):day=年月日,minute=年月日时分
+  const dpPrecision: 'day' | 'minute' = precision === 'date' ? 'day' : 'minute'
+  return (
+    <>
+      <div
+        onClick={() => setVisible(true)}
+        style={{
+          fontSize: 15,
+          color: value ? 'var(--text-primary)' : 'var(--text-tertiary)',
+          padding: '4px 0',
+        }}
+      >
+        {value || placeholder || '请选择'}
+      </div>
+      <DatePicker
+        visible={visible}
+        value={dateValue}
+        precision={dpPrecision}
+        onClose={() => setVisible(false)}
+        onConfirm={(d) => {
+          onChange?.(formatDate(d, precision))
+          setVisible(false)
+        }}
+      />
+    </>
+  )
+}
+
 /** 通用底部弹出表单(antd-mobile Popup + Form)。支持新建(initialValues 不传)与编辑(传 initialValues 回填) */
 export default function FormSheet({ visible, title, fields, initialValues, onClose, onSubmit }: FormSheetProps) {
   const [form] = Form.useForm()
@@ -31,7 +92,7 @@ export default function FormSheet({ visible, title, fields, initialValues, onClo
     if (!initialValues) return undefined
     const v: Record<string, any> = { ...initialValues }
     for (const f of fields) {
-      if (f.type === 'select' && v[f.name] != null && !Array.isArray(v[f.name])) {
+      if ((f.type === 'select' || f.type === 'select-multiple') && v[f.name] != null && !Array.isArray(v[f.name])) {
         v[f.name] = [v[f.name]]
       }
     }
@@ -41,10 +102,16 @@ export default function FormSheet({ visible, title, fields, initialValues, onClo
   const handleFinish = async (rawValues: Record<string, any>) => {
     setSubmitting(true)
     try {
-      // Selector 返回数组,展开为单值(取第一个元素)
+      const fieldByName = Object.fromEntries(fields.map((f) => [f.name, f]))
       const values: Record<string, any> = {}
       for (const [k, v] of Object.entries(rawValues)) {
-        values[k] = Array.isArray(v) ? v[0] ?? null : v
+        const f = fieldByName[k] as FormField | undefined
+        // select-multiple 保留数组,其余(单选 Selector)取首元素
+        if (f?.type === 'select-multiple') {
+          values[k] = Array.isArray(v) ? v : v == null ? [] : [v]
+        } else {
+          values[k] = Array.isArray(v) ? v[0] ?? null : v
+        }
       }
       await onSubmit(values)
       Toast.show({ icon: 'success', content: '提交成功' })
@@ -97,6 +164,10 @@ export default function FormSheet({ visible, title, fields, initialValues, onClo
                   options={f.options || []}
                   columns={f.options && f.options.length <= 3 ? f.options.length : 3}
                 />
+              ) : f.type === 'select-multiple' ? (
+                <Selector multiple options={f.options || []} />
+              ) : f.type === 'date' ? (
+                <DateField precision={f.datePrecision} placeholder={f.placeholder || `请选择${f.label}`} />
               ) : (
                 <Input placeholder={f.placeholder || `请输入${f.label}`} />
               )}

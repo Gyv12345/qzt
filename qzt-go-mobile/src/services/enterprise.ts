@@ -26,3 +26,14 @@ export const markAllRead = () => request.put('/oa/messages/read-all')
 /** 已发布公告列表 */
 export const listNotices = (params: PageParams) =>
   request.get<unknown, EntPageResult<EntNotice>>('/oa/notices/published', { params })
+
+/** 发件箱 */
+export const listOutbox = (params: MessageQuery) =>
+  request.get<unknown, EntPageResult<EntMessage>>('/oa/messages/outbox', { params })
+
+/** 发送站内信 */
+export const sendMessage = (data: { receiver_id: number; title: string; content: string }) =>
+  request.post('/oa/messages', data)
+
+/** 删除站内信 */
+export const deleteMessage = (id: number) => request.delete(`/oa/messages/${id}`)

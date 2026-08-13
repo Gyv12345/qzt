@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ActionSheet, Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCustomer, listCustomerPools, listOpportunities, listContracts, pickCustomer, releaseCustomer, type CrmPool } from '../../services/crm'
+import { deleteCustomer, getCustomer, listCustomerPools, listOpportunities, listContracts, pickCustomer, releaseCustomer, transferCustomer, type CrmPool } from '../../services/crm'
 import { listFollowTimeline } from '../../services/follow'
 import { FOLLOW_TYPE_TEXT, type CrmCustomerDetail, type CrmOpportunity, type CrmContract, type CrmContact, type FollowUpRecord } from '../../types/crm'
 import { dialWithDedup } from '../../utils/dial'
@@ -10,6 +10,7 @@ import FollowRecordSheet from '../../components/FollowRecordSheet'
 import ContactSheet from '../../components/ContactSheet'
 import CustomFieldView from '../../components/CustomFieldView'
 import CustomerFormSheet from '../../components/CustomerFormSheet'
+import UserPicker from '../../components/UserPicker'
 
 const STATUS_TEXT: Record<number, string> = { 1: '正常', 2: '冻结', 3: '流失' }
 
@@ -29,6 +30,7 @@ export default function CustomerDetail() {
   const [contracts, setContracts] = useState<CrmContract[]>([])
   const [editingContact, setEditingContact] = useState<CrmContact | null>(null)
   const [showEdit, setShowEdit] = useState(false)
+  const [showTransfer, setShowTransfer] = useState(false)
 
   const loadFollows = (cid: number) => {
     listFollowTimeline('customer_id', cid)
@@ -115,6 +117,36 @@ export default function CustomerDetail() {
           doRelease(ps[index].id)
         },
       })
+    }
+  }
+
+  // 删除客户
+  const onDelete = async () => {
+    const ok = await Dialog.confirm({ content: `确定删除客户「${detail?.customer?.name || ''}」?此操作不可恢复。` })
+    if (!ok) return
+    setActing(true)
+    try {
+      await deleteCustomer(Number(id))
+      Toast.show({ icon: 'success', content: '已删除' })
+      navigate(-1)
+    } catch {
+      // 拦截器已 toast
+    } finally {
+      setActing(false)
+    }
+  }
+
+  // 转移给其他负责人
+  const onTransferPicked = async (u: { id: number }) => {
+    setShowTransfer(false)
+    setActing(true)
+    try {
+      await transferCustomer(Number(id), { to_user_id: u.id })
+      Toast.show({ icon: 'success', content: '已转移' })
+      reload()
+    } catch {
+    } finally {
+      setActing(false)
     }
   }
 
@@ -324,12 +356,20 @@ export default function CustomerDetail() {
               </Button>
             )
           ) : (
-            hasPerm('crm:customer:release') && (
-              <Button color="warning" size="large" fill="outline" onClick={onRelease} loading={acting}>
-                释放到公海
+            <>
+              {hasPerm('crm:customer:release') && (
+                <Button color="warning" size="large" fill="outline" onClick={onRelease} loading={acting}>
+                  释放到公海
+                </Button>
+              )}
+              <Button color="primary" size="large" fill="outline" onClick={() => setShowTransfer(true)} loading={acting}>
+                转移
               </Button>
-            )
+            </>
           )}
+          <Button color="danger" size="large" fill="outline" onClick={onDelete} loading={acting}>
+            删除
+          </Button>
         </div>
       </Card>
 
@@ -347,6 +387,8 @@ export default function CustomerDetail() {
       />
 
       <CustomerFormSheet visible={showEdit} onClose={() => setShowEdit(false)} detail={detail} onSubmitted={reload} />
+
+      <UserPicker visible={showTransfer} title="转移给" onClose={() => setShowTransfer(false)} onPick={onTransferPicked} />
     </div>
   )
 }

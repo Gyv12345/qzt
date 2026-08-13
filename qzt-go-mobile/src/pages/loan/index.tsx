@@ -1,20 +1,26 @@
-import { useCallback } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { useCallback, useState } from 'react'
+import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
-import { listLoans } from '../../services/oa'
+import { createLoan, listLoans } from '../../services/oa'
 import type { OaLoan } from '../../types/oa'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
 import { APPROVAL_STATUS } from '../../types/oa'
+import FormSheet from '../../components/FormSheet'
 
 const REPAY_TEXT: Record<number, string> = { 0: '未还', 1: '部分', 2: '已还清' }
 const REPAY_COLOR: Record<number, string> = { 0: 'default', 1: 'warning', 2: 'success' }
+const LOAN_TYPE_OPTIONS = [
+  { label: '备用金', value: '备用金' },
+  { label: '个人借款', value: '个人借款' },
+  { label: '差旅借款', value: '差旅借款' },
+  { label: '其他', value: '其他' },
+]
 
 export default function LoanList() {
   const navigate = useNavigate()
-  const fetcher = useCallback(
-    (params: { page: number; page_size: number }) => listLoans(params),
-    [],
-  )
+  const [showNew, setShowNew] = useState(false)
+  const fetcher = useCallback((params: { page: number; page_size: number }) => listLoans(params), [])
   const { list, hasMore, loadMore, refresh } = useInfiniteList<OaLoan>(fetcher, { page_size: 20 })
 
   return (
@@ -28,11 +34,7 @@ export default function LoanList() {
               <List.Item
                 key={l.id}
                 onClick={() => navigate(`/loan/${l.id}`)}
-                description={
-                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                    {l.loan_no} · {l.loan_type}
-                  </span>
-                }
+                description={<span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{l.loan_no} · {l.loan_type}</span>}
                 extra={
                   <span>
                     <div style={{ textAlign: 'right', fontWeight: 600 }}>¥{Number(l.amount).toFixed(2)}</div>
@@ -49,6 +51,33 @@ export default function LoanList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <FormSheet
+        visible={showNew}
+        title="新建借款"
+        fields={[
+          { name: 'title', label: '借款标题', type: 'text', required: true },
+          { name: 'loan_type', label: '借款类型', type: 'select', required: true, options: LOAN_TYPE_OPTIONS },
+          { name: 'amount', label: '借款金额', type: 'number', required: true },
+          { name: 'expected_repay_date', label: '预计还款日期', type: 'date', datePrecision: 'date' },
+          { name: 'purpose', label: '借款事由', type: 'textarea' },
+        ]}
+        onClose={() => setShowNew(false)}
+        onSubmit={async (v) => {
+          await createLoan({
+            title: v.title,
+            loan_type: v.loan_type,
+            amount: v.amount ? String(v.amount) : '0',
+            expected_repay_date: v.expected_repay_date || undefined,
+            purpose: v.purpose || undefined,
+          })
+          refresh()
+        }}
+      />
     </div>
   )
 }

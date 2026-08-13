@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { ActionSheet, Button, Card, Dialog, ErrorBlock, List, NavBar, SpinLoading, Tag, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { convertLead, getLead, listLeadPools, pickLead, releaseLead, type CrmPool } from '../../services/crm'
+import { convertLead, deleteLead, getLead, listLeadPools, pickLead, releaseLead, transferLead, type CrmPool } from '../../services/crm'
 import { listFollowTimeline } from '../../services/follow'
 import { FOLLOW_TYPE_TEXT, type CrmLead, type FollowUpRecord } from '../../types/crm'
 import FollowRecordSheet from '../../components/FollowRecordSheet'
 import CustomFieldView from '../../components/CustomFieldView'
 import LeadFormSheet from '../../components/LeadFormSheet'
+import UserPicker from '../../components/UserPicker'
 import { useAuthStore } from '../../stores/auth'
 import { dialWithDedup } from '../../utils/dial'
 
@@ -31,6 +32,7 @@ export default function LeadDetail() {
   const [pools, setPools] = useState<CrmPool[]>([])
   const [fields, setFields] = useState<Record<string, string>>({})
   const [showEdit, setShowEdit] = useState(false)
+  const [showTransfer, setShowTransfer] = useState(false)
 
   const loadFollows = (lid: number) => {
     listFollowTimeline('lead_id', lid)
@@ -145,6 +147,35 @@ export default function LeadDetail() {
           doRelease(ps[index].id)
         },
       })
+    }
+  }
+
+  // 删除线索
+  const onDelete = async () => {
+    const ok = await Dialog.confirm({ content: `确定删除线索「${lead.name}」?此操作不可恢复。` })
+    if (!ok) return
+    setActing(true)
+    try {
+      await deleteLead(lead.id)
+      Toast.show({ icon: 'success', content: '已删除' })
+      navigate(-1)
+    } catch {
+    } finally {
+      setActing(false)
+    }
+  }
+
+  // 转移给其他负责人
+  const onTransferPicked = async (u: { id: number }) => {
+    setShowTransfer(false)
+    setActing(true)
+    try {
+      await transferLead(lead.id, { to_user_id: u.id })
+      Toast.show({ icon: 'success', content: '已转移' })
+      load()
+    } catch {
+    } finally {
+      setActing(false)
     }
   }
 
@@ -275,8 +306,14 @@ export default function LeadDetail() {
                       释放到公海
                     </Button>
                   )}
+                  <Button color="primary" size="large" fill="outline" onClick={() => setShowTransfer(true)} loading={acting}>
+                    转移
+                  </Button>
                 </>
               )}
+              <Button color="danger" size="large" fill="outline" onClick={onDelete} loading={acting}>
+                删除
+              </Button>
             </>
           )}
         </div>
@@ -303,6 +340,8 @@ export default function LeadDetail() {
         fields={fields}
         onSubmitted={load}
       />
+
+      <UserPicker visible={showTransfer} title="转移给" onClose={() => setShowTransfer(false)} onPick={onTransferPicked} />
     </div>
   )
 }

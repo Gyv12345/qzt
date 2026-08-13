@@ -1,17 +1,17 @@
-import { useCallback } from 'react'
-import { InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { useCallback, useState } from 'react'
+import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, Tag } from 'antd-mobile'
+import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
-import { listTrips } from '../../services/oa'
+import { createTrip, listTrips } from '../../services/oa'
 import type { OaBusinessTrip } from '../../types/oa'
 import { useInfiniteList } from '../../hooks/useInfiniteList'
 import { APPROVAL_STATUS } from '../../types/oa'
+import FormSheet from '../../components/FormSheet'
 
 export default function TripList() {
   const navigate = useNavigate()
-  const fetcher = useCallback(
-    (params: { page: number; page_size: number }) => listTrips(params),
-    [],
-  )
+  const [showNew, setShowNew] = useState(false)
+  const fetcher = useCallback((params: { page: number; page_size: number }) => listTrips(params), [])
   const { list, hasMore, loadMore, refresh } = useInfiniteList<OaBusinessTrip>(fetcher, { page_size: 20 })
 
   return (
@@ -40,6 +40,37 @@ export default function TripList() {
         </List>
         <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
       </PullToRefresh>
+
+      <FloatingBubble style={{ '--size': '48px' } as any} onClick={() => setShowNew(true)}>
+        <AddOutline fontSize={24} />
+      </FloatingBubble>
+
+      <FormSheet
+        visible={showNew}
+        title="新建出差申请"
+        fields={[
+          { name: 'title', label: '出差标题', type: 'text', required: true },
+          { name: 'destination', label: '目的地', type: 'text', required: true },
+          { name: 'start_date', label: '开始日期', type: 'date', datePrecision: 'date', required: true },
+          { name: 'end_date', label: '结束日期', type: 'date', datePrecision: 'date', required: true },
+          { name: 'transport', label: '交通方式', type: 'text' },
+          { name: 'budget_amount', label: '预算金额', type: 'number' },
+          { name: 'purpose', label: '出差事由', type: 'textarea' },
+        ]}
+        onClose={() => setShowNew(false)}
+        onSubmit={async (v) => {
+          await createTrip({
+            title: v.title,
+            destination: v.destination,
+            start_date: v.start_date,
+            end_date: v.end_date,
+            transport: v.transport || undefined,
+            budget_amount: v.budget_amount ? String(v.budget_amount) : undefined,
+            purpose: v.purpose || undefined,
+          })
+          refresh()
+        }}
+      />
     </div>
   )
 }

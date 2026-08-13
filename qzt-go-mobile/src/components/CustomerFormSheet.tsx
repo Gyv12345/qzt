@@ -1,6 +1,6 @@
-import { Form, Input, Popup, Selector, Button, Toast } from 'antd-mobile'
+import { Dialog, Form, Input, Popup, Selector, Button, Toast } from 'antd-mobile'
 import { useRef, useState } from 'react'
-import { createCustomer, updateCustomer } from '../services/crm'
+import { createCustomer, dedup, updateCustomer } from '../services/crm'
 import type { CrmCustomerDetail } from '../types/crm'
 import CustomFieldEditor, { type CustomFieldEditorHandle } from './CustomFieldEditor'
 
@@ -34,6 +34,19 @@ export default function CustomerFormSheet({ visible, onClose, detail, onSubmitte
       industry: vals.industry || undefined,
       source: vals.source || undefined,
       fields: editorRef.current?.getValues() || [],
+    }
+    // 新建时查重(名称相似 + 电话重复,跨客户与线索)
+    if (!isEdit) {
+      try {
+        const dup = await dedup({ name: vals.name })
+        const count = (dup.customers?.length || 0) + (dup.leads?.length || 0)
+        if (count > 0) {
+          const ok = await Dialog.confirm({ content: `检测到 ${count} 条相似客户/线索记录,是否继续创建?` })
+          if (!ok) return
+        }
+      } catch {
+        // 查重失败不阻塞创建
+      }
     }
     setSubmitting(true)
     try {

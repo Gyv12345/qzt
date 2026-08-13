@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Button, Dialog, ErrorBlock, NavBar, Tag, Toast } from 'antd-mobile'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getContract } from '../../services/crm'
-import { getPaymentSummary, listPaymentRecords, createPaymentPlan, createPaymentRecord } from '../../services/payment'
+import { deleteContract, getContract } from '../../services/crm'
+import {
+  createPaymentPlan,
+  createPaymentRecord,
+  deletePaymentPlan,
+  deletePaymentRecord,
+  getPaymentSummary,
+  listPaymentRecords,
+  updatePaymentPlan,
+} from '../../services/payment'
 import { pushApproval } from '../../services/approval'
 import FormSheet from '../../components/FormSheet'
+import ContractFormSheet from '../../components/ContractFormSheet'
 import { PAYMENT_METHODS, PAYMENT_PLAN_STATUS, type CrmContract, type PaymentPlan, type PaymentRecord, type PaymentSummary } from '../../types/crm'
 
 const STAGE_TEXT: Record<string, string> = {
@@ -50,6 +59,18 @@ export default function ContractDetail() {
   const [planSheetOpen, setPlanSheetOpen] = useState(false)
   const [recordSheetOpen, setRecordSheetOpen] = useState(false)
   const [acting, setActing] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null)
+
+  const reload = () => {
+    if (!id) return
+    getContract(Number(id))
+      .then((d) => {
+        setData(d)
+        loadPayment(d.id)
+      })
+      .catch(() => setFailed(true))
+  }
 
   const loadPayment = (cid: number) => {
     getPaymentSummary(cid).then(setSummary).catch(() => {})
@@ -72,15 +93,47 @@ export default function ContractDetail() {
     }
   }
 
-  useEffect(() => {
-    if (!id) return
-    getContract(Number(id))
-      .then((d) => {
-        setData(d)
-        loadPayment(d.id)
-      })
-      .catch(() => setFailed(true))
-  }, [id])
+  // 删除合同
+  const onDelete = async () => {
+    if (!data) return
+    const ok = await Dialog.confirm({ content: `确定删除合同「${data.name}」?此操作不可恢复。` })
+    if (!ok) return
+    setActing(true)
+    try {
+      await deleteContract(data.id)
+      Toast.show({ icon: 'success', content: '已删除' })
+      navigate(-1)
+    } catch {
+    } finally {
+      setActing(false)
+    }
+  }
+
+  // 删除回款计划
+  const onDeletePlan = async (p: PaymentPlan) => {
+    const ok = await Dialog.confirm({ content: '确定删除该回款计划?' })
+    if (!ok) return
+    try {
+      await deletePaymentPlan(p.id)
+      Toast.show({ icon: 'success', content: '已删除' })
+      if (data) loadPayment(data.id)
+    } catch {
+    }
+  }
+
+  // 删除回款记录
+  const onDeleteRecord = async (r: PaymentRecord) => {
+    const ok = await Dialog.confirm({ content: '确定删除该回款记录?' })
+    if (!ok) return
+    try {
+      await deletePaymentRecord(r.id)
+      Toast.show({ icon: 'success', content: '已删除' })
+      if (data) loadPayment(data.id)
+    } catch {
+    }
+  }
+
+  useEffect(reload, [id])
 
   if (failed) {
     return (
@@ -185,10 +238,14 @@ export default function ContractDetail() {
             >
               <span style={{ flex: 1 }}>{p.plan_date?.slice(0, 10)}</span>
               <span style={{ flex: 1, textAlign: 'right' }}>¥{Number(p.plan_amount).toLocaleString()}</span>
-              <span style={{ width: 64, textAlign: 'right' }}>
+              <span style={{ width: 56, textAlign: 'right' }}>
                 <Tag color={PAYMENT_PLAN_STATUS[p.status]?.color || 'default'} fill="outline">
                   {PAYMENT_PLAN_STATUS[p.status]?.text || '-'}
                 </Tag>
+              </span>
+              <span style={{ width: 76, textAlign: 'right', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <a style={{ color: 'var(--brand)', fontSize: 12 }} onClick={() => setEditingPlan(p)}>编辑</a>
+                <a style={{ color: '#ff4d4f', fontSize: 12 }} onClick={() => onDeletePlan(p)}>删除</a>
               </span>
             </div>
           ))
@@ -215,8 +272,9 @@ export default function ContractDetail() {
               <span style={{ flex: 1, textAlign: 'right', color: 'var(--success)' }}>
                 ¥{Number(r.amount).toLocaleString()}
               </span>
-              <span style={{ width: 80, textAlign: 'right', color: 'var(--text-tertiary)', fontSize: 12 }}>
+              <span style={{ width: 110, textAlign: 'right', color: 'var(--text-tertiary)', fontSize: 12 }}>
                 {r.method || '-'}
+                <a style={{ color: '#ff4d4f', fontSize: 12, marginLeft: 8 }} onClick={() => onDeleteRecord(r)}>删除</a>
               </span>
             </div>
           ))
@@ -226,8 +284,16 @@ export default function ContractDetail() {
       </div>
 
       {/* 操作 */}
+      <div style={{ margin: '8px 12px', display: 'flex', gap: 8 }}>
+        <Button block color="primary" fill="outline" onClick={() => setShowEdit(true)}>
+          编辑
+        </Button>
+        <Button block color="danger" fill="outline" onClick={onDelete} loading={acting}>
+          删除
+        </Button>
+      </div>
       {(!data.approval_status || data.approval_status === 'NONE' || data.approval_status === 'REVOKED') && (
-        <div style={{ margin: '8px 12px 24px' }}>
+        <div style={{ margin: '0 12px 24px' }}>
           <Button block color="primary" fill="outline" loading={acting} onClick={onPushApproval}>
             提交审批
           </Button>
@@ -235,20 +301,37 @@ export default function ContractDetail() {
       )}
 
       <FormSheet
-        visible={planSheetOpen}
-        title="新建回款计划"
+        visible={planSheetOpen || !!editingPlan}
+        title={editingPlan ? '编辑回款计划' : '新建回款计划'}
         fields={[
-          { name: 'plan_date', label: '计划日期', type: 'text', required: true, placeholder: 'YYYY-MM-DD' },
+          { name: 'plan_date', label: '计划日期', type: 'date', datePrecision: 'date', required: true },
           { name: 'plan_amount', label: '计划金额', type: 'number', required: true, placeholder: '0.00' },
           { name: 'remark', label: '备注', type: 'text' },
         ]}
-        onClose={() => setPlanSheetOpen(false)}
+        initialValues={
+          editingPlan
+            ? { plan_date: editingPlan.plan_date?.slice(0, 10), plan_amount: editingPlan.plan_amount, remark: editingPlan.remark }
+            : undefined
+        }
+        onClose={() => {
+          setPlanSheetOpen(false)
+          setEditingPlan(null)
+        }}
         onSubmit={async (v) => {
-          await createPaymentPlan(data.id, {
-            plan_date: v.plan_date,
-            plan_amount: Number(v.plan_amount),
-            remark: v.remark,
-          })
+          if (editingPlan) {
+            await updatePaymentPlan(editingPlan.id, {
+              plan_date: v.plan_date,
+              plan_amount: Number(v.plan_amount),
+              remark: v.remark,
+            })
+          } else {
+            await createPaymentPlan(data.id, {
+              plan_date: v.plan_date,
+              plan_amount: Number(v.plan_amount),
+              remark: v.remark,
+            })
+          }
+          setEditingPlan(null)
           loadPayment(data.id)
         }}
       />
@@ -256,7 +339,7 @@ export default function ContractDetail() {
         visible={recordSheetOpen}
         title="登记回款"
         fields={[
-          { name: 'received_date', label: '回款日期', type: 'text', required: true, placeholder: 'YYYY-MM-DD' },
+          { name: 'received_date', label: '回款日期', type: 'date', datePrecision: 'date', required: true },
           { name: 'amount', label: '回款金额', type: 'number', required: true, placeholder: '0.00' },
           {
             name: 'method',
@@ -276,6 +359,13 @@ export default function ContractDetail() {
           })
           loadPayment(data.id)
         }}
+      />
+
+      <ContractFormSheet
+        visible={showEdit}
+        onClose={() => setShowEdit(false)}
+        contract={data}
+        onSubmitted={reload}
       />
     </div>
   )
