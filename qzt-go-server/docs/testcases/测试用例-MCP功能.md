@@ -1,11 +1,35 @@
 # 测试用例 — 按 MCP 功能编写
 
-> 覆盖范围：以 qzt MCP 暴露的全部业务功能为需求规格，按模块编写。
+> 覆盖范围：以 qzt MCP（`internal/mcp/`）暴露的全部工具能力为需求规格，按模块编写，共 **25 章**。
+> 覆盖 MCP 全部模块：CRM（客户/线索/商机/合同回款/联系人/跟进/产品/工单/自定义字段查重）、Dashboard、审批、PSI 进销存、HRM 人事、系统管理、CMS、站点与企业微信、**财务**、**项目**、**OA 办公**、**知识库**、**网盘**、**邮件**、**定时任务**、**公共能力**，以及 **MCP 认证与操作级权限机制**（第二十五章，MCP 协议层独有）。
+>
 > 用例约定：
-> - **操作步骤**：默认通过 admin 后台 UI 执行（与 MCP 后端能力一一对应）；括号内标注等价的 MCP 能力。
+> - **操作步骤**：默认通过 admin 后台 UI 执行（与 MCP 后端能力一一对应）；括号内标注等价的 MCP 工具名（如 `crm_customer_create`）。财务/项目/OA/知识库/网盘/邮件/定时任务等模块以 **MCP 工具能力**为验证对象（admin 若无对应页面，则以工具/API 调用为准）。
 > - **优先级**：P0 冒烟必过 / P1 主流程 / P2 边界与异常 / P3 体验优化。
 > - **结果判定**：与"预期结果"一致记 ✅ 通过；不符记 ❌ 问题；可用但不顺记 ⚠️ 优化。
-> - 测试前先确认生产环境可用、有超管账号（admin/shijie123）。
+> - **测试前**：确认生产环境可用、有超管账号（admin/shijie123）；MCP 测试需 `qzt_` 前缀 API Key，入口 `POST /mcp`（生产 `https://devlovecode.com/mcp`，Streamable HTTP，`Authorization: Bearer qzt_xxx`）。
+
+## 目录
+
+| 章节 | 模块 | 前缀 |
+|------|------|------|
+| 一 | 工作台 Dashboard | DASH |
+| 二~十 | CRM（客户/线索/商机/合同回款/联系人/跟进/产品/工单/自定义字段查重） | CRM-* |
+| 十一 | 审批管理 | APR |
+| 十二 | 进销存 PSI | PSI-* |
+| 十三 | 人事 HRM | HRM-* |
+| 十四 | 系统管理 | SYS-* |
+| 十五 | 内容管理 CMS | CMS-* |
+| 十六 | 站点配置与企业微信 | SITE / WECOM |
+| 十七 | 财务管理 | FIN-* |
+| 十八 | 项目管理 | PRJ / PRJ-TASK |
+| 十九 | OA 办公自动化 | OA-* |
+| 二十 | 知识库 | KB-* |
+| 二十一 | 网盘 | CLOUD-* |
+| 二十二 | 邮件 | MAIL |
+| 二十三 | 定时任务 | JOB |
+| 二十四 | 公共能力 | COMM-* |
+| 二十五 | MCP 认证与操作级权限机制 | MCP-AUTH / MCP-PERM |
 
 ---
 
@@ -159,7 +183,13 @@
 | APR-012 | 启用/禁用流程 | 流程已设计 | 启用 | 状态变启用，对应单据可发起审批；禁用后不可发起 | P1 |
 | APR-013 | 停用流程不可发起审批 | 流程 enable=0 | 对应单据提交审批 | 应提示无可用流程或禁止 | P2 |
 | APR-014 | 审批实例详情 | 存在实例 | 查看实例详情 | 显示审批任务/记录/当前状态/节点图 | P1 |
-| APR-015 | 同一 form_type 唯一流程 | 已有该类型流程 | 再建同类型 | 应唯一约束或替换，GetByFormType 返回正确 | P2 |
+| APR-015 | 同一 form_type 唯一流程 | 已有该类型流程 | 再建同类型 | 应唯一约束或替换，GetByFormType 返回正确（查全部状态，含停用） | P2 |
+| APR-016 | 设计审批节点图 | 存在未启用流程（approval_flow_create 创建） | approval_flow_save_design：节点 START→APPROVAL→CONDITION→END，配审批人（用户/角色/部门负责人/上级）+ 多人会签模式（ALL/ANY）+ 空审批人动作 + 串行/并行 | 节点图保存成功，生成新版本；design_json 含 nodes/approvers/conditions/links 四数组 | P0 |
+| APR-017 | 审批流启用/禁用 | 流程已设计节点图 | approval_flow_enable(enable=true) | 状态变启用，对应 form_type 单据可发起审批；enable=false 后 approval_push 应提示无可用流程 | P0 |
+| APR-018 | 审批流详情含节点图 | 存在流程 | approval_flow_get(id) | 返回流程基础信息 + 节点图 + 审批人配置，与设计保存一致 | P1 |
+| APR-019 | 条件分支节点路由 | 流程含 CONDITION 节点 | 单据字段命中条件→发起审批→自动走对应分支 | 实例按条件求值（AND/OR + EQ/NE/GT/LT 等）路由到正确分支节点 | P2 |
+| APR-020 | 驳回必填原因 | 存在待办 | approval_reject 不传 comment | 应拒绝执行，提示驳回原因必填 | P2 |
+| APR-021 | 预置流程不可删 | 预置审批流（enable=0） | 尝试删除预置流程 | 应禁止删除（预置流程仅可停用不可删） | P2 |
 
 ---
 
@@ -178,6 +208,19 @@
 | PSI-SO-001 | 销售订单列表/详情 | 有销售单 | 销售订单 | 列表+明细正确，可按客户/状态/审批状态过滤 | P0 |
 | PSI-MV-001 | 库存调拨 | 多仓库 | 调拨产品 A仓→B仓 | A减B增，流水记录正确 | P1 |
 | PSI-ASSET-001 | 资产管理 | 有资产 | 资产 | 资产列表与状态正常 | P2 |
+| PSI-WH-002 | 新建/编辑/删除仓库 | - | psi_warehouse_create(code+name+地址)→保存；再 update；再 delete | 创建/修改生效；**默认仓库(is_default=1)不可删除** | P1 |
+| PSI-SUP-002 | 新建/编辑/删除供应商 | - | psi_supplier_create(name)→update→delete | 编号留空自动生成；CRUD 生效，可按名称/状态筛选 | P1 |
+| PSI-PO-002 | 新建采购订单 | 存在供应商+仓库+产品 | psi_purchase_order_create(supplier_id+warehouse_id+items[{product_id,quantity,unit_price}]) | 自动生成单号，默认状态=待入库，自动汇总金额（数量×单价-优惠） | P0 |
+| PSI-PO-003 | 采购入库（高危） | 采购单待入库且已审批通过（或未启用审批） | psi_purchase_order_stock_in(id) | **库存增加**，采购单状态→已入库，库存流水记录正确；未审批应拒绝 | P0 |
+| PSI-PO-004 | 采购单仅待入库可改 | 已入库采购单 | psi_purchase_order_update | 应拒绝（仅待入库且未审批允许修改） | P2 |
+| PSI-PR-001 | 采购退货出库（高危） | 存在已入库采购单 | psi_purchase_return_create→stock_out | 退货单默认待出库；出库**库存减少**，流水记录正确 | P1 |
+| PSI-SO-002 | 新建销售订单 | 存在客户+仓库+产品 | psi_sales_order_create(customer_id+warehouse_id+items) | 自动生成单号，默认待出库，可关联合同(contract_id)，自动汇总金额 | P0 |
+| PSI-SO-003 | 销售出库（高危） | 销售单待出库+库存充足+已审批通过 | psi_sales_order_stock_out(id) | **库存扣减**，状态→已出库；库存不足应拒绝 | P0 |
+| PSI-SO-004 | 销售出库库存不足 | 库存<出库量 | psi_sales_order_stock_out | 应拒绝并提示库存不足 | P2 |
+| PSI-SR-001 | 销售退货入库（高危） | 存在已出库销售单 | psi_sales_return_create→stock_in | 退货单默认待入库；入库**库存增加** | P1 |
+| PSI-STK-006 | 其他入库单（立即生效） | 存在仓库+产品 | psi_stock_in_order_create(warehouse_id+biz_type[INIT/PROFIT/GIFT/OTHER]+items[{product_id,quantity,unit_cost}]) | **创建即立即增加库存**（无审批，用于期初/盘盈/赠品），高危 | P1 |
+| PSI-STK-007 | 其他出库单（立即生效） | 存在库存 | psi_stock_out_order_create(warehouse_id+biz_type[LOSS/SCRAP/USE/OTHER]+items) | **创建即立即扣减库存**（无审批，用于盘亏/报废/领用），高危；库存不足应拒绝 | P1 |
+| PSI-ASSET-002 | 资产 CRUD | - | psi_asset_create(name+分类+采购价+使用年限)→update→delete | 自动生成资产编号；CRUD 生效，可按分类/归属人/部门/状态筛选 | P2 |
 
 ---
 
@@ -194,6 +237,24 @@
 | HRM-ATT-002 | 考勤月度汇总 | 有数据 | 选部门+月份(YYYY-MM) | 出勤/迟到/缺卡统计正确 | P1 |
 | HRM-PAY-001 | 薪资单列表 | 有薪资数据 | 选部门+月份 | 薪资单正确显示，可过滤 | P2 |
 | HRM-LEAVE/PERF/RECRUIT | 请假/绩效/招聘 | - | 进入对应页 | 列表与基本操作正常 | P2 |
+| HRM-DEPT-003 | 部门新建/编辑（MCP 工具） | - | hrm_department_create(name+code+parent_id)→update | 创建/修改生效，树更新；**code 唯一** | P1 |
+| HRM-DEPT-004 | 部门删除约束 | 部门有子部门或员工 | hrm_department_delete | 应拒绝（有子部门或员工不可删） | P2 |
+| HRM-POS-002 | 岗位 CRUD | 存在部门 | hrm_position_create(name+code+department_id)→update→delete | CRUD 生效；有员工的岗位不可删 | P1 |
+| HRM-EMP-003 | 员工新建/编辑 | 存在部门+岗位 | hrm_employee_create(emp_no+name+department_id+position_id)→update | 创建**自动写一条入职履历**；改部门/岗位/状态自动写履历；emp_no 唯一 | P0 |
+| HRM-EMP-004 | 员工离职 | 在职员工 | hrm_employee_update(status=离职+resign_date) | 状态变更并写离职履历 | P1 |
+| HRM-ATT-003 | 员工打卡 | 存在员工 | hrm_attendance_clock(clock_type=CHECK_IN/CHECK_OUT) | 打卡成功；同天同类型重复打卡则**更新**而非新增 | P1 |
+| HRM-LEAVE-001 | 申请请假 | 存在员工 | hrm_leave_create(employee_id+leave_type+start/end+duration_days) | 请假单生成，单号自动生成，待审批 | P1 |
+| HRM-LEAVE-002 | 审批请假单 | 存在待审批请假单 | hrm_leave_approve(id, approved=true/false) | 通过/驳回生效，状态变更 | P1 |
+| HRM-OT-001 | 申请加班 | 存在员工 | hrm_overtime_create(employee_id+start/end+duration_hours+compensate_type[PAY/TO]) | 加班单生成，待审批 | P1 |
+| HRM-OT-002 | 审批加班单 | 待审批加班单 | hrm_overtime_approve(id, approved) | 通过/驳回生效 | P1 |
+| HRM-PAY-002 | 保存薪酬结构 | 存在员工 | hrm_payroll_save_structure(employee_id+base_salary+各项津贴+社保/公积金基数与比例) | 结构 upsert 生效（有则更新无则创建） | P1 |
+| HRM-PAY-003 | 生成工资条 | 已配薪酬结构 | hrm_payroll_generate(employee_id+year_month) | 自动算社保/公积金/个税/实发，生成草稿工资条 | P1 |
+| HRM-PAY-004 | 工资条确认与发放 | 存在草稿工资条 | hrm_payroll_confirm→hrm_payroll_mark_paid | 草稿→已确认→已发放；仅草稿可确认，仅已确认可标记发放 | P2 |
+| HRM-PERF-001 | 创建绩效考核 | 存在员工 | hrm_performance_create(title+employee_id+start/end+items[指标JSON]) | 考核生成（含指标明细），状态=进行中 | P1 |
+| HRM-PERF-002 | 员工绩效自评 | 进行中考核 | hrm_performance_self_review(id+self_score+self_comment) | 自评提交，状态→自评完成；仅进行中可自评 | P2 |
+| HRM-PERF-003 | 上级评审绩效 | 自评完成/评审中考核 | hrm_performance_review(id+review_score+grade+comment) | 评审完成，状态→已完成，记录最终分 | P2 |
+| HRM-JOB-001 | 招聘职位 CRUD | - | hrm_job_create(title+headcount+salary_range)→update(status=招聘中)→delete | 创建默认草稿；改招聘中记录发布日期；CRUD 生效 | P2 |
+| HRM-CAND-001 | 候选人流转 | 存在职位 | hrm_candidate_create(job_id+name+phone)→update(status:新简历→筛选→面试→offer→录用/淘汰) | 候选人按状态流转，可按职位/状态/关键词筛选 | P2 |
 
 ---
 
@@ -254,6 +315,159 @@
 | WECOM-001 | 创建企业微信登录配置 | 有 CorpID+Secret | 新建扫码登录配置 | 创建成功 | P2 |
 | WECOM-002 | 启用/禁用企微登录 | 存在配置 | enable true/false | 启用后登录页出现企微扫码；禁用后消失 | P2 |
 | WECOM-003 | 扫码绑定跨设备流程 | 配置完成 | 手机扫码→OAuth→移动端回调页 | 回调正确跳转并完成绑定（参考 wecom-oauth-config） | P3 |
+
+---
+
+## 十七、财务管理 FINANCE（FIN）
+
+> 覆盖会计科目、凭证、应收应付往来款、发票、财务报表。凭证「确认」后才参与报表计算是核心规则。
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| FIN-ACC-001 | 新建会计科目 | - | finance_account_create(code+name+type[ASSET/LIABILITY/EQUITY/INCOME/EXPENSE]+balance_dir[DEBIT/CREDIT]+parent_id+is_leaf) | 科目创建，支持父子层级；is_leaf=true 才能记账 | P1 |
+| FIN-ACC-002 | 科目列表按类型过滤 | 有科目 | finance_account_list(type=ASSET) | 仅返回资产类科目 | P1 |
+| FIN-VOU-001 | 新建凭证（草稿） | 存在末级科目 | finance_voucher_create(account_id[末级]+voucher_date+description+direction[DEBIT/CREDIT]+amount) | 自动生成凭证编号，状态=草稿；account_id 必须是末级科目 | P0 |
+| FIN-VOU-002 | 确认凭证 | 存在草稿凭证 | finance_voucher_confirm(id) | 草稿→已确认；**确认后才参与报表计算** | P0 |
+| FIN-VOU-003 | 凭证列表过滤 | 有凭证 | finance_voucher_list(按日期/科目/状态[DRAFT/CONFIRMED]) | 过滤正确 | P1 |
+| FIN-REC-001 | 新建应收款 | - | finance_receivable_create(direction=RECEIVABLE+party_name+occur_date+original_amount) | 自动生成单号，状态=未结算 | P1 |
+| FIN-REC-002 | 新建应付款 | - | finance_receivable_create(direction=PAYABLE+...) | 应付款生成 | P1 |
+| FIN-REC-003 | 往来款部分结算 | 存在未结清往来款 | finance_receivable_settle(id+amount[本次结算额>0]) | 自动累计已结算金额；足额→已结清，不足→部分结算 | P1 |
+| FIN-REC-004 | 往来款列表筛选 | 有数据 | finance_receivable_list(按方向/状态[未结算/部分/已结清]/往来方/关键词) | 过滤正确 | P1 |
+| FIN-INV-001 | 新建发票（自动算税） | - | finance_invoice_create(invoice_no+invoice_type+direction[RECEIVED/ISSUED]+invoice_date+amount+tax_rate) | **自动算税额和价税合计**（amount×tax_rate） | P1 |
+| FIN-INV-002 | 发票按方向/日期过滤 | 有发票 | finance_invoice_list(direction=ISSUED+start/end_date) | 结果正确 | P1 |
+| FIN-RPT-001 | 资产负债表 | 有已确认凭证 | finance_balance_sheet(end_date) | 返回截至该日资产/负债/权益合计，借贷平衡 | P1 |
+| FIN-RPT-002 | 利润表 | 有已确认凭证 | finance_income_statement(start_date+end_date) | 按日期范围汇总收入/成本/利润；草稿凭证不计入 | P1 |
+| FIN-RPT-003 | 未确认凭证不计入报表 | 存在草稿凭证 | 对比报表与凭证总额 | 草稿凭证金额不应出现在报表中 | P2 |
+
+---
+
+## 十八、项目管理 PROJECT（PRJ）
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| PRJ-001 | 新建项目 | - | project_create(name+manager_id+member_ids+priority+start/end_date+tags) | 项目创建，可关联合同(contract_id)/客户(customer_id) | P0 |
+| PRJ-002 | 项目列表/筛选 | 有项目 | project_list(按关键词/状态[规划/进行/暂停/完成/取消]/优先级/经理) | 过滤正确 | P1 |
+| PRJ-003 | 项目详情含任务 | 项目有任务 | project_get(id) | 返回项目信息 + 任务列表 | P1 |
+| PRJ-004 | 更新项目进度 | 进行中项目 | project_update(id+progress[0-100]+status) | 进度/状态更新（半增量，未传字段保留原值） | P1 |
+| PRJ-005 | 删除项目级联 | 项目有任务 | project_delete(id) | 删除项目同时删除其下所有任务 | P2 |
+| PRJ-TASK-001 | 新建任务 | 存在项目 | project_task_create(project_id+title+assignee_id+due_date+priority) | 任务创建，状态默认待办 | P0 |
+| PRJ-TASK-002 | 任务看板流转 | 存在任务 | project_task_status(id+status:待办→进行→完成/取消) | 状态变更（看板拖拽用） | P1 |
+| PRJ-TASK-003 | 任务更新/删除 | 存在任务 | project_task_update(id)→project_task_delete(id) | 半增量更新生效；删除成功 | P1 |
+
+---
+
+## 十九、OA 办公自动化（OA）
+
+> 覆盖站内信、公告、日程、工作日志、报销、出差、借款、会议预订、自定义表单。报销/出差/借款/表单数据可对接审批流。
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| OA-MSG-001 | 发送站内信 | 多用户 | oa_message_send(receiver_id+title+content[+content_type=text/markdown]) | 收件人收件箱出现该消息 | P1 |
+| OA-MSG-002 | 收件箱/已读 | 有未读消息 | oa_message_inbox→oa_message_mark_read(id) / oa_message_read_all | 未读计数减少；单条/全部标记已读生效 | P1 |
+| OA-MSG-003 | 未读计数 | 有未读 | oa_message_unread_count | 返回当前用户未读数 | P2 |
+| OA-NOTICE-001 | 新建公告（草稿） | - | oa_notice_create(title+content+type[1通知/2公告]) | 默认草稿状态 | P1 |
+| OA-NOTICE-002 | 发布/撤回公告 | 存在公告 | oa_notice_publish→oa_notice_withdraw | 草稿↔发布；发布后进公告流(oa_notice_feed) | P1 |
+| OA-NOTICE-003 | 公告流（已发布） | 有已发布公告 | oa_notice_published / oa_notice_feed | 返回已发布公告列表 | P2 |
+| OA-SCH-001 | 新建日程 | - | oa_schedule_create(title+start/end_time+event_type[MEETING/TASK/REMINDER/OUT/OTHER]+remind_type) | 日程生成，到点提醒 | P1 |
+| OA-SCH-002 | 日程日历视图 | 有日程 | oa_schedule_calendar(start_date+end_date) | 返回日期范围内全部日程 | P1 |
+| OA-WLOG-001 | 工作日志 CRUD | - | oa_work_log_create(log_date+content+plan+problems+log_type[DAILY/WEEKLY/MONTHLY])→update→delete | 日志生成，按日期/类型可查 | P2 |
+| OA-EXP-001 | 新建报销单（含明细） | - | oa_expense_create(title+expense_type+amount+items[明细JSON]) | 报销单生成，总额自动；明细行正确 | P1 |
+| OA-EXP-002 | 报销审批+打款 | 报销单已审批通过 | oa_expense_mark_paid(id) | 仅审批通过可标记已打款；状态变更 | P2 |
+| OA-EXP-003 | 报销单仅未提交可改 | 已提交报销单 | oa_expense_update | 应拒绝（未提交/已驳回才可改） | P2 |
+| OA-TRIP-001 | 出差申请 CRUD | - | oa_trip_create(title+destination+start/end_date+transport+budget)→update | 出差单生成 | P2 |
+| OA-LOAN-001 | 借款申请 CRUD | - | oa_loan_create(title+loan_type[备用金/差旅借支/个人借款/其他]+amount+expected_date)→update | 借款单生成 | P2 |
+| OA-LOAN-002 | 借款标记已还清 | 审批通过借款单 | oa_loan_mark_repaid(id) | 仅审批通过可标记；状态→已还清 | P2 |
+| OA-MTG-001 | 会议室 CRUD | - | oa_meeting_room_create(name+capacity+equipment+status[ENABLED/DISABLED/MAINTENANCE]) | 会议室创建 | P2 |
+| OA-MTG-002 | 会议预订（冲突检测） | 存在会议室 | oa_meeting_booking_create(title+room_id+start/end_time) | 预订成功；**同会议室时间重叠应自动检测冲突并拒绝** | P1 |
+| OA-MTG-003 | 改时间重新检测冲突 | 存在预订 | oa_meeting_booking_update(改 room/time) | 重新检测冲突，有冲突则拒绝 | P2 |
+| OA-FORM-001 | 新建表单模板 | - | oa_form_template_create(form_key+name+fields_config[字段JSON]+category[business/non-business]) | 模板创建，默认启用 | P2 |
+| OA-FORM-002 | 用户端启用模板列表 | 有启用模板 | oa_form_template_list_enabled | 返回全部启用模板（用户端） | P2 |
+| OA-FORM-003 | 提交表单数据 | 存在模板 | oa_form_data_create(template_id+field_values)→update | 表单数据生成，状态=未提交；仅未提交/已驳回可改 | P2 |
+| OA-FORM-004 | 表单发起审批 | 表单数据未提交 | approval_push(对应 form_type) | 进入审批流，approval_status 流转 | P2 |
+
+---
+
+## 二十、知识库 KB（KB）
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| KB-CAT-001 | 分类 CRUD | - | kb_category_create(name+parent_id)→update→delete | 支持父子层级；CRUD 生效 | P2 |
+| KB-CAT-002 | 分类列表（authenticated） | 有分类 | kb_category_list | 有合法身份即返回（authOnly） | P2 |
+| KB-DOC-001 | 新建文档 | - | kb_document_create(title+content+category_id+status[draft/published]) | 文档生成，默认 draft | P1 |
+| KB-DOC-002 | 文档编辑/删除 | 存在文档 | kb_document_update(id)→delete(id) | 半增量更新；删除成功 | P1 |
+| KB-DOC-003 | 文档版本历史 | 文档改过多次 | kb_document_versions(id) | 返回历史版本列表 | P2 |
+| KB-DOC-004 | 恢复历史版本 | 存在历史版本 | kb_document_restore(id+version_id) | 文档回滚到指定版本 | P2 |
+
+---
+
+## 二十一、网盘 CLOUD（CLOUD）
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| CLOUD-FOLDER-001 | 新建文件夹 | - | cloud_folder_create(name+parent_id[0=根]+scope[personal/dept/public]) | 文件夹生成 | P2 |
+| CLOUD-FILE-001 | 文件元数据落库 | 已上传得到 URL | cloud_file_create(name+url+parent_id+scope+size+object_key) | 文件记录生成（上传走上传接口，此处只存元数据） | P2 |
+| CLOUD-FILE-002 | 文件列表/移动/重命名 | 有文件 | cloud_file_list(parent_id+scope)→cloud_file_update(id+name/parent_id) | 按 scope/父目录列出；移动/重命名生效 | P2 |
+| CLOUD-FILE-003 | 删除文件（递归） | 文件夹有子项 | cloud_file_delete(id) | 文件夹递归删除 | P2 |
+| CLOUD-USAGE-001 | 个人空间用量 | - | cloud_usage | 返回个人空间已用/总量 | P2 |
+
+---
+
+## 二十二、邮件 MAIL（MAIL）
+
+> ⚠️ `mail_send` 会**真实发送邮件**，测试前务必确认收件人地址正确。
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| MAIL-001 | 测试 SMTP 连接 | 已配发件参数 | mail_test_connect | 用当前配置给自己发测试邮件，返回连通性结果 | P2 |
+| MAIL-002 | 发送邮件（Markdown 正文） | SMTP 连通 | mail_send(to+subject+body[+cc]) | 正文 Markdown 渲染为 HTML 并 XSS 清理后发出；多收件人逗号分隔 | P2 |
+
+---
+
+## 二十三、定时任务 ENTERPRISE（JOB）
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| JOB-001 | 新建定时任务 | 已注册处理器 | enterprise_job_create(job_name+cron_expression[6段式:秒分时日月周]+bean_class+status[0暂停/1运行]) | 任务创建 | P2 |
+| JOB-002 | 手动触发一次 | 存在任务 | enterprise_job_run(id) | **立即异步执行**一次，不等待结果；执行日志产生 | P2 |
+| JOB-003 | 任务更新/启停 | 存在任务 | enterprise_job_update(id+status/cron) | 状态/cron 变更生效 | P2 |
+| JOB-004 | 执行日志查询 | 有执行记录 | enterprise_job_log_list(可按 job_id) | 返回任务执行日志，可分页 | P2 |
+
+---
+
+## 二十四、公共能力（COMM）
+
+> 跨模块基础能力：附件、统一日历、私有文件签名、OSS 直传凭证。多数挂在 authenticated 组。
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| COMM-ATT-001 | 附件 CRUD | 已上传文件 | attachment_create(biz_type+resource_id+file_name+url)→attachment_list→delete | 附件按 biz_type+resource_id 关联；CRUD 生效 | P2 |
+| COMM-CAL-001 | 统一日历聚合 | 有各业务待办 | calendar(start_date+end_date[+sources 逗号分隔]) | 聚合 schedule/followup/opportunity/payment/meeting/trip/task/receivable 等带日期待办，仅返回当前用户的 | P1 |
+| COMM-FILE-001 | 私有文件签名下载 | 存在私有文件 objectKey | file_sign(key) | 签发短期(1小时)下载 URL，无需 Authorization header | P2 |
+| COMM-FILE-002 | OSS 直传预签名 | - | file_upload_sts(filename[+folder+private]) | 返回预签名 URL，前端可直接 PUT 到 OSS | P2 |
+
+---
+
+## 二十五、MCP 认证与操作级权限机制（MCP-CORE）
+
+> 本章验证 MCP 协议层独有的安全机制，HTTP 接口层不涉及。**测试入口**：`POST /mcp`（生产 `https://devlovecode.com/mcp`），Streamable HTTP transport，`Authorization: Bearer qzt_xxx`。
+> 三道闸门：① API Key 认证（mcpAuthMiddleware）→ ② 工具操作级权限（mcpPermissionMiddleware，见 `perm_check.go`）→ ③ 业务 handler。
+> 核心规则：**未在 `toolPermMap` 登记的工具默认拒绝**；`authOnlyTools` 命中的工具仅需合法身份；super_admin 绕过 Casbin；其余走 Casbin（角色需在后台分配对应 HTTP API 权限）。
+
+| 编号 | 用例标题 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
+|------|---------|---------|---------|---------|--------|
+| MCP-AUTH-001 | API Key 合法认证 | 已生成 qzt_ 前缀 API Key | 带 `Authorization: Bearer qzt_xxx` 调 tools/call（如 crm_customer_list） | 认证通过，正常返回工具结果 | P0 |
+| MCP-AUTH-002 | 缺少认证信息 | - | 不带 Authorization 头调 /mcp | 返回 401「缺少认证信息」 | P0 |
+| MCP-AUTH-003 | 认证格式错误 | - | Authorization 值非「Bearer xxx」格式 | 返回 401「认证格式错误」 | P1 |
+| MCP-AUTH-004 | 非 API Key 被拒 | - | 用普通 JWT（无 qzt_ 前缀）调 /mcp | 返回 401「MCP 仅支持 API Key 认证(qzt_ 前缀)」 | P0 |
+| MCP-AUTH-005 | API Key 关联用户禁用 | API Key 对应用户 status≠1 | 用该 Key 调任意工具 | 返回 403「API Key 关联的用户已禁用」 | P1 |
+| MCP-PERM-001 | 未登记工具默认拒绝 | 临时注册一个不在 perm_map 的工具 | 非超管用户调用该工具 | 返回错误「工具 xxx 未配置权限映射,已拒绝」 | P0 |
+| MCP-PERM-002 | authOnly 工具放行 | 普通（非超管）用户 | 调 authOnly 工具（如 dashboard_overview / oa_message_inbox / site_config_get / psi_stock_list） | 仅凭合法身份即放行，不走 Casbin | P0 |
+| MCP-PERM-003 | super_admin 绕过 Casbin | super_admin 角色用户的 API Key | 调任意已登记工具（含未在后台授权 API 的） | 全部放行，不受 Casbin 限制 | P0 |
+| MCP-PERM-004 | 普通角色需 Casbin 授权 | 普通角色未在后台分配对应 API | 调非 authOnly 工具（如 crm_customer_create） | 返回「无权限调用…(需要 POST /crm/customers)」 | P0 |
+| MCP-PERM-005 | 普通角色已授权放行 | 角色已在后台分配对应 HTTP API 权限 | 调该工具 | Casbin Enforce 通过，正常执行 | P1 |
+| MCP-PERM-006 | 多角色任一通过即放行 | 用户有角色 A(无权)+B(有权) | 调 B 有权工具 | 任一角色通过即放行（与 HTTP CasbinRBAC 一致） | P1 |
+| MCP-PERM-007 | 权限映射与 HTTP 共享策略 | - | 对比 MCP 工具 perm_map 的 path/method 与 sys_api/Casbin 策略 | 工具权限点 = 对应 HTTP 接口的 Casbin 策略，同一份策略双重生效 | P1 |
+| MCP-PERM-008 | 新增工具维护规则（回归） | 新增了 MCP 工具 | 全量调用遍历 | **每个新增工具必须在 perm_map.go 登记**（或 authOnlyTools），否则对非超管全部拒绝——这是防遗漏的硬约束 | P1 |
 
 ---
 
