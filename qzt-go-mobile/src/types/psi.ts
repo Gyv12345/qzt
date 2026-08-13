@@ -162,3 +162,62 @@ export const BIZ_TYPE_COLOR: Record<string, string> = {
 }
 
 export const PSI_STATUS_TEXT: Record<number, string> = { 1: '启用', 2: '停用' }
+
+/** 其他入库单 */
+export interface PsiStockInOrder {
+  id: number
+  order_no: string
+  warehouse_id: number
+  warehouse_name?: string
+  biz_type: string
+  order_date: string | null
+  total_amount: string
+  status: number
+  operator_id: number | null
+  remark: string
+  created_at: string
+}
+
+export interface PsiStockInOrderDetail {
+  id: number
+  order_id: number
+  product_id: number
+  product_name?: string
+  quantity: string
+  unit_cost: string
+  remark: string
+}
+
+/** 其他出库单 */
+export interface PsiStockOutOrder {
+  id: number
+  order_no: string
+  warehouse_id: number
+  warehouse_name?: string
+  biz_type: string
+  order_date: string | null
+  status: number
+  operator_id: number | null
+  remark: string
+  created_at: string
+}
+
+export interface PsiStockOutOrderDetail {
+  id: number
+  order_id: number
+  product_id: number
+  product_name?: string
+  quantity: string
+  remark: string
+}
+
+export const STOCK_IN_BIZ_TYPE: Record<string, string> = {
+  INIT: '期初', PROFIT: '盘盈', GIFT: '赠品', OTHER: '其他',
+}
+export const STOCK_OUT_BIZ_TYPE: Record<string, string> = {
+  LOSS: '盘亏', SCRAP: '报废', USE: '领用', OTHER: '其他',
+}
+export const STOCK_IO_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '待生效', color: 'warning' },
+  2: { text: '已生效', color: 'success' },
+}

@@ -10,6 +10,8 @@ import type {
   PsiStockMovement,
   PsiPurchaseReturn,
   PsiSalesReturn,
+  PsiStockInOrder,
+  PsiStockOutOrder,
 } from '../types/psi'
 
 interface PageResult<T> { list: T[]; total: number }
@@ -121,12 +123,43 @@ export const createSalesReturn = (data: { customer_id: number; warehouse_id: num
   request.post('/psi/sales-returns', data)
 export const stockInSalesReturn = (id: number) => request.post(`/psi/sales-returns/${id}/stock-in`)
 
-// ── 其他出入库单(创建即生效,补充) ──
+// ── 其他出入库单(创建即生效,明细结构) ──
 
-export const createStockInOrder = (data: { warehouse_id: number; product_id: number; quantity: number; remark?: string }) =>
-  request.post('/psi/stock-in-orders', data)
-export const createStockOutOrder = (data: { warehouse_id: number; product_id: number; quantity: number; remark?: string }) =>
-  request.post('/psi/stock-out-orders', data)
+export interface StockInItemPayload {
+  product_id: number
+  quantity: string
+  unit_cost?: string
+  remark?: string
+}
+export interface StockOutItemPayload {
+  product_id: number
+  quantity: string
+  remark?: string
+}
+
+export const createStockInOrder = (data: {
+  warehouse_id: number
+  biz_type: string
+  order_date?: string
+  remark?: string
+  items: StockInItemPayload[]
+}) => request.post('/psi/stock-in-orders', data)
+export const listStockInOrders = (params: PageParams & { warehouse_id?: number; biz_type?: string }) =>
+  request.get<unknown, PageResult<PsiStockInOrder>>('/psi/stock-in-orders', { params })
+export const getStockInOrder = (id: number) =>
+  request.get<unknown, PsiStockInOrder>(`/psi/stock-in-orders/${id}`)
+
+export const createStockOutOrder = (data: {
+  warehouse_id: number
+  biz_type: string
+  order_date?: string
+  remark?: string
+  items: StockOutItemPayload[]
+}) => request.post('/psi/stock-out-orders', data)
+export const listStockOutOrders = (params: PageParams & { warehouse_id?: number; biz_type?: string }) =>
+  request.get<unknown, PageResult<PsiStockOutOrder>>('/psi/stock-out-orders', { params })
+export const getStockOutOrder = (id: number) =>
+  request.get<unknown, PsiStockOutOrder>(`/psi/stock-out-orders/${id}`)
 
 // ── 资产 / 供应商 / 仓库 CRUD(补充) ──
 

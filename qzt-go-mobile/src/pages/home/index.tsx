@@ -117,6 +117,8 @@ export default function Home() {
     { key: 'asset', label: '资产', icon: <GiftOutline />, iconBg: 'var(--icon-bg-settings)', path: '/psi/asset' },
     { key: 'purchase-return', label: '采购退货', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-contract)', path: '/psi/purchase-return' },
     { key: 'sales-return', label: '销售退货', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-opp)', path: '/psi/sales-return' },
+    { key: 'stock-in', label: '入库', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-approval)', path: '/psi/stock-in' },
+    { key: 'stock-out', label: '出库', icon: <UnorderedListOutline />, iconBg: 'var(--icon-bg-crm)', path: '/psi/stock-out' },
   ]
 
   // OA 办公宫格
@@ -135,6 +137,9 @@ export default function Home() {
   // 财务+项目+知识宫格
   const bizEntries: GridEntry[] = [
     { key: 'receivable', label: '应收应付', icon: <BankcardOutline />, iconBg: 'var(--icon-bg-contract)', path: '/finance/receivable' },
+    { key: 'account', label: '科目', icon: <FileOutline />, iconBg: 'var(--icon-bg-contract)', path: '/finance/account' },
+    { key: 'voucher', label: '凭证', icon: <ReceiptOutline />, iconBg: 'var(--icon-bg-approval)', path: '/finance/voucher' },
+    { key: 'invoice', label: '发票', icon: <BankcardOutline />, iconBg: 'var(--icon-bg-opp)', path: '/finance/invoice' },
     { key: 'project', label: '项目', icon: <AppstoreOutline />, iconBg: 'var(--icon-bg-opp)', path: '/project' },
     { key: 'kb', label: '知识库', icon: <FileOutline />, iconBg: 'var(--icon-bg-crm)', path: '/kb' },
     { key: 'cloud', label: '网盘', icon: <UploadOutline />, iconBg: 'var(--icon-bg-opp)', path: '/cloud' },
@@ -145,6 +150,12 @@ export default function Home() {
     { key: 'employee', label: '员工', icon: <UserOutline />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/employee' },
     { key: 'leave', label: '请假', icon: <CheckOutline />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
     { key: 'clock', label: '打卡', icon: <CheckCircleFill />, iconBg: 'var(--icon-bg-success, var(--brand))', path: '/clock' },
+    { key: 'department', label: '部门', icon: <TeamOutline />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/department' },
+    { key: 'position', label: '岗位', icon: <UserOutline />, iconBg: 'var(--icon-bg-opp)', path: '/hrm/position' },
+    { key: 'performance', label: '绩效', icon: <CheckShieldOutline />, iconBg: 'var(--icon-bg-opp)', path: '/hrm/performance' },
+    { key: 'job', label: '招聘', icon: <FlagOutline />, iconBg: 'var(--icon-bg-contract)', path: '/hrm/job' },
+    { key: 'attendance-summary', label: '考勤汇总', icon: <CheckOutline />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/attendance-summary' },
+    { key: 'payroll', label: '薪资', icon: <PayCircleOutline />, iconBg: 'var(--icon-bg-contract)', path: '/hrm/payroll' },
   ]
 
   // 更多宫格

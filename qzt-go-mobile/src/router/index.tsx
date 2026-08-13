@@ -38,6 +38,11 @@ const LoanDetail = lazy(() => import('../pages/loan/detail'))
 // 财务
 const ReceivableList = lazy(() => import('../pages/finance/receivable'))
 const ReceivableDetail = lazy(() => import('../pages/finance/receivable/detail'))
+const AccountList = lazy(() => import('../pages/finance/account'))
+const VoucherList = lazy(() => import('../pages/finance/voucher'))
+const VoucherDetail = lazy(() => import('../pages/finance/voucher/detail'))
+const InvoiceList = lazy(() => import('../pages/finance/invoice'))
+const InvoiceDetail = lazy(() => import('../pages/finance/invoice/detail'))
 // 项目
 const ProjectList = lazy(() => import('../pages/project'))
 const ProjectDetail = lazy(() => import('../pages/project/detail'))
@@ -47,6 +52,14 @@ const EmployeeDetail = lazy(() => import('../pages/hrm/employee/detail'))
 const LeaveList = lazy(() => import('../pages/hrm/leave'))
 const LeaveDetail = lazy(() => import('../pages/hrm/leave/detail'))
 const ClockPage = lazy(() => import('../pages/clock'))
+const DepartmentList = lazy(() => import('../pages/hrm/department'))
+const PositionList = lazy(() => import('../pages/hrm/position'))
+const PerformanceList = lazy(() => import('../pages/hrm/performance'))
+const PerformanceDetail = lazy(() => import('../pages/hrm/performance/detail'))
+const JobList = lazy(() => import('../pages/hrm/job'))
+const JobDetail = lazy(() => import('../pages/hrm/job/detail'))
+const AttendanceSummaryList = lazy(() => import('../pages/hrm/attendance-summary'))
+const PayrollList = lazy(() => import('../pages/hrm/payroll'))
 // PSI
 const PurchaseList = lazy(() => import('../pages/psi/purchase'))
 const PurchaseDetail = lazy(() => import('../pages/psi/purchase/detail'))
@@ -61,6 +74,10 @@ const PurchaseReturnList = lazy(() => import('../pages/psi/purchase-return'))
 const PurchaseReturnDetail = lazy(() => import('../pages/psi/purchase-return/detail'))
 const SalesReturnList = lazy(() => import('../pages/psi/sales-return'))
 const SalesReturnDetail = lazy(() => import('../pages/psi/sales-return/detail'))
+const StockInList = lazy(() => import('../pages/psi/stock-in'))
+const StockInDetail = lazy(() => import('../pages/psi/stock-in/detail'))
+const StockOutList = lazy(() => import('../pages/psi/stock-out'))
+const StockOutDetail = lazy(() => import('../pages/psi/stock-out/detail'))
 // CRM 补充
 const DashboardPage = lazy(() => import('../pages/dashboard'))
 const ProductList = lazy(() => import('../pages/product'))
@@ -260,6 +277,26 @@ export default function AppRoutes() {
             element: <Suspense fallback={pageFallback}><ReceivableDetail /></Suspense>,
           },
           {
+            path: '/finance/account',
+            element: <Suspense fallback={pageFallback}><AccountList /></Suspense>,
+          },
+          {
+            path: '/finance/voucher',
+            element: <Suspense fallback={pageFallback}><VoucherList /></Suspense>,
+          },
+          {
+            path: '/finance/voucher/:id',
+            element: <Suspense fallback={pageFallback}><VoucherDetail /></Suspense>,
+          },
+          {
+            path: '/finance/invoice',
+            element: <Suspense fallback={pageFallback}><InvoiceList /></Suspense>,
+          },
+          {
+            path: '/finance/invoice/:id',
+            element: <Suspense fallback={pageFallback}><InvoiceDetail /></Suspense>,
+          },
+          {
             path: '/project',
             element: <Suspense fallback={pageFallback}><ProjectList /></Suspense>,
           },
@@ -282,6 +319,38 @@ export default function AppRoutes() {
           {
             path: '/hrm/leave/:id',
             element: <Suspense fallback={pageFallback}><LeaveDetail /></Suspense>,
+          },
+          {
+            path: '/hrm/department',
+            element: <Suspense fallback={pageFallback}><DepartmentList /></Suspense>,
+          },
+          {
+            path: '/hrm/position',
+            element: <Suspense fallback={pageFallback}><PositionList /></Suspense>,
+          },
+          {
+            path: '/hrm/performance',
+            element: <Suspense fallback={pageFallback}><PerformanceList /></Suspense>,
+          },
+          {
+            path: '/hrm/performance/:id',
+            element: <Suspense fallback={pageFallback}><PerformanceDetail /></Suspense>,
+          },
+          {
+            path: '/hrm/job',
+            element: <Suspense fallback={pageFallback}><JobList /></Suspense>,
+          },
+          {
+            path: '/hrm/job/:id',
+            element: <Suspense fallback={pageFallback}><JobDetail /></Suspense>,
+          },
+          {
+            path: '/hrm/attendance-summary',
+            element: <Suspense fallback={pageFallback}><AttendanceSummaryList /></Suspense>,
+          },
+          {
+            path: '/hrm/payroll',
+            element: <Suspense fallback={pageFallback}><PayrollList /></Suspense>,
           },
           {
             path: '/clock',
@@ -338,6 +407,22 @@ export default function AppRoutes() {
           {
             path: '/psi/sales-return/:id',
             element: <Suspense fallback={pageFallback}><SalesReturnDetail /></Suspense>,
+          },
+          {
+            path: '/psi/stock-in',
+            element: <Suspense fallback={pageFallback}><StockInList /></Suspense>,
+          },
+          {
+            path: '/psi/stock-in/:id',
+            element: <Suspense fallback={pageFallback}><StockInDetail /></Suspense>,
+          },
+          {
+            path: '/psi/stock-out',
+            element: <Suspense fallback={pageFallback}><StockOutList /></Suspense>,
+          },
+          {
+            path: '/psi/stock-out/:id',
+            element: <Suspense fallback={pageFallback}><StockOutDetail /></Suspense>,
           },
           {
             path: '/product',
