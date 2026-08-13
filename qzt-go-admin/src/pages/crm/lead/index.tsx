@@ -28,7 +28,6 @@ import {
   getLeadOwnerHistory,
   listEnabledLeadPools,
   listLeads,
-  pickLead,
   releaseLead,
   transferLead,
   updateLead,
@@ -191,12 +190,6 @@ export default function LeadPage() {
     actionRef.current?.reload()
   }
 
-  const handlePick = async (record: CrmLead) => {
-    await pickLead(record.id)
-    message.success('线索已领取')
-    actionRef.current?.reload()
-  }
-
   const handleConvert = async (record: CrmLead) => {
     const customer = await convertLead(record.id)
     message.success(`已转化,客户ID:${customer.id}`)
@@ -264,7 +257,6 @@ export default function LeadPage() {
           <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailTarget(r)}>
             {r.name}
           </Button>
-          {r.in_pool === 1 && <Tag color="orange">公海</Tag>}
           {r.status === 3 && <Tag color="green">已转化</Tag>}
         </Space>
       ),
@@ -303,7 +295,7 @@ export default function LeadPage() {
       dataIndex: 'owner_id',
       search: false,
       width: 90,
-      render: (_, r) => (r.in_pool === 1 ? '公海' : nickname(r.owner_id)),
+      render: (_, r) => nickname(r.owner_id) || '-',
     },
     {
       title: '创建时间',
@@ -327,33 +319,16 @@ export default function LeadPage() {
               编辑
             </Button>
           </Auth>
-          {record.in_pool === 1 ? (
-            <Auth perm="crm:lead:pick">
-              <Popconfirm
-                title="确认领取该线索?"
-                okText="领取"
-                cancelText="取消"
-                onConfirm={() => handlePick(record)}
-              >
-                <Button type="link" size="small">
-                  领取
-                </Button>
-              </Popconfirm>
-            </Auth>
-          ) : (
-            <>
-              <Auth perm="crm:lead:release">
-                <Button type="link" size="small" onClick={() => setReleaseTarget(record)}>
-                  释放
-                </Button>
-              </Auth>
-              <Auth perm="crm:lead:transfer">
-                <Button type="link" size="small" onClick={() => setTransferTarget(record)}>
-                  转移
-                </Button>
-              </Auth>
-            </>
-          )}
+          <Auth perm="crm:lead:release">
+            <Button type="link" size="small" onClick={() => setReleaseTarget(record)}>
+              释放
+            </Button>
+          </Auth>
+          <Auth perm="crm:lead:transfer">
+            <Button type="link" size="small" onClick={() => setTransferTarget(record)}>
+              转移
+            </Button>
+          </Auth>
           {record.converted_customer_id === null && record.status !== 3 && (
             <Auth perm="crm:lead:convert">
               <Popconfirm
@@ -398,6 +373,7 @@ export default function LeadPage() {
           const res = await listLeads({
             page: current,
             page_size: pageSize,
+            pool_filter: 'PRIVATE',
             ...(rest as LeadQuery),
           })
           return { data: res.list, total: res.total, success: true }
@@ -414,7 +390,7 @@ export default function LeadPage() {
             fileName="线索列表"
             columns={columns}
             fetchAll={async () => {
-              const res = await listLeads({ page: 1, page_size: 1000 })
+              const res = await listLeads({ page: 1, page_size: 1000, pool_filter: 'PRIVATE' })
               return res.list
             }}
           />,

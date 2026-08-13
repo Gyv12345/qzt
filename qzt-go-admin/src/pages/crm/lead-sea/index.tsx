@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { App, Button, Card, Select, Space } from 'antd'
+import { App, Button, Select } from 'antd'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
-import { listLeadPools, listLeads, pickLead } from '../../../services/lead'
+import DictSelect, { DictTag } from '../../../components/DictSelect'
+import { listLeadPools, listLeads, pickLead, type LeadQuery } from '../../../services/lead'
 import type { CrmLead, CrmLeadPool } from '../../../types/lead'
 import { useUserStore } from '../../../stores/users'
 
 /**
- * 线索公海:列出公海中的线索(in_pool=public),支持按线索池筛选,可领取到自己名下。
+ * 线索公海:列出公海中的线索(in_pool=public),支持按线索池/名称/级别/来源/行业筛选,可领取到自己名下。
  * 线索池配置(建池/规则/容量)在「CRM 配置 → 线索池」。
  */
 export default function LeadSeaPage() {
@@ -15,7 +16,6 @@ export default function LeadSeaPage() {
   const actionRef = useRef<ActionType>(null)
   const nickname = useUserStore((s) => s.nickname)
   const [pools, setPools] = useState<CrmLeadPool[]>([])
-  const [poolId, setPoolId] = useState<number | undefined>(undefined)
 
   useEffect(() => {
     listLeadPools()
@@ -30,14 +30,70 @@ export default function LeadSeaPage() {
   }
 
   const columns: ProColumns<CrmLead>[] = [
-    { title: '线索名称', dataIndex: 'name', width: 200 },
-    { title: '联系人', dataIndex: 'contact_name', width: 110 },
-    { title: '电话', dataIndex: 'phone', width: 130 },
-    { title: '级别', dataIndex: 'level', width: 80 },
+    // ---- 搜索列(表格内不展示) ----
+    {
+      title: '所属线索池',
+      dataIndex: 'pool_id',
+      hideInTable: true,
+      renderFormItem: () => (
+        <Select
+          showSearch
+          optionFilterProp="label"
+          allowClear
+          placeholder="全部线索池"
+          options={pools.map((p) => ({ label: p.name, value: p.id }))}
+        />
+      ),
+    },
+    { title: '线索名称', dataIndex: 'keyword', hideInTable: true },
+    {
+      title: '级别',
+      dataIndex: 'level',
+      hideInTable: true,
+      renderFormItem: () => <DictSelect code="LEAD_LEVEL" />,
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      hideInTable: true,
+      renderFormItem: () => <DictSelect code="LEAD_SOURCE" />,
+    },
+    {
+      title: '行业',
+      dataIndex: 'industry',
+      hideInTable: true,
+      renderFormItem: () => <DictSelect code="INDUSTRY" />,
+    },
+    // ---- 展示列(不参与搜索) ----
+    { title: '线索名称', dataIndex: 'name', width: 200, search: false },
+    { title: '联系人', dataIndex: 'contact_name', width: 110, search: false },
+    { title: '电话', dataIndex: 'phone', width: 130, search: false },
+    {
+      title: '级别',
+      dataIndex: 'level',
+      width: 90,
+      search: false,
+      render: (_, r) => <DictTag code="LEAD_LEVEL" value={r.level} />,
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      width: 100,
+      search: false,
+      render: (_, r) => <DictTag code="LEAD_SOURCE" value={r.source} />,
+    },
+    {
+      title: '行业',
+      dataIndex: 'industry',
+      width: 110,
+      search: false,
+      render: (_, r) => <DictTag code="INDUSTRY" value={r.industry} />,
+    },
     {
       title: '原负责人',
       dataIndex: 'owner_id',
       width: 110,
+      search: false,
       render: (_, r) => (r.owner_id ? nickname(r.owner_id) : '-'),
     },
     {
@@ -55,42 +111,24 @@ export default function LeadSeaPage() {
   ]
 
   return (
-    <>
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <Space>
-          <span>所属线索池:</span>
-          <Select
-            style={{ width: 240 }}
-            allowClear
-            placeholder="全部线索池"
-            value={poolId}
-            onChange={(v) => {
-              setPoolId(v)
-              actionRef.current?.reload()
-            }}
-            options={pools.map((p) => ({ label: p.name, value: p.id }))}
-          />
-        </Space>
-      </Card>
-      <ProTable<CrmLead>
-        rowKey="id"
-        actionRef={actionRef}
-        columns={columns}
-        scroll={{ x: 'max-content' }}
-        search={false}
-        request={async ({ current, pageSize }) => {
-          const res = await listLeads({
-            page: current,
-            page_size: pageSize,
-            pool_filter: 'PUBLIC',
-            pool_id: poolId,
-          })
-          return { data: res.list, total: res.total, success: true }
-        }}
-        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
-        headerTitle="线索公海"
-        options={false}
-      />
-    </>
+    <ProTable<CrmLead>
+      rowKey="id"
+      actionRef={actionRef}
+      columns={columns}
+      scroll={{ x: 'max-content' }}
+      request={async (params) => {
+        const { current, pageSize, ...rest } = params
+        const res = await listLeads({
+          page: current,
+          page_size: pageSize,
+          pool_filter: 'PUBLIC',
+          ...(rest as LeadQuery),
+        })
+        return { data: res.list, total: res.total, success: true }
+      }}
+      pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+      headerTitle="线索公海"
+      options={false}
+    />
   )
 }

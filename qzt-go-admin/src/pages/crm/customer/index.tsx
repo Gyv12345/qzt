@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Col, Form, Input, Popconfirm, Select, Space, Tag } from 'antd'
+import { App, Button, Col, Form, Input, Popconfirm, Select, Space } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ProForm,
@@ -22,7 +22,6 @@ import {
   listCustomers,
   listCustomFields,
   listEnabledPools,
-  pickCustomer,
   releaseCustomer,
   transferCustomer,
   updateCustomer,
@@ -129,12 +128,6 @@ export default function CustomerPage() {
     actionRef.current?.reload()
   }
 
-  const handlePick = async (record: CrmCustomer) => {
-    await pickCustomer(record.id)
-    message.success('客户已领取')
-    actionRef.current?.reload()
-  }
-
   const setFieldValue = (fieldId: string, value: unknown) => {
     setFieldValues((prev) => {
       const next = new Map(prev)
@@ -195,12 +188,9 @@ export default function CustomerPage() {
       width: 220,
       search: false,
       render: (_, r) => (
-        <Space size={4}>
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailCustomer(r)}>
-            {r.name}
-          </Button>
-          {r.in_pool === 1 && <Tag color="orange">公海</Tag>}
-        </Space>
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailCustomer(r)}>
+          {r.name}
+        </Button>
       ),
     },
     {
@@ -240,7 +230,7 @@ export default function CustomerPage() {
       dataIndex: 'owner_id',
       search: false,
       width: 100,
-      render: (_, r) => (r.in_pool === 1 ? '公海' : nickname(r.owner_id)),
+      render: (_, r) => nickname(r.owner_id) || '-',
     },
     {
       title: '最新跟进时间',
@@ -271,33 +261,16 @@ export default function CustomerPage() {
               编辑
             </Button>
           </Auth>
-          {record.in_pool === 1 ? (
-            <Auth perm="crm:customer:pick">
-              <Popconfirm
-                title="确认领取该客户?"
-                okText="领取"
-                cancelText="取消"
-                onConfirm={() => handlePick(record)}
-              >
-                <Button type="link" size="small">
-                  领取
-                </Button>
-              </Popconfirm>
-            </Auth>
-          ) : (
-            <>
-              <Auth perm="crm:customer:release">
-                <Button type="link" size="small" onClick={() => setReleaseTarget(record)}>
-                  释放
-                </Button>
-              </Auth>
-              <Auth perm="crm:customer:transfer">
-                <Button type="link" size="small" onClick={() => setTransferTarget(record)}>
-                  转移
-                </Button>
-              </Auth>
-            </>
-          )}
+          <Auth perm="crm:customer:release">
+            <Button type="link" size="small" onClick={() => setReleaseTarget(record)}>
+              释放
+            </Button>
+          </Auth>
+          <Auth perm="crm:customer:transfer">
+            <Button type="link" size="small" onClick={() => setTransferTarget(record)}>
+              转移
+            </Button>
+          </Auth>
           <Auth perm="crm:customer:delete">
             <Popconfirm
               title="确认删除该客户?"
@@ -328,6 +301,7 @@ export default function CustomerPage() {
           const res = await listCustomers({
             page: current,
             page_size: pageSize,
+            pool_filter: 'PRIVATE',
             ...(rest as CustomerQuery),
           })
           return { data: res.list, total: res.total, success: true }
@@ -344,7 +318,7 @@ export default function CustomerPage() {
             fileName="客户列表"
             columns={columns}
             fetchAll={async () => {
-              const res = await listCustomers({ page: 1, page_size: 1000 })
+              const res = await listCustomers({ page: 1, page_size: 1000, pool_filter: 'PRIVATE' })
               return res.list
             }}
           />,
