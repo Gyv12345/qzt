@@ -40,6 +40,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.POST("/auth/refresh", authHandler.Refresh)
 	rg.GET("/auth/wecom/qrcode", authHandler.WecomQrcode)
 	rg.POST("/auth/wecom/callback", authHandler.WecomCallback)
+	rg.GET("/auth/wecom/login-status", authHandler.WecomLoginStatus)
 	rg.GET("/oauth-configs/enabled", oauthConfigHandler.ListPublic)
 
 	// 企业微信绑定(公开,跨设备扫码用,无需JWT)

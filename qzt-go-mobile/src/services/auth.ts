@@ -62,3 +62,35 @@ export function updateProfile(data: {
 export function changePassword(data: { old_password: string; new_password: string }) {
   return request.put('/system/auth/password', data)
 }
+
+// ---------- 企业微信扫码登录(免鉴权) ----------
+
+/** 查询已启用的第三方登录渠道(免鉴权,登录页判断显隐) */
+export async function listEnabledOauth(): Promise<string[]> {
+  try {
+    const res = await rawRequest.get<
+      ApiResponse<Array<{ provider: string; enabled: number; name?: string }>>
+    >('/system/oauth-configs/enabled')
+    if (res.data.code === 0) {
+      return (res.data.data ?? []).map((c) => c.provider)
+    }
+  } catch {
+    // 忽略,登录入口显隐非必需
+  }
+  return []
+}
+
+/** 获取企业微信扫码登录授权 URL(免鉴权)。mode: scan 桌面轮询出码 / app 手机企微内同步登录 */
+export async function getWecomLoginQrcode(
+  mode: 'scan' | 'app' = 'app',
+): Promise<{ url: string; state: string }> {
+  const res = await rawRequest.get<ApiResponse<{ url: string; state: string }>>(
+    '/system/auth/wecom/qrcode',
+    { params: { mode } },
+  )
+  const body = res.data
+  if (body.code !== 0) {
+    throw new Error(body.msg || '获取企业微信登录链接失败')
+  }
+  return body.data
+}

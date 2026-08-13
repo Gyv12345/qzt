@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Toast } from 'antd-mobile'
 import { useNavigate } from 'react-router-dom'
-import { fetchUserInfo, login } from '../../services/auth'
+import { fetchUserInfo, getWecomLoginQrcode, listEnabledOauth, login } from '../../services/auth'
 import './login.css'
 
 export default function Login() {
@@ -9,6 +9,12 @@ export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [wecomEnabled, setWecomEnabled] = useState(false)
+  const [wecomLoading, setWecomLoading] = useState(false)
+
+  useEffect(() => {
+    listEnabledOauth().then((providers) => setWecomEnabled(providers.includes('wecom')))
+  }, [])
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -29,6 +35,18 @@ export default function Login() {
       Toast.show({ icon: 'fail', content: err instanceof Error ? err.message : '登录失败' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 企业微信登录(需在企微 App 内打开才静默授权)
+  const onWecomLogin = async () => {
+    setWecomLoading(true)
+    try {
+      const { url } = await getWecomLoginQrcode('app')
+      window.location.href = url
+    } catch (err) {
+      Toast.show({ icon: 'fail', content: err instanceof Error ? err.message : '获取登录链接失败' })
+      setWecomLoading(false)
     }
   }
 
@@ -71,6 +89,22 @@ export default function Login() {
           <button type="submit" className="qz-submit" disabled={loading}>
             {loading ? '登录中…' : '登 录'}
           </button>
+
+          {wecomEnabled && (
+            <>
+              <div className="qz-divider">
+                <span>其他登录方式</span>
+              </div>
+              <button
+                type="button"
+                className="qz-wecom-btn"
+                onClick={onWecomLogin}
+                disabled={wecomLoading}
+              >
+                {wecomLoading ? '跳转中…' : '企业微信登录'}
+              </button>
+            </>
+          )}
         </form>
 
         <p className="qz-foot fade-in-up delay-500">企智通 · 企业级业务管理平台</p>

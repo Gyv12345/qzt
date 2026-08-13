@@ -4,9 +4,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,7 +18,6 @@ import (
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/wecom"
-	"qzt-go-server/pkg/xcryption"
 )
 
 // wecom_auth.go 企业微信扫码登录服务。
@@ -65,88 +67,141 @@ func (s *WecomAuthService) GetQrcodeURL(ctx context.Context, state string) (stri
 	return client.BuildAuthorizeURL(state), nil
 }
 
-// LoginByCode 用企业微信 OAuth code 登录(查/建用户 + 签发 JWT)。
+const (
+	// loginStatePrefix 标识桌面端扫码轮询模式的 state 前缀。
+	loginStatePrefix = "login_"
+	// loginTicketTTL 扫码登录票据有效期(略长于前端轮询上限 5min)。
+	loginTicketTTL = 5 * time.Minute
+)
+
+// loginTicketKey 拼接桌面扫码登录票据的 Redis key。
+func loginTicketKey(state string) string { return "qzt:wecom:login:" + state }
+
+// loginRedirectURI 从配置的 redirect_uri 提取 origin,拼接登录专用回调路径 /auth/wecom/login。
+// 登录与绑定使用各自回调页,且自动跟随环境(生产 m.devlovecode.com)。
+func loginRedirectURI(cfgRedirectURI string) (string, error) {
+	u, err := url.Parse(cfgRedirectURI)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return "", fmt.Errorf("企业微信 redirect_uri 配置无效: %s", cfgRedirectURI)
+	}
+	return u.Scheme + "://" + u.Host + "/auth/wecom/login", nil
+}
+
+// LoginByCode 用企业微信 OAuth code 登录(查已绑定用户 + 签发 JWT)。
 // 返回的 LoginResponse 与账密登录完全一致,前端无感知差异。
-func (s *WecomAuthService) LoginByCode(ctx context.Context, code string) (*LoginResponse, error) {
+// 仅允许已绑定企业微信的账号扫码登录(未绑定返回错误,不自动建号)。
+// state 以 loginStatePrefix 开头表示桌面端扫码轮询模式:签发后把 token 存 Redis 供 PC 轮询,
+// 返回 isScanPoll=true 通知 handler 不直接回传 token(改为提示用户回电脑端)。
+func (s *WecomAuthService) LoginByCode(ctx context.Context, code, state string) (*LoginResponse, bool, error) {
 	client, err := s.newWecomClient(ctx)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// 1. code → 企业微信 userid
 	wecomUserID, err := client.GetUserIDByCode(ctx, code)
 	if err != nil {
-		return nil, fmt.Errorf("企业微信授权失败: %w", err)
+		return nil, false, fmt.Errorf("企业微信授权失败: %w", err)
 	}
 
-	// 2. 按 wecomUserID 查本地用户
+	// 2. 按 wecomUserID 查本地用户(仅已绑定账号可登录,不自动建号)
 	user, err := s.userRepo.GetByWecomUserID(ctx, wecomUserID)
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("查询用户失败: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, false, errors.New("该企业微信账号尚未绑定系统用户,请先用账号密码登录后在「我的-企业微信」绑定")
 		}
-		// 3. 未找到 → 自动创建
-		user, err = s.createWecomUser(ctx, client, wecomUserID)
-		if err != nil {
-			return nil, err
-		}
+		return nil, false, fmt.Errorf("查询用户失败: %w", err)
 	}
 
-	// 4. 校验状态
+	// 3. 校验状态
 	if user.Status != 1 {
-		return nil, errors.New("用户已被禁用")
+		return nil, false, errors.New("用户已被禁用")
 	}
 
-	// 5. 签发 JWT(复用账密登录的令牌体系)
+	// 4. 签发 JWT(复用账密登录的令牌体系)
 	tokens, err := app.JwtManager.GenerateTokens(int32(user.ID), user.Username, user.TokenVersion)
 	if err != nil {
-		return nil, errors.New("生成 Token 失败")
+		return nil, false, errors.New("生成 Token 失败")
 	}
 
-	return &LoginResponse{
+	resp := &LoginResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 		AccessExpire: tokens.AccessExpire.Unix(),
 		UserID:       user.ID,
 		Username:     user.Username,
 		Nickname:     user.Nickname,
-	}, nil
+	}
+
+	// 5. 桌面端扫码轮询模式:把登录结果存 Redis,供 PC 端轮询取回(一次性)
+	if isScanPoll := strings.HasPrefix(state, loginStatePrefix); isScanPoll {
+		data, err := json.Marshal(resp)
+		if err != nil {
+			return nil, false, fmt.Errorf("序列化登录结果失败: %w", err)
+		}
+		app.Redis.Set(ctx, loginTicketKey(state), string(data), loginTicketTTL)
+		return resp, true, nil
+	}
+	return resp, false, nil
 }
 
-// createWecomUser 自动创建企业微信扫码用户。
-// username = wecom_<userid>,随机密码(不可用于账密登录),尝试拉取姓名/头像。
-func (s *WecomAuthService) createWecomUser(ctx context.Context, client *wecom.Client, wecomUserID string) (*model.SysUser, error) {
-	username := "wecom_" + wecomUserID
-	nickname := wecomUserID // 默认用 userid 作昵称
-	avatar := ""
-
-	// 尝试获取企业微信成员信息(失败不阻断创建)
-	if member, err := client.GetMember(ctx, wecomUserID); err == nil && member != nil {
-		if member.Name != "" {
-			nickname = member.Name
-		}
-		avatar = member.Avatar
-	}
-
-	// 生成随机密码(64 字符 hex,用户不知道,无法用于账密登录)
-	randomPwd := randomHex(32)
-	hashed, err := xcryption.HashPassword(randomPwd)
+// GetLoginQrcodeURL 获取扫码登录授权 URL(前端跳转/出码用)。
+// mode: "scan" 桌面端轮询(生成 login_ 票据存 Redis 占位 pending) / "app" 手机企微内同步(无票据)。
+func (s *WecomAuthService) GetLoginQrcodeURL(ctx context.Context, mode string) (string, string, error) {
+	client, err := s.newWecomClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("哈希密码失败: %w", err)
+		return "", "", err
 	}
 
-	user := &model.SysUser{
-		Username:    username,
-		Password:    hashed,
-		Nickname:    nickname,
-		Avatar:      avatar,
-		Status:      1,
-		WecomUserID: wecomUserID,
+	var state string
+	if mode == "scan" {
+		state = loginStatePrefix + randomHex(16)
+		app.Redis.Set(ctx, loginTicketKey(state), "pending", loginTicketTTL)
+	} else {
+		state = randomHex(16)
 	}
-	if err := s.userRepo.Create(ctx, user); err != nil {
-		return nil, fmt.Errorf("创建用户失败: %w", err)
+
+	redirectURI, err := loginRedirectURI(client.RedirectURI())
+	if err != nil {
+		return "", "", err
 	}
-	return user, nil
+	return client.BuildAuthorizeURLWithRedirect(state, redirectURI), state, nil
+}
+
+// PollLoginStatus 桌面端轮询扫码登录状态。
+// 返回 status: "waiting"(待完成) / "success"(完成,附带 token) / "error"(登录失败,附带原因) / "expired"(票据过期或不存在)。
+func (s *WecomAuthService) PollLoginStatus(ctx context.Context, state string) (status string, resp *LoginResponse, errMsg string) {
+	val, err := app.Redis.Get(ctx, loginTicketKey(state)).Result()
+	if err != nil || val == "" {
+		return "expired", nil, ""
+	}
+	if val == "pending" {
+		return "waiting", nil, ""
+	}
+	// 登录结果或错误:取出并删除(一次性,防重放)
+	app.Redis.Del(ctx, loginTicketKey(state))
+	// 先判错误票据 {"error":"..."}
+	var em struct {
+		Error string `json:"error"`
+	}
+	if json.Unmarshal([]byte(val), &em) == nil && em.Error != "" {
+		return "error", nil, em.Error
+	}
+	var lr LoginResponse
+	if err := json.Unmarshal([]byte(val), &lr); err != nil {
+		return "expired", nil, ""
+	}
+	return "success", &lr, ""
+}
+
+// StoreLoginError 桌面扫码登录失败时,把错误原因存入票据,供 PC 轮询即时获知失败原因(如未绑定)。
+// 仅对 login_ 前缀的 state(桌面轮询模式)生效;同步模式直接由调用方返回错误。
+func (s *WecomAuthService) StoreLoginError(ctx context.Context, state, msg string) {
+	if !strings.HasPrefix(state, loginStatePrefix) {
+		return
+	}
+	data, _ := json.Marshal(map[string]string{"error": msg})
+	app.Redis.Set(ctx, loginTicketKey(state), string(data), loginTicketTTL)
 }
 
 // randomHex 生成 n 字节的随机 hex 字符串(共 2n 字符)。

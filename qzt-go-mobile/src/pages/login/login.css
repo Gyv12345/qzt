@@ -192,6 +192,51 @@
   opacity: 0.65;
 }
 
+/* 其他登录方式分割线 */
+.qz-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 16px;
+  font-size: 12px;
+  color: var(--ink-400);
+}
+.qz-divider::before,
+.qz-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--ink-200);
+}
+
+/* 企业微信登录按钮(企微品牌绿) */
+.qz-wecom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-radius: 10px;
+  background: #07c160;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-appearance: none;
+  transition:
+    transform 0.15s,
+    opacity 0.2s;
+}
+.qz-wecom-btn:active {
+  transform: translateY(1px);
+}
+.qz-wecom-btn:disabled {
+  opacity: 0.65;
+}
+
 .qz-foot {
   margin: 40px 0 0;
   font-size: 10px;

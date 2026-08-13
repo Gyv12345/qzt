@@ -93,3 +93,59 @@ export const createApiKey = (name: string) =>
 export const deleteApiKey = (id: number) => request.delete(`/system/api-keys/${id}`)
 
 export const disableApiKey = (id: number) => request.put(`/system/api-keys/${id}/disable`)
+
+// ---------- 企业微信扫码登录(免鉴权) ----------
+
+export interface WecomLoginStatusResult {
+  status: 'waiting' | 'success' | 'expired' | 'error'
+  message?: string
+  access_token?: string
+  refresh_token?: string
+  access_expire?: number
+  user_id?: number
+  username?: string
+  nickname?: string
+}
+
+/** 查询已启用的第三方登录渠道(免鉴权,登录页判断显隐) */
+export async function listEnabledOauth(): Promise<string[]> {
+  try {
+    const res = await rawRequest.get<
+      ApiResponse<Array<{ provider: string; enabled: number; name?: string }>>
+    >('/system/oauth-configs/enabled')
+    if (res.data.code === 0) {
+      return (res.data.data ?? []).map((c) => c.provider)
+    }
+  } catch {
+    // 忽略,登录入口显隐非必需
+  }
+  return []
+}
+
+/** 获取企业微信扫码登录授权 URL(免鉴权)。mode: scan 桌面轮询出码 / app 手机同步登录 */
+export async function getWecomLoginQrcode(
+  mode: 'scan' | 'app' = 'scan',
+): Promise<{ url: string; state: string }> {
+  const res = await rawRequest.get<ApiResponse<{ url: string; state: string }>>(
+    '/system/auth/wecom/qrcode',
+    { params: { mode } },
+  )
+  const body = res.data
+  if (body.code !== 0) {
+    throw new Error(body.msg || '获取企业微信登录链接失败')
+  }
+  return body.data
+}
+
+/** 桌面端轮询扫码登录状态(免鉴权) */
+export async function pollWecomLoginStatus(state: string): Promise<WecomLoginStatusResult> {
+  const res = await rawRequest.get<ApiResponse<WecomLoginStatusResult>>(
+    '/system/auth/wecom/login-status',
+    { params: { state } },
+  )
+  const body = res.data
+  if (body.code !== 0) {
+    throw new Error(body.msg || '查询登录状态失败')
+  }
+  return body.data
+}

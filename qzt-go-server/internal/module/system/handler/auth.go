@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"qzt-go-server/internal/middleware"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/module/system/service"
@@ -384,18 +383,15 @@ func (h *AuthHandler) GetPermissions(c *gin.Context) {
 
 // WecomQrcode 获取企业微信扫码授权 URL
 // @Summary      企业微信扫码授权URL
-// @Description  返回企业微信 OAuth2 授权页 URL,前端跳转到此 URL 显示扫码页。需先在系统配置中填写企业微信参数。
+// @Description  返回企业微信 OAuth2 授权页 URL。mode=scan(默认)桌面端轮询出码;mode=app 手机企微内静默授权登录。需先在系统配置中启用企业微信。
 // @Tags         认证
 // @Produce      json
-// @Param        state  query  string  false  "CSRF 防护 state 参数(默认随机生成)"
+// @Param        mode  query  string  false  "scan=桌面端轮询出码 / app=手机企微内同步登录"  default(scan)
 // @Success      200  {object}  xresponse.Response
 // @Router       /system/auth/wecom/qrcode [get]
 func (h *AuthHandler) WecomQrcode(c *gin.Context) {
-	state := c.Query("state")
-	if state == "" {
-		state = uuid.NewString() // 随机生成 state 防 CSRF
-	}
-	url, err := h.wecomSvc.GetQrcodeURL(c.Request.Context(), state)
+	mode := c.DefaultQuery("mode", "scan")
+	url, state, err := h.wecomSvc.GetLoginQrcodeURL(c.Request.Context(), mode)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
@@ -405,7 +401,7 @@ func (h *AuthHandler) WecomQrcode(c *gin.Context) {
 
 // WecomCallback 企业微信扫码回调
 // @Summary      企业微信扫码登录回调
-// @Description  接收企业微信回调的 code,换取用户身份并签发 JWT。首次扫码自动创建用户。
+// @Description  接收企业微信回调的 code,换取用户身份并签发 JWT。仅已绑定企业微信的账号可登录。桌面端轮询模式(state 以 login_ 开头)不直接回传 token,改为存 Redis 供 PC 轮询。
 // @Tags         认证
 // @Accept       json
 // @Produce      json
@@ -421,11 +417,52 @@ func (h *AuthHandler) WecomCallback(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	resp, err := h.wecomSvc.LoginByCode(c.Request.Context(), body.Code)
+	resp, isScanPoll, err := h.wecomSvc.LoginByCode(c.Request.Context(), body.Code, body.State)
 	if err != nil {
+		// 桌面扫码模式:把错误存票据,供 PC 轮询即时获知失败原因(如未绑定)
+		h.wecomSvc.StoreLoginError(c.Request.Context(), body.State, err.Error())
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}
 	middleware.RecordLogin(c, "企业微信扫码登录", resp.UserID, resp.Username, true, "")
+	// 桌面端轮询模式:token 已存 Redis 供 PC 轮询,这里提示扫码端(手机)回电脑端
+	if isScanPoll {
+		response.OK(c, gin.H{"scan_login": true, "message": "登录成功,请在电脑端查看"})
+		return
+	}
 	response.OK(c, resp)
+}
+
+// WecomLoginStatus 桌面端轮询扫码登录状态
+// @Summary      企业微信扫码登录状态轮询
+// @Description  桌面端出码后轮询此接口。status=success 时返回登录 token;waiting=等待扫码完成;expired=二维码过期需重新出码。
+// @Tags         认证
+// @Produce      json
+// @Param        state  query  string  true  "出码时返回的 state"
+// @Success      200  {object}  xresponse.Response
+// @Router       /system/auth/wecom/login-status [get]
+func (h *AuthHandler) WecomLoginStatus(c *gin.Context) {
+	state := c.Query("state")
+	if state == "" {
+		response.Fail(c, errcode.ErrParam, "参数错误: state 不能为空")
+		return
+	}
+	status, resp, errMsg := h.wecomSvc.PollLoginStatus(c.Request.Context(), state)
+	if status == "error" {
+		response.OK(c, gin.H{"status": "error", "message": errMsg})
+		return
+	}
+	if status == "success" && resp != nil {
+		response.OK(c, gin.H{
+			"status":        "success",
+			"access_token":  resp.AccessToken,
+			"refresh_token": resp.RefreshToken,
+			"access_expire": resp.AccessExpire,
+			"user_id":       resp.UserID,
+			"username":      resp.Username,
+			"nickname":      resp.Nickname,
+		})
+		return
+	}
+	response.OK(c, gin.H{"status": status})
 }

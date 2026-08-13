@@ -11492,7 +11492,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: 接收企业微信回调的 code,换取用户身份并签发 JWT。首次扫码自动创建用户。
+      description: 接收企业微信回调的 code,换取用户身份并签发 JWT。仅已绑定企业微信的账号可登录。桌面端轮询模式(state 以 login_
+        开头)不直接回传 token,改为存 Redis 供 PC 轮询。
       parameters:
       - description: 回调请求
         in: body
@@ -11515,13 +11516,33 @@ paths:
       summary: 企业微信扫码登录回调
       tags:
       - 认证
-  /system/auth/wecom/qrcode:
+  /system/auth/wecom/login-status:
     get:
-      description: 返回企业微信 OAuth2 授权页 URL,前端跳转到此 URL 显示扫码页。需先在系统配置中填写企业微信参数。
+      description: 桌面端出码后轮询此接口。status=success 时返回登录 token;waiting=等待扫码完成;expired=二维码过期需重新出码。
       parameters:
-      - description: CSRF 防护 state 参数(默认随机生成)
+      - description: 出码时返回的 state
         in: query
         name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 企业微信扫码登录状态轮询
+      tags:
+      - 认证
+  /system/auth/wecom/qrcode:
+    get:
+      description: 返回企业微信 OAuth2 授权页 URL。mode=scan(默认)桌面端轮询出码;mode=app 手机企微内静默授权登录。需先在系统配置中启用企业微信。
+      parameters:
+      - default: scan
+        description: scan=桌面端轮询出码 / app=手机企微内同步登录
+        in: query
+        name: mode
         type: string
       produces:
       - application/json

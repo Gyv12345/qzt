@@ -57,14 +57,23 @@ func (c *Client) IsConfigured() bool {
 	return c.cfg.CorpID != "" && c.cfg.Secret != ""
 }
 
-// BuildAuthorizeURL 构造企业微信 OAuth2 网页授权 URL(前端跳转到此 URL 显示扫码页)。
-// state 用于防 CSRF,由调用方生成。
-func (c *Client) BuildAuthorizeURL(state string) string {
+// RedirectURI 返回配置的 OAuth 回调地址。
+func (c *Client) RedirectURI() string { return c.cfg.RedirectURI }
+
+// BuildAuthorizeURLWithRedirect 构造企业微信 OAuth2 网页授权 URL(redirect_uri 可覆盖)。
+// 登录与绑定可使用不同回调地址;绑定流程用 BuildAuthorizeURL(取配置默认 redirect_uri)。
+func (c *Client) BuildAuthorizeURLWithRedirect(state, redirectURI string) string {
 	return fmt.Sprintf("https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_base&state=%s#wechat_redirect",
 		url.QueryEscape(c.cfg.CorpID),
-		url.QueryEscape(c.cfg.RedirectURI),
+		url.QueryEscape(redirectURI),
 		url.QueryEscape(state),
 	)
+}
+
+// BuildAuthorizeURL 构造企业微信 OAuth2 网页授权 URL(用配置中的 redirect_uri,绑定流程用)。
+// state 用于防 CSRF,由调用方生成。
+func (c *Client) BuildAuthorizeURL(state string) string {
+	return c.BuildAuthorizeURLWithRedirect(state, c.cfg.RedirectURI)
 }
 
 // ── access_token ──
