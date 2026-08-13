@@ -48,9 +48,9 @@ func NewApprovalService() *ApprovalService {
 
 // PushRequest 提审请求。
 type PushRequest struct {
-	FormType     string `json:"form_type" binding:"required"`
-	ResourceID   uint   `json:"resource_id" binding:"required"`
-	Comment      string `json:"comment"`
+	FormType      string `json:"form_type" binding:"required"`
+	ResourceID    uint   `json:"resource_id" binding:"required"`
+	Comment       string `json:"comment"`
 	ExecuteTiming string `json:"execute_timing"`
 }
 
@@ -121,7 +121,7 @@ func (s *ApprovalService) Push(ctx context.Context, req *PushRequest, submitterI
 		s.instanceRepo.Update(ctx, instance)
 		s.updateResourceStatus(ctx, req.FormType, req.ResourceID, apprmodel.StatusApproved)
 		s.saveAutoPassRecord(ctx, instance.ID, nextNode.ID, 1, "流程无审批节点,系统自动通过")
-		s.sendFinishNotice(ctx, instance, "审批通过")
+		s.sendFinishNotice(ctx, instance, resultApprove, "")
 		return instance, nil
 	}
 
@@ -200,7 +200,7 @@ func (s *ApprovalService) Reject(ctx context.Context, req *RejectRequest, userID
 		s.taskRepo.SoftDeleteByInstanceNode(ctx, task.InstanceID, task.NodeID)
 		// 资源状态写回
 		s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusUnapproved)
-		s.sendFinishNotice(ctx, instance, "审批驳回: "+req.Comment)
+		s.sendFinishNotice(ctx, instance, resultReject, req.Comment)
 		return nil
 	})
 }
@@ -298,7 +298,7 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 		instance.CurrentNodeID = &nextNode.ID
 		s.instanceRepo.Update(ctx, instance)
 		s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusApproved)
-		s.sendFinishNotice(ctx, instance, "审批通过")
+		s.sendFinishNotice(ctx, instance, resultApprove, "")
 		return nil
 	}
 
@@ -323,7 +323,7 @@ func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.A
 			s.instanceRepo.Update(ctx, instance)
 			s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusApproved)
 			s.saveAutoPassRecord(ctx, instance.ID, nextNode.ID, 1, "流程无审批节点,系统自动通过")
-			s.sendFinishNotice(ctx, instance, "审批通过")
+			s.sendFinishNotice(ctx, instance, resultApprove, "")
 			return nil
 		}
 		instance.CurrentNodeID = &nextNode.ID
@@ -357,10 +357,10 @@ func (s *ApprovalService) createTasks(ctx context.Context, node *apprmodel.Appro
 			return err
 		}
 		xevent.Publish(ctx, "approval.task.assigned", map[string]any{
-			"approver_id":  aid,
-			"instance_id":  instance.ID,
+			"approver_id":   aid,
+			"instance_id":   instance.ID,
 			"resource_type": instance.Type,
-			"resource_id":  instance.ResourceID,
+			"resource_id":   instance.ResourceID,
 		})
 	}
 	return nil
@@ -413,7 +413,7 @@ func (s *ApprovalService) failInstance(ctx context.Context, instance *apprmodel.
 		return err
 	}
 	s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusUnapproved)
-	s.sendFinishNotice(ctx, instance, reason)
+	s.sendFinishNotice(ctx, instance, resultReject, reason)
 	xlogger.ErrorfCtx(ctx, "审批实例 %d 自动驳回: %s", instance.ID, reason)
 	return nil
 }
@@ -606,15 +606,58 @@ func (s *ApprovalService) updateResourceStatus(ctx context.Context, formType str
 	}
 }
 
+// 审批结果(用于事件 payload 的 result 字段;消费端据此判断是否触发业务回调,
+// 不再靠 message 里是否含"通过"来猜测,避免审批意见里出现"通过"二字时误触发)。
+const (
+	resultApprove = "approved"
+	resultReject  = "rejected"
+)
+
 // sendFinishNotice 审批完成通知(站内信,经事件总线)。
-func (s *ApprovalService) sendFinishNotice(ctx context.Context, instance *apprmodel.ApprovalInstance, message string) {
+// result 为 resultApprove/resultReject;comment 为审批意见/驳回原因(可空)。
+// 通知正文会带上单据类型与单据名称,让提交人知道是哪份单据出了结果。
+func (s *ApprovalService) sendFinishNotice(ctx context.Context, instance *apprmodel.ApprovalInstance, result, comment string) {
+	content := buildFinishNotice(ctx, instance, result, comment)
 	xevent.Publish(ctx, "approval.finished", map[string]any{
 		"submitter_id":  instance.SubmitterID,
 		"instance_id":   instance.ID,
 		"resource_type": instance.Type,
 		"resource_id":   instance.ResourceID,
-		"message":       message,
+		"result":        result,
+		"message":       content,
 	})
+}
+
+// buildFinishNotice 组装审批结果通知正文:结果 + 单据类型「单据名称」+ 意见/原因。
+func buildFinishNotice(ctx context.Context, instance *apprmodel.ApprovalInstance, result, comment string) string {
+	typeLabel := formTypeLabel[instance.Type]
+	if typeLabel == "" {
+		typeLabel = instance.Type
+	}
+	// 反查单据名称(可空,如自定义表单无标题列)
+	title := ""
+	if titles := fetchResourceTitles(ctx, []apprmodel.ApprovalInstance{*instance}); titles != nil {
+		title = titles[fmt.Sprintf("%s:%d", instance.Type, instance.ResourceID)]
+	}
+	subject := typeLabel
+	if title != "" {
+		subject = fmt.Sprintf("%s「%s」", typeLabel, title)
+	}
+
+	var headline, opinionLabel string
+	switch result {
+	case resultApprove:
+		headline, opinionLabel = subject+"审批通过", "审批意见"
+	case resultReject:
+		headline, opinionLabel = subject+"审批驳回", "驳回原因"
+	default:
+		headline, opinionLabel = subject+" 审批结果:"+result, "说明"
+	}
+	content := headline
+	if comment != "" {
+		content += "\n" + opinionLabel + ":" + comment
+	}
+	return content
 }
 
 // parseUintArray 解析 JSON 格式的 uint 数组(如 "[1,2,3]")。

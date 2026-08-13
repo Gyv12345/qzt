@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -37,7 +36,11 @@ func RegisterEventListeners(ctx context.Context) error {
 			return
 		}
 		title := "您有新的审批待办"
-		content := fmt.Sprintf("有一条「%s」类型的审批待办需要您处理", resourceType)
+		typeLabel := formTypeLabel[resourceType]
+		if typeLabel == "" {
+			typeLabel = resourceType
+		}
+		content := fmt.Sprintf("您有一条「%s」审批待办需要处理", typeLabel)
 		if err := msgSvc.SendSystemMessage(ctx, approverID, title, content); err != nil {
 			// 失败仅记日志,不影响审批流程
 		}
@@ -53,12 +56,13 @@ func RegisterEventListeners(ctx context.Context) error {
 		}
 		submitterID, _ := m["submitter_id"].(uint)
 		message, _ := m["message"].(string)
+		result, _ := m["result"].(string)
 		if submitterID == 0 {
 			return
 		}
 		title := "审批结果通知"
 		if err := msgSvc.SendSystemMessage(ctx, submitterID, title, message); err != nil {
-			// 失败仅记日志
+			// 失败仅记日志,不影响审批流程
 		}
 		// 通知分发(SSE + 企业微信)
 		notify.Dispatch(ctx, submitterID, title, message, "/approval/mine")
@@ -69,7 +73,7 @@ func RegisterEventListeners(ctx context.Context) error {
 		if resourceID == 0 {
 			return
 		}
-		if strings.Contains(message, "通过") {
+		if result == resultApprove {
 			switch resourceType {
 			case "CONTRACT":
 				// 合同审批通过 → stage 改为 SIGNED
@@ -110,7 +114,7 @@ func RegisterEventListeners(ctx context.Context) error {
 						Order("code ASC").First(&account).Error; err == nil && account.ID > 0 {
 						voucher := &finmodel.FinVoucher{
 							VoucherNo:   "PZ-" + loan.LoanNo,
-							VoucherDate:  xtime.NewDateTime(time.Now()),
+							VoucherDate: xtime.NewDateTime(time.Now()),
 							AccountID:   account.ID,
 							Description: "员工借款:" + loan.LoanNo,
 							Direction:   "DEBIT",

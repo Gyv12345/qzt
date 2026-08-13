@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"qzt-go-server/internal/model"
@@ -179,12 +180,44 @@ func (s *LeadService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return notFoundOr(err, "线索不存在")
 	}
+	// 校验业务引用:存在关联跟进记录/计划则拒绝删除,避免悬空引用。
+	if err := rejectIfLeadReferenced(ctx, id); err != nil {
+		return err
+	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.fieldSvc.DeleteLeadValues(ctx, formatResourceID(id)); err != nil {
 			return err
 		}
 		return s.repo.Delete(ctx, id)
 	})
+}
+
+// leadRefTables 删除线索时需要校验的业务引用表(表名 → 业务名称)。
+// 归属历史(crm_lead_owner_history)为审计流水,不阻止删除。
+var leadRefTables = []struct {
+	table string
+	label string
+}{
+	{"follow_up_record", "跟进记录"},
+	{"follow_up_plan", "跟进计划"},
+}
+
+// rejectIfLeadReferenced 检查线索是否被未删除的跟进记录/计划引用,有则阻止删除(避免悬空引用)。
+func rejectIfLeadReferenced(ctx context.Context, leadID uint) error {
+	db := repository.DBFrom(ctx)
+	for _, r := range leadRefTables {
+		var n int64
+		if err := db.Table(r.table).
+			Where("lead_id = ?", leadID).
+			Where("deleted_at IS NULL").
+			Count(&n).Error; err != nil {
+			return err
+		}
+		if n > 0 {
+			return fmt.Errorf("该线索存在关联的%s(%d条),无法删除", r.label, n)
+		}
+	}
+	return nil
 }
 
 // List 线索列表(分页 + 主字段过滤)。

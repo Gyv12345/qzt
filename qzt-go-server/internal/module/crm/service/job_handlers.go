@@ -93,70 +93,56 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 	// 按负责人聚合待提醒项:ownerID -> []描述
 	bucket := map[uint][]string{}
 
-	// 客户:私海 + 超阈值未跟进
-	if days := cfgInt(ctx, "crm.followup.warn_days_customer", 15); days > 0 {
-		var rows []struct {
-			Name    string
-			OwnerID *uint
+	// scanStale 扫描某类实体中超阈值未跟进的记录,按负责人聚合到 bucket。
+	// 未跟进天数 = now - 基准时间;基准时间取 follow_time,
+	// 从未跟进(follow_time IS NULL)时回退到领取/创建时间——
+	// 否则 NULL 会被当成"负无穷",昨天才领的新记录也会误报"已 N 天未跟进"。
+	scanStale := func(model any, entity, baselineExpr string, days int, extra string, extraArgs []any) {
+		cutoff := time.Now().AddDate(0, 0, -days)
+		var rows []staleScan
+		q := db.Model(model).
+			Select("name, owner_id, "+baselineExpr+" AS baseline, follow_time AS followed").
+			Where("owner_id IS NOT NULL").
+			Where(baselineExpr+" < ?", cutoff)
+		if extra != "" {
+			q = q.Where(extra, extraArgs...)
 		}
-		if err := db.Model(&crmmodel.CrmCustomer{}).
-			Select("name, owner_id").
-			Where("owner_id IS NOT NULL AND in_pool = ?", crmmodel.InPoolPrivate).
-			Where("follow_time IS NULL OR follow_time < ?", time.Now().AddDate(0, 0, -days)).
-			Scan(&rows).Error; err != nil {
-			xlogger.ErrorfCtx(ctx, "查询逾期未跟进客户失败: %v", err)
-		} else {
-			for _, r := range rows {
-				if r.OwnerID != nil {
-					bucket[*r.OwnerID] = append(bucket[*r.OwnerID],
-						fmt.Sprintf("客户「%s」已 %d 天未跟进", r.Name, days))
-				}
+		if err := q.Scan(&rows).Error; err != nil {
+			xlogger.ErrorfCtx(ctx, "查询逾期未跟进%s失败: %v", entity, err)
+			return
+		}
+		for _, r := range rows {
+			if r.OwnerID == nil {
+				continue
+			}
+			if r.Followed == nil {
+				bucket[*r.OwnerID] = append(bucket[*r.OwnerID],
+					fmt.Sprintf("%s「%s」从未跟进(已 %d 天)", entity, r.Name, daysSince(r.Baseline)))
+			} else {
+				bucket[*r.OwnerID] = append(bucket[*r.OwnerID],
+					fmt.Sprintf("%s「%s」已 %d 天未跟进", entity, r.Name, daysSince(r.Baseline)))
 			}
 		}
+	}
+
+	// 客户:私海 + 超阈值未跟进
+	if days := cfgInt(ctx, "crm.followup.warn_days_customer", 15); days > 0 {
+		scanStale(&crmmodel.CrmCustomer{}, "客户",
+			"COALESCE(follow_time, collection_time, created_at)", days,
+			"in_pool = ?", []any{crmmodel.InPoolPrivate})
 	}
 
 	// 线索:私海 + 超阈值未跟进
 	if days := cfgInt(ctx, "crm.followup.warn_days_lead", 7); days > 0 {
-		var rows []struct {
-			Name    string
-			OwnerID *uint
-		}
-		if err := db.Model(&crmmodel.CrmLead{}).
-			Select("name, owner_id").
-			Where("owner_id IS NOT NULL AND in_pool = ?", crmmodel.InPoolPrivate).
-			Where("follow_time IS NULL OR follow_time < ?", time.Now().AddDate(0, 0, -days)).
-			Scan(&rows).Error; err != nil {
-			xlogger.ErrorfCtx(ctx, "查询逾期未跟进线索失败: %v", err)
-		} else {
-			for _, r := range rows {
-				if r.OwnerID != nil {
-					bucket[*r.OwnerID] = append(bucket[*r.OwnerID],
-						fmt.Sprintf("线索「%s」已 %d 天未跟进", r.Name, days))
-				}
-			}
-		}
+		scanStale(&crmmodel.CrmLead{}, "线索",
+			"COALESCE(follow_time, collection_time, created_at)", days,
+			"in_pool = ?", []any{crmmodel.InPoolPrivate})
 	}
 
 	// 商机:owner 非空 + 超阈值未跟进(商机无公海概念)
 	if days := cfgInt(ctx, "crm.followup.warn_days_opportunity", 15); days > 0 {
-		var rows []struct {
-			Name    string
-			OwnerID *uint
-		}
-		if err := db.Model(&crmmodel.CrmOpportunity{}).
-			Select("name, owner_id").
-			Where("owner_id IS NOT NULL").
-			Where("follow_time IS NULL OR follow_time < ?", time.Now().AddDate(0, 0, -days)).
-			Scan(&rows).Error; err != nil {
-			xlogger.ErrorfCtx(ctx, "查询逾期未跟进商机失败: %v", err)
-		} else {
-			for _, r := range rows {
-				if r.OwnerID != nil {
-					bucket[*r.OwnerID] = append(bucket[*r.OwnerID],
-						fmt.Sprintf("商机「%s」已 %d 天未跟进", r.Name, days))
-				}
-			}
-		}
+		scanStale(&crmmodel.CrmOpportunity{}, "商机",
+			"COALESCE(follow_time, created_at)", days, "", nil)
 	}
 
 	// 发送:每负责人一条站内信
@@ -172,4 +158,21 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 
 	xlogger.InfofCtx(ctx, "跟进提醒完成:扫描 %d 位负责人,发送 %d 条提醒", len(bucket), sent)
 	return nil
+}
+
+// staleScan 跟进提醒扫描结果:baseline 为"未跟进天数"的基准时间(follow_time 为空时取领取/创建时间),
+// followed 为空表示从未跟进。
+type staleScan struct {
+	Name     string
+	OwnerID  *uint
+	Baseline *time.Time
+	Followed *time.Time
+}
+
+// daysSince 返回从 t 到现在经过的整天数(向下取整);t 为 nil 时返回 0。
+func daysSince(t *time.Time) int {
+	if t == nil {
+		return 0
+	}
+	return int(time.Since(*t).Hours() / 24)
 }

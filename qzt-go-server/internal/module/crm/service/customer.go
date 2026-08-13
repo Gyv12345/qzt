@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -220,6 +221,10 @@ func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return notFoundOr(err, "客户不存在")
 	}
+	// 校验业务引用:存在关联合同/商机/工单/跟进/项目/销售单等则拒绝删除,避免悬空引用。
+	if err := rejectIfReferenced(ctx, id); err != nil {
+		return err
+	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		// 软删联系人
 		if err := crrepoDeleteContactsByCustomer(ctx, id); err != nil {
@@ -235,6 +240,41 @@ func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 		}
 		return s.repo.Delete(ctx, id)
 	})
+}
+
+// customerRefTables 删除客户时需要校验的业务引用表(表名 → 业务名称)。
+// 联系人/协作已由 Delete 级联软删,归属历史为审计流水保留,线索转化(converted_customer_id)为历史记录,均不阻止删除。
+var customerRefTables = []struct {
+	table string
+	label string
+}{
+	{"crm_contract", "合同"},
+	{"crm_opportunity", "商机"},
+	{"crm_ticket", "工单"},
+	{"follow_up_record", "跟进记录"},
+	{"follow_up_plan", "跟进计划"},
+	{"proj_project", "项目"},
+	{"psi_sales_order", "销售订单"},
+	{"psi_sales_return", "销售退货"},
+}
+
+// rejectIfReferenced 检查客户是否被未删除的业务单据引用,有则阻止删除(避免悬空引用)。
+// 用 Table 原生查询需手动过滤 deleted_at(GORM 仅对 Model 自动注入软删除条件)。
+func rejectIfReferenced(ctx context.Context, customerID uint) error {
+	db := repository.DBFrom(ctx)
+	for _, r := range customerRefTables {
+		var n int64
+		if err := db.Table(r.table).
+			Where("customer_id = ?", customerID).
+			Where("deleted_at IS NULL").
+			Count(&n).Error; err != nil {
+			return err
+		}
+		if n > 0 {
+			return fmt.Errorf("该客户存在关联的%s(%d条),无法删除", r.label, n)
+		}
+	}
+	return nil
 }
 
 // List 客户列表(分页 + 主字段过滤)。
