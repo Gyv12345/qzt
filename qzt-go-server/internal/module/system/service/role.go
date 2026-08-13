@@ -129,6 +129,10 @@ func (s *RoleService) Update(ctx context.Context, id uint, req *UpdateRoleReques
 }
 
 func (s *RoleService) Delete(ctx context.Context, id uint) error {
+	// super_admin 角色(id=1)为系统内置,不可删除。
+	if id == 1 {
+		return errors.New("超级管理员角色不可删除")
+	}
 	role, err := s.roleRepo.GetByID(ctx, id)
 	if err != nil {
 		return notFoundOr(err, "角色不存在")

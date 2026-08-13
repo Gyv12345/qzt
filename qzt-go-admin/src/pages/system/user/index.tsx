@@ -208,6 +208,12 @@ export default function UserPage() {
   }
 
   const handleSubmit = async (values: UserFormValues) => {
+    // admin(id=1) 必须始终保留超级管理员角色(id=1):后端硬拦,前端兜底补回,
+    // 避免取消勾选后提交直接报错。
+    const roleIds =
+      editing?.id === 1
+        ? Array.from(new Set([1, ...(values.role_ids ?? [])]))
+        : values.role_ids
     const payload = {
       nickname: values.nickname,
       dept_id: values.dept_id ?? null,
@@ -215,7 +221,7 @@ export default function UserPage() {
       email: values.email,
       phone: values.phone,
       status: values.status ? 1 : 0,
-      role_ids: values.role_ids,
+      role_ids: roleIds,
     }
     if (editing) {
       await updateUser(editing.id, {
@@ -304,19 +310,21 @@ export default function UserPage() {
               交接
             </Button>
           )}
-          <Auth perm="system:user:delete">
-            <Popconfirm
-              title="确认删除该用户?"
-              okText="删除"
-              okButtonProps={{ danger: true }}
-              cancelText="取消"
-              onConfirm={() => handleDelete(record)}
-            >
-              <Button type="link" size="small" danger>
-                删除
-              </Button>
-            </Popconfirm>
-          </Auth>
+          {record.id !== 1 && (
+            <Auth perm="system:user:delete">
+              <Popconfirm
+                title="确认删除该用户?"
+                okText="删除"
+                okButtonProps={{ danger: true }}
+                cancelText="取消"
+                onConfirm={() => handleDelete(record)}
+              >
+                <Button type="link" size="small" danger>
+                  删除
+                </Button>
+              </Popconfirm>
+            </Auth>
+          )}
         </Space>
       ),
     },
@@ -393,6 +401,16 @@ export default function UserPage() {
         width={640}
         grid
       >
+        {editing?.id === 1 && (
+          <Col span={24}>
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+              message="超级管理员角色受系统保护,不可移除(仅昵称/邮箱/手机等资料可自由修改)"
+            />
+          </Col>
+        )}
         <ProFormText
           name="username"
           label="用户名"

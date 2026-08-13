@@ -98,6 +98,44 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 		return notFoundOr(err, "用户不存在")
 	}
 
+	// admin(id=1) 是系统根账户,必须始终持有超级管理员角色(id=1),
+	// 防止经由此 Update 把超管角色摘掉导致权限体系锁死(与 Delete 的 id==1 保护呼应)。
+	// 仅当请求带了角色字段(非 nil)才校验;不带则不动角色,避免普通改昵称被误拦。
+	if id == 1 && req.RoleIDs != nil {
+		hasSuperAdmin := false
+		for _, rid := range req.RoleIDs {
+			if rid == 1 {
+				hasSuperAdmin = true
+				break
+			}
+		}
+		if !hasSuperAdmin {
+			return errors.New("超级管理员账户必须保留超级管理员角色")
+		}
+	}
+
+	// 先判断密码/状态/角色是否真正变化(基于 user 当前值,必须在下面赋值之前判断,
+	// 否则 status 赋值后恒相等),再决定是否撤销该用户已签发的会话。
+	passwordChanged := req.Password != ""
+	statusChanged := req.Status != nil && *req.Status != user.Status
+	rolesChanged := false
+	if req.RoleIDs != nil {
+		currentIDs := make(map[uint]struct{}, len(user.Roles))
+		for _, r := range user.Roles {
+			currentIDs[r.ID] = struct{}{}
+		}
+		if len(req.RoleIDs) != len(currentIDs) {
+			rolesChanged = true
+		} else {
+			for _, rid := range req.RoleIDs {
+				if _, ok := currentIDs[rid]; !ok {
+					rolesChanged = true
+					break
+				}
+			}
+		}
+	}
+
 	if req.Nickname != "" {
 		user.Nickname = req.Nickname
 	}
@@ -122,8 +160,10 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 		}
 		user.Password = hashed
 	}
-	// 改密 / 改状态 / 改角色都使该用户已签发的 token 失效（会话撤销）
-	if req.Password != "" || req.Status != nil || req.RoleIDs != nil {
+	// 仅当密码 / 状态 / 角色真正发生变化时,才使该用户已签发的 token 失效(会话撤销)。
+	// 不能仅凭"请求带了这些字段"就 bump——前端编辑表单通常会回填当前 role_ids/status,
+	// 否则每次编辑(哪怕只改昵称)都会踢出该用户,编辑自己时把自己登出。
+	if passwordChanged || statusChanged || rolesChanged {
 		user.TokenVersion++
 	}
 
@@ -139,6 +179,10 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 }
 
 func (s *UserService) Delete(ctx context.Context, id, currentUserID uint) error {
+	// admin(id=1) 是系统根账户,无论角色如何变更都不可删除,防止权限体系锁死。
+	if id == 1 {
+		return errors.New("超级管理员账户不可删除")
+	}
 	if id == currentUserID {
 		return errors.New("不能删除当前登录用户")
 	}
