@@ -66,13 +66,16 @@ export default function ImageUpload({ value, onChange, folder = 'uploads', accep
       }
 
       // 2. OSS 直传:PUT 文件到预签名 URL
-      await fetch(sts.upload_url!, {
+      const putRes = await fetch(sts.upload_url!, {
         method: 'PUT',
         body: f,
         headers: {
           'Content-Type': sts.content_type || f.type,
         },
       })
+      if (!putRes.ok) {
+        throw new Error(`文件上传失败(OSS ${putRes.status})`)
+      }
 
       // 3. 回填 CDN URL
       onChange?.(sts.file_url!)
