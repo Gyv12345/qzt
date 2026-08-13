@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -48,6 +49,8 @@ func buildServer() *server.MCPServer {
 		"1.0.0",
 		server.WithToolCapabilities(true),
 		server.WithInstructions("QZT 企业级 ERP 系统。可通过这些工具管理客户、商机、合同、跟进等 CRM 业务。所有操作需通过 API Key 认证。"),
+		// 工具操作级权限控制:工具名→HTTP API 的 Casbin 校验(见 perm_check.go)
+		server.WithToolHandlerMiddleware(mcpPermissionMiddleware()),
 	)
 
 	// 注册 CRM tools
@@ -89,6 +92,28 @@ func buildServer() *server.MCPServer {
 
 	// 注册 PSI 只读 tools(供应商/仓库/采购/销售/库存/出入库)
 	registerPsiTools(s)
+
+	// ── 全量补齐:新增模块 tools ──
+	// 财务(会计科目/凭证/往来款/发票/报表)
+	registerFinanceTools(s)
+	// 项目管理(项目/任务)
+	registerProjectTools(s)
+	// 邮件(发送/测试连接)
+	registerMailTools(s)
+	// 知识库(分类/文档/版本)
+	registerKbTools(s)
+	// 网盘(文件/文件夹/用量)
+	registerCloudTools(s)
+	// 定时任务(任务/执行日志)
+	registerEnterpriseTools(s)
+	// 公共基础设施(BI 报表/统一日历/附件/文件签名)
+	registerApiTools(s)
+	// 办公自动化(站内信/公告/日程/工作日志/报销/出差/借款/会议/表单)
+	registerOaTools(s)
+	// HRM 写操作 + 招聘/绩效只读(部门/岗位/员工/考勤/薪酬/招聘/绩效)
+	registerHrmWriteTools(s)
+	// PSI 写操作 + 资产/退货只读(仓库/供应商/资产/采购/销售/退货/其他出入库)
+	registerPsiWriteTools(s)
 
 	return s
 }
@@ -145,6 +170,10 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 		}
 		c.Set(middleware.CtxRoleCodesKey, roleCodes)
 		middleware.InjectDataScope(c, user)
+		// 额外把 roleCodes 写入 request context,供 MCP 工具权限中间件(mcpPermissionMiddleware)读取
+		// (mcpAuthMiddleware 写 gin context,但 MCP 工具 handler 拿到的是 request context)
+		reqCtx := context.WithValue(c.Request.Context(), mcpRoleCodesKey, roleCodes)
+		c.Request = c.Request.WithContext(reqCtx)
 
 		c.Next()
 	}

@@ -76,6 +76,15 @@ func (s *RecruitmentService) GetJob(ctx context.Context, id uint) (*hrmmodel.Hrm
 	return j, nil
 }
 
+// GetCandidate 候选人详情。
+func (s *RecruitmentService) GetCandidate(ctx context.Context, id uint) (*hrmmodel.HrmCandidate, error) {
+	c, err := s.candidateRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
 type UpdateJobRequest struct {
 	Title           string `json:"title" binding:"required"`
 	DeptID          *uint  `json:"dept_id"`
