@@ -65,7 +65,13 @@ export default function PsiReportPage() {
   }, [])
 
   const summaryColumns = [
-    { title: '日期', dataIndex: 'date', width: 160 },
+    {
+      title: '日期',
+      dataIndex: 'date',
+      width: 160,
+      // 后端聚合返回 DATE 类型被序列化成 ISO 串(2026-08-04T00:00:00+08:00),截日期部分展示
+      render: (v: string) => (v ? v.slice(0, 10) : '-'),
+    },
     { title: '单数', dataIndex: 'count', width: 120 },
     { title: '金额', dataIndex: 'amount', width: 160 },
   ]
