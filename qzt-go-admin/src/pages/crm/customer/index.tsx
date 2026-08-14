@@ -122,6 +122,8 @@ export default function CustomerPage() {
       message.success('客户已创建')
     }
     actionRef.current?.reload()
+    // React 19 下 ModalForm onFinish 返回 true 的自动关闭链路失效,显式关闭
+    setModalOpen(false)
     return true
   }
 
@@ -382,7 +384,7 @@ export default function CustomerPage() {
         {!editing && (
           <Col span={12}>
             <ProForm.Item name="owner_id" label="负责人">
-              <UserSelect placeholder="选择负责人,留空则进公海" />
+              <UserSelect placeholder="选择负责人,留空则由您负责" />
             </ProForm.Item>
           </Col>
         )}
