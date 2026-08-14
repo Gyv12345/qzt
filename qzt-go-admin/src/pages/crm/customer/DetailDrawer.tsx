@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Button, Descriptions, Drawer, Spin, Tabs, Tag } from 'antd'
-import { MailOutlined } from '@ant-design/icons'
+import { Descriptions, Drawer, Spin, Tabs, Tag } from 'antd'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
-import Auth from '../../../components/Auth'
-import MailComposeModal from '../../../components/MailComposeModal'
 import { DictTag } from '../../../components/DictSelect'
 import { getCustomer, listCustomFields } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
@@ -34,7 +31,6 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
   const [detail, setDetail] = useState<CrmCustomerDetail | null>(null)
   const [customFields, setCustomFields] = useState<CrmCustomField[]>([])
   const [loading, setLoading] = useState(false)
-  const [mailOpen, setMailOpen] = useState(false)
 
   useEffect(() => {
     if (!open || !customer) {
@@ -70,13 +66,6 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
         open={open}
         onClose={onClose}
         destroyOnHidden
-        extra={
-          <Auth perm="mail:send">
-            <Button size="small" icon={<MailOutlined />} onClick={() => setMailOpen(true)}>
-              发邮件
-            </Button>
-          </Auth>
-        }
       >
       {c && (
         <Spin spinning={loading}>
@@ -172,9 +161,6 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
         </Spin>
       )}
       </Drawer>
-
-      {/* 写邮件(客户无主邮箱,收件人在弹窗中手动填写,可从联系人 Tab 复制) */}
-      <MailComposeModal open={mailOpen} onClose={() => setMailOpen(false)} defaultToName={c?.name} />
     </>
   )
 }

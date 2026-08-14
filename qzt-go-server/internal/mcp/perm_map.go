@@ -271,9 +271,6 @@ var toolPermMap = map[string]toolPerm{
 	"project_task_status": {"PUT", "/project/tasks/:id/status"},
 	"project_task_update": {"PUT", "/project/tasks/:id"},
 	"project_update":      {"PUT", "/project/projects/:id"},
-	// ── 邮件 ──
-	"mail_send":         {"POST", "/mail/send"},
-	"mail_test_connect": {"POST", "/mail/test"},
 	// ── 知识库 ──
 	"kb_category_create":   {"POST", "/kb/categories"},
 	"kb_category_delete":   {"DELETE", "/kb/categories/:id"},
@@ -419,9 +416,6 @@ var authOnlyTools = map[string]bool{
 	// 库存查询(authenticated 组)
 	"psi_stock_list":      true,
 	"psi_stock_movements": true,
-	// 邮件(authenticated 组)
-	"mail_send":         true,
-	"mail_test_connect": true,
 	// 网盘只读 + 知识库分类列表(authenticated 组)
 	"cloud_file_list":  true,
 	"cloud_usage":      true,

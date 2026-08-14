@@ -445,24 +445,3 @@ export interface HomepageModule {
   sort: number
   features: HomepageFeature[]
 }
-
-// ---------- 邮件 ----------
-
-/** 邮件附件(前端 FileUpload 产出的文件信息) */
-export interface MailAttachment {
-  /** 下载直链或 objectKey(私有文件) */
-  url: string
-  /** 附件显示名 */
-  file_name: string
-  /** MIME(可空) */
-  content_type?: string
-}
-
-/** 发送邮件请求(body 为 Markdown,后端渲染成 HTML) */
-export interface SendMailRequest {
-  to: string[]
-  cc?: string[]
-  subject: string
-  body: string
-  attachments?: MailAttachment[]
-}

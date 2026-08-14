@@ -8033,68 +8033,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/mail/send": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "邮件"
-                ],
-                "summary": "发送邮件",
-                "parameters": [
-                    {
-                        "description": "邮件内容",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.SendMailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/mail/test": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "邮件"
-                ],
-                "summary": "测试 SMTP 连接",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/oa/expenses": {
             "get": {
                 "security": [
@@ -18586,42 +18524,6 @@ const docTemplate = `{
                 }
             }
         },
-        "service.SendMailRequest": {
-            "type": "object",
-            "required": [
-                "subject",
-                "to"
-            ],
-            "properties": {
-                "attachments": {
-                    "description": "附件",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/service.mailAttachment"
-                    }
-                },
-                "body": {
-                    "description": "HTML 正文(前端 Markdown 转 HTML)",
-                    "type": "string"
-                },
-                "cc": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "subject": {
-                    "type": "string"
-                },
-                "to": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "service.SendMessageRequest": {
             "type": "object",
             "required": [
@@ -20071,23 +19973,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "problems": {
-                    "type": "string"
-                }
-            }
-        },
-        "service.mailAttachment": {
-            "type": "object",
-            "properties": {
-                "content_type": {
-                    "description": "MIME(可空)",
-                    "type": "string"
-                },
-                "file_name": {
-                    "description": "附件显示名",
-                    "type": "string"
-                },
-                "url": {
-                    "description": "下载直链或 objectKey(私有)",
                     "type": "string"
                 }
             }

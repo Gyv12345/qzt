@@ -1,9 +1,5 @@
-import { useState } from 'react'
 import { Button, Descriptions, Drawer, Tabs, Tag } from 'antd'
-import { MailOutlined } from '@ant-design/icons'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
-import Auth from '../../../components/Auth'
-import MailComposeModal from '../../../components/MailComposeModal'
 import type { CrmContactListItem } from '../../../services/crm'
 
 interface DetailDrawerProps {
@@ -14,7 +10,6 @@ interface DetailDrawerProps {
 
 /** 联系人详情抽屉:基本信息 / 附件 */
 export default function DetailDrawer({ contact, open, onClose }: DetailDrawerProps) {
-  const [mailOpen, setMailOpen] = useState(false)
   return (
     <>
       <Drawer
@@ -23,15 +18,6 @@ export default function DetailDrawer({ contact, open, onClose }: DetailDrawerPro
         open={open}
         onClose={onClose}
         destroyOnHidden
-        extra={
-          contact?.email ? (
-            <Auth perm="mail:send">
-              <Button size="small" icon={<MailOutlined />} onClick={() => setMailOpen(true)}>
-                发邮件
-              </Button>
-            </Auth>
-          ) : null
-        }
       >
       {contact && (
         <Tabs
@@ -96,14 +82,6 @@ export default function DetailDrawer({ contact, open, onClose }: DetailDrawerPro
         />
       )}
       </Drawer>
-
-      {/* 写邮件 */}
-      <MailComposeModal
-        open={mailOpen}
-        onClose={() => setMailOpen(false)}
-        defaultTo={contact?.email || ''}
-        defaultToName={contact?.name}
-      />
     </>
   )
 }

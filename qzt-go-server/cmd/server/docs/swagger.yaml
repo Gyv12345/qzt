@@ -1932,31 +1932,6 @@ definitions:
     required:
     - employee_id
     type: object
-  service.SendMailRequest:
-    properties:
-      attachments:
-        description: 附件
-        items:
-          $ref: '#/definitions/service.mailAttachment'
-        type: array
-      body:
-        description: HTML 正文(前端 Markdown 转 HTML)
-        type: string
-      cc:
-        items:
-          type: string
-        type: array
-      subject:
-        type: string
-      to:
-        items:
-          type: string
-        minItems: 1
-        type: array
-    required:
-    - subject
-    - to
-    type: object
   service.SendMessageRequest:
     properties:
       content:
@@ -2914,18 +2889,6 @@ definitions:
       plan:
         type: string
       problems:
-        type: string
-    type: object
-  service.mailAttachment:
-    properties:
-      content_type:
-        description: MIME(可空)
-        type: string
-      file_name:
-        description: 附件显示名
-        type: string
-      url:
-        description: 下载直链或 objectKey(私有)
         type: string
     type: object
   xresponse.Response:
@@ -7900,43 +7863,6 @@ paths:
       summary: 启用岗位列表(下拉用,免RBAC)
       tags:
       - 人力资源管理
-  /mail/send:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 邮件内容
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.SendMailRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 发送邮件
-      tags:
-      - 邮件
-  /mail/test:
-    post:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 测试 SMTP 连接
-      tags:
-      - 邮件
   /oa/expenses:
     get:
       parameters:

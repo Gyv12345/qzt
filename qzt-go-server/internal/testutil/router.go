@@ -16,7 +16,6 @@ import (
 	finmod "qzt-go-server/internal/module/finance"
 	entmod "qzt-go-server/internal/module/enterprise"
 	hrmmod "qzt-go-server/internal/module/hrm"
-	mailmod "qzt-go-server/internal/module/mail"
 	oamod "qzt-go-server/internal/module/oa"
 	projmod "qzt-go-server/internal/module/project"
 	psimod "qzt-go-server/internal/module/psi"
@@ -29,7 +28,7 @@ var (
 	testServer     *httptest.Server
 )
 
-// NewTestServer 返回进程内 httptest.Server(挂载全部 12 个模块,与 cmd/server/main.go 对齐)。
+// NewTestServer 返回进程内 httptest.Server(挂载全部模块,与 cmd/server/main.go 对齐)。
 // 进程级单例:同一进程所有测试共享一个 server,baseURL 一致。
 // 调用方无需 Close,进程退出自动回收。
 func NewTestServer(t *testing.T) (baseURL string) {
@@ -50,7 +49,6 @@ func NewTestServer(t *testing.T) (baseURL string) {
 			finmod.New(),
 			oamod.New(),
 			projmod.New(),
-			mailmod.New(),
 		)
 		testServer = httptest.NewServer(engine)
 	})

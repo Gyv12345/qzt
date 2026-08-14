@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { App, Button, Col, Descriptions, Drawer, Form, Input, Popconfirm, Select, Space, Tabs, Tag } from 'antd'
-import { MailOutlined, PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined } from '@ant-design/icons'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import FollowPanel from '../customer/FollowPanel'
 import Auth from '../../../components/Auth'
-import MailComposeModal from '../../../components/MailComposeModal'
 import {
   ProForm,
   ModalForm,
@@ -80,7 +79,6 @@ export default function LeadPage() {
   const [history, setHistory] = useState<CrmLeadOwnerHistory[]>([])
   const [poolOptions, setPoolOptions] = useState<{ label: string; value: number }[]>([])
   const [detailTarget, setDetailTarget] = useState<CrmLead | null>(null)
-  const [mailOpen, setMailOpen] = useState(false)
   // 自定义字段定义与值(field_id -> value)
   const [customFields, setCustomFields] = useState<CrmCustomField[]>([])
   const [fieldValues, setFieldValues] = useState<Map<string, unknown>>(new Map())
@@ -552,13 +550,6 @@ export default function LeadPage() {
         extra={
           detailTarget && (
             <Space>
-              {detailTarget.email && (
-                <Auth perm="mail:send">
-                  <Button size="small" icon={<MailOutlined />} onClick={() => setMailOpen(true)}>
-                    发邮件
-                  </Button>
-                </Auth>
-              )}
               <Auth perm="crm:lead:edit">
                 <Button
                   type="primary"
@@ -667,14 +658,6 @@ export default function LeadPage() {
           />
         )}
       </Drawer>
-
-      {/* 写邮件 */}
-      <MailComposeModal
-        open={mailOpen}
-        onClose={() => setMailOpen(false)}
-        defaultTo={detailTarget?.email || ''}
-        defaultToName={detailTarget?.name}
-      />
     </>
   )
 }

@@ -23,7 +23,6 @@ import (
 	entmod "qzt-go-server/internal/module/enterprise"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
 	hrmmod "qzt-go-server/internal/module/hrm"
-	mailmod "qzt-go-server/internal/module/mail"
 	psimod "qzt-go-server/internal/module/psi"
 	"qzt-go-server/internal/module/system"
 	oamod "qzt-go-server/internal/module/oa"
@@ -70,7 +69,7 @@ func main() {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa / mail 模块）
+	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa 模块）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -85,7 +84,6 @@ func main() {
 		kbmod.New(),
 		cloudmod.New(),
 		projmod.New(),
-		mailmod.New(),
 	)
 
 	// 4.45 注册 MCP Server(挂载 /mcp 到 gin engine,API Key 认证)

@@ -98,8 +98,6 @@ func buildServer() *server.MCPServer {
 	registerFinanceTools(s)
 	// 项目管理(项目/任务)
 	registerProjectTools(s)
-	// 邮件(发送/测试连接)
-	registerMailTools(s)
 	// 知识库(分类/文档/版本)
 	registerKbTools(s)
 	// 网盘(文件/文件夹/用量)
