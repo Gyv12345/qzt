@@ -90,8 +90,8 @@ var businessTables = []string{
 	"cms_page",
 
 	// ── 企业消息/公告 ──
-	"sys_message",
-	"sys_notice",
+	"oa_message",
+	"oa_notice",
 }
 
 // ResetBusinessData 硬清空所有业务表数据。

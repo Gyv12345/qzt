@@ -104,7 +104,7 @@ func (s *DashboardService) Overview(ctx context.Context, userID uint) (*Overview
 	db.Table("psi_stock").Where("deleted_at IS NULL").Where("quantity <= safety_stock").Count(&data.StockWarning)
 
 	// 未读消息(当前用户)
-	db.Table("sys_message").Where("deleted_at IS NULL").Where("receiver_id = ? AND is_read = 0", userID).Count(&data.UnreadMessage)
+	db.Table("oa_message").Where("deleted_at IS NULL").Where("receiver_id = ? AND is_read = 0", userID).Count(&data.UnreadMessage)
 
 	return data, nil
 }
