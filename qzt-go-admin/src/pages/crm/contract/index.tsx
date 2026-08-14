@@ -9,7 +9,6 @@ import {
   Descriptions,
   Drawer,
   Form,
-  Input,
   InputNumber,
   Modal,
   Popconfirm,
@@ -27,7 +26,6 @@ import {
   ProForm,
   ModalForm,
   ProFormDigit,
-  ProFormSwitch,
   ProFormText,
   ProFormTextArea,
   ProTable,
@@ -54,8 +52,6 @@ import {
   createPaymentPlan,
   createPaymentRecord,
   deleteContract,
-  getEsignStatus,
-  initiateEsign,
   deletePaymentPlan,
   deletePaymentRecord,
   getContractPaymentSummary,
@@ -77,7 +73,6 @@ import type {
   CrmContractPayload,
   CrmContractTemplate,
   CrmCustomer,
-  EsignTaskDetail,
   CrmPaymentPlan,
   CrmPaymentRecord,
   CrmPaymentSummary,
@@ -95,8 +90,6 @@ interface ContractFormValues {
   stage?: string
   owner_id?: number
   content?: string
-  esign_enabled?: boolean
-  template_id?: number
 }
 
 interface PlanFormValues {
@@ -252,10 +245,7 @@ export default function ContractPage() {
 
   // ---------- 合同 CRUD ----------
 
-  // 表单联动:监听「电子签署」开关,开启时才显示签署模板选择
-  const esignEnabled = Form.useWatch<boolean>('esign_enabled', form)
-
-  // 预拉启用模板列表(表单「签署模板」+ 打印弹窗共用)
+  // 预拉启用模板列表(打印弹窗用)
   const ensureTemplates = () => {
     if (printTemplates.length === 0) {
       listContractTemplates({ page: 1, page_size: 50, enabled: 1 })
@@ -286,8 +276,6 @@ export default function ContractPage() {
       stage: record.stage || undefined,
       owner_id: record.owner_id ?? undefined,
       content: record.content,
-      esign_enabled: record.esign_enabled ?? false,
-      template_id: record.template_id ?? undefined,
     })
     ensureTemplates()
     setModalOpen(true)
@@ -306,8 +294,6 @@ export default function ContractPage() {
       stage: values.stage,
       owner_id: values.owner_id,
       content: values.content,
-      esign_enabled: values.esign_enabled,
-      template_id: values.esign_enabled ? values.template_id : undefined,
     }
     if (editing) {
       await updateContract(editing.id, payload)
@@ -326,30 +312,11 @@ export default function ContractPage() {
     actionRef.current?.reload()
   }
 
-  // 电子签详情
-  const [esignDetail, setEsignDetail] = useState<EsignTaskDetail | null>(null)
-  const [esignLoading, setEsignLoading] = useState(false)
-  const [esignSignerOpen, setEsignSignerOpen] = useState(false)
-  const [esignSignerForm] = Form.useForm()
-
-  const fetchEsign = async (id: number) => {
-    setEsignLoading(true)
-    try {
-      setEsignDetail(await getEsignStatus(id))
-    } catch {
-      setEsignDetail(null)
-    } finally {
-      setEsignLoading(false)
-    }
-  }
-
   const openDetail = (record: CrmContract) => {
     setDetail(record)
     setSummary(null)
     setRecords([])
-    setEsignDetail(null)
     setDrawerOpen(true)
-    fetchEsign(record.id)
   }
 
   /** 提交审批:走审批模块 CONTRACT 流程(需先在审批中心启用流程) */
@@ -841,27 +808,6 @@ export default function ContractPage() {
           placeholder="合同内容"
           colProps={{ span: 24 }}
         />
-        <ProFormSwitch
-          name="esign_enabled"
-          label="电子签署"
-          tooltip="开启后,合同审批通过将自动生成签署 PDF(需选模板),由你在详情补充签署方后发起"
-          colProps={{ span: 12 }}
-        />
-        {esignEnabled ? (
-          <Col span={12}>
-            <ProForm.Item
-              name="template_id"
-              label="签署模板"
-              rules={[{ required: true, message: '请选择签署模板' }]}
-            >
-              <Select
-                placeholder="选择合同模板(渲染签署PDF)"
-                allowClear
-                options={(printTemplates ?? []).map((t) => ({ label: t.name, value: t.id }))}
-              />
-            </ProForm.Item>
-          </Col>
-        ) : null}
       </ModalForm>
 
       {/* 合同详情抽屉 */}
@@ -1111,22 +1057,6 @@ export default function ContractPage() {
                   />
                 ),
               },
-              {
-                key: 'esign',
-                label: '电子签署',
-                children: (
-                  <Spin spinning={esignLoading}>
-                    <EsignInfoPanel
-                      status={detail.esign_status}
-                      detail={esignDetail}
-                      onStart={() => {
-                        esignSignerForm.resetFields()
-                        setEsignSignerOpen(true)
-                      }}
-                    />
-                  </Spin>
-                ),
-              },
             ]}
           />
         )}
@@ -1342,74 +1272,6 @@ export default function ContractPage() {
         </Spin>
       </Modal>
 
-      {/* 电子签:补充签署方并发起 */}
-      <ModalForm
-        title="发起电子签 — 补充签署方"
-        open={esignSignerOpen}
-        onOpenChange={setEsignSignerOpen}
-        form={esignSignerForm}
-        modalProps={{ destroyOnHidden: true, maskClosable: false }}
-        width={720}
-        initialValues={{ signers: [{ sign_order: 1 }] }}
-        onFinish={async (values) => {
-          if (!detail) return false
-          const raw = (values.signers ?? []) as Array<{
-            name?: string
-            mobile?: string
-            email?: string
-            sign_order?: number
-          }>
-          const signers = raw
-            .map((s, i) => ({
-              name: (s.name ?? '').trim(),
-              mobile: (s.mobile ?? '').trim() || undefined,
-              email: (s.email ?? '').trim() || undefined,
-              sign_order: s.sign_order ?? i + 1,
-            }))
-            .filter((s) => s.name)
-          if (signers.length === 0) {
-            message.error('请至少添加一位签署方(含姓名)')
-            return false
-          }
-          await initiateEsign(detail.id, signers)
-          message.success('签署流程已发起')
-          fetchEsign(detail.id)
-          actionRef.current?.reload()
-          return true
-        }}
-      >
-        <Form.List name="signers">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map((field) => (
-                <Space key={field.key} align="baseline" style={{ display: 'flex', marginBottom: 8 }}>
-                  <Form.Item name={[field.name, 'name']} label="姓名" rules={[{ required: true, message: '必填' }]}>
-                    <Input placeholder="签署方姓名" style={{ width: 140 }} />
-                  </Form.Item>
-                  <Form.Item name={[field.name, 'mobile']} label="手机">
-                    <Input placeholder="接收签署短信" style={{ width: 160 }} />
-                  </Form.Item>
-                  <Form.Item name={[field.name, 'email']} label="邮箱">
-                    <Input placeholder="与手机二选一" style={{ width: 160 }} />
-                  </Form.Item>
-                  <Form.Item name={[field.name, 'sign_order']} label="顺序">
-                    <InputNumber min={1} placeholder="顺序" style={{ width: 80 }} />
-                  </Form.Item>
-                  {fields.length > 1 && (
-                    <Button type="link" danger onClick={() => remove(field.name)}>
-                      删除
-                    </Button>
-                  )}
-                </Space>
-              ))}
-              <Button type="dashed" onClick={() => add({ sign_order: fields.length + 1 })} block icon={<PlusOutlined />}>
-                添加签署方
-              </Button>
-            </>
-          )}
-        </Form.List>
-      </ModalForm>
-
       {/* 客户详情抽屉(点击列表/详情中的客户名打开) */}
       <CustomerDetailDrawer
         customer={viewCustomer}
@@ -1424,92 +1286,5 @@ export default function ContractPage() {
         onClose={() => setViewOpportunityId(null)}
       />
     </>
-  )
-}
-
-/** 电子签任务状态 → Tag 展示 */
-const ESIGN_TASK_STATUS: Record<string, { text: string; color: string }> = {
-  PENDING: { text: '待生成PDF', color: 'default' },
-  RUNNING: { text: 'PDF生成中', color: 'processing' },
-  READY: { text: '待补签署方', color: 'warning' },
-  INITIATED: { text: '签署中', color: 'processing' },
-  COMPLETED: { text: '已完成', color: 'success' },
-  FAILED: { text: '失败', color: 'error' },
-}
-
-/** 电子签信息面板(详情抽屉「电子签署」Tab 内容) */
-function EsignInfoPanel({
-  status,
-  detail,
-  onStart,
-}: {
-  status: string
-  detail: EsignTaskDetail | null
-  onStart: () => void
-}) {
-  const taskStatus = detail?.status ?? ''
-  const tag = ESIGN_TASK_STATUS[taskStatus] ?? { text: status || '未开启', color: 'default' }
-  let signers: Array<{ name?: string; mobile?: string; email?: string; sign_order?: number }> = []
-  if (detail?.signers) {
-    try {
-      signers = JSON.parse(detail.signers)
-    } catch {
-      /* ignore */
-    }
-  }
-  return (
-    <div style={{ paddingTop: 8 }}>
-      <Descriptions column={1} size="small" bordered>
-        <Descriptions.Item label="签署状态">
-          <Tag color={tag.color}>{tag.text}</Tag>
-        </Descriptions.Item>
-        {detail?.sign_url ? (
-          <Descriptions.Item label="签署短链">
-            <a href={detail.sign_url} target="_blank" rel="noreferrer">
-              {detail.sign_url}
-            </a>
-          </Descriptions.Item>
-        ) : null}
-        {detail?.file_url ? (
-          <Descriptions.Item label="签署PDF">
-            <a href={detail.file_url} target="_blank" rel="noreferrer">
-              预览/下载 PDF
-            </a>
-          </Descriptions.Item>
-        ) : null}
-        {signers.length > 0 ? (
-          <Descriptions.Item label="签署方">
-            <Space wrap>
-              {signers.map((s, i) => (
-                <Tag key={i}>
-                  {s.sign_order ?? i + 1}. {s.name}({s.mobile || s.email || '-'})
-                </Tag>
-              ))}
-            </Space>
-          </Descriptions.Item>
-        ) : null}
-        {detail?.error ? (
-          <Descriptions.Item label="错误信息">
-            <span style={{ color: '#cf1322' }}>{detail.error}</span>
-          </Descriptions.Item>
-        ) : null}
-      </Descriptions>
-
-      {taskStatus === 'READY' ? (
-        <div style={{ marginTop: 16 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={onStart}>
-            补充签署方并发起
-          </Button>
-        </div>
-      ) : null}
-      {taskStatus === 'PENDING' || taskStatus === 'RUNNING' ? (
-        <div style={{ marginTop: 12, color: '#888' }}>
-          签署 PDF 正在生成,定时任务每 5 分钟处理一次,请稍后刷新查看。
-        </div>
-      ) : null}
-      {!detail && status === 'NONE' ? (
-        <div style={{ marginTop: 12, color: '#888' }}>该合同未开启电子签。</div>
-      ) : null}
-    </div>
   )
 }

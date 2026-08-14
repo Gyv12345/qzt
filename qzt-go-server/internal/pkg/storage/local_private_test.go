@@ -37,7 +37,7 @@ func TestLocalSavePrivateSuccess(t *testing.T) {
 
 	content := []byte{0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43, 0x00}
 	header := newFileHeader(t, "Photo.JPG", "image/jpeg", content)
-	result, err := local.SavePrivate(header, "esign")
+	result, err := local.SavePrivate(header, "contract")
 	if err != nil {
 		t.Fatalf("SavePrivate() error = %v", err)
 	}
@@ -46,8 +46,8 @@ func TestLocalSavePrivateSuccess(t *testing.T) {
 	if result.URL != result.RelativePath {
 		t.Fatalf("URL = %q, want objectKey == RelativePath %q", result.URL, result.RelativePath)
 	}
-	if !strings.HasPrefix(result.RelativePath, "esign/") {
-		t.Fatalf("RelativePath = %q, want under esign/", result.RelativePath)
+	if !strings.HasPrefix(result.RelativePath, "contract/") {
+		t.Fatalf("RelativePath = %q, want under contract/", result.RelativePath)
 	}
 	if result.Visibility != VisibilityPrivate {
 		t.Fatalf("Visibility = %q, want private", result.Visibility)
@@ -130,7 +130,7 @@ func TestLocalSavePrivateBytesSuccess(t *testing.T) {
 	local, _, private := newPrivateLocal(t)
 	data := []byte("%PDF-1.4 raw bytes not sniffed")
 
-	result, err := local.SavePrivateBytes("contract.pdf", data, "application/pdf", "esign")
+	result, err := local.SavePrivateBytes("contract.pdf", data, "application/pdf", "contract")
 	// 注意: testAllowedTypes() 不含 pdf, 这里应被扩展名白名单拒绝。
 	if err == nil {
 		t.Fatalf("expected ErrInvalidFileType for .pdf, got nil; result=%+v", result)
@@ -140,11 +140,11 @@ func TestLocalSavePrivateBytesSuccess(t *testing.T) {
 	}
 
 	// 改用白名单内的 .png + 显式 image/png contentType 验证成功路径。
-	result, err = local.SavePrivateBytes("contract.png", data, "image/png", "esign")
+	result, err = local.SavePrivateBytes("contract.png", data, "image/png", "contract")
 	if err != nil {
 		t.Fatalf("SavePrivateBytes() error = %v", err)
 	}
-	if result.URL != result.RelativePath || !strings.HasPrefix(result.RelativePath, "esign/") {
+	if result.URL != result.RelativePath || !strings.HasPrefix(result.RelativePath, "contract/") {
 		t.Fatalf("URL/RelativePath = %q / %q", result.URL, result.RelativePath)
 	}
 	if result.Visibility != VisibilityPrivate {

@@ -81,14 +81,6 @@ type CrmContract struct {
 	FollowTime     xtime.NullDateTime `json:"follow_time" gorm:"type:datetime;comment:最新跟进时间"`
 	// 合同内容/备注
 	Content        string             `json:"content" gorm:"type:text;comment:合同内容/备注"`
-	// 是否开启电子签
-	EsignEnabled   bool               `json:"esign_enabled" gorm:"default:false;comment:是否开启电子签"`
-	// 合同模板ID(电子签渲染PDF用)
-	TemplateID     *uint              `json:"template_id" gorm:"comment:合同模板ID(电子签渲染PDF用)"`
-	// e签宝流程ID
-	EsignFlowID    string             `json:"esign_flow_id" gorm:"size:64;comment:e签宝流程ID"`
-	// NONE/INITIATED/SIGNING/SIGNED/FAILED
-	EsignStatus    string             `json:"esign_status" gorm:"size:16;default:NONE;comment:NONE/INITIATED/SIGNING/SIGNED/FAILED"`
 	base.BaseModel
 }
 

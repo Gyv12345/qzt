@@ -10,8 +10,6 @@ import type {
   CrmContractItemPayload,
   CrmContractTemplate,
   CrmContractTemplatePayload,
-  EsignSigner,
-  EsignTaskDetail,
   ContractVariable,
   CrmCustomField,
   CrmCustomFieldPayload,
@@ -187,13 +185,6 @@ export const updateContract = (id: number, data: CrmContractPayload) =>
   request.put(`/crm/contracts/${id}`, data)
 
 export const deleteContract = (id: number) => request.delete(`/crm/contracts/${id}`)
-
-// 电子签(e签宝):查询签署详情 / 发起签署(补充签署方)
-export const getEsignStatus = (contractId: number) =>
-  request.get<unknown, EsignTaskDetail>(`/crm/contracts/${contractId}/esign`)
-
-export const initiateEsign = (contractId: number, signers: EsignSigner[]) =>
-  request.post(`/crm/contracts/${contractId}/esign/initiate`, { signers })
 
 export const getContractPaymentSummary = (id: number) =>
   request.get<unknown, CrmPaymentSummary>(`/crm/contracts/${id}/payment-summary`)

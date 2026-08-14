@@ -34,23 +34,6 @@ definitions:
       pool_id:
         type: integer
     type: object
-  esignclient.Signer:
-    properties:
-      email:
-        description: 邮箱(可选,二选一与手机)
-        type: string
-      idNumber:
-        description: 身份证(实名认证用,可选)
-        type: string
-      mobile:
-        description: 接收签署短信的手机号
-        type: string
-      name:
-        type: string
-      signOrder:
-        description: 签署顺序(1,2,3...)
-        type: integer
-    type: object
   handler.PublicContactRequest:
     properties:
       company:
@@ -102,15 +85,6 @@ definitions:
         type: array
     required:
     - items
-    type: object
-  handler.initiateEsignRequest:
-    properties:
-      signers:
-        items:
-          $ref: '#/definitions/esignclient.Signer'
-        type: array
-    required:
-    - signers
     type: object
   handler.resetRequest:
     properties:
@@ -4818,54 +4792,6 @@ paths:
       summary: 更新合同
       tags:
       - 合同管理
-  /crm/contracts/{id}/esign:
-    get:
-      parameters:
-      - description: 合同ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 查询电子签详情
-      tags:
-      - 电子签
-  /crm/contracts/{id}/esign/initiate:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 合同ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 签署方列表
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.initiateEsignRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 发起电子签(补充签署方)
-      tags:
-      - 电子签
   /crm/contracts/{id}/payment-plans:
     get:
       parameters:
@@ -6485,23 +6411,6 @@ paths:
       summary: 官网留言提交
       tags:
       - 公共接口
-  /crm/public/esign/callback:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: e签宝回调数据
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses: {}
-      summary: e签宝签署回调
-      tags:
-      - 电子签
   /crm/public/partners:
     get:
       description: 返回正常状态(status=1)客户作为官网合作方展示,免鉴权
