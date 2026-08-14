@@ -9,6 +9,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import MessageBox from '../components/layout/MessageBox'
 import NotificationHandler from '../components/layout/NotificationHandler'
 import LayoutSettings from '../components/layout/LayoutSettings'
+import HelpGuide from '../components/layout/HelpGuide'
 
 import type { SysMenu } from '../types'
 import './basic-layout.css'
@@ -192,7 +193,7 @@ export default function BasicLayout() {
           <div className="qzt-logo-title">业务管理平台</div>
         </div>
 
-        <div className="qzt-module-nav">
+        <div className="qzt-module-nav" data-guide="global:module-nav">
           <Dropdown
             overlayClassName="qzt-module-dropdown"
             menu={{
@@ -220,6 +221,7 @@ export default function BasicLayout() {
         <div className="qzt-header-right">
           <MessageBox />
           <LayoutSettings />
+          <HelpGuide />
           <Dropdown
             menu={{
               items: [
@@ -258,7 +260,7 @@ export default function BasicLayout() {
         {!isHome && moduleChildren.length > 0 && (
           <>
             {/* 第一列:分组 / 页面 */}
-            <aside className={`qzt-side-primary${hasGroups ? '' : ' wide'}`}>
+            <aside className={`qzt-side-primary${hasGroups ? '' : ' wide'}`} data-guide="global:side-primary">
               {moduleChildren.map((item) => {
                 const isActive =
                   item.type === 1

@@ -14,6 +14,8 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import { usePageGuide } from '../../../components/guide/usePageGuide'
+import { GuideHelpButton } from '../../../components/guide/GuideHelpButton'
 import {
   createPurchaseOrder,
   deletePurchaseOrder,
@@ -58,6 +60,7 @@ const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
 }
 
 export default function PurchaseOrderPage() {
+  usePageGuide('psi.purchase-order')
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [form] = Form.useForm<OrderFormValues>()
@@ -254,7 +257,7 @@ export default function PurchaseOrderPage() {
       },
     },
     {
-      title: '操作',
+      title: <span data-guide="action-column">操作</span>,
       valueType: 'option',
       width: 240,
       fixed: 'right',
@@ -326,10 +329,11 @@ export default function PurchaseOrderPage() {
         pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         toolBarRender={() => [
           <Auth perm="psi:purchase-order:add" key="add">
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate} data-guide="add">
               新增采购单
             </Button>
           </Auth>,
+          <GuideHelpButton key="guide-help" />,
         ]}
         headerTitle="采购单列表"
       />

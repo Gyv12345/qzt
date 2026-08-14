@@ -7,12 +7,12 @@
  * <ImportButton bizType="customer" onImported={() => actionRef.current?.reload()} />
  */
 
-import { useState } from 'react'
+import { useState, type HTMLAttributes } from 'react'
 import { App, Button, Dropdown, Modal, Table, Upload, type UploadProps } from 'antd'
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import request from '../utils/request'
 
-interface ImportButtonProps {
+interface ImportButtonProps extends HTMLAttributes<HTMLSpanElement> {
   bizType: string // customer / lead / ...
   label?: string
   onImported?: () => void
@@ -25,7 +25,7 @@ interface ImportResult {
   errors: { row: number; name: string; message: string }[]
 }
 
-export default function ImportButton({ bizType, label = '导入', onImported }: ImportButtonProps) {
+export default function ImportButton({ bizType, label = '导入', onImported, ...rest }: ImportButtonProps) {
   const { message } = App.useApp()
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
@@ -83,24 +83,26 @@ export default function ImportButton({ bizType, label = '导入', onImported }: 
 
   return (
     <>
-      <Dropdown
-        key="import"
-        menu={{
-          items: [
-            { key: 'template', label: '下载模板', icon: <DownloadOutlined /> },
-            { key: 'upload', label: '上传导入', icon: <UploadOutlined /> },
-          ],
-          onClick: ({ key }) => {
-            if (key === 'template') handleDownloadTemplate()
-          },
-        }}
-      >
-        <Upload {...uploadProps}>
-          <Button icon={<UploadOutlined />} loading={uploading}>
-            {label}
-          </Button>
-        </Upload>
-      </Dropdown>
+      <span style={{ display: 'inline-flex' }} {...rest}>
+        <Dropdown
+          key="import"
+          menu={{
+            items: [
+              { key: 'template', label: '下载模板', icon: <DownloadOutlined /> },
+              { key: 'upload', label: '上传导入', icon: <UploadOutlined /> },
+            ],
+            onClick: ({ key }) => {
+              if (key === 'template') handleDownloadTemplate()
+            },
+          }}
+        >
+          <Upload {...uploadProps}>
+            <Button icon={<UploadOutlined />} loading={uploading}>
+              {label}
+            </Button>
+          </Upload>
+        </Dropdown>
+      </span>
 
       <Modal
         title="导入结果"

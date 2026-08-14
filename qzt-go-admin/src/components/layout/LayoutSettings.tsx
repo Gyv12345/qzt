@@ -57,6 +57,7 @@ export default function LayoutSettings() {
           className="qzt-header-icon"
           icon={<SettingOutlined />}
           aria-label="布局设置"
+          data-guide="global:settings"
           onClick={() => setOpen(true)}
         />
       </Tooltip>

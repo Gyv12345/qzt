@@ -123,7 +123,7 @@ export default function MessageBox() {
     >
       <Tooltip title="消息通知">
         <Badge count={unreadCount} size="small" offset={[-5, 5]} overflowCount={99}>
-          <Button type="text" className="qzt-header-icon" icon={<BellOutlined />} aria-label="消息通知" />
+          <Button type="text" className="qzt-header-icon" icon={<BellOutlined />} aria-label="消息通知" data-guide="global:message" />
         </Badge>
       </Tooltip>
     </Popover>

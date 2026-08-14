@@ -7,8 +7,11 @@ import { deleteTrip, listTrips, submitTripApproval } from '../../../services/oa'
 import { APPROVAL_STATUS_MAP, type OaBusinessTrip } from '../../../types/oa'
 import TripEditModal from './EditModal'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
+import { usePageGuide } from '../../../components/guide/usePageGuide'
+import { GuideHelpButton } from '../../../components/guide/GuideHelpButton'
 
 export default function TripPage() {
+  usePageGuide('oa.trip')
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [editOpen, setEditOpen] = useState(false)
@@ -45,7 +48,7 @@ export default function TripPage() {
       },
     },
     {
-      title: '操作',
+      title: <span data-guide="action-column">操作</span>,
       valueType: 'option',
       width: 160,
       fixed: 'right',
@@ -87,8 +90,9 @@ export default function TripPage() {
         }}
         toolBarRender={() => [
           <Auth perm="oa:trip:add" key="add">
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新增出差</Button>
+            <Button type="primary" icon={<PlusOutlined />} data-guide="add" onClick={() => { setEditingId(null); setEditOpen(true) }}>新增出差</Button>
           </Auth>,
+          <GuideHelpButton key="guide-help" />,
         ]}
         headerTitle={
           <Space align="center">

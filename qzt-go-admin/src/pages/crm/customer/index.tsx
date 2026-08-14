@@ -15,6 +15,8 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
 import ImportButton from '../../../components/ImportButton'
 import UserSelect from '../../../components/UserSelect'
+import { usePageGuide } from '../../../components/guide/usePageGuide'
+import { GuideHelpButton } from '../../../components/guide/GuideHelpButton'
 import {
   createCustomer,
   deleteCustomer,
@@ -49,6 +51,7 @@ const STATUS_OPTIONS = [
 ]
 
 export default function CustomerPage() {
+  usePageGuide('crm.customer')
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const nickname = useUserStore((s) => s.nickname)
@@ -247,7 +250,7 @@ export default function CustomerPage() {
       width: 160,
     },
     {
-      title: '操作',
+      title: <span data-guide="action-column">操作</span>,
       valueType: 'option',
       width: 260,
       fixed: 'right',
@@ -309,7 +312,7 @@ export default function CustomerPage() {
         pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         toolBarRender={() => [
           <Auth perm="crm:customer:add" key="add">
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate} data-guide="add">
               新增客户
             </Button>
           </Auth>,
@@ -322,7 +325,8 @@ export default function CustomerPage() {
               return res.list
             }}
           />,
-          <ImportButton key="import" bizType="customer" onImported={() => actionRef.current?.reload()} />,
+          <ImportButton key="import" bizType="customer" onImported={() => actionRef.current?.reload()} data-guide="import" />,
+          <GuideHelpButton key="guide-help" />,
         ]}
         headerTitle="客户列表"
       />

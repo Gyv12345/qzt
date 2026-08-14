@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import AppRoutes from './router'
 import { fetchPublicConfigs } from './services/auth'
 import { useSettingsStore } from './stores/settings'
+import { GuideProvider } from './components/guide/GuideProvider'
 
 const fallback = (
   <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -57,9 +58,12 @@ export default function App() {
     >
       <AntdApp>
         <BrowserRouter>
-          <Suspense fallback={fallback}>
-            <AppRoutes />
-          </Suspense>
+          {/* 向导系统:需要 router + antd 上下文,置于 Suspense 外对全局生效 */}
+          <GuideProvider>
+            <Suspense fallback={fallback}>
+              <AppRoutes />
+            </Suspense>
+          </GuideProvider>
         </BrowserRouter>
       </AntdApp>
     </ConfigProvider>
