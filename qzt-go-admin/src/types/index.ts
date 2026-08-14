@@ -397,6 +397,7 @@ export interface SysSiteConfig {
   keywords: string
   analytics_code: string
   copyright: string
+  mcp_url: string
   created_at: string
   updated_at: string
 }
@@ -422,6 +423,7 @@ export interface UpdateSiteConfigRequest {
   keywords?: string
   analytics_code?: string
   copyright?: string
+  mcp_url?: string
 }
 
 // ---------- 首页板块配置 ----------

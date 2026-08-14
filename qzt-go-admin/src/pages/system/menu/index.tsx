@@ -118,20 +118,19 @@ export default function MenuPage() {
       await createMenu(payload)
       message.success('菜单已创建')
     }
-    await fetchUserInfo()
     actionRef.current?.reload()
+    fetchUserInfo().catch(() => {})
     return true
   }
 
   const handleDelete = async (record: SysMenu) => {
     await deleteMenu(record.id)
     message.success('菜单已删除')
-    await fetchUserInfo()
     actionRef.current?.reload()
+    fetchUserInfo().catch(() => {})
   }
 
   const columns: ProColumns<SysMenu>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
     {
       title: '菜单名称',
       dataIndex: 'name',

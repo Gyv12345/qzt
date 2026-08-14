@@ -37,6 +37,7 @@ import {
   unbindWecom,
   updateProfile,
 } from '../../services/auth'
+import { getSiteConfig } from '../../services/system'
 import type { CreateApiKeyResult, SysApiKey, UpdateProfileRequest } from '../../types'
 
 interface ProfileCenterProps {
@@ -292,14 +293,12 @@ export function WecomTab() {
   )
 }
 
-/** MCP 服务端点 */
-const MCP_PROD_URL = 'https://devlovecode.com/mcp'
-
 /**
  * 生成各 MCP 客户端的配置文本。
  * @param apiKey 明文 API Key(qzt_ 前缀);已有 Key 的用户传占位符
+ * @param mcpUrl MCP 服务端点(站点配置下发,留空兜底 origin+/mcp)
  */
-function buildMcpConfigs(apiKey: string) {
+function buildMcpConfigs(apiKey: string, mcpUrl: string) {
   return [
     {
       key: 'claude',
@@ -311,7 +310,7 @@ function buildMcpConfigs(apiKey: string) {
           mcpServers: {
             'qzt-erp': {
               type: 'http',
-              url: MCP_PROD_URL,
+              url: mcpUrl,
               headers: { Authorization: `Bearer ${apiKey}` },
             },
           },
@@ -325,7 +324,7 @@ function buildMcpConfigs(apiKey: string) {
       label: 'Codex CLI (OpenAI)',
       filename: '~/.codex/config.toml',
       language: 'toml',
-      content: `[mcp_servers.qzt-erp]\ntransport = "http"\nurl = "${MCP_PROD_URL}"\nauth_token = "${apiKey}"`,
+      content: `[mcp_servers.qzt-erp]\ntransport = "http"\nurl = "${mcpUrl}"\nauth_token = "${apiKey}"`,
     },
     {
       key: 'cursor',
@@ -336,7 +335,7 @@ function buildMcpConfigs(apiKey: string) {
         {
           mcpServers: {
             'qzt-erp': {
-              url: MCP_PROD_URL,
+              url: mcpUrl,
               headers: { Authorization: `Bearer ${apiKey}` },
             },
           },
@@ -354,7 +353,7 @@ function buildMcpConfigs(apiKey: string) {
         {
           'qzt-erp': {
             type: 'http',
-            url: MCP_PROD_URL,
+            url: mcpUrl,
             headers: { Authorization: `Bearer ${apiKey}` },
           },
         },
@@ -366,8 +365,8 @@ function buildMcpConfigs(apiKey: string) {
 }
 
 /** MCP 配置展示区:Collapse 折叠,每个客户端一个面板,代码块可一键复制 */
-function McpConfigSection({ apiKey }: { apiKey: string }) {
-  const configs = buildMcpConfigs(apiKey)
+function McpConfigSection({ apiKey, mcpUrl }: { apiKey: string; mcpUrl: string }) {
+  const configs = buildMcpConfigs(apiKey, mcpUrl)
   return (
     <Collapse
       ghost
@@ -410,12 +409,15 @@ export function ApiKeyTab() {
   const [keys, setKeys] = useState<SysApiKey[]>([])
   const [loading, setLoading] = useState(false)
   const [created, setCreated] = useState<CreateApiKeyResult | null>(null)
+  // MCP 服务地址:优先取站点配置,留空兜底当前站点 origin + /mcp(私有化部署同域场景开箱即用)
+  const [mcpUrl, setMcpUrl] = useState(`${window.location.origin}/mcp`)
 
   const load = async () => {
     setLoading(true)
     try {
-      const list = await listApiKeys()
+      const [list, sc] = await Promise.all([listApiKeys(), getSiteConfig()])
       setKeys(list ?? [])
+      if (sc?.mcp_url) setMcpUrl(sc.mcp_url)
     } catch {
       // 错误已由拦截器提示
     } finally {
@@ -535,13 +537,13 @@ export function ApiKeyTab() {
                 <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
                   企智通 ERP 的 MCP 端点为
                   <Typography.Text code copyable>
-                    {MCP_PROD_URL}
+                    {mcpUrl}
                   </Typography.Text>
                   ,使用 API Key 认证。将下方配置中的
                   <Typography.Text code>YOUR_API_KEY</Typography.Text>
                   替换为你的 Key 即可。
                 </Typography.Paragraph>
-                <McpConfigSection apiKey="YOUR_API_KEY" />
+                <McpConfigSection apiKey="YOUR_API_KEY" mcpUrl={mcpUrl} />
               </>
             ),
           },
@@ -577,7 +579,7 @@ export function ApiKeyTab() {
           将以下配置写入对应客户端,即可在你的 IDE / AI 助手里直接操作企智通 ERP。
           下方已自动填入本次生成的 Key。
         </Typography.Paragraph>
-        {created?.api_key && <McpConfigSection apiKey={created.api_key} />}
+        {created?.api_key && <McpConfigSection apiKey={created.api_key} mcpUrl={mcpUrl} />}
       </Modal>
     </div>
   )

@@ -100,6 +100,13 @@ export default function SiteConfigPage() {
             placeholder="第三方统计/埋点脚本"
             colProps={{ span: 24 }}
           />
+          <ProFormText
+            name="mcp_url"
+            label="MCP 服务地址"
+            placeholder="如 https://your-domain.com/mcp"
+            tooltip="个人中心 API Key 页下发给 MCP 客户端(Claude/Cursor 等)的连接地址;私有化部署填你的域名根 + /mcp,留空则前端用当前站点 origin + /mcp"
+            colProps={{ span: 24 }}
+          />
         </ProForm>
       </Card>
     </Space>
