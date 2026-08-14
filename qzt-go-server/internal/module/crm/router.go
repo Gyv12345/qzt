@@ -26,7 +26,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	contractHandler := handler.NewContractHandler()
 	paymentHandler := handler.NewPaymentHandler()
 	productHandler := handler.NewProductHandler()
-	productPriceHandler := handler.NewProductPriceHandler()
 	followHandler := handler.NewFollowHandler()
 	poolHandler := handler.NewPoolHandler()
 	leadHandler := handler.NewLeadHandler()
@@ -174,12 +173,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/products/:id", productHandler.GetByID)
 		auth.PUT("/products/:id", productHandler.Update)
 		auth.DELETE("/products/:id", productHandler.Delete)
-
-		// 商品价格
-		auth.GET("/products/:id/prices", productPriceHandler.ListPricesByProduct)
-		auth.POST("/products/:id/prices", productPriceHandler.CreatePrice)
-		auth.PUT("/product-prices/:id", productPriceHandler.UpdatePrice)
-		auth.DELETE("/product-prices/:id", productPriceHandler.DeletePrice)
 
 		// 售后工单
 		auth.GET("/tickets", ticketHandler.List)

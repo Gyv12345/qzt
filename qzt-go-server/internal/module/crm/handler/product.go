@@ -20,15 +20,6 @@ func NewProductHandler() *ProductHandler {
 	return &ProductHandler{svc: service.NewProductService()}
 }
 
-// ProductPriceHandler 商品多价格(复用同一 ProductService)。
-type ProductPriceHandler struct {
-	svc *service.ProductService
-}
-
-func NewProductPriceHandler() *ProductPriceHandler {
-	return &ProductPriceHandler{svc: service.NewProductService()}
-}
-
 // Create 创建商品
 // @Summary  创建商品
 // @Tags     商品管理
@@ -173,7 +164,7 @@ func (h *ProductHandler) PublicList(c *gin.Context) {
 
 // PublicGetByID 商品详情(公开)
 // @Summary  商品详情(公开)
-// @Description  返回已上架商品详情(含多价格,不含成本价),免鉴权
+// @Description  返回已上架商品详情(不含成本价),免鉴权
 // @Tags     CMS公开
 // @Produce  json
 // @Param    id  path      int  true  "商品ID"
@@ -191,107 +182,4 @@ func (h *ProductHandler) PublicGetByID(c *gin.Context) {
 		return
 	}
 	response.OK(c, p)
-}
-
-// ── 商品价格 ──
-
-// CreatePrice 新增商品价格
-// @Summary  新增商品价格
-// @Tags     商品管理
-// @Accept   json
-// @Produce  json
-// @Security BearerAuth
-// @Param    id         path      int  true  "商品ID"
-// @Param    body       body      service.CreateProductPriceRequest  true  "创建商品价格请求"
-// @Success  200        {object}  xresponse.Response
-// @Router   /crm/products/{id}/prices [post]
-func (h *ProductPriceHandler) CreatePrice(c *gin.Context) {
-	var req service.CreateProductPriceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
-		return
-	}
-	productID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误")
-		return
-	}
-	req.ProductID = uint(productID)
-	price, err := h.svc.CreatePrice(c.Request.Context(), &req)
-	if err != nil {
-		response.Fail(c, errcode.ErrServer, err.Error())
-		return
-	}
-	response.OK(c, price)
-}
-
-// UpdatePrice 更新商品价格
-// @Summary  更新商品价格
-// @Tags     商品管理
-// @Accept   json
-// @Produce  json
-// @Security BearerAuth
-// @Param    id    path      int  true  "价格ID"
-// @Param    body  body      service.UpdateProductPriceRequest  true  "更新商品价格请求"
-// @Success  200   {object}  xresponse.Response
-// @Router   /crm/product-prices/{id} [put]
-func (h *ProductPriceHandler) UpdatePrice(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误")
-		return
-	}
-	var req service.UpdateProductPriceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
-		return
-	}
-	if err := h.svc.UpdatePrice(c.Request.Context(), uint(id), &req); err != nil {
-		response.Fail(c, errcode.ErrServer, err.Error())
-		return
-	}
-	response.OK(c, nil)
-}
-
-// DeletePrice 删除商品价格
-// @Summary  删除商品价格
-// @Tags     商品管理
-// @Produce  json
-// @Security BearerAuth
-// @Param    id  path      int  true  "价格ID"
-// @Success  200  {object}  xresponse.Response
-// @Router   /crm/product-prices/{id} [delete]
-func (h *ProductPriceHandler) DeletePrice(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误")
-		return
-	}
-	if err := h.svc.DeletePrice(c.Request.Context(), uint(id)); err != nil {
-		response.Fail(c, errcode.ErrServer, err.Error())
-		return
-	}
-	response.OK(c, nil)
-}
-
-// ListPricesByProduct 按商品列价格
-// @Summary  按商品列价格
-// @Tags     商品管理
-// @Produce  json
-// @Security BearerAuth
-// @Param    id         path      int  true  "商品ID"
-// @Success  200        {object}  xresponse.Response
-// @Router   /crm/products/{id}/prices [get]
-func (h *ProductPriceHandler) ListPricesByProduct(c *gin.Context) {
-	productID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误")
-		return
-	}
-	list, err := h.svc.ListPricesByProduct(c.Request.Context(), uint(productID))
-	if err != nil {
-		response.Fail(c, errcode.ErrServer, err.Error())
-		return
-	}
-	response.OK(c, list)
 }

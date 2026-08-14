@@ -5187,82 +5187,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/crm/product-prices/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "商品管理"
-                ],
-                "summary": "更新商品价格",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "价格ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新商品价格请求",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.UpdateProductPriceRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "商品管理"
-                ],
-                "summary": "删除商品价格",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "价格ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/crm/products": {
             "get": {
                 "security": [
@@ -5462,82 +5386,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/crm/products/{id}/prices": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "商品管理"
-                ],
-                "summary": "按商品列价格",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "商品ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "商品管理"
-                ],
-                "summary": "新增商品价格",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "商品ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "创建商品价格请求",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.CreateProductPriceRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/crm/public/contact": {
             "post": {
                 "description": "公开接口,创建线索到公海池并通知管理员",
@@ -5666,7 +5514,7 @@ const docTemplate = `{
         },
         "/crm/public/products/{id}": {
             "get": {
-                "description": "返回已上架商品详情(含多价格,不含成本价),免鉴权",
+                "description": "返回已上架商品详情(不含成本价),免鉴权",
                 "produces": [
                     "application/json"
                 ],
@@ -17636,31 +17484,6 @@ const docTemplate = `{
                 }
             }
         },
-        "service.CreateProductPriceRequest": {
-            "type": "object",
-            "required": [
-                "price",
-                "price_type",
-                "product_id"
-            ],
-            "properties": {
-                "min_quantity": {
-                    "type": "integer"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "price_type": {
-                    "type": "string"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "remark": {
-                    "type": "string"
-                }
-            }
-        },
         "service.CreateProductRequest": {
             "type": "object",
             "required": [
@@ -19724,27 +19547,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
-                }
-            }
-        },
-        "service.UpdateProductPriceRequest": {
-            "type": "object",
-            "required": [
-                "price",
-                "price_type"
-            ],
-            "properties": {
-                "min_quantity": {
-                    "type": "integer"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "price_type": {
-                    "type": "string"
-                },
-                "remark": {
-                    "type": "string"
                 }
             }
         },

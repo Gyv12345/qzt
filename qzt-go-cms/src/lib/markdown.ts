@@ -139,7 +139,7 @@ function abs(path: string): string {
 
 // ── 产品 ──────────────────────────────────────────────────────────────
 
-/** 单个产品详情 → Markdown (含价格方案表)。 */
+/** 单个产品详情 → Markdown。 */
 export function productToMd(p: ProductDetail): string {
   const fm = frontmatter({
     title: p.name,
@@ -162,18 +162,6 @@ export function productToMd(p: ProductDetail): string {
 
   if (p.description) {
     parts.push("## 产品介绍", "", p.description, "");
-  }
-
-  if (p.prices && p.prices.length > 0) {
-    parts.push("## 价格方案", "");
-    parts.push("| 价格类型 | 价格 | 起购数量 | 备注 |");
-    parts.push("| --- | --- | --- | --- |");
-    for (const pr of p.prices) {
-      parts.push(
-        `| ${pr.price_type || "—"} | ¥${pr.price} | ${pr.min_quantity ?? "—"} | ${pr.remark || "—"} |`,
-      );
-    }
-    parts.push("");
   }
 
   parts.push("---", "", `*来源: [${SITE.name}](${SITE.url}) · [查看网页版](${abs(`/products/${p.id}`)}) *`);

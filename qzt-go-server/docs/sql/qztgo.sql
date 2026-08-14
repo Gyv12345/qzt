@@ -884,25 +884,6 @@ CREATE TABLE `crm_product` (
   KEY `idx_crm_product_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DROP TABLE IF EXISTS `crm_product_price`;
-
-CREATE TABLE `crm_product_price` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `product_id` bigint unsigned NOT NULL COMMENT '产品ID',
-  `price_type` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '价格类型(字典PRODUCT_PRICE_TYPE)',
-  `price` decimal(14,2) NOT NULL COMMENT '价格',
-  `min_quantity` bigint DEFAULT NULL COMMENT '起购数量',
-  `remark` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL,
-  `deleted_at` datetime(3) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_product_type` (`product_id`,`price_type`),
-  KEY `idx_crm_product_price_product_id` (`product_id`),
-  KEY `idx_crm_product_price_created_at` (`created_at`),
-  KEY `idx_crm_product_price_deleted_at` (`deleted_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 DROP TABLE IF EXISTS `customer_field`;
 
 CREATE TABLE `customer_field` (
@@ -2185,7 +2166,6 @@ INSERT INTO `sys_dict` (`id`, `name`, `code`, `status`, `remark`, `created_at`, 
 (8, '回款方式', 'PAYMENT_METHOD', 1, '回款方式', '2026-08-03 12:49:18.882', '2026-08-03 12:49:18.882', NULL, 0),
 (9, '商品分类', 'PRODUCT_CATEGORY', 1, '商品分类', '2026-08-03 12:49:19.152', '2026-08-03 12:49:19.152', NULL, 0),
 (10, '商品状态', 'PRODUCT_STATUS', 1, '商品上下架', '2026-08-03 12:49:19.386', '2026-08-03 12:49:19.386', NULL, 0),
-(11, '商品价格类型', 'PRODUCT_PRICE_TYPE', 1, '商品多价格类型', '2026-08-03 12:49:19.622', '2026-08-03 12:49:19.622', NULL, 0),
 (12, '跟进类型', 'FOLLOW_UP_TYPE', 1, '跟进方式', '2026-08-03 12:49:19.855', '2026-08-03 12:49:19.855', NULL, 0),
 (13, '公海原因', 'CUSTOMER_POOL_REASON', 1, '客户进入公海的原因', '2026-08-03 12:49:20.090', '2026-08-03 12:49:20.090', NULL, 0),
 (14, '员工状态', 'EMPLOYEE_STATUS', 1, '员工在职状态', '2026-08-04 08:58:56.495', '2026-08-04 08:58:56.495', NULL, 0),
@@ -3261,10 +3241,6 @@ INSERT INTO `sys_dict_item` (`id`, `dict_id`, `label`, `value`, `sort`, `status`
 (40, 9, '其他', 'OTHER', 99, 1, '', '2026-08-03 12:49:19.229', '2026-08-03 12:49:19.229', NULL),
 (41, 10, '上架', '1', 1, 1, '', '2026-08-03 12:49:19.464', '2026-08-03 12:49:19.464', NULL),
 (42, 10, '下架', '2', 2, 1, '', '2026-08-03 12:49:19.464', '2026-08-03 12:49:19.464', NULL),
-(43, 11, 'VIP价', 'VIP', 1, 1, '', '2026-08-03 12:49:19.700', '2026-08-03 12:49:19.700', NULL),
-(44, 11, '普通价', 'NORMAL', 2, 1, '', '2026-08-03 12:49:19.700', '2026-08-03 12:49:19.700', NULL),
-(45, 11, '大客户价', 'ENTERPRISE', 3, 1, '', '2026-08-03 12:49:19.700', '2026-08-03 12:49:19.700', NULL),
-(46, 11, '促销价', 'PROMOTION', 4, 1, '', '2026-08-03 12:49:19.700', '2026-08-03 12:49:19.700', NULL),
 (47, 12, '微信', 'WECHAT', 1, 1, '', '2026-08-03 12:49:19.932', '2026-08-03 12:49:19.932', NULL),
 (48, 12, '电话', 'PHONE', 2, 1, '', '2026-08-03 12:49:19.932', '2026-08-03 12:49:19.932', NULL),
 (49, 12, '拜访', 'VISIT', 3, 1, '', '2026-08-03 12:49:19.932', '2026-08-03 12:49:19.932', NULL),

@@ -6,7 +6,7 @@ import (
 	"qzt-go-server/internal/model/base"
 )
 
-// product.go CRM 商品 + 多价格。
+// product.go CRM 商品。
 
 // 商品状态。
 const (
@@ -40,19 +40,3 @@ type CrmProduct struct {
 
 func (CrmProduct) TableName() string { return "crm_product" }
 
-// CrmProductPrice 商品多价格(按价格类型区分,如 VIP/普通/大客户/促销)。
-type CrmProductPrice struct {
-	ID          uint            `json:"id" gorm:"primaryKey"`
-	// 产品ID
-	ProductID   uint            `json:"product_id" gorm:"index;uniqueIndex:uk_product_type;not null;comment:产品ID"`
-	// 价格类型(字典PRODUCT_PRICE_TYPE)
-	PriceType   string          `json:"price_type" gorm:"size:32;uniqueIndex:uk_product_type;not null;comment:价格类型(字典PRODUCT_PRICE_TYPE)"`
-	// 价格
-	Price       decimal.Decimal `json:"price" gorm:"type:decimal(14,2);not null;comment:价格"`
-	// 起购数量
-	MinQuantity *int            `json:"min_quantity" gorm:"comment:起购数量"`
-	Remark      string          `json:"remark" gorm:"size:200"`
-	base.BaseModel
-}
-
-func (CrmProductPrice) TableName() string { return "crm_product_price" }

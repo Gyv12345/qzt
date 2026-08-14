@@ -15,15 +15,6 @@ export interface PageData<T> {
 }
 
 // ── 产品 ──
-export interface ProductPrice {
-  id: number;
-  product_id: number;
-  price_type: string;
-  price: string;
-  min_quantity?: number | null;
-  remark?: string;
-}
-
 export interface Product {
   id: number;
   name: string;
@@ -36,9 +27,7 @@ export interface Product {
   description: string;
 }
 
-export interface ProductDetail extends Product {
-  prices: ProductPrice[];
-}
+export type ProductDetail = Product;
 
 // ── 合作方 / 客户 ──
 export interface Partner {

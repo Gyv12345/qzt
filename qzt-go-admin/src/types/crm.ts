@@ -182,18 +182,6 @@ export interface CrmProduct {
   updated_at: string
 }
 
-export interface CrmProductPrice {
-  id: number
-  product_id: number
-  /** 字典 PRODUCT_PRICE_TYPE */
-  price_type: string
-  price: string
-  min_quantity: number | null
-  remark: string
-  created_at: string
-  updated_at: string
-}
-
 export interface CrmCustomerPool {
   id: number
   name: string
@@ -464,14 +452,6 @@ export interface CrmProductPayload {
   status?: number
   image_url?: string
   description?: string
-}
-
-export interface CrmProductPricePayload {
-  product_id?: number
-  price_type: string
-  price: number
-  min_quantity?: number
-  remark?: string
 }
 
 export interface CrmPoolPayload {

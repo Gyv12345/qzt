@@ -11,16 +11,15 @@ import (
 	crrepo "qzt-go-server/internal/repository/crm"
 )
 
-// product.go 商品服务:商品 CRUD + 多价格 CRUD。
+// product.go 商品服务:商品 CRUD。
 
 // ProductService 商品服务。
 type ProductService struct {
-	repo      *crrepo.ProductRepo
-	priceRepo *crrepo.ProductPriceRepo
+	repo *crrepo.ProductRepo
 }
 
 func NewProductService() *ProductService {
-	return &ProductService{repo: crrepo.NewProductRepo(), priceRepo: crrepo.NewProductPriceRepo()}
+	return &ProductService{repo: crrepo.NewProductRepo()}
 }
 
 // CreateProductRequest 创建商品请求。
@@ -101,7 +100,7 @@ func (s *ProductService) Delete(ctx context.Context, id uint) error {
 
 // ── 公开(免鉴权)接口 ──
 
-// PublicProductDTO 公开商品详情视图。不含成本价(cost_price),附加多价格。
+// PublicProductDTO 公开商品详情视图。不含成本价(cost_price)。
 type PublicProductDTO struct {
 	ID            uint            `json:"id"`
 	Name          string          `json:"name"`
@@ -112,7 +111,6 @@ type PublicProductDTO struct {
 	Status        int8            `json:"status"`
 	ImageURL      string          `json:"image_url"`
 	Description   string          `json:"description"`
-	Prices        []crmmodel.CrmProductPrice `json:"prices"`
 }
 
 // ListPublished 公开上架商品分页列表(只返回 status=上架)。
@@ -130,7 +128,7 @@ func (s *ProductService) ListPublished(ctx context.Context, page, pageSize int, 
 	return s.repo.PageList(ctx, page, pageSize, opts)
 }
 
-// GetPublishedByID 公开商品详情(仅上架)。附带多价格,隐藏成本价。
+// GetPublishedByID 公开商品详情(仅上架)。隐藏成本价。
 func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*PublicProductDTO, error) {
 	p, err := s.repo.GetOne(ctx, &repository.QueryOptions{
 		Where: map[string]any{"id": id, "status": crmmodel.ProductStatusOn},
@@ -138,14 +136,9 @@ func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*Public
 	if err != nil {
 		return nil, notFoundOr(err, "商品不存在")
 	}
-	prices, err := s.priceRepo.ListByProduct(ctx, id)
-	if err != nil {
-		return nil, err
-	}
 	return &PublicProductDTO{
 		ID: p.ID, Name: p.Name, ProductNo: p.ProductNo, Category: p.Category,
 		Unit: p.Unit, StandardPrice: p.StandardPrice, Status: p.Status, ImageURL: p.ImageURL, Description: p.Description,
-		Prices: prices,
 	}, nil
 }
 
@@ -166,58 +159,4 @@ func (s *ProductService) List(ctx context.Context, page, pageSize int, keyword, 
 		q.Where = where
 	}
 	return s.repo.PageList(ctx, page, pageSize, q)
-}
-
-// ── 商品多价格 ──
-
-// CreateProductPriceRequest 创建商品价格请求。
-type CreateProductPriceRequest struct {
-	ProductID   uint            `json:"product_id" binding:"required"`
-	PriceType   string          `json:"price_type" binding:"required"`
-	Price       decimal.Decimal `json:"price" binding:"required"`
-	MinQuantity *int            `json:"min_quantity"`
-	Remark      string          `json:"remark"`
-}
-
-// CreatePrice 新增商品价格。
-func (s *ProductService) CreatePrice(ctx context.Context, req *CreateProductPriceRequest) (*crmmodel.CrmProductPrice, error) {
-	price := &crmmodel.CrmProductPrice{
-		ProductID: req.ProductID, PriceType: req.PriceType, Price: req.Price,
-		MinQuantity: req.MinQuantity, Remark: req.Remark,
-	}
-	if err := s.priceRepo.Create(ctx, price); err != nil {
-		return nil, err
-	}
-	return price, nil
-}
-
-// UpdateProductPriceRequest 更新商品价格请求。
-type UpdateProductPriceRequest struct {
-	PriceType   string          `json:"price_type" binding:"required"`
-	Price       decimal.Decimal `json:"price" binding:"required"`
-	MinQuantity *int            `json:"min_quantity"`
-	Remark      string          `json:"remark"`
-}
-
-// UpdatePrice 更新商品价格。
-func (s *ProductService) UpdatePrice(ctx context.Context, id uint, req *UpdateProductPriceRequest) error {
-	price, err := s.priceRepo.GetByID(ctx, id)
-	if err != nil {
-		return notFoundOr(err, "商品价格不存在")
-	}
-	price.PriceType = req.PriceType
-	price.Price = req.Price
-	price.MinQuantity = req.MinQuantity
-	price.Remark = req.Remark
-	return s.priceRepo.Update(ctx, price)
-}
-
-// DeletePrice 删除商品价格。
-func (s *ProductService) DeletePrice(ctx context.Context, id uint) error {
-	return s.priceRepo.Delete(ctx, id)
-}
-
-// ListPricesByProduct 按商品列价格。
-func (s *ProductService) ListPricesByProduct(ctx context.Context, productID uint) ([]crmmodel.CrmProductPrice, error) {
-	return s.priceRepo.ListByProduct(ctx, productID)
 }

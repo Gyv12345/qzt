@@ -35,8 +35,6 @@ import type {
   CrmPoolRecycleRule,
   CrmProduct,
   CrmProductPayload,
-  CrmProductPrice,
-  CrmProductPricePayload,
   CrmStageConfigResult,
   CrmStageRecord,
   StageDef,
@@ -275,17 +273,6 @@ export const updateProduct = (id: number, data: CrmProductPayload) =>
   request.put(`/crm/products/${id}`, data)
 
 export const deleteProduct = (id: number) => request.delete(`/crm/products/${id}`)
-
-export const listProductPrices = (productId: number) =>
-  request.get<unknown, CrmProductPrice[]>(`/crm/products/${productId}/prices`)
-
-export const createProductPrice = (productId: number, data: CrmProductPricePayload) =>
-  request.post(`/crm/products/${productId}/prices`, data)
-
-export const updateProductPrice = (id: number, data: Partial<CrmProductPricePayload>) =>
-  request.put(`/crm/product-prices/${id}`, data)
-
-export const deleteProductPrice = (id: number) => request.delete(`/crm/product-prices/${id}`)
 
 // ---------- 公海池 ----------
 

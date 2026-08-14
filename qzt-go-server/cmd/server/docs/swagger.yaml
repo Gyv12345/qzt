@@ -1189,23 +1189,6 @@ definitions:
     - department_id
     - name
     type: object
-  service.CreateProductPriceRequest:
-    properties:
-      min_quantity:
-        type: integer
-      price:
-        type: number
-      price_type:
-        type: string
-      product_id:
-        type: integer
-      remark:
-        type: string
-    required:
-    - price
-    - price_type
-    - product_id
-    type: object
   service.CreateProductRequest:
     properties:
       category:
@@ -2585,20 +2568,6 @@ definitions:
     - code
     - department_id
     - name
-    type: object
-  service.UpdateProductPriceRequest:
-    properties:
-      min_quantity:
-        type: integer
-      price:
-        type: number
-      price_type:
-        type: string
-      remark:
-        type: string
-    required:
-    - price
-    - price_type
     type: object
   service.UpdateProductRequest:
     properties:
@@ -6172,53 +6141,6 @@ paths:
       summary: 更新回款记录
       tags:
       - 回款管理
-  /crm/product-prices/{id}:
-    delete:
-      parameters:
-      - description: 价格ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 删除商品价格
-      tags:
-      - 商品管理
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: 价格ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 更新商品价格请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.UpdateProductPriceRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 更新商品价格
-      tags:
-      - 商品管理
   /crm/products:
     get:
       parameters:
@@ -6342,53 +6264,6 @@ paths:
       summary: 更新商品
       tags:
       - 商品管理
-  /crm/products/{id}/prices:
-    get:
-      parameters:
-      - description: 商品ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 按商品列价格
-      tags:
-      - 商品管理
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 商品ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 创建商品价格请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.CreateProductPriceRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 新增商品价格
-      tags:
-      - 商品管理
   /crm/public/contact:
     post:
       consumes:
@@ -6473,7 +6348,7 @@ paths:
       - CMS公开
   /crm/public/products/{id}:
     get:
-      description: 返回已上架商品详情(含多价格,不含成本价),免鉴权
+      description: 返回已上架商品详情(不含成本价),免鉴权
       parameters:
       - description: 商品ID
         in: path

@@ -89,34 +89,6 @@ export default async function ProductDetailPage({ params }: Props) {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{product.description}</ReactMarkdown>
           </div>
         )}
-
-        {product.prices && product.prices.length > 0 && (
-          <div className="mt-10">
-            <h2 className="mb-4 font-display text-xl font-bold text-ink-900">价格方案</h2>
-            <div className="overflow-hidden rounded-xl border border-ink-100 shadow-card">
-              <table className="w-full text-sm">
-                <thead className="bg-ink-50 text-left text-ink-600">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">价格类型</th>
-                    <th className="px-4 py-3 font-medium">价格</th>
-                    <th className="px-4 py-3 font-medium">起购数量</th>
-                    <th className="px-4 py-3 font-medium">备注</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink-100">
-                  {product.prices.map((pr) => (
-                    <tr key={pr.id} className="transition-colors hover:bg-brand-50/40">
-                      <td className="px-4 py-3 font-medium text-ink-900">{pr.price_type}</td>
-                      <td className="px-4 py-3 font-semibold text-accent-dark">¥ {pr.price}</td>
-                      <td className="px-4 py-3 text-ink-500">{pr.min_quantity ?? "—"}</td>
-                      <td className="px-4 py-3 text-ink-500">{pr.remark || "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </article>
 
       {/* 产品结构化数据, 利于搜索引擎富结果 */}
