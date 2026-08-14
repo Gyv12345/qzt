@@ -38,6 +38,7 @@
   --icon-bg-news: rgba(114, 46, 209, 0.1);
   --icon-bg-notice: rgba(19, 194, 194, 0.1);
   --icon-bg-settings: rgba(156, 163, 175, 0.12);
+  --icon-bg-success: rgba(82, 196, 26, 0.1);
 }
 
 /* ===== 深色模式 ===== */
@@ -73,6 +74,7 @@ body.dm-dark {
   --icon-bg-news: rgba(191, 90, 242, 0.16);
   --icon-bg-notice: rgba(100, 210, 255, 0.16);
   --icon-bg-settings: rgba(142, 142, 147, 0.16);
+  --icon-bg-success: rgba(52, 199, 89, 0.16);
 }
 
 /* ===== antd-mobile 组件深色适配 ===== */
