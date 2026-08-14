@@ -53,6 +53,18 @@ const toTreeData = (menus: SysMenu[]): DataNode[] =>
 const collectLeafIds = (menus: SysMenu[]): number[] =>
   menus.flatMap((m) => (m.children?.length ? collectLeafIds(m.children) : [m.id]))
 
+/** 构建 菜单id → 父菜单id 映射,用于提交时补全祖先链 */
+const buildParentMap = (menus: SysMenu[], parent?: number): Map<number, number> => {
+  const map = new Map<number, number>()
+  for (const m of menus) {
+    if (parent !== undefined) map.set(m.id, parent)
+    if (m.children?.length) {
+      for (const [k, v] of buildParentMap(m.children, m.id)) map.set(k, v)
+    }
+  }
+  return map
+}
+
 export default function RolePage() {
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
@@ -65,7 +77,8 @@ export default function RolePage() {
   const [menuRole, setMenuRole] = useState<SysRole | null>(null)
   const [treeData, setTreeData] = useState<DataNode[]>([])
   const [checkedKeys, setCheckedKeys] = useState<Key[]>([])
-  const [halfCheckedKeys, setHalfCheckedKeys] = useState<Key[]>([])
+  /** 菜单 id → 父菜单 id,提交时据此补全祖先链 */
+  const parentMapRef = useRef<Map<number, number>>(new Map())
   const [menuLoading, setMenuLoading] = useState(false)
   const [menuSaving, setMenuSaving] = useState(false)
 
@@ -119,11 +132,12 @@ export default function RolePage() {
     setMenuModalOpen(true)
     setMenuLoading(true)
     setCheckedKeys([])
-    setHalfCheckedKeys([])
     try {
       const [menus, role] = await Promise.all([getMenuTree(), getRole(record.id)])
       setTreeData(toTreeData(menus))
-      // 仅勾选叶子节点,避免 antd 父子联动导致父节点带出全选
+      parentMapRef.current = buildParentMap(menus)
+      // 仅勾选叶子节点,避免 antd 父子联动导致父节点带出全选;
+      // 祖先链(目录/页面)在提交时由 handleMenuSubmit 补全
       const leafIds = new Set(collectLeafIds(menus))
       const assigned = (role.menus ?? []).map((m) => m.id).filter((id) => leafIds.has(id))
       setCheckedKeys(assigned)
@@ -132,17 +146,26 @@ export default function RolePage() {
     }
   }
 
-  const handleTreeCheck: TreeProps['onCheck'] = (checked, info) => {
+  const handleTreeCheck: TreeProps['onCheck'] = (checked) => {
     setCheckedKeys(Array.isArray(checked) ? checked : checked.checked)
-    setHalfCheckedKeys(info.halfCheckedKeys ?? [])
   }
 
   const handleMenuSubmit = async () => {
     if (!menuRole) return
     setMenuSaving(true)
     try {
-      const ids = [...checkedKeys, ...halfCheckedKeys].map(Number)
-      await setRoleMenus(menuRole.id, ids)
+      // 提交集合 = 勾选节点 + 其全部祖先(目录/页面)。只授叶子不授祖先会导致
+      // 菜单树断链,角色侧栏看不到该菜单且路由不注册(页面 404)
+      const ids = new Set<number>(checkedKeys.map(Number))
+      for (const key of checkedKeys) {
+        let cur = Number(key)
+        while (parentMapRef.current.has(cur)) {
+          const parent = parentMapRef.current.get(cur)!
+          ids.add(parent)
+          cur = parent
+        }
+      }
+      await setRoleMenus(menuRole.id, [...ids])
       message.success('菜单授权已保存')
       setMenuModalOpen(false)
     } finally {
