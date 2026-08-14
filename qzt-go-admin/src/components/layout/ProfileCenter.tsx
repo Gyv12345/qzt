@@ -1,4 +1,4 @@
-import { KeyOutlined, QrcodeOutlined, ReloadOutlined } from '@ant-design/icons'
+import { EditOutlined, KeyOutlined, QrcodeOutlined, ReloadOutlined } from '@ant-design/icons'
 import {
   Alert,
   Avatar,
@@ -16,9 +16,10 @@ import {
   Table,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd'
-import { ModalForm, ProFormText } from '@ant-design/pro-components'
+import { ModalForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-components'
 import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useNavigate } from 'react-router-dom'
@@ -31,14 +32,16 @@ import {
   deleteApiKey,
   disableApiKey,
   fetchUserInfo,
+  getApiKeyToolsets,
   getWecomBindQrcode,
   listApiKeys,
   logout,
   unbindWecom,
+  updateApiKey,
   updateProfile,
 } from '../../services/auth'
 import { getSiteConfig } from '../../services/system'
-import type { CreateApiKeyResult, SysApiKey, UpdateProfileRequest } from '../../types'
+import type { CreateApiKeyResult, McpToolset, SysApiKey, UpdateProfileRequest } from '../../types'
 
 interface ProfileCenterProps {
   open: boolean
@@ -407,6 +410,7 @@ function McpConfigSection({ apiKey, mcpUrl }: { apiKey: string; mcpUrl: string }
 /** API Key 管理 */
 export function ApiKeyTab() {
   const [keys, setKeys] = useState<SysApiKey[]>([])
+  const [catalog, setCatalog] = useState<McpToolset[]>([])
   const [loading, setLoading] = useState(false)
   const [created, setCreated] = useState<CreateApiKeyResult | null>(null)
   // MCP 服务地址:优先取站点配置,留空兜底当前站点 origin + /mcp(私有化部署同域场景开箱即用)
@@ -415,8 +419,9 @@ export function ApiKeyTab() {
   const load = async () => {
     setLoading(true)
     try {
-      const [list, sc] = await Promise.all([listApiKeys(), getSiteConfig()])
+      const [list, sets, sc] = await Promise.all([listApiKeys(), getApiKeyToolsets(), getSiteConfig()])
       setKeys(list ?? [])
+      setCatalog(sets ?? [])
       if (sc?.mcp_url) setMcpUrl(sc.mcp_url)
     } catch {
       // 错误已由拦截器提示
@@ -441,10 +446,27 @@ export function ApiKeyTab() {
     load()
   }
 
+  // 工具集勾选项(带实时工具数)
+  const toolsetOptions = catalog.map((t) => ({
+    label: `${t.name}(${t.tool_count})`,
+    value: t.key,
+  }))
+
+  // 工具集展示:空 = 不限制(全部);否则显示数量,hover 看明细
+  const renderToolsets = (toolsets?: string[]) => {
+    if (!toolsets || toolsets.length === 0) return <Tag color="geekblue">全部工具</Tag>
+    const names = toolsets.map((k) => catalog.find((t) => t.key === k)?.name || k)
+    return (
+      <Tooltip title={names.join('、')}>
+        <Tag color="cyan">{toolsets.length} 个模块</Tag>
+      </Tooltip>
+    )
+  }
+
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <ModalForm<{ name: string }>
+        <ModalForm<{ name: string; toolsets?: string[] }>
           title="创建 API Key"
           trigger={
             <Button type="primary" icon={<KeyOutlined />}>
@@ -453,7 +475,7 @@ export function ApiKeyTab() {
           }
           modalProps={{ destroyOnHidden: true }}
           onFinish={async (values) => {
-            const res = await createApiKey(values.name)
+            const res = await createApiKey(values.name, values.toolsets ?? [])
             setCreated(res)
             load()
             return true
@@ -465,6 +487,12 @@ export function ApiKeyTab() {
             placeholder="给这个 Key 起个名字,便于识别用途"
             rules={[{ required: true, message: '请输入名称' }]}
           />
+          <ProFormCheckbox.Group
+            name="toolsets"
+            label="可用模块(MCP 工具集)"
+            options={toolsetOptions}
+            extra="勾选后该 Key 只能使用所选模块的 MCP 工具;不勾选 = 不限制(暴露全部工具,会显著增加 AI 的上下文占用)"
+          />
         </ModalForm>
       </div>
       <Table<SysApiKey>
@@ -475,7 +503,13 @@ export function ApiKeyTab() {
         pagination={false}
         columns={[
           { title: '名称', dataIndex: 'name' },
-          { title: '前缀', dataIndex: 'key_prefix', width: 110 },
+          { title: '前缀', dataIndex: 'key_prefix', width: 100 },
+          {
+            title: '可用模块',
+            dataIndex: 'toolsets',
+            width: 110,
+            render: (v: string[]) => renderToolsets(v),
+          },
           {
             title: '最后使用',
             dataIndex: 'last_used_at',
@@ -491,16 +525,47 @@ export function ApiKeyTab() {
           {
             title: '状态',
             dataIndex: 'status',
-            width: 80,
+            width: 70,
             render: (v: number) =>
               v === 1 ? <Tag color="green">启用</Tag> : <Tag>禁用</Tag>,
           },
           {
             title: '操作',
             key: 'action',
-            width: 110,
+            width: 140,
             render: (_, record) => (
               <Space size={4}>
+                <ModalForm<{ name: string; toolsets?: string[] }>
+                  title="编辑 API Key"
+                  trigger={
+                    <Button type="link" size="small" icon={<EditOutlined />}>
+                      编辑
+                    </Button>
+                  }
+                  modalProps={{ destroyOnHidden: true }}
+                  initialValues={{ name: record.name, toolsets: record.toolsets ?? [] }}
+                  onFinish={async (values) => {
+                    await updateApiKey(record.id, {
+                      name: values.name,
+                      toolsets: values.toolsets ?? [],
+                    })
+                    message.success('已更新')
+                    load()
+                    return true
+                  }}
+                >
+                  <ProFormText
+                    name="name"
+                    label="名称"
+                    rules={[{ required: true, message: '请输入名称' }]}
+                  />
+                  <ProFormCheckbox.Group
+                    name="toolsets"
+                    label="可用模块(MCP 工具集)"
+                    options={toolsetOptions}
+                    extra="不勾选任何模块 = 不限制(暴露全部工具)"
+                  />
+                </ModalForm>
                 {record.status === 1 && (
                   <Popconfirm title="确认禁用该 Key?" onConfirm={() => onDisable(record.id)}>
                     <Button type="link" size="small">

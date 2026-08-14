@@ -37,9 +37,9 @@ func (r *ApiKeyRepo) ListByUser(ctx context.Context, userID uint) ([]model.SysAp
 	return list, err
 }
 
-// Update 覆写(更新使用时间/状态)。
+// Update 覆写(更新使用时间/状态/工具集)。
 func (r *ApiKeyRepo) Update(ctx context.Context, m *model.SysApiKey) error {
-	return r.BaseRepo.Update(ctx, m, "Name", "LastUsedAt", "LastUsedIP", "ExpiresAt", "Status")
+	return r.BaseRepo.Update(ctx, m, "Name", "LastUsedAt", "LastUsedIP", "ExpiresAt", "Status", "Toolsets")
 }
 
 // UpdateLastUsed 更新最后使用时间和 IP。

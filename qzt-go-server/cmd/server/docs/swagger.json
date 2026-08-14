@@ -12756,7 +12756,76 @@
                 }
             }
         },
+        "/system/api-keys/toolsets": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回可勾选的 MCP 工具集(含各集工具数),用于 API Key 的工具范围选择",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API Key"
+                ],
+                "summary": "MCP 工具集目录",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/api-keys/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新当前用户自己的 API Key(名称与 MCP 工具集,只传要改的字段)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API Key"
+                ],
+                "summary": "更新 API Key",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Key ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -17015,6 +17084,13 @@
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "toolsets": {
+                    "description": "可用工具集(空=不限制,暴露全部 MCP 工具)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -19107,6 +19183,20 @@
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.UpdateKeyRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "toolsets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

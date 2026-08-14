@@ -34,7 +34,9 @@ type SysApiKey struct {
 	// 最后使用IP
 	LastUsedIP string          `json:"last_used_ip" gorm:"size:45;comment:最后使用IP"`
 	// 过期时间(空=永不过期)
-	ExpiresAt  xtime.NullDateTime `json:"expires_at" gorm:"type:datetime;comment:过期时间(空=永不过期)"`
+	ExpiresAt xtime.NullDateTime `json:"expires_at" gorm:"type:datetime;comment:过期时间(空=永不过期)"`
+	// 可用工具集(逗号分隔,空=全部;MCP 工具按模块过滤,见 internal/mcp/toolsets.go)
+	Toolsets  string          `json:"-" gorm:"size:255;comment:可用工具集(逗号分隔,空=全部)"`
 	// 1启用0禁用
 	Status     int8            `json:"status" gorm:"default:1;index;comment:1启用0禁用"`
 	base.BaseModel

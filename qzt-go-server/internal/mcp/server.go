@@ -51,6 +51,8 @@ func buildServer() *server.MCPServer {
 		server.WithInstructions("QZT 企业级 ERP 系统。可通过这些工具管理客户、商机、合同、跟进等 CRM 业务。所有操作需通过 API Key 认证。"),
 		// 工具操作级权限控制:工具名→HTTP API 的 Casbin 校验(见 perm_check.go)
 		server.WithToolHandlerMiddleware(mcpPermissionMiddleware()),
+		// API Key 级工具集过滤:list 可见性与 call 调用双重生效(见 toolsets.go)
+		server.WithToolFilter(toolsetFilter),
 	)
 
 	// 注册 CRM tools
@@ -168,9 +170,11 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 		}
 		c.Set(middleware.CtxRoleCodesKey, roleCodes)
 		middleware.InjectDataScope(c, user)
-		// 额外把 roleCodes 写入 request context,供 MCP 工具权限中间件(mcpPermissionMiddleware)读取
+		// 额外把 roleCodes / toolsets 写入 request context,供 MCP 工具权限中间件
+		// (mcpPermissionMiddleware)与工具集过滤(toolsetFilter)读取
 		// (mcpAuthMiddleware 写 gin context,但 MCP 工具 handler 拿到的是 request context)
 		reqCtx := context.WithValue(c.Request.Context(), mcpRoleCodesKey, roleCodes)
+		reqCtx = context.WithValue(reqCtx, mcpToolsetsKey, ParseToolsets(apiKey.Toolsets))
 		c.Request = c.Request.WithContext(reqCtx)
 
 		c.Next()

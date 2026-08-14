@@ -80,6 +80,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// API Key 管理(仅 JWT,不允许用 API Key 创建 API Key)
 		authenticated.POST("/api-keys", apiKeyHandler.Create)
 		authenticated.GET("/api-keys", apiKeyHandler.List)
+		authenticated.GET("/api-keys/toolsets", apiKeyHandler.Toolsets)
+		authenticated.PUT("/api-keys/:id", apiKeyHandler.Update)
 		authenticated.DELETE("/api-keys/:id", apiKeyHandler.Delete)
 		authenticated.PUT("/api-keys/:id/disable", apiKeyHandler.Disable)
 	}

@@ -920,6 +920,11 @@ definitions:
     properties:
       name:
         type: string
+      toolsets:
+        description: 可用工具集(空=不限制,暴露全部 MCP 工具)
+        items:
+          type: string
+        type: array
     required:
     - name
     type: object
@@ -2321,6 +2326,15 @@ definitions:
         type: integer
       status:
         type: integer
+    type: object
+  service.UpdateKeyRequest:
+    properties:
+      name:
+        type: string
+      toolsets:
+        items:
+          type: string
+        type: array
     type: object
   service.UpdateLoanRequest:
     properties:
@@ -10792,6 +10806,34 @@ paths:
       summary: 删除 API Key
       tags:
       - API Key
+    put:
+      consumes:
+      - application/json
+      description: 更新当前用户自己的 API Key(名称与 MCP 工具集,只传要改的字段)
+      parameters:
+      - description: Key ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新 API Key
+      tags:
+      - API Key
   /system/api-keys/{id}/disable:
     put:
       parameters:
@@ -10810,6 +10852,21 @@ paths:
       security:
       - BearerAuth: []
       summary: 禁用 API Key
+      tags:
+      - API Key
+  /system/api-keys/toolsets:
+    get:
+      description: 返回可勾选的 MCP 工具集(含各集工具数),用于 API Key 的工具范围选择
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: MCP 工具集目录
       tags:
       - API Key
   /system/apis:

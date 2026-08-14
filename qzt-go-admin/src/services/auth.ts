@@ -6,6 +6,7 @@ import type {
   ChangePasswordRequest,
   CreateApiKeyResult,
   LoginResult,
+  McpToolset,
   SysApiKey,
   SysMenu,
   SysUser,
@@ -86,9 +87,17 @@ export const unbindWecom = () => request.delete('/system/auth/wecom/bind')
 
 export const listApiKeys = () => request.get<unknown, SysApiKey[]>('/system/api-keys')
 
-/** 创建 API Key,明文密钥仅在响应中返回一次 */
-export const createApiKey = (name: string) =>
-  request.post<unknown, CreateApiKeyResult>('/system/api-keys', { name })
+/** MCP 工具集目录(含各集工具数,勾选 UI 数据源) */
+export const getApiKeyToolsets = () =>
+  request.get<unknown, McpToolset[]>('/system/api-keys/toolsets')
+
+/** 创建 API Key,明文密钥仅在响应中返回一次;toolsets 为空数组 = 不限制 */
+export const createApiKey = (name: string, toolsets: string[] = []) =>
+  request.post<unknown, CreateApiKeyResult>('/system/api-keys', { name, toolsets })
+
+/** 更新 API Key(名称/工具集,只传要改的字段) */
+export const updateApiKey = (id: number, data: { name?: string; toolsets?: string[] }) =>
+  request.put(`/system/api-keys/${id}`, data)
 
 export const deleteApiKey = (id: number) => request.delete(`/system/api-keys/${id}`)
 

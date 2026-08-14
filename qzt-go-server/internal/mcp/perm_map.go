@@ -115,7 +115,8 @@ var toolPermMap = map[string]toolPerm{
 	"cms_article_update":  {"PUT", "/cms/articles/:id"},
 	"cms_category_create": {"POST", "/cms/categories"},
 	"cms_category_delete": {"DELETE", "/cms/categories/:id"},
-	"cms_category_list":   {"GET", "/cms/categories"},
+	// list 工具调的是 ListAll(对应 authenticated 组的 /categories/all),非管理端分页列表
+	"cms_category_list":   {"GET", "/cms/categories/all"},
 	"cms_category_update": {"PUT", "/cms/categories/:id"},
 	"cms_page_create":     {"POST", "/cms/pages"},
 	"cms_page_delete":     {"DELETE", "/cms/pages/:id"},
@@ -124,7 +125,8 @@ var toolPermMap = map[string]toolPerm{
 	"cms_page_update":     {"PUT", "/cms/pages/:id"},
 	"cms_tag_create":      {"POST", "/cms/tags"},
 	"cms_tag_delete":      {"DELETE", "/cms/tags/:id"},
-	"cms_tag_list":        {"GET", "/cms/tags"},
+	// list 工具调的是 ListAll(对应 authenticated 组的 /tags/all),非管理端分页列表
+	"cms_tag_list":        {"GET", "/cms/tags/all"},
 	"cms_tag_update":      {"PUT", "/cms/tags/:id"},
 	// ── 系统配置(站点/企业微信) ──
 	"site_config_get":     {"GET", "/system/site-config"},
@@ -173,7 +175,8 @@ var toolPermMap = map[string]toolPerm{
 	"hrm_attendance_summary_generate": {"POST", "/hrm/attendance/summary/generate"},
 	"hrm_candidate_create":            {"POST", "/hrm/candidates"},
 	"hrm_candidate_delete":            {"DELETE", "/hrm/candidates/:id"},
-	"hrm_candidate_get":               {"GET", "/hrm/candidates/:id"},
+	// HTTP 层无候选人详情路由,详情权限沿用列表 API(Casbin)
+	"hrm_candidate_get":               {"GET", "/hrm/candidates"},
 	"hrm_candidate_list":              {"GET", "/hrm/candidates"},
 	"hrm_candidate_update":            {"PUT", "/hrm/candidates/:id"},
 	"hrm_department_create":           {"POST", "/hrm/departments"},

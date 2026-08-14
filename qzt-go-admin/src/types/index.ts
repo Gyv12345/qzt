@@ -197,6 +197,8 @@ export interface SysApiKey {
   user_id: number
   name: string
   key_prefix: string
+  /** 可用 MCP 工具集(空数组 = 不限制,暴露全部工具) */
+  toolsets: string[]
   /** 最后使用时间,null 表示从未使用 */
   last_used_at: string | null
   last_used_ip: string
@@ -205,6 +207,14 @@ export interface SysApiKey {
   /** 1 启用 0 禁用 */
   status: number
   created_at: string
+}
+
+/** MCP 工具集目录项(后台勾选 UI 数据源) */
+export interface McpToolset {
+  key: string
+  name: string
+  prefixes: string[]
+  tool_count: number
 }
 
 /** 创建 API Key 响应(明文密钥仅此一次返回) */
