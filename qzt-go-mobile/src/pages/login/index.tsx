@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Toast } from 'antd-mobile'
+import { Dialog, Toast } from 'antd-mobile'
 import { useNavigate } from 'react-router-dom'
 import { fetchUserInfo, getWecomLoginQrcode, listEnabledOauth, login } from '../../services/auth'
 import './login.css'
@@ -32,7 +32,10 @@ export default function Login() {
       await fetchUserInfo()
       navigate('/', { replace: true })
     } catch (err) {
-      Toast.show({ icon: 'fail', content: err instanceof Error ? err.message : '登录失败' })
+      Dialog.alert({
+        confirmText: '知道了',
+        content: err instanceof Error ? err.message : '登录失败',
+      })
     } finally {
       setLoading(false)
     }
@@ -45,7 +48,10 @@ export default function Login() {
       const { url } = await getWecomLoginQrcode('app')
       window.location.href = url
     } catch (err) {
-      Toast.show({ icon: 'fail', content: err instanceof Error ? err.message : '获取登录链接失败' })
+      Dialog.alert({
+        confirmText: '知道了',
+        content: err instanceof Error ? err.message : '获取登录链接失败',
+      })
       setWecomLoading(false)
     }
   }
