@@ -70,12 +70,12 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/follow-plans/my-todos", followHandler.MyTodos)
 
 		// 变更历史(查询类)
-		authenticated.GET("/customers/:id/owner-history", customerHandler.OwnerHistory)
-		authenticated.GET("/leads/:id/owner-history", leadHandler.OwnerHistory)
-		authenticated.GET("/opportunities/:id/stage-history", opportunityHandler.StageHistory)
+		authenticated.GET("/customers/:id/owner-history", DataScopeGuard("customer"), customerHandler.OwnerHistory)
+		authenticated.GET("/leads/:id/owner-history", DataScopeGuard("lead"), leadHandler.OwnerHistory)
+		authenticated.GET("/opportunities/:id/stage-history", DataScopeGuard("opportunity"), opportunityHandler.StageHistory)
 
 		// 合同回款汇总
-		authenticated.GET("/contracts/:id/payment-summary", paymentHandler.PaymentSummary)
+		authenticated.GET("/contracts/:id/payment-summary", DataScopeGuard("contract"), paymentHandler.PaymentSummary)
 
 		// 字段变更历史(按 biz_type + resource_id 查询)
 		authenticated.GET("/field-changes", changeLogHandler.List)
@@ -91,29 +91,29 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	// OperationLog 位于 auth 与 RBAC 之间,使权限拒绝(403)也被审计。
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
 	{
-		// 客户管理
+		// 客户管理(单记录读写挂 DataScopeGuard,防按 id 越权)
 		auth.GET("/customers", customerHandler.List)
 		auth.POST("/customers", customerHandler.Create)
-		auth.GET("/customers/:id", customerHandler.GetByID)
-		auth.PUT("/customers/:id", customerHandler.Update)
-		auth.DELETE("/customers/:id", customerHandler.Delete)
-		auth.POST("/customers/:id/release", customerHandler.ReleaseToPool)
+		auth.GET("/customers/:id", DataScopeGuard("customer"), customerHandler.GetByID)
+		auth.PUT("/customers/:id", DataScopeGuard("customer"), customerHandler.Update)
+		auth.DELETE("/customers/:id", DataScopeGuard("customer"), customerHandler.Delete)
+		auth.POST("/customers/:id/release", DataScopeGuard("customer"), customerHandler.ReleaseToPool)
 		auth.POST("/customers/:id/pick", customerHandler.PickFromPool)
-		auth.POST("/customers/:id/transfer", customerHandler.Transfer)
+		auth.POST("/customers/:id/transfer", DataScopeGuard("customer"), customerHandler.Transfer)
 
 		// 联系人(子资源:customers/:id/contacts,参数名用 id 与客户路由一致避免 Gin 路由冲突)
-		auth.GET("/customers/:id/contacts", contactHandler.ListByCustomer)
-		auth.POST("/customers/:id/contacts", contactHandler.Create)
+		auth.GET("/customers/:id/contacts", DataScopeGuard("customer"), contactHandler.ListByCustomer)
+		auth.POST("/customers/:id/contacts", DataScopeGuard("customer"), contactHandler.Create)
 		auth.GET("/contacts", contactHandler.ListAll) // 全局联系人列表(独立管理页)
-		auth.GET("/contacts/:id", contactHandler.GetByID)
-		auth.PUT("/contacts/:id", contactHandler.Update)
-		auth.DELETE("/contacts/:id", contactHandler.Delete)
+		auth.GET("/contacts/:id", DataScopeGuard("contact"), contactHandler.GetByID)
+		auth.PUT("/contacts/:id", DataScopeGuard("contact"), contactHandler.Update)
+		auth.DELETE("/contacts/:id", DataScopeGuard("contact"), contactHandler.Delete)
 
 		// 客户团队协作
-		auth.GET("/customers/:id/collaborations", collabHandler.List)
-		auth.POST("/customers/:id/collaborations", collabHandler.Add)
-		auth.PUT("/collaborations/:id", collabHandler.Update)
-		auth.DELETE("/collaborations/:id", collabHandler.Delete)
+		auth.GET("/customers/:id/collaborations", DataScopeGuard("customer"), collabHandler.List)
+		auth.POST("/customers/:id/collaborations", DataScopeGuard("customer"), collabHandler.Add)
+		auth.PUT("/collaborations/:id", DataScopeGuard("collaboration"), collabHandler.Update)
+		auth.DELETE("/collaborations/:id", DataScopeGuard("collaboration"), collabHandler.Delete)
 
 		// 离职交接:批量转移用户名下的业务资源
 		auth.POST("/handover", handoverHandler.Handover)
@@ -125,19 +125,19 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 商机管理
 		auth.GET("/opportunities", opportunityHandler.List)
 		auth.POST("/opportunities", opportunityHandler.Create)
-		auth.GET("/opportunities/:id", opportunityHandler.GetByID)
-		auth.PUT("/opportunities/:id", opportunityHandler.Update)
-		auth.DELETE("/opportunities/:id", opportunityHandler.Delete)
-		auth.PUT("/opportunities/:id/stage", opportunityHandler.ChangeStage)
+		auth.GET("/opportunities/:id", DataScopeGuard("opportunity"), opportunityHandler.GetByID)
+		auth.PUT("/opportunities/:id", DataScopeGuard("opportunity"), opportunityHandler.Update)
+		auth.DELETE("/opportunities/:id", DataScopeGuard("opportunity"), opportunityHandler.Delete)
+		auth.PUT("/opportunities/:id/stage", DataScopeGuard("opportunity"), opportunityHandler.ChangeStage)
 
 		// 合同管理
 		auth.GET("/contracts", contractHandler.List)
 		auth.POST("/contracts", contractHandler.Create)
-		auth.GET("/contracts/:id", contractHandler.GetByID)
-		auth.PUT("/contracts/:id", contractHandler.Update)
-		auth.DELETE("/contracts/:id", contractHandler.Delete)
+		auth.GET("/contracts/:id", DataScopeGuard("contract"), contractHandler.GetByID)
+		auth.PUT("/contracts/:id", DataScopeGuard("contract"), contractHandler.Update)
+		auth.DELETE("/contracts/:id", DataScopeGuard("contract"), contractHandler.Delete)
 		// 合同套打(选模板渲染)
-		auth.GET("/contracts/:id/print-document", contractTemplateHandler.PrintDocument)
+		auth.GET("/contracts/:id/print-document", DataScopeGuard("contract"), contractTemplateHandler.PrintDocument)
 
 		// 合同模板(静态路径 variables 须先于 :id 注册)
 		auth.GET("/contract-templates/variables", contractTemplateHandler.Variables)
@@ -148,24 +148,24 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.DELETE("/contract-templates/:id", contractTemplateHandler.Delete)
 
 		// 回款计划
-		auth.GET("/contracts/:id/payment-plans", paymentHandler.ListPlansByContract)
-		auth.POST("/contracts/:id/payment-plans", paymentHandler.CreatePlan)
-		auth.GET("/payment-plans/:id", paymentHandler.GetPlan)
-		auth.PUT("/payment-plans/:id", paymentHandler.UpdatePlan)
-		auth.DELETE("/payment-plans/:id", paymentHandler.DeletePlan)
+		auth.GET("/contracts/:id/payment-plans", DataScopeGuard("contract"), paymentHandler.ListPlansByContract)
+		auth.POST("/contracts/:id/payment-plans", DataScopeGuard("contract"), paymentHandler.CreatePlan)
+		auth.GET("/payment-plans/:id", DataScopeGuard("payment_plan"), paymentHandler.GetPlan)
+		auth.PUT("/payment-plans/:id", DataScopeGuard("payment_plan"), paymentHandler.UpdatePlan)
+		auth.DELETE("/payment-plans/:id", DataScopeGuard("payment_plan"), paymentHandler.DeletePlan)
 
 		// 回款记录
-		auth.GET("/contracts/:id/payment-records", paymentHandler.ListRecordsByContract)
-		auth.POST("/contracts/:id/payment-records", paymentHandler.CreateRecord)
-		auth.GET("/payment-records/:id", paymentHandler.GetRecord)
-		auth.PUT("/payment-records/:id", paymentHandler.UpdateRecord)
-		auth.DELETE("/payment-records/:id", paymentHandler.DeleteRecord)
+		auth.GET("/contracts/:id/payment-records", DataScopeGuard("contract"), paymentHandler.ListRecordsByContract)
+		auth.POST("/contracts/:id/payment-records", DataScopeGuard("contract"), paymentHandler.CreateRecord)
+		auth.GET("/payment-records/:id", DataScopeGuard("payment_record"), paymentHandler.GetRecord)
+		auth.PUT("/payment-records/:id", DataScopeGuard("payment_record"), paymentHandler.UpdateRecord)
+		auth.DELETE("/payment-records/:id", DataScopeGuard("payment_record"), paymentHandler.DeleteRecord)
 
 		// 合同产品明细
-		auth.GET("/contracts/:id/items", contractItemHandler.ListByContract)
-		auth.POST("/contracts/:id/items", contractItemHandler.Create)
-		auth.PUT("/contract-items/:itemId", contractItemHandler.Update)
-		auth.DELETE("/contract-items/:itemId", contractItemHandler.Delete)
+		auth.GET("/contracts/:id/items", DataScopeGuard("contract"), contractItemHandler.ListByContract)
+		auth.POST("/contracts/:id/items", DataScopeGuard("contract"), contractItemHandler.Create)
+		auth.PUT("/contract-items/:itemId", DataScopeGuard("contract_item"), contractItemHandler.Update)
+		auth.DELETE("/contract-items/:itemId", DataScopeGuard("contract_item"), contractItemHandler.Delete)
 
 		// 产品管理
 		auth.GET("/products", productHandler.List)
@@ -184,17 +184,17 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 
 		// 跟进记录
 		auth.POST("/follow-records", followHandler.CreateRecord)
-		auth.GET("/follow-records/:id", followHandler.GetRecord)
-		auth.PUT("/follow-records/:id", followHandler.UpdateRecord)
-		auth.DELETE("/follow-records/:id", followHandler.DeleteRecord)
+		auth.GET("/follow-records/:id", DataScopeGuard("follow_record"), followHandler.GetRecord)
+		auth.PUT("/follow-records/:id", DataScopeGuard("follow_record"), followHandler.UpdateRecord)
+		auth.DELETE("/follow-records/:id", DataScopeGuard("follow_record"), followHandler.DeleteRecord)
 
 		// 跟进计划
 		auth.POST("/follow-plans", followHandler.CreatePlan)
-		auth.GET("/follow-plans/:id", followHandler.GetPlan)
-		auth.PUT("/follow-plans/:id", followHandler.UpdatePlan)
-		auth.DELETE("/follow-plans/:id", followHandler.DeletePlan)
-		auth.POST("/follow-plans/:id/convert", followHandler.ConvertPlanToRecord)
-		auth.POST("/follow-plans/:id/skip", followHandler.SkipPlan)
+		auth.GET("/follow-plans/:id", DataScopeGuard("follow_plan"), followHandler.GetPlan)
+		auth.PUT("/follow-plans/:id", DataScopeGuard("follow_plan"), followHandler.UpdatePlan)
+		auth.DELETE("/follow-plans/:id", DataScopeGuard("follow_plan"), followHandler.DeletePlan)
+		auth.POST("/follow-plans/:id/convert", DataScopeGuard("follow_plan"), followHandler.ConvertPlanToRecord)
+		auth.POST("/follow-plans/:id/skip", DataScopeGuard("follow_plan"), followHandler.SkipPlan)
 
 		// 公海池
 		auth.GET("/customer-pools", poolHandler.ListPools)
@@ -209,13 +209,13 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 线索管理
 		auth.GET("/leads", leadHandler.List)
 		auth.POST("/leads", leadHandler.Create)
-		auth.GET("/leads/:id", leadHandler.GetByID)
-		auth.PUT("/leads/:id", leadHandler.Update)
-		auth.DELETE("/leads/:id", leadHandler.Delete)
-		auth.POST("/leads/:id/release", leadHandler.ReleaseToPool)
+		auth.GET("/leads/:id", DataScopeGuard("lead"), leadHandler.GetByID)
+		auth.PUT("/leads/:id", DataScopeGuard("lead"), leadHandler.Update)
+		auth.DELETE("/leads/:id", DataScopeGuard("lead"), leadHandler.Delete)
+		auth.POST("/leads/:id/release", DataScopeGuard("lead"), leadHandler.ReleaseToPool)
 		auth.POST("/leads/:id/pick", leadHandler.PickFromPool)
-		auth.POST("/leads/:id/transfer", leadHandler.Transfer)
-		auth.POST("/leads/:id/convert", leadHandler.Convert)
+		auth.POST("/leads/:id/transfer", DataScopeGuard("lead"), leadHandler.Transfer)
+		auth.POST("/leads/:id/convert", DataScopeGuard("lead"), leadHandler.Convert)
 
 		// 线索公海池
 		auth.GET("/lead-pools", leadPoolHandler.ListPools)

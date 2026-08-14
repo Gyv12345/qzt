@@ -18,6 +18,7 @@ package datascope
 
 import (
 	"context"
+	"slices"
 
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/repository"
@@ -140,6 +141,34 @@ func BuildCond(ctx context.Context, ownerColumn string) *repository.Cond {
 	}
 
 	return nil
+}
+
+// CanAccessOwner 判断当前用户的数据权限能否访问指定负责人的单条数据。
+// 用于详情/子资源/更新/删除等按 id 直取的场景(列表由 BuildCond 过滤),
+// 范围语义与 BuildCond 一致(含部门无人时降级仅本人)。
+// ownerID 为 0(公海无主数据)时放行:公海数据对所有有路由权限的用户可见。
+func CanAccessOwner(ctx context.Context, ownerID uint) bool {
+	scope, deptID, userID := GetScope(ctx)
+	if scope == model.DataScopeAll || userID == 0 || ownerID == 0 {
+		return true
+	}
+	switch scope {
+	case model.DataScopeSelf:
+		return ownerID == userID
+	case model.DataScopeDept:
+		return ownerIn(deptUserIDs(ctx, deptID), ownerID, userID)
+	case model.DataScopeDeptAndSub:
+		return ownerIn(deptUsersIDsByDepts(ctx, deptAndSubIDs(ctx, deptID)), ownerID, userID)
+	}
+	return true
+}
+
+// ownerIn 部门用户集合为空时降级为仅本人(与 BuildCond 的降级一致)。
+func ownerIn(userIDs []uint, ownerID, userID uint) bool {
+	if len(userIDs) == 0 {
+		return ownerID == userID
+	}
+	return slices.Contains(userIDs, ownerID)
 }
 
 // deptUserIDs 查某部门的全部用户ID(单请求内按 deptID 缓存)。
