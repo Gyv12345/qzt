@@ -101,8 +101,11 @@ body.dm-dark {
   transition: background 0.25s ease, color 0.25s ease;
 }
 
-/* FloatingBubble 默认定位(右下角,避开底部 TabBar) */
-.adm-floating-bubble {
+/* FloatingBubble 默认定位(右下角,避开底部 TabBar)。
+   用 body 前缀提高特异性:antd-mobile 组件 CSS 随懒加载 chunk 晚于主包插入,
+   同特异性下会以其自引用默认值(--x: var(--x))反超本规则,导致变量循环失效、
+   按钮回落到文档流静态位置(左侧中部)。 */
+body .adm-floating-bubble {
   --initial-position-bottom: 80px;
   --initial-position-right: 16px;
 }
