@@ -35,14 +35,17 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.POST("/actions/approve", actionHandler.Approve)
 		authenticated.POST("/actions/reject", actionHandler.Reject)
 		authenticated.PUT("/instances/:id/revoke", actionHandler.Revoke)
+
+		// 只读流程配置查询不走 Casbin:合同/报销等业务页面(任意角色)提交前
+		// 都要查 by-type/form-fields 判断流程是否启用,放 Casbin 会全局 403
+		authenticated.GET("/flows/by-type", flowHandler.GetByFormType)
+		authenticated.GET("/flows/form-fields", flowHandler.FormFields)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):流程设计管理
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
 	{
 		auth.GET("/flows", flowHandler.List)
-		auth.GET("/flows/by-type", flowHandler.GetByFormType)
-		auth.GET("/flows/form-fields", flowHandler.FormFields)
 		auth.POST("/flows", flowHandler.Create)
 		auth.GET("/flows/:id", flowHandler.GetByID)
 		auth.PUT("/flows/:id/design", flowHandler.SaveDesign)
