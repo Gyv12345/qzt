@@ -21,15 +21,24 @@ const (
 // CrmEsignTask 电子签任务。
 type CrmEsignTask struct {
 	ID          uint               `json:"id" gorm:"primaryKey"`
+	// 合同ID
 	ContractID  uint               `json:"contract_id" gorm:"not null;comment:合同ID"`
+	// 合同模板ID
 	TemplateID  uint               `json:"template_id" gorm:"not null;comment:合同模板ID"`
+	// PENDING/RUNNING/READY/INITIATED/COMPLETED/FAILED
 	Status      string             `json:"status" gorm:"size:16;default:PENDING;comment:PENDING/RUNNING/READY/INITIATED/COMPLETED/FAILED"`
+	// e签宝流程ID
 	FlowID      string             `json:"flow_id" gorm:"size:64;comment:e签宝流程ID"`
+	// 生成PDF私有桶key
 	FileKey     string             `json:"file_key" gorm:"size:255;comment:生成PDF私有桶key"`
+	// 签署短链
 	SignURL     string             `json:"sign_url" gorm:"size:500;comment:签署短链"`
+	// 签署方JSON
 	Signers     string             `json:"signers" gorm:"type:text;comment:签署方JSON"`
 	RetryCount  int                `json:"retry_count" gorm:"default:0"`
+	// 下次重试时间
 	NextRetryAt xtime.NullDateTime `json:"next_retry_at" gorm:"type:datetime;comment:下次重试时间"`
+	// 最近错误
 	Error       string             `json:"error" gorm:"size:500;comment:最近错误"`
 	base.BaseModel
 }

@@ -64,18 +64,6 @@ func (r *PoolRecycleRuleRepo) GetByPool(ctx context.Context, poolID uint) (*crmm
 	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"pool_id": poolID}})
 }
 
-// ── 容量 ──
-
-type CustomerCapacityRepo struct {
-	repository.BaseRepo[crmmodel.CrmCustomerCapacity]
-}
-
-func NewCustomerCapacityRepo() *CustomerCapacityRepo { return &CustomerCapacityRepo{} }
-
-func (r *CustomerCapacityRepo) Update(ctx context.Context, m *crmmodel.CrmCustomerCapacity) error {
-	return r.BaseRepo.Update(ctx, m, "ScopeDeptIDs", "ScopeRoleIDs", "Capacity", "Filter", "Enabled")
-}
-
 // ── 归属历史 ──
 
 type CustomerOwnerHistoryRepo struct {

@@ -18,7 +18,9 @@ type SysRole struct {
 	Name      string    `json:"name" gorm:"size:64;not null"`
 	Code      string    `json:"code" gorm:"uniqueIndex;size:64;not null"`
 	Sort      int       `json:"sort" gorm:"default:0"`
+	// 1-正常 0-禁用
 	Status    int8      `json:"status" gorm:"default:1;comment:1-正常 0-禁用"`
+	// 数据权限范围 1全部 3本部门 4本部门及子部门 5仅本人
 	DataScope int8      `json:"data_scope" gorm:"not null;default:1;comment:数据权限范围 1全部 3本部门 4本部门及子部门 5仅本人"`
 	Remark    string    `json:"remark" gorm:"size:255"`
 	Menus     []SysMenu `json:"menus,omitempty" gorm:"many2many:sys_role_menu;"`

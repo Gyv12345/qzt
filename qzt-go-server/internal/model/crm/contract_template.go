@@ -10,10 +10,15 @@ import (
 
 type ContractTemplate struct {
 	ID      uint   `json:"id" gorm:"primaryKey"`
+	// 模板名称
 	Name    string `json:"name" gorm:"size:255;not null;comment:模板名称"`
+	// Markdown正文(含变量占位符)
 	Content string `json:"content" gorm:"type:longtext;not null;comment:Markdown正文(含变量占位符)"`
+	// 说明
 	Remark  string `json:"remark" gorm:"size:500;comment:说明"`
+	// 1启用 0停用
 	Enabled int8   `json:"enabled" gorm:"not null;default:1;comment:1启用 0停用"`
+	// 创建人
 	OwnerID *uint  `json:"owner_id" gorm:"comment:创建人"`
 	base.BaseModel
 }

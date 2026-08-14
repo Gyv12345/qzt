@@ -3453,44 +3453,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/crm/customer-pools/capacity": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "公海池"
-                ],
-                "summary": "设置客户容量",
-                "parameters": [
-                    {
-                        "description": "设置容量请求",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.SetCapacityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/crm/customer-pools/enabled": {
             "get": {
                 "security": [
@@ -16025,24 +15987,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "daily_limit": {
+                    "description": "每日领取上限",
                     "type": "integer"
                 },
                 "limit_daily": {
+                    "description": "1限制每日领取数",
                     "type": "integer"
                 },
                 "limit_new_data": {
+                    "description": "1限制新数据冷却期",
                     "type": "integer"
                 },
                 "limit_prev_owner": {
+                    "description": "1限制前归属人领取",
                     "type": "integer"
                 },
                 "new_data_interval": {
+                    "description": "新数据冷却天数",
                     "type": "integer"
                 },
                 "pool_id": {
                     "type": "integer"
                 },
                 "prev_owner_interval": {
+                    "description": "前归属人重新领取间隔天数",
                     "type": "integer"
                 }
             }
@@ -16051,9 +16019,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "conditions": {
+                    "description": "回收条件JSON数组",
                     "type": "string"
                 },
                 "operator": {
+                    "description": "多条件组合 AND/OR",
                     "type": "string"
                 },
                 "pool_id": {
@@ -16215,30 +16185,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "builtin": {
+                    "description": "内置(不可删除)",
                     "type": "boolean"
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "editable": {
+                    "description": "是否允许后台编辑",
                     "type": "boolean"
                 },
                 "group": {
+                    "description": "分组",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "is_public": {
+                    "description": "是否免鉴权可读",
                     "type": "boolean"
                 },
                 "key": {
+                    "description": "配置键",
                     "type": "string"
                 },
                 "name": {
+                    "description": "显示名",
                     "type": "string"
                 },
                 "options": {
+                    "description": "select 选项或校验规则(JSON)",
                     "type": "string"
                 },
                 "remark": {
@@ -16248,12 +16225,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "type": {
+                    "description": "string/int/bool/float/json/text/select",
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "value": {
+                    "description": "值(统一字符串存储)",
                     "type": "string"
                 }
             }
@@ -16262,6 +16241,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
+                    "description": "字典编码",
                     "type": "string"
                 },
                 "created_at": {
@@ -16277,15 +16257,18 @@ const docTemplate = `{
                     }
                 },
                 "name": {
+                    "description": "字典名称",
                     "type": "string"
                 },
                 "remark": {
                     "type": "string"
                 },
                 "sort": {
+                    "description": "排序",
                     "type": "integer"
                 },
                 "status": {
+                    "description": "1-启用 0-禁用",
                     "type": "integer"
                 },
                 "updated_at": {
@@ -16300,12 +16283,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "dict_id": {
+                    "description": "所属字典ID",
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "label": {
+                    "description": "显示文本",
                     "type": "string"
                 },
                 "remark": {
@@ -16315,12 +16300,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
+                    "description": "1-启用 0-禁用",
                     "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "value": {
+                    "description": "存储值",
                     "type": "string"
                 }
             }
@@ -16356,27 +16343,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "parent_id": {
+                    "description": "父菜单ID",
                     "type": "integer"
                 },
                 "path": {
                     "type": "string"
                 },
                 "permission": {
+                    "description": "权限标识",
                     "type": "string"
                 },
                 "sort": {
                     "type": "integer"
                 },
                 "status": {
+                    "description": "1-正常 0-禁用",
                     "type": "integer"
                 },
                 "type": {
+                    "description": "0-目录 1-菜单 2-按钮",
                     "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "visible": {
+                    "description": "1-显示 0-隐藏",
                     "type": "integer"
                 }
             }
@@ -16385,69 +16377,88 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "action": {
+                    "description": "操作描述(取自sys_api.description)",
                     "type": "string"
                 },
                 "biz_code": {
+                    "description": "业务返回码",
                     "type": "integer"
                 },
                 "client_ip": {
+                    "description": "客户端IP",
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "error_msg": {
+                    "description": "失败信息",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "latency_ms": {
+                    "description": "耗时(毫秒)",
                     "type": "integer"
                 },
                 "method": {
+                    "description": "HTTP方法",
                     "type": "string"
                 },
                 "module": {
+                    "description": "所属模块(取自sys_api.group)",
                     "type": "string"
                 },
                 "path": {
+                    "description": "实际请求路径",
                     "type": "string"
                 },
                 "req_params": {
+                    "description": "请求参数(脱敏+截断)",
                     "type": "string"
                 },
                 "resp_params": {
+                    "description": "响应参数(脱敏+截断)",
                     "type": "string"
                 },
                 "role_codes": {
+                    "description": "操作人角色快照(逗号分隔)",
                     "type": "string"
                 },
                 "route": {
+                    "description": "路由模板",
                     "type": "string"
                 },
                 "status": {
+                    "description": "HTTP状态码",
                     "type": "integer"
                 },
                 "success": {
+                    "description": "是否成功",
                     "type": "boolean"
                 },
                 "target_id": {
+                    "description": "目标资源ID",
                     "type": "string"
                 },
                 "trace_id": {
+                    "description": "链路ID，关联应用日志",
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "user_agent": {
+                    "description": "User-Agent",
                     "type": "string"
                 },
                 "user_id": {
+                    "description": "操作人ID",
                     "type": "integer"
                 },
                 "username": {
+                    "description": "操作人用户名(冗余存储)",
                     "type": "string"
                 }
             }
@@ -16462,6 +16473,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "data_scope": {
+                    "description": "数据权限范围 1全部 3本部门 4本部门及子部门 5仅本人",
                     "type": "integer"
                 },
                 "id": {
@@ -16483,6 +16495,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
+                    "description": "1-正常 0-禁用",
                     "type": "integer"
                 },
                 "updated_at": {
@@ -16500,6 +16513,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "dept_id": {
+                    "description": "部门ID(关联hrm_department)",
                     "type": "integer"
                 },
                 "email": {
@@ -16509,6 +16523,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "leader_id": {
+                    "description": "直属上级ID(关联sys_user,审批SUPERIOR用)",
                     "type": "integer"
                 },
                 "nickname": {
@@ -16524,6 +16539,7 @@ const docTemplate = `{
                     }
                 },
                 "status": {
+                    "description": "1-正常 0-禁用",
                     "type": "integer"
                 },
                 "updated_at": {
@@ -16533,6 +16549,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "wecom_user_id": {
+                    "description": "企业微信UserID",
                     "type": "string"
                 }
             }
@@ -18946,29 +18963,6 @@ const docTemplate = `{
                 }
             }
         },
-        "service.SetCapacityRequest": {
-            "type": "object",
-            "properties": {
-                "capacity": {
-                    "type": "integer"
-                },
-                "enabled": {
-                    "type": "integer"
-                },
-                "filter": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "scope_dept_ids": {
-                    "type": "string"
-                },
-                "scope_role_ids": {
-                    "type": "string"
-                }
-            }
-        },
         "service.SetRoleAPIsRequest": {
             "type": "object",
             "required": [
@@ -20114,6 +20108,9 @@ const docTemplate = `{
                 "logo_url": {
                     "type": "string"
                 },
+                "mcp_url": {
+                    "type": "string"
+                },
                 "public_security_beian": {
                     "type": "string"
                 },
@@ -20439,15 +20436,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
+                    "description": "业务状态码(0=成功,非0=错误码)",
                     "type": "integer",
                     "example": 0
                 },
-                "data": {},
+                "data": {
+                    "description": "业务数据(具体类型由各接口决定)"
+                },
                 "msg": {
+                    "description": "提示信息(成功为 success,错误为错误描述)",
                     "type": "string",
                     "example": "success"
                 },
                 "timestamp": {
+                    "description": "服务器时间戳(秒)",
                     "type": "integer"
                 }
             }

@@ -109,8 +109,12 @@ func NotFound(c *gin.Context, msg string) {
 // Response 统一响应信封,供 swagger 文档引用(实际序列化由 Json/OK 等用 gin.H 完成,
 // 字段与此结构一致)。注解中用 xresponse.Response{data=具体类型} 表达返回结构。
 type Response struct {
-	Code      int    `json:"code" example:"0"`
-	Msg       string `json:"msg" example:"success"`
-	Data      any    `json:"data"`
-	Timestamp int64  `json:"timestamp"`
+	// 业务状态码(0=成功,非0=错误码)
+	Code int `json:"code" example:"0"`
+	// 提示信息(成功为 success,错误为错误描述)
+	Msg string `json:"msg" example:"success"`
+	// 业务数据(具体类型由各接口决定)
+	Data any `json:"data"`
+	// 服务器时间戳(秒)
+	Timestamp int64 `json:"timestamp"`
 }

@@ -56,6 +56,7 @@ type UpdateSiteConfigRequest struct {
 	Keywords      string `json:"keywords"`
 	AnalyticsCode string `json:"analytics_code"`
 	Copyright     string `json:"copyright"`
+	McpURL        string `json:"mcp_url"`
 }
 
 // Update 更新站点信息(部分更新:仅更新请求中非空字段,空值保留原值)。
@@ -133,6 +134,9 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	}
 	if req.Copyright != "" {
 		cfg.Copyright = req.Copyright
+	}
+	if req.McpURL != "" {
+		cfg.McpURL = req.McpURL
 	}
 	return s.repo.Update(ctx, cfg)
 }

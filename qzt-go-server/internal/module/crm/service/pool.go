@@ -14,7 +14,7 @@ import (
 	"qzt-go-server/pkg/xtime"
 )
 
-// pool.go 公海池服务:池配置 + 领取/回收规则(1:1 upsert)+ 容量 + 手动回收。
+// pool.go 公海池服务:池配置 + 领取/回收规则(1:1 upsert)+ 手动回收。
 // 回收对象:私海客户(in_pool=0 且 owner 非空)中长期未跟进者。
 // 客户 model 未实现 pool.Recyclable,用 recyclableCustomer 适配器包装。
 
@@ -23,7 +23,6 @@ type PoolService struct {
 	poolRepo        *crrepo.CustomerPoolRepo
 	pickRuleRepo    *crrepo.PoolPickRuleRepo
 	recycleRuleRepo *crrepo.PoolRecycleRuleRepo
-	capacityRepo    *crrepo.CustomerCapacityRepo
 	customerRepo    *crrepo.CustomerRepo
 }
 
@@ -32,7 +31,6 @@ func NewPoolService() *PoolService {
 		poolRepo:        crrepo.NewCustomerPoolRepo(),
 		pickRuleRepo:    crrepo.NewPoolPickRuleRepo(),
 		recycleRuleRepo: crrepo.NewPoolRecycleRuleRepo(),
-		capacityRepo:    crrepo.NewCustomerCapacityRepo(),
 		customerRepo:    crrepo.NewCustomerRepo(),
 	}
 }
@@ -144,43 +142,6 @@ func (s *PoolService) SetRecycleRule(ctx context.Context, poolID uint, rule *crm
 		return err
 	}
 	return s.recycleRuleRepo.Update(ctx, rule)
-}
-
-// ── 容量 ──
-
-// SetCapacityRequest 设置容量请求。
-type SetCapacityRequest struct {
-	ID           uint   `json:"id"`
-	ScopeDeptIDs string `json:"scope_dept_ids"`
-	ScopeRoleIDs string `json:"scope_role_ids"`
-	Capacity     *int   `json:"capacity"`
-	Filter       string `json:"filter"`
-	Enabled      int8   `json:"enabled"`
-}
-
-// SetCapacity 设置客户容量(有 ID 则更新,无则创建)。
-func (s *PoolService) SetCapacity(ctx context.Context, req *SetCapacityRequest) (*crmmodel.CrmCustomerCapacity, error) {
-	c := &crmmodel.CrmCustomerCapacity{
-		ScopeDeptIDs: req.ScopeDeptIDs, ScopeRoleIDs: req.ScopeRoleIDs,
-		Capacity: req.Capacity, Filter: req.Filter, Enabled: req.Enabled,
-	}
-	if c.Enabled == 0 {
-		c.Enabled = 1
-	}
-	if req.ID > 0 {
-		if _, err := s.capacityRepo.GetByID(ctx, req.ID); err != nil {
-			return nil, notFoundOr(err, "容量配置不存在")
-		}
-		c.ID = req.ID
-		if err := s.capacityRepo.Update(ctx, c); err != nil {
-			return nil, err
-		}
-		return c, nil
-	}
-	if err := s.capacityRepo.Create(ctx, c); err != nil {
-		return nil, err
-	}
-	return c, nil
 }
 
 // ── 手动回收 ──

@@ -23,10 +23,15 @@ const (
 // OaNotice 公告通知。
 type OaNotice struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
+	// 标题
 	Title       string         `json:"title" gorm:"size:200;not null;comment:标题"`
+	// 内容
 	Content     string         `json:"content" gorm:"type:text;comment:内容"`
+	// 类型(1通知 2公告)
 	Type        int8           `json:"type" gorm:"default:1;index;comment:类型(1通知 2公告)"`
+	// 状态(0草稿 1发布)
 	Status      int8           `json:"status" gorm:"default:0;index;comment:状态(0草稿 1发布)"`
+	// 发布时间
 	PublishTime xtime.DateTime `json:"publish_time" gorm:"type:datetime;index;comment:发布时间"`
 	base.BaseModel
 }

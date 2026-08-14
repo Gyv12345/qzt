@@ -6,13 +6,18 @@ type SysUser struct {
 	Username     string    `json:"username" gorm:"uniqueIndex;size:64;not null"`
 	Password     string    `json:"-" gorm:"size:128;not null"`
 	Nickname     string    `json:"nickname" gorm:"size:64"`
+	// 部门ID(关联hrm_department)
 	DeptID       *uint     `json:"dept_id" gorm:"comment:部门ID(关联hrm_department)"`
+	// 直属上级ID(关联sys_user,审批SUPERIOR用)
 	LeaderID     *uint     `json:"leader_id" gorm:"comment:直属上级ID(关联sys_user,审批SUPERIOR用)"`
 	Avatar       string    `json:"avatar" gorm:"size:255"`
 	Email        string    `json:"email" gorm:"size:128"`
 	Phone        string    `json:"phone" gorm:"size:20"`
+	// 1-正常 0-禁用
 	Status       int8      `json:"status" gorm:"default:1;comment:1-正常 0-禁用"`
+	// 会话版本，自增使旧 token 失效
 	TokenVersion int       `json:"-" gorm:"default:0;comment:会话版本，自增使旧 token 失效"`
+	// 企业微信UserID
 	WecomUserID  string    `json:"wecom_user_id" gorm:"size:64;index;comment:企业微信UserID"`
 	Roles        []SysRole `json:"roles" gorm:"many2many:sys_user_role;"`
 	BaseModel

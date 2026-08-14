@@ -39,7 +39,6 @@ import type {
   CrmProductPayload,
   CrmProductPrice,
   CrmProductPricePayload,
-  CrmSetCapacity,
   CrmStageConfigResult,
   CrmStageRecord,
   StageDef,
@@ -319,9 +318,6 @@ export const setPoolRecycleRule = (id: number, data: CrmPoolRecycleRule) =>
   request.put(`/crm/customer-pools/${id}/recycle-rule`, data)
 
 export const recyclePool = (id: number) => request.post(`/crm/customer-pools/${id}/recycle`)
-
-export const setPoolCapacity = (data: CrmSetCapacity) =>
-  request.post('/crm/customer-pools/capacity', data)
 
 // ---------- 自定义字段 ----------
 

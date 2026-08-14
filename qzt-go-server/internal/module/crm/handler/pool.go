@@ -204,29 +204,6 @@ func (h *PoolHandler) SetRecycleRule(c *gin.Context) {
 	response.OK(c, nil)
 }
 
-// SetCapacity 设置客户容量
-// @Summary  设置客户容量
-// @Tags     公海池
-// @Accept   json
-// @Produce  json
-// @Security BearerAuth
-// @Param    body  body      service.SetCapacityRequest  true  "设置容量请求"
-// @Success  200   {object}  xresponse.Response
-// @Router   /crm/customer-pools/capacity [post]
-func (h *PoolHandler) SetCapacity(c *gin.Context) {
-	var req service.SetCapacityRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
-		return
-	}
-	cap, err := h.svc.SetCapacity(c.Request.Context(), &req)
-	if err != nil {
-		response.Fail(c, errcode.ErrServer, err.Error())
-		return
-	}
-	response.OK(c, cap)
-}
-
 // ManualRecycle 手动触发回收
 // @Summary  手动触发回收
 // @Tags     公海池

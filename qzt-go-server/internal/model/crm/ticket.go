@@ -28,19 +28,33 @@ const (
 // CrmTicket 售后工单。
 type CrmTicket struct {
 	ID          uint            `json:"id" gorm:"primaryKey"`
+	// 工单编号
 	TicketNo    string          `json:"ticket_no" gorm:"size:64;uniqueIndex;not null;comment:工单编号"`
+	// 标题
 	Title       string          `json:"title" gorm:"size:200;not null;comment:标题"`
+	// 问题描述
 	Description string          `json:"description" gorm:"size:2000;comment:问题描述"`
+	// 客户ID
 	CustomerID  *uint           `json:"customer_id" gorm:"index;comment:客户ID"`
+	// 客户名称
 	CustomerName string         `json:"customer_name" gorm:"size:200;comment:客户名称"`
+	// 关联合同ID
 	ContractID  *uint           `json:"contract_id" gorm:"index;comment:关联合同ID"`
+	// 联系人
 	ContactName string          `json:"contact_name" gorm:"size:100;comment:联系人"`
+	// 联系电话
 	ContactPhone string         `json:"contact_phone" gorm:"size:50;comment:联系电话"`
+	// 问题类型(字典 TICKET_CATEGORY)
 	Category    string          `json:"category" gorm:"size:32;comment:问题类型(字典 TICKET_CATEGORY)"`
+	// 1低2中3高4紧急
 	Priority    int8            `json:"priority" gorm:"default:2;comment:1低2中3高4紧急"`
+	// 1待处理2处理中3已解决4已关闭5已重开
 	Status      int8            `json:"status" gorm:"default:1;index;comment:1待处理2处理中3已解决4已关闭5已重开"`
+	// 处理人ID
 	HandlerID   *uint           `json:"handler_id" gorm:"index;comment:处理人ID"`
+	// 解决方案
 	Solution    string          `json:"solution" gorm:"size:2000;comment:解决方案"`
+	// 解决时间
 	ResolvedAt  xtime.NullDateTime `json:"resolved_at" gorm:"type:datetime;comment:解决时间"`
 	base.BaseModel
 }
@@ -50,10 +64,15 @@ func (CrmTicket) TableName() string { return "crm_ticket" }
 // CrmTicketLog 工单处理日志。
 type CrmTicketLog struct {
 	ID        uint   `json:"id" gorm:"primaryKey"`
+	// 工单ID
 	TicketID  uint   `json:"ticket_id" gorm:"index;not null;comment:工单ID"`
+	// 处理内容
 	Content   string `json:"content" gorm:"size:2000;not null;comment:处理内容"`
+	// 操作人ID
 	OperatorID uint  `json:"operator_id" gorm:"comment:操作人ID"`
+	// 变更前状态
 	OldStatus int8   `json:"old_status" gorm:"comment:变更前状态"`
+	// 变更后状态
 	NewStatus int8   `json:"new_status" gorm:"comment:变更后状态"`
 	base.BaseModel
 }

@@ -278,15 +278,6 @@ export interface CrmPoolRecycleRule {
   conditions: string
 }
 
-export interface CrmSetCapacity {
-  id: number
-  capacity: number
-  enabled: number
-  filter: string
-  scope_dept_ids: string
-  scope_role_ids: string
-}
-
 /** 阶段定义 */
 export interface StageDef {
   key: string

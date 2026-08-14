@@ -27,17 +27,27 @@ const (
 // FinReceivable 应收应付往来款。
 type FinReceivable struct {
 	ID             uint            `json:"id" gorm:"primaryKey"`
+	// 往来单号
 	DocNo          string          `json:"doc_no" gorm:"size:64;uniqueIndex;not null;comment:往来单号"`
+	// RECEIVABLE应收/PAYABLE应付
 	Direction      string          `json:"direction" gorm:"size:20;index;not null;comment:RECEIVABLE应收/PAYABLE应付"`
+	// 往来方类型(CUSTOMER/SUPPLIER/EMPLOYEE)
 	PartyType      string          `json:"party_type" gorm:"size:20;comment:往来方类型(CUSTOMER/SUPPLIER/EMPLOYEE)"`
+	// 往来方ID(客户/供应商/员工ID)
 	PartyID        *uint           `json:"party_id" gorm:"index;comment:往来方ID(客户/供应商/员工ID)"`
+	// 往来方名称(冗余,列表展示用)
 	PartyName      string          `json:"party_name" gorm:"size:200;comment:往来方名称(冗余,列表展示用)"`
+	// 发生日期
 	OccurDate      xtime.DateTime  `json:"occur_date" gorm:"type:date;index;not null;comment:发生日期"`
+	// 到期日期
 	DueDate        xtime.NullDateTime `json:"due_date" gorm:"type:date;comment:到期日期"`
+	// 原始金额
 	OriginalAmount decimal.Decimal `json:"original_amount" gorm:"type:decimal(14,2);not null;comment:原始金额"`
+	// 已结算金额
 	SettledAmount  decimal.Decimal `json:"settled_amount" gorm:"type:decimal(14,2);default:0;comment:已结算金额"`
 	// 关联业务单据(可选)
 	BizType string `json:"biz_type" gorm:"size:32;comment:CONTRACT/PURCHASE_ORDER/LOAN等"`
+	// 业务单据ID
 	BizID   *uint  `json:"biz_id" gorm:"index;comment:业务单据ID"`
 	// 状态
 	Status   int8   `json:"status" gorm:"default:0;index;comment:0未结算1部分2已结清"`

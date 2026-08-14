@@ -713,23 +713,6 @@ CREATE TABLE `crm_customer` (
 INSERT INTO `crm_customer` (`id`, `name`, `customer_no`, `level`, `source`, `status`, `industry`, `owner_id`, `follower_id`, `follow_time`, `in_pool`, `pool_id`, `collection_time`, `pool_reason`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (3, '测试客户A', '', 'A', '1', 1, 'IT', 1, 1, '2026-08-03 14:30:27', 0, NULL, '2026-08-03 12:55:04.592', '', '2026-08-03 12:51:47.477', '2026-08-03 16:09:26.226', NULL);
 
-DROP TABLE IF EXISTS `crm_customer_capacity`;
-
-CREATE TABLE `crm_customer_capacity` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `scope_dept_ids` text COLLATE utf8mb4_unicode_ci COMMENT '适用部门ID集合(JSON)',
-  `scope_role_ids` text COLLATE utf8mb4_unicode_ci COMMENT '适用角色ID集合(JSON)',
-  `capacity` bigint DEFAULT NULL COMMENT '容量上限(NULL不限)',
-  `filter` text COLLATE utf8mb4_unicode_ci COMMENT '不计入容量的过滤条件(JSON)',
-  `enabled` tinyint DEFAULT NULL COMMENT '1启用 0禁用',
-  `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL,
-  `deleted_at` datetime(3) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_crm_customer_capacity_created_at` (`created_at`),
-  KEY `idx_crm_customer_capacity_deleted_at` (`deleted_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 DROP TABLE IF EXISTS `crm_customer_collaboration`;
 
 CREATE TABLE `crm_customer_collaboration` (

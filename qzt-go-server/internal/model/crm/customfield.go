@@ -65,7 +65,9 @@ const (
 // SysModuleForm 模块表单配置。一个 formKey 对应一个表单(客户/商机/合同/产品/跟进记录)。
 type SysModuleForm struct {
 	ID      string  `json:"id" gorm:"primaryKey;size:32"`
+	// 模块标识
 	FormKey FormKey `json:"form_key" gorm:"uniqueIndex;size:50;not null;comment:模块标识"`
+	// 表单名称
 	Name    string  `json:"name" gorm:"size:100;not null;comment:表单名称"`
 }
 
@@ -74,14 +76,23 @@ func (SysModuleForm) TableName() string { return "sys_module_form" }
 // SysModuleField 字段定义(主信息)。
 type SysModuleField struct {
 	ID                 string    `json:"id" gorm:"primaryKey;size:32"`
+	// 所属表单ID
 	FormID             string    `json:"form_id" gorm:"index:idx_form;size:32;not null;comment:所属表单ID"`
+	// 字段内置Key
 	InternalKey        string    `json:"internal_key" gorm:"index:idx_form_internal;size:255;comment:字段内置Key"`
+	// 字段名称
 	Name               string    `json:"name" gorm:"size:255;not null;comment:字段名称"`
+	// 字段类型
 	Type               FieldType `json:"type" gorm:"size:20;not null;comment:字段类型"`
+	// 是否移动端
 	Mobile             int8      `json:"mobile" gorm:"default:0;comment:是否移动端"`
+	// 排序
 	Pos                int64     `json:"pos" gorm:"default:0;comment:排序"`
+	// 是否可见
 	Readable           int8      `json:"readable" gorm:"default:1;comment:是否可见"`
+	// 是否可编辑
 	Editable           int8      `json:"editable" gorm:"default:1;comment:是否可编辑"`
+	// 转化映射目标字段ID(线索字段→客户字段)
 	ConvertTargetField string    `json:"convert_target_field" gorm:"column:convert_target_field;size:32;comment:转化映射目标字段ID(线索字段→客户字段)"`
 }
 
@@ -90,6 +101,7 @@ func (SysModuleField) TableName() string { return "sys_module_field" }
 // SysModuleFieldBlob 字段定义的大属性(选项/校验/默认值/联动规则,JSON)。
 type SysModuleFieldBlob struct {
 	ID   string `json:"id" gorm:"primaryKey;size:32"`
+	// 字段属性JSON
 	Prop string `json:"prop" gorm:"type:text;comment:字段属性JSON"`
 }
 
@@ -101,8 +113,11 @@ func (SysModuleFieldBlob) TableName() string { return "sys_module_field_blob" }
 // CustomerField 客户自定义字段值(单值)。
 type CustomerField struct {
 	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	// 客户ID
 	ResourceID string `json:"resource_id" gorm:"index:idx_rfv,priority:1;size:32;not null;comment:客户ID"`
+	// 字段ID
 	FieldID    string `json:"field_id" gorm:"index:idx_rfv,priority:2;index;size:32;not null;comment:字段ID"`
+	// 字段值
 	FieldValue string `json:"field_value" gorm:"index:idx_rfv,priority:3;size:255;not null;comment:字段值"`
 }
 
@@ -121,6 +136,7 @@ func (CustomerFieldBlob) TableName() string { return "customer_field_blob" }
 // OpportunityField 商机自定义字段值。
 type OpportunityField struct {
 	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	// 商机ID
 	ResourceID string `json:"resource_id" gorm:"index:idx_opp_rfv,priority:1;size:32;not null;comment:商机ID"`
 	FieldID    string `json:"field_id" gorm:"index:idx_opp_rfv,priority:2;index;size:32;not null"`
 	FieldValue string `json:"field_value" gorm:"index:idx_opp_rfv,priority:3;size:255;not null"`
@@ -140,6 +156,7 @@ func (OpportunityFieldBlob) TableName() string { return "opportunity_field_blob"
 // ContractField 合同自定义字段值。
 type ContractField struct {
 	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	// 合同ID
 	ResourceID string `json:"resource_id" gorm:"index:idx_c_rfv,priority:1;size:32;not null;comment:合同ID"`
 	FieldID    string `json:"field_id" gorm:"index:idx_c_rfv,priority:2;index;size:32;not null"`
 	FieldValue string `json:"field_value" gorm:"index:idx_c_rfv,priority:3;size:255;not null"`
@@ -159,6 +176,7 @@ func (ContractFieldBlob) TableName() string { return "contract_field_blob" }
 // ProductField 产品自定义字段值。
 type ProductField struct {
 	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	// 产品ID
 	ResourceID string `json:"resource_id" gorm:"index:idx_p_rfv,priority:1;size:32;not null;comment:产品ID"`
 	FieldID    string `json:"field_id" gorm:"index:idx_p_rfv,priority:2;index;size:32;not null"`
 	FieldValue string `json:"field_value" gorm:"index:idx_p_rfv,priority:3;size:255;not null"`
@@ -178,6 +196,7 @@ func (ProductFieldBlob) TableName() string { return "product_field_blob" }
 // FollowUpRecordField 跟进记录自定义字段值。
 type FollowUpRecordField struct {
 	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	// 跟进记录ID
 	ResourceID string `json:"resource_id" gorm:"index:idx_f_rfv,priority:1;size:32;not null;comment:跟进记录ID"`
 	FieldID    string `json:"field_id" gorm:"index:idx_f_rfv,priority:2;index;size:32;not null"`
 	FieldValue string `json:"field_value" gorm:"index:idx_f_rfv,priority:3;size:255;not null"`
@@ -197,8 +216,11 @@ func (FollowUpRecordFieldBlob) TableName() string { return "follow_up_record_fie
 // LeadField 线索自定义字段值(单值)。
 type LeadField struct {
 	ID         string `json:"id" gorm:"primaryKey;size:32"`
+	// 线索ID
 	ResourceID string `json:"resource_id" gorm:"index:idx_lead_rfv,priority:1;size:32;not null;comment:线索ID"`
+	// 字段ID
 	FieldID    string `json:"field_id" gorm:"index:idx_lead_rfv,priority:2;index;size:32;not null;comment:字段ID"`
+	// 字段值
 	FieldValue string `json:"field_value" gorm:"index:idx_lead_rfv,priority:3;size:255;not null;comment:字段值"`
 }
 

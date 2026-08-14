@@ -18,12 +18,19 @@ const SystemSenderID uint = 0
 // OaMessage 站内信。
 type OaMessage struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
+	// 发送人ID(系统消息=0)
 	SenderID    uint           `json:"sender_id" gorm:"index;comment:发送人ID(系统消息=0)"`
+	// 接收人ID
 	ReceiverID  uint           `json:"receiver_id" gorm:"index;comment:接收人ID"`
+	// 标题
 	Title       string         `json:"title" gorm:"size:200;not null;comment:标题"`
+	// 内容
 	Content     string         `json:"content" gorm:"type:text;comment:内容"`
+	// 内容格式(text/markdown)
 	ContentType string         `json:"content_type" gorm:"size:20;default:text;comment:内容格式(text/markdown)"`
+	// 是否已读(0未读 1已读)
 	IsRead      int8           `json:"is_read" gorm:"default:0;index;comment:是否已读(0未读 1已读)"`
+	// 阅读时间
 	ReadTime    xtime.DateTime `json:"read_time" gorm:"type:datetime;comment:阅读时间"`
 	base.BaseModel
 }

@@ -29,11 +29,17 @@ const (
 // CrmBusinessTitle 工商抬头(开票用的企业信息)。
 type CrmBusinessTitle struct {
 	ID          uint   `json:"id" gorm:"primaryKey"`
+	// 企业名称
 	Name        string `json:"name" gorm:"size:255;index;not null;comment:企业名称"`
+	// 税号
 	TaxNo       string `json:"tax_no" gorm:"size:50;comment:税号"`
+	// 地址
 	Address     string `json:"address" gorm:"size:255;comment:地址"`
+	// 电话
 	Phone       string `json:"phone" gorm:"size:30;comment:电话"`
+	// 开户行
 	BankName    string `json:"bank_name" gorm:"size:100;comment:开户行"`
+	// 银行账号
 	BankAccount string `json:"bank_account" gorm:"size:50;comment:银行账号"`
 	base.BaseModel
 }
@@ -43,25 +49,45 @@ func (CrmBusinessTitle) TableName() string { return "crm_business_title" }
 // CrmContract CRM 合同。received_amount 由回款记录增删时累计维护,不信任客户端。
 type CrmContract struct {
 	ID             uint               `json:"id" gorm:"primaryKey"`
+	// 合同编号
 	ContractNo     string             `json:"contract_no" gorm:"size:64;comment:合同编号"`
+	// 合同名称
 	Name           string             `json:"name" gorm:"size:255;not null;comment:合同名称"`
+	// 客户ID
 	CustomerID     uint               `json:"customer_id" gorm:"index:idx_contract_customer;not null;comment:客户ID"`
+	// 来源商机ID
 	OpportunityID  *uint              `json:"opportunity_id" gorm:"index;comment:来源商机ID"`
+	// 工商抬头ID
 	TitleID        *uint              `json:"title_id" gorm:"comment:工商抬头ID"`
+	// 合同总额
 	TotalAmount    decimal.Decimal    `json:"total_amount" gorm:"type:decimal(14,2);not null;comment:合同总额"`
+	// 已回款总额(累计维护)
 	ReceivedAmount decimal.Decimal    `json:"received_amount" gorm:"type:decimal(14,2);default:0;comment:已回款总额(累计维护)"`
+	// 签订日期
 	SignedDate     xtime.NullDateTime `json:"signed_date" gorm:"type:date;comment:签订日期"`
+	// 开始日期
 	StartDate      xtime.NullDateTime `json:"start_date" gorm:"type:date;comment:开始日期"`
+	// 结束日期
 	EndDate        xtime.NullDateTime `json:"end_date" gorm:"type:date;comment:结束日期"`
+	// 阶段(字典CONTRACT_STAGE)
 	Stage          string             `json:"stage" gorm:"size:32;index;default:DRAFT;not null;comment:阶段(字典CONTRACT_STAGE)"`
+	// 审批状态(NONE/PROCESSING/APPROVED/REJECTED/REVOKED)
 	ApprovalStatus string             `json:"approval_status" gorm:"size:32;default:NONE;comment:审批状态(NONE/PROCESSING/APPROVED/REJECTED/REVOKED)"`
+	// 负责人
 	OwnerID        *uint              `json:"owner_id" gorm:"index:idx_contract_owner;comment:负责人"`
+	// 最新跟进人
 	FollowerID     *uint              `json:"follower_id" gorm:"comment:最新跟进人"`
+	// 最新跟进时间
 	FollowTime     xtime.NullDateTime `json:"follow_time" gorm:"type:datetime;comment:最新跟进时间"`
+	// 合同内容/备注
 	Content        string             `json:"content" gorm:"type:text;comment:合同内容/备注"`
+	// 是否开启电子签
 	EsignEnabled   bool               `json:"esign_enabled" gorm:"default:false;comment:是否开启电子签"`
+	// 合同模板ID(电子签渲染PDF用)
 	TemplateID     *uint              `json:"template_id" gorm:"comment:合同模板ID(电子签渲染PDF用)"`
+	// e签宝流程ID
 	EsignFlowID    string             `json:"esign_flow_id" gorm:"size:64;comment:e签宝流程ID"`
+	// NONE/INITIATED/SIGNING/SIGNED/FAILED
 	EsignStatus    string             `json:"esign_status" gorm:"size:16;default:NONE;comment:NONE/INITIATED/SIGNING/SIGNED/FAILED"`
 	base.BaseModel
 }
@@ -71,10 +97,15 @@ func (CrmContract) TableName() string { return "crm_contract" }
 // CrmContractPaymentPlan 回款计划。received_amount 由回款记录累计维护。
 type CrmContractPaymentPlan struct {
 	ID             uint               `json:"id" gorm:"primaryKey"`
+	// 合同ID
 	ContractID     uint               `json:"contract_id" gorm:"index;not null;comment:合同ID"`
+	// 计划回款日期
 	PlanDate       xtime.NullDateTime `json:"plan_date" gorm:"type:date;not null;comment:计划回款日期"`
+	// 计划金额
 	PlanAmount     decimal.Decimal    `json:"plan_amount" gorm:"type:decimal(14,2);not null;comment:计划金额"`
+	// 已回款金额(累计维护)
 	ReceivedAmount decimal.Decimal    `json:"received_amount" gorm:"type:decimal(14,2);default:0;comment:已回款金额(累计维护)"`
+	// 0未回款 1部分 2已回款
 	Status         int8               `json:"status" gorm:"default:0;comment:0未回款 1部分 2已回款"`
 	Remark         string             `json:"remark" gorm:"size:200"`
 	base.BaseModel
@@ -85,10 +116,15 @@ func (CrmContractPaymentPlan) TableName() string { return "crm_contract_payment_
 // CrmContractPaymentRecord 回款记录。增删时双向更新 plan 与 contract 的累计字段。
 type CrmContractPaymentRecord struct {
 	ID           uint               `json:"id" gorm:"primaryKey"`
+	// 合同ID
 	ContractID   uint               `json:"contract_id" gorm:"index;not null;comment:合同ID"`
+	// 关联回款计划(可选)
 	PlanID       *uint              `json:"plan_id" gorm:"index;comment:关联回款计划(可选)"`
+	// 实际回款日期
 	ReceivedDate xtime.NullDateTime `json:"received_date" gorm:"type:date;not null;comment:实际回款日期"`
+	// 回款金额
 	Amount       decimal.Decimal    `json:"amount" gorm:"type:decimal(14,2);not null;comment:回款金额"`
+	// 回款方式(字典PAYMENT_METHOD)
 	Method       string             `json:"method" gorm:"size:32;comment:回款方式(字典PAYMENT_METHOD)"`
 	Remark       string             `json:"remark" gorm:"size:200"`
 	base.BaseModel

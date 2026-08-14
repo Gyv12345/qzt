@@ -13,11 +13,17 @@ const (
 // CmsCategory 文章分类。ParentID=0 表示根分类。
 type CmsCategory struct {
 	ID       uint   `json:"id" gorm:"primaryKey"`
+	// 父分类ID(0为根)
 	ParentID uint   `json:"parent_id" gorm:"default:0;index;comment:父分类ID(0为根)"`
+	// 分类名称
 	Name     string `json:"name" gorm:"size:64;not null;comment:分类名称"`
+	// URL别名
 	Slug     string `json:"slug" gorm:"uniqueIndex;size:128;comment:URL别名"`
+	// 排序
 	Sort     int    `json:"sort" gorm:"default:0;comment:排序"`
+	// 1启用 0禁用
 	Status   int8   `json:"status" gorm:"default:1;comment:1启用 0禁用"`
+	// 备注
 	Remark   string `json:"remark" gorm:"size:255;comment:备注"`
 	// Children 仅内存树，不落库。
 	Children []*CmsCategory `json:"children,omitempty" gorm:"-"`

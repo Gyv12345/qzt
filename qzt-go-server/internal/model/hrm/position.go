@@ -8,11 +8,17 @@ import "qzt-go-server/internal/model/base"
 // HrmPosition 岗位。
 type HrmPosition struct {
 	ID           uint   `json:"id" gorm:"primaryKey"`
+	// 岗位名称
 	Name         string `json:"name" gorm:"size:128;not null;comment:岗位名称"`
+	// 岗位编码
 	Code         string `json:"code" gorm:"size:64;uniqueIndex;comment:岗位编码"`
+	// 所属部门ID
 	DepartmentID uint   `json:"department_id" gorm:"index;not null;comment:所属部门ID"`
+	// 排序
 	Sort         int    `json:"sort" gorm:"default:0;comment:排序"`
+	// 1正常 0禁用
 	Status       int8   `json:"status" gorm:"default:1;comment:1正常 0禁用"`
+	// 备注
 	Remark       string `json:"remark" gorm:"size:500;comment:备注"`
 	base.BaseModel
 }

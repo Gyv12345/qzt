@@ -21,13 +21,21 @@ const ApiKeyPrefix = "qzt_"
 // SysApiKey 用户 API Key。
 type SysApiKey struct {
 	ID         uint            `json:"id" gorm:"primaryKey"`
+	// 关联用户ID
 	UserID     uint            `json:"user_id" gorm:"index;not null;comment:关联用户ID"`
+	// Key名称(如'我的CLI')
 	Name       string          `json:"name" gorm:"size:128;not null;comment:Key名称(如'我的CLI')"`
+	// 前缀(qzt_)
 	KeyPrefix  string          `json:"key_prefix" gorm:"size:10;comment:前缀(qzt_)"`
+	// SHA256 hash
 	KeyHash    string          `json:"-" gorm:"size:64;uniqueIndex;not null;comment:SHA256 hash"`
+	// 最后使用时间
 	LastUsedAt xtime.NullDateTime `json:"last_used_at" gorm:"type:datetime;comment:最后使用时间"`
+	// 最后使用IP
 	LastUsedIP string          `json:"last_used_ip" gorm:"size:45;comment:最后使用IP"`
+	// 过期时间(空=永不过期)
 	ExpiresAt  xtime.NullDateTime `json:"expires_at" gorm:"type:datetime;comment:过期时间(空=永不过期)"`
+	// 1启用0禁用
 	Status     int8            `json:"status" gorm:"default:1;index;comment:1启用0禁用"`
 	base.BaseModel
 }

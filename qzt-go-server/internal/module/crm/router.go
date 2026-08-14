@@ -217,7 +217,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.DELETE("/customer-pools/:id", poolHandler.DeletePool)
 		auth.PUT("/customer-pools/:id/pick-rule", poolHandler.SetPickRule)
 		auth.PUT("/customer-pools/:id/recycle-rule", poolHandler.SetRecycleRule)
-		auth.POST("/customer-pools/capacity", poolHandler.SetCapacity)
 		auth.POST("/customer-pools/:id/recycle", poolHandler.ManualRecycle)
 
 		// 线索管理

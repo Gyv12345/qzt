@@ -6,7 +6,6 @@ import {
   Col,
   DatePicker,
   Form,
-  Input,
   InputNumber,
   Popconfirm,
   Radio,
@@ -33,7 +32,6 @@ import {
   deleteCustomerPool,
   listCustomerPools,
   recyclePool,
-  setPoolCapacity,
   setPoolPickRule,
   setPoolRecycleRule,
   updateCustomerPool,
@@ -73,14 +71,6 @@ interface RecycleRuleFormValues {
   conditions?: RecycleConditionFormValue[]
 }
 
-interface CapacityFormValues {
-  capacity: number
-  enabled: boolean
-  filter?: string
-  scope_dept_ids?: string[]
-  scope_role_ids?: string[]
-}
-
 /** 容错解析 "[1,2]" 形式的 JSON 数组字符串为字符串数组(tags 输入回显用) */
 const parseIdTags = (json: string): string[] => {
   if (!json) return []
@@ -116,7 +106,6 @@ export default function PoolPage() {
   const [currentPool, setCurrentPool] = useState<CrmCustomerPool | null>(null)
   const [pickRuleOpen, setPickRuleOpen] = useState(false)
   const [recycleRuleOpen, setRecycleRuleOpen] = useState(false)
-  const [capacityOpen, setCapacityOpen] = useState(false)
 
   const openCreate = () => {
     setEditing(null)
@@ -195,21 +184,6 @@ export default function PoolPage() {
       conditions: JSON.stringify(conditions),
     })
     message.success('回收规则已保存')
-    actionRef.current?.reload()
-    return true
-  }
-
-  const handleCapacity = async (values: CapacityFormValues) => {
-    if (!currentPool) return false
-    await setPoolCapacity({
-      id: currentPool.id,
-      capacity: values.capacity ?? 0,
-      enabled: values.enabled ? 1 : 0,
-      filter: values.filter ?? '',
-      scope_dept_ids: tagsToJson(values.scope_dept_ids),
-      scope_role_ids: tagsToJson(values.scope_role_ids),
-    })
-    message.success('容量设置已保存')
     actionRef.current?.reload()
     return true
   }
@@ -297,18 +271,6 @@ export default function PoolPage() {
               }}
             >
               回收规则
-            </Button>
-          </Auth>
-          <Auth perm="crm:pool:edit">
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                setCurrentPool(record)
-                setCapacityOpen(true)
-              }}
-            >
-              容量设置
             </Button>
           </Auth>
           <Auth perm="crm:pool:recycle">
@@ -547,31 +509,6 @@ export default function PoolPage() {
               </>
             )}
           </Form.List>
-        </ProForm.Item>
-      </ModalForm>
-      <ModalForm<CapacityFormValues>
-        title={`容量设置${currentPool ? ` - ${currentPool.name}` : ''}`}
-        open={capacityOpen}
-        onOpenChange={setCapacityOpen}
-        modalProps={{ destroyOnHidden: true, maskClosable: false }}
-        initialValues={{ capacity: 0, enabled: true, filter: '', scope_dept_ids: [], scope_role_ids: [] }}
-        onFinish={handleCapacity}
-        width={480}
-      >
-        <ProForm.Item name="capacity" label="容量" rules={[{ required: true, message: '请输入容量' }]}>
-          <InputNumber min={0} precision={0} style={{ width: '100%' }} placeholder="每人最多持有客户数,0 不限" />
-        </ProForm.Item>
-        <ProForm.Item name="enabled" label="启用容量限制" valuePropName="checked">
-          <Switch checkedChildren="启用" unCheckedChildren="禁用" />
-        </ProForm.Item>
-        <ProForm.Item name="filter" label="过滤条件">
-          <Input placeholder="过滤条件,留空表示不过滤" />
-        </ProForm.Item>
-        <ProForm.Item name="scope_dept_ids" label="适用部门">
-          <Select {...idTagsSelectProps} />
-        </ProForm.Item>
-        <ProForm.Item name="scope_role_ids" label="适用角色">
-          <Select {...idTagsSelectProps} />
         </ProForm.Item>
       </ModalForm>
     </>

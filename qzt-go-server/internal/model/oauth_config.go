@@ -15,13 +15,19 @@ const (
 // credentials 存敏感信息(secret),JSON 格式,响应时脱敏。
 type SysOauthConfig struct {
 	ID       uint   `json:"id" gorm:"primaryKey"`
+	// 渠道(wecom/ding/feishu)
 	Provider string `json:"provider" gorm:"size:32;uniqueIndex;not null;comment:渠道(wecom/ding/feishu)"`
+	// 显示名称(如'企业微信扫码登录')
 	Name     string `json:"name" gorm:"size:100;comment:显示名称(如'企业微信扫码登录')"`
+	// 是否启用(1启用0禁用)
 	Enabled  int8   `json:"enabled" gorm:"default:0;index;comment:是否启用(1启用0禁用)"`
 	// 渠道公共字段(企业微信: corp_id=AppID; 钉钉: app_key)
 	AppID       string `json:"app_id" gorm:"size:128;comment:应用ID(corp_id/app_key)"`
+	// 应用Secret(脱敏,不返回)
 	AppSecret   string `json:"-" gorm:"size:256;comment:应用Secret(脱敏,不返回)"`
+	// AgentID(企业微信用)
 	AgentID     string `json:"agent_id" gorm:"size:64;comment:AgentID(企业微信用)"`
+	// 扫码登录回调地址
 	RedirectURI string `json:"redirect_uri" gorm:"size:500;comment:扫码登录回调地址"`
 	// 额外配置(JSON,不同渠道的扩展字段,如企业微信的可信域名)
 	Extra  string `json:"extra" gorm:"type:text;comment:扩展配置JSON"`
