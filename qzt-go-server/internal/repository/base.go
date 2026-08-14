@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"sort"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -41,9 +43,28 @@ func (q *QueryOptions) applyFilter(db *gorm.DB) *gorm.DB {
 	if len(q.Where) > 0 {
 		db = db.Where(q.Where)
 	}
-	for field, kw := range q.Search {
-		if kw != "" {
-			db = db.Where(field+" LIKE ?", "%"+kw+"%")
+	// Search 语义:任一字段命中(OR)。单字段直接 LIKE;多字段合并为括号包裹的
+	// OR 分组——逐字段 Where 是 AND,会导致 name+code 双字段搜索几乎恒空。
+	// 括号防止与外层 AND 条件因 SQL 优先级串味;字段排序保证 SQL 稳定。
+	if len(q.Search) > 0 {
+		fields := make([]string, 0, len(q.Search))
+		args := make([]any, 0, len(q.Search))
+		for field, kw := range q.Search {
+			if kw == "" {
+				continue
+			}
+			fields = append(fields, field)
+			args = append(args, "%"+kw+"%")
+		}
+		sort.Strings(fields)
+		if len(fields) == 1 {
+			db = db.Where(fields[0]+" LIKE ?", args[0])
+		} else if len(fields) > 1 {
+			conds := make([]string, len(fields))
+			for i, f := range fields {
+				conds[i] = f + " LIKE ?"
+			}
+			db = db.Where("("+strings.Join(conds, " OR ")+")", args...)
 		}
 	}
 	for _, c := range q.Conds {
