@@ -7,6 +7,6 @@ export interface SysUserOption {
   dept_id?: number
 }
 
-/** 系统用户列表(分页,支持 keyword 搜索姓名/用户名) */
-export const listUsers = (params: { page: number; page_size: number; keyword?: string }) =>
-  request.get<unknown, { list: SysUserOption[]; total: number }>('/system/users', { params })
+/** 用户简表选项(登录即可用):站内信收件人、转移负责人等选人场景,支持 keyword 搜索 */
+export const listUsers = (params: { keyword?: string; limit?: number }) =>
+  request.get<unknown, { list: SysUserOption[] }>('/system/users/options', { params })

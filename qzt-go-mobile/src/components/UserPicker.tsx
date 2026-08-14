@@ -18,7 +18,7 @@ export default function UserPicker({ visible, title = '选择用户', onClose, o
   const load = useCallback(async (kw: string) => {
     setLoading(true)
     try {
-      const r = await listUsers({ page: 1, page_size: 50, keyword: kw || undefined })
+      const r = await listUsers({ keyword: kw || undefined, limit: 50 })
       setList(r.list || [])
     } catch {
       setList([])
