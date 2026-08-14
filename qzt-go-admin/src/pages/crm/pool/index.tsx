@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
   App,
@@ -13,7 +13,9 @@ import {
   Space,
   Switch,
   Tag,
+  TreeSelect,
   Typography,
+  type TreeSelectProps,
 } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import {
@@ -36,15 +38,19 @@ import {
   setPoolRecycleRule,
   updateCustomerPool,
 } from '../../../services/crm'
+import { getDepartmentTree } from '../../../services/hrm'
+import { listAllRoles, listAllUsers } from '../../../services/system'
 import type { CrmCustomerPool, CrmPoolPayload, CrmRecycleCondition } from '../../../types/crm'
+import type { HrmDepartment } from '../../../types/hrm'
+import type { SysRole, SysUser } from '../../../types'
 
 const { RangePicker } = DatePicker
 
 interface PoolFormValues {
   name: string
-  scope_dept_ids?: string[]
-  scope_role_ids?: string[]
-  admin_user_ids?: string[]
+  scope_dept_ids?: number[]
+  scope_role_ids?: number[]
+  admin_user_ids?: number[]
   enabled: boolean
   auto_recycle: boolean
 }
@@ -71,30 +77,26 @@ interface RecycleRuleFormValues {
   conditions?: RecycleConditionFormValue[]
 }
 
-/** 容错解析 "[1,2]" 形式的 JSON 数组字符串为字符串数组(tags 输入回显用) */
-const parseIdTags = (json: string): string[] => {
+/** 容错解析 "[1,2]" 形式的 JSON 数组字符串为数字 ID 数组 */
+const parseIdArray = (json?: string): number[] => {
   if (!json) return []
   try {
     const arr: unknown = JSON.parse(json)
-    return Array.isArray(arr) ? arr.map((v) => String(v)) : []
+    return Array.isArray(arr)
+      ? arr.map((v) => Number(v)).filter((n) => Number.isInteger(n) && n > 0)
+      : []
   } catch {
     return []
   }
 }
 
-/** tags 输入转回 JSON 数组字符串,非数字项丢弃 */
-const tagsToJson = (tags?: string[]): string => {
-  const nums = (tags ?? [])
-    .map((t) => Number(t))
-    .filter((n) => Number.isInteger(n) && n >= 0)
-  return nums.length ? JSON.stringify(nums) : ''
-}
-
-/** 数字 ID tags 输入框通用属性 */
-const idTagsSelectProps = {
-  mode: 'tags' as const,
-  open: false,
-  placeholder: '输入数字 ID 后回车',
+/** 部门树 → TreeSelect data(表单用) */
+function deptToTreeData(depts: HrmDepartment[]): TreeSelectProps['treeData'] {
+  return depts.map((d) => ({
+    title: d.name,
+    value: d.id,
+    children: d.children?.length ? deptToTreeData(d.children) : undefined,
+  }))
 }
 
 export default function PoolPage() {
@@ -106,6 +108,16 @@ export default function PoolPage() {
   const [currentPool, setCurrentPool] = useState<CrmCustomerPool | null>(null)
   const [pickRuleOpen, setPickRuleOpen] = useState(false)
   const [recycleRuleOpen, setRecycleRuleOpen] = useState(false)
+  const [deptTree, setDeptTree] = useState<HrmDepartment[]>([])
+  const [roles, setRoles] = useState<SysRole[]>([])
+  const [users, setUsers] = useState<SysUser[]>([])
+  const deptTreeData = useMemo(() => deptToTreeData(deptTree), [deptTree])
+
+  useEffect(() => {
+    getDepartmentTree().then(setDeptTree).catch(() => {})
+    listAllRoles().then(setRoles).catch(() => {})
+    listAllUsers().then(setUsers).catch(() => {})
+  }, [])
 
   const openCreate = () => {
     setEditing(null)
@@ -118,9 +130,9 @@ export default function PoolPage() {
     setEditing(record)
     form.setFieldsValue({
       name: record.name,
-      scope_dept_ids: parseIdTags(record.scope_dept_ids),
-      scope_role_ids: parseIdTags(record.scope_role_ids),
-      admin_user_ids: parseIdTags(record.admin_user_ids),
+      scope_dept_ids: parseIdArray(record.scope_dept_ids),
+      scope_role_ids: parseIdArray(record.scope_role_ids),
+      admin_user_ids: parseIdArray(record.admin_user_ids),
       enabled: record.enabled === 1,
       auto_recycle: record.auto_recycle === 1,
     })
@@ -130,9 +142,9 @@ export default function PoolPage() {
   const handleSubmit = async (values: PoolFormValues) => {
     const payload: CrmPoolPayload = {
       name: values.name,
-      scope_dept_ids: tagsToJson(values.scope_dept_ids),
-      scope_role_ids: tagsToJson(values.scope_role_ids),
-      admin_user_ids: tagsToJson(values.admin_user_ids),
+      scope_dept_ids: values.scope_dept_ids?.length ? JSON.stringify(values.scope_dept_ids) : '',
+      scope_role_ids: values.scope_role_ids?.length ? JSON.stringify(values.scope_role_ids) : '',
+      admin_user_ids: values.admin_user_ids?.length ? JSON.stringify(values.admin_user_ids) : '',
       enabled: values.enabled ? 1 : 0,
       auto_recycle: values.auto_recycle ? 1 : 0,
     }
@@ -341,18 +353,52 @@ export default function PoolPage() {
           colProps={{ span: 12 }}
         />
         <Col span={12}>
-          <ProForm.Item name="scope_dept_ids" label="适用部门">
-            <Select {...idTagsSelectProps} />
+          <ProForm.Item
+            name="scope_dept_ids"
+            label="适用部门"
+            tooltip="选中部门的成员可见并领取该公海池内的线索/客户;留空表示全部部门可见"
+          >
+            <TreeSelect
+              multiple
+              treeData={deptTreeData}
+              showSearch
+              treeNodeFilterProp="title"
+              placeholder="选择可见部门(留空=全部)"
+              style={{ width: '100%' }}
+              allowClear
+            />
           </ProForm.Item>
         </Col>
         <Col span={12}>
-          <ProForm.Item name="scope_role_ids" label="适用角色">
-            <Select {...idTagsSelectProps} />
+          <ProForm.Item
+            name="scope_role_ids"
+            label="适用角色"
+            tooltip="选中角色可见该公海池;留空表示不限角色"
+          >
+            <Select
+              mode="multiple"
+              showSearch
+              optionFilterProp="label"
+              placeholder="选择可见角色(留空=全部)"
+              options={roles.map((r) => ({ label: r.name, value: r.id }))}
+              allowClear
+            />
           </ProForm.Item>
         </Col>
         <Col span={12}>
-          <ProForm.Item name="admin_user_ids" label="管理员">
-            <Select {...idTagsSelectProps} />
+          <ProForm.Item
+            name="admin_user_ids"
+            label="管理员"
+            tooltip="公海池负责人,可将池内线索/客户分配给指定成员"
+          >
+            <Select
+              mode="multiple"
+              showSearch
+              optionFilterProp="label"
+              placeholder="选择公海管理员"
+              options={users.map((u) => ({ label: `${u.nickname}(${u.username})`, value: u.id }))}
+              allowClear
+            />
           </ProForm.Item>
         </Col>
         <Col span={12}>
