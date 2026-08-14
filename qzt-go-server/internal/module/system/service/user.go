@@ -205,6 +205,32 @@ func (s *UserService) List(ctx context.Context, page, pageSize int) ([]model.Sys
 	})
 }
 
+// UserOptionDTO 选人简表(只暴露选人必需字段,不含邮箱/电话等)。
+type UserOptionDTO struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	DeptID   *uint  `json:"dept_id,omitempty"`
+}
+
+// ListOptions 用户简表(登录即可用):站内信收件人、转移负责人等选人场景。
+// keyword 模糊匹配用户名/昵称;limit 由 repo 钳制在 1~100。
+func (s *UserService) ListOptions(ctx context.Context, keyword string, limit int) ([]UserOptionDTO, error) {
+	users, err := s.userRepo.SearchOptions(ctx, strings.TrimSpace(keyword), limit)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]UserOptionDTO, 0, len(users))
+	for _, u := range users {
+		nickname := u.Nickname
+		if nickname == "" {
+			nickname = u.Username
+		}
+		out = append(out, UserOptionDTO{ID: u.ID, Username: u.Username, Nickname: nickname, DeptID: u.DeptID})
+	}
+	return out, nil
+}
+
 func (s *UserService) GetProfile(ctx context.Context, id uint) (*model.SysUser, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {

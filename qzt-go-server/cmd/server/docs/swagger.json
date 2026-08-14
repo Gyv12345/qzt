@@ -15605,6 +15605,45 @@
                 }
             }
         },
+        "/system/users/options": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "登录即可用的用户简表(id/用户名/昵称),供站内信收件人、转移负责人等选人场景;支持 keyword 模糊搜索",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户简表选项",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户名/昵称关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "返回条数(默认50,最大100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/users/{id}": {
             "get": {
                 "security": [

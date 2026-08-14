@@ -148,6 +148,29 @@ func (h *UserHandler) List(c *gin.Context) {
 	})
 }
 
+// ListOptions 用户简表(仅登录,无 RBAC)
+// @Summary      用户简表选项
+// @Description  登录即可用的用户简表(id/用户名/昵称),供站内信收件人、转移负责人等选人场景;支持 keyword 模糊搜索
+// @Tags         用户管理
+// @Produce      json
+// @Security     BearerAuth
+// @Param        keyword  query  string  false  "用户名/昵称关键字"
+// @Param        limit    query  int     false  "返回条数(默认50,最大100)"
+// @Success      200  {object}  xresponse.Response
+// @Router       /system/users/options [get]
+func (h *UserHandler) ListOptions(c *gin.Context) {
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil {
+		limit = 50
+	}
+	list, err := h.svc.ListOptions(c.Request.Context(), c.Query("keyword"), limit)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, gin.H{"list": list})
+}
+
 // ── 公开(免鉴权)团队成员接口 ──
 
 // PublicTeam 团队成员列表(公开)

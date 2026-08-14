@@ -74,6 +74,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/menus/user", menuHandler.GetUserMenuTree)
 		authenticated.GET("/menus/tree", menuHandler.GetTree)
 		authenticated.GET("/roles/all", roleHandler.ListAll)
+		authenticated.GET("/users/options", userHandler.ListOptions)
 		authenticated.GET("/apis/all", apiHandler.ListAll)
 		authenticated.GET("/dicts/all", dictHandler.ListAll)
 

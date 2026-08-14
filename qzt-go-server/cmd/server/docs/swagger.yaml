@@ -12585,6 +12585,30 @@ paths:
       summary: 更新用户
       tags:
       - 用户管理
+  /system/users/options:
+    get:
+      description: 登录即可用的用户简表(id/用户名/昵称),供站内信收件人、转移负责人等选人场景;支持 keyword 模糊搜索
+      parameters:
+      - description: 用户名/昵称关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 返回条数(默认50,最大100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户简表选项
+      tags:
+      - 用户管理
 securityDefinitions:
   BearerAuth:
     description: 输入 "Bearer {access_token}"

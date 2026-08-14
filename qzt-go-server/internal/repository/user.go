@@ -51,6 +51,28 @@ func (d *UserRepo) GetByWecomUserID(ctx context.Context, wecomUserID string) (*m
 	return &user, nil
 }
 
+// SearchOptions 用户简表检索:仅 status=正常 用户,按用户名/昵称模糊匹配,
+// 只 Select 选人必需字段(id/username/nickname/dept_id),供站内信收件人、
+// 转移负责人等登录即可用的选人场景。keyword 参数化绑定,limit 由服务端钳制。
+func (d *UserRepo) SearchOptions(ctx context.Context, keyword string, limit int) ([]model.SysUser, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	q := dbFrom(ctx).Model(&model.SysUser{}).
+		Select("id", "username", "nickname", "dept_id").
+		Where("status = ?", 1).
+		Order("id ASC")
+	if keyword != "" {
+		kw := "%" + keyword + "%"
+		q = q.Where("username LIKE ? OR nickname LIKE ?", kw, kw)
+	}
+	var users []model.SysUser
+	if err := q.Limit(limit).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 // Delete soft-deletes the user, clears its role associations (sys_user_role),
 // and mangles the username so the unique index is freed — letting the same
 // username be reused later. The soft-deleted row is kept for audit.
