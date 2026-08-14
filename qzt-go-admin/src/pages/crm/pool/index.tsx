@@ -39,10 +39,10 @@ import {
   updateCustomerPool,
 } from '../../../services/crm'
 import { getDepartmentTree } from '../../../services/hrm'
-import { listAllRoles, listAllUsers } from '../../../services/system'
+import { listAllRoles, listUserOptions } from '../../../services/system'
 import type { CrmCustomerPool, CrmPoolPayload, CrmRecycleCondition } from '../../../types/crm'
 import type { HrmDepartment } from '../../../types/hrm'
-import type { SysRole, SysUser } from '../../../types'
+import type { SysRole, UserOption } from '../../../types'
 
 const { RangePicker } = DatePicker
 
@@ -110,13 +110,13 @@ export default function PoolPage() {
   const [recycleRuleOpen, setRecycleRuleOpen] = useState(false)
   const [deptTree, setDeptTree] = useState<HrmDepartment[]>([])
   const [roles, setRoles] = useState<SysRole[]>([])
-  const [users, setUsers] = useState<SysUser[]>([])
+  const [users, setUsers] = useState<UserOption[]>([])
   const deptTreeData = useMemo(() => deptToTreeData(deptTree), [deptTree])
 
   useEffect(() => {
     getDepartmentTree().then(setDeptTree).catch(() => {})
     listAllRoles().then(setRoles).catch(() => {})
-    listAllUsers().then(setUsers).catch(() => {})
+    listUserOptions().then((res) => setUsers(res.list)).catch(() => {})
   }, [])
 
   const openCreate = () => {

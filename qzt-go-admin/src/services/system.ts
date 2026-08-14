@@ -26,12 +26,19 @@ import type {
   UpdateRoleRequest,
   UpdateSiteConfigRequest,
   UpdateUserRequest,
+  UserOption,
 } from '../types'
 
 // ---------- 用户管理 ----------
 
 export const listUsers = (params?: PageParams) =>
   request.get<unknown, PageResult<SysUser>>('/system/users', { params })
+
+/** 用户简表(仅登录无 RBAC):业务页面负责人显示/选择器用,不触发权限报错 */
+export const listUserOptions = (limit = 100) =>
+  request.get<unknown, { list: UserOption[] }>('/system/users/options', {
+    params: { limit },
+  })
 
 // listAllUsers 循环分页拉取全部用户(后端 page_size 上限 100)。
 // 供用户管理页左侧部门树前端过滤使用,用户量通常不大。

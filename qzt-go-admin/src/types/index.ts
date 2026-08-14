@@ -75,6 +75,14 @@ export interface SysUser {
   updated_at: string
 }
 
+/** 用户简表(GET /system/users/options,仅登录无 RBAC,不含邮箱/手机等敏感字段) */
+export interface UserOption {
+  id: number
+  username: string
+  nickname: string
+  dept_id: number | null
+}
+
 /** 员工简要信息(GetProfile 附带) */
 export interface EmployeeBrief {
   emp_no: string

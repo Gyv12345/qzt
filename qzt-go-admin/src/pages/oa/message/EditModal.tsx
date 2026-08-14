@@ -4,7 +4,7 @@ import { ModalForm, ProForm, ProFormText } from '@ant-design/pro-components'
 import MarkdownEditor from '../../../components/MarkdownEditor'
 import FileUpload, { type UploadedFileInfo } from '../../../components/FileUpload'
 import { sendMessage } from '../../../services/oa'
-import { listUsers } from '../../../services/system'
+import { listUserOptions } from '../../../services/system'
 
 interface EditModalProps {
   open: boolean
@@ -23,9 +23,9 @@ export default function MessageEditModal({ open, onOpenChange, onSuccess }: Edit
 
   useEffect(() => {
     if (open) {
-      listUsers({ page: 1, page_size: 200 }).then((res) => {
+      listUserOptions().then((res) => {
         setUsers(
-          (res.list || []).map((u: any) => ({
+          (res.list || []).map((u) => ({
             label: `${u.nickname || u.username}(${u.username})`,
             value: u.id,
           })),

@@ -1,9 +1,9 @@
 import { create } from 'zustand'
-import type { SysUser } from '../types'
-import { listUsers } from '../services/system'
+import type { UserOption } from '../types'
+import { listUserOptions } from '../services/system'
 
 interface UserCacheState {
-  users: SysUser[]
+  users: UserOption[]
   loaded: boolean
   load: () => Promise<void>
   /** id -> 显示名 */
@@ -11,14 +11,14 @@ interface UserCacheState {
   options: () => { label: string; value: number }[]
 }
 
-/** 用户缓存(CRM 负责人/成员选择等场景),一次拉取前 100 个用户 */
+/** 用户缓存(CRM 负责人/成员选择等场景),一次拉取简表(仅登录无 RBAC) */
 export const useUserStore = create<UserCacheState>()((set, get) => ({
   users: [],
   loaded: false,
 
   load: async () => {
     if (get().loaded) return
-    const res = await listUsers({ page: 1, page_size: 100 })
+    const res = await listUserOptions()
     set({ users: res.list ?? [], loaded: true })
   },
 
