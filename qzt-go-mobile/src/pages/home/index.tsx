@@ -7,7 +7,6 @@ import {
   SetOutline,
   TeamOutline,
   CheckShieldOutline,
-  TextOutline,
   MessageOutline,
   SoundOutline,
   FlagOutline,
@@ -131,7 +130,6 @@ export default function Home() {
     { key: 'schedule', label: '日程', icon: <SetOutline />, iconBg: 'var(--icon-bg-opp)', path: '/schedule' },
     { key: 'meeting', label: '会议', icon: <CheckCircleFill />, iconBg: 'var(--icon-bg-approval)', path: '/meeting' },
     { key: 'follow-plan', label: '跟进计划', icon: <CheckOutline />, iconBg: 'var(--icon-bg-opp)', path: '/follow-plan' },
-    { key: 'ai-report', label: 'AI 报告', icon: <TextOutline />, iconBg: 'var(--icon-bg-opp)', path: '/ai-report' },
   ]
 
   // 财务+项目+知识宫格

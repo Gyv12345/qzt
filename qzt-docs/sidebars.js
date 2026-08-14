@@ -21,7 +21,6 @@ const sidebars = {
     'modules/hrm',
     'modules/psi',
     'modules/finance',
-    'modules/ai',
     'modules/system',
     'modules/cms',
     'modules/oa',

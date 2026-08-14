@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { App, Button, Col, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tabs, Tag } from 'antd'
-import { MailOutlined, PlusOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { App, Button, Col, Descriptions, Drawer, Form, Input, Popconfirm, Select, Space, Tabs, Tag } from 'antd'
+import { MailOutlined, PlusOutlined } from '@ant-design/icons'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import FollowPanel from '../customer/FollowPanel'
 import Auth from '../../../components/Auth'
@@ -13,10 +13,7 @@ import {
   type ActionType,
   type ProColumns,
 } from '@ant-design/pro-components'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import DedupAlert from '../../../components/DedupAlert'
-import { generateScript } from '../../../services/ai'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
 import UserSelect from '../../../components/UserSelect'
@@ -84,9 +81,6 @@ export default function LeadPage() {
   const [poolOptions, setPoolOptions] = useState<{ label: string; value: number }[]>([])
   const [detailTarget, setDetailTarget] = useState<CrmLead | null>(null)
   const [mailOpen, setMailOpen] = useState(false)
-  const [scriptOpen, setScriptOpen] = useState(false)
-  const [scriptLoading, setScriptLoading] = useState(false)
-  const [scriptContent, setScriptContent] = useState('')
   // 自定义字段定义与值(field_id -> value)
   const [customFields, setCustomFields] = useState<CrmCustomField[]>([])
   const [fieldValues, setFieldValues] = useState<Map<string, unknown>>(new Map())
@@ -111,21 +105,6 @@ export default function LeadPage() {
       .catch(() => setDetailFields({}))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailTarget])
-
-  const handleGenerateScript = async () => {
-    if (!detailTarget) return
-    setScriptOpen(true)
-    setScriptLoading(true)
-    setScriptContent('')
-    try {
-      const res = await generateScript({ target_type: 'lead', target_id: detailTarget.id })
-      setScriptContent(res.content)
-    } catch {
-      // service 层已弹 error
-    } finally {
-      setScriptLoading(false)
-    }
-  }
 
   const loadPools = async () => {
     const pools = await listEnabledLeadPools()
@@ -580,13 +559,6 @@ export default function LeadPage() {
                   </Button>
                 </Auth>
               )}
-              <Button
-                size="small"
-                icon={<ThunderboltOutlined />}
-                onClick={handleGenerateScript}
-              >
-                AI话术
-              </Button>
               <Auth perm="crm:lead:edit">
                 <Button
                   type="primary"
@@ -695,39 +667,6 @@ export default function LeadPage() {
           />
         )}
       </Drawer>
-
-      {/* AI 回访话术 */}
-      <Modal
-        title="AI 回访话术"
-        open={scriptOpen}
-        onCancel={() => setScriptOpen(false)}
-        footer={[
-          <Button
-            key="copy"
-            onClick={() => {
-              navigator.clipboard.writeText(scriptContent)
-              message.success('已复制到剪贴板')
-            }}
-            disabled={!scriptContent}
-          >
-            复制
-          </Button>,
-          <Button key="close" type="primary" onClick={() => setScriptOpen(false)}>
-            关闭
-          </Button>,
-        ]}
-        width={640}
-      >
-        <Spin spinning={scriptLoading} tip="生成中...">
-          {scriptContent ? (
-            <div className="prose-content" style={{ fontSize: 14, lineHeight: 1.8, color: '#222' }}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{scriptContent}</ReactMarkdown>
-            </div>
-          ) : (
-            !scriptLoading && <div style={{ color: '#999' }}>点击生成回访话术</div>
-          )}
-        </Spin>
-      </Modal>
 
       {/* 写邮件 */}
       <MailComposeModal

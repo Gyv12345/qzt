@@ -2,7 +2,6 @@ package mailclient
 
 // client.go SMTP 邮件发送客户端。
 // 配置从 sys_config (setting.Get) 热读取,改配置后立即生效无需重启。
-// 完全参照 internal/pkg/llmclient 的封装模式。
 
 import (
 	"context"

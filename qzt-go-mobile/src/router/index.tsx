@@ -87,7 +87,6 @@ const TicketList = lazy(() => import('../pages/ticket'))
 const TicketDetail = lazy(() => import('../pages/ticket/detail'))
 const ContactList = lazy(() => import('../pages/contact'))
 // OA 新模块
-const AiReportPage = lazy(() => import('../pages/ai-report'))
 const FollowPlanList = lazy(() => import('../pages/follow-plan'))
 const WorkLogList = lazy(() => import('../pages/work-log'))
 const ScheduleList = lazy(() => import('../pages/schedule'))
@@ -453,10 +452,6 @@ export default function AppRoutes() {
           {
             path: '/follow-plan',
             element: <Suspense fallback={pageFallback}><FollowPlanList /></Suspense>,
-          },
-          {
-            path: '/ai-report',
-            element: <Suspense fallback={pageFallback}><AiReportPage /></Suspense>,
           },
           {
             path: '/schedule',

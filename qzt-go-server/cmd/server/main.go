@@ -12,7 +12,6 @@ import (
 
 	"qzt-go-server/config"
 	"qzt-go-server/internal/app"
-	aimod "qzt-go-server/internal/module/ai"
 	mcpmod "qzt-go-server/internal/mcp"
 	apimod "qzt-go-server/internal/module/api"
 	apprmod "qzt-go-server/internal/module/approval"
@@ -71,7 +70,7 @@ func main() {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa / ai / mail 模块）
+	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa / mail 模块）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -86,7 +85,6 @@ func main() {
 		kbmod.New(),
 		cloudmod.New(),
 		projmod.New(),
-		aimod.New(),
 		mailmod.New(),
 	)
 
