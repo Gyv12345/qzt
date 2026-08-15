@@ -37,18 +37,13 @@ export default function ContractList() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmContract>(fetcher, {
     page_size: 20,
-  })
-
-  const onSearch = (val: string) => {
-    setKeyword(val)
-    refresh()
-  }
+  }, [keyword])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>合同</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索合同名称" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索合同名称" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
 
       <PullToRefresh onRefresh={refresh}>

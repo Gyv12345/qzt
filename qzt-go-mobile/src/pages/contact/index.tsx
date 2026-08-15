@@ -12,11 +12,13 @@ import { dialWithDedup } from '../../utils/dial'
 export default function ContactListPage() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  // 已提交的搜索词:仅在点击搜索/清空时更新,作为 hook 的 dep(避免每击键都发请求)
+  const [query, setQuery] = useState('')
   const fetcher = useCallback(
-    (params: { page: number; page_size: number }) => listContacts({ ...params, keyword: keyword || undefined }),
-    [keyword],
+    (params: { page: number; page_size: number }) => listContacts({ ...params, keyword: query || undefined }),
+    [query],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmContact>(fetcher, { page_size: 20 })
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmContact>(fetcher, { page_size: 20 }, [query])
 
   // 新建联系人:先选客户,再填信息
   const [showCustPicker, setShowCustPicker] = useState(false)
@@ -64,10 +66,10 @@ export default function ContactListPage() {
           placeholder="搜索姓名/电话"
           value={keyword}
           onChange={setKeyword}
-          onSearch={() => refresh()}
+          onSearch={(v) => setQuery(v)}
           onClear={() => {
             setKeyword('')
-            refresh()
+            setQuery('')
           }}
         />
       </div>

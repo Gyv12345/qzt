@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import type { LoginResult, SysMenu, SysUser } from '../types'
 
-const TOKEN_KEY = 'qzt-go-mobile:tokens'
+/** localStorage 缓存 key(现网用户 token 已用此 key,勿改值,否则 token 全部失效) */
+export const TOKEN_KEY = 'qzt-go-mobile:tokens'
 
 interface TokenCache {
   accessToken: string

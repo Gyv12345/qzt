@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, Tabs, Tag } from 'antd-mobile'
 import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
@@ -20,17 +20,7 @@ export default function InvoiceList() {
     (params: { page: number; page_size: number }) => listInvoices({ ...params, direction: direction || undefined }),
     [direction],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<FinInvoice>(fetcher, { page_size: 20 })
-
-  const firstRef = useRef(true)
-  useEffect(() => {
-    if (firstRef.current) {
-      firstRef.current = false
-      return
-    }
-    refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [direction])
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<FinInvoice>(fetcher, { page_size: 20 }, [direction])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>

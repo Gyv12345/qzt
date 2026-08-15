@@ -19,13 +19,13 @@ export default function ExpenseList() {
     [keyword],
   )
 
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<OaExpense>(fetcher, { page_size: 20 })
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<OaExpense>(fetcher, { page_size: 20 }, [keyword])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>报销管理</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索审批状态" onSearch={refresh} onClear={() => { setKeyword(''); refresh() }} />
+        <SearchBar placeholder="搜索审批状态" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
 
       <PullToRefresh onRefresh={refresh}>

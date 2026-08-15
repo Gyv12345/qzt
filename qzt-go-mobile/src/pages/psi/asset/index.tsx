@@ -17,7 +17,7 @@ export default function AssetList() {
     (params: { page: number; page_size: number }) => listAssets({ ...params, keyword: keyword || undefined }),
     [keyword],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiAsset>(fetcher, { page_size: 20 })
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiAsset>(fetcher, { page_size: 20 }, [keyword])
 
   const onDelete = async (a: PsiAsset) => {
     const ok = await Dialog.confirm({ content: `确定删除资产「${a.name}」?` })
@@ -34,7 +34,7 @@ export default function AssetList() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>固定资产</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索资产名称/编号" onSearch={() => refresh()} onClear={() => { setKeyword(''); refresh() }} />
+        <SearchBar placeholder="搜索资产名称/编号" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
       <PullToRefresh onRefresh={refresh}>
         <List>

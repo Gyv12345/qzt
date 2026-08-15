@@ -42,18 +42,13 @@ export default function OpportunityList() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmOpportunity>(fetcher, {
     page_size: 20,
-  })
-
-  const onSearch = (val: string) => {
-    setKeyword(val)
-    refresh()
-  }
+  }, [keyword])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>商机</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索商机名称" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索商机名称" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
 
       <PullToRefresh onRefresh={refresh}>

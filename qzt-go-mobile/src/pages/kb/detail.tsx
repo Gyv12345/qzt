@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavBar, ErrorBlock, SpinLoading, Card } from 'antd-mobile'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getKbDocument } from '../../services/oa'
+import { sanitizeHtml } from '../../utils/sanitize'
 
 export default function KbDocumentDetail() {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ export default function KbDocumentDetail() {
           <div
             className="markdown-body"
             style={{ fontSize: 15, lineHeight: 1.8 }}
-            dangerouslySetInnerHTML={{ __html: doc.content || '<p style="color:#999">暂无内容</p>' }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(doc.content || '<p style="color:#999">暂无内容</p>') }}
           />
         </Card>
       </div>

@@ -27,18 +27,13 @@ export default function CustomerList() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmCustomer>(fetcher, {
     page_size: 20,
-  })
-
-  const onSearch = (val: string) => {
-    setKeyword(val)
-    refresh()
-  }
+  }, [keyword])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)} right={null}>我的客户</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索客户名称" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索客户名称" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
 
       <PullToRefresh onRefresh={refresh}>

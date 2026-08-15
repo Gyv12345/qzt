@@ -10,12 +10,14 @@ import FormSheet from '../../components/FormSheet'
 export default function ProductList() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  // 已提交的搜索词:仅在点击搜索/清空时更新,作为 hook 的 dep(避免每击键都发请求)
+  const [query, setQuery] = useState('')
   const [showNew, setShowNew] = useState(false)
   const fetcher = useCallback(
-    (params: { page: number; page_size: number }) => listProducts({ ...params, keyword: keyword || undefined }),
-    [keyword],
+    (params: { page: number; page_size: number }) => listProducts({ ...params, keyword: query || undefined }),
+    [query],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmProduct>(fetcher, { page_size: 20 })
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmProduct>(fetcher, { page_size: 20 }, [query])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
@@ -25,10 +27,10 @@ export default function ProductList() {
           placeholder="搜索产品名称"
           value={keyword}
           onChange={setKeyword}
-          onSearch={() => refresh()}
+          onSearch={(v) => setQuery(v)}
           onClear={() => {
             setKeyword('')
-            refresh()
+            setQuery('')
           }}
         />
       </div>

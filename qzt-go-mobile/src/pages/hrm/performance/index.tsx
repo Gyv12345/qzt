@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Button, DatePicker, Dialog, FloatingBubble, InfiniteScroll, Input, List, NavBar, Popup, PullToRefresh, Tabs, Tag, Toast } from 'antd-mobile'
 import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
@@ -36,17 +36,7 @@ export default function PerformanceList() {
     (params: { page: number; page_size: number }) => listPerformances({ ...params, status: status ? Number(status) : undefined }),
     [status],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<HrmPerformance>(fetcher, { page_size: 20 })
-
-  const firstRef = useRef(true)
-  useEffect(() => {
-    if (firstRef.current) {
-      firstRef.current = false
-      return
-    }
-    refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<HrmPerformance>(fetcher, { page_size: 20 }, [status])
 
   const resetForm = () => {
     setTitle('')

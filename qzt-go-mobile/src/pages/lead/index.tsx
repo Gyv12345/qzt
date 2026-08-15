@@ -43,25 +43,15 @@ export default function LeadList() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmLead>(fetcher, {
     page_size: 20,
-  })
-
-  const onSearch = (val: string) => {
-    setKeyword(val)
-    refresh()
-  }
-
-  const onTabChange = (key: string) => {
-    setStatusKey(key)
-    refresh()
-  }
+  }, [keyword, statusKey])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>线索</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索线索名称" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索线索名称" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
-      <Tabs activeKey={statusKey} onChange={onTabChange}>
+      <Tabs activeKey={statusKey} onChange={setStatusKey}>
         {STATUS_TABS.map((t) => (
           <Tabs.Tab key={t.key} title={t.label} />
         ))}

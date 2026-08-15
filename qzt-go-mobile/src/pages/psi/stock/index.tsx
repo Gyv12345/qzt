@@ -12,13 +12,13 @@ export default function StockList() {
     (params: { page: number; page_size: number }) => listStock({ ...params, keyword: keyword || undefined }),
     [keyword],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiStock>(fetcher, { page_size: 20 })
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiStock>(fetcher, { page_size: 20 }, [keyword])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>库存查询</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索产品名称/编码" onSearch={() => refresh()} onClear={() => { setKeyword(''); refresh() }} />
+        <SearchBar placeholder="搜索产品名称/编码" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
       <PullToRefresh onRefresh={refresh}>
         <List>

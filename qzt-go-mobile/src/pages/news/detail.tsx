@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { getPublicArticle } from '../../services/cms'
 import type { CmsArticle } from '../../types/cms'
+import { sanitizeHtml } from '../../utils/sanitize'
 
 export default function NewsDetail() {
   const { id } = useParams<{ id: string }>()
@@ -57,11 +58,11 @@ export default function NewsDetail() {
           />
         )}
 
-        {/* 正文:后端为富文本/HTML,这里直接渲染 */}
+        {/* 正文:后端为富文本/HTML,经 DOMPurify 消毒后渲染 */}
         <div
           className="news-content"
           style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--text)' }}
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
         />
       </div>
     </div>

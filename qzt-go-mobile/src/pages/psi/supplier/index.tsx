@@ -17,11 +17,7 @@ export default function SupplierList() {
       listSuppliers({ ...params, keyword: keyword || undefined }),
     [keyword],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiSupplier>(fetcher, { page_size: 20 })
-  const onSearch = (v: string) => {
-    setKeyword(v)
-    refresh()
-  }
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiSupplier>(fetcher, { page_size: 20 }, [keyword])
 
   const onDelete = async (s: PsiSupplier) => {
     const ok = await Dialog.confirm({ content: `确定删除供应商「${s.name}」?` })
@@ -38,7 +34,7 @@ export default function SupplierList() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>供应商</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索供应商" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索供应商" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
       <PullToRefresh onRefresh={refresh}>
         <List>

@@ -37,7 +37,7 @@ export default function ApprovalList() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<ApprovalInstance>(fetcher, {
     page_size: 20,
-  })
+  }, [tab])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>

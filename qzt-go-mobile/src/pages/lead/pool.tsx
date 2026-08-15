@@ -50,17 +50,7 @@ export default function LeadPool() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmLead>(fetcher, {
     page_size: 20,
-  })
-
-  const onSearch = (val: string) => {
-    setKeyword(val)
-    refresh()
-  }
-
-  const onTabChange = (key: string) => {
-    setPoolKey(key)
-    refresh()
-  }
+  }, [keyword, poolKey])
 
   const onPick = async (l: CrmLead) => {
     try {
@@ -78,9 +68,9 @@ export default function LeadPool() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>线索公海</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索线索名称" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索线索名称" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
-      <Tabs activeKey={poolKey} onChange={onTabChange}>
+      <Tabs activeKey={poolKey} onChange={setPoolKey}>
         {tabs.map((t) => (
           <Tabs.Tab key={t.key} title={t.label} />
         ))}

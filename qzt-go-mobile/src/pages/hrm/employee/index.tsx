@@ -21,13 +21,15 @@ const STATUS_OPTIONS = [
 export default function EmployeeList() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  // 已提交的搜索词:仅在点击搜索/清空时更新,作为 hook 的 dep(避免每击键都发请求)
+  const [query, setQuery] = useState('')
   const [showNew, setShowNew] = useState(false)
   const [editing, setEditing] = useState<HrmEmployee | null>(null)
   const fetcher = useCallback(
-    (params: { page: number; page_size: number }) => listEmployees({ ...params, keyword: keyword || undefined }),
-    [keyword],
+    (params: { page: number; page_size: number }) => listEmployees({ ...params, keyword: query || undefined }),
+    [query],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<HrmEmployee>(fetcher, { page_size: 20 })
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<HrmEmployee>(fetcher, { page_size: 20 }, [query])
 
   const onDelete = async (e: HrmEmployee) => {
     const ok = await Dialog.confirm({ content: `确定删除员工「${e.name}」?` })
@@ -44,7 +46,7 @@ export default function EmployeeList() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>员工管理</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索姓名/工号" value={keyword} onChange={setKeyword} onSearch={() => refresh()} onClear={() => { setKeyword(''); refresh() }} />
+        <SearchBar placeholder="搜索姓名/工号" value={keyword} onChange={setKeyword} onSearch={(v) => setQuery(v)} onClear={() => { setKeyword(''); setQuery('') }} />
       </div>
       <PullToRefresh onRefresh={refresh}>
         <List>

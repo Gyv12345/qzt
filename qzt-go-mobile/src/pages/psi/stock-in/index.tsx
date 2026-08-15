@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { FloatingBubble, InfiniteScroll, List, NavBar, PullToRefresh, Tabs, Tag } from 'antd-mobile'
 import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
@@ -21,18 +21,7 @@ export default function StockInList() {
     (params: { page: number; page_size: number }) => listStockInOrders({ ...params, biz_type: bizType || undefined }),
     [bizType],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiStockInOrder>(fetcher, { page_size: 20 })
-
-  // 切换筛选后重新加载(跳过首次挂载,挂载时 hook 已自动加载首页)
-  const firstRef = useRef(true)
-  useEffect(() => {
-    if (firstRef.current) {
-      firstRef.current = false
-      return
-    }
-    refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bizType])
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiStockInOrder>(fetcher, { page_size: 20 }, [bizType])
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>

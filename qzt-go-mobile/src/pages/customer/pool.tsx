@@ -44,17 +44,7 @@ export default function CustomerPool() {
 
   const { list, hasMore, loadMore, refresh } = useInfiniteList<CrmCustomer>(fetcher, {
     page_size: 20,
-  })
-
-  const onSearch = (val: string) => {
-    setKeyword(val)
-    refresh()
-  }
-
-  const onTabChange = (key: string) => {
-    setPoolKey(key)
-    refresh()
-  }
+  }, [keyword, poolKey])
 
   // 领取客户
   const onPick = async (c: CrmCustomer) => {
@@ -73,9 +63,9 @@ export default function CustomerPool() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>客户公海</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索客户名称" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索客户名称" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
-      <Tabs activeKey={poolKey} onChange={onTabChange}>
+      <Tabs activeKey={poolKey} onChange={setPoolKey}>
         {tabs.map((t) => (
           <Tabs.Tab key={t.key} title={t.label} />
         ))}

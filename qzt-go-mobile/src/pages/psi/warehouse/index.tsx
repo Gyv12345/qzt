@@ -17,11 +17,7 @@ export default function WarehouseList() {
       listWarehouses({ ...params, keyword: keyword || undefined }),
     [keyword],
   )
-  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiWarehouse>(fetcher, { page_size: 20 })
-  const onSearch = (v: string) => {
-    setKeyword(v)
-    refresh()
-  }
+  const { list, hasMore, loadMore, refresh } = useInfiniteList<PsiWarehouse>(fetcher, { page_size: 20 }, [keyword])
 
   const onDelete = async (w: PsiWarehouse) => {
     const ok = await Dialog.confirm({ content: `确定删除仓库「${w.name}」?` })
@@ -38,7 +34,7 @@ export default function WarehouseList() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       <NavBar onBack={() => navigate(-1)}>仓库</NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
-        <SearchBar placeholder="搜索仓库名称/编码" onSearch={onSearch} onClear={() => onSearch('')} />
+        <SearchBar placeholder="搜索仓库名称/编码" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>
       <PullToRefresh onRefresh={refresh}>
         <List>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { TOKEN_KEY } from '../stores/auth'
 
 export interface SSEMessage {
   event: string
@@ -21,7 +22,7 @@ export function useSSE(url: string) {
   const connect = useCallback(() => {
     let token = ''
     try {
-      const raw = localStorage.getItem('qzt-go-mobile:tokens')
+      const raw = localStorage.getItem(TOKEN_KEY)
       if (raw) token = (JSON.parse(raw) as { accessToken?: string }).accessToken || ''
     } catch {
       // ignore
