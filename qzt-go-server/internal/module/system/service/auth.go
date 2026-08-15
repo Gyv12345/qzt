@@ -11,6 +11,7 @@ import (
 	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xcryption"
+	"qzt-go-server/pkg/xlogger"
 )
 
 // AuthService 认证服务：登录 / 登出 / 刷新令牌。
@@ -53,7 +54,10 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest, ip string) (
 	}
 
 	if user.Status != 1 {
-		return nil, errors.New("用户已被禁用")
+		// 与"用户不存在/密码错误"统一措辞,不确认账号存在与否(防用户名枚举);
+		// 真实原因记日志,管理员侧可查。
+		xlogger.ErrorfCtx(ctx, "登录拒绝: 用户 %s 已被禁用", req.Username)
+		return nil, errors.New("登录失败: 用户名、密码错误或账号已被禁用")
 	}
 
 	if !xcryption.CheckPassword(user.Password, req.Password) {
@@ -118,6 +122,13 @@ func (s *AuthService) Refresh(ctx context.Context, req *RefreshRequest) (*LoginR
 	tokens, err := app.JwtManager.RefreshTokens(req.RefreshToken)
 	if err != nil {
 		return nil, errors.New("刷新令牌失败")
+	}
+	// 轮换失效:新令牌对签发后立即拉黑旧 refresh token(按其剩余存活期),
+	// 泄露的旧 refresh 无法在剩余有效期内继续换新,而不是自然用到过期。
+	if exp := claims.ExpiresAt; exp != nil {
+		if ttl := time.Until(exp.Time); ttl > 0 {
+			_ = cache.BlacklistToken(req.RefreshToken, ttl)
+		}
 	}
 	user, err := s.userRepo.GetByID(ctx, uint(claims.UserId))
 	if err != nil {

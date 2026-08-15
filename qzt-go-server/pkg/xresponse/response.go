@@ -1,6 +1,7 @@
 package xresponse
 
 import (
+	"errors"
 	"net/http"
 	e "qzt-go-server/pkg/xerror"
 	"time"
@@ -48,6 +49,20 @@ func Success(c *gin.Context, data any) {
 // Fail 请求异常返回，只返回code跟msg，不返回data
 func Fail(c *gin.Context, errCode int, errMsg string) {
 	Json(c, errCode, errMsg, nil)
+}
+
+// FailErr 错误响应收口。
+// 业务错误(*xerror.BizError)透传其文案;其余(GORM/OSS/系统)错误不透传
+// 细节,对外返回通用文案——防止表名/约束/endpoint 等内部信息直达客户端。
+// 底层 err 由访问日志的 errors 字段与业务日志留痕,排查走日志不走响应。
+// 新代码建议优先用本函数替代 Fail(c, ErrServer, err.Error())。
+func FailErr(c *gin.Context, err error) {
+	var be *e.BizError
+	if errors.As(err, &be) {
+		Json(c, be.Code.GetErrCode(), be.Code.GetErrMsg(), nil)
+		return
+	}
+	Json(c, e.HttpInternalServerError.GetErrCode(), "服务器繁忙，请稍后重试", nil)
 }
 
 // FailByError 请求异常返回,参数为e.Code类型，只返回code跟msg，不返回data

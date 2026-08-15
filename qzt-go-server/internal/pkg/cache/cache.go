@@ -77,9 +77,17 @@ func ClearAllPermissionCache() {
 
 const loginLimitMax = 5
 const loginLimitWindow = 15 * time.Minute
+// loginUserLimitMax 纯用户名维度阈值:攻击者换 IP 可绕过 (username, ip)
+// 维度计数,叠加该维度防同一账号被分布式爆破;阈值放宽避免 NAT 出口多人
+// 共享 IP 时正常用户互相累加误锁。
+const loginUserLimitMax = 15
 
 func loginKey(username, ip string) string {
 	return "login:fail:" + username + ":" + ip
+}
+
+func loginUserKey(username string) string {
+	return "login:fail:u:" + username
 }
 
 func IncrLoginFail(username, ip string) (int64, error) {
@@ -89,26 +97,45 @@ func IncrLoginFail(username, ip string) (int64, error) {
 		return 0, err
 	}
 	store.Expire(k, loginLimitWindow)
+	// 用户名维度同步计数(不返回,展示"还可尝试 N 次"仍以 IP 维度为准)
+	if _, err := store.Incr(loginUserKey(username)); err == nil {
+		store.Expire(loginUserKey(username), loginLimitWindow)
+	}
 	return count, nil
 }
 
 func IsLoginLocked(username, ip string) bool {
 	val, err := store.Get(loginKey(username, ip))
-	if err != nil {
-		return false
+	if err == nil {
+		var count int64
+		fmt.Sscanf(val, "%d", &count)
+		if count >= loginLimitMax {
+			return true
+		}
 	}
-	var count int64
-	fmt.Sscanf(val, "%d", &count)
-	return count >= loginLimitMax
+	uval, err := store.Get(loginUserKey(username))
+	if err == nil {
+		var ucount int64
+		fmt.Sscanf(uval, "%d", &ucount)
+		if ucount >= loginUserLimitMax {
+			return true
+		}
+	}
+	return false
 }
 
 func ClearLoginFail(username, ip string) {
 	store.Del(loginKey(username, ip))
+	store.Del(loginUserKey(username))
 }
 
 func GetLoginLockTTL(username, ip string) time.Duration {
-	ttl, _ := store.TTL(loginKey(username, ip))
-	return ttl
+	ttlIP, _ := store.TTL(loginKey(username, ip))
+	ttlUser, _ := store.TTL(loginUserKey(username))
+	if ttlUser > ttlIP {
+		return ttlUser
+	}
+	return ttlIP
 }
 
 // ── System Config Cache ──

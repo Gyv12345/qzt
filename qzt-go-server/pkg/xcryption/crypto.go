@@ -22,9 +22,11 @@ func Sha256(s string) string {
 	return res
 }
 
-// HashPassword 生成密码哈希（自动加盐）COST是一个介于4到31之间的整数，更高的值表示更高的计算成本
+// HashPassword 生成密码哈希（自动加盐）COST是一个介于4到31之间的整数，更高的值表示更高的计算成本。
+// cost=12(约 2^12 轮):单次哈希数百毫秒,显著提高离线爆破成本,登录时延可接受;
+// 只影响新产生的哈希,存量哈希按各自 cost 校验,无需迁移。
 func HashPassword(password string) (string, error) {
-	bytesPwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	bytesPwd, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	return string(bytesPwd), err
 }
 

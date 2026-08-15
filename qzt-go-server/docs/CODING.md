@@ -61,6 +61,7 @@ return repository.Transaction(ctx, func(ctx context.Context) error {
 - `notFoundOr(err, "用户不存在")`：把 `ErrRecordNotFound` 翻译为友好消息，其余原样上抛。
 - **禁止在 Handler/Service/Repository 中 `panic`**（仅启动期 `Fatal`/`Panic` 允许）。
 - Handler 统一用 `xresponse.Fail(c, errcode.Xxx, msg)` 返回，不直接写 HTTP 状态。
+- **禁止 `response.Fail(c, errcode.ErrServer, err.Error())` 直传底层错误**：GORM/OSS/系统错误含表名、约束、endpoint 等内部信息,直传等于信息泄露。系统错误统一走 `response.FailErr(c, err)`(BizError 透传文案,其余返回通用文案并留日志);确需自定义前缀的业务错误,文案必须是固定字符串,不得拼接 `err.Error()`。
 
 ## 7. 日志
 
@@ -73,6 +74,7 @@ return repository.Transaction(ctx, func(ctx context.Context) error {
 统一信封 `{code, msg, data, timestamp}`。用 `xresponse` 包：
 - 成功：`response.OK(c, data)` / `response.Success(c, data)`
 - 失败：`response.Fail(c, errcode.Xxx, "msg")` / `response.FailByError(c, e.HttpForbidden)`
+- 系统错误收口：`response.FailErr(c, err)`(新代码优先用)
 
 ## 9. 配置
 
