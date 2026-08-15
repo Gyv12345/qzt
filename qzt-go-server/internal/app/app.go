@@ -53,9 +53,8 @@ func Init(cfgPath string, logPath string) error {
 
 // Close 按初始化的相反顺序释放全局资源。每个句柄做 nil 检查，可安全地部分初始化调用。
 func Close() {
-	if Enforcer != nil {
-		_ = Enforcer.SavePolicy()
-	}
+	// 注意:这里不能 Enforcer.SavePolicy()——策略变更点(role.go)都已显式保存,
+	// 停机时把内存全量写回反而会抹掉停机窗口期插入 DB 的规则(如种子 SQL)。
 	if Redis != nil {
 		_ = Redis.Close()
 	}

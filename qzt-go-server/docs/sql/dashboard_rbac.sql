@@ -15,7 +15,12 @@
 --   hr → HRM 类 3 个(employee-distribution/headcount-trend/attendance-summary)
 --
 -- super_admin 走代码级绕过,无需规则。
--- 执行方式:DBX MCP 或 mysql 客户端单条执行;幂等(先删后插固定 (v0,v1) 组合)。
+-- 执行方式:必须在服务**停止窗口**执行(先 systemctl stop 再执行本脚本,然后 start)——
+-- 旧版应用停机时会 Enforce.SavePolicy 把内存策略写回 casbin_rule,运行中插入会被抹掉
+-- (2026-08-16 起 Close 已移除该写回,但存量部署首次执行时仍按停机窗口操作最稳)。
+-- 另注意:管理员在后台调整某角色的菜单/API 授权会全量重建该角色策略,
+-- 重建后需重跑本脚本(或在该角色的 API 授权页重新勾选 dashboard 接口)。
+-- 幂等(先删后插固定 (v0,v1) 组合);DBX MCP 或 mysql 客户端单条执行。
 -- 时间:2026-08-16
 
 DELETE FROM casbin_rule WHERE ptype = 'p' AND v1 LIKE '/api/dashboard/%'
