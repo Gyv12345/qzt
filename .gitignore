@@ -29,6 +29,9 @@ build/
 vendor/
 bin/
 
+# Go 编译产物(精确路径:qzt-go-server 根下的 go build 输出二进制,不影响 cmd/server/ 等源码目录)
+/qzt-go-server/server
+
 # ── 环境与本地配置(敏感) ──
 .env
 .env*.local
