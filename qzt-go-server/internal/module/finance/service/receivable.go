@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 
 	finmodel "qzt-go-server/internal/model/finance"
 	finrepo "qzt-go-server/internal/repository/finance"
@@ -16,13 +15,6 @@ import (
 )
 
 // receivable.go 应收应付服务。
-
-func notFoundOrFin(err error, msg string) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New(msg)
-	}
-	return err
-}
 
 type ReceivableService struct {
 	repo *finrepo.ReceivableRepo
@@ -99,7 +91,7 @@ func (s *ReceivableService) List(ctx context.Context, page, pageSize int, direct
 func (s *ReceivableService) GetByID(ctx context.Context, id uint) (*finmodel.FinReceivable, error) {
 	rec, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOrFin(err, "往来款不存在")
+		return nil, repository.NotFoundOr(err, "往来款不存在")
 	}
 	return rec, nil
 }
@@ -114,7 +106,7 @@ type SettleRequest struct {
 func (s *ReceivableService) Settle(ctx context.Context, id uint, req *SettleRequest) (*finmodel.FinReceivable, error) {
 	rec, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOrFin(err, "往来款不存在")
+		return nil, repository.NotFoundOr(err, "往来款不存在")
 	}
 	if rec.Status == finmodel.SettleStatusSettled {
 		return nil, errors.New("已结清,不可再结算")

@@ -91,7 +91,7 @@ func (s *DictService) Create(ctx context.Context, req *CreateDictRequest) error 
 func (s *DictService) GetByID(ctx context.Context, id uint) (*model.SysDict, error) {
 	d, err := s.dictRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "字典不存在")
+		return nil, repository.NotFoundOr(err, "字典不存在")
 	}
 	return d, nil
 }
@@ -108,7 +108,7 @@ type UpdateDictRequest struct {
 func (s *DictService) Update(ctx context.Context, id uint, req *UpdateDictRequest) error {
 	dict, err := s.dictRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "字典不存在")
+		return repository.NotFoundOr(err, "字典不存在")
 	}
 	dict.Name = req.Name
 	dict.Code = req.Code
@@ -147,7 +147,7 @@ func (s *DictService) Update(ctx context.Context, id uint, req *UpdateDictReques
 
 func (s *DictService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.dictRepo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "字典不存在")
+		return repository.NotFoundOr(err, "字典不存在")
 	}
 	return s.dictRepo.Delete(ctx, id)
 }

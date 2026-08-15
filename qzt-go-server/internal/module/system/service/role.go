@@ -109,7 +109,7 @@ func (s *RoleService) GetByID(ctx context.Context, id uint) (*model.SysRole, err
 func (s *RoleService) Update(ctx context.Context, id uint, req *UpdateRoleRequest) error {
 	role, err := s.roleRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "角色不存在")
+		return repository.NotFoundOr(err, "角色不存在")
 	}
 
 	if req.Name != "" {
@@ -135,7 +135,7 @@ func (s *RoleService) Delete(ctx context.Context, id uint) error {
 	}
 	role, err := s.roleRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "角色不存在")
+		return repository.NotFoundOr(err, "角色不存在")
 	}
 	if role.Code == model.SuperAdminRoleCode {
 		return errors.New("系统内置超级管理员角色不可删除")
@@ -210,7 +210,7 @@ func (s *RoleService) SetMenus(ctx context.Context, roleID uint, menuIDs []uint)
 func (s *RoleService) SetAPIs(ctx context.Context, roleID uint, apis []RoleAPIItem) error {
 	role, err := s.roleRepo.GetByID(ctx, roleID)
 	if err != nil {
-		return notFoundOr(err, "角色不存在")
+		return repository.NotFoundOr(err, "角色不存在")
 	}
 
 	if _, err := app.Enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
@@ -239,7 +239,7 @@ func (s *RoleService) SetAPIs(ctx context.Context, roleID uint, apis []RoleAPIIt
 func (s *RoleService) GetAPIs(ctx context.Context, roleID uint) ([]RoleAPIItem, error) {
 	role, err := s.roleRepo.GetByID(ctx, roleID)
 	if err != nil {
-		return nil, notFoundOr(err, "角色不存在")
+		return nil, repository.NotFoundOr(err, "角色不存在")
 	}
 
 	policies := app.Enforcer.GetFilteredPolicy(0, role.Code)

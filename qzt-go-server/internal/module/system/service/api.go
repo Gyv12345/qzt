@@ -46,7 +46,7 @@ func (s *APIService) GetByID(ctx context.Context, id uint) (*model.SysAPI, error
 func (s *APIService) Update(ctx context.Context, id uint, req *UpdateAPIRequest) error {
 	api, err := s.apiRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "API 不存在")
+		return repository.NotFoundOr(err, "API 不存在")
 	}
 	if req.Path != "" {
 		api.Path = req.Path

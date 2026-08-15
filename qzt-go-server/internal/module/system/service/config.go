@@ -165,7 +165,7 @@ type UpdateConfigRequest struct {
 func (s *ConfigService) Update(ctx context.Context, id uint, req *UpdateConfigRequest) error {
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "配置不存在")
+		return repository.NotFoundOr(err, "配置不存在")
 	}
 	typ := req.Type
 	if typ == "" {
@@ -192,7 +192,7 @@ func (s *ConfigService) Update(ctx context.Context, id uint, req *UpdateConfigRe
 func (s *ConfigService) Delete(ctx context.Context, id uint) error {
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "配置不存在")
+		return repository.NotFoundOr(err, "配置不存在")
 	}
 	if c.Builtin {
 		return errors.New("内置配置不可删除")

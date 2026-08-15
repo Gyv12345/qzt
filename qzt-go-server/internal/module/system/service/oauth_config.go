@@ -63,7 +63,7 @@ func (s *OauthConfigService) Create(ctx context.Context, req *CreateOauthConfigR
 // GetByID 配置详情(含 secret,仅管理员可见)。
 func (s *OauthConfigService) GetByID(ctx context.Context, id uint) (*model.SysOauthConfig, error) {
 	cfg, err := s.repo.GetByID(ctx, id)
-	return cfg, notFoundOr(err, "配置不存在")
+	return cfg, repository.NotFoundOr(err, "配置不存在")
 }
 
 // UpdateOauthConfigRequest 更新配置。
@@ -82,7 +82,7 @@ type UpdateOauthConfigRequest struct {
 func (s *OauthConfigService) Update(ctx context.Context, id uint, req *UpdateOauthConfigRequest) error {
 	cfg, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "配置不存在")
+		return repository.NotFoundOr(err, "配置不存在")
 	}
 	cfg.Name = req.Name
 	cfg.AppID = req.AppID
@@ -100,7 +100,7 @@ func (s *OauthConfigService) Update(ctx context.Context, id uint, req *UpdateOau
 // Delete 删除配置。
 func (s *OauthConfigService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "配置不存在")
+		return repository.NotFoundOr(err, "配置不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
@@ -115,7 +115,7 @@ func (s *OauthConfigService) List(ctx context.Context) ([]model.SysOauthConfig, 
 func (s *OauthConfigService) Enable(ctx context.Context, id uint, enabled int8) error {
 	cfg, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "配置不存在")
+		return repository.NotFoundOr(err, "配置不存在")
 	}
 	if enabled == model.OauthEnabled {
 		if cfg.AppID == "" || cfg.AppSecret == "" {

@@ -95,7 +95,7 @@ func (s *UserService) GetByID(ctx context.Context, id uint) (*model.SysUser, err
 func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserRequest) error {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "用户不存在")
+		return repository.NotFoundOr(err, "用户不存在")
 	}
 
 	// admin(id=1) 是系统根账户,必须始终持有超级管理员角色(id=1),
@@ -188,7 +188,7 @@ func (s *UserService) Delete(ctx context.Context, id, currentUserID uint) error 
 	}
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "用户不存在")
+		return repository.NotFoundOr(err, "用户不存在")
 	}
 	for _, r := range user.Roles {
 		if r.Code == model.SuperAdminRoleCode {
@@ -234,7 +234,7 @@ func (s *UserService) ListOptions(ctx context.Context, keyword string, limit int
 func (s *UserService) GetProfile(ctx context.Context, id uint) (*model.SysUser, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "用户不存在")
+		return nil, repository.NotFoundOr(err, "用户不存在")
 	}
 	return user, nil
 }

@@ -79,7 +79,7 @@ func (s *MenuService) GetByID(ctx context.Context, id uint) (*model.SysMenu, err
 func (s *MenuService) Update(ctx context.Context, id uint, req *UpdateMenuRequest) error {
 	menu, err := s.menuRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "菜单不存在")
+		return repository.NotFoundOr(err, "菜单不存在")
 	}
 
 	if req.ParentID != nil {
@@ -139,7 +139,7 @@ func (s *MenuService) GetUserMenuTree(ctx context.Context, userID uint) ([]*mode
 	userDAO := repository.NewUserRepo()
 	user, err := userDAO.GetByID(ctx, userID)
 	if err != nil {
-		return nil, notFoundOr(err, "用户不存在")
+		return nil, repository.NotFoundOr(err, "用户不存在")
 	}
 
 	// 超管直接返回所有菜单(与其他权限检查的超管旁路一致)
@@ -200,7 +200,7 @@ func (s *MenuService) GetUserPermissions(ctx context.Context, userID uint) ([]st
 	userDAO := repository.NewUserRepo()
 	user, err := userDAO.GetByID(ctx, userID)
 	if err != nil {
-		return nil, notFoundOr(err, "用户不存在")
+		return nil, repository.NotFoundOr(err, "用户不存在")
 	}
 
 	// Super admin has all permissions
