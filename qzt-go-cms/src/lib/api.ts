@@ -13,7 +13,10 @@ import type {
   TeamMember,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:9000";
+
+/** ISR 重新验证周期(秒), 与各页面导出的 revalidate = 300 保持一致。 */
+const REVALIDATE_SECONDS = 300;
 
 /**
  * 调用后端公开接口并解包响应信封。
@@ -29,9 +32,9 @@ async function request<T>(path: string, search?: Record<string, string | number 
   }
 
   const res = await fetch(url.toString(), {
-    // 公开官网内容必须实时反映 admin 改动。Next 的 fetch Data Cache 在生产
-    // revalidate 不稳定(会卡死、一直返回旧数据),故一律 no-store 实时拉。
-    cache: "no-store",
+    // 走 Next fetch Data Cache(ISR), 300s 后台重新验证, 与页面 revalidate 一致;
+    // 产品/合作方/文章等公开内容低频变更, 300s 延迟可接受。
+    next: { revalidate: REVALIDATE_SECONDS },
   });
   if (!res.ok) {
     throw new Error(`请求失败: ${res.status} ${url.pathname}`);
@@ -105,11 +108,11 @@ export async function getPages(): Promise<CmsPage[]> {
 }
 
 // ── 首页板块配置(公开, 免鉴权) ──
-// 不走 fetch Data Cache(cache: no-store),确保 admin 改完精选/开关后即时生效;
-// 否则会卡在 Next 的 fetch 缓存里(ISR revalidate 不稳定),出现「配置变了首页不变」。
+// 走 ISR(300s 重新验证), 与页面 revalidate 一致; admin 改完精选/开关后
+// 最迟 5 分钟内生效, 官网低频变更场景可接受。
 export async function getHomepageConfig(): Promise<HomepageConfig> {
   const url = new URL(API_BASE + "/system/public/homepage-config");
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await fetch(url.toString(), { next: { revalidate: REVALIDATE_SECONDS } });
   if (!res.ok) throw new Error(`首页配置请求失败: ${res.status}`);
   const body = (await res.json()) as ApiResponse<HomepageConfig>;
   if (body.code !== 0) throw new Error(body.msg || "首页配置错误");
@@ -121,10 +124,10 @@ export function getPublicConfig(): Promise<SiteConfig> {
   return request<SiteConfig>("/api/configs/public");
 }
 
-/** 站点完整配置(logo/ICP/联系方式等,公开免鉴权)。不走缓存,确保修改后即时生效。 */
+/** 站点完整配置(logo/ICP/联系方式等,公开免鉴权)。走 ISR(300s),低频变更足够。 */
 export async function getSiteConfig(): Promise<SiteInfo> {
   const url = new URL(API_BASE + "/system/site-config");
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await fetch(url.toString(), { next: { revalidate: REVALIDATE_SECONDS } });
   if (!res.ok) throw new Error(`站点配置请求失败: ${res.status}`);
   const body = (await res.json()) as ApiResponse<SiteInfo>;
   if (body.code !== 0) throw new Error(body.msg || "站点配置错误");
@@ -153,7 +156,23 @@ export async function submitContact(data: ContactPayload): Promise<{ lead_no: st
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  const body = (await res.json()) as ApiResponse<{ lead_no: string }>;
+
+  // 网关/后端异常时可能返回非 JSON(如 502 HTML),先校验状态与内容类型,
+  // 避免抛出 "Unexpected token '<' ..." 这类不可读错误。
+  if (!res.ok) {
+    throw new Error("服务暂时不可用,请稍后重试");
+  }
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw new Error("服务暂时不可用,请稍后重试");
+  }
+
+  let body: ApiResponse<{ lead_no: string }>;
+  try {
+    body = (await res.json()) as ApiResponse<{ lead_no: string }>;
+  } catch {
+    throw new Error("服务暂时不可用,请稍后重试");
+  }
   if (body.code !== 0) {
     throw new Error(body.msg || "提交失败");
   }

@@ -22,11 +22,11 @@ import (
 
 // PublicContactRequest 官网留言表单。
 type PublicContactRequest struct {
-	Name    string `json:"name" binding:"required"`
-	Phone   string `json:"phone" binding:"required"`
-	Email   string `json:"email"`
-	Company string `json:"company"`
-	Message string `json:"message" binding:"required"`
+	Name    string `json:"name" binding:"required,max=50"`
+	Phone   string `json:"phone" binding:"required,max=30"`
+	Email   string `json:"email" binding:"max=100"`
+	Company string `json:"company" binding:"max=100"`
+	Message string `json:"message" binding:"required,max=1000"`
 }
 
 // PublicContact 处理官网留言,创建线索(入公海) + 推送通知。

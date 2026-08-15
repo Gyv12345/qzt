@@ -13,6 +13,8 @@ export default function ContactForm() {
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState("");
+  // Honeypot 反垃圾: 视觉隐藏的诱饵字段, 正常用户永远为空。
+  const [website, setWebsite] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -22,6 +24,17 @@ export default function ContactForm() {
     e.preventDefault();
     setStatus("loading");
     setError("");
+
+    // Honeypot 被填充 → 几乎必是自动填表的垃圾机器人:
+    // 假装提交成功, 不发请求。
+    if (website.trim() !== "") {
+      setStatus("success");
+      setForm({ name: "", phone: "", email: "", company: "", message: "" });
+      setWebsite("");
+      setTimeout(() => setStatus("idle"), 5000);
+      return;
+    }
+
     try {
       await submitContact(form);
       setStatus("success");
@@ -56,6 +69,7 @@ export default function ContactForm() {
             type="text"
             name="name"
             required
+            maxLength={50}
             value={form.name}
             onChange={handleChange}
             placeholder="您的姓名"
@@ -70,6 +84,7 @@ export default function ContactForm() {
             type="tel"
             name="phone"
             required
+            maxLength={30}
             value={form.phone}
             onChange={handleChange}
             placeholder="您的手机号"
@@ -84,6 +99,7 @@ export default function ContactForm() {
           <input
             type="email"
             name="email"
+            maxLength={100}
             value={form.email}
             onChange={handleChange}
             placeholder="您的邮箱(选填)"
@@ -95,6 +111,7 @@ export default function ContactForm() {
           <input
             type="text"
             name="company"
+            maxLength={100}
             value={form.company}
             onChange={handleChange}
             placeholder="您的公司(选填)"
@@ -111,12 +128,25 @@ export default function ContactForm() {
           name="message"
           required
           rows={5}
+          maxLength={1000}
           value={form.message}
           onChange={handleChange}
           placeholder="请描述您的需求或问题..."
           className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </div>
+
+      {/* Honeypot 反垃圾: CSS 视觉隐藏, 正常用户不会填写也不会聚焦 */}
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+      />
 
       {status === "error" && (
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
