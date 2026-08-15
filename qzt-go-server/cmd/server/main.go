@@ -69,7 +69,7 @@ func main() {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 system / api / cms / crm / enterprise / approval / hrm / psi / finance / oa 模块）
+	// 4. 组装路由（注册 13 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),

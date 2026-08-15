@@ -140,12 +140,12 @@ cp .env.example .env
 vim .env  # 填入 MYSQL_DSN / REDIS_PASSWORD / JWT_SECRET 等
 
 # 编译
-APP_ENV=prod ./deploy/run.sh build
+ENV=prod ./deploy/run.sh build
 # 或 make build
 
 # 启动(二选一)
 # ── 方式 1: run.sh 管理(简单,推荐开发/测试)──
-APP_ENV=prod ./deploy/run.sh start
+ENV=prod ./deploy/run.sh start
 
 # ── 方式 2: systemd 管理(生产推荐,开机自启+崩溃重启)──
 cp deploy/systemd/qzt-server.service /etc/systemd/system/
@@ -241,7 +241,7 @@ STORAGE_DRIVER=local
 # OSS_BUCKET_NAME="your-bucket"
 
 # 环境标识
-APP_ENV=prod
+ENV=prod
 ```
 
 ---

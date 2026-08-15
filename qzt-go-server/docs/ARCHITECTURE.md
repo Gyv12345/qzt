@@ -114,7 +114,7 @@ err := repository.Transaction(ctx, func(ctx context.Context) error {
 - `internal/pkg/storage` 定义 `Uploader` 接口，`*Local`（本地磁盘）与 `*OSS`（阿里云 OSS）都实现它，启动时按 `config.driver` 切换。
 - **双桶模型**：公共桶（public-read，直链/CDN，存可公开资源）+ 私有桶（private，签名 GET 访问，存合同/凭证等敏感文件）。
 - 配置走 `config.{env}.yaml` + `.env`（敏感字段环境变量注入），**已从数据库表迁移到配置文件**，改配置需重启。
-- 详细设计与 API 见 [OSS.md](OSS.md)。
+- 接口定义与双驱动实现详见 `internal/pkg/storage` 包源码（原设计文档 OSS.md 已不存在）。
 
 ## 4. 启动顺序
 

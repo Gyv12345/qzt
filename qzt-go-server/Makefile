@@ -1,7 +1,7 @@
 APP_NAME ?= qzt-server
 APP_IMAGE ?= qzt-server
 APP_VERSION ?= 1.0.0
-APP_PORT ?= 8000
+APP_PORT ?= 9000
 ENV ?= dev
 COMPOSE_FILE ?= deploy/docker-compose.yaml
 
@@ -52,6 +52,13 @@ lint: ## Run golangci-lint
 test: ## Run unit tests with race detector
 	go test -race -count=1 -cover ./...
 
+# 集成测试:仅编译带 `//go:build integration` tag 的测试(internal/testutil、oa 报销端到端、
+# pkg 下 xcache/xlock/xlimiter 的 Redis 集成用例),需要可连的 MySQL(qztgo_test 库)与 Redis,
+# 连接参数取自 .env。普通 `make test` 不含这些用例。
+.PHONY: test-integration
+test-integration: ## Run integration tests (tag=integration; needs reachable MySQL/Redis)
+	go test -race -count=1 -tags=integration ./...
+
 # --- Docker ---
 
 .PHONY: docker-build
@@ -74,7 +81,7 @@ logs: ## Follow docker-compose logs
 
 .PHONY: deploy-start
 deploy-start: ## Start server via deploy/run.sh (loads .env, PID-managed)
-	@if [ -f .env ]; then export APP_ENV=$$(grep -E '^APP_ENV=' .env | cut -d= -f2 || echo dev); fi; \
+	@if [ -f .env ]; then export ENV=$$(grep -E '^ENV=' .env | cut -d= -f2 || echo dev); fi; \
 	./deploy/run.sh start
 
 .PHONY: deploy-stop
@@ -91,7 +98,7 @@ deploy-status: ## Check server status via deploy/run.sh
 
 .PHONY: deploy-build
 deploy-build: ## Build production binary (env=prod)
-	APP_ENV=prod ./deploy/run.sh build
+	ENV=prod ./deploy/run.sh build
 
 .PHONY: deploy-logs
 deploy-logs: ## Tail server stdout log
