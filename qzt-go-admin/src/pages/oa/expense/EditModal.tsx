@@ -53,7 +53,7 @@ export default function ExpenseEditModal({ open, editingId, onOpenChange, onSucc
       form.resetFields()
       form.setFieldsValue({ items: [] })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const items = (values.items || []).map((it) => ({

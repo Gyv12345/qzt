@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { App, Button, Col, DatePicker, Divider, Drawer, Form, Popconfirm, Row, Select, Space, Spin, Tag, Timeline, TreeSelect } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
@@ -83,8 +83,13 @@ export default function EmployeePage() {
   const [editing, setEditing] = useState<HrmEmployee | null>(null)
   const [treeData, setTreeData] = useState<DeptTreeNode[]>([])
   const [positions, setPositions] = useState<HrmPosition[]>([])
-  const deptMapRef = useRef<Map<number, string>>(new Map())
-  const positionMapRef = useRef<Map<number, string>>(new Map())
+  // 部门/岗位的 id→name 映射:原用 ref 在 render 期读取(react-hooks/refs 违规),
+  // 改为 state + useMemo 派生,数据变化时正确触发重渲染
+  const [deptMap, setDeptMap] = useState<Map<number, string>>(new Map())
+  const positionMap = useMemo(
+    () => new Map(positions.map((p) => [p.id, p.name] as const)),
+    [positions],
+  )
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [changesLoading, setChangesLoading] = useState(false)
   const [changes, setChanges] = useState<HrmEmployeeChange[]>([])
@@ -94,11 +99,10 @@ export default function EmployeePage() {
     getDepartmentTree().then((tree) => {
       setTreeData(toTreeData(tree))
       const flat = flattenDepartments(tree)
-      deptMapRef.current = new Map(flat.map((d) => [d.id, d.name]))
+      setDeptMap(new Map(flat.map((d) => [d.id, d.name] as const)))
     })
     listEnabledPositions().then((list) => {
       setPositions(list)
-      positionMapRef.current = new Map(list.map((p) => [p.id, p.name]))
     })
   }, [])
 
@@ -184,9 +188,9 @@ export default function EmployeePage() {
     }
   }
 
-  const deptName = (id: number | null) => (id ? (deptMapRef.current.get(id) ?? `#${id}`) : '-')
+  const deptName = (id: number | null) => (id ? (deptMap.get(id) ?? `#${id}`) : '-')
   const positionName = (id: number | null) =>
-    id ? (positionMapRef.current.get(id) ?? `#${id}`) : '-'
+    id ? (positionMap.get(id) ?? `#${id}`) : '-'
 
   const positionOptions = positions.map((p) => ({
     label: `${p.name}(${deptName(p.department_id)})`,

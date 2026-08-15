@@ -56,7 +56,7 @@ export default function ProjectEditModal({ open, editingId, onOpenChange, onSucc
       form.resetFields()
       form.setFieldsValue({ priority: 2 })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

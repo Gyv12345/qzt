@@ -85,7 +85,7 @@ export default function AttachmentsPanel({
       setPendingFiles([])
       message.success(`成功上传 ${files.length} 个文件`)
       await load()
-    } catch (err) {
+    } catch {
       message.error('附件保存失败')
     } finally {
       setUploading(false)

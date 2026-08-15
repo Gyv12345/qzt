@@ -13,9 +13,11 @@ import { useContext } from 'react'
  */
 export function usePageGuide(key: string) {
   const ctx = useContext(GuideContext)
-  if (!ctx) return null
-  const { setPageKey } = ctx
+  // 取出后无条件调用 useEffect,避免 hooks 条件调用(rules-of-hooks);
+  // ctx 为空(Provider 外使用)时 effect 内直接跳过,行为与原先提前 return 一致
+  const setPageKey = ctx?.setPageKey
   useEffect(() => {
+    if (!setPageKey) return
     setPageKey(key)
     // 页面卸载不清空 pageKey:切到未接入页面时旧的 key 保留但 tour 已看过/已关闭,无副作用
   }, [key, setPageKey])

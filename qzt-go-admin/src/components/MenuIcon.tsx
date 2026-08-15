@@ -178,6 +178,7 @@ for (const [alias, target] of Object.entries(aliases)) {
 export default function MenuIcon({ icon }: { icon?: string }) {
   if (!icon) return null
   const Comp = normalized.get(icon.toLowerCase())
+  /* eslint-disable-next-line react-hooks/static-components -- normalized 中的图标均为模块级常量组件(ant-design icons),此处仅做查找引用,并非在渲染期创建新组件 */
   return Comp ? <Comp /> : null
 }
 

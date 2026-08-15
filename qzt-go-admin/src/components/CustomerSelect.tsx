@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import { Select, type SelectProps } from 'antd'
 import { listCustomers } from '../services/crm'
 
-interface CustomerSelectProps extends Omit<SelectProps, 'options' | 'loading'> {
-  /** 额外过滤(如仅公海) */
-}
+/** 额外过滤等扩展属性直接透传给 antd Select */
+type CustomerSelectProps = Omit<SelectProps, 'options' | 'loading'>
 
 /** 客户下拉选择(加载前 100 个客户,本地过滤) */
 export default function CustomerSelect(props: CustomerSelectProps) {

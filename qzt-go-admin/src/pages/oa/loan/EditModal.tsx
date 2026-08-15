@@ -38,7 +38,7 @@ export default function LoanEditModal({ open, editingId, onOpenChange, onSuccess
     } else {
       form.resetFields()
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

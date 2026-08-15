@@ -40,7 +40,7 @@ export default function WorkLogEditModal({ open, editingId, onOpenChange, onSucc
       const today = new Date().toISOString().slice(0, 10)
       form.setFieldsValue({ log_type: 'DAILY', log_date: today })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

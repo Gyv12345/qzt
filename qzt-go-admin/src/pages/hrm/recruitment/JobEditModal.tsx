@@ -48,7 +48,7 @@ export default function JobEditModal({ open, editingId, onOpenChange, onSuccess 
       form.resetFields()
       form.setFieldsValue({ headcount: 1 })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

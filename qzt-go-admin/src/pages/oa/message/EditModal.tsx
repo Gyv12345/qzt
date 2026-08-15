@@ -37,7 +37,7 @@ export default function MessageEditModal({ open, onOpenChange, onSuccess }: Edit
       setReceiverId(null)
       setFiles([])
     }
-  }, [open])
+  }, [open, form])
 
   const handleSubmit = async (values: any) => {
     if (!receiverId) {

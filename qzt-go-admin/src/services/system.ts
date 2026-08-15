@@ -46,7 +46,6 @@ export const listAllUsers = async (): Promise<SysUser[]> => {
   const pageSize = 100
   let page = 1
   const all: SysUser[] = []
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const res = await listUsers({ page, page_size: pageSize })
     all.push(...res.list)

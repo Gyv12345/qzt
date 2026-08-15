@@ -51,7 +51,8 @@ export default function CrmSettingPage() {
         setTemplates(tplRes.list || [])
       })
       .finally(() => setLoading(false))
-  }, [])
+    // followForm/poolForm 为 Form.useForm 稳定实例,补齐依赖满足 exhaustive-deps
+  }, [followForm, poolForm])
 
   // 保存跟进配置
   const onFollowupSave = async (v: FollowupForm) => {

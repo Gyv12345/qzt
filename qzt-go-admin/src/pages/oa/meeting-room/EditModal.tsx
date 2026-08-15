@@ -40,7 +40,7 @@ export default function MeetingRoomEditModal({ open, editingId, onOpenChange, on
     } else {
       form.setFieldsValue({ status: 'ENABLED', capacity: 10 })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

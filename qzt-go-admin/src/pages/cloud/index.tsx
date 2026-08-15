@@ -115,7 +115,7 @@ export default function CloudPage() {
       message.success(`${file.name} 上传成功`)
       loadFiles(currentParent, scope)
       if (scope === 'personal') loadUsage()
-    } catch (err) {
+    } catch {
       message.error('上传失败')
     }
     return false // 阻止 antd 默认上传

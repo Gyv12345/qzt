@@ -41,7 +41,7 @@ export default function FormTemplateEditModal({ open, editingId, onOpenChange, o
       form.setFieldsValue({ category: 'non-business', status: 1, sort: 0 })
       setFields([])
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   // 字段操作
   const addField = () => {

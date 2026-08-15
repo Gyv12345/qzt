@@ -57,7 +57,7 @@ export default function ScheduleEditModal({ open, editingId, onOpenChange, onSuc
         status: 'PENDING',
       })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

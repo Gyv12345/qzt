@@ -87,7 +87,6 @@ export default function BasicLayout() {
 
   useEffect(() => {
     if (!userLoaded) load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoaded])
 
   /** 一级菜单 = 模块,拆分为业务模块与后台设置 */

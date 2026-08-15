@@ -114,6 +114,7 @@ export default function FormTemplateDesigner({ open, editingId, onClose, onSucce
 
   const handleAdd = (type: string) => {
     const newField: FormField = {
+      // eslint-disable-next-line react-hooks/purity -- Date.now() 生成唯一 key,handleAdd 仅由按钮 onClick 调用,不在渲染期执行
       key: `field_${Date.now()}`,
       title: FIELD_META[type]?.label || '新字段',
       type,

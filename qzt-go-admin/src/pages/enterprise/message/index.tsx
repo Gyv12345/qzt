@@ -169,6 +169,7 @@ export default function MessagePage() {
       fixed: 'right',
       render: (_, record) => (
         <Space>
+          {/* eslint-disable-next-line react-hooks/refs -- handleView 内部读 inboxRef,但仅在用户点击 onClick 时执行,非渲染期访问 */}
           <Button type="link" size="small" onClick={() => handleView(record, box)}>
             查看
           </Button>

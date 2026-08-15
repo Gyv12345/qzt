@@ -175,7 +175,6 @@ export default function CrmFieldPage() {
     listCustomFields('CUSTOMER')
       .then(setCustomerFields)
       .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentKey])
 
   // 右栏跟随选中字段回填

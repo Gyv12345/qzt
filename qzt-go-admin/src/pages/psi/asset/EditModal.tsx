@@ -67,7 +67,7 @@ export default function AssetEditModal({ open, editingId, onOpenChange, onSucces
       form.resetFields()
       form.setFieldsValue({ status: 1, category: '电脑' })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

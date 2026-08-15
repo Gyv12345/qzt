@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { App } from 'antd'
 import {
   ModalForm,
@@ -59,12 +59,14 @@ export default function DynamicFormFillModal({ open, editingId, template, onOpen
   const { message } = App.useApp()
   const [form] = ProForm.useForm()
 
-  let fields: FormField[] = []
-  try {
-    fields = JSON.parse(template.fields_config || '[]')
-  } catch {
-    fields = []
-  }
+  // useMemo 稳定 fields 身份:每次渲染重新 JSON.parse 会产生新数组,放进 effect deps 会反复触发
+  const fields = useMemo<FormField[]>(() => {
+    try {
+      return JSON.parse(template.fields_config || '[]')
+    } catch {
+      return []
+    }
+  }, [template.fields_config])
 
   useEffect(() => {
     if (!open) return
@@ -90,7 +92,7 @@ export default function DynamicFormFillModal({ open, editingId, template, onOpen
         form.setFieldsValue(defaults)
       }
     }
-  }, [open, editingId, template.id])
+  }, [open, editingId, template.id, fields, form])
 
   const handleSubmit = async (values: any) => {
     const payload = {

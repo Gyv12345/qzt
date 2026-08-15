@@ -39,7 +39,7 @@ function getExportColumns<T>(columns: ProColumns<T>[]) {
 /** 获取单元格的显示值:优先用 render 的结果,否则取 dataIndex 的值 */
 function getCellValue<T>(record: T, col: ProColumns<T>): string {
   const dataKey = (col.dataIndex || col.key) as string
-  let value: any = (record as any)[dataKey]
+  const value: any = (record as any)[dataKey]
 
   // 如果有 valueEnum,转换成文本
   if (col.valueEnum && value !== undefined && value !== null) {

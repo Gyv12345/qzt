@@ -60,7 +60,7 @@ export default function MeetingBookingEditModal({ open, editingId, onOpenChange,
         attendees: 5,
       })
     }
-  }, [open, editingId])
+  }, [open, editingId, form])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {
