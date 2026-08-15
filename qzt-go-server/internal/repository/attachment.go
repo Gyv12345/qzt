@@ -27,3 +27,12 @@ func (r *AttachmentRepo) ListByResource(ctx context.Context, bizType string, res
 	}
 	return list, err
 }
+
+// GetByObjectKey 按 objectKey 反查附件记录(私有文件签名下载前的归属校验用)。
+func (r *AttachmentRepo) GetByObjectKey(ctx context.Context, objectKey string) (*model.SysAttachment, error) {
+	var att model.SysAttachment
+	if err := dbFrom(ctx).Where("object_key = ?", objectKey).First(&att).Error; err != nil {
+		return nil, err
+	}
+	return &att, nil
+}

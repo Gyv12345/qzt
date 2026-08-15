@@ -63,8 +63,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 线索公海池下拉
 		authenticated.GET("/lead-pools/enabled", leadPoolHandler.ListEnabledPools)
 
-		// 跟进记录时间线
-		authenticated.GET("/follow-records/timeline", followHandler.Timeline)
+		// 跟进记录时间线(field 白名单 + 数据权限,防按任意列名越权枚举他人跟进内容)
+		authenticated.GET("/follow-records/timeline", TimelineOwnerGuard(), followHandler.Timeline)
 
 		// 我的待办计划
 		authenticated.GET("/follow-plans/my-todos", followHandler.MyTodos)
@@ -77,10 +77,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 合同回款汇总
 		authenticated.GET("/contracts/:id/payment-summary", DataScopeGuard("contract"), paymentHandler.PaymentSummary)
 
-		// 字段变更历史(按 biz_type + resource_id 查询)
-		authenticated.GET("/field-changes", changeLogHandler.List)
+		// 字段变更历史(按 biz_type + resource_id 查询;biz_type 白名单 + 数据权限)
+		authenticated.GET("/field-changes", ChangeLogOwnerGuard(), changeLogHandler.List)
 
-		// 客户/线索查重(录入防重,名称模糊+电话精确)
+		// 客户/线索查重(录入防重,名称模糊+电话精确;service 侧叠加数据权限)
 		authenticated.GET("/dedup", dedupHandler.Check)
 
 		// 跟进预警配置(阈值天数 + 开关,只读)

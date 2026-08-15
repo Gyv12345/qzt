@@ -79,7 +79,7 @@ func (s *AttachmentService) Create(ctx context.Context, req *CreateAttachmentReq
 func (s *AttachmentService) Delete(ctx context.Context, id, operatorID uint, isSuperAdmin bool) error {
 	att, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "附件不存在")
+		return repository.NotFoundOr(err, "附件不存在")
 	}
 	if !isSuperAdmin && att.UploaderID != operatorID {
 		return errors.New("无权删除他人上传的附件")

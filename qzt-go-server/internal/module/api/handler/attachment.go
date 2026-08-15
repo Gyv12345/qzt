@@ -26,6 +26,11 @@ func NewAttachmentHandler() *AttachmentHandler {
 	return &AttachmentHandler{svc: service.NewAttachmentService()}
 }
 
+// isSuperAdmin 当前请求用户是否超管(附件保守降级通道用)。
+func (h *AttachmentHandler) isSuperAdmin(c *gin.Context) bool {
+	return slices.Contains(middleware.GetRoleCodes(c), model.SuperAdminRoleCode)
+}
+
 // List 查询某业务实体的附件列表。
 // @Summary      附件列表
 // @Description  按 biz_type + resource_id 查询附件列表
@@ -45,6 +50,13 @@ func (h *AttachmentHandler) List(c *gin.Context) {
 	}
 	if bizType == "" {
 		response.Fail(c, errcode.ErrParam, "biz_type 必填")
+		return
+	}
+
+	// 数据权限:按 biz_type 解析资源归属校验,防枚举 resource_id 越权读附件
+	if err := service.CheckAttachmentAccess(c.Request.Context(),
+		strings.ToUpper(bizType), uint(resourceID), 0, h.isSuperAdmin(c)); err != nil {
+		response.Fail(c, errcode.ErrForbidden, err.Error())
 		return
 	}
 
@@ -70,6 +82,12 @@ func (h *AttachmentHandler) Create(c *gin.Context) {
 	var req service.CreateAttachmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+	// 数据权限:给资源挂附件等同写该资源,归属校验防越权登记
+	if err := service.CheckAttachmentAccess(c.Request.Context(),
+		strings.ToUpper(strings.TrimSpace(req.BizType)), req.ResourceID, 0, h.isSuperAdmin(c)); err != nil {
+		response.Fail(c, errcode.ErrForbidden, err.Error())
 		return
 	}
 	att, err := h.svc.Create(c.Request.Context(), &req, middleware.GetUserID(c))

@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"qzt-go-server/config"
@@ -47,6 +48,17 @@ var defaultAllowedTypes = map[string]string{
 	"xls":  "application/vnd.ms-excel",
 	"xlsx": "application/vnd.openxmlformats.spreadsheetml.sheet",
 	"zip":  "application/zip",
+}
+
+// IsAllowedFileExt 判断扩展名(带点小写,如 ".png")是否在上传白名单内。
+// 供 STS 直传等不经过 Uploader.Save 校验的通道复用同一份白名单。
+func IsAllowedFileExt(ext string) bool {
+	ext = strings.ToLower(strings.TrimSpace(ext))
+	if !strings.HasPrefix(ext, ".") || len(ext) < 2 {
+		return false
+	}
+	_, ok := defaultAllowedTypes[ext[1:]]
+	return ok
 }
 
 // InitStorage 从 config.StorageConfig 构建全局 Uploader(启动时调用一次)。

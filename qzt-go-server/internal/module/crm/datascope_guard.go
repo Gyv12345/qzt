@@ -8,6 +8,7 @@ import (
 
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/pkg/datascope"
+	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/pkg/xresponse"
 )
 
@@ -39,6 +40,71 @@ func DataScopeGuard(kind string) gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+// queryOwnerGuard 「按 query 参数指定资源」的数据权限守卫工厂。
+//
+// 适用于资源不是路径 id 而是 query 参数的只读接口(如时间线 field=value、
+// 字段变更 biz_type+resource_id):fieldMap 把客户端传入的资源标识映射到
+// ownerRefs 的 kind,守卫解析最终归属人后按 datascope 校验,不通过 403。
+// 资源标识不在 fieldMap 内直接 400(白名单,兼防任意列名探测);id 参数
+// 缺失/非法时不拦截,交由 handler 返回参数错误——守卫只管权限不管必填。
+func queryOwnerGuard(fieldMap map[string]string, fieldParam, idParam string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		kind, ok := fieldMap[c.Query(fieldParam)]
+		if !ok {
+			xresponse.Fail(c, errcode.ErrParam, "参数错误: "+fieldParam+" 无效")
+			c.Abort()
+			return
+		}
+		raw := c.Query(idParam)
+		if raw == "" {
+			c.Next()
+			return
+		}
+		v, err := strconv.ParseUint(raw, 10, 64)
+		if err != nil || v == 0 {
+			c.Next()
+			return
+		}
+		owner, ok := resolveOwner(kind, uint(v))
+		if !ok {
+			c.Next()
+			return
+		}
+		if !datascope.CanAccessOwner(c.Request.Context(), owner) {
+			xresponse.Forbidden(c, "无权访问该数据")
+			return
+		}
+		c.Next()
+	}
+}
+
+// timelineFieldKinds 时间线接口 field 参数白名单:列名 → 归属解析 kind。
+var timelineFieldKinds = map[string]string{
+	"lead_id":        "lead",
+	"customer_id":    "customer",
+	"opportunity_id": "opportunity",
+	"contact_id":     "contact",
+	"contract_id":    "contract",
+}
+
+// TimelineOwnerGuard 跟进记录时间线数据权限守卫(field+value)。
+func TimelineOwnerGuard() gin.HandlerFunc {
+	return queryOwnerGuard(timelineFieldKinds, "field", "value")
+}
+
+// changeBizKinds 字段变更历史 biz_type 白名单:CUSTOMER 等 → 归属解析 kind。
+var changeBizKinds = map[string]string{
+	"CUSTOMER":    "customer",
+	"LEAD":        "lead",
+	"OPPORTUNITY": "opportunity",
+	"CONTRACT":    "contract",
+}
+
+// ChangeLogOwnerGuard 字段变更历史数据权限守卫(biz_type+resource_id)。
+func ChangeLogOwnerGuard() gin.HandlerFunc {
+	return queryOwnerGuard(changeBizKinds, "biz_type", "resource_id")
 }
 
 // parseID 取路径参数 id(合同明细等路由参数名为 itemId)。

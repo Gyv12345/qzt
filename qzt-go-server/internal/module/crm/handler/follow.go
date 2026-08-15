@@ -128,8 +128,12 @@ func (h *FollowHandler) DeleteRecord(c *gin.Context) {
 // @Router   /crm/follow-records/timeline [get]
 func (h *FollowHandler) Timeline(c *gin.Context) {
 	field := c.Query("field")
-	if field == "" {
-		response.Fail(c, errcode.ErrParam, "参数错误: field 不能为空")
+	// 白名单兜底:路由已挂 TimelineOwnerGuard,这里再挡一层,
+	// 防止将来路由挪动时 field 任意列名直查复活。
+	switch field {
+	case "lead_id", "customer_id", "opportunity_id", "contact_id", "contract_id":
+	default:
+		response.Fail(c, errcode.ErrParam, "参数错误: field 无效")
 		return
 	}
 	value, err := strconv.ParseUint(c.Query("value"), 10, 64)

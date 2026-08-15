@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/repository"
 )
 
@@ -67,11 +68,16 @@ type ContactListRow struct {
 }
 
 // PageListAll 全局联系人分页(跨客户,关键词搜姓名/电话/邮箱,带客户名)。
+// 叠加数据权限:沿所属客户的负责人过滤;公海客户(owner 为 NULL)的联系人保持可见。
 func (r *CustomerContactRepo) PageListAll(ctx context.Context, page, pageSize int, keyword, customerID string) ([]ContactListRow, int64, error) {
 	db := repository.DBFrom(ctx).Table("crm_customer_contact AS c").
 		Select("c.*, cust.name AS customer_name").
 		Joins("LEFT JOIN crm_customer AS cust ON cust.id = c.customer_id").
 		Where("c.deleted_at IS NULL")
+
+	if cond := datascope.BuildCond(ctx, "cust.owner_id"); cond != nil {
+		db = db.Where("("+cond.Query+" OR cust.owner_id IS NULL)", cond.Args...)
+	}
 
 	if keyword != "" {
 		like := "%" + keyword + "%"

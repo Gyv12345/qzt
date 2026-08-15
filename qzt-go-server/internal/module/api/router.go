@@ -31,7 +31,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/health", healthHandler.Health)
 	rg.GET("/configs/public", configHandler.Public)
 
-	// 已认证路由(仅 JWT):文件上传 + 签名下载 + 附件 + 仪表盘
+	// 已认证路由(仅 JWT):文件上传 + 签名下载 + 附件 + 个人口径仪表盘
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
 	{
 		authenticated.POST("/upload", uploadHandler.Upload)
@@ -45,27 +45,35 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.POST("/attachments", attachmentHandler.Create)
 		authenticated.DELETE("/attachments/:id", attachmentHandler.Delete)
 
+		// 个人/数据权限口径仪表盘:overview 与 customer-distribution、
+		// opportunity-funnel 在 service 层叠加了 datascope,仅登录即可。
 		authenticated.GET("/dashboard/overview", dashboardHandler.Overview)
-		authenticated.GET("/dashboard/sales-trend", dashboardHandler.SalesTrend)
 		authenticated.GET("/dashboard/customer-distribution", dashboardHandler.CustomerDistribution)
 		authenticated.GET("/dashboard/opportunity-funnel", dashboardHandler.OpportunityFunnel)
-		authenticated.GET("/dashboard/finance-summary", dashboardHandler.FinanceSummary)
-
-		// BI 扩展:CRM
-		authenticated.GET("/dashboard/contract-trend", dashboardHandler.ContractTrend)
-		authenticated.GET("/dashboard/sales-ranking", dashboardHandler.SalesRanking)
-		authenticated.GET("/dashboard/lead-source-distribution", dashboardHandler.LeadSourceDistribution)
-		// BI 扩展:HRM
-		authenticated.GET("/dashboard/employee-distribution", dashboardHandler.EmployeeDistribution)
-		authenticated.GET("/dashboard/headcount-trend", dashboardHandler.HeadcountTrend)
-		authenticated.GET("/dashboard/attendance-summary", dashboardHandler.AttendanceSummary)
-		// BI 扩展:财务
-		authenticated.GET("/dashboard/finance-trend", dashboardHandler.FinanceTrend)
-		// BI 扩展:进销存
-		authenticated.GET("/dashboard/stock-value-by-warehouse", dashboardHandler.StockValueByWarehouse)
-		authenticated.GET("/dashboard/sales-vs-purchase", dashboardHandler.SalesVsPurchase)
 
 		// 统一日历:聚合各业务模块带日期的待办(仅当前用户)
 		authenticated.GET("/calendar", calendarHandler.Calendar)
+	}
+
+	// 受保护路由(JWT + 操作日志 + Casbin):全公司经营口径的 BI 看板。
+	// 这些接口不做数据权限过滤(全员业绩/财务总额等),仅登录即可看属于
+	// 越权暴露,挪入 RBAC 组按角色授权(种子见 docs/sql/dashboard_rbac.sql)。
+	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
+	{
+		// BI:CRM(销售趋势/业绩排行/合同趋势/线索来源)
+		auth.GET("/dashboard/sales-trend", dashboardHandler.SalesTrend)
+		auth.GET("/dashboard/contract-trend", dashboardHandler.ContractTrend)
+		auth.GET("/dashboard/sales-ranking", dashboardHandler.SalesRanking)
+		auth.GET("/dashboard/lead-source-distribution", dashboardHandler.LeadSourceDistribution)
+		// BI:HRM(人员分布/人数趋势/考勤汇总)
+		auth.GET("/dashboard/employee-distribution", dashboardHandler.EmployeeDistribution)
+		auth.GET("/dashboard/headcount-trend", dashboardHandler.HeadcountTrend)
+		auth.GET("/dashboard/attendance-summary", dashboardHandler.AttendanceSummary)
+		// BI:财务(财务汇总/收支趋势)
+		auth.GET("/dashboard/finance-summary", dashboardHandler.FinanceSummary)
+		auth.GET("/dashboard/finance-trend", dashboardHandler.FinanceTrend)
+		// BI:进销存(库存货值/购销对比)
+		auth.GET("/dashboard/stock-value-by-warehouse", dashboardHandler.StockValueByWarehouse)
+		auth.GET("/dashboard/sales-vs-purchase", dashboardHandler.SalesVsPurchase)
 	}
 }

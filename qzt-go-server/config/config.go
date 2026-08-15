@@ -36,6 +36,14 @@ type Config struct {
 	Redis       RedisConfig       `mapstructure:"redis"`
 	JWT         JwtConfig         `mapstructure:"jwt"`
 	Storage     StorageConfig     `mapstructure:"storage"`
+	Cors        CorsConfig        `mapstructure:"cors"`
+}
+
+// CorsConfig 跨域配置。AllowOrigins 为空时保持反射任意 Origin(兼容既有
+// 私有化部署,Bearer 模式下无直接可利用面);配置后仅白名单内 Origin 可
+// 携带凭证跨域——支持 ${VAR} 注入,域名不同的客户环境走环境变量。
+type CorsConfig struct {
+	AllowOrigins []string `mapstructure:"allow_origins"`
 }
 
 // ApplicationConfig 应用基础配置。

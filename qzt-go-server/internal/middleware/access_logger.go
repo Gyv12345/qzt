@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,32 @@ var sensitiveRoots = []string{
 
 // 数组内脱敏路径（* 通配任意下标），如 data.list.*.operator_id。
 var arrayFieldMasks = []string{}
+
+// sensitiveQueryKeys URL query 里的凭据类参数名:日志记录时值替换为 ****。
+// (KB 协同 WebSocket 的 token、本地私有下载的签名 t 都走 query,不脱敏会整串落日志。)
+var sensitiveQueryKeys = []string{"token", "access_token", "refresh_token", "t"}
+
+// maskQuery 脱敏 URL query 中的凭据参数;无命中时原样返回(保持可读性)。
+func maskQuery(rawQuery string) string {
+	if rawQuery == "" {
+		return rawQuery
+	}
+	values, err := url.ParseQuery(rawQuery)
+	if err != nil {
+		return "[unparsable]"
+	}
+	changed := false
+	for _, k := range sensitiveQueryKeys {
+		if values.Has(k) {
+			values.Set(k, "****")
+			changed = true
+		}
+	}
+	if !changed {
+		return rawQuery
+	}
+	return values.Encode()
+}
 
 // fastMask 对 JSON body 做敏感字段脱敏，返回新字节切片。
 func fastMask(raw []byte) []byte {
@@ -143,7 +170,7 @@ func Logger() gin.HandlerFunc {
 		cfg := config.Get()
 		startTime := time.Now()
 		path := c.Request.URL.Path
-		query := c.Request.URL.RawQuery
+		query := maskQuery(c.Request.URL.RawQuery)
 		method := c.Request.Method
 		traceID := xtrace.GetTraceID(c.Request.Context())
 

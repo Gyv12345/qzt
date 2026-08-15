@@ -62,3 +62,7 @@ storage:
     custom_domain: ${OSS_CUSTOM_DOMAIN:-}            # 公共桶 CDN/自定义域名（空则用默认域名）
     private_bucket_name: ${OSS_PRIVATE_BUCKET_NAME:-}        # 私有桶(private,留空则禁用私有附件)
     private_custom_domain: ${OSS_PRIVATE_CUSTOM_DOMAIN:-}    # 私有桶自定义域名（一般留空）
+
+# 跨域白名单(可选):留空保持反射(本地 dev 前后端分离直连 5173/5174/3000 需要)
+cors:
+  allow_origins: []

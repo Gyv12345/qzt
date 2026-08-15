@@ -10,6 +10,7 @@ import (
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/middleware"
 	response "qzt-go-server/pkg/xresponse"
+	"qzt-go-server/pkg/xenv"
 )
 
 // Module 可插拔业务模块接口。每个模块实现 Name()（作为 URL 前缀）与
@@ -37,8 +38,13 @@ func NewRouter(modules ...Module) *gin.Engine {
 	}
 
 	// Swagger 文档（免鉴权）。文档由 `make swag`(swag init) 生成到 cmd/server/docs。
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	app.Log.Info("swagger 文档已注册: /swagger/index.html")
+	// 仅 dev 环境注册:生产/预发暴露全量接口与数据模型会显著降低攻击成本。
+	if xenv.Dev() {
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		app.Log.Info("swagger 文档已注册: /swagger/index.html")
+	} else {
+		app.Log.Infof("当前环境 %s 不注册 swagger 文档", xenv.Env())
+	}
 
 	setupNoRoute(r, apiPrefixes)
 	return r

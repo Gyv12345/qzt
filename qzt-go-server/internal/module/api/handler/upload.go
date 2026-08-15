@@ -15,12 +15,17 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gin-gonic/gin"
+	"slices"
 
 	"qzt-go-server/config"
 	"qzt-go-server/internal/app"
+	"qzt-go-server/internal/middleware"
+	"qzt-go-server/internal/model"
+	"qzt-go-server/internal/module/api/service"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/pkg/storage"
 	response "qzt-go-server/pkg/xresponse"
+	"qzt-go-server/pkg/xlogger"
 )
 
 const (
@@ -164,8 +169,14 @@ func (h *UploadHandler) STS(c *gin.Context) {
 	folder := c.DefaultQuery("folder", "uploads")
 	usePrivate := c.Query("private") == "true" || c.Query("visibility") == storage.VisibilityPrivate
 
-	// 推断扩展名和 content-type
+	// 推断扩展名和 content-type;直传通道不经过 Uploader.Save 的校验,
+	// 扩展名必须过同一份白名单——否则可向公共桶/CDN 域直传 HTML/SVG
+	// 造成存储型 XSS,或上传任意可执行文件。
 	ext := strings.ToLower(filepath.Ext(filename))
+	if !app.IsAllowedFileExt(ext) {
+		response.Fail(c, errcode.ErrParam, "不支持的文件类型: "+ext)
+		return
+	}
 	contentType := mime.TypeByExtension(ext)
 	if contentType == "" {
 		contentType = "application/octet-stream"
@@ -179,7 +190,9 @@ func (h *UploadHandler) STS(c *gin.Context) {
 	endpoint := storageCfg.OSS.Endpoint
 	client, err := oss.New(endpoint, storageCfg.OSS.AccessKeyID, storageCfg.OSS.AccessKeySecret)
 	if err != nil {
-		response.Fail(c, errcode.ErrServer, "创建 OSS 客户端失败: "+err.Error())
+		// 不透传 err:含 endpoint/AK 信息,进日志即可
+		xlogger.ErrorfCtx(c.Request.Context(), "STS 创建 OSS 客户端失败: %v", err)
+		response.Fail(c, errcode.ErrServer, "存储服务暂不可用，请稍后重试")
 		return
 	}
 
@@ -194,7 +207,8 @@ func (h *UploadHandler) STS(c *gin.Context) {
 
 	bucket, err := client.Bucket(bucketName)
 	if err != nil {
-		response.Fail(c, errcode.ErrServer, "获取 bucket 失败: "+err.Error())
+		xlogger.ErrorfCtx(c.Request.Context(), "STS 获取 bucket 失败: %v", err)
+		response.Fail(c, errcode.ErrServer, "存储服务暂不可用，请稍后重试")
 		return
 	}
 
@@ -208,7 +222,8 @@ func (h *UploadHandler) STS(c *gin.Context) {
 		oss.ContentDisposition(disposition),
 	)
 	if err != nil {
-		response.Fail(c, errcode.ErrServer, "签名失败: "+err.Error())
+		xlogger.ErrorfCtx(c.Request.Context(), "STS 签名失败: %v", err)
+		response.Fail(c, errcode.ErrServer, "获取上传链接失败，请稍后重试")
 		return
 	}
 
@@ -251,6 +266,22 @@ func (h *UploadHandler) Sign(c *gin.Context) {
 	key := c.Query("key")
 	if key == "" {
 		response.Fail(c, errcode.ErrParam, "key 必填")
+		return
+	}
+
+	// 归属校验:私有文件的 objectKey 必须对应已登记的附件记录,
+	// 且当前用户对该附件关联的业务资源有数据权限——否则任意登录用户
+	// 枚举 key 即可下载他人合同扫描件/工资条等私有文件。
+	attSvc := service.NewAttachmentService()
+	att, err := attSvc.FindByObjectKey(c.Request.Context(), key)
+	if err != nil {
+		response.Fail(c, errcode.ErrForbidden, "文件未登记附件记录,无法生成下载链接")
+		return
+	}
+	isSuper := slices.Contains(middleware.GetRoleCodes(c), model.SuperAdminRoleCode)
+	if err := service.CheckAttachmentAccess(c.Request.Context(),
+		att.BizType, att.ResourceID, att.UploaderID, isSuper); err != nil {
+		response.Fail(c, errcode.ErrForbidden, err.Error())
 		return
 	}
 

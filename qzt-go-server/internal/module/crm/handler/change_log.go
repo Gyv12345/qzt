@@ -33,8 +33,12 @@ func NewChangeLogHandler() *ChangeLogHandler {
 // @Router   /crm/field-changes [get]
 func (h *ChangeLogHandler) List(c *gin.Context) {
 	bizType := c.Query("biz_type")
-	if bizType == "" {
-		response.Fail(c, errcode.ErrParam, "参数错误: biz_type 必填")
+	// 白名单兜底:路由已挂 ChangeLogOwnerGuard,这里再挡一层,
+	// 防止任意 biz_type 直查多态表泄露他人记录的字段历史。
+	switch bizType {
+	case "CUSTOMER", "LEAD", "OPPORTUNITY", "CONTRACT":
+	default:
+		response.Fail(c, errcode.ErrParam, "参数错误: biz_type 无效")
 		return
 	}
 	resourceID, err := strconv.ParseUint(c.Query("resource_id"), 10, 64)

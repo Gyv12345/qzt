@@ -9,7 +9,9 @@ import (
 
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/middleware"
+	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/module/kb/service"
+	"qzt-go-server/internal/repository"
 	"qzt-go-server/internal/module/system/errcode"
 	syservice "qzt-go-server/internal/module/system/service"
 	response "qzt-go-server/pkg/xresponse"
@@ -182,18 +184,35 @@ func (h *CollabHandler) HandleCollab(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误")
 		return
 	}
-	userID := middleware.GetUserID(c)
 
-	// JWT 校验(WebSocket 不走中间件链,手动校验)
+	// JWT 完整校验(WebSocket 不走中间件链,手动补齐 JWTAuth 的三重失效
+	// 校验:Redis 黑名单 + access token 类型 + token_version/账号状态),
+	// 并把连接身份绑定到 token claims——本路由未经鉴权中间件,gin context
+	// 里没有 user_id,此前取值恒为 0,连接身份与 token 脱钩。
 	token := c.Query("token")
 	if token == "" {
 		c.String(http.StatusUnauthorized, "未认证")
 		return
 	}
-	if _, err := app.JwtManager.ParseToken(token); err != nil {
+	if cache.IsTokenBlacklisted(token) {
+		c.String(http.StatusUnauthorized, "Token 已失效")
+		return
+	}
+	claims, err := app.JwtManager.ParseToken(token)
+	if err != nil {
 		c.String(http.StatusUnauthorized, "Token 无效")
 		return
 	}
+	if err := claims.ValidAccessToken(); err != nil {
+		c.String(http.StatusUnauthorized, "Token 类型错误")
+		return
+	}
+	wsUser, err := repository.NewUserRepo().GetByID(c.Request.Context(), uint(claims.UserId))
+	if err != nil || wsUser.TokenVersion != claims.TokenVersion || wsUser.Status != 1 {
+		c.String(http.StatusUnauthorized, "登录状态已失效")
+		return
+	}
+	userID := uint(claims.UserId)
 
 	conn, err := wsUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
