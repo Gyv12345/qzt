@@ -1,10 +1,15 @@
-package service
+package pagination
 
 import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+// pagination.go 通用分页参数解析(全模块共用)。
+// 原实现分散在 internal/module/system/service/pagination.go 与
+// internal/module/cms/service/pagination.go(两份一字不差的复制),
+// 现统一迁到此处;旧位置保留 re-export 以兼容既有调用方。
 
 const maxPage = 10000
 

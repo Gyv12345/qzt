@@ -72,7 +72,7 @@ func (s *CategoryService) Create(ctx context.Context, req *CreateCategoryRequest
 func (s *CategoryService) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsCategory, error) {
 	cat, err := s.categoryRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "分类不存在")
+		return nil, repository.NotFoundOr(err, "分类不存在")
 	}
 	return cat, nil
 }
@@ -90,7 +90,7 @@ type UpdateCategoryRequest struct {
 func (s *CategoryService) Update(ctx context.Context, id uint, req *UpdateCategoryRequest) error {
 	cat, err := s.categoryRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "分类不存在")
+		return repository.NotFoundOr(err, "分类不存在")
 	}
 	// 不能将自身设为父分类
 	if req.ParentID == id {
@@ -129,7 +129,7 @@ func (s *CategoryService) Update(ctx context.Context, id uint, req *UpdateCatego
 
 func (s *CategoryService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.categoryRepo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "分类不存在")
+		return repository.NotFoundOr(err, "分类不存在")
 	}
 	// 校验无子分类
 	hasChildren, err := s.categoryRepo.HasChildren(ctx, id)

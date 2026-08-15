@@ -76,7 +76,7 @@ func (s *JobService) Create(ctx context.Context, req *CreateSysJobRequest) (*ent
 // GetByID 任务详情。
 func (s *JobService) GetByID(ctx context.Context, id uint) (*entmodel.SysJob, error) {
 	job, err := s.repo.GetByID(ctx, id)
-	return job, notFoundOr(err, "任务不存在")
+	return job, repository.NotFoundOr(err, "任务不存在")
 }
 
 // UpdateSysJobRequest 更新任务请求。
@@ -93,7 +93,7 @@ type UpdateSysJobRequest struct {
 func (s *JobService) Update(ctx context.Context, id uint, req *UpdateSysJobRequest) error {
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "任务不存在")
+		return repository.NotFoundOr(err, "任务不存在")
 	}
 	job.JobName = req.JobName
 	job.JobGroup = req.JobGroup
@@ -107,7 +107,7 @@ func (s *JobService) Update(ctx context.Context, id uint, req *UpdateSysJobReque
 // Delete 删除任务。
 func (s *JobService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "任务不存在")
+		return repository.NotFoundOr(err, "任务不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
@@ -128,7 +128,7 @@ func (s *JobService) ListEnabled(ctx context.Context) ([]entmodel.SysJob, error)
 func (s *JobService) RunOnce(ctx context.Context, id uint) error {
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "任务不存在")
+		return repository.NotFoundOr(err, "任务不存在")
 	}
 	go s.executeJob(context.Background(), job, entmodel.JobTriggerManual)
 	return nil

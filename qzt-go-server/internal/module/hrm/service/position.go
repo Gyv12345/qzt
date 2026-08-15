@@ -61,7 +61,7 @@ func (s *PositionService) Create(ctx context.Context, req *CreatePositionRequest
 // GetByID 岗位详情。
 func (s *PositionService) GetByID(ctx context.Context, id uint) (*hrmmodel.HrmPosition, error) {
 	pos, err := s.repo.GetByID(ctx, id)
-	return pos, notFoundOr(err, "岗位不存在")
+	return pos, repository.NotFoundOr(err, "岗位不存在")
 }
 
 // UpdatePositionRequest 更新岗位请求。
@@ -78,7 +78,7 @@ type UpdatePositionRequest struct {
 func (s *PositionService) Update(ctx context.Context, id uint, req *UpdatePositionRequest) error {
 	pos, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "岗位不存在")
+		return repository.NotFoundOr(err, "岗位不存在")
 	}
 	// Code 唯一性(排除自身)
 	if req.Code != pos.Code {
@@ -104,7 +104,7 @@ func (s *PositionService) Update(ctx context.Context, id uint, req *UpdatePositi
 // Delete 删除岗位(有员工则拒绝)。
 func (s *PositionService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "岗位不存在")
+		return repository.NotFoundOr(err, "岗位不存在")
 	}
 	has, err := s.repo.HasEmployees(ctx, id)
 	if err != nil {

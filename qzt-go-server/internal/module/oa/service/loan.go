@@ -7,6 +7,7 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
+	"qzt-go-server/internal/repository"
 	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xtime"
 )
@@ -68,7 +69,7 @@ func (s *LoanService) List(ctx context.Context, page, pageSize int, applicantID 
 func (s *LoanService) GetByID(ctx context.Context, id uint) (*oamodel.OaLoan, error) {
 	loan, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "借款单不存在")
+		return nil, repository.NotFoundOr(err, "借款单不存在")
 	}
 	return loan, nil
 }
@@ -85,7 +86,7 @@ type UpdateLoanRequest struct {
 func (s *LoanService) Update(ctx context.Context, id uint, req *UpdateLoanRequest) error {
 	loan, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "借款单不存在")
+		return repository.NotFoundOr(err, "借款单不存在")
 	}
 	if loan.ApprovalStatus != oamodel.ApprovalStatusNone && loan.ApprovalStatus != oamodel.ApprovalStatusRejected {
 		return errors.New("仅未提交或已驳回的借款单可编辑")
@@ -110,7 +111,7 @@ func (s *LoanService) Update(ctx context.Context, id uint, req *UpdateLoanReques
 func (s *LoanService) Delete(ctx context.Context, id uint) error {
 	loan, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "借款单不存在")
+		return repository.NotFoundOr(err, "借款单不存在")
 	}
 	if loan.ApprovalStatus != oamodel.ApprovalStatusNone {
 		return errors.New("仅未提交审批的借款单可删除")
@@ -122,7 +123,7 @@ func (s *LoanService) Delete(ctx context.Context, id uint) error {
 func (s *LoanService) MarkRepaid(ctx context.Context, id uint) error {
 	loan, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "借款单不存在")
+		return repository.NotFoundOr(err, "借款单不存在")
 	}
 	if loan.ApprovalStatus != oamodel.ApprovalStatusApproved {
 		return errors.New("仅审批通过的借款单可标记还款")

@@ -7,6 +7,7 @@ import (
 
 	"qzt-go-server/internal/module/cms/errcode"
 	"qzt-go-server/internal/module/cms/service"
+	"qzt-go-server/internal/pkg/pagination"
 	response "qzt-go-server/pkg/xresponse"
 )
 
@@ -30,7 +31,7 @@ func NewTagHandler() *TagHandler {
 // @Success      200  {object}  xresponse.Response
 // @Router       /cms/tags [get]
 func (h *TagHandler) List(c *gin.Context) {
-	p := service.GetPagination(c)
+	p := pagination.GetPagination(c)
 	keyword := c.Query("keyword")
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword)
 	if err != nil {

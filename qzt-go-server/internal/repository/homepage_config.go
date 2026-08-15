@@ -22,11 +22,6 @@ func (r *HomepageModuleRepo) ListAll(ctx context.Context) ([]model.CmsHomepageMo
 	return r.List(ctx, &QueryOptions{Order: []string{"sort ASC", "id ASC"}})
 }
 
-// GetByModule 按模块标识查板块。
-func (r *HomepageModuleRepo) GetByModule(ctx context.Context, module string) (*model.CmsHomepageModule, error) {
-	return r.GetOne(ctx, &QueryOptions{Where: map[string]any{"module": module}})
-}
-
 // SetEnabled 更新板块开关。
 func (r *HomepageModuleRepo) SetEnabled(ctx context.Context, module string, enabled bool) error {
 	db := dbFrom(ctx).Model(&model.CmsHomepageModule{}).Where("module = ?", module)

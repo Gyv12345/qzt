@@ -4,6 +4,7 @@ import (
 	"context"
 
 	oamodel "qzt-go-server/internal/model/oa"
+	"qzt-go-server/internal/repository"
 	oarepo "qzt-go-server/internal/repository/oa"
 )
 
@@ -63,7 +64,7 @@ func (s *FormTemplateService) ListEnabled(ctx context.Context) ([]oamodel.OaForm
 func (s *FormTemplateService) GetByID(ctx context.Context, id uint) (*oamodel.OaFormTemplate, error) {
 	tpl, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "表单模板不存在")
+		return nil, repository.NotFoundOr(err, "表单模板不存在")
 	}
 	return tpl, nil
 }
@@ -79,7 +80,7 @@ func (s *FormTemplateService) GetByKey(ctx context.Context, key string) (*oamode
 			return &t, nil
 		}
 	}
-	return nil, notFoundOr(nil, "表单模板不存在")
+	return nil, repository.NotFoundOr(nil, "表单模板不存在")
 }
 
 type UpdateFormTemplateRequest struct {
@@ -96,7 +97,7 @@ type UpdateFormTemplateRequest struct {
 func (s *FormTemplateService) Update(ctx context.Context, id uint, req *UpdateFormTemplateRequest) error {
 	tpl, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "表单模板不存在")
+		return repository.NotFoundOr(err, "表单模板不存在")
 	}
 	tpl.FormKey = req.FormKey
 	tpl.Name = req.Name
@@ -111,7 +112,7 @@ func (s *FormTemplateService) Update(ctx context.Context, id uint, req *UpdateFo
 
 func (s *FormTemplateService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "表单模板不存在")
+		return repository.NotFoundOr(err, "表单模板不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
@@ -120,7 +121,7 @@ func (s *FormTemplateService) Delete(ctx context.Context, id uint) error {
 func (s *FormTemplateService) ToggleStatus(ctx context.Context, id uint) error {
 	tpl, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "表单模板不存在")
+		return repository.NotFoundOr(err, "表单模板不存在")
 	}
 	if tpl.Status == 1 {
 		tpl.Status = 0

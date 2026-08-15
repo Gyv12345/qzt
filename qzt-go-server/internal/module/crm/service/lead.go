@@ -121,7 +121,7 @@ func (s *LeadService) Create(ctx context.Context, req *CreateLeadRequest, curren
 func (s *LeadService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmLead, map[string]string, error) {
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, nil, notFoundOr(err, "线索不存在")
+		return nil, nil, repository.NotFoundOr(err, "线索不存在")
 	}
 	fields, _ := s.fieldSvc.GetLeadValues(ctx, formatResourceID(id))
 	return lead, fields, nil
@@ -145,7 +145,7 @@ type UpdateLeadRequest struct {
 func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadRequest, operatorID uint) error {
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "线索不存在")
+		return repository.NotFoundOr(err, "线索不存在")
 	}
 	// 复制旧值快照(用于 diff)
 	oldSnapshot := *lead
@@ -178,7 +178,7 @@ func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadReques
 // Delete 删除线索(清自定义字段值)。
 func (s *LeadService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "线索不存在")
+		return repository.NotFoundOr(err, "线索不存在")
 	}
 	// 校验业务引用:存在关联跟进记录/计划则拒绝删除,避免悬空引用。
 	if err := rejectIfLeadReferenced(ctx, id); err != nil {
@@ -265,7 +265,7 @@ func (s *LeadService) List(ctx context.Context, page, pageSize int, keyword, lev
 func (s *LeadService) ReleaseToPool(ctx context.Context, id, poolID, operatorID uint, reason string) error {
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "线索不存在")
+		return repository.NotFoundOr(err, "线索不存在")
 	}
 	if lead.InPool == crmmodel.InPoolPublic {
 		return errors.New("线索已在公海")
@@ -290,7 +290,7 @@ func (s *LeadService) ReleaseToPool(ctx context.Context, id, poolID, operatorID 
 func (s *LeadService) PickFromPool(ctx context.Context, id, operatorID uint) error {
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "线索不存在")
+		return repository.NotFoundOr(err, "线索不存在")
 	}
 	if lead.InPool != crmmodel.InPoolPublic {
 		return errors.New("线索不在公海")
@@ -316,7 +316,7 @@ func (s *LeadService) PickFromPool(ctx context.Context, id, operatorID uint) err
 func (s *LeadService) Transfer(ctx context.Context, id, toUserID, operatorID uint) error {
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "线索不存在")
+		return repository.NotFoundOr(err, "线索不存在")
 	}
 	if lead.InPool == crmmodel.InPoolPublic {
 		return errors.New("公海线索不可直接转移,请先领取")
@@ -359,7 +359,7 @@ func (s *LeadService) UpdateFollow(ctx context.Context, id, followerID uint, fol
 func (s *LeadService) Convert(ctx context.Context, leadID, currentUserID uint) (*crmmodel.CrmCustomer, error) {
 	lead, err := s.repo.GetByID(ctx, leadID)
 	if err != nil {
-		return nil, notFoundOr(err, "线索不存在")
+		return nil, repository.NotFoundOr(err, "线索不存在")
 	}
 	if lead.ConvertedCustomerID != nil {
 		return nil, errors.New("该线索已转化,不可重复转化")

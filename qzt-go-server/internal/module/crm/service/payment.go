@@ -86,7 +86,7 @@ func (s *PaymentService) CreatePlanList(ctx context.Context, reqs []CreatePaymen
 // GetPlan 回款计划详情。
 func (s *PaymentService) GetPlan(ctx context.Context, id uint) (*crmmodel.CrmContractPaymentPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, id)
-	return plan, notFoundOr(err, "回款计划不存在")
+	return plan, repository.NotFoundOr(err, "回款计划不存在")
 }
 
 // UpdatePaymentPlanRequest 更新回款计划请求。
@@ -103,7 +103,7 @@ func (s *PaymentService) UpdatePlan(ctx context.Context, id uint, req *UpdatePay
 	}
 	plan, err := s.planRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "回款计划不存在")
+		return repository.NotFoundOr(err, "回款计划不存在")
 	}
 	plan.PlanDate = req.PlanDate
 	plan.PlanAmount = req.PlanAmount
@@ -116,7 +116,7 @@ func (s *PaymentService) UpdatePlan(ctx context.Context, id uint, req *UpdatePay
 func (s *PaymentService) DeletePlan(ctx context.Context, id uint) error {
 	plan, err := s.planRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "回款计划不存在")
+		return repository.NotFoundOr(err, "回款计划不存在")
 	}
 	if plan.ReceivedAmount.GreaterThan(decimal.Zero) {
 		return errors.New("该计划已有回款记录,无法删除")
@@ -197,7 +197,7 @@ func (s *PaymentService) CreateRecord(ctx context.Context, req *CreatePaymentRec
 // GetRecord 回款记录详情。
 func (s *PaymentService) GetRecord(ctx context.Context, id uint) (*crmmodel.CrmContractPaymentRecord, error) {
 	rec, err := s.recordRepo.GetByID(ctx, id)
-	return rec, notFoundOr(err, "回款记录不存在")
+	return rec, repository.NotFoundOr(err, "回款记录不存在")
 }
 
 // DeleteRecord 删除回款记录并原子反向扣减累计金额(floor 0,与 CreateRecord 走同一套原子路径,
@@ -205,7 +205,7 @@ func (s *PaymentService) GetRecord(ctx context.Context, id uint) (*crmmodel.CrmC
 func (s *PaymentService) DeleteRecord(ctx context.Context, id uint) error {
 	rec, err := s.recordRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "回款记录不存在")
+		return repository.NotFoundOr(err, "回款记录不存在")
 	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		// 反向扣减计划累计(负数 + GREATEST 兜底 0),并重算计划状态
@@ -248,7 +248,7 @@ type UpdatePaymentRecordRequest struct {
 func (s *PaymentService) UpdateRecord(ctx context.Context, id uint, req *UpdatePaymentRecordRequest) error {
 	rec, err := s.recordRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "回款记录不存在")
+		return repository.NotFoundOr(err, "回款记录不存在")
 	}
 	rec.ReceivedDate = req.ReceivedDate
 	rec.Method = req.Method
@@ -272,7 +272,7 @@ type ContractPaymentSummary struct {
 func (s *PaymentService) ContractPaymentSummary(ctx context.Context, contractID uint) (*ContractPaymentSummary, error) {
 	contract, err := s.contractRepo.GetByID(ctx, contractID)
 	if err != nil {
-		return nil, notFoundOr(err, "合同不存在")
+		return nil, repository.NotFoundOr(err, "合同不存在")
 	}
 	plans, err := s.planRepo.ListByContract(ctx, contractID)
 	if err != nil {

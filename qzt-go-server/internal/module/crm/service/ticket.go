@@ -66,7 +66,7 @@ func (s *TicketService) List(ctx context.Context, page, pageSize int, keyword, c
 func (s *TicketService) GetByID(ctx context.Context, id uint) (*crmmodel.TicketDetail, error) {
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "工单不存在")
+		return nil, repository.NotFoundOr(err, "工单不存在")
 	}
 	logs, err := s.logRepo.ListByTicket(ctx, id)
 	if err != nil {
@@ -91,7 +91,7 @@ type UpdateTicketRequest struct {
 func (s *TicketService) Update(ctx context.Context, id uint, req *UpdateTicketRequest) error {
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "工单不存在")
+		return repository.NotFoundOr(err, "工单不存在")
 	}
 	if t.Status == crmmodel.TicketStatusClosed {
 		return errors.New("已关闭的工单不可编辑")
@@ -121,7 +121,7 @@ type ChangeStatusRequest struct {
 func (s *TicketService) ChangeStatus(ctx context.Context, id uint, req *ChangeStatusRequest, operatorID uint) error {
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "工单不存在")
+		return repository.NotFoundOr(err, "工单不存在")
 	}
 	oldStatus := t.Status
 	t.Status = req.Status
@@ -156,7 +156,7 @@ func (s *TicketService) ChangeStatus(ctx context.Context, id uint, req *ChangeSt
 
 func (s *TicketService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "工单不存在")
+		return repository.NotFoundOr(err, "工单不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }

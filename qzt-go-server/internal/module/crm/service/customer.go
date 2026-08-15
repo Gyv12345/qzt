@@ -158,7 +158,7 @@ func (s *CustomerService) ListPartners(ctx context.Context, page, pageSize int, 
 func (s *CustomerService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmCustomer, map[string]string, error) {
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, nil, notFoundOr(err, "客户不存在")
+		return nil, nil, repository.NotFoundOr(err, "客户不存在")
 	}
 	fields, _ := s.fieldSvc.GetCustomerValues(ctx, formatResourceID(id))
 	return customer, fields, nil
@@ -178,7 +178,7 @@ type UpdateCustomerRequest struct {
 func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustomerRequest, operatorID uint) error {
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "客户不存在")
+		return repository.NotFoundOr(err, "客户不存在")
 	}
 	// 名称唯一性(排除自身)
 	if req.Name != customer.Name {
@@ -219,7 +219,7 @@ func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustom
 // Delete 删除客户(级联软删除联系人/协作,清自定义字段值)。
 func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "客户不存在")
+		return repository.NotFoundOr(err, "客户不存在")
 	}
 	// 校验业务引用:存在关联合同/商机/工单/跟进/项目/销售单等则拒绝删除,避免悬空引用。
 	if err := rejectIfReferenced(ctx, id); err != nil {
@@ -323,7 +323,7 @@ func (s *CustomerService) List(ctx context.Context, page, pageSize int, keyword,
 func (s *CustomerService) ReleaseToPool(ctx context.Context, id, poolID, operatorID uint, reason string) error {
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "客户不存在")
+		return repository.NotFoundOr(err, "客户不存在")
 	}
 	if customer.InPool == crmmodel.InPoolPublic {
 		return errors.New("客户已在公海")
@@ -348,7 +348,7 @@ func (s *CustomerService) ReleaseToPool(ctx context.Context, id, poolID, operato
 func (s *CustomerService) PickFromPool(ctx context.Context, id, operatorID uint) error {
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "客户不存在")
+		return repository.NotFoundOr(err, "客户不存在")
 	}
 	if customer.InPool != crmmodel.InPoolPublic {
 		return errors.New("客户不在公海")
@@ -374,7 +374,7 @@ func (s *CustomerService) PickFromPool(ctx context.Context, id, operatorID uint)
 func (s *CustomerService) Transfer(ctx context.Context, id, toUserID, operatorID uint) error {
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "客户不存在")
+		return repository.NotFoundOr(err, "客户不存在")
 	}
 	if customer.InPool == crmmodel.InPoolPublic {
 		return errors.New("公海客户不可直接转移,请先领取")

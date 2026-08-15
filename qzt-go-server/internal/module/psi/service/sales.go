@@ -107,7 +107,7 @@ func (s *SalesService) Create(ctx context.Context, req *CreateSalesOrderRequest,
 func (s *SalesService) GetByID(ctx context.Context, id uint) (*SalesOrderDetailDTO, error) {
 	o, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "销售单不存在")
+		return nil, repository.NotFoundOr(err, "销售单不存在")
 	}
 	items, err := s.orderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *SalesService) GetByID(ctx context.Context, id uint) (*SalesOrderDetailD
 func (s *SalesService) Update(ctx context.Context, id uint, req *CreateSalesOrderRequest) error {
 	o, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "销售单不存在")
+		return repository.NotFoundOr(err, "销售单不存在")
 	}
 	if o.Status != psimodel.SalesStatusDraft {
 		return errors.New("销售单已出库,不可修改")
@@ -170,7 +170,7 @@ func (s *SalesService) Update(ctx context.Context, id uint, req *CreateSalesOrde
 func (s *SalesService) Delete(ctx context.Context, id uint) error {
 	o, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "销售单不存在")
+		return repository.NotFoundOr(err, "销售单不存在")
 	}
 	if o.Status != psimodel.SalesStatusDraft {
 		return errors.New("销售单已出库,不可删除")
@@ -212,7 +212,7 @@ func (s *SalesService) List(ctx context.Context, page, pageSize int, keyword str
 func (s *SalesService) StockOut(ctx context.Context, id uint, operatorID *uint) error {
 	o, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "销售单不存在")
+		return repository.NotFoundOr(err, "销售单不存在")
 	}
 	if o.ApprovalStatus != psimodel.ApprovalApproved && o.ApprovalStatus != psimodel.ApprovalNone {
 		return errors.New("销售单未审批通过,不可出库")
@@ -329,7 +329,7 @@ func (s *SalesService) CreateReturn(ctx context.Context, req *CreateSalesReturnR
 func (s *SalesService) GetReturnByID(ctx context.Context, id uint) (*SalesReturnDetailDTO, error) {
 	r, err := s.returnRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "销售退货单不存在")
+		return nil, repository.NotFoundOr(err, "销售退货单不存在")
 	}
 	items, err := s.returnDetailRepo.ListByReturn(ctx, id)
 	if err != nil {
@@ -361,7 +361,7 @@ func (s *SalesService) ListReturns(ctx context.Context, page, pageSize int, keyw
 func (s *SalesService) StockInReturn(ctx context.Context, id uint, operatorID *uint) error {
 	r, err := s.returnRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "销售退货单不存在")
+		return repository.NotFoundOr(err, "销售退货单不存在")
 	}
 	if r.ApprovalStatus != psimodel.ApprovalApproved && r.ApprovalStatus != psimodel.ApprovalNone {
 		return errors.New("销售退货单未审批通过,不可入库")

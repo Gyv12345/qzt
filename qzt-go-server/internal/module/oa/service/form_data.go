@@ -6,6 +6,7 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
+	"qzt-go-server/internal/repository"
 	oarepo "qzt-go-server/internal/repository/oa"
 )
 
@@ -32,7 +33,7 @@ func (s *FormDataService) Create(ctx context.Context, req *CreateFormDataRequest
 	// 查模板
 	tpl, err := s.templateRepo.GetByID(ctx, req.TemplateID)
 	if err != nil {
-		return nil, notFoundOr(err, "表单模板不存在")
+		return nil, repository.NotFoundOr(err, "表单模板不存在")
 	}
 	if tpl.Status != 1 {
 		return nil, errors.New("该表单已停用")
@@ -62,7 +63,7 @@ func (s *FormDataService) List(ctx context.Context, page, pageSize int, template
 func (s *FormDataService) GetByID(ctx context.Context, id uint) (*oamodel.OaFormData, error) {
 	data, err := s.dataRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "表单数据不存在")
+		return nil, repository.NotFoundOr(err, "表单数据不存在")
 	}
 	return data, nil
 }
@@ -74,7 +75,7 @@ type UpdateFormDataRequest struct {
 func (s *FormDataService) Update(ctx context.Context, id uint, req *UpdateFormDataRequest) error {
 	data, err := s.dataRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "表单数据不存在")
+		return repository.NotFoundOr(err, "表单数据不存在")
 	}
 	if data.ApprovalStatus != oamodel.ApprovalStatusNone && data.ApprovalStatus != oamodel.ApprovalStatusRejected {
 		return errors.New("仅未提交或已驳回的表单可编辑")
@@ -86,7 +87,7 @@ func (s *FormDataService) Update(ctx context.Context, id uint, req *UpdateFormDa
 func (s *FormDataService) Delete(ctx context.Context, id uint) error {
 	data, err := s.dataRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "表单数据不存在")
+		return repository.NotFoundOr(err, "表单数据不存在")
 	}
 	if data.ApprovalStatus != oamodel.ApprovalStatusNone {
 		return errors.New("仅未提交审批的表单可删除")

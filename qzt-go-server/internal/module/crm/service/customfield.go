@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 )
 
@@ -52,7 +53,7 @@ func NewCustomFieldService() *CustomFieldService {
 func (s *CustomFieldService) ListFields(ctx context.Context, formKey crmmodel.FormKey) ([]FieldDefWithProp, error) {
 	form, err := s.formRepo.GetByKey(ctx, formKey)
 	if err != nil {
-		return nil, notFoundOr(err, "表单不存在")
+		return nil, repository.NotFoundOr(err, "表单不存在")
 	}
 	fields, err := s.fieldRepo.ListByForm(ctx, form.ID)
 	if err != nil {
@@ -80,7 +81,7 @@ func (s *CustomFieldService) ListFields(ctx context.Context, formKey crmmodel.Fo
 func (s *CustomFieldService) ListFieldsByFormID(ctx context.Context, formKey crmmodel.FormKey) ([]crmmodel.SysModuleField, error) {
 	form, err := s.formRepo.GetByKey(ctx, formKey)
 	if err != nil {
-		return nil, notFoundOr(err, "表单不存在")
+		return nil, repository.NotFoundOr(err, "表单不存在")
 	}
 	return s.fieldRepo.ListByForm(ctx, form.ID)
 }
@@ -101,7 +102,7 @@ type CreateFieldRequest struct {
 func (s *CustomFieldService) CreateField(ctx context.Context, req *CreateFieldRequest) error {
 	form, err := s.formRepo.GetByKey(ctx, req.FormKey)
 	if err != nil {
-		return notFoundOr(err, "表单不存在")
+		return repository.NotFoundOr(err, "表单不存在")
 	}
 	id := newFieldID()
 	field := &crmmodel.SysModuleField{
@@ -135,7 +136,7 @@ type UpdateFieldRequest struct {
 func (s *CustomFieldService) UpdateField(ctx context.Context, fieldID string, req *UpdateFieldRequest) error {
 	field, err := s.fieldRepo.GetByStringID(ctx, fieldID)
 	if err != nil {
-		return notFoundOr(err, "字段不存在")
+		return repository.NotFoundOr(err, "字段不存在")
 	}
 	field.InternalKey = req.InternalKey
 	field.Name = req.Name

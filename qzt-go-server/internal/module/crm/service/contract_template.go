@@ -69,7 +69,7 @@ type UpdateContractTemplateRequest struct {
 func (s *ContractTemplateService) Update(ctx context.Context, id uint, req *UpdateContractTemplateRequest) error {
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "合同模板不存在")
+		return repository.NotFoundOr(err, "合同模板不存在")
 	}
 	if req.Name != nil {
 		t.Name = *req.Name
@@ -88,14 +88,14 @@ func (s *ContractTemplateService) Update(ctx context.Context, id uint, req *Upda
 
 func (s *ContractTemplateService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "合同模板不存在")
+		return repository.NotFoundOr(err, "合同模板不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
 
 func (s *ContractTemplateService) GetByID(ctx context.Context, id uint) (*crmmodel.ContractTemplate, error) {
 	t, err := s.repo.GetByID(ctx, id)
-	return t, notFoundOr(err, "合同模板不存在")
+	return t, repository.NotFoundOr(err, "合同模板不存在")
 }
 
 // ListContractTemplate 列表(keyword 模糊匹配 name + enabled 过滤,列表不含 content 正文)。
@@ -204,7 +204,7 @@ func NewContractDocumentService() *ContractDocumentService {
 func (s *ContractDocumentService) BuildVars(ctx context.Context, contractID uint) (map[string]string, error) {
 	contract, err := s.contractRepo.GetByID(ctx, contractID)
 	if err != nil {
-		return nil, notFoundOr(err, "合同不存在")
+		return nil, repository.NotFoundOr(err, "合同不存在")
 	}
 
 	vars := make(map[string]string)
@@ -268,7 +268,7 @@ func (s *ContractDocumentService) BuildVars(ctx context.Context, contractID uint
 func (s *ContractDocumentService) Render(ctx context.Context, contractID, templateID uint) (string, error) {
 	t, err := s.templateRepo.GetByID(ctx, templateID)
 	if err != nil {
-		return "", notFoundOr(err, "合同模板不存在")
+		return "", repository.NotFoundOr(err, "合同模板不存在")
 	}
 	vars, err := s.BuildVars(ctx, contractID)
 	if err != nil {

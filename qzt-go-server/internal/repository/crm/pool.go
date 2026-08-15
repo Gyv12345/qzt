@@ -79,10 +79,3 @@ func (r *CustomerOwnerHistoryRepo) ListByCustomer(ctx context.Context, customerI
 		Order: []string{"id DESC"},
 	})
 }
-
-// ListPrivateSeaByOwner 列出某负责人私海客户 ID(回收扫描用)。
-func (r *CustomerRepo) ListPrivateSeaByOwner(ctx context.Context, ownerID uint) ([]crmmodel.CrmCustomer, error) {
-	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]any{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
-	})
-}

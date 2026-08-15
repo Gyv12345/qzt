@@ -7,6 +7,7 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
+	"qzt-go-server/internal/repository"
 	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xtime"
 )
@@ -82,7 +83,7 @@ func (s *ScheduleService) ListByDateRange(ctx context.Context, creatorID uint, s
 func (s *ScheduleService) GetByID(ctx context.Context, id uint) (*oamodel.OaSchedule, error) {
 	sch, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "日程不存在")
+		return nil, repository.NotFoundOr(err, "日程不存在")
 	}
 	return sch, nil
 }
@@ -101,7 +102,7 @@ type UpdateScheduleRequest struct {
 func (s *ScheduleService) Update(ctx context.Context, id uint, req *UpdateScheduleRequest) error {
 	sch, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "日程不存在")
+		return repository.NotFoundOr(err, "日程不存在")
 	}
 	sch.Title = req.Title
 	sch.EventType = req.EventType
@@ -124,7 +125,7 @@ func (s *ScheduleService) Update(ctx context.Context, id uint, req *UpdateSchedu
 
 func (s *ScheduleService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "日程不存在")
+		return repository.NotFoundOr(err, "日程不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }

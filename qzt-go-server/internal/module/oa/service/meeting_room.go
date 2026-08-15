@@ -5,6 +5,7 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	oarepo "qzt-go-server/internal/repository/oa"
+	"qzt-go-server/internal/repository"
 )
 
 // meeting_room.go 会议室管理服务。
@@ -49,7 +50,7 @@ func (s *MeetingRoomService) List(ctx context.Context, page, pageSize int, name,
 func (s *MeetingRoomService) GetByID(ctx context.Context, id uint) (*oamodel.OaMeetingRoom, error) {
 	room, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "会议室不存在")
+		return nil, repository.NotFoundOr(err, "会议室不存在")
 	}
 	return room, nil
 }
@@ -66,7 +67,7 @@ type UpdateMeetingRoomRequest struct {
 func (s *MeetingRoomService) Update(ctx context.Context, id uint, req *UpdateMeetingRoomRequest) error {
 	room, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "会议室不存在")
+		return repository.NotFoundOr(err, "会议室不存在")
 	}
 	room.Name = req.Name
 	room.Location = req.Location
@@ -79,7 +80,7 @@ func (s *MeetingRoomService) Update(ctx context.Context, id uint, req *UpdateMee
 
 func (s *MeetingRoomService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "会议室不存在")
+		return repository.NotFoundOr(err, "会议室不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }

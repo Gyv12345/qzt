@@ -6,6 +6,7 @@ import (
 	"qzt-go-server/internal/model/base"
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/numbergen"
+	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 )
 
@@ -49,7 +50,7 @@ func (s *ContactService) Create(ctx context.Context, req *CreateContactRequest) 
 
 func (s *ContactService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmCustomerContact, error) {
 	c, err := s.repo.GetByID(ctx, id)
-	return c, notFoundOr(err, "联系人不存在")
+	return c, repository.NotFoundOr(err, "联系人不存在")
 }
 
 // UpdateContactRequest 更新联系人请求。
@@ -67,7 +68,7 @@ type UpdateContactRequest struct {
 func (s *ContactService) Update(ctx context.Context, id uint, req *UpdateContactRequest) error {
 	contact, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "联系人不存在")
+		return repository.NotFoundOr(err, "联系人不存在")
 	}
 	contact.Name = req.Name
 	contact.Phone = req.Phone

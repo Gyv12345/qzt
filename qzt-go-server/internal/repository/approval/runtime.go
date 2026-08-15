@@ -17,14 +17,6 @@ type InstanceRepo struct {
 
 func NewInstanceRepo() *InstanceRepo { return &InstanceRepo{} }
 
-// GetByResource 按 formType + resourceID 获取实例(查找是否已有在跑实例)。
-func (r *InstanceRepo) GetByResource(ctx context.Context, formType string, resourceID uint) (*apprmodel.ApprovalInstance, error) {
-	var inst apprmodel.ApprovalInstance
-	err := repoDB(ctx).Where("type = ? AND resource_id = ?", formType, resourceID).
-		Order("id DESC").First(&inst).Error
-	return &inst, err
-}
-
 // PageByApprover 按审批人分页查询待办(approval_task JOIN approval_instance)。
 func (r *InstanceRepo) PageByApprover(ctx context.Context, page, pageSize int, approverID uint, taskStatus string) ([]apprmodel.ApprovalInstance, int64, error) {
 	var list []apprmodel.ApprovalInstance
@@ -84,14 +76,6 @@ func (r *TaskRepo) ListByInstanceNode(ctx context.Context, instanceID, nodeID ui
 	var tasks []apprmodel.ApprovalTask
 	err := repoDB(ctx).Where("instance_id = ? AND node_id = ? AND node_round >= 0", instanceID, nodeID).
 		Order("id ASC").Find(&tasks).Error
-	return tasks, err
-}
-
-// ListApprovingByInstance 列出实例当前所有 APPROVING 任务。
-func (r *TaskRepo) ListApprovingByInstance(ctx context.Context, instanceID uint) ([]apprmodel.ApprovalTask, error) {
-	var tasks []apprmodel.ApprovalTask
-	err := repoDB(ctx).Where("instance_id = ? AND status = ? AND node_round >= 0",
-		instanceID, apprmodel.TaskStatusApproving).Find(&tasks).Error
 	return tasks, err
 }
 

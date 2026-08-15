@@ -8,6 +8,7 @@ import (
 	"qzt-go-server/internal/middleware"
 	"qzt-go-server/internal/module/cms/errcode"
 	"qzt-go-server/internal/module/cms/service"
+	"qzt-go-server/internal/pkg/pagination"
 	response "qzt-go-server/pkg/xresponse"
 )
 
@@ -34,7 +35,7 @@ func NewArticleHandler() *ArticleHandler {
 // @Success      200  {object}  xresponse.Response
 // @Router       /cms/articles [get]
 func (h *ArticleHandler) List(c *gin.Context) {
-	p := service.GetPagination(c)
+	p := pagination.GetPagination(c)
 	q := &service.ListArticleQuery{
 		Keyword: c.Query("keyword"),
 	}
@@ -74,7 +75,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 // @Success      200  {object}  xresponse.Response
 // @Router       /cms/public/articles [get]
 func (h *ArticleHandler) ListPublished(c *gin.Context) {
-	p := service.GetPagination(c)
+	p := pagination.GetPagination(c)
 	list, total, err := h.svc.ListPublished(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), c.Query("category_id"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

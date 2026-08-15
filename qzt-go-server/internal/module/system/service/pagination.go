@@ -1,34 +1,19 @@
 package service
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+
+	"qzt-go-server/internal/pkg/pagination"
 )
 
-const maxPage = 10000
+// pagination.go 通用分页解析的兼容 re-export。
+// 真正的实现已迁至 internal/pkg/pagination(全模块公共逻辑归位);
+// 此处保留同名导出,使既有的 50+ 处跨模块调用方(syservice.GetPagination)
+// 无需改动。新增代码请直接 import "qzt-go-server/internal/pkg/pagination"。
 
-// Pagination 分页参数与总数。page 从 1 开始；page_size 钳制在 [1,100]。
-type Pagination struct {
-	Page     int   `json:"page"`
-	PageSize int   `json:"page_size"`
-	Total    int64 `json:"total"`
-}
+// Pagination 分页参数与总数。见 internal/pkg/pagination.Pagination。
+type Pagination = pagination.Pagination
 
-// GetPagination 从查询参数 page / page_size 解析分页，带默认值与上下界钳制。
-func GetPagination(c *gin.Context) Pagination {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-
-	if page < 1 {
-		page = 1
-	}
-	if page > maxPage {
-		page = maxPage
-	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 10
-	}
-
-	return Pagination{Page: page, PageSize: pageSize}
-}
+// GetPagination 从查询参数 page / page_size 解析分页。
+// 见 internal/pkg/pagination.GetPagination。
+func GetPagination(c *gin.Context) Pagination { return pagination.GetPagination(c) }

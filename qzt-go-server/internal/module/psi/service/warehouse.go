@@ -54,7 +54,7 @@ func (s *WarehouseService) Create(ctx context.Context, req *CreateWarehouseReque
 // GetByID 仓库详情。
 func (s *WarehouseService) GetByID(ctx context.Context, id uint) (*psimodel.PsiWarehouse, error) {
 	wh, err := s.repo.GetByID(ctx, id)
-	return wh, notFoundOr(err, "仓库不存在")
+	return wh, repository.NotFoundOr(err, "仓库不存在")
 }
 
 // UpdateWarehouseRequest 更新仓库请求。
@@ -74,7 +74,7 @@ type UpdateWarehouseRequest struct {
 func (s *WarehouseService) Update(ctx context.Context, id uint, req *UpdateWarehouseRequest) error {
 	wh, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "仓库不存在")
+		return repository.NotFoundOr(err, "仓库不存在")
 	}
 	wh.Code = req.Code
 	wh.Name = req.Name
@@ -96,7 +96,7 @@ func (s *WarehouseService) Update(ctx context.Context, id uint, req *UpdateWareh
 func (s *WarehouseService) Delete(ctx context.Context, id uint) error {
 	wh, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "仓库不存在")
+		return repository.NotFoundOr(err, "仓库不存在")
 	}
 	if wh.IsDefault == 1 {
 		return errors.New("默认仓库不允许删除")

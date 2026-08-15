@@ -2,11 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"time"
-
-	"gorm.io/gorm"
 
 	projmodel "qzt-go-server/internal/model/project"
 	"qzt-go-server/internal/pkg/numbergen"
@@ -16,13 +12,6 @@ import (
 )
 
 // project.go 项目+任务服务。
-
-func notFoundOrProj(err error, msg string) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New(msg)
-	}
-	return err
-}
 
 type ProjectService struct {
 	repo     *projrepo.ProjectRepo
@@ -90,7 +79,7 @@ func (s *ProjectService) List(ctx context.Context, page, pageSize int, keyword s
 func (s *ProjectService) GetByID(ctx context.Context, id uint) (*projmodel.ProjectDetail, error) {
 	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOrProj(err, "项目不存在")
+		return nil, repository.NotFoundOr(err, "项目不存在")
 	}
 	tasks, err := s.taskRepo.ListByProject(ctx, id)
 	if err != nil {
@@ -118,7 +107,7 @@ type UpdateProjectRequest struct {
 func (s *ProjectService) Update(ctx context.Context, id uint, req *UpdateProjectRequest) error {
 	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOrProj(err, "项目不存在")
+		return repository.NotFoundOr(err, "项目不存在")
 	}
 	p.Name = req.Name
 	p.Description = req.Description
@@ -150,7 +139,7 @@ func (s *ProjectService) Update(ctx context.Context, id uint, req *UpdateProject
 
 func (s *ProjectService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOrProj(err, "项目不存在")
+		return repository.NotFoundOr(err, "项目不存在")
 	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.taskRepo.DeleteByProject(ctx, id); err != nil {
@@ -173,7 +162,7 @@ type CreateTaskRequest struct {
 
 func (s *ProjectService) CreateTask(ctx context.Context, req *CreateTaskRequest) (*projmodel.ProjTask, error) {
 	if _, err := s.repo.GetByID(ctx, req.ProjectID); err != nil {
-		return nil, notFoundOrProj(err, "项目不存在")
+		return nil, repository.NotFoundOr(err, "项目不存在")
 	}
 	t := &projmodel.ProjTask{
 		ProjectID:   req.ProjectID,
@@ -214,7 +203,7 @@ type UpdateTaskRequest struct {
 func (s *ProjectService) UpdateTask(ctx context.Context, id uint, req *UpdateTaskRequest) error {
 	t, err := s.taskRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOrProj(err, "任务不存在")
+		return repository.NotFoundOr(err, "任务不存在")
 	}
 	t.Title = req.Title
 	t.Description = req.Description
@@ -247,7 +236,7 @@ func (s *ProjectService) UpdateTask(ctx context.Context, id uint, req *UpdateTas
 func (s *ProjectService) UpdateTaskStatus(ctx context.Context, id uint, status int8) error {
 	t, err := s.taskRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOrProj(err, "任务不存在")
+		return repository.NotFoundOr(err, "任务不存在")
 	}
 	oldStatus := t.Status
 	t.Status = status
@@ -262,7 +251,7 @@ func (s *ProjectService) UpdateTaskStatus(ctx context.Context, id uint, status i
 
 func (s *ProjectService) DeleteTask(ctx context.Context, id uint) error {
 	if _, err := s.taskRepo.GetByID(ctx, id); err != nil {
-		return notFoundOrProj(err, "任务不存在")
+		return repository.NotFoundOr(err, "任务不存在")
 	}
 	return s.taskRepo.Delete(ctx, id)
 }
@@ -279,6 +268,4 @@ func init() {
 			return n, err
 		},
 	})
-	// 避免 unused
-	_ = fmt.Sprintf
 }

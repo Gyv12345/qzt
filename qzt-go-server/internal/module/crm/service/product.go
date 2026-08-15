@@ -54,7 +54,7 @@ func (s *ProductService) Create(ctx context.Context, req *CreateProductRequest) 
 // GetByID 商品详情。
 func (s *ProductService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmProduct, error) {
 	p, err := s.repo.GetByID(ctx, id)
-	return p, notFoundOr(err, "商品不存在")
+	return p, repository.NotFoundOr(err, "商品不存在")
 }
 
 // UpdateProductRequest 更新商品请求。
@@ -74,7 +74,7 @@ type UpdateProductRequest struct {
 func (s *ProductService) Update(ctx context.Context, id uint, req *UpdateProductRequest) error {
 	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "商品不存在")
+		return repository.NotFoundOr(err, "商品不存在")
 	}
 	p.Name = req.Name
 	p.ProductNo = req.ProductNo
@@ -93,7 +93,7 @@ func (s *ProductService) Update(ctx context.Context, id uint, req *UpdateProduct
 // Delete 删除商品。
 func (s *ProductService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "商品不存在")
+		return repository.NotFoundOr(err, "商品不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
@@ -134,7 +134,7 @@ func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*Public
 		Where: map[string]any{"id": id, "status": crmmodel.ProductStatusOn},
 	})
 	if err != nil {
-		return nil, notFoundOr(err, "商品不存在")
+		return nil, repository.NotFoundOr(err, "商品不存在")
 	}
 	return &PublicProductDTO{
 		ID: p.ID, Name: p.Name, ProductNo: p.ProductNo, Category: p.Category,

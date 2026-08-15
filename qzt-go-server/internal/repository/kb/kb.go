@@ -73,9 +73,3 @@ func (r *VersionRepo) ListByDoc(ctx context.Context, docID uint, page, pageSize 
 	err := q.Order("version_number DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
 	return list, total, err
 }
-
-func (r *VersionRepo) GetLatestVersion(ctx context.Context, docID uint) (*kbmodel.KbVersion, error) {
-	var v kbmodel.KbVersion
-	err := repository.DBFrom(ctx).Where("document_id = ?", docID).Order("version_number DESC").First(&v).Error
-	return &v, err
-}

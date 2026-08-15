@@ -85,7 +85,7 @@ func (s *OpportunityService) Create(ctx context.Context, req *CreateOpportunityR
 // GetByID 商机详情。
 func (s *OpportunityService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmOpportunity, error) {
 	opp, err := s.repo.GetByID(ctx, id)
-	return opp, notFoundOr(err, "商机不存在")
+	return opp, repository.NotFoundOr(err, "商机不存在")
 }
 
 // UpdateOpportunityRequest 更新商机请求。
@@ -104,7 +104,7 @@ type UpdateOpportunityRequest struct {
 func (s *OpportunityService) Update(ctx context.Context, id uint, req *UpdateOpportunityRequest, operatorID uint) error {
 	opp, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "商机不存在")
+		return repository.NotFoundOr(err, "商机不存在")
 	}
 	// 复制旧值快照(用于 diff)
 	oldSnapshot := *opp
@@ -133,7 +133,7 @@ func (s *OpportunityService) Update(ctx context.Context, id uint, req *UpdateOpp
 // Delete 删除商机。
 func (s *OpportunityService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "商机不存在")
+		return repository.NotFoundOr(err, "商机不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
@@ -179,7 +179,7 @@ func (s *OpportunityService) Board(ctx context.Context) (map[string][]crmmodel.C
 func (s *OpportunityService) ChangeStage(ctx context.Context, id uint, toStage string, operatorID uint, reason string) error {
 	opp, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "商机不存在")
+		return repository.NotFoundOr(err, "商机不存在")
 	}
 	if opp.Stage == toStage {
 		return errors.New("新阶段与当前阶段相同")

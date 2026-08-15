@@ -57,7 +57,7 @@ func (s *SupplierService) Create(ctx context.Context, req *CreateSupplierRequest
 // GetByID 供应商详情。
 func (s *SupplierService) GetByID(ctx context.Context, id uint) (*psimodel.PsiSupplier, error) {
 	sup, err := s.repo.GetByID(ctx, id)
-	return sup, notFoundOr(err, "供应商不存在")
+	return sup, repository.NotFoundOr(err, "供应商不存在")
 }
 
 // UpdateSupplierRequest 更新供应商请求。
@@ -78,7 +78,7 @@ type UpdateSupplierRequest struct {
 func (s *SupplierService) Update(ctx context.Context, id uint, req *UpdateSupplierRequest) error {
 	sup, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "供应商不存在")
+		return repository.NotFoundOr(err, "供应商不存在")
 	}
 	sup.Name = req.Name
 	sup.SupplierNo = req.SupplierNo
@@ -98,7 +98,7 @@ func (s *SupplierService) Update(ctx context.Context, id uint, req *UpdateSuppli
 // Delete 删除供应商(软删除)。
 func (s *SupplierService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "供应商不存在")
+		return repository.NotFoundOr(err, "供应商不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }

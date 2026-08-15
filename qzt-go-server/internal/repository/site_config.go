@@ -30,14 +30,3 @@ func (r *SiteConfigRepo) Update(ctx context.Context, cfg *model.SysSiteConfig) e
 		"ICPBeian", "PublicSecurityBeian", "PublicSecurityBeianURL",
 		"Keywords", "AnalyticsCode", "Copyright")
 }
-
-// Ensure 确保配置记录存在,不存在则用默认值创建。
-func (r *SiteConfigRepo) Ensure(ctx context.Context, defaultCfg *model.SysSiteConfig) error {
-	var existing model.SysSiteConfig
-	err := dbFrom(ctx).First(&existing, 1).Error
-	if err == nil {
-		return nil
-	}
-	defaultCfg.ID = 1
-	return dbFrom(ctx).Create(defaultCfg).Error
-}

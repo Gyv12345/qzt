@@ -77,7 +77,7 @@ func (s *TripService) List(ctx context.Context, page, pageSize int, applicantID 
 func (s *TripService) GetByID(ctx context.Context, id uint) (*oamodel.OaBusinessTrip, error) {
 	trip, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "出差单不存在")
+		return nil, repository.NotFoundOr(err, "出差单不存在")
 	}
 	return trip, nil
 }
@@ -97,7 +97,7 @@ type UpdateTripRequest struct {
 func (s *TripService) Update(ctx context.Context, id uint, req *UpdateTripRequest) error {
 	trip, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "出差单不存在")
+		return repository.NotFoundOr(err, "出差单不存在")
 	}
 	if trip.ApprovalStatus != oamodel.ApprovalStatusNone && trip.ApprovalStatus != oamodel.ApprovalStatusRejected {
 		return errors.New("仅未提交或已驳回的出差单可编辑")
@@ -127,7 +127,7 @@ func (s *TripService) Update(ctx context.Context, id uint, req *UpdateTripReques
 func (s *TripService) Delete(ctx context.Context, id uint) error {
 	trip, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "出差单不存在")
+		return repository.NotFoundOr(err, "出差单不存在")
 	}
 	if trip.ApprovalStatus != oamodel.ApprovalStatusNone {
 		return errors.New("仅未提交审批的出差单可删除")

@@ -80,7 +80,7 @@ func (s *ArticleService) Create(ctx context.Context, req *CreateArticleRequest, 
 func (s *ArticleService) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsArticle, error) {
 	article, err := s.articleRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "文章不存在")
+		return nil, repository.NotFoundOr(err, "文章不存在")
 	}
 	return article, nil
 }
@@ -92,7 +92,7 @@ func (s *ArticleService) GetBySlug(ctx context.Context, slug string) (*cmsmodel.
 		Preloads: []string{"Category", "Tags"},
 	})
 	if err != nil {
-		return nil, notFoundOr(err, "文章不存在")
+		return nil, repository.NotFoundOr(err, "文章不存在")
 	}
 	// best-effort 递增浏览量，失败不阻断读取
 	_ = s.articleRepo.IncrementView(ctx, article.ID)
@@ -118,7 +118,7 @@ type UpdateArticleRequest struct {
 func (s *ArticleService) Update(ctx context.Context, id uint, req *UpdateArticleRequest, authorID uint, authorName string) error {
 	article, err := s.articleRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "文章不存在")
+		return repository.NotFoundOr(err, "文章不存在")
 	}
 
 	article.Title = req.Title
@@ -153,7 +153,7 @@ func (s *ArticleService) Update(ctx context.Context, id uint, req *UpdateArticle
 
 func (s *ArticleService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.articleRepo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "文章不存在")
+		return repository.NotFoundOr(err, "文章不存在")
 	}
 	return s.articleRepo.Delete(ctx, id)
 }

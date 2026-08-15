@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/numbergen"
@@ -13,8 +12,6 @@ import (
 // init() 在包加载时自动执行,无需手动调用。
 
 func init() {
-	datePart := func() string { return time.Now().Format("20060102") }
-
 	// 客户 KH
 	numbergen.Register("customer", numbergen.Rule{
 		Enabled: true, Prefix: "KH", DateFormat: "YYYYMMDD", SeqWidth: 3,
@@ -55,8 +52,6 @@ func init() {
 		Enabled: true, Prefix: "GD", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: countLike(&crmmodel.CrmTicket{}, "ticket_no"),
 	})
-
-	_ = datePart
 }
 
 // countLike 返回一个 CountFunc:统计指定 model 表中 column 列 LIKE "前缀+日期%" 且非空的记录数。

@@ -108,7 +108,7 @@ func (s *EmployeeService) Create(ctx context.Context, req *CreateEmployeeRequest
 // GetByID 员工详情。
 func (s *EmployeeService) GetByID(ctx context.Context, id uint) (*hrmmodel.HrmEmployee, error) {
 	emp, err := s.repo.GetByID(ctx, id)
-	return emp, notFoundOr(err, "员工不存在")
+	return emp, repository.NotFoundOr(err, "员工不存在")
 }
 
 // UpdateEmployeeRequest 更新员工请求。
@@ -131,7 +131,7 @@ type UpdateEmployeeRequest struct {
 func (s *EmployeeService) Update(ctx context.Context, id uint, req *UpdateEmployeeRequest, operatorID uint) error {
 	emp, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "员工不存在")
+		return repository.NotFoundOr(err, "员工不存在")
 	}
 	// 工号唯一性(排除自身)
 	if req.EmpNo != emp.EmpNo {
@@ -213,7 +213,7 @@ func (s *EmployeeService) Update(ctx context.Context, id uint, req *UpdateEmploy
 // Delete 删除员工(连同履历硬删除,员工档案属审计类不留软删痕迹)。
 func (s *EmployeeService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "员工不存在")
+		return repository.NotFoundOr(err, "员工不存在")
 	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		// 删除变更履历(硬删除)

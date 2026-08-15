@@ -110,7 +110,7 @@ func (s *CollaborationService) Update(ctx context.Context, id uint, req *UpdateC
 	}
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "协作成员不存在")
+		return repository.NotFoundOr(err, "协作成员不存在")
 	}
 	c.CollaborationType = req.CollaborationType
 	return s.repo.Update(ctx, c)

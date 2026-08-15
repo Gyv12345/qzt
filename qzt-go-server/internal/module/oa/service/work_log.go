@@ -6,6 +6,7 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
+	"qzt-go-server/internal/repository"
 	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xtime"
 )
@@ -62,7 +63,7 @@ func (s *WorkLogService) List(ctx context.Context, page, pageSize int, logType, 
 func (s *WorkLogService) GetByID(ctx context.Context, id uint) (*oamodel.OaWorkLog, error) {
 	log, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "日志不存在")
+		return nil, repository.NotFoundOr(err, "日志不存在")
 	}
 	return log, nil
 }
@@ -79,7 +80,7 @@ type UpdateWorkLogRequest struct {
 func (s *WorkLogService) Update(ctx context.Context, id uint, req *UpdateWorkLogRequest) error {
 	log, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "日志不存在")
+		return repository.NotFoundOr(err, "日志不存在")
 	}
 	log.LogType = req.LogType
 	log.Content = req.Content
@@ -96,7 +97,7 @@ func (s *WorkLogService) Update(ctx context.Context, id uint, req *UpdateWorkLog
 
 func (s *WorkLogService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "日志不存在")
+		return repository.NotFoundOr(err, "日志不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }

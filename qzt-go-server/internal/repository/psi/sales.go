@@ -77,8 +77,3 @@ func (r *SalesReturnDetailRepo) ListByReturn(ctx context.Context, returnID uint)
 		Order: []string{"id ASC"},
 	})
 }
-
-func (r *SalesReturnDetailRepo) DeleteByReturn(ctx context.Context, returnID uint) error {
-	return repository.DBFrom(ctx).Where("return_id = ?", returnID).
-		Delete(&psimodel.PsiSalesReturnDetail{}).Error
-}

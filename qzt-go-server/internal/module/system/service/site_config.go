@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"gorm.io/gorm"
-
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/repository"
 )
@@ -24,7 +22,7 @@ func NewSiteConfigService() *SiteConfigService {
 // Get 获取站点信息(后台管理 + 前台公开均用此方法)。
 func (s *SiteConfigService) Get(ctx context.Context) (*model.SysSiteConfig, error) {
 	cfg, err := s.repo.Get(ctx)
-	return cfg, notFoundOr(err, "站点配置不存在")
+	return cfg, repository.NotFoundOr(err, "站点配置不存在")
 }
 
 // UpdateSiteConfigRequest 更新站点信息请求(全部可选,空值保留原值)。
@@ -139,12 +137,4 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 		cfg.McpURL = req.McpURL
 	}
 	return s.repo.Update(ctx, cfg)
-}
-
-// notFoundOr 站点配置不存在时的友好提示。
-func siteNotFoundOr(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New("站点配置不存在")
-	}
-	return err
 }

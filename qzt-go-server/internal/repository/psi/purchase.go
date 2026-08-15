@@ -81,8 +81,3 @@ func (r *PurchaseReturnDetailRepo) ListByReturn(ctx context.Context, returnID ui
 		Order: []string{"id ASC"},
 	})
 }
-
-func (r *PurchaseReturnDetailRepo) DeleteByReturn(ctx context.Context, returnID uint) error {
-	return repository.DBFrom(ctx).Where("return_id = ?", returnID).
-		Delete(&psimodel.PsiPurchaseReturnDetail{}).Error
-}

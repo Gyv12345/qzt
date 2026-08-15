@@ -63,7 +63,7 @@ func (s *TagService) Create(ctx context.Context, req *CreateTagRequest) error {
 func (s *TagService) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsTag, error) {
 	tag, err := s.tagRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "标签不存在")
+		return nil, repository.NotFoundOr(err, "标签不存在")
 	}
 	return tag, nil
 }
@@ -79,7 +79,7 @@ type UpdateTagRequest struct {
 func (s *TagService) Update(ctx context.Context, id uint, req *UpdateTagRequest) error {
 	tag, err := s.tagRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "标签不存在")
+		return repository.NotFoundOr(err, "标签不存在")
 	}
 	if req.Slug != "" && req.Slug != tag.Slug {
 		exists, err := s.tagRepo.Exists(ctx, &repository.QueryOptions{
@@ -111,7 +111,7 @@ func (s *TagService) Update(ctx context.Context, id uint, req *UpdateTagRequest)
 
 func (s *TagService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.tagRepo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "标签不存在")
+		return repository.NotFoundOr(err, "标签不存在")
 	}
 	return s.tagRepo.Delete(ctx, id)
 }

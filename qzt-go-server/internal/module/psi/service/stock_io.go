@@ -120,7 +120,7 @@ func (s *StockIOService) Create(ctx context.Context, req *CreateStockInRequest, 
 func (s *StockIOService) GetInByID(ctx context.Context, id uint) (*StockInDetailDTO, error) {
 	o, err := s.inOrderRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "入库单不存在")
+		return nil, repository.NotFoundOr(err, "入库单不存在")
 	}
 	items, err := s.inOrderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {
@@ -234,7 +234,7 @@ func (s *StockIOService) CreateOut(ctx context.Context, req *CreateStockOutReque
 func (s *StockIOService) GetOutByID(ctx context.Context, id uint) (*StockOutDetailDTO, error) {
 	o, err := s.outOrderRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "出库单不存在")
+		return nil, repository.NotFoundOr(err, "出库单不存在")
 	}
 	items, err := s.outOrderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {

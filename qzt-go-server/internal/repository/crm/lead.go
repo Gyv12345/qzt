@@ -40,13 +40,6 @@ func (r *LeadRepo) CountByOwner(ctx context.Context, ownerID uint) (int64, error
 	})
 }
 
-// ListPrivateSeaByOwner 列出某负责人私海线索(回收扫描用)。
-func (r *LeadRepo) ListPrivateSeaByOwner(ctx context.Context, ownerID uint) ([]crmmodel.CrmLead, error) {
-	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]any{"owner_id": ownerID, "in_pool": crmmodel.InPoolPrivate},
-	})
-}
-
 // ── 线索归属历史 ──
 
 type LeadOwnerHistoryRepo struct {

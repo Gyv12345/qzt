@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 )
 
@@ -35,7 +36,7 @@ type StageDef struct {
 func (s *StageService) GetByBizType(ctx context.Context, bizType string) (*crmmodel.StageConfig, []StageDef, error) {
 	cfg, err := s.configRepo.GetByBizType(ctx, bizType)
 	if err != nil {
-		return nil, nil, notFoundOr(err, "阶段配置不存在")
+		return nil, nil, repository.NotFoundOr(err, "阶段配置不存在")
 	}
 	defs, err := parseStages(cfg.StagesJSON)
 	if err != nil {
@@ -48,7 +49,7 @@ func (s *StageService) GetByBizType(ctx context.Context, bizType string) (*crmmo
 func (s *StageService) UpdateStages(ctx context.Context, bizType string, defs []StageDef) error {
 	cfg, err := s.configRepo.GetByBizType(ctx, bizType)
 	if err != nil {
-		return notFoundOr(err, "阶段配置不存在")
+		return repository.NotFoundOr(err, "阶段配置不存在")
 	}
 	data, err := json.Marshal(defs)
 	if err != nil {

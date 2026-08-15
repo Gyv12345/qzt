@@ -66,7 +66,7 @@ func (s *PoolService) CreatePool(ctx context.Context, req *CreatePoolRequest) (*
 // GetPool 公海池详情。
 func (s *PoolService) GetPool(ctx context.Context, id uint) (*crmmodel.CrmCustomerPool, error) {
 	p, err := s.poolRepo.GetByID(ctx, id)
-	return p, notFoundOr(err, "公海池不存在")
+	return p, repository.NotFoundOr(err, "公海池不存在")
 }
 
 // UpdatePoolRequest 更新公海池请求。
@@ -83,7 +83,7 @@ type UpdatePoolRequest struct {
 func (s *PoolService) UpdatePool(ctx context.Context, id uint, req *UpdatePoolRequest) error {
 	p, err := s.poolRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "公海池不存在")
+		return repository.NotFoundOr(err, "公海池不存在")
 	}
 	p.Name = req.Name
 	p.ScopeDeptIDs = req.ScopeDeptIDs
@@ -98,7 +98,7 @@ func (s *PoolService) UpdatePool(ctx context.Context, id uint, req *UpdatePoolRe
 func (s *PoolService) DeletePool(ctx context.Context, id uint) error {
 	pool, err := s.poolRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "公海池不存在")
+		return repository.NotFoundOr(err, "公海池不存在")
 	}
 	if pool.IsDefault == 1 {
 		return errors.New("默认公海池不可删除")
@@ -151,7 +151,7 @@ func (s *PoolService) SetRecycleRule(ctx context.Context, poolID uint, rule *crm
 func (s *PoolService) ManualRecycle(ctx context.Context, poolID, operatorID uint) (int, error) {
 	rule, err := s.recycleRuleRepo.GetByPool(ctx, poolID)
 	if err != nil {
-		return 0, notFoundOr(err, "回收规则不存在")
+		return 0, repository.NotFoundOr(err, "回收规则不存在")
 	}
 	customers, err := s.customerRepo.List(ctx, &repository.QueryOptions{
 		Where: map[string]any{"in_pool": crmmodel.InPoolPrivate},

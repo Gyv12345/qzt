@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	oamodel "qzt-go-server/internal/model/oa"
+	"qzt-go-server/internal/repository"
 	oarepo "qzt-go-server/internal/repository/oa"
 )
 
@@ -41,7 +42,7 @@ func (s *NoticeService) Create(ctx context.Context, req *CreateNoticeRequest) (*
 
 func (s *NoticeService) GetByID(ctx context.Context, id uint) (*oamodel.OaNotice, error) {
 	n, err := s.repo.GetByID(ctx, id)
-	return n, notFoundOr(err, "公告不存在")
+	return n, repository.NotFoundOr(err, "公告不存在")
 }
 
 type UpdateNoticeRequest struct {
@@ -53,7 +54,7 @@ type UpdateNoticeRequest struct {
 func (s *NoticeService) Update(ctx context.Context, id uint, req *UpdateNoticeRequest) error {
 	n, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "公告不存在")
+		return repository.NotFoundOr(err, "公告不存在")
 	}
 	n.Title = req.Title
 	n.Content = req.Content
@@ -65,7 +66,7 @@ func (s *NoticeService) Update(ctx context.Context, id uint, req *UpdateNoticeRe
 
 func (s *NoticeService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "公告不存在")
+		return repository.NotFoundOr(err, "公告不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }
@@ -73,7 +74,7 @@ func (s *NoticeService) Delete(ctx context.Context, id uint) error {
 func (s *NoticeService) Publish(ctx context.Context, id uint) error {
 	n, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "公告不存在")
+		return repository.NotFoundOr(err, "公告不存在")
 	}
 	if n.Status == oamodel.NoticeStatusPublish {
 		return errors.New("公告已发布")
@@ -84,7 +85,7 @@ func (s *NoticeService) Publish(ctx context.Context, id uint) error {
 func (s *NoticeService) Withdraw(ctx context.Context, id uint) error {
 	n, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "公告不存在")
+		return repository.NotFoundOr(err, "公告不存在")
 	}
 	if n.Status == oamodel.NoticeStatusDraft {
 		return errors.New("公告已是草稿状态")

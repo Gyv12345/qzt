@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/shopspring/decimal"
 
@@ -87,7 +86,7 @@ func (s *PayrollService) SaveStructure(ctx context.Context, req *SaveStructureRe
 // GetStructure 查询员工薪酬结构。
 func (s *PayrollService) GetStructure(ctx context.Context, employeeID uint) (*hrmmodel.HrmSalaryStructure, error) {
 	structure, err := s.structureRepo.GetByEmployee(ctx, employeeID)
-	return structure, notFoundOr(err, "薪酬结构不存在")
+	return structure, repository.NotFoundOr(err, "薪酬结构不存在")
 }
 
 // ── 工资条生成 ──
@@ -101,12 +100,10 @@ type GeneratePayrollRequest struct {
 // GeneratePayroll 生成单员工月度工资条。
 // 计算:应发 = 基本工资+津贴+加班费;扣除 = 社保+公积金+缺勤;个税 = 七级累进;实发 = 应发-扣除-个税。
 func (s *PayrollService) GeneratePayroll(ctx context.Context, req *GeneratePayrollRequest) (*hrmmodel.HrmPayroll, error) {
-	year, month, err := parseYearMonth(req.YearMonth)
+	_, _, err := parseYearMonth(req.YearMonth)
 	if err != nil {
 		return nil, err
 	}
-	_ = year
-	_ = month
 
 	// 1. 取薪酬结构
 	structure, err := s.structureRepo.GetByEmployee(ctx, req.EmployeeID)
@@ -253,6 +250,3 @@ func calculateTax(taxableIncome decimal.Decimal) decimal.Decimal {
 	}
 	return decimal.Zero
 }
-
-// _ 避免 fmt 未使用
-var _ = fmt.Sprintf

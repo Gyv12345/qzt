@@ -73,7 +73,7 @@ func (s *DepartmentService) Create(ctx context.Context, req *CreateDepartmentReq
 // GetByID 部门详情。
 func (s *DepartmentService) GetByID(ctx context.Context, id uint) (*hrmmodel.HrmDepartment, error) {
 	dept, err := s.repo.GetByID(ctx, id)
-	return dept, notFoundOr(err, "部门不存在")
+	return dept, repository.NotFoundOr(err, "部门不存在")
 }
 
 // UpdateDepartmentRequest 更新部门请求。
@@ -90,7 +90,7 @@ type UpdateDepartmentRequest struct {
 func (s *DepartmentService) Update(ctx context.Context, id uint, req *UpdateDepartmentRequest) error {
 	dept, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "部门不存在")
+		return repository.NotFoundOr(err, "部门不存在")
 	}
 	// Code 唯一性(排除自身)
 	if req.Code != dept.Code {
@@ -131,7 +131,7 @@ func (s *DepartmentService) Update(ctx context.Context, id uint, req *UpdateDepa
 // Delete 删除部门(有子部门或员工则拒绝)。
 func (s *DepartmentService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "部门不存在")
+		return repository.NotFoundOr(err, "部门不存在")
 	}
 	n, err := s.repo.CountChildren(ctx, id)
 	if err != nil {

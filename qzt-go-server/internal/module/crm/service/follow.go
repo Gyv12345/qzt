@@ -98,7 +98,7 @@ func (s *FollowService) CreateRecord(ctx context.Context, req *CreateRecordReque
 // GetRecord 跟进记录详情。
 func (s *FollowService) GetRecord(ctx context.Context, id uint) (*crmmodel.FollowUpRecord, error) {
 	rec, err := s.recordRepo.GetByID(ctx, id)
-	return rec, notFoundOr(err, "跟进记录不存在")
+	return rec, repository.NotFoundOr(err, "跟进记录不存在")
 }
 
 // UpdateRecordRequest 更新跟进记录请求。
@@ -112,7 +112,7 @@ type UpdateRecordRequest struct {
 func (s *FollowService) UpdateRecord(ctx context.Context, id uint, req *UpdateRecordRequest) error {
 	rec, err := s.recordRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "跟进记录不存在")
+		return repository.NotFoundOr(err, "跟进记录不存在")
 	}
 	rec.Type = req.Type
 	rec.Content = req.Content
@@ -164,7 +164,7 @@ func (s *FollowService) CreatePlan(ctx context.Context, req *CreatePlanRequest) 
 // GetPlan 跟进计划详情。
 func (s *FollowService) GetPlan(ctx context.Context, id uint) (*crmmodel.FollowUpPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, id)
-	return plan, notFoundOr(err, "跟进计划不存在")
+	return plan, repository.NotFoundOr(err, "跟进计划不存在")
 }
 
 // UpdatePlanRequest 更新跟进计划请求。
@@ -179,7 +179,7 @@ type UpdatePlanRequest struct {
 func (s *FollowService) UpdatePlan(ctx context.Context, id uint, req *UpdatePlanRequest) error {
 	plan, err := s.planRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "跟进计划不存在")
+		return repository.NotFoundOr(err, "跟进计划不存在")
 	}
 	plan.Type = req.Type
 	plan.Content = req.Content
@@ -199,7 +199,7 @@ func (s *FollowService) DeletePlan(ctx context.Context, id uint) error {
 func (s *FollowService) ConvertPlanToRecord(ctx context.Context, id, operatorID uint) (*crmmodel.FollowUpRecord, error) {
 	plan, err := s.planRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "跟进计划不存在")
+		return nil, repository.NotFoundOr(err, "跟进计划不存在")
 	}
 	if plan.Status != crmmodel.PlanStatusTodo {
 		return nil, errors.New("该计划已处理,无法转换")
@@ -230,7 +230,7 @@ func (s *FollowService) ConvertPlanToRecord(ctx context.Context, id, operatorID 
 func (s *FollowService) SkipPlan(ctx context.Context, id uint) error {
 	plan, err := s.planRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "跟进计划不存在")
+		return repository.NotFoundOr(err, "跟进计划不存在")
 	}
 	plan.Status = crmmodel.PlanStatusSkipped
 	return s.planRepo.Update(ctx, plan)

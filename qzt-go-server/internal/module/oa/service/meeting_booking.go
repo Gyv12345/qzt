@@ -7,6 +7,7 @@ import (
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
 	oarepo "qzt-go-server/internal/repository/oa"
+	"qzt-go-server/internal/repository"
 )
 
 // meeting_booking.go 会议预订服务。
@@ -77,7 +78,7 @@ func (s *MeetingBookingService) List(ctx context.Context, page, pageSize int, ro
 func (s *MeetingBookingService) GetByID(ctx context.Context, id uint) (*oamodel.OaMeetingBooking, error) {
 	booking, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "会议预订不存在")
+		return nil, repository.NotFoundOr(err, "会议预订不存在")
 	}
 	return booking, nil
 }
@@ -95,7 +96,7 @@ type UpdateMeetingBookingRequest struct {
 func (s *MeetingBookingService) Update(ctx context.Context, id uint, req *UpdateMeetingBookingRequest) error {
 	booking, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "会议预订不存在")
+		return repository.NotFoundOr(err, "会议预订不存在")
 	}
 	if booking.ApprovalStatus != oamodel.ApprovalStatusNone && booking.ApprovalStatus != oamodel.ApprovalStatusRejected {
 		return errors.New("仅未提交或已驳回的预订可编辑")
@@ -149,7 +150,7 @@ func (s *MeetingBookingService) Update(ctx context.Context, id uint, req *Update
 func (s *MeetingBookingService) Delete(ctx context.Context, id uint) error {
 	booking, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "会议预订不存在")
+		return repository.NotFoundOr(err, "会议预订不存在")
 	}
 	if booking.ApprovalStatus != oamodel.ApprovalStatusNone {
 		return errors.New("仅未提交审批的预订可删除")

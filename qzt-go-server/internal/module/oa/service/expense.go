@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
@@ -17,13 +16,6 @@ import (
 )
 
 // expense.go 报销单服务。
-
-func notFoundOr(err error, msg string) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New(msg)
-	}
-	return err
-}
 
 // ExpenseService 报销单服务。
 type ExpenseService struct {
@@ -127,7 +119,7 @@ func (s *ExpenseService) List(ctx context.Context, page, pageSize int, applicant
 func (s *ExpenseService) GetByID(ctx context.Context, id uint) (*oamodel.ExpenseDetail, error) {
 	expense, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "报销单不存在")
+		return nil, repository.NotFoundOr(err, "报销单不存在")
 	}
 	items, err := s.itemRepo.ListByExpense(ctx, id)
 	if err != nil {
@@ -151,7 +143,7 @@ type UpdateExpenseRequest struct {
 func (s *ExpenseService) Update(ctx context.Context, id uint, req *UpdateExpenseRequest) error {
 	expense, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "报销单不存在")
+		return repository.NotFoundOr(err, "报销单不存在")
 	}
 	if expense.ApprovalStatus != oamodel.ApprovalStatusNone && expense.ApprovalStatus != oamodel.ApprovalStatusRejected {
 		return errors.New("仅未提交或已驳回的报销单可编辑")
@@ -212,7 +204,7 @@ func (s *ExpenseService) Update(ctx context.Context, id uint, req *UpdateExpense
 func (s *ExpenseService) Delete(ctx context.Context, id uint) error {
 	expense, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "报销单不存在")
+		return repository.NotFoundOr(err, "报销单不存在")
 	}
 	if expense.ApprovalStatus != oamodel.ApprovalStatusNone {
 		return errors.New("仅未提交审批的报销单可删除")
@@ -229,7 +221,7 @@ func (s *ExpenseService) Delete(ctx context.Context, id uint) error {
 func (s *ExpenseService) MarkPaid(ctx context.Context, id uint) error {
 	expense, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "报销单不存在")
+		return repository.NotFoundOr(err, "报销单不存在")
 	}
 	if expense.ApprovalStatus != oamodel.ApprovalStatusApproved {
 		return errors.New("仅审批通过的报销单可标记打款")

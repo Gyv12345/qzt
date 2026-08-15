@@ -8,6 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
 )
 
@@ -62,7 +63,7 @@ type UpdateContractItemRequest struct {
 func (s *ContractItemService) Update(ctx context.Context, id uint, req *UpdateContractItemRequest) error {
 	item, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "明细不存在")
+		return repository.NotFoundOr(err, "明细不存在")
 	}
 	if req.ProductName != nil {
 		item.ProductName = *req.ProductName
@@ -85,7 +86,7 @@ func (s *ContractItemService) Update(ctx context.Context, id uint, req *UpdateCo
 
 func (s *ContractItemService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "明细不存在")
+		return repository.NotFoundOr(err, "明细不存在")
 	}
 	return s.repo.Delete(ctx, id)
 }

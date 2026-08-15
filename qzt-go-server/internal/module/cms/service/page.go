@@ -73,7 +73,7 @@ func (s *PageService) Create(ctx context.Context, req *CreatePageRequest) error 
 func (s *PageService) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsPage, error) {
 	page, err := s.pageRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, notFoundOr(err, "单页不存在")
+		return nil, repository.NotFoundOr(err, "单页不存在")
 	}
 	return page, nil
 }
@@ -82,7 +82,7 @@ func (s *PageService) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsPage, 
 func (s *PageService) GetBySlug(ctx context.Context, slug string) (*cmsmodel.CmsPage, error) {
 	page, err := s.pageRepo.GetBySlug(ctx, slug)
 	if err != nil {
-		return nil, notFoundOr(err, "单页不存在")
+		return nil, repository.NotFoundOr(err, "单页不存在")
 	}
 	return page, nil
 }
@@ -109,7 +109,7 @@ type UpdatePageRequest struct {
 func (s *PageService) Update(ctx context.Context, id uint, req *UpdatePageRequest) error {
 	page, err := s.pageRepo.GetByID(ctx, id)
 	if err != nil {
-		return notFoundOr(err, "单页不存在")
+		return repository.NotFoundOr(err, "单页不存在")
 	}
 	if req.Slug != "" && req.Slug != page.Slug {
 		exists, err := s.pageRepo.Exists(ctx, &repository.QueryOptions{
@@ -147,7 +147,7 @@ func (s *PageService) Update(ctx context.Context, id uint, req *UpdatePageReques
 
 func (s *PageService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.pageRepo.GetByID(ctx, id); err != nil {
-		return notFoundOr(err, "单页不存在")
+		return repository.NotFoundOr(err, "单页不存在")
 	}
 	return s.pageRepo.Delete(ctx, id)
 }
