@@ -303,16 +303,3 @@ func handlePsiStockOutList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	}
 	return resultText(map[string]any{"list": list, "total": total, "page": page, "size": pageSize})
 }
-
-// mcpPage 解析分页参数(页码默认1,每页默认20,上限100)。
-func mcpPage(req mcp.CallToolRequest) (page, pageSize int) {
-	page = int(req.GetFloat("page", 1))
-	pageSize = int(req.GetFloat("page_size", 20))
-	if page <= 0 {
-		page = 1
-	}
-	if pageSize <= 0 || pageSize > 100 {
-		pageSize = 20
-	}
-	return
-}
