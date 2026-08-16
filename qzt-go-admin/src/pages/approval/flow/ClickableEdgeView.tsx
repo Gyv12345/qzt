@@ -49,11 +49,11 @@ function ClickableEdge({
     const remainingEdges = edges.filter((e) => e.id !== id)
 
     if (nodeType === 'CONDITION') {
-      // 插入两个条件节点(Y 偏移)
+      // 插入两个条件节点(竖版流程:左右并排,从左到右为匹配优先级)
       const condA: Node<ApprovalNodeData> = {
         id: genNumber('cond'),
         type: 'approval',
-        position: { x: midX, y: midY - 70 },
+        position: { x: midX - 80, y: midY },
         data: {
           name: '条件A',
           nodeType: 'CONDITION',
@@ -63,7 +63,7 @@ function ClickableEdge({
       const condB: Node<ApprovalNodeData> = {
         id: genNumber('cond'),
         type: 'approval',
-        position: { x: midX, y: midY + 70 },
+        position: { x: midX + 80, y: midY },
         data: {
           name: '条件B',
           nodeType: 'CONDITION',

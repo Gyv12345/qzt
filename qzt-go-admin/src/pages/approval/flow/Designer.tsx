@@ -51,7 +51,7 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
         const flowConditions = (res.conditions ?? []) as { node_id?: number; condition_config?: string }[]
 
         if (flowNodes.length === 0) {
-          // 空流程:seed START → END
+          // 空流程:seed START → END(竖版:结束在开始正下方)
           const startNode: Node<ApprovalNodeData> = {
             id: 'start',
             type: 'approval',
@@ -61,7 +61,7 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
           const endNode: Node<ApprovalNodeData> = {
             id: 'end',
             type: 'approval',
-            position: { x: 300, y: 0 },
+            position: { x: 0, y: 280 },
             data: { name: '结束', nodeType: 'END' },
           }
           const seedEdge: Edge = { id: 'e_start_end', source: 'start', target: 'end', type: 'clickable' }
@@ -105,8 +105,8 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
           type: 'clickable',
         }))
 
-        // 尝试从 localStorage 读坐标
-        const posKey = `flowPos:${flowId}`
+        // 尝试从 localStorage 读坐标(key 带 tb 版本号:横版时代的坐标不兼容,强制重排竖版)
+        const posKey = `flowPos:tb:${flowId}`
         const savedPos = (() => {
           try {
             return JSON.parse(localStorage.getItem(posKey) || '{}')
@@ -185,7 +185,7 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
       allNodes.forEach((n) => {
         posMap[n.id] = n.position
       })
-      localStorage.setItem(`flowPos:${flowId}`, JSON.stringify(posMap))
+      localStorage.setItem(`flowPos:tb:${flowId}`, JSON.stringify(posMap))
 
       // 序列化为 SaveDesignRequest
       const reqNodes = allNodes.map((n, i) => {
@@ -277,6 +277,9 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
           <strong>{detail?.name || '流程设计'}</strong>
           <span style={{ color: '#999', fontSize: 12 }}>
             点击连线上的 + 插入节点;点击节点编辑属性
+          </span>
+          <span style={{ color: '#999', fontSize: 12 }}>
+            条件分支按从左到右顺序匹配,首个满足即走;都不满足走兜底分支(未连条件的分支)
           </span>
         </Space>
         <Space>

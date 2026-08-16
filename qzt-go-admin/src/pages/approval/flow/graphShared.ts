@@ -20,11 +20,12 @@ export interface ApprovalNodeData {
   [key: string]: unknown
 }
 
-// ── dagre 自动布局 ──
-export function layoutNodes(nodes: Node[], edges: Edge[], direction = 'LR'): Node[] {
+// ── dagre 自动布局(竖版:开始在上、结束在下,主流程自上而下,条件分支从左到右) ──
+export function layoutNodes(nodes: Node[], edges: Edge[], direction = 'TB'): Node[] {
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
-  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 80 })
+  // ranksep=层级间垂直间距;nodesep=同层节点水平间距(条件分支的横向展开)
+  g.setGraph({ rankdir: direction, nodesep: 70, ranksep: 90 })
   nodes.forEach((n) => {
     g.setNode(n.id, { width: 140, height: 50 })
   })
