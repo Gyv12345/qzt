@@ -21,6 +21,16 @@ func (r *OpportunityRepo) Update(ctx context.Context, m *crmmodel.CrmOpportunity
 		"OwnerID", "FollowerID", "FollowTime", "SourceClueID", "Description")
 }
 
+// CountByNoPrefix 统计 opportunity_no LIKE 前缀% 且非空的记录数(自动编号规则 SJ 推算用)。
+func (r *OpportunityRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var n int64
+	err := repoDB(ctx).Model(&crmmodel.CrmOpportunity{}).
+		Where("opportunity_no LIKE ?", prefix+"%").
+		Where("opportunity_no != ''").
+		Count(&n).Error
+	return n, err
+}
+
 // ListByStage 按阶段分组(看板用)。
 func (r *OpportunityRepo) ListByStage(ctx context.Context, stage string) ([]crmmodel.CrmOpportunity, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}

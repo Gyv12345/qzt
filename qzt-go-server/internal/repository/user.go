@@ -101,3 +101,27 @@ func (d *UserRepo) SetRoles(ctx context.Context, userID uint, roleIDs []uint) er
 	}
 	return dbFrom(ctx).Model(user).Association("Roles").Replace(roles)
 }
+
+// GetDeptID 查用户部门 ID(无部门返回 nil)。审批人解析(DEPT_HEAD)用。
+func (d *UserRepo) GetDeptID(ctx context.Context, id uint) *uint {
+	var deptID *uint
+	dbFrom(ctx).Table("sys_user").Where("id = ?", id).Select("dept_id").Scan(&deptID)
+	return deptID
+}
+
+// GetLeaderID 查用户直属上级 ID(未设置返回 nil)。审批人解析(SUPERIOR)用。
+func (d *UserRepo) GetLeaderID(ctx context.Context, id uint) *uint {
+	var leaderID *uint
+	dbFrom(ctx).Table("sys_user").Where("id = ?", id).Select("leader_id").Scan(&leaderID)
+	return leaderID
+}
+
+// ListBriefsByIDs 批量取用户简表(仅 id/nickname/username)。协作成员列表等 enrichment 用。
+func (d *UserRepo) ListBriefsByIDs(ctx context.Context, ids []uint) ([]model.SysUser, error) {
+	var users []model.SysUser
+	err := dbFrom(ctx).Table("sys_user").
+		Select("id, nickname, username").
+		Where("id IN ?", ids).
+		Scan(&users).Error
+	return users, err
+}

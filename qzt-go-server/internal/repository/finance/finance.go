@@ -33,6 +33,28 @@ func (r *AccountRepo) ListByType(ctx context.Context, accType string) ([]finmode
 	return list, err
 }
 
+// FirstActiveByType 按类型取第一个启用科目(code 最小)。审批回调生成借款凭证时的兜底科目。
+func (r *AccountRepo) FirstActiveByType(ctx context.Context, accType string) (*finmodel.FinAccount, error) {
+	var account finmodel.FinAccount
+	err := repoDB(ctx).Where("type = ? AND status = 1", accType).
+		Order("code ASC").First(&account).Error
+	if err != nil {
+		return nil, err
+	}
+	return &account, nil
+}
+
+// FirstLeafByType 按类型取第一个启用的末级科目(id 最小)。回款凭证兜底科目用。
+func (r *AccountRepo) FirstLeafByType(ctx context.Context, accType string) (*finmodel.FinAccount, error) {
+	var acc finmodel.FinAccount
+	err := repoDB(ctx).Where("type = ? AND is_leaf = 1 AND status = 1", accType).
+		Order("id ASC").First(&acc).Error
+	if err != nil {
+		return nil, err
+	}
+	return &acc, nil
+}
+
 func (r *AccountRepo) Update(ctx context.Context, m *finmodel.FinAccount) error {
 	return r.BaseRepo.Update(ctx, m, "Name", "Type", "ParentID", "BalanceDir", "Level", "IsLeaf", "Status", "Sort", "Remark")
 }
@@ -44,6 +66,15 @@ type VoucherRepo struct {
 }
 
 func NewVoucherRepo() *VoucherRepo { return &VoucherRepo{} }
+
+// CountByBiz 统计某业务单据已生成的凭证数(自动生成凭证的幂等去重用)。
+func (r *VoucherRepo) CountByBiz(ctx context.Context, bizType string, bizID uint) (int64, error) {
+	var count int64
+	err := repoDB(ctx).Model(&finmodel.FinVoucher{}).
+		Where("biz_type = ? AND biz_id = ?", bizType, bizID).
+		Count(&count).Error
+	return count, err
+}
 
 func (r *VoucherRepo) Update(ctx context.Context, m *finmodel.FinVoucher) error {
 	return r.BaseRepo.Update(ctx, m, "VoucherDate", "AccountID", "Description", "Direction", "Amount", "Currency", "BizType", "BizID", "Status", "OperatorID", "Remark")

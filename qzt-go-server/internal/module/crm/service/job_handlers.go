@@ -13,7 +13,7 @@ import (
 	crmmodel "qzt-go-server/internal/model/crm"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
 	oasvc "qzt-go-server/internal/module/oa/service"
-	"qzt-go-server/internal/repository"
+	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xlogger"
 )
 
@@ -34,13 +34,10 @@ func (h *autoRecycleJob) Execute(ctx context.Context) error {
 		xlogger.InfofCtx(ctx, "公海自动回收:总开关关闭,跳过")
 		return nil
 	}
-	db := repository.DBFrom(ctx)
 
 	// 客户公海池:auto_recycle=1
-	var custPoolIDs []uint
-	if err := db.Model(&crmmodel.CrmCustomerPool{}).
-		Where("auto_recycle = ?", 1).
-		Pluck("id", &custPoolIDs).Error; err != nil {
+	custPoolIDs, err := crrepo.NewCustomerPoolRepo().ListAutoRecycleIDs(ctx)
+	if err != nil {
 		return fmt.Errorf("查询客户公海池失败: %w", err)
 	}
 	custTotal := 0
@@ -55,10 +52,8 @@ func (h *autoRecycleJob) Execute(ctx context.Context) error {
 	}
 
 	// 线索公海池:auto_recycle=1
-	var leadPoolIDs []uint
-	if err := db.Model(&crmmodel.CrmLeadPool{}).
-		Where("auto_recycle = ?", 1).
-		Pluck("id", &leadPoolIDs).Error; err != nil {
+	leadPoolIDs, err := crrepo.NewLeadPoolRepo().ListAutoRecycleIDs(ctx)
+	if err != nil {
 		return fmt.Errorf("查询线索公海池失败: %w", err)
 	}
 	leadTotal := 0
@@ -87,7 +82,6 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 		xlogger.InfofCtx(ctx, "跟进提醒:总开关关闭,跳过")
 		return nil
 	}
-	db := repository.DBFrom(ctx)
 	msgSvc := oasvc.NewMessageService()
 
 	// 按负责人聚合待提醒项:ownerID -> []描述
@@ -99,15 +93,8 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 	// 否则 NULL 会被当成"负无穷",昨天才领的新记录也会误报"已 N 天未跟进"。
 	scanStale := func(model any, entity, baselineExpr string, days int, extra string, extraArgs []any) {
 		cutoff := time.Now().AddDate(0, 0, -days)
-		var rows []staleScan
-		q := db.Model(model).
-			Select("name, owner_id, "+baselineExpr+" AS baseline, follow_time AS followed").
-			Where("owner_id IS NOT NULL").
-			Where(baselineExpr+" < ?", cutoff)
-		if extra != "" {
-			q = q.Where(extra, extraArgs...)
-		}
-		if err := q.Scan(&rows).Error; err != nil {
+		rows, err := crrepo.ScanStaleFollowup(ctx, model, baselineExpr, cutoff, extra, extraArgs)
+		if err != nil {
 			xlogger.ErrorfCtx(ctx, "查询逾期未跟进%s失败: %v", entity, err)
 			return
 		}
@@ -158,15 +145,6 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 
 	xlogger.InfofCtx(ctx, "跟进提醒完成:扫描 %d 位负责人,发送 %d 条提醒", len(bucket), sent)
 	return nil
-}
-
-// staleScan 跟进提醒扫描结果:baseline 为"未跟进天数"的基准时间(follow_time 为空时取领取/创建时间),
-// followed 为空表示从未跟进。
-type staleScan struct {
-	Name     string
-	OwnerID  *uint
-	Baseline *time.Time
-	Followed *time.Time
 }
 
 // daysSince 返回从 t 到现在经过的整天数(向下取整);t 为 nil 时返回 0。

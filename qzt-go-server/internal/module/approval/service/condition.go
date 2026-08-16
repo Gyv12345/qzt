@@ -9,7 +9,8 @@ import (
 	"time"
 
 	apprmodel "qzt-go-server/internal/model/approval"
-	"qzt-go-server/internal/repository"
+	apprrepo "qzt-go-server/internal/repository/approval"
+	crmrepo "qzt-go-server/internal/repository/crm"
 )
 
 // condition.go 审批条件分支求值引擎。
@@ -263,48 +264,14 @@ func (s *ApprovalService) buildFormData(ctx context.Context, instance *apprmodel
 	if table == "" {
 		return data
 	}
-	repository.DBFrom(ctx).Table(table).
-		Where("id = ?", instance.ResourceID).
-		Where("deleted_at IS NULL").
-		Scan(&data)
+	_ = apprrepo.ScanBusinessRow(ctx, table, instance.ResourceID, &data)
 
 	// CONTRACT: 合并自定义字段值(Key=field_id)
 	if instance.Type == apprmodel.FormTypeContract {
-		for k, v := range loadContractFieldValues(ctx, instance.ResourceID) {
+		rid := strconv.FormatUint(uint64(instance.ResourceID), 10)
+		for k, v := range crmrepo.ListContractFieldValues(ctx, rid) {
 			data[k] = v
 		}
 	}
 	return data
-}
-
-// loadContractFieldValues 查合同的自定义字段值(单值 + blob)→ map[field_id]value。
-// resource_id 在值表里是 VARCHAR(32)(与 qztcrm 一致),用合同 ID 的字符串形式查询。
-func loadContractFieldValues(ctx context.Context, contractID uint) map[string]string {
-	out := make(map[string]string)
-	if contractID == 0 {
-		return out
-	}
-	rid := strconv.FormatUint(uint64(contractID), 10)
-	db := repository.DBFrom(ctx)
-	var rows []struct {
-		FieldID    string `gorm:"column:field_id"`
-		FieldValue string `gorm:"column:field_value"`
-	}
-	// 单值表(VARCHAR255)
-	if err := db.Table("contract_field").Where("resource_id = ?", rid).Scan(&rows).Error; err == nil {
-		for _, r := range rows {
-			out[r.FieldID] = r.FieldValue
-		}
-	}
-	// 大值表(TEXT)
-	var blobRows []struct {
-		FieldID    string `gorm:"column:field_id"`
-		FieldValue string `gorm:"column:field_value"`
-	}
-	if err := db.Table("contract_field_blob").Where("resource_id = ?", rid).Scan(&blobRows).Error; err == nil {
-		for _, r := range blobRows {
-			out[r.FieldID] = r.FieldValue
-		}
-	}
-	return out
 }

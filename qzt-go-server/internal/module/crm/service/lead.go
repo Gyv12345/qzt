@@ -204,13 +204,9 @@ var leadRefTables = []struct {
 
 // rejectIfLeadReferenced 检查线索是否被未删除的跟进记录/计划引用,有则阻止删除(避免悬空引用)。
 func rejectIfLeadReferenced(ctx context.Context, leadID uint) error {
-	db := repository.DBFrom(ctx)
 	for _, r := range leadRefTables {
-		var n int64
-		if err := db.Table(r.table).
-			Where("lead_id = ?", leadID).
-			Where("deleted_at IS NULL").
-			Count(&n).Error; err != nil {
+		n, err := crrepo.CountRefsByColumn(ctx, r.table, "lead_id", leadID)
+		if err != nil {
 			return err
 		}
 		if n > 0 {

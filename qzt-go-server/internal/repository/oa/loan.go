@@ -41,3 +41,20 @@ func (r *LoanRepo) PageList(ctx context.Context, page, pageSize int, applicantID
 func (r *LoanRepo) Update(ctx context.Context, m *oamodel.OaLoan) error {
 	return r.BaseRepo.Update(ctx, m, "Title", "ApplicantID", "DeptID", "LoanType", "Amount", "ExpectedDate", "Reason", "ApprovalStatus", "RepaidStatus", "RepaidAmount")
 }
+
+// LoanVoucherSource 借款凭证生成所需的三列。
+type LoanVoucherSource struct {
+	LoanNo      string
+	ApplicantID uint
+	Amount      string
+}
+
+// GetVoucherSource 按借款 ID 取凭证生成所需字段(审批通过自动生成财务凭证用)。
+func (r *LoanRepo) GetVoucherSource(ctx context.Context, id uint) (LoanVoucherSource, error) {
+	var loan LoanVoucherSource
+	err := repoDB(ctx).Table("oa_loan").
+		Select("loan_no, applicant_id, amount").
+		Where("id = ?", id).
+		Scan(&loan).Error
+	return loan, err
+}

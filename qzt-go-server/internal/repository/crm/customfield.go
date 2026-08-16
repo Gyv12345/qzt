@@ -42,6 +42,21 @@ func (r *ModuleFieldRepo) ListByForm(ctx context.Context, formID string) ([]crmm
 	})
 }
 
+// ListByFormAndTypes 按表单 + 类型列表查字段(pos ASC)。审批条件字段元数据(可比较类型过滤)用。
+func (r *ModuleFieldRepo) ListByFormAndTypes(ctx context.Context, formID string, types []string) ([]crmmodel.SysModuleField, error) {
+	var fields []crmmodel.SysModuleField
+	err := repoDB(ctx).Where("form_id = ? AND type IN ?", formID, types).
+		Order("pos ASC").Find(&fields).Error
+	return fields, err
+}
+
+// ListReadableByForm 列出表单中前台可读的字段(readable=1,pos ASC)。客户导入导出列映射用。
+func (r *ModuleFieldRepo) ListReadableByForm(ctx context.Context, formID string) ([]crmmodel.SysModuleField, error) {
+	var fields []crmmodel.SysModuleField
+	err := repoDB(ctx).Where("form_id = ? AND readable = 1", formID).Order("pos ASC").Find(&fields).Error
+	return fields, err
+}
+
 // GetByStringID 按字符串主键取字段(BaseRepo.GetByID 是 uint,字段主键是 UUID 字符串)。
 func (r *ModuleFieldRepo) GetByStringID(ctx context.Context, id string) (*crmmodel.SysModuleField, error) {
 	return r.GetOne(ctx, &repository.QueryOptions{Where: map[string]any{"id": id}})
@@ -181,4 +196,29 @@ func BulkCreateLeadFieldBlobs(ctx context.Context, values []crmmodel.LeadFieldBl
 // DeleteFieldByID 按字符串 ID 删除字段定义(物理删除,因值表主键是字符串)。
 func DeleteFieldByID(ctx context.Context, fieldID string) error {
 	return repoDB(ctx).Where("id = ?", fieldID).Delete(&crmmodel.SysModuleField{}).Error
+}
+
+// ── 合同字段值(单值 + BLOB) ──
+
+// ListContractFieldValues 查合同的自定义字段值(单值 + 大值合并 → map[field_id]value)。
+// 审批条件求值用;resourceID 为合同 ID 的字符串形式(值表 resource_id 是 VARCHAR(32))。
+// 单条查询失败只丢该来源的值,不报错(与下沉前行为一致)。
+func ListContractFieldValues(ctx context.Context, resourceID string) map[string]string {
+	out := make(map[string]string)
+	if resourceID == "" {
+		return out
+	}
+	var rows []crmmodel.ContractField
+	if err := repoDB(ctx).Where("resource_id = ?", resourceID).Find(&rows).Error; err == nil {
+		for _, r := range rows {
+			out[r.FieldID] = r.FieldValue
+		}
+	}
+	var blobRows []crmmodel.ContractFieldBlob
+	if err := repoDB(ctx).Where("resource_id = ?", resourceID).Find(&blobRows).Error; err == nil {
+		for _, r := range blobRows {
+			out[r.FieldID] = r.FieldValue
+		}
+	}
+	return out
 }

@@ -9,13 +9,20 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	crmmodel "qzt-go-server/internal/model/crm"
 	finmodel "qzt-go-server/internal/model/finance"
-	"qzt-go-server/internal/pkg/setting"
-	"qzt-go-server/internal/repository"
 	finsvc "qzt-go-server/internal/module/finance/service"
+	"qzt-go-server/internal/pkg/setting"
+	crrepo "qzt-go-server/internal/repository/crm"
+	finrepo "qzt-go-server/internal/repository/finance"
 	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xlogger"
+)
+
+// 跨模块回调用的 repo(事件闭包共享,无状态)。
+var (
+	voucherCountRepo = finrepo.NewVoucherRepo()
+	contractNameRepo = crrepo.NewContractRepo()
+	accountLeafRepo  = finrepo.NewAccountRepo()
 )
 
 // RegisterPaymentListener 注册回款→凭证的事件监听器。
@@ -36,10 +43,7 @@ func RegisterPaymentListener(ctx context.Context) error {
 		}
 
 		// 幂等:检查是否已生成过凭证
-		var count int64
-		repository.DBFrom(ctx).Model(&finmodel.FinVoucher{}).
-			Where("biz_type = ? AND biz_id = ?", "CONTRACT_PAYMENT", recordID).
-			Count(&count)
+		count, _ := voucherCountRepo.CountByBiz(ctx, "CONTRACT_PAYMENT", recordID)
 		if count > 0 {
 			return // 已生成,跳过
 		}
@@ -52,10 +56,7 @@ func RegisterPaymentListener(ctx context.Context) error {
 		}
 
 		// 查合同名作为摘要(合同列是 name;title_id 是工商抬头ID,勿混用)
-		var contractName string
-		repository.DBFrom(ctx).Model(&crmmodel.CrmContract{}).
-			Where("id = ?", contractID).
-			Select("name").Scan(&contractName)
+		contractName, _ := contractNameRepo.GetNameByID(ctx, contractID)
 		if contractName == "" {
 			contractName = fmt.Sprintf("合同#%d", contractID)
 		}
@@ -92,10 +93,8 @@ func findPaymentAccountID(ctx context.Context) uint {
 		}
 	}
 	// 2. fallback:第一个 INCOME 末级科目
-	var acc finmodel.FinAccount
-	err := repository.DBFrom(ctx).Where("type = ? AND is_leaf = 1 AND status = 1", finmodel.AccountTypeIncome).
-		Order("id ASC").First(&acc).Error
-	if err != nil {
+	acc, err := accountLeafRepo.FirstLeafByType(ctx, finmodel.AccountTypeIncome)
+	if err != nil || acc == nil {
 		return 0
 	}
 	return acc.ID

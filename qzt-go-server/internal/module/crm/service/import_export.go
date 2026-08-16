@@ -13,16 +13,16 @@ import (
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 
-	crmmodel "qzt-go-server/internal/model/crm"
-	"qzt-go-server/internal/repository"
 	"qzt-go-server/internal/middleware"
+	crmmodel "qzt-go-server/internal/model/crm"
+	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xlogger"
 )
 
 // ImportExportService 导入导出服务。
 type ImportExportService struct {
-	customerSvc   *CustomerService
-	fieldSvc      *CustomFieldService
+	customerSvc *CustomerService
+	fieldSvc    *CustomFieldService
 }
 
 func NewImportExportService() *ImportExportService {
@@ -125,10 +125,10 @@ func (s *ImportExportService) GenerateTemplate(ctx context.Context, bizType stri
 
 // ImportResult 导入结果。
 type ImportResult struct {
-	Total   int            `json:"total"`
-	Success int            `json:"success"`
-	Failed  int            `json:"failed"`
-	Errors  []ImportError  `json:"errors"`
+	Total   int           `json:"total"`
+	Success int           `json:"success"`
+	Failed  int           `json:"failed"`
+	Errors  []ImportError `json:"errors"`
 }
 
 type ImportError struct {
@@ -246,18 +246,16 @@ func (s *ImportExportService) createCustomerFromImport(ctx context.Context, rowD
 
 	// 写入自定义字段值
 	if len(customValues) > 0 && customer != nil {
-		values := make([]crmmodel.SysModuleField, 0, len(customValues))
-		_ = values // customValues 的 key 是 field_id
+		values := make([]crmmodel.CustomerField, 0, len(customValues))
 		for fieldID, val := range customValues {
-			// 直接写 customer_field 表
-			cf := &crmmodel.CustomerField{
+			values = append(values, crmmodel.CustomerField{
 				ID:         fmt.Sprintf("imp_%d_%s", customer.ID, fieldID),
 				ResourceID: fmt.Sprintf("%d", customer.ID),
 				FieldID:    fieldID,
 				FieldValue: val,
-			}
-			repository.DBFrom(ctx).Create(cf)
+			})
 		}
+		_ = crrepo.BulkCreateCustomerFields(ctx, values)
 	}
 
 	result.Success++
@@ -297,14 +295,13 @@ func (s *ImportExportService) getCustomFields(ctx context.Context, bizType strin
 	}
 
 	// 查 form
-	var form crmmodel.SysModuleForm
-	if err := repository.DBFrom(ctx).Where("form_key = ?", formKey).First(&form).Error; err != nil {
+	form, err := crrepo.NewModuleFormRepo().GetByKey(ctx, crmmodel.FormKey(formKey))
+	if err != nil {
 		return nil
 	}
 
 	// 查字段
-	var fields []crmmodel.SysModuleField
-	repository.DBFrom(ctx).Where("form_id = ? AND readable = 1", form.ID).Order("pos ASC").Find(&fields)
+	fields, _ := crrepo.NewModuleFieldRepo().ListReadableByForm(ctx, form.ID)
 	return fields
 }
 

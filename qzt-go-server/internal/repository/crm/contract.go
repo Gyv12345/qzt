@@ -32,6 +32,31 @@ func (r *ContractRepo) AddReceivedAmount(ctx context.Context, id uint, amount st
 			gorm.Expr("GREATEST(received_amount + ?, 0)", amount)).Error
 }
 
+// UpdateStageByID 按合同 ID 更新阶段列(审批通过回调:合同 → SIGNED)。
+func (r *ContractRepo) UpdateStageByID(ctx context.Context, id uint, stage string) error {
+	return repoDB(ctx).Model(&crmmodel.CrmContract{}).Where("id = ?", id).
+		UpdateColumn("stage", stage).Error
+}
+
+// CountByNoPrefix 统计 contract_no LIKE 前缀% 且非空的记录数(自动编号规则 HT 推算用)。
+func (r *ContractRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var n int64
+	err := repoDB(ctx).Model(&crmmodel.CrmContract{}).
+		Where("contract_no LIKE ?", prefix+"%").
+		Where("contract_no != ''").
+		Count(&n).Error
+	return n, err
+}
+
+// GetNameByID 取合同名称(回款凭证摘要用;合同名称列是 name,title_id 是工商抬头 ID,勿混用)。
+func (r *ContractRepo) GetNameByID(ctx context.Context, id uint) (string, error) {
+	var name string
+	err := repoDB(ctx).Model(&crmmodel.CrmContract{}).
+		Where("id = ?", id).
+		Select("name").Scan(&name).Error
+	return name, err
+}
+
 // ListByCustomer 按客户列合同。
 func (r *ContractRepo) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmContract, error) {
 	return r.List(ctx, &repository.QueryOptions{

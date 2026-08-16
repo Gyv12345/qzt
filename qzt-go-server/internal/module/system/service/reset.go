@@ -100,12 +100,11 @@ var businessTables = []string{
 // TRUNCATE 无法事务化,故逐表执行并收集错误。返回的 error 为第一个失败表
 // 的错误,失败表名拼接在错误信息中便于排查。
 func (s *ResetService) ResetBusinessData(ctx context.Context) error {
-	db := repository.DBFrom(ctx)
 	var failed []string
 	var firstErr error
 
 	for _, table := range businessTables {
-		if err := db.Exec(fmt.Sprintf("TRUNCATE TABLE `%s`", table)).Error; err != nil {
+		if err := repository.TruncateTable(ctx, table); err != nil {
 			if firstErr == nil {
 				firstErr = err
 			}

@@ -42,6 +42,19 @@ func (r *FormTemplateRepo) ListEnabled(ctx context.Context) ([]oamodel.OaFormTem
 	return list, err
 }
 
+// GetFieldsConfigByKey 按 form_key 取启用模板的字段配置 JSON(审批条件字段元数据用)。
+// 无匹配模板时返回空串。
+func (r *FormTemplateRepo) GetFieldsConfigByKey(ctx context.Context, formKey string) (string, error) {
+	var tpl struct {
+		FieldsConfig string
+	}
+	err := repoDB(ctx).Table("oa_form_template").
+		Where("form_key = ? AND status = 1", formKey).
+		Select("fields_config").
+		Scan(&tpl).Error
+	return tpl.FieldsConfig, err
+}
+
 func (r *FormTemplateRepo) Update(ctx context.Context, m *oamodel.OaFormTemplate) error {
 	return r.BaseRepo.Update(ctx, m, "FormKey", "Name", "Icon", "Description", "FieldsConfig", "Category", "Status", "Sort")
 }

@@ -37,3 +37,11 @@ func (r *DepartmentRepo) HasEmployees(ctx context.Context, deptID uint) (bool, e
 	}
 	return n > 0, nil
 }
+
+// LeaderID 查在职部门负责人的用户 ID(部门不存在/禁用/未设负责人返回 nil)。
+// 审批人解析(DEPT_HEAD:提交人 → 部门 → 负责人)用。
+func (r *DepartmentRepo) LeaderID(ctx context.Context, deptID uint) *uint {
+	var leaderID *uint
+	repoDB(ctx).Table("hrm_department").Where("id = ? AND status = 1", deptID).Select("leader").Scan(&leaderID)
+	return leaderID
+}

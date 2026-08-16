@@ -9,6 +9,7 @@ import (
 	apprmodel "qzt-go-server/internal/model/approval"
 	"qzt-go-server/internal/repository"
 	apprrepo "qzt-go-server/internal/repository/approval"
+	hrmrepo "qzt-go-server/internal/repository/hrm"
 	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xlogger"
@@ -30,6 +31,8 @@ type ApprovalService struct {
 	taskRepo     *apprrepo.TaskRepo
 	recordRepo   *apprrepo.RecordRepo
 	formDataRepo *oarepo.FormDataRepo
+	userRepo     *repository.UserRepo
+	deptRepo     *hrmrepo.DepartmentRepo
 }
 
 func NewApprovalService() *ApprovalService {
@@ -43,6 +46,8 @@ func NewApprovalService() *ApprovalService {
 		taskRepo:     apprrepo.NewTaskRepo(),
 		recordRepo:   apprrepo.NewRecordRepo(),
 		formDataRepo: oarepo.NewFormDataRepo(),
+		userRepo:     repository.NewUserRepo(),
+		deptRepo:     hrmrepo.NewDepartmentRepo(),
 	}
 }
 
@@ -431,30 +436,28 @@ func (s *ApprovalService) resolveApprovers(ctx context.Context, node *apprmodel.
 		return parseUintArray(cfg.ApproverList), nil
 	case apprmodel.ApproverTypeDeptHead, apprmodel.ApproverTypeMultipleDeptHead:
 		// DEPT_HEAD:提交人 → sys_user.dept_id → hrm_department.leader
-		return resolveDeptHead(ctx, submitterID)
+		return s.resolveDeptHead(ctx, submitterID)
 	case apprmodel.ApproverTypeRole:
 		// ROLE 类型:approverList 是 role_id 数组,需查 sys_user_role 解析
 		return nil, nil
 	case apprmodel.ApproverTypeSuperior:
 		// SUPERIOR:查提交人的直属上级(sys_user.leader_id)
-		return resolveSuperior(ctx, submitterID)
+		return s.resolveSuperior(ctx, submitterID)
 	default:
 		return parseUintArray(cfg.ApproverList), nil
 	}
 }
 
 // resolveDeptHead 解析部门负责人:submitterID → sys_user.dept_id → hrm_department.leader。
-func resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
+func (s *ApprovalService) resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
 	if submitterID == 0 {
 		return nil, nil
 	}
-	var deptID *uint
-	repoDB(ctx).Table("sys_user").Where("id = ?", submitterID).Select("dept_id").Scan(&deptID)
+	deptID := s.userRepo.GetDeptID(ctx, submitterID)
 	if deptID == nil || *deptID == 0 {
 		return nil, nil
 	}
-	var leaderID *uint
-	repoDB(ctx).Table("hrm_department").Where("id = ? AND status = 1", *deptID).Select("leader").Scan(&leaderID)
+	leaderID := s.deptRepo.LeaderID(ctx, *deptID)
 	if leaderID == nil || *leaderID == 0 {
 		return nil, nil
 	}
@@ -462,12 +465,11 @@ func resolveDeptHead(ctx context.Context, submitterID uint) ([]uint, error) {
 }
 
 // resolveSuperior 解析直属上级:查 sys_user.leader_id。
-func resolveSuperior(ctx context.Context, submitterID uint) ([]uint, error) {
+func (s *ApprovalService) resolveSuperior(ctx context.Context, submitterID uint) ([]uint, error) {
 	if submitterID == 0 {
 		return nil, nil
 	}
-	var leaderID *uint
-	repoDB(ctx).Table("sys_user").Where("id = ?", submitterID).Select("leader_id").Scan(&leaderID)
+	leaderID := s.userRepo.GetLeaderID(ctx, submitterID)
 	if leaderID == nil || *leaderID == 0 {
 		return nil, nil
 	}
@@ -476,10 +478,7 @@ func resolveSuperior(ctx context.Context, submitterID uint) ([]uint, error) {
 
 // getNodeRound 获取节点当前轮次(该实例该节点的最大 round + 1,首次为 1)。
 func (s *ApprovalService) getNodeRound(ctx context.Context, instanceID, nodeID uint) int {
-	var maxRound int
-	repoDB(ctx).Model(&apprmodel.ApprovalTask{}).
-		Where("instance_id = ? AND node_id = ?", instanceID, nodeID).
-		Select("COALESCE(MAX(node_round), 0)").Scan(&maxRound)
+	maxRound := s.taskRepo.MaxNodeRound(ctx, instanceID, nodeID)
 	if maxRound < 0 {
 		maxRound = 0
 	}
@@ -599,8 +598,7 @@ func (s *ApprovalService) updateResourceStatus(ctx context.Context, formType str
 	if !ok {
 		return
 	}
-	if err := repoDB(ctx).Table(table).Where("id = ?", resourceID).
-		Update("approval_status", status).Error; err != nil {
+	if err := apprrepo.UpdateResourceApprovalStatus(ctx, table, resourceID, status); err != nil {
 		xlogger.ErrorfCtx(ctx, "更新资源审批状态失败 table=%s id=%d status=%s: %v",
 			table, resourceID, status, err)
 	}

@@ -40,6 +40,16 @@ func (r *LeadRepo) CountByOwner(ctx context.Context, ownerID uint) (int64, error
 	})
 }
 
+// CountByNoPrefix 统计 lead_no LIKE 前缀% 且非空的记录数(自动编号规则 X 推算用)。
+func (r *LeadRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var n int64
+	err := repoDB(ctx).Model(&crmmodel.CrmLead{}).
+		Where("lead_no LIKE ?", prefix+"%").
+		Where("lead_no != ''").
+		Count(&n).Error
+	return n, err
+}
+
 // ── 线索归属历史 ──
 
 type LeadOwnerHistoryRepo struct {
@@ -71,6 +81,15 @@ func (r *LeadPoolRepo) Create(ctx context.Context, m *crmmodel.CrmLeadPool) erro
 
 func (r *LeadPoolRepo) Update(ctx context.Context, m *crmmodel.CrmLeadPool) error {
 	return r.BaseRepo.Update(ctx, m, "Name", "ScopeDeptIDs", "ScopeRoleIDs", "AdminUserIDs", "Enabled", "AutoRecycle")
+}
+
+// ListAutoRecycleIDs 列出启用自动回收的线索公海池 ID(定时回收任务用)。
+func (r *LeadPoolRepo) ListAutoRecycleIDs(ctx context.Context) ([]uint, error) {
+	var ids []uint
+	err := repoDB(ctx).Model(&crmmodel.CrmLeadPool{}).
+		Where("auto_recycle = ?", 1).
+		Pluck("id", &ids).Error
+	return ids, err
 }
 
 // ListEnabled 列出启用的线索公海池(enabled=1)。

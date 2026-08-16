@@ -7,9 +7,6 @@ import (
 	"context"
 	"fmt"
 
-	"gorm.io/gorm"
-
-	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/repository"
 )
 
@@ -39,12 +36,12 @@ type HomepageFeatureDTO struct {
 
 // HomepageModuleDTO 板块配置(admin 返回)。
 type HomepageModuleDTO struct {
-	ID         uint                  `json:"id"`
-	Module     string                `json:"module"`
-	ModuleName string                `json:"module_name"`
-	Enabled    bool                  `json:"enabled"`
-	Sort       int                   `json:"sort"`
-	Features   []HomepageFeatureDTO  `json:"features"`
+	ID         uint                 `json:"id"`
+	Module     string               `json:"module"`
+	ModuleName string               `json:"module_name"`
+	Enabled    bool                 `json:"enabled"`
+	Sort       int                  `json:"sort"`
+	Features   []HomepageFeatureDTO `json:"features"`
 }
 
 // HomepageSectionItem CMS 公开返回的单条条目。
@@ -72,12 +69,14 @@ type HomepageSection struct {
 type HomepageConfigService struct {
 	moduleRepo  *repository.HomepageModuleRepo
 	featureRepo *repository.HomepageFeatureRepo
+	itemRepo    *repository.HomepageItemRepo
 }
 
 func NewHomepageConfigService() *HomepageConfigService {
 	return &HomepageConfigService{
 		moduleRepo:  repository.NewHomepageModuleRepo(),
 		featureRepo: repository.NewHomepageFeatureRepo(),
+		itemRepo:    repository.NewHomepageItemRepo(),
 	}
 }
 
@@ -171,104 +170,45 @@ func (s *HomepageConfigService) PublicHomepage(ctx context.Context) (map[string]
 	return result, nil
 }
 
-// ── 业务表查询(直接 DB 查询, 避免跨模块依赖) ──
+// ── 业务条目查询(product/partner/team,查询在 repository.HomepageItemRepo) ──
 
 // fetchItemInfo 取单条业务名称 + 副信息(admin 表格展示用)。
 func (s *HomepageConfigService) fetchItemInfo(ctx context.Context, module string, itemID uint) (name, sub string) {
-	db := repository.DBFrom(ctx)
 	switch module {
 	case "product":
-		var p struct {
-			Name     string
-			Category string
-		}
-		db.Table("crm_product").Select("name, category").Where("id = ?", itemID).Scan(&p)
+		p, _ := s.itemRepo.GetProductInfo(ctx, itemID)
 		return p.Name, p.Category
 	case "partner":
-		var c struct {
-			Name  string
-			Level string
-		}
-		db.Table("crm_customer").Select("name, level").Where("id = ?", itemID).Scan(&c)
+		c, _ := s.itemRepo.GetPartnerInfo(ctx, itemID)
 		return c.Name, c.Level
 	case "team":
-		var u struct {
-			Nickname string
-			Username string
-		}
-		db.Table("sys_user").Select("nickname, username").Where("id = ?", itemID).Scan(&u)
-		name = u.Nickname
-		if name == "" {
-			name = u.Username
-		}
-		return name, ""
+		n, _ := s.itemRepo.GetTeamUserName(ctx, itemID)
+		return n, ""
 	}
 	return "", ""
 }
 
 // fetchItemsByIDs 按指定 ID 顺序取业务条目(CMS 公开用)。
 func (s *HomepageConfigService) fetchItemsByIDs(ctx context.Context, module string, ids []uint) []HomepageSectionItem {
-	db := repository.DBFrom(ctx)
 	switch module {
 	case "product":
-		var rows []struct {
-			ID          uint
-			Name        string
-			ImageURL    string
-			Description string
-			Category    string
-		}
-		db.Table("crm_product").
-			Select("id, name, image_url, description, category").
-			Where("id IN ? AND status = 1", ids).
-			Scan(&rows)
+		rows, _ := s.itemRepo.ListProductsByIDs(ctx, ids)
 		return reorderProducts(rows, ids)
 	case "partner":
-		var rows []struct {
-			ID       uint
-			Name     string
-			Level    string
-			Industry string
-			Source   string
-		}
-		db.Table("crm_customer").
-			Select("id, name, level, industry, source").
-			Where("id IN ? AND status = 1", ids).
-			Scan(&rows)
+		rows, _ := s.itemRepo.ListPartnersByIDs(ctx, ids)
 		return reorderPartners(rows, ids)
 	case "team":
-		var rows []struct {
-			ID       uint
-			Nickname string
-			Avatar   string
-		}
-		db.Table("sys_user").
-			Select("id, nickname, avatar").
-			Where("id IN ? AND status = 1", ids).
-			Scan(&rows)
-		return reorderTeam(ctx, db, rows, ids)
+		rows, _ := s.itemRepo.ListTeamByIDs(ctx, ids)
+		return reorderTeam(ctx, s, rows, ids)
 	}
 	return nil
 }
 
 // fetchLatestItems 取最新 N 条(无精选时的降级行为)。
 func (s *HomepageConfigService) fetchLatestItems(ctx context.Context, module string) []HomepageSectionItem {
-	db := repository.DBFrom(ctx)
 	switch module {
 	case "product":
-		var rows []struct {
-			ID          uint
-			Name        string
-			ImageURL    string
-			Description string
-			Category    string
-		}
-		db.Table("crm_product").
-			Select("id, name, image_url, description, category").
-			Where("status = 1").
-			Order("id DESC").
-			Limit(6).
-			Scan(&rows)
+		rows, _ := s.itemRepo.ListLatestProducts(ctx, 6)
 		items := make([]HomepageSectionItem, 0, len(rows))
 		for _, r := range rows {
 			items = append(items, HomepageSectionItem{
@@ -278,19 +218,7 @@ func (s *HomepageConfigService) fetchLatestItems(ctx context.Context, module str
 		}
 		return items
 	case "partner":
-		var rows []struct {
-			ID       uint
-			Name     string
-			Level    string
-			Industry string
-			Source   string
-		}
-		db.Table("crm_customer").
-			Select("id, name, level, industry, source").
-			Where("status = 1").
-			Order("id DESC").
-			Limit(8).
-			Scan(&rows)
+		rows, _ := s.itemRepo.ListLatestPartners(ctx, 8)
 		items := make([]HomepageSectionItem, 0, len(rows))
 		for _, r := range rows {
 			items = append(items, HomepageSectionItem{
@@ -300,8 +228,7 @@ func (s *HomepageConfigService) fetchLatestItems(ctx context.Context, module str
 		}
 		return items
 	case "team":
-		var users []model.SysUser
-		db.Where("status = 1").Order("id ASC").Limit(4).Find(&users)
+		users, _ := s.itemRepo.ListLatestTeamUsers(ctx, 4)
 		items := make([]HomepageSectionItem, 0, len(users))
 		for _, u := range users {
 			nickname := u.Nickname
@@ -319,13 +246,7 @@ func (s *HomepageConfigService) fetchLatestItems(ctx context.Context, module str
 
 // ── 按精选顺序重排 ──
 
-func reorderProducts(rows []struct {
-	ID          uint
-	Name        string
-	ImageURL    string
-	Description string
-	Category    string
-}, ids []uint) []HomepageSectionItem {
+func reorderProducts(rows []repository.HomepageProductRow, ids []uint) []HomepageSectionItem {
 	m := make(map[uint]HomepageSectionItem, len(rows))
 	for _, r := range rows {
 		m[r.ID] = HomepageSectionItem{
@@ -336,13 +257,7 @@ func reorderProducts(rows []struct {
 	return pickOrdered(m, ids)
 }
 
-func reorderPartners(rows []struct {
-	ID       uint
-	Name     string
-	Level    string
-	Industry string
-	Source   string
-}, ids []uint) []HomepageSectionItem {
+func reorderPartners(rows []repository.HomepagePartnerRow, ids []uint) []HomepageSectionItem {
 	m := make(map[uint]HomepageSectionItem, len(rows))
 	for _, r := range rows {
 		m[r.ID] = HomepageSectionItem{
@@ -353,38 +268,13 @@ func reorderPartners(rows []struct {
 	return pickOrdered(m, ids)
 }
 
-func reorderTeam(ctx context.Context, db *gorm.DB, rows []struct {
-	ID       uint
-	Nickname string
-	Avatar   string
-}, ids []uint) []HomepageSectionItem {
+func reorderTeam(ctx context.Context, s *HomepageConfigService, rows []repository.HomepageTeamRow, ids []uint) []HomepageSectionItem {
 	// 查角色名拼职位
-	type userRole struct {
-		UserID uint
-		RoleName string
-	}
-	var roleNames []userRole
 	userIDs := make([]uint, 0, len(rows))
 	for _, r := range rows {
 		userIDs = append(userIDs, r.ID)
 	}
-	if len(userIDs) > 0 {
-		db.Table("sys_user_role ur").
-			Select("ur.sys_user_id as user_id, r.name as role_name").
-			Joins("JOIN sys_role r ON r.id = ur.sys_role_id AND r.deleted_at IS NULL").
-			Where("ur.sys_user_id IN ?", userIDs).
-			Scan(&roleNames)
-	}
-	positionMap := make(map[uint]string)
-	for _, ur := range roleNames {
-		if ur.RoleName == "" {
-			continue
-		}
-		if positionMap[ur.UserID] != "" {
-			positionMap[ur.UserID] += "、"
-		}
-		positionMap[ur.UserID] += ur.RoleName
-	}
+	positionMap, _ := s.itemRepo.UserRoleNames(ctx, userIDs)
 
 	m := make(map[uint]HomepageSectionItem, len(rows))
 	for _, r := range rows {
@@ -409,4 +299,3 @@ func pickOrdered(m map[uint]HomepageSectionItem, ids []uint) []HomepageSectionIt
 	}
 	return result
 }
-

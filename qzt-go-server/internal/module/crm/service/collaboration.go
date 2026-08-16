@@ -50,15 +50,12 @@ func (s *CollaborationService) List(ctx context.Context, customerID uint) ([]Col
 		userIDs = append(userIDs, it.UserID)
 	}
 	userMap := make(map[uint]userBrief, len(userIDs))
-	var users []userBrief
-	if err := repository.DBFrom(ctx).Table("sys_user").
-		Select("id, nickname, username").
-		Where("id IN ?", userIDs).
-		Scan(&users).Error; err != nil {
+	users, err := repository.NewUserRepo().ListBriefsByIDs(ctx, userIDs)
+	if err != nil {
 		return nil, err
 	}
 	for _, u := range users {
-		userMap[u.ID] = u
+		userMap[u.ID] = userBrief{ID: u.ID, Nickname: u.Nickname, Username: u.Username}
 	}
 
 	for _, it := range items {

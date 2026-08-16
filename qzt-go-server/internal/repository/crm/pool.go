@@ -25,6 +25,15 @@ func (r *CustomerPoolRepo) Update(ctx context.Context, m *crmmodel.CrmCustomerPo
 	return r.BaseRepo.Update(ctx, m, "Name", "ScopeDeptIDs", "ScopeRoleIDs", "AdminUserIDs", "Enabled", "AutoRecycle")
 }
 
+// ListAutoRecycleIDs 列出启用自动回收的公海池 ID(定时回收任务用)。
+func (r *CustomerPoolRepo) ListAutoRecycleIDs(ctx context.Context) ([]uint, error) {
+	var ids []uint
+	err := repoDB(ctx).Model(&crmmodel.CrmCustomerPool{}).
+		Where("auto_recycle = ?", 1).
+		Pluck("id", &ids).Error
+	return ids, err
+}
+
 // ListEnabled 列出启用的公海池(enabled=1)。
 func (r *CustomerPoolRepo) ListEnabled(ctx context.Context) ([]crmmodel.CrmCustomerPool, error) {
 	return r.List(ctx, &repository.QueryOptions{

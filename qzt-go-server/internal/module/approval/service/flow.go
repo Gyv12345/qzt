@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	apprmodel "qzt-go-server/internal/model/approval"
-	apprrepo "qzt-go-server/internal/repository/approval"
 	"qzt-go-server/internal/repository"
+	apprrepo "qzt-go-server/internal/repository/approval"
 )
 
 // flow.go 审批流程设计服务。
@@ -37,19 +37,19 @@ func NewFlowService() *FlowService {
 // FlowDetail 流程详情(含版本+节点图),供前端流程设计器加载。
 type FlowDetail struct {
 	apprmodel.ApprovalFlow
-	Nodes    []apprmodel.ApprovalNode         `json:"nodes"`
-	Approvers []apprmodel.ApprovalNodeApprover `json:"approvers"`
+	Nodes      []apprmodel.ApprovalNode          `json:"nodes"`
+	Approvers  []apprmodel.ApprovalNodeApprover  `json:"approvers"`
 	Conditions []apprmodel.ApprovalNodeCondition `json:"conditions"`
-	Links    []apprmodel.ApprovalNodeLink     `json:"links"`
+	Links      []apprmodel.ApprovalNodeLink      `json:"links"`
 }
 
 // CreateFlowRequest 创建流程请求。
 type CreateFlowRequest struct {
-	Name      string `json:"name" binding:"required"`
-	FormType  string `json:"form_type" binding:"required"`
-	FormKey   string `json:"form_key"`
-	Number    string `json:"number"`
-	Enable    int8   `json:"enable"`
+	Name     string `json:"name" binding:"required"`
+	FormType string `json:"form_type" binding:"required"`
+	FormKey  string `json:"form_key"`
+	Number   string `json:"number"`
+	Enable   int8   `json:"enable"`
 }
 
 // Create 创建流程(默认启用,无节点图,需后续 SaveDesign)。
@@ -66,11 +66,11 @@ func (s *FlowService) Create(ctx context.Context, req *CreateFlowRequest) (*appr
 		enable = 0
 	}
 	flow := &apprmodel.ApprovalFlow{
-		Name:    req.Name,
+		Name:     req.Name,
 		FormType: req.FormType,
-		FormKey: req.FormKey,
-		Number:  req.Number,
-		Enable:  enable,
+		FormKey:  req.FormKey,
+		Number:   req.Number,
+		Enable:   enable,
 	}
 	if err := s.flowRepo.Create(ctx, flow); err != nil {
 		return nil, err
@@ -167,34 +167,34 @@ func (s *FlowService) GetByFormType(ctx context.Context, formType, formKey strin
 // 节点用 Number 字段作为前端标识,Links 的 FromNodeID/ToNodeID 填前端节点的 Number(转 uint)。
 // 也可以直接传已保存的真实 NodeID(编辑已有版本时)。
 type SaveDesignRequest struct {
-	Nodes      []NodeDesign      `json:"nodes" binding:"required"`
-	Approvers  []ApproversDesign `json:"approvers"`
+	Nodes      []NodeDesign       `json:"nodes" binding:"required"`
+	Approvers  []ApproversDesign  `json:"approvers"`
 	Conditions []ConditionsDesign `json:"conditions"`
-	Links      []LinkDesign      `json:"links"`
+	Links      []LinkDesign       `json:"links"`
 }
 
 // NodeDesign 节点设计(含临时标识 temp_id,供 links 引用)。
 type NodeDesign struct {
-	Number       string `json:"number"`
-	Name         string `json:"name"`
-	NodeType     string `json:"node_type"`
+	Number        string `json:"number"`
+	Name          string `json:"name"`
+	NodeType      string `json:"node_type"`
 	ExecuteTiming string `json:"execute_timing"`
-	Sort         int    `json:"sort"`
+	Sort          int    `json:"sort"`
 }
 
 // ApproversDesign 审批人配置设计(node_number 关联到节点)。
 type ApproversDesign struct {
-	NodeNumber         string `json:"node_number"`
-	ApprovalType       string `json:"approval_type"`
-	MultiApproverMode  string `json:"multi_approver_mode"`
+	NodeNumber          string `json:"node_number"`
+	ApprovalType        string `json:"approval_type"`
+	MultiApproverMode   string `json:"multi_approver_mode"`
 	EmptyApproverAction string `json:"empty_approver_action"`
-	FallbackApprover   *uint  `json:"fallback_approver"`
+	FallbackApprover    *uint  `json:"fallback_approver"`
 	SameSubmitterAction string `json:"same_submitter_action"`
-	ApproverType       string `json:"approver_type"`
-	ApproverDirection  string `json:"approver_direction"`
-	CcType             string `json:"cc_type"`
-	CcList             string `json:"cc_list"`
-	ApproverList       string `json:"approver_list"`
+	ApproverType        string `json:"approver_type"`
+	ApproverDirection   string `json:"approver_direction"`
+	CcType              string `json:"cc_type"`
+	CcList              string `json:"cc_list"`
+	ApproverList        string `json:"approver_list"`
 }
 
 // ConditionsDesign 条件配置设计(node_number 关联到节点)。
@@ -237,7 +237,7 @@ func (s *FlowService) SaveDesign(ctx context.Context, flowID uint, req *SaveDesi
 				ExecuteTiming: req.Nodes[i].ExecuteTiming,
 				Sort:          req.Nodes[i].Sort,
 			}
-			if err := repoDB(ctx).Create(n).Error; err != nil {
+			if err := s.nodeRepo.Create(ctx, n); err != nil {
 				return err
 			}
 			numberToID[n.Number] = n.ID
@@ -263,7 +263,7 @@ func (s *FlowService) SaveDesign(ctx context.Context, flowID uint, req *SaveDesi
 				CcList:              req.Approvers[i].CcList,
 				ApproverList:        req.Approvers[i].ApproverList,
 			}
-			if err := repoDB(ctx).Create(a).Error; err != nil {
+			if err := s.approverRepo.Create(ctx, a); err != nil {
 				return err
 			}
 		}
@@ -279,7 +279,7 @@ func (s *FlowService) SaveDesign(ctx context.Context, flowID uint, req *SaveDesi
 				FlowVersionID:   vid,
 				ConditionConfig: req.Conditions[i].ConditionConfig,
 			}
-			if err := repoDB(ctx).Create(c).Error; err != nil {
+			if err := s.condRepo.Create(ctx, c); err != nil {
 				return err
 			}
 		}
@@ -297,7 +297,7 @@ func (s *FlowService) SaveDesign(ctx context.Context, flowID uint, req *SaveDesi
 				ToNodeID:      toID,
 				Sort:          req.Links[i].Sort,
 			}
-			if err := repoDB(ctx).Create(l).Error; err != nil {
+			if err := s.linkRepo.Create(ctx, l); err != nil {
 				return err
 			}
 		}

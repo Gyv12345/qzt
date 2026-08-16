@@ -32,7 +32,7 @@ func recordChanges(ctx context.Context, bizType string, resourceID, operatorID u
 		})
 	}
 	// 变更日志写入失败只记日志,不影响主业务事务。
-	if err := repository.DBFrom(ctx).Create(&logs).Error; err != nil {
+	if err := repository.BulkCreateFieldChangeLogs(ctx, logs); err != nil {
 		log.Printf("[change_log] write failed biz=%s resource=%d operator=%d err=%v", bizType, resourceID, operatorID, err)
 	}
 }

@@ -6,7 +6,6 @@ import (
 
 	apprmodel "qzt-go-server/internal/model/approval"
 	apprrepo "qzt-go-server/internal/repository/approval"
-	"qzt-go-server/internal/repository"
 )
 
 // todo.go 审批待办服务。
@@ -33,20 +32,20 @@ var formTypeLabel = map[string]string{
 
 // resourceTitleColumn 每种业务表的标题列名。
 var resourceTitleColumn = map[string]string{
-	"crm_contract":         "name",
-	"crm_quotation":        "title",
-	"crm_order":            "order_no",
-	"fin_invoice":          "invoice_no",
-	"psi_purchase_order":   "order_no",
-	"psi_sales_order":      "order_no",
-	"psi_purchase_return":  "return_no",
-	"psi_sales_return":     "return_no",
-	"oa_expense":           "title",
-	"hrm_leave":            "reason",
-	"oa_business_trip":     "title",
-	"oa_loan":              "title",
-	"oa_meeting_booking":   "topic",
-	"oa_form_data":         "",
+	"crm_contract":        "name",
+	"crm_quotation":       "title",
+	"crm_order":           "order_no",
+	"fin_invoice":         "invoice_no",
+	"psi_purchase_order":  "order_no",
+	"psi_sales_order":     "order_no",
+	"psi_purchase_return": "return_no",
+	"psi_sales_return":    "return_no",
+	"oa_expense":          "title",
+	"hrm_leave":           "reason",
+	"oa_business_trip":    "title",
+	"oa_loan":             "title",
+	"oa_meeting_booking":  "topic",
+	"oa_form_data":        "",
 }
 
 // enrichInstance 给实例附加 resource_title(从业务表查标题)。
@@ -59,7 +58,7 @@ type enrichedInstance struct {
 // enrichTask 给任务附加 instance 信息 + resource_title。
 type enrichedTask struct {
 	apprmodel.ApprovalTask
-	Instance       *enrichedInstance `json:"instance"`
+	Instance *enrichedInstance `json:"instance"`
 }
 
 // TodoService 审批待办服务。
@@ -90,7 +89,6 @@ func fetchResourceTitles(ctx context.Context, instances []apprmodel.ApprovalInst
 	}
 
 	result := make(map[string]string)
-	db := repository.DBFrom(ctx)
 	for formType, ids := range byType {
 		table, ok := apprmodel.FormTable[formType]
 		if !ok || table == "" {
@@ -101,21 +99,13 @@ func fetchResourceTitles(ctx context.Context, instances []apprmodel.ApprovalInst
 			continue
 		}
 		// 查标题
-		var rows []struct {
-			ID    uint   `gorm:"column:id"`
-			Title string `gorm:"column:title"`
-		}
-		err := db.Table(table).
-			Select(fmt.Sprintf("id, %s AS title", col)).
-			Where("id IN ?", ids).
-			Where("deleted_at IS NULL").
-			Find(&rows).Error
+		titles, err := apprrepo.ScanResourceTitles(ctx, table, col, ids)
 		if err != nil {
 			continue
 		}
-		for _, r := range rows {
-			key := fmt.Sprintf("%s:%d", formType, r.ID)
-			result[key] = r.Title
+		for id, title := range titles {
+			key := fmt.Sprintf("%s:%d", formType, id)
+			result[key] = title
 		}
 	}
 	return result
@@ -141,7 +131,7 @@ func (s *TodoService) ListTodo(ctx context.Context, page, pageSize int, userID u
 
 	var instances []apprmodel.ApprovalInstance
 	if len(instIDs) > 0 {
-		repository.DBFrom(ctx).Where("id IN ?", instIDs).Find(&instances)
+		instances, _ = s.instanceRepo.ListByIDs(ctx, instIDs)
 	}
 	titleMap := fetchResourceTitles(ctx, instances)
 	instMap := make(map[uint]*enrichedInstance, len(instances))
@@ -184,7 +174,7 @@ func (s *TodoService) ListProcessed(ctx context.Context, page, pageSize int, use
 	}
 	var instances []apprmodel.ApprovalInstance
 	if len(instIDs) > 0 {
-		repository.DBFrom(ctx).Where("id IN ?", instIDs).Find(&instances)
+		instances, _ = s.instanceRepo.ListByIDs(ctx, instIDs)
 	}
 	titleMap := fetchResourceTitles(ctx, instances)
 	instMap := make(map[uint]*enrichedInstance, len(instances))
@@ -235,9 +225,9 @@ func (s *TodoService) ListInitiated(ctx context.Context, page, pageSize int, use
 // GetDetail 审批详情(实例 + 任务列表 + 审批记录)。
 type InstanceDetail struct {
 	apprmodel.ApprovalInstance
-	ResourceTitle string                   `json:"resource_title"`
-	FormTypeLabel string                   `json:"form_type_label"`
-	Tasks         []apprmodel.ApprovalTask `json:"tasks"`
+	ResourceTitle string                     `json:"resource_title"`
+	FormTypeLabel string                     `json:"form_type_label"`
+	Tasks         []apprmodel.ApprovalTask   `json:"tasks"`
 	Records       []apprmodel.ApprovalRecord `json:"records"`
 }
 
@@ -257,8 +247,7 @@ func (s *TodoService) GetDetail(ctx context.Context, instanceID uint) (*Instance
 	detail.ResourceTitle = titleMap[key]
 
 	// 查全部任务
-	var tasks []apprmodel.ApprovalTask
-	repoDB(ctx).Where("instance_id = ? AND node_round >= 0", instanceID).Order("id ASC").Find(&tasks)
+	tasks, _ := s.taskRepo.ListByInstance(ctx, instanceID)
 	detail.Tasks = tasks
 
 	records, _ := s.recordRepo.ListByInstance(ctx, instanceID)

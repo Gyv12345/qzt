@@ -10,7 +10,10 @@ import (
 	crmmodel "qzt-go-server/internal/model/crm"
 	finmodel "qzt-go-server/internal/model/finance"
 	"qzt-go-server/internal/pkg/notify"
-	"qzt-go-server/internal/repository"
+	crmrepo "qzt-go-server/internal/repository/crm"
+	finrepo "qzt-go-server/internal/repository/finance"
+	hrmrepo "qzt-go-server/internal/repository/hrm"
+	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xlogger"
 	"qzt-go-server/pkg/xtime"
@@ -18,6 +21,15 @@ import (
 
 // event_listener.go 审批引擎事件监听器。
 // 启动时注册:审批任务分配/完成 → 发站内信。
+// 跨模块业务回调(合同阶段/请假状态/借款凭证)统一走各模块 repository。
+
+// 跨模块回调用的 repo(事件闭包共享,无状态)。
+var (
+	contractRepo = crmrepo.NewContractRepo()
+	loanRepo     = oarepo.NewLoanRepo()
+	accountRepo  = finrepo.NewAccountRepo()
+	voucherRepo  = finrepo.NewVoucherRepo()
+)
 
 // RegisterEventListeners 注册审批相关的事件监听器。
 // 在 main.go 启动时调用(app.DB 初始化之后)。
@@ -77,9 +89,7 @@ func RegisterEventListeners(ctx context.Context) error {
 			switch resourceType {
 			case "CONTRACT":
 				// 合同审批通过 → stage 改为 SIGNED
-				if err := repository.DBFrom(ctx).Model(&crmmodel.CrmContract{}).
-					Where("id = ?", resourceID).
-					UpdateColumn("stage", crmmodel.ContractStageSigned).Error; err != nil {
+				if err := contractRepo.UpdateStageByID(ctx, resourceID, crmmodel.ContractStageSigned); err != nil {
 					xlogger.ErrorfCtx(ctx, "审批回调:合同阶段更新失败 contract_id=%d: %v", resourceID, err)
 				}
 			case "EXPENSE":
@@ -87,28 +97,18 @@ func RegisterEventListeners(ctx context.Context) error {
 				xlogger.InfofCtx(ctx, "审批回调:报销单 %d 审批通过,等待打款", resourceID)
 			case "LEAVE":
 				// 请假审批通过 → 同步旧 Status 字段(兼容现有考勤查询)
-				if err := repository.DBFrom(ctx).Table("hrm_leave").
-					Where("id = ?", resourceID).
-					UpdateColumn("status", "APPROVED").Error; err != nil {
+				if err := hrmrepo.UpdateLeaveStatus(ctx, resourceID, "APPROVED"); err != nil {
 					xlogger.ErrorfCtx(ctx, "审批回调:请假状态同步失败 leave_id=%d: %v", resourceID, err)
 				}
 			case "LOAN":
 				// 借款审批通过 → 生成财务凭证(其他应收-员工借款,DEBIT 借方)
-				var loan struct {
-					LoanNo      string
-					ApplicantID uint
-					Amount      string
-				}
-				if err := repository.DBFrom(ctx).Table("oa_loan").
-					Select("loan_no, applicant_id, amount").
-					Where("id = ?", resourceID).
-					Scan(&loan).Error; err != nil || loan.LoanNo == "" {
+				loan, err := loanRepo.GetVoucherSource(ctx, resourceID)
+				if err != nil || loan.LoanNo == "" {
 					xlogger.ErrorfCtx(ctx, "审批回调:查询借款单失败 loan_id=%d: %v", resourceID, err)
 				} else {
 					// 查找应收类科目(EXPENSE 类型第一个,作为兜底;正式应配专用科目)
-					var account finmodel.FinAccount
-					if err := repository.DBFrom(ctx).Where("type = ? AND status = 1", finmodel.AccountTypeAsset).
-						Order("code ASC").First(&account).Error; err == nil && account.ID > 0 {
+					account, err := accountRepo.FirstActiveByType(ctx, finmodel.AccountTypeAsset)
+					if err == nil && account != nil && account.ID > 0 {
 						voucher := &finmodel.FinVoucher{
 							VoucherNo:   "PZ-" + loan.LoanNo,
 							VoucherDate: xtime.NewDateTime(time.Now()),
@@ -122,7 +122,7 @@ func RegisterEventListeners(ctx context.Context) error {
 							Status:      "CONFIRMED",
 							Remark:      "借款审批通过自动生成",
 						}
-						if err := repository.DBFrom(ctx).Create(voucher).Error; err != nil {
+						if err := voucherRepo.Create(ctx, voucher); err != nil {
 							xlogger.ErrorfCtx(ctx, "审批回调:借款凭证生成失败 loan_id=%d: %v", resourceID, err)
 						} else {
 							xlogger.InfofCtx(ctx, "审批回调:借款 %d 凭证已生成 %s", resourceID, voucher.VoucherNo)

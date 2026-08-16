@@ -53,6 +53,13 @@ func (r *InstanceRepo) Update(ctx context.Context, m *apprmodel.ApprovalInstance
 	return r.BaseRepo.Update(ctx, m, "CurrentNodeID", "ApprovalStatus", "ApprovalTime", "Comment")
 }
 
+// ListByIDs 按 ID 列表批量查实例(待办/已办列表 enrichment 用)。
+func (r *InstanceRepo) ListByIDs(ctx context.Context, ids []uint) ([]apprmodel.ApprovalInstance, error) {
+	var list []apprmodel.ApprovalInstance
+	err := repoDB(ctx).Where("id IN ?", ids).Find(&list).Error
+	return list, err
+}
+
 // HasInstance 判断某业务资源是否已有审批实例(任何状态)。
 // 供各业务模块的 Delete 调用:已进入审批流程的记录不允许删除,避免出现孤儿审批实例。
 func HasInstance(ctx context.Context, formType string, resourceID uint) bool {
@@ -94,6 +101,23 @@ func (r *TaskRepo) PageByApprover(ctx context.Context, page, pageSize int, appro
 		return nil, 0, err
 	}
 	return list, total, nil
+}
+
+// ListByInstance 按实例列出全部有效任务(node_round >= 0,按 id ASC)。审批详情用。
+func (r *TaskRepo) ListByInstance(ctx context.Context, instanceID uint) ([]apprmodel.ApprovalTask, error) {
+	var tasks []apprmodel.ApprovalTask
+	err := repoDB(ctx).Where("instance_id = ? AND node_round >= 0", instanceID).
+		Order("id ASC").Find(&tasks).Error
+	return tasks, err
+}
+
+// MaxNodeRound 某实例某节点的当前最大轮次(0 表示首次)。
+func (r *TaskRepo) MaxNodeRound(ctx context.Context, instanceID, nodeID uint) int {
+	var maxRound int
+	repoDB(ctx).Model(&apprmodel.ApprovalTask{}).
+		Where("instance_id = ? AND node_id = ?", instanceID, nodeID).
+		Select("COALESCE(MAX(node_round), 0)").Scan(&maxRound)
+	return maxRound
 }
 
 // Update 覆写。

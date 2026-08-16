@@ -6,7 +6,8 @@ import (
 
 	apprmodel "qzt-go-server/internal/model/approval"
 	crmmodel "qzt-go-server/internal/model/crm"
-	"qzt-go-server/internal/repository"
+	crmrepo "qzt-go-server/internal/repository/crm"
+	oarepo "qzt-go-server/internal/repository/oa"
 )
 
 // form_fields.go 审批条件字段元数据。
@@ -211,10 +212,9 @@ func GetFormFields(ctx context.Context, formType, formKey string) ([]FieldMeta, 
 // loadCRMCustomFields 查 sys_module_field,按可比较类型过滤,返回自定义字段元数据。
 // Key 用 field_id(求值时 contract_field 按 field_id 取值);options 从 sys_module_field_blob.prop 解析。
 func loadCRMCustomFields(ctx context.Context, formKey string) []FieldMeta {
-	db := repository.DBFrom(ctx)
 	// 先取 form_id
-	var form crmmodel.SysModuleForm
-	if err := db.Where("form_key = ?", formKey).First(&form).Error; err != nil {
+	form, err := crmrepo.NewModuleFormRepo().GetByKey(ctx, crmmodel.FormKey(formKey))
+	if err != nil {
 		return nil
 	}
 	// 取可比较类型列表
@@ -222,9 +222,8 @@ func loadCRMCustomFields(ctx context.Context, formKey string) []FieldMeta {
 	for t := range crmCustomComparableTypes {
 		comparableTypes = append(comparableTypes, string(t))
 	}
-	var fields []crmmodel.SysModuleField
-	if err := db.Where("form_id = ? AND type IN ?", form.ID, comparableTypes).
-		Order("pos ASC").Find(&fields).Error; err != nil {
+	fields, err := crmrepo.NewModuleFieldRepo().ListByFormAndTypes(ctx, form.ID, comparableTypes)
+	if err != nil {
 		return nil
 	}
 	if len(fields) == 0 {
@@ -239,8 +238,7 @@ func loadCRMCustomFields(ctx context.Context, formKey string) []FieldMeta {
 	}
 	propMap := make(map[string]string)
 	if len(needBlob) > 0 {
-		var blobs []crmmodel.SysModuleFieldBlob
-		if err := db.Where("id IN ?", needBlob).Find(&blobs).Error; err == nil {
+		if blobs, err := crmrepo.NewModuleFieldBlobRepo().GetByIDs(ctx, needBlob); err == nil {
 			for _, b := range blobs {
 				propMap[b.ID] = b.Prop
 			}
@@ -302,19 +300,12 @@ type oaConfigField struct {
 
 // loadOACustomFields 读 oa_form_template(by form_key) → 解析 fields_config → 按可比较类型过滤。
 func loadOACustomFields(ctx context.Context, formKey string) []FieldMeta {
-	db := repository.DBFrom(ctx)
-	var tpl struct {
-		FieldsConfig string
-	}
-	// 只取需要的列,扫到匿名结构
-	if err := db.Table("oa_form_template").
-		Where("form_key = ? AND status = 1", formKey).
-		Select("fields_config").
-		Scan(&tpl).Error; err != nil || tpl.FieldsConfig == "" {
+	fieldsConfig, err := oarepo.NewFormTemplateRepo().GetFieldsConfigByKey(ctx, formKey)
+	if err != nil || fieldsConfig == "" {
 		return nil
 	}
 	var cfg []oaConfigField
-	if err := json.Unmarshal([]byte(tpl.FieldsConfig), &cfg); err != nil {
+	if err := json.Unmarshal([]byte(fieldsConfig), &cfg); err != nil {
 		return nil
 	}
 	out := make([]FieldMeta, 0, len(cfg))

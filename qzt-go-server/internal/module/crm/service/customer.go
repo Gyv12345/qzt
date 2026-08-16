@@ -13,8 +13,8 @@ import (
 	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
-	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/internal/repository"
+	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -31,7 +31,7 @@ var customerFieldDefs = []diff.FieldDef{
 
 // CustomerService 客户服务。
 type CustomerService struct {
-	repo      *crrepo.CustomerRepo
+	repo        *crrepo.CustomerRepo
 	contactRepo *crrepo.CustomerContactRepo
 	collabRepo  *crrepo.CustomerCollaborationRepo
 	historyRepo *crrepo.CustomerOwnerHistoryRepo
@@ -50,12 +50,12 @@ func NewCustomerService() *CustomerService {
 
 // CreateCustomerRequest 创建客户请求。
 type CreateCustomerRequest struct {
-	Name       string `json:"name" binding:"required"`
-	CustomerNo string `json:"customer_no"` // 留空则自动生成
-	Level      string `json:"level"`
-	Source     string `json:"source"`
-	Industry   string `json:"industry"`
-	OwnerID    *uint  `json:"owner_id"`
+	Name       string       `json:"name" binding:"required"`
+	CustomerNo string       `json:"customer_no"` // 留空则自动生成
+	Level      string       `json:"level"`
+	Source     string       `json:"source"`
+	Industry   string       `json:"industry"`
+	OwnerID    *uint        `json:"owner_id"`
 	Fields     []FieldValue `json:"fields"`
 }
 
@@ -81,14 +81,14 @@ func (s *CustomerService) Create(ctx context.Context, req *CreateCustomerRequest
 		customerNo, _ = numbergen.Generate(ctx, "customer")
 	}
 	customer := &crmmodel.CrmCustomer{
-		Name:    req.Name,
-		CustomerNo: customerNo,
-		Level:   req.Level,
-		Source:  req.Source,
-		Industry: req.Industry,
-		Status:  crmmodel.CustomerStatusNormal,
-		OwnerID: ownerID,
-		InPool:  crmmodel.InPoolPrivate,
+		Name:           req.Name,
+		CustomerNo:     customerNo,
+		Level:          req.Level,
+		Source:         req.Source,
+		Industry:       req.Industry,
+		Status:         crmmodel.CustomerStatusNormal,
+		OwnerID:        ownerID,
+		InPool:         crmmodel.InPoolPrivate,
 		CollectionTime: xtime.NewNullDateTimeFromTime(now),
 	}
 
@@ -166,11 +166,11 @@ func (s *CustomerService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmCu
 
 // UpdateCustomerRequest 更新客户请求。
 type UpdateCustomerRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Level    string `json:"level"`
-	Source   string `json:"source"`
-	Status   *int8  `json:"status"`
-	Industry string `json:"industry"`
+	Name     string       `json:"name" binding:"required"`
+	Level    string       `json:"level"`
+	Source   string       `json:"source"`
+	Status   *int8        `json:"status"`
+	Industry string       `json:"industry"`
 	Fields   []FieldValue `json:"fields"`
 }
 
@@ -259,15 +259,10 @@ var customerRefTables = []struct {
 }
 
 // rejectIfReferenced 检查客户是否被未删除的业务单据引用,有则阻止删除(避免悬空引用)。
-// 用 Table 原生查询需手动过滤 deleted_at(GORM 仅对 Model 自动注入软删除条件)。
 func rejectIfReferenced(ctx context.Context, customerID uint) error {
-	db := repository.DBFrom(ctx)
 	for _, r := range customerRefTables {
-		var n int64
-		if err := db.Table(r.table).
-			Where("customer_id = ?", customerID).
-			Where("deleted_at IS NULL").
-			Count(&n).Error; err != nil {
+		n, err := crrepo.CountRefsByColumn(ctx, r.table, "customer_id", customerID)
+		if err != nil {
 			return err
 		}
 		if n > 0 {

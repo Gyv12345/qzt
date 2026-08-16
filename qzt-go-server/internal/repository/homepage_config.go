@@ -60,3 +60,154 @@ func (r *HomepageFeatureRepo) Sync(ctx context.Context, module string, itemIDs [
 	}
 	return nil
 }
+
+// ── 精选条目关联的业务表查询(product/partner/team 三类) ──
+// 首页配置横跨 crm_product/crm_customer/sys_user,统一收口在本文件;
+// 行结构在此定义,条目映射/按精选顺序重排留在 service 层。
+
+// HomepageProductRow 产品行。
+type HomepageProductRow struct {
+	ID          uint
+	Name        string
+	ImageURL    string
+	Description string
+	Category    string
+}
+
+// HomepagePartnerRow 合作伙伴行(crm_customer)。
+type HomepagePartnerRow struct {
+	ID       uint
+	Name     string
+	Level    string
+	Industry string
+	Source   string
+}
+
+// HomepageTeamRow 团队成员行(sys_user)。
+type HomepageTeamRow struct {
+	ID       uint
+	Nickname string
+	Avatar   string
+}
+
+// HomepageItemRepo 首页精选条目的业务表查询。
+type HomepageItemRepo struct{}
+
+func NewHomepageItemRepo() *HomepageItemRepo { return &HomepageItemRepo{} }
+
+// GetProductInfo 取产品名称 + 分类(单条,admin 表格展示用)。
+func (r *HomepageItemRepo) GetProductInfo(ctx context.Context, id uint) (HomepageProductRow, error) {
+	var row HomepageProductRow
+	err := dbFrom(ctx).Table("crm_product").Select("name, category").Where("id = ?", id).Scan(&row).Error
+	return row, err
+}
+
+// GetPartnerInfo 取客户名称 + 等级(单条,admin 表格展示用)。
+func (r *HomepageItemRepo) GetPartnerInfo(ctx context.Context, id uint) (HomepagePartnerRow, error) {
+	var row HomepagePartnerRow
+	err := dbFrom(ctx).Table("crm_customer").Select("name, level").Where("id = ?", id).Scan(&row).Error
+	return row, err
+}
+
+// GetTeamUserName 取用户昵称 + 用户名(单条,admin 表格展示用;昵称为空回退用户名)。
+func (r *HomepageItemRepo) GetTeamUserName(ctx context.Context, id uint) (string, error) {
+	var u struct {
+		Nickname string
+		Username string
+	}
+	err := dbFrom(ctx).Table("sys_user").Select("nickname, username").Where("id = ?", id).Scan(&u).Error
+	if u.Nickname != "" {
+		return u.Nickname, err
+	}
+	return u.Username, err
+}
+
+// ListProductsByIDs 按指定 ID 取上架产品。
+func (r *HomepageItemRepo) ListProductsByIDs(ctx context.Context, ids []uint) ([]HomepageProductRow, error) {
+	var rows []HomepageProductRow
+	err := dbFrom(ctx).Table("crm_product").
+		Select("id, name, image_url, description, category").
+		Where("id IN ? AND status = 1", ids).
+		Scan(&rows).Error
+	return rows, err
+}
+
+// ListPartnersByIDs 按指定 ID 取上架客户(合作伙伴)。
+func (r *HomepageItemRepo) ListPartnersByIDs(ctx context.Context, ids []uint) ([]HomepagePartnerRow, error) {
+	var rows []HomepagePartnerRow
+	err := dbFrom(ctx).Table("crm_customer").
+		Select("id, name, level, industry, source").
+		Where("id IN ? AND status = 1", ids).
+		Scan(&rows).Error
+	return rows, err
+}
+
+// ListTeamByIDs 按指定 ID 取启用用户(团队成员)。
+func (r *HomepageItemRepo) ListTeamByIDs(ctx context.Context, ids []uint) ([]HomepageTeamRow, error) {
+	var rows []HomepageTeamRow
+	err := dbFrom(ctx).Table("sys_user").
+		Select("id, nickname, avatar").
+		Where("id IN ? AND status = 1", ids).
+		Scan(&rows).Error
+	return rows, err
+}
+
+// ListLatestProducts 取最新 n 条上架产品(无精选时的降级行为)。
+func (r *HomepageItemRepo) ListLatestProducts(ctx context.Context, n int) ([]HomepageProductRow, error) {
+	var rows []HomepageProductRow
+	err := dbFrom(ctx).Table("crm_product").
+		Select("id, name, image_url, description, category").
+		Where("status = 1").
+		Order("id DESC").
+		Limit(n).
+		Scan(&rows).Error
+	return rows, err
+}
+
+// ListLatestPartners 取最新 n 条上架客户。
+func (r *HomepageItemRepo) ListLatestPartners(ctx context.Context, n int) ([]HomepagePartnerRow, error) {
+	var rows []HomepagePartnerRow
+	err := dbFrom(ctx).Table("crm_customer").
+		Select("id, name, level, industry, source").
+		Where("status = 1").
+		Order("id DESC").
+		Limit(n).
+		Scan(&rows).Error
+	return rows, err
+}
+
+// ListLatestTeamUsers 取前 n 个启用用户(model.SysUser,首页团队区降级行为)。
+func (r *HomepageItemRepo) ListLatestTeamUsers(ctx context.Context, n int) ([]model.SysUser, error) {
+	var users []model.SysUser
+	err := dbFrom(ctx).Where("status = 1").Order("id ASC").Limit(n).Find(&users).Error
+	return users, err
+}
+
+// UserRoleNames 批量查用户角色名(user_id → "角色A、角色B",团队职位拼接用)。
+func (r *HomepageItemRepo) UserRoleNames(ctx context.Context, userIDs []uint) (map[uint]string, error) {
+	type userRole struct {
+		UserID   uint
+		RoleName string
+	}
+	var roleNames []userRole
+	if len(userIDs) > 0 {
+		if err := dbFrom(ctx).Table("sys_user_role ur").
+			Select("ur.sys_user_id as user_id, r.name as role_name").
+			Joins("JOIN sys_role r ON r.id = ur.sys_role_id AND r.deleted_at IS NULL").
+			Where("ur.sys_user_id IN ?", userIDs).
+			Scan(&roleNames).Error; err != nil {
+			return nil, err
+		}
+	}
+	positionMap := make(map[uint]string)
+	for _, ur := range roleNames {
+		if ur.RoleName == "" {
+			continue
+		}
+		if positionMap[ur.UserID] != "" {
+			positionMap[ur.UserID] += "、"
+		}
+		positionMap[ur.UserID] += ur.RoleName
+	}
+	return positionMap, nil
+}
