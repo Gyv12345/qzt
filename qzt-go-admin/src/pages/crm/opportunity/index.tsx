@@ -2,86 +2,46 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   App,
   Button,
-  Card,
-  Col,
-  DatePicker,
   Drawer,
-  Dropdown,
-  Empty,
-  Form,
-  InputNumber,
   Popconfirm,
-  Row,
   Segmented,
   Select,
   Space,
-  Spin,
   Table,
-  Tag,
   type TableProps,
 } from 'antd'
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined } from '@ant-design/icons'
-import {
-  ProForm,
-  ModalForm,
-  ProFormSelect,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-  type ActionType,
-  type ProColumns,
-} from '@ant-design/pro-components'
-import dayjs, { type Dayjs } from 'dayjs'
+import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import CustomerSelect from '../../../components/CustomerSelect'
 import { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
-import UserSelect from '../../../components/UserSelect'
 import CustomerDetailDrawer from '../customer/DetailDrawer'
 import OpportunityDetailDrawer from './DetailDrawer'
+import OpportunityEditModal from './EditModal'
+import StageChangeModal from './StageChangeModal'
+import BoardView from './BoardView'
 import {
-  changeOpportunityStage,
-  createOpportunity,
   deleteOpportunity,
   getOpportunityBoard,
   getOpportunityStageHistory,
   getStageConfig,
   listCustomers,
   listOpportunities,
-  updateOpportunity,
+  changeOpportunityStage,
 } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type {
   CrmCustomer,
   CrmOpportunity,
-  CrmOpportunityPayload,
   CrmStageRecord,
   StageDef,
 } from '../../../types/crm'
-
-interface OpportunityFormValues {
-  name: string
-  opportunity_no?: string
-  customer_id: number
-  expected_amount?: number
-  expected_close_date?: Dayjs
-  stage?: string
-  probability?: number
-  owner_id?: number
-  description?: string
-}
-
-interface StageFormValues {
-  stage: string
-  reason?: string
-}
 
 export default function OpportunityPage() {
   const { message } = App.useApp()
   const nickname = useUserStore((s) => s.nickname)
   const actionRef = useRef<ActionType>(null)
-  const [form] = Form.useForm<OpportunityFormValues>()
-  const [stageForm] = Form.useForm<StageFormValues>()
 
   const [view, setView] = useState<'list' | 'board'>('list')
   const [stageDefs, setStageDefs] = useState<StageDef[]>([])
@@ -90,7 +50,6 @@ export default function OpportunityPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmOpportunity | null>(null)
 
-  const [stageModalOpen, setStageModalOpen] = useState(false)
   const [stageTarget, setStageTarget] = useState<CrmOpportunity | null>(null)
 
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -151,71 +110,18 @@ export default function OpportunityPage() {
 
   const openCreate = () => {
     setEditing(null)
-    form.resetFields()
-    form.setFieldsValue({ stage: sortedStages[0]?.key })
     setModalOpen(true)
   }
 
   const openEdit = (record: CrmOpportunity) => {
     setEditing(record)
-    form.setFieldsValue({
-      name: record.name,
-      opportunity_no: record.opportunity_no || undefined,
-      customer_id: record.customer_id,
-      expected_amount: record.expected_amount ? Number(record.expected_amount) : undefined,
-      expected_close_date: record.expected_close_date ? dayjs(record.expected_close_date) : undefined,
-      stage: record.stage,
-      probability: record.probability ?? undefined,
-      owner_id: record.owner_id ?? undefined,
-      description: record.description,
-    })
     setModalOpen(true)
-  }
-
-  const handleSubmit = async (values: OpportunityFormValues) => {
-    const payload: CrmOpportunityPayload = {
-      name: values.name,
-      opportunity_no: values.opportunity_no,
-      customer_id: values.customer_id,
-      expected_amount: values.expected_amount,
-      expected_close_date: values.expected_close_date
-        ? values.expected_close_date.format('YYYY-MM-DD')
-        : undefined,
-      stage: values.stage,
-      probability: values.probability,
-      owner_id: values.owner_id,
-      description: values.description,
-    }
-    if (editing) {
-      await updateOpportunity(editing.id, payload)
-      message.success('商机已更新')
-    } else {
-      await createOpportunity(payload)
-      message.success('商机已创建')
-    }
-    refreshActive()
-    return true
   }
 
   const handleDelete = async (record: CrmOpportunity) => {
     await deleteOpportunity(record.id)
     message.success('商机已删除')
     actionRef.current?.reload()
-  }
-
-  const openStageChange = (record: CrmOpportunity) => {
-    setStageTarget(record)
-    stageForm.resetFields()
-    stageForm.setFieldsValue({ stage: record.stage, reason: undefined })
-    setStageModalOpen(true)
-  }
-
-  const handleStageSubmit = async (values: StageFormValues) => {
-    if (!stageTarget) return false
-    await changeOpportunityStage(stageTarget.id, values.stage, values.reason)
-    message.success('阶段已流转')
-    refreshActive()
-    return true
   }
 
   const openHistory = (record: CrmOpportunity) => {
@@ -331,7 +237,7 @@ export default function OpportunityPage() {
             </Button>
           </Auth>
           <Auth perm="crm:opportunity:edit">
-            <Button type="link" size="small" onClick={() => openStageChange(record)}>
+            <Button type="link" size="small" onClick={() => setStageTarget(record)}>
               阶段流转
             </Button>
           </Auth>
@@ -375,77 +281,6 @@ export default function OpportunityPage() {
     { title: '原因', dataIndex: 'reason', render: (v: string) => v || '-' },
   ]
 
-  const boardView = (
-    <Spin spinning={boardLoading}>
-      <Row gutter={12} wrap={false} style={{ overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
-        {sortedStages.map((stage) => {
-          const items = board[stage.key] ?? []
-          return (
-            <Col key={stage.key} flex="0 0 280px" style={{ display: 'flex' }}>
-              <Card
-                size="small"
-                style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 220px)' }}
-                styles={{ body: { flex: 1, overflowY: 'auto', padding: 8 } }}
-                title={
-                  <Space size={8}>
-                    <Tag color={stage.color}>{stage.label}</Tag>
-                    <span style={{ color: '#999' }}>{items.length}</span>
-                  </Space>
-                }
-              >
-                <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                  {items.map((o) => (
-                    <Card key={o.id} size="small" hoverable onClick={() => openEdit(o)}>
-                      <div style={{ fontWeight: 600, marginBottom: 4 }}>{o.name}</div>
-                      <div style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
-                        {customerMap[o.customer_id] ?? `#${o.customer_id}`}
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span>{o.expected_amount ? `¥${o.expected_amount}` : '-'}</span>
-                        <span style={{ color: '#666', fontSize: 12 }}>
-                          {o.probability !== null && o.probability !== undefined
-                            ? `${o.probability}%`
-                            : '-'}
-                        </span>
-                        <Dropdown
-                          menu={{
-                            items: sortedStages
-                              .filter((s) => s.key !== o.stage)
-                              .map((s) => ({ key: s.key, label: `流转到 ${s.label}` })),
-                            onClick: ({ key, domEvent }) => {
-                              domEvent.stopPropagation()
-                              handleBoardStageChange(o, key)
-                            },
-                          }}
-                        >
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{ padding: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            流转
-                          </Button>
-                        </Dropdown>
-                      </div>
-                    </Card>
-                  ))}
-                  {items.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-                </Space>
-              </Card>
-            </Col>
-          )
-        })}
-      </Row>
-    </Spin>
-  )
-
   return (
     <>
       <div style={{ marginBottom: 16 }}>
@@ -488,92 +323,35 @@ export default function OpportunityPage() {
           ]}
         />
       ) : (
-        boardView
+        <BoardView
+          stages={sortedStages}
+          board={board}
+          loading={boardLoading}
+          customerMap={customerMap}
+          onEdit={openEdit}
+          onStageChange={handleBoardStageChange}
+        />
       )}
-      <ModalForm<OpportunityFormValues>
-        title={editing ? '编辑商机' : '新增商机'}
-        form={form}
+
+      {/* 新增/编辑商机 */}
+      <OpportunityEditModal
         open={modalOpen}
+        editing={editing}
+        stageOptions={stageOptions}
+        defaultStage={sortedStages[0]?.key}
         onOpenChange={setModalOpen}
-        modalProps={{ destroyOnHidden: true, maskClosable: false }}
-        onFinish={handleSubmit}
-        width={640}
-        grid
-      >
-        <ProFormText
-          name="name"
-          label="商机名称"
-          rules={[{ required: true, message: '请输入商机名称' }]}
-          colProps={{ span: 12 }}
-        />
-        <ProFormText
-          name="opportunity_no"
-          label="商机编号"
-          placeholder="留空则自动生成"
-          colProps={{ span: 12 }}
-        />
-        <Col span={12}>
-          <ProForm.Item
-            name="customer_id"
-            label="客户"
-            rules={[{ required: true, message: '请选择客户' }]}
-          >
-            <CustomerSelect />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item name="expected_amount" label="预期金额">
-            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="金额" />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item name="expected_close_date" label="预计成交日">
-            <DatePicker style={{ width: '100%' }} />
-          </ProForm.Item>
-        </Col>
-        <ProFormSelect
-          name="stage"
-          label="阶段"
-          options={stageOptions}
-          placeholder="选择阶段"
-          colProps={{ span: 12 }}
-        />
-        <Col span={12}>
-          <ProForm.Item name="probability" label="成交概率(%)">
-            <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="0-100" />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item name="owner_id" label="负责人">
-            <UserSelect />
-          </ProForm.Item>
-        </Col>
-        <ProFormTextArea
-          name="description"
-          label="描述"
-          fieldProps={{ rows: 3 }}
-          colProps={{ span: 24 }}
-        />
-      </ModalForm>
-      <ModalForm<StageFormValues>
-        title={stageTarget ? `阶段流转 - ${stageTarget.name}` : '阶段流转'}
-        form={stageForm}
-        open={stageModalOpen}
-        onOpenChange={setStageModalOpen}
-        modalProps={{ destroyOnHidden: true, maskClosable: false }}
-        onFinish={handleStageSubmit}
-        width={640}
-        grid
-      >
-        <ProFormSelect
-          name="stage"
-          label="目标阶段"
-          options={stageOptions}
-          rules={[{ required: true, message: '请选择目标阶段' }]}
-          colProps={{ span: 12 }}
-        />
-        <ProFormText name="reason" label="流转原因" colProps={{ span: 12 }} />
-      </ModalForm>
+        onSuccess={refreshActive}
+      />
+
+      {/* 阶段流转 */}
+      <StageChangeModal
+        target={stageTarget}
+        stageOptions={stageOptions}
+        onClose={() => setStageTarget(null)}
+        onSuccess={refreshActive}
+      />
+
+      {/* 阶段历史 */}
       <Drawer
         title={historyFor ? `阶段历史 - ${historyFor.name}` : '阶段历史'}
         open={historyOpen}
@@ -589,6 +367,7 @@ export default function OpportunityPage() {
           pagination={false}
         />
       </Drawer>
+
       {/* 客户详情抽屉(点击列表客户名打开) */}
       <CustomerDetailDrawer
         customer={viewCustomer}
