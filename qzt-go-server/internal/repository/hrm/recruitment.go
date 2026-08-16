@@ -21,6 +21,16 @@ type JobRepo struct {
 
 func NewJobRepo() *JobRepo { return &JobRepo{} }
 
+// CountByNoPrefix 统计同前缀职位数(编号规则 ZP+日期+序号 推算用)。
+func (r *JobRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var n int64
+	err := recruitDB(ctx).Model(&hrmmodel.HrmJob{}).
+		Where("job_no LIKE ?", prefix+"%").
+		Where("job_no != ''").
+		Count(&n).Error
+	return n, err
+}
+
 func (r *JobRepo) PageList(ctx context.Context, page, pageSize int, keyword string, status int8, deptID uint) ([]hrmmodel.HrmJob, int64, error) {
 	var list []hrmmodel.HrmJob
 	q := recruitDB(ctx).Model(&hrmmodel.HrmJob{})

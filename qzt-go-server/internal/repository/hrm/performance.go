@@ -19,6 +19,16 @@ type PerformanceRepo struct {
 
 func NewPerformanceRepo() *PerformanceRepo { return &PerformanceRepo{} }
 
+// CountByNoPrefix 统计同前缀绩效单数(编号规则 JX+日期+序号 推算用)。
+func (r *PerformanceRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var n int64
+	err := perfDB(ctx).Model(&hrmmodel.HrmPerformance{}).
+		Where("perf_no LIKE ?", prefix+"%").
+		Where("perf_no != ''").
+		Count(&n).Error
+	return n, err
+}
+
 func (r *PerformanceRepo) PageList(ctx context.Context, page, pageSize int, keyword, period string, status int8, employeeID, deptID uint) ([]hrmmodel.HrmPerformance, int64, error) {
 	var list []hrmmodel.HrmPerformance
 	q := perfDB(ctx).Model(&hrmmodel.HrmPerformance{})

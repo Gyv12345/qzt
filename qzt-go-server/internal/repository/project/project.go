@@ -48,6 +48,15 @@ func (r *ProjectRepo) Update(ctx context.Context, m *projmodel.ProjProject) erro
 	return r.BaseRepo.Update(ctx, m, "Name", "Description", "CustomerID", "CustomerName", "ContractID", "ManagerID", "MemberIDs", "Status", "Priority", "StartDate", "EndDate", "Progress", "Tags")
 }
 
+// CountByNoPrefix 统计同前缀项目数(编号规则 XM+日期+序号 推算用)。
+func (r *ProjectRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var n int64
+	err := projDB(ctx).Model(&projmodel.ProjProject{}).
+		Where("project_no LIKE ?", prefix+"%").
+		Count(&n).Error
+	return n, err
+}
+
 // ── 任务 ──
 
 type TaskRepo struct {

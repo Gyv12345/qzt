@@ -55,3 +55,61 @@ func (r *EmployeeRepo) GetByUserID(ctx context.Context, userID uint) (*hrmmodel.
 	err := repository.DBFrom(ctx).Where("user_id = ?", userID).First(&m).Error
 	return &m, err
 }
+
+// WecomEmpMap 构建 wecomUserID → employeeID 映射(企微打卡同步用,批量查询避免 N+1)。
+// 链路: sys_user.wecom_user_id → sys_user.id → hrm_employee.user_id → hrm_employee.id。
+// 涉及 sys_user 跨表查询,收口在 repository 层。
+func WecomEmpMap(ctx context.Context) (map[string]uint, error) {
+	db := repository.DBFrom(ctx)
+
+	// 1. 绑定了 wecom_user_id 的 sys_user
+	type su struct {
+		ID          uint
+		WecomUserID string
+	}
+	var users []su
+	if err := db.Table("sys_user").
+		Select("id, wecom_user_id").
+		Where("wecom_user_id IS NOT NULL AND wecom_user_id <> '' AND deleted_at IS NULL").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return map[string]uint{}, nil
+	}
+
+	wecomToUser := make(map[string]uint, len(users))
+	userIDs := make([]uint, 0, len(users))
+	for _, u := range users {
+		wecomToUser[u.WecomUserID] = u.ID
+		userIDs = append(userIDs, u.ID)
+	}
+
+	// 2. 批量查 hrm_employee(user_id → employee.id)
+	type emp struct {
+		ID     uint
+		UserID *uint
+	}
+	var emps []emp
+	if err := db.Table("hrm_employee").
+		Select("id, user_id").
+		Where("user_id IN ? AND deleted_at IS NULL", userIDs).
+		Find(&emps).Error; err != nil {
+		return nil, err
+	}
+	userToEmp := make(map[uint]uint, len(emps))
+	for _, e := range emps {
+		if e.UserID != nil {
+			userToEmp[*e.UserID] = e.ID
+		}
+	}
+
+	// 3. wecomUserID → empID
+	result := make(map[string]uint)
+	for wecomID, uid := range wecomToUser {
+		if empID, ok := userToEmp[uid]; ok {
+			result[wecomID] = empID
+		}
+	}
+	return result, nil
+}

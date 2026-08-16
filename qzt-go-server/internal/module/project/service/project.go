@@ -261,11 +261,7 @@ func init() {
 	numbergen.Register("project", numbergen.Rule{
 		Enabled: true, Prefix: "XM", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: func(ctx context.Context, prefix, datePart string) (int64, error) {
-			var n int64
-			err := repository.DBFrom(ctx).Model(&projmodel.ProjProject{}).
-				Where("project_no LIKE ?", prefix+datePart+"%").
-				Count(&n).Error
-			return n, err
+			return projrepo.NewProjectRepo().CountByNoPrefix(ctx, prefix+datePart)
 		},
 	})
 }

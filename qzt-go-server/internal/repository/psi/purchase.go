@@ -3,6 +3,8 @@ package psi
 import (
 	"context"
 
+	"github.com/shopspring/decimal"
+
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
 )
@@ -15,6 +17,34 @@ type PurchaseOrderRepo struct {
 }
 
 func NewPurchaseOrderRepo() *PurchaseOrderRepo { return &PurchaseOrderRepo{} }
+
+// SummaryRow 采购汇总行(按日)。
+type SummaryRow struct {
+	Date   string          `json:"date"`
+	Count  int64           `json:"count"`
+	Amount decimal.Decimal `json:"amount"`
+}
+
+// SummaryByDate 按日聚合已入库采购单的笔数与金额(报表用)。
+// startDate/endDate 支持 yyyy-MM-dd HH:mm:ss 或 yyyy-MM-dd,解析失败则忽略该边界。
+func (r *PurchaseOrderRepo) SummaryByDate(ctx context.Context, startDate, endDate string) ([]SummaryRow, error) {
+	db := repository.DBFrom(ctx).Table("psi_purchase_order").
+		Select("DATE(order_date) AS date, COUNT(*) AS count, COALESCE(SUM(total_amount),0) AS amount").
+		Group("DATE(order_date)").
+		Order("date ASC")
+	if t := parseReportTime(startDate); t != nil {
+		db = db.Where("order_date >= ?", t)
+	}
+	if t := parseReportTime(endDate); t != nil {
+		db = db.Where("order_date <= ?", t)
+	}
+	db = db.Where("status = ?", psimodel.PurchaseStatusReceipt)
+	var rows []SummaryRow
+	if err := db.Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
 
 // GetByID 含明细的采购单详情。
 func (r *PurchaseOrderRepo) GetByID(ctx context.Context, id uint, preloads ...string) (*psimodel.PsiPurchaseOrder, error) {

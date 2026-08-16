@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 
 	hrmmodel "qzt-go-server/internal/model/hrm"
 	"qzt-go-server/internal/pkg/numbergen"
@@ -66,10 +65,7 @@ func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest, us
 	today := xtime.NewDateTime(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()))
 
 	// 查今天是否已打过同类型卡
-	var existing hrmmodel.HrmAttendanceClock
-	db := repository.DBFrom(ctx)
-	result := db.Where("employee_id = ? AND clock_date = ? AND clock_type = ?",
-		req.EmployeeID, today, req.ClockType).First(&existing)
+	existing, err := s.clockRepo.GetByEmpDateType(ctx, req.EmployeeID, today, req.ClockType)
 
 	clock := &hrmmodel.HrmAttendanceClock{
 		EmployeeID: req.EmployeeID,
@@ -83,19 +79,20 @@ func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest, us
 		Source:     hrmmodel.ClockSourceApp,
 	}
 
-	if result.Error == nil {
+	switch {
+	case err == nil:
 		// 已存在 → 更新
 		clock.ID = existing.ID
 		if err := s.clockRepo.Update(ctx, clock); err != nil {
 			return nil, err
 		}
-	} else if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	case repository.IsNotFound(err):
 		// 不存在 → 创建
 		if err := s.clockRepo.Create(ctx, clock); err != nil {
 			return nil, err
 		}
-	} else {
-		return nil, result.Error
+	default:
+		return nil, err
 	}
 	return clock, nil
 }
@@ -193,23 +190,7 @@ func (s *AttendanceService) ApproveLeave(ctx context.Context, id, approverID uin
 
 // LeaveList 请假单列表(按员工或状态过滤)。
 func (s *AttendanceService) LeaveList(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmLeave, int64, error) {
-	return leaveListQuery(ctx, page, pageSize, employeeID, status)
-}
-
-// leaveListQuery 请假单分页(直接用 GORM,按 employeeID/status 可选过滤)。
-func leaveListQuery(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmLeave, int64, error) {
-	db := repository.DBFrom(ctx).Model(&hrmmodel.HrmLeave{})
-	if employeeID > 0 {
-		db = db.Where("employee_id = ?", employeeID)
-	}
-	if status != "" {
-		db = db.Where("status = ?", status)
-	}
-	var total int64
-	db.Count(&total)
-	var list []hrmmodel.HrmLeave
-	err := db.Order("id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
-	return list, total, err
+	return s.leaveRepo.Page(ctx, page, pageSize, employeeID, status)
 }
 
 // ── 加班 ──
@@ -285,23 +266,7 @@ func (s *AttendanceService) ApproveOvertime(ctx context.Context, id, approverID 
 
 // OvertimeList 加班单列表。
 func (s *AttendanceService) OvertimeList(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmOvertime, int64, error) {
-	return overtimeListQuery(ctx, page, pageSize, employeeID, status)
-}
-
-// overtimeListQuery 加班单分页。
-func overtimeListQuery(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmOvertime, int64, error) {
-	db := repository.DBFrom(ctx).Model(&hrmmodel.HrmOvertime{})
-	if employeeID > 0 {
-		db = db.Where("employee_id = ?", employeeID)
-	}
-	if status != "" {
-		db = db.Where("status = ?", status)
-	}
-	var total int64
-	db.Count(&total)
-	var list []hrmmodel.HrmOvertime
-	err := db.Order("id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
-	return list, total, err
+	return s.overtimeRepo.Page(ctx, page, pageSize, employeeID, status)
 }
 
 // ── 月度汇总 ──
@@ -317,24 +282,15 @@ func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
 
 	// 统计打卡:迟到次数/早退次数/实际出勤天数
-	// 简化:统计该月打卡记录天数
-	var actualDays int64
-	repository.DBFrom(ctx).Model(&hrmmodel.HrmAttendanceClock{}).
-		Where("employee_id = ? AND clock_type = ? AND clock_date BETWEEN ? AND ?",
-			employeeID, hrmmodel.ClockTypeCheckIn, startOfMonth.Format("2006-01-02"), endOfMonth.Format("2006-01-02")).
-		Distinct("clock_date").Count(&actualDays)
+	// 简化:统计该月打卡记录天数(查询出错沿袭原语义:忽略,按 0 计)
+	actualDays, _ := s.clockRepo.CountDistinctCheckInDates(ctx, employeeID, hrmmodel.ClockTypeCheckIn,
+		startOfMonth.Format("2006-01-02"), endOfMonth.Format("2006-01-02"))
 
-	// 统计已批准的请假天数
-	var leaveDays decimal.Decimal
-	repository.DBFrom(ctx).Model(&hrmmodel.HrmLeave{}).
-		Where("employee_id = ? AND status = ?", employeeID, hrmmodel.LeaveStatusApproved).
-		Select("COALESCE(SUM(duration_days),0)").Scan(&leaveDays)
+	// 统计已批准的请假天数(出错沿袭原语义:忽略,按 0 计)
+	leaveDays, _ := s.leaveRepo.SumApprovedLeaveDays(ctx, employeeID)
 
-	// 统计已批准的加班时长
-	var otHours decimal.Decimal
-	repository.DBFrom(ctx).Model(&hrmmodel.HrmOvertime{}).
-		Where("employee_id = ? AND status = ?", employeeID, hrmmodel.LeaveStatusApproved).
-		Select("COALESCE(SUM(duration_hours),0)").Scan(&otHours)
+	// 统计已批准的加班时长(出错沿袭原语义:忽略,按 0 计)
+	otHours, _ := s.overtimeRepo.SumApprovedOvertimeHours(ctx, employeeID)
 
 	// 应出勤天数(简化:工作日 = 22)
 	workDays := 22
@@ -364,16 +320,7 @@ func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint
 
 // SummaryList 月度汇总列表(按部门或年月)。
 func (s *AttendanceService) SummaryList(ctx context.Context, yearMonth string, departmentID uint) ([]hrmmodel.HrmAttendanceSummary, error) {
-	q := repository.DBFrom(ctx).Model(&hrmmodel.HrmAttendanceSummary{})
-	if yearMonth != "" {
-		q = q.Where("year_month = ?", yearMonth)
-	}
-	if departmentID > 0 {
-		q = q.Where("employee_id IN (SELECT id FROM hrm_employee WHERE department_id = ?)", departmentID)
-	}
-	var list []hrmmodel.HrmAttendanceSummary
-	err := q.Order("employee_id ASC").Find(&list).Error
-	return list, err
+	return s.summaryRepo.List(ctx, yearMonth, departmentID)
 }
 
 // ── 内部辅助 ──

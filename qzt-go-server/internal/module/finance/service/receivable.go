@@ -52,7 +52,7 @@ func (s *ReceivableService) Create(ctx context.Context, req *CreateReceivableReq
 		return nil, errors.New("发生日期格式错误(yyyy-MM-dd)")
 	}
 
-	docNo := generateReceivableNo(ctx, req.Direction, occurDate.Time())
+	docNo := s.generateReceivableNo(ctx, req.Direction, occurDate.Time())
 
 	var dueDate xtime.NullDateTime
 	if req.DueDate != "" {
@@ -144,15 +144,13 @@ func parseFinDate(s string) (xtime.DateTime, error) {
 }
 
 // generateReceivableNo 生成往来单号(YS=应收/YF=应付 + 日期 + 序号)。
-func generateReceivableNo(ctx context.Context, direction string, t time.Time) string {
+func (s *ReceivableService) generateReceivableNo(ctx context.Context, direction string, t time.Time) string {
 	prefix := "YS"
 	if direction == finmodel.DirectionPayable {
 		prefix = "YF"
 	}
 	datePart := t.Format("20060102")
-	var count int64
-	repository.DBFrom(ctx).Model(&finmodel.FinReceivable{}).
-		Where("doc_no LIKE ?", prefix+datePart+"%").
-		Count(&count)
+	// 查询出错沿袭原语义:忽略,按 0 推算序号
+	count, _ := s.repo.CountByNoPrefix(ctx, prefix+datePart)
 	return fmt.Sprintf("%s%s%03d", prefix, datePart, count+1)
 }

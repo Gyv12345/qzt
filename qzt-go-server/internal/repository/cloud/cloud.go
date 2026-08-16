@@ -45,3 +45,10 @@ func (r *CloudRepo) CountByOwner(ctx context.Context, userID uint) (int64, error
 func (r *CloudRepo) Update(ctx context.Context, m *cloudmodel.CloudFile) error {
 	return r.BaseRepo.Update(ctx, m, "ParentID", "Name", "ObjectKey", "URL", "Size", "ContentType", "Scope", "OwnerID", "DeptID", "Status")
 }
+
+// ListActiveChildren 查文件夹下未删除(status=1)的子项(递归删除用)。
+func (r *CloudRepo) ListActiveChildren(ctx context.Context, parentID uint) ([]cloudmodel.CloudFile, error) {
+	var children []cloudmodel.CloudFile
+	err := repository.DBFrom(ctx).Where("parent_id = ? AND status = 1", parentID).Find(&children).Error
+	return children, err
+}

@@ -6,7 +6,6 @@ import (
 
 	cloudmodel "qzt-go-server/internal/model/cloud"
 	cloudrepo "qzt-go-server/internal/repository/cloud"
-	"qzt-go-server/internal/repository"
 )
 
 // CloudService 网盘服务。
@@ -133,8 +132,8 @@ func (s *CloudService) Delete(ctx context.Context, id uint, userID uint) error {
 
 // deleteRecursive 递归软删除文件夹下所有子项。
 func (s *CloudService) deleteRecursive(ctx context.Context, parentID uint) {
-	var children []cloudmodel.CloudFile
-	repository.DBFrom(ctx).Where("parent_id = ? AND status = 1", parentID).Find(&children)
+	// 查询出错沿袭原语义:忽略,按无子项处理
+	children, _ := s.repo.ListActiveChildren(ctx, parentID)
 	for _, child := range children {
 		if child.IsDir == 1 {
 			s.deleteRecursive(ctx, child.ID)

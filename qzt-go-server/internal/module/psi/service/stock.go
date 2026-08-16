@@ -11,10 +11,12 @@ import (
 	crmmodel "qzt-go-server/internal/model/crm"
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
+	psirepo "qzt-go-server/internal/repository/psi"
 )
 
 // stock.go 库存查询:结余列表(含商品信息)、收发明细、低库存预警。
-// 商品信息直接查 crm_product(只读),不引入 PSI→CRM repository 依赖。
+// 商品信息按 ID 批量查 crm_product(只读),跨表查询收口在 repository/psi 的
+// ListProductsByIDs(service 不直接持 DB)。
 
 // StockList 库存结余分页列表。join crm_product 取商品名/编号/单位/分类。
 // lowStock=true 时仅返回 quantity < safety_stock(且 safety_stock>0)的预警行。
@@ -98,14 +100,7 @@ func (s *StockService) GetBalance(ctx context.Context, productID, warehouseID ui
 	return st.Quantity, nil
 }
 
-// fetchProducts 按 ID 批量查 crm_product(只读)。
+// fetchProducts 按 ID 批量查 crm_product(只读,跨表查询收口在 repository/psi)。
 func (s *StockService) fetchProducts(ctx context.Context, ids []uint) ([]crmmodel.CrmProduct, error) {
-	if len(ids) == 0 {
-		return nil, nil
-	}
-	var products []crmmodel.CrmProduct
-	if err := repository.DBFrom(ctx).Where("id IN ?", ids).Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
+	return psirepo.ListProductsByIDs(ctx, ids)
 }

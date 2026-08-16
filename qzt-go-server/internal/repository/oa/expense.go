@@ -13,6 +13,17 @@ import (
 
 func repoDB(ctx context.Context) *gorm.DB { return repository.DBFrom(ctx) }
 
+// CountLike 统计 model 表中 column 列 LIKE pattern 且非空的记录数(编号规则
+// 序号推算用)。model 为表对应的 model 实例,column 为服务端常量列名(非客户端输入)。
+func CountLike(ctx context.Context, model any, column, pattern string) (int64, error) {
+	var n int64
+	err := repoDB(ctx).Model(model).
+		Where(column+" LIKE ?", pattern).
+		Where(column + " != ''").
+		Count(&n).Error
+	return n, err
+}
+
 // ExpenseRepo 报销单主表。
 type ExpenseRepo struct {
 	repository.BaseRepo[oamodel.OaExpense]

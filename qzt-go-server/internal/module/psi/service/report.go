@@ -2,17 +2,16 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/shopspring/decimal"
 
-	psimodel "qzt-go-server/internal/model/psi"
-	"qzt-go-server/internal/repository"
 	psirepo "qzt-go-server/internal/repository/psi"
 )
 
-// report.go 进销存报表服务:采购/销售汇总、商品销量排行、库存预警统计。
-// 报表均为只读查询,基于 psi_stock_movement / psi_purchase_order / psi_sales_order 聚合。
+// report.go 进销存报表服务:采购汇总、商品销量排行。
+// 报表均为只读查询,聚合 SQL 收口在 repository/psi
+// (StockMovementRepo.SalesRank / PurchaseOrderRepo.SummaryByDate),
+// service 只做参数透传与结果组装;商品信息批量查询走 psirepo.ListProductsByIDs。
 
 // ReportService 报表服务。
 type ReportService struct {
@@ -38,30 +37,15 @@ type SalesRankingRow struct {
 
 // SalesRanking 商品销量排行(基于销售出库流水)。按销量降序,返回前 N。
 func (s *ReportService) SalesRanking(ctx context.Context, warehouseID uint, startDate, endDate string, limit int) ([]SalesRankingRow, error) {
-	db := repository.DBFrom(ctx).Table("psi_stock_movement").
-		Select("product_id, SUM(out_qty) AS sales_qty, SUM(out_qty * unit_cost) AS sales_amount").
-		Where("biz_type = ?", psimodel.BizSalesOut).
-		Group("product_id").
-		Order("sales_qty DESC")
-
-	if warehouseID > 0 {
-		db = db.Where("warehouse_id = ?", warehouseID)
-	}
-	if t := parseTime(startDate); t != nil {
-		db = db.Where("created_at >= ?", t)
-	}
-	if t := parseTime(endDate); t != nil {
-		db = db.Where("created_at <= ?", t)
-	}
-	if limit > 0 {
-		db = db.Limit(limit)
-	}
-
-	var rows []SalesRankingRow
-	if err := db.Scan(&rows).Error; err != nil {
+	aggs, err := s.movementRepo.SalesRank(ctx, warehouseID, startDate, endDate, limit)
+	if err != nil {
 		return nil, err
 	}
-	// 补充商品名(避免匿名 struct map 语法问题,用命名类型)
+	var rows []SalesRankingRow
+	for _, a := range aggs {
+		rows = append(rows, SalesRankingRow{ProductID: a.ProductID, SalesQty: a.SalesQty, SalesAmount: a.SalesAmount})
+	}
+	// 补充商品名/编号(查询出错沿袭原语义:忽略,名称留空)
 	if len(rows) > 0 {
 		ids := make([]uint, 0, len(rows))
 		for _, r := range rows {
@@ -71,12 +55,7 @@ func (s *ReportService) SalesRanking(ctx context.Context, warehouseID uint, star
 			Name      string
 			ProductNo string
 		}
-		var products []struct {
-			ID        uint   `gorm:"column:id"`
-			Name      string `gorm:"column:name"`
-			ProductNo string `gorm:"column:product_no"`
-		}
-		_ = repository.DBFrom(ctx).Table("crm_product").Where("id IN ?", ids).Find(&products).Error
+		products, _ := psirepo.ListProductsByIDs(ctx, ids)
 		pmap := make(map[uint]productInfo, len(products))
 		for _, p := range products {
 			pmap[p.ID] = productInfo{Name: p.Name, ProductNo: p.ProductNo}
@@ -92,50 +71,9 @@ func (s *ReportService) SalesRanking(ctx context.Context, warehouseID uint, star
 }
 
 // SummaryRow 采购/销售汇总行(按日)。
-type SummaryRow struct {
-	Date   string          `json:"date"`
-	Count  int64           `json:"count"`
-	Amount decimal.Decimal `json:"amount"`
-}
+type SummaryRow = psirepo.SummaryRow
 
 // PurchaseSummary 采购汇总(按日聚合,基于已入库的采购单)。
 func (s *ReportService) PurchaseSummary(ctx context.Context, startDate, endDate string) ([]SummaryRow, error) {
-	return summaryByDate(ctx, "psi_purchase_order", "order_date", "total_amount", startDate, endDate,
-		map[string]any{"status": psimodel.PurchaseStatusReceipt})
-}
-
-// parseTime 把日期字符串解析为 *time.Time(用于 created_at 范围过滤)。
-func parseTime(s string) *time.Time {
-	if s == "" {
-		return nil
-	}
-	for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02"} {
-		if t, err := time.Parse(layout, s); err == nil {
-			return &t
-		}
-	}
-	return nil
-}
-
-// summaryByDate 按日期字段聚合某表的金额(内部通用)。
-// dateCol/amountCol 为可信的 SQL 列名(非客户端输入)。
-func summaryByDate(ctx context.Context, table, dateCol, amountCol, startDate, endDate string, extraWhere map[string]any) ([]SummaryRow, error) {
-	db := repository.DBFrom(ctx).Table(table).
-		Select("DATE("+dateCol+") AS date, COUNT(*) AS count, COALESCE(SUM("+amountCol+"),0) AS amount").
-		Group("DATE(" + dateCol + ")").
-		Order("date ASC")
-	if t := parseTime(startDate); t != nil {
-		db = db.Where(dateCol+" >= ?", t)
-	}
-	if t := parseTime(endDate); t != nil {
-		db = db.Where(dateCol+" <= ?", t)
-	}
-	for k, v := range extraWhere {
-		db = db.Where(k+" = ?", v)
-	}
-	var rows []SummaryRow
-	if err := db.Scan(&rows).Error; err != nil {
-		return nil, err
-	}
-	return rows, nil
+	return s.purchaseRepo.SummaryByDate(ctx, startDate, endDate)
 }

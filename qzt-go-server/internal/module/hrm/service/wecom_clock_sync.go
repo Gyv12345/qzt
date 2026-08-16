@@ -56,8 +56,8 @@ func (s *WecomClockSyncService) SyncWecomClock(ctx context.Context) error {
 		return nil
 	}
 
-	// 2. 建映射 wecomUserID → employeeID
-	wecomToEmp, err := s.buildWecomEmpMap(ctx)
+	// 2. 建映射 wecomUserID → employeeID(跨表查询收口在 repository/hrm)
+	wecomToEmp, err := hrmrepo.WecomEmpMap(ctx)
 	if err != nil {
 		return fmt.Errorf("构建企微→员工映射失败: %w", err)
 	}
@@ -103,62 +103,6 @@ func (s *WecomClockSyncService) SyncWecomClock(ctx context.Context) error {
 	return nil
 }
 
-// buildWecomEmpMap 构建 wecomUserID → employeeID 映射(批量查询,避免 N+1)。
-func (s *WecomClockSyncService) buildWecomEmpMap(ctx context.Context) (map[string]uint, error) {
-	db := repository.DBFrom(ctx)
-
-	// 1. 绑定了 wecom_user_id 的 sys_user
-	type su struct {
-		ID           uint
-		WecomUserID string
-	}
-	var users []su
-	if err := db.Table("sys_user").
-		Select("id, wecom_user_id").
-		Where("wecom_user_id IS NOT NULL AND wecom_user_id <> '' AND deleted_at IS NULL").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return map[string]uint{}, nil
-	}
-
-	wecomToUser := make(map[string]uint, len(users))
-	userIDs := make([]uint, 0, len(users))
-	for _, u := range users {
-		wecomToUser[u.WecomUserID] = u.ID
-		userIDs = append(userIDs, u.ID)
-	}
-
-	// 2. 批量查 hrm_employee(user_id → employee.id)
-	type emp struct {
-		ID     uint
-		UserID *uint
-	}
-	var emps []emp
-	if err := db.Table("hrm_employee").
-		Select("id, user_id").
-		Where("user_id IN ? AND deleted_at IS NULL", userIDs).
-		Find(&emps).Error; err != nil {
-		return nil, err
-	}
-	userToEmp := make(map[uint]uint, len(emps))
-	for _, e := range emps {
-		if e.UserID != nil {
-			userToEmp[*e.UserID] = e.ID
-		}
-	}
-
-	// 3. wecomUserID → empID
-	result := make(map[string]uint)
-	for wecomID, uid := range wecomToUser {
-		if empID, ok := userToEmp[uid]; ok {
-			result[wecomID] = empID
-		}
-	}
-	return result, nil
-}
-
 // upsertClock 企微打卡记录写入(幂等:employee_id+date+type 查重)。用企微时间戳,不用 now()。
 func (s *WecomClockSyncService) upsertClock(ctx context.Context, r wecom.CheckinRecord, wecomToEmp map[string]uint) error {
 	empID, ok := wecomToEmp[r.UserID]
@@ -191,12 +135,8 @@ func (s *WecomClockSyncService) upsertClock(ctx context.Context, r wecom.Checkin
 		Source:     hrmmodel.ClockSourceWecom,
 	}
 
-	// 查重(代码层 upsert,表无 DB 唯一索引)
-	var existing hrmmodel.HrmAttendanceClock
-	db := repository.DBFrom(ctx)
-	result := db.Where("employee_id = ? AND clock_date = ? AND clock_type = ?",
-		empID, date, clockType).First(&existing)
-	if result.Error == nil {
+	// 查重(代码层 upsert,表无 DB 唯一索引;查询出错沿袭原语义:走创建)
+	if existing, err := s.clockRepo.GetByEmpDateType(ctx, empID, date, clockType); err == nil {
 		clock.ID = existing.ID
 		return s.clockRepo.Update(ctx, clock)
 	}

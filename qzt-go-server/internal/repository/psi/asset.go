@@ -44,3 +44,12 @@ func (r *AssetRepo) PageList(ctx context.Context, page, pageSize int, keyword, c
 func (r *AssetRepo) Update(ctx context.Context, m *psimodel.PsiAsset) error {
 	return r.BaseRepo.Update(ctx, m, "Name", "Category", "Spec", "SerialNo", "WarehouseID", "DeptID", "OwnerID", "PurchaseDate", "PurchasePrice", "Depreciation", "NetValue", "UsefulLife", "Status", "Location", "Remark")
 }
+
+// CountByNoPrefix 统计同前缀资产数(资产编号 ZC+日期+序号 推算用)。
+func (r *AssetRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
+	var count int64
+	err := repository.DBFrom(ctx).Model(&psimodel.PsiAsset{}).
+		Where("asset_no LIKE ?", prefix+"%").
+		Count(&count).Error
+	return count, err
+}

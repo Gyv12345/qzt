@@ -9,7 +9,6 @@ import (
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/pkg/numbergen"
 	psirepo "qzt-go-server/internal/repository/psi"
-	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -127,10 +126,8 @@ func (s *AssetService) Delete(ctx context.Context, id uint) error {
 
 func generateAssetNo(ctx context.Context) string {
 	datePart := time.Now().Format("20060102")
-	var count int64
-	repository.DBFrom(ctx).Model(&psimodel.PsiAsset{}).
-		Where("asset_no LIKE ?", "ZC"+datePart+"%").
-		Count(&count)
+	// 查询出错沿袭原语义:忽略,按 0 推算序号
+	count, _ := psirepo.NewAssetRepo().CountByNoPrefix(ctx, "ZC"+datePart)
 	return fmt.Sprintf("ZC%s%03d", datePart, count+1)
 }
 
@@ -139,11 +136,7 @@ func init() {
 	numbergen.Register("asset", numbergen.Rule{
 		Enabled: true, Prefix: "ZC", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: func(ctx context.Context, prefix, datePart string) (int64, error) {
-			var n int64
-			err := repository.DBFrom(ctx).Model(&psimodel.PsiAsset{}).
-				Where("asset_no LIKE ?", prefix+datePart+"%").
-				Count(&n).Error
-			return n, err
+			return psirepo.NewAssetRepo().CountByNoPrefix(ctx, prefix+datePart)
 		},
 	})
 }

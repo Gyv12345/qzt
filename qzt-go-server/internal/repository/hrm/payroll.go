@@ -49,3 +49,17 @@ func (r *PayrollRepo) Update(ctx context.Context, m *hrmmodel.HrmPayroll) error 
 		"OvertimePay", "GrossPay", "SocialInsDeduction", "HousingFundDeduction", "AbsenceDeduction",
 		"TaxableIncome", "Tax", "NetPay", "Status", "Remark")
 }
+
+// List 工资条列表(按年月/部门可选过滤,employee_id ASC)。
+func (r *PayrollRepo) List(ctx context.Context, yearMonth string, departmentID uint) ([]hrmmodel.HrmPayroll, error) {
+	q := repoDB(ctx).Model(&hrmmodel.HrmPayroll{})
+	if yearMonth != "" {
+		q = q.Where("year_month = ?", yearMonth)
+	}
+	if departmentID > 0 {
+		q = q.Where("employee_id IN (SELECT id FROM hrm_employee WHERE department_id = ?)", departmentID)
+	}
+	var list []hrmmodel.HrmPayroll
+	err := q.Order("employee_id ASC").Find(&list).Error
+	return list, err
+}

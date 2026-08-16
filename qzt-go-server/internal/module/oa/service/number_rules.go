@@ -5,7 +5,7 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
-	"qzt-go-server/internal/repository"
+	oarepo "qzt-go-server/internal/repository/oa"
 )
 
 // number_rules.go 注册 OA 编号规则到 numbergen。init() 包加载时执行。
@@ -48,14 +48,10 @@ func init() {
 	})
 }
 
-// countLike 统计指定 model 表中 column 列 LIKE "前缀+日期%" 的记录数。
+// countLike 统计指定 model 表中 column 列 LIKE "前缀+日期%" 的记录数
+// (查询收口在 repository 层的 oa.CountLike)。
 func countLike(model any, column string) func(ctx context.Context, prefix, datePart string) (int64, error) {
 	return func(ctx context.Context, prefix, datePart string) (int64, error) {
-		var n int64
-		err := repository.DBFrom(ctx).Model(model).
-			Where(column+" LIKE ?", prefix+datePart+"%").
-			Where(column + " != ''").
-			Count(&n).Error
-		return n, err
+		return oarepo.CountLike(ctx, model, column, prefix+datePart+"%")
 	}
 }

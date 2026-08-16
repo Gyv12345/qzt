@@ -56,6 +56,34 @@ func (r *DocumentRepo) Update(ctx context.Context, m *kbmodel.KbDocument) error 
 	return r.BaseRepo.Update(ctx, m, "CategoryID", "Title", "Content", "Status", "LastEditorID", "ViewCount")
 }
 
+// SaveSnapshot 保存文档快照:更新文档内容(显式写 updated_at=NOW(),沿用原
+// Table 原生更新语义)并追加一条版本历史(版本号 = 当前最大版本 + 1)。
+// 协同编辑 WebSocket 保存用;max version 查询出错沿袭原语义:忽略,按 0 计。
+func (r *DocumentRepo) SaveSnapshot(ctx context.Context, docID, editorID uint, content string) error {
+	db := repository.DBFrom(ctx)
+
+	// 更新文档内容
+	if err := db.Table("kb_document").Where("id = ?", docID).
+		Updates(map[string]any{
+			"content":        content,
+			"last_editor_id": editorID,
+			"updated_at":     "NOW()",
+		}).Error; err != nil {
+		return err
+	}
+
+	// 创建版本历史
+	var maxVer int
+	db.Table("kb_version").Where("document_id = ?", docID).Select("COALESCE(MAX(version_number), 0)").Scan(&maxVer)
+	return db.Table("kb_version").Create(map[string]any{
+		"document_id":    docID,
+		"content":        content,
+		"editor_id":      editorID,
+		"version_number": maxVer + 1,
+		"created_at":     "NOW()",
+	}).Error
+}
+
 // VersionRepo 知识库版本 repository。
 type VersionRepo struct {
 	repository.BaseRepo[kbmodel.KbVersion]

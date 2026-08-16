@@ -175,16 +175,7 @@ func (s *PayrollService) GeneratePayroll(ctx context.Context, req *GeneratePayro
 
 // PayrollList 工资条列表(按年月/部门过滤)。
 func (s *PayrollService) PayrollList(ctx context.Context, yearMonth string, departmentID uint) ([]hrmmodel.HrmPayroll, error) {
-	db := repository.DBFrom(ctx).Model(&hrmmodel.HrmPayroll{})
-	if yearMonth != "" {
-		db = db.Where("year_month = ?", yearMonth)
-	}
-	if departmentID > 0 {
-		db = db.Where("employee_id IN (SELECT id FROM hrm_employee WHERE department_id = ?)", departmentID)
-	}
-	var list []hrmmodel.HrmPayroll
-	err := db.Order("employee_id ASC").Find(&list).Error
-	return list, err
+	return s.payrollRepo.List(ctx, yearMonth, departmentID)
 }
 
 // ConfirmPayroll 确认工资条(DRAFT → CONFIRMED)。

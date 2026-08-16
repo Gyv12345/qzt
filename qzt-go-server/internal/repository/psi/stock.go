@@ -7,6 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 
+	crmmodel "qzt-go-server/internal/model/crm"
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
 )
@@ -21,6 +22,19 @@ type StockRepo struct {
 }
 
 func NewStockRepo() *StockRepo { return &StockRepo{} }
+
+// ListProductsByIDs 按 ID 集合批量查 crm_product(库存列表/销量排行等展示商品
+// 信息用;商品表归 CRM 模块,此跨表只读查询收口在 repository 层,ids 为空返回 nil)。
+func ListProductsByIDs(ctx context.Context, ids []uint) ([]crmmodel.CrmProduct, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var products []crmmodel.CrmProduct
+	if err := repository.DBFrom(ctx).Where("id IN ?", ids).Find(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
+}
 
 // GetByProductWarehouse 按 商品+仓库 读取结余;不存在返回 gorm.ErrRecordNotFound。
 func (r *StockRepo) GetByProductWarehouse(ctx context.Context, productID, warehouseID uint) (*psimodel.PsiStock, error) {

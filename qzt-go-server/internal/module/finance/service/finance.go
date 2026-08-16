@@ -7,11 +7,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 
 	finmodel "qzt-go-server/internal/model/finance"
 	finrepo "qzt-go-server/internal/repository/finance"
-	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -130,31 +128,14 @@ func (s *FinanceService) CreateVoucher(ctx context.Context, req *CreateVoucherRe
 // generateVoucherNo 生成凭证编号(格式 V20260804-001)。
 func (s *FinanceService) generateVoucherNo(ctx context.Context, date time.Time) string {
 	prefix := fmt.Sprintf("V%s", date.Format("20060102"))
-	var count int64
-	repository.DBFrom(ctx).Model(&finmodel.FinVoucher{}).Where("voucher_no LIKE ?", prefix+"%").Count(&count)
+	// 查询出错沿袭原语义:忽略,按 0 推算序号
+	count, _ := s.voucherRepo.CountByNoPrefix(ctx, prefix)
 	return fmt.Sprintf("%s-%03d", prefix, count+1)
 }
 
 // VoucherList 凭证列表(分页 + 日期/科目/状态过滤)。
 func (s *FinanceService) VoucherList(ctx context.Context, page, pageSize int, startDate, endDate string, accountID uint, status string) ([]finmodel.FinVoucher, int64, error) {
-	db := repository.DBFrom(ctx).Model(&finmodel.FinVoucher{})
-	if startDate != "" {
-		db = db.Where("DATE(voucher_date) >= ?", startDate)
-	}
-	if endDate != "" {
-		db = db.Where("DATE(voucher_date) <= ?", endDate)
-	}
-	if accountID > 0 {
-		db = db.Where("account_id = ?", accountID)
-	}
-	if status != "" {
-		db = db.Where("status = ?", status)
-	}
-	var total int64
-	db.Count(&total)
-	var list []finmodel.FinVoucher
-	err := db.Order("id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
-	return list, total, err
+	return s.voucherRepo.PageList(ctx, page, pageSize, startDate, endDate, accountID, status)
 }
 
 // ConfirmVoucher 确认凭证(DRAFT → CONFIRMED)。
@@ -224,21 +205,7 @@ func (s *FinanceService) CreateInvoice(ctx context.Context, req *CreateInvoiceRe
 
 // InvoiceList 发票列表(分页 + 方向/日期过滤)。
 func (s *FinanceService) InvoiceList(ctx context.Context, page, pageSize int, direction, startDate, endDate string) ([]finmodel.FinInvoice, int64, error) {
-	db := repository.DBFrom(ctx).Model(&finmodel.FinInvoice{})
-	if direction != "" {
-		db = db.Where("direction = ?", direction)
-	}
-	if startDate != "" {
-		db = db.Where("DATE(invoice_date) >= ?", startDate)
-	}
-	if endDate != "" {
-		db = db.Where("DATE(invoice_date) <= ?", endDate)
-	}
-	var total int64
-	db.Count(&total)
-	var list []finmodel.FinInvoice
-	err := db.Order("id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
-	return list, total, err
+	return s.invoiceRepo.PageList(ctx, page, pageSize, direction, startDate, endDate)
 }
 
 // ── 报表 ──
@@ -253,24 +220,17 @@ type IncomeStatement struct {
 
 // IncomeStatement 利润表(按日期范围)。
 func (s *FinanceService) IncomeStatement(ctx context.Context, startDate, endDate string) (*IncomeStatement, error) {
-	data := &IncomeStatement{}
-	db := repository.DBFrom(ctx).Table("fin_voucher").Where("status = ?", finmodel.VoucherStatusConfirmed)
-	db = applyDateRange(db, "voucher_date", startDate, endDate)
-
+	// 查询出错沿袭原语义:忽略,按 0 计
 	// 收入 = INCOME 科目贷方合计
-	var revenue decimal.Decimal
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeIncome, finmodel.BalanceDirCredit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&revenue)
-	data.Revenue = revenue
-
+	revenue, _ := s.voucherRepo.SumConfirmedByAccount(ctx, startDate, endDate, finmodel.AccountTypeIncome, finmodel.BalanceDirCredit)
 	// 支出 = EXPENSE 科目借方合计
-	var expense decimal.Decimal
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeExpense, finmodel.BalanceDirDebit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&expense)
-	data.COGS = expense
-	data.GrossProfit = revenue.Sub(expense)
+	expense, _ := s.voucherRepo.SumConfirmedByAccount(ctx, startDate, endDate, finmodel.AccountTypeExpense, finmodel.BalanceDirDebit)
+
+	data := &IncomeStatement{
+		Revenue:     revenue,
+		COGS:        expense,
+		GrossProfit: revenue.Sub(expense),
+	}
 	data.NetProfit = data.GrossProfit
 	return data, nil
 }
@@ -282,51 +242,24 @@ type BalanceSheet struct {
 	TotalEquity      decimal.Decimal `json:"total_equity"`      // 权益合计
 }
 
-// BalanceSheet 资产负债表(截至 endDate)。
+// BalanceSheet 资产负债表(截至 endDate)。查询出错沿袭原语义:忽略,按 0 计。
 func (s *FinanceService) BalanceSheet(ctx context.Context, endDate string) (*BalanceSheet, error) {
-	data := &BalanceSheet{}
-	db := repository.DBFrom(ctx).Table("fin_voucher").Where("status = ?", finmodel.VoucherStatusConfirmed)
-	db = applyDateRange(db, "voucher_date", "", endDate)
-
 	// 资产 = ASSET 科目借方 - 贷方
-	var assetDebit, assetCredit decimal.Decimal
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeAsset, finmodel.BalanceDirDebit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&assetDebit)
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeAsset, finmodel.BalanceDirCredit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&assetCredit)
-	data.TotalAssets = assetDebit.Sub(assetCredit)
+	assetDebit, _ := s.voucherRepo.SumConfirmedByAccount(ctx, "", endDate, finmodel.AccountTypeAsset, finmodel.BalanceDirDebit)
+	assetCredit, _ := s.voucherRepo.SumConfirmedByAccount(ctx, "", endDate, finmodel.AccountTypeAsset, finmodel.BalanceDirCredit)
 
 	// 负债 = LIABILITY 科目贷方 - 借方
-	var liabDebit, liabCredit decimal.Decimal
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeLiability, finmodel.BalanceDirDebit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&liabDebit)
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeLiability, finmodel.BalanceDirCredit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&liabCredit)
-	data.TotalLiabilities = liabCredit.Sub(liabDebit)
+	liabDebit, _ := s.voucherRepo.SumConfirmedByAccount(ctx, "", endDate, finmodel.AccountTypeLiability, finmodel.BalanceDirDebit)
+	liabCredit, _ := s.voucherRepo.SumConfirmedByAccount(ctx, "", endDate, finmodel.AccountTypeLiability, finmodel.BalanceDirCredit)
 
 	// 权益 = EQUITY 科目贷方 - 借方
-	var eqDebit, eqCredit decimal.Decimal
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeEquity, finmodel.BalanceDirDebit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&eqDebit)
-	db.Session(&gorm.Session{}).Joins("JOIN fin_account ON fin_account.id = fin_voucher.account_id").
-		Where("fin_account.type = ? AND fin_voucher.direction = ?", finmodel.AccountTypeEquity, finmodel.BalanceDirCredit).
-		Select("COALESCE(SUM(fin_voucher.amount),0)").Scan(&eqCredit)
-	data.TotalEquity = eqCredit.Sub(eqDebit)
-	return data, nil
-}
+	eqDebit, _ := s.voucherRepo.SumConfirmedByAccount(ctx, "", endDate, finmodel.AccountTypeEquity, finmodel.BalanceDirDebit)
+	eqCredit, _ := s.voucherRepo.SumConfirmedByAccount(ctx, "", endDate, finmodel.AccountTypeEquity, finmodel.BalanceDirCredit)
 
-// applyDateRange 日期范围过滤。
-func applyDateRange(db *gorm.DB, col, start, end string) *gorm.DB {
-	if start != "" {
-		db = db.Where("DATE("+col+") >= ?", start)
+	data := &BalanceSheet{
+		TotalAssets:      assetDebit.Sub(assetCredit),
+		TotalLiabilities: liabCredit.Sub(liabDebit),
+		TotalEquity:      eqCredit.Sub(eqDebit),
 	}
-	if end != "" {
-		db = db.Where("DATE("+col+") <= ?", end)
-	}
-	return db
+	return data, nil
 }

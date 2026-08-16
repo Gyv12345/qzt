@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"qzt-go-server/internal/repository"
+	kbrepo "qzt-go-server/internal/repository/kb"
 	"qzt-go-server/pkg/xlogger"
 )
 
@@ -61,28 +61,7 @@ func (h *CollabHub) Broadcast(docID uint, sender *websocket.Conn, msgType int, d
 	}
 }
 
-// SaveSnapshot 保存文档快照到 DB(内容 + 版本历史)。
+// SaveSnapshot 保存文档快照到 DB(内容 + 版本历史,收口在 repository/kb)。
 func SaveSnapshot(ctx context.Context, docID uint, editorID uint, content string) error {
-	db := repository.DBFrom(ctx)
-
-	// 更新文档内容
-	if err := db.Table("kb_document").Where("id = ?", docID).
-		Updates(map[string]any{
-			"content":        content,
-			"last_editor_id": editorID,
-			"updated_at":     "NOW()",
-		}).Error; err != nil {
-		return err
-	}
-
-	// 创建版本历史
-	var maxVer int
-	db.Table("kb_version").Where("document_id = ?", docID).Select("COALESCE(MAX(version_number), 0)").Scan(&maxVer)
-	return db.Table("kb_version").Create(map[string]any{
-		"document_id":    docID,
-		"content":        content,
-		"editor_id":      editorID,
-		"version_number": maxVer + 1,
-		"created_at":     "NOW()",
-	}).Error
+	return kbrepo.NewDocumentRepo().SaveSnapshot(ctx, docID, editorID, content)
 }

@@ -22,3 +22,9 @@ func NotFoundOr(err error, format string, args ...any) error {
 	}
 	return err
 }
+
+// IsNotFound 报告 err 是否为 gorm.ErrRecordNotFound,供 service 层在不直接
+// import gorm 的情况下区分"记录不存在"与其他 DB 故障(三路分支场景)。
+func IsNotFound(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
+}
