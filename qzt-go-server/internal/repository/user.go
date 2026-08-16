@@ -42,6 +42,13 @@ func (d *UserRepo) Update(ctx context.Context, user *model.SysUser) error {
 	return d.BaseRepo.Update(ctx, user, "Nickname", "DeptID", "LeaderID", "Email", "Phone", "Avatar", "Status", "Password", "TokenVersion", "WecomUserID")
 }
 
+// UpdateStatus 显式更新账号状态。
+// SysUser.Status 带 gorm:"default:1",零值(禁用)在 Create 的 INSERT 中会被
+// GORM 跳过、落库为默认 1——"新建即禁用"必须经本方法显式补写。
+func (d *UserRepo) UpdateStatus(ctx context.Context, id uint, status int8) error {
+	return d.BaseRepo.Update(ctx, &model.SysUser{ID: id, Status: status}, "Status")
+}
+
 // GetByWecomUserID 按企业微信 UserID 查找用户(扫码登录用)。找不到返回 gorm.ErrRecordNotFound。
 func (d *UserRepo) GetByWecomUserID(ctx context.Context, wecomUserID string) (*model.SysUser, error) {
 	var user model.SysUser

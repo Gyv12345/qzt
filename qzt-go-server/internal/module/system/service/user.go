@@ -81,6 +81,13 @@ func (s *UserService) Create(ctx context.Context, req *CreateUserRequest) error 
 			}
 			return err
 		}
+		// Status 带 gorm:"default:1",零值(禁用)的 INSERT 会被 GORM 跳过、
+		// 落库为默认启用——显式补写,保住"新建即禁用"语义。
+		if status == 0 {
+			if err := s.userRepo.UpdateStatus(ctx, user.ID, 0); err != nil {
+				return err
+			}
+		}
 		if len(req.RoleIDs) > 0 {
 			return s.userRepo.SetRoles(ctx, user.ID, req.RoleIDs)
 		}
