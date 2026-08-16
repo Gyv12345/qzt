@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { App, Col, Form, Select, Switch, TreeSelect, type TreeSelectProps } from 'antd'
+import { App, Col, Form, Select, Switch, TreeSelect } from 'antd'
 import { ModalForm, ProForm, ProFormText } from '@ant-design/pro-components'
 import { createCustomerPool, updateCustomerPool } from '../../../services/crm'
 import { getDepartmentTree } from '../../../services/hrm'
@@ -7,6 +7,7 @@ import { listAllRoles, listUserOptions } from '../../../services/system'
 import type { CrmCustomerPool, CrmPoolPayload } from '../../../types/crm'
 import type { HrmDepartment } from '../../../types/hrm'
 import type { SysRole, UserOption } from '../../../types'
+import { deptToTreeData, parseIdArray } from '../components/poolForm'
 
 export interface PoolFormValues {
   name: string
@@ -15,28 +16,6 @@ export interface PoolFormValues {
   admin_user_ids?: number[]
   enabled: boolean
   auto_recycle: boolean
-}
-
-/** 容错解析 "[1,2]" 形式的 JSON 数组字符串为数字 ID 数组 */
-export const parseIdArray = (json?: string): number[] => {
-  if (!json) return []
-  try {
-    const arr: unknown = JSON.parse(json)
-    return Array.isArray(arr)
-      ? arr.map((v) => Number(v)).filter((n) => Number.isInteger(n) && n > 0)
-      : []
-  } catch {
-    return []
-  }
-}
-
-/** 部门树 → TreeSelect data(表单用) */
-function deptToTreeData(depts: HrmDepartment[]): TreeSelectProps['treeData'] {
-  return depts.map((d) => ({
-    title: d.name,
-    value: d.id,
-    children: d.children?.length ? deptToTreeData(d.children) : undefined,
-  }))
 }
 
 interface PoolEditModalProps {
