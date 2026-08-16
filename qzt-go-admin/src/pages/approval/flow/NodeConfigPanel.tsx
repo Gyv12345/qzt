@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, DatePicker, Form, Input, InputNumber, Select, Space, Spin } from 'antd'
 import dayjs from 'dayjs'
 import type { Node } from '@xyflow/react'
+import UserSelect from '../../../components/UserSelect'
 import { getFormFields } from '../../../services/approval'
 import type { FormField, FormFieldType } from '../../../types/approval'
 
@@ -110,6 +111,17 @@ function stringifyCondition(cfg: ConditionConfig): string {
   return JSON.stringify(cfg)
 }
 
+/** "[1,2]" → [1,2];解析失败返回空数组 */
+function parseUserIds(json?: string): number[] {
+  if (!json) return []
+  try {
+    const arr: unknown = JSON.parse(json)
+    return Array.isArray(arr) ? arr.map(Number).filter((n) => Number.isInteger(n)) : []
+  } catch {
+    return []
+  }
+}
+
 export default function NodeConfigPanel({ node, formType, formKey, onChange }: NodeConfigPanelProps) {
   const [form] = Form.useForm()
   const data = node.data
@@ -155,7 +167,7 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
       empty_approver_action: approverConfig.empty_approver_action || 'AUTO_PASS',
       fallback_approver: approverConfig.fallback_approver,
       same_submitter_action: approverConfig.same_submitter_action || 'SKIP',
-      approver_list: approverConfig.approver_list || '[]',
+      approver_list: parseUserIds(approverConfig.approver_list as string),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [node.id])
@@ -179,6 +191,9 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
   }
 
   const condCfg = parseCondition(data.conditionConfig)
+  const apprCfg = (data.approverConfig ?? {}) as Record<string, unknown>
+  const apprType = (apprCfg.approver_type as string) || 'MEMBER'
+  const emptyAction = (apprCfg.empty_approver_action as string) || 'AUTO_PASS'
 
   // 条件项更新辅助
   const updateConditionItem = (i: number, patch: Partial<ConditionItem>) => {
@@ -242,29 +257,35 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
                   onChange={(v) => onApproverFieldChange('multi_approver_mode', v)}
                 />
               </Form.Item>
-              <Form.Item
-                label="审批人列表"
-                name="approver_list"
-                tooltip="MEMBER/ROLE 时填用户/角色 ID 的 JSON 数组,如 [1,2]"
-              >
-                <Input
-                  placeholder='[1, 2]'
-                  onChange={(e) => onApproverFieldChange('approver_list', e.target.value)}
-                />
-              </Form.Item>
+              {apprType === 'MEMBER' && (
+                <Form.Item
+                  label="审批人"
+                  name="approver_list"
+                  tooltip="类型为指定成员时,选择一个或多个审批人"
+                >
+                  <UserSelect
+                    mode="multiple"
+                    placeholder="选择审批人"
+                    onChange={(ids: number[]) =>
+                      onApproverFieldChange('approver_list', JSON.stringify(ids ?? []))
+                    }
+                  />
+                </Form.Item>
+              )}
               <Form.Item label="空审批人处理" name="empty_approver_action">
                 <Select
                   options={EMPTY_ACTION_OPTIONS}
                   onChange={(v) => onApproverFieldChange('empty_approver_action', v)}
                 />
               </Form.Item>
-              <Form.Item label="兜底审批人ID" name="fallback_approver">
-                <InputNumber
-                  style={{ width: '100%' }}
-                  placeholder="空审批人转交的用户ID"
-                  onChange={(v) => onApproverFieldChange('fallback_approver', v ?? undefined)}
-                />
-              </Form.Item>
+              {emptyAction === 'ASSIGN_SPECIFIC' && (
+                <Form.Item label="兜底审批人" name="fallback_approver">
+                  <UserSelect
+                    placeholder="空审批人转交的用户"
+                    onChange={(v) => onApproverFieldChange('fallback_approver', v ?? undefined)}
+                  />
+                </Form.Item>
+              )}
               <Form.Item label="提交人本人" name="same_submitter_action">
                 <Select
                   options={SAME_SUBMITTER_OPTIONS}
@@ -341,6 +362,11 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
                 >
                   + 添加条件
                 </Button>
+                {condCfg.conditions.length === 0 && (
+                  <div style={{ color: '#faad14', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
+                    条件分支必须至少配置一条规则才能保存
+                  </div>
+                )}
                 {!fieldsLoading && fields.length === 0 && (
                   <div style={{ color: '#999', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
                     该表单暂无可配置的字段

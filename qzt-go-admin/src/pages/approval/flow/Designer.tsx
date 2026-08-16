@@ -18,7 +18,7 @@ import { App, Button, Space, Spin } from 'antd'
 import { getApprovalFlow, saveApprovalFlowDesign } from '../../../services/approval'
 import type { ApprovalFlowDetail, SaveDesignRequest } from '../../../types/approval'
 import NodeConfigPanel from './NodeConfigPanel'
-import { layoutNodes, genNumber, type ApprovalNodeData } from './graphShared'
+import { layoutNodes, genNumber, validateDesignGraph, type ApprovalNodeData } from './graphShared'
 import { nodeTypes } from './ApprovalNodeView'
 import { edgeTypes } from './ClickableEdgeView'
 
@@ -172,6 +172,13 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
     try {
       const allNodes = getNodes()
       const allEdges = getEdges()
+
+      // 保存前图形校验(与后端 ValidateDesignGraph 同规则,提前给出可读提示)
+      const problem = validateDesignGraph(allNodes, allEdges)
+      if (problem) {
+        message.error(problem)
+        return
+      }
 
       // 存坐标到 localStorage
       const posMap: Record<string, { x: number; y: number }> = {}

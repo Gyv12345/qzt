@@ -213,6 +213,9 @@ type LinkDesign struct {
 // SaveDesign 保存流程设计(创建新版本,事务写入节点图,更新 flow.current_version_id)。
 // 建立节点 Number → 真实 ID 映射,修正 links 和 approvers/conditions 的关联。
 func (s *FlowService) SaveDesign(ctx context.Context, flowID uint, req *SaveDesignRequest) error {
+	if err := ValidateDesignGraph(req); err != nil {
+		return err
+	}
 	flow, err := s.flowRepo.GetByID(ctx, flowID)
 	if err != nil {
 		return errors.New("流程不存在")
