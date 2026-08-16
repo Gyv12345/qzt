@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  server:
+    name: Go server (build / vet / test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qzt-go-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: qzt-go-server/go.mod
+          cache-dependency-path: qzt-go-server/go.sum
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...
+
+  admin:
+    name: Admin SPA (lint / build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qzt-go-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: qzt-go-admin/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
+
+  mobile:
+    name: Mobile H5 (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qzt-go-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: qzt-go-mobile/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+  cms:
+    name: CMS site (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qzt-go-cms
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: qzt-go-cms/package-lock.json
+      # CI 无后端,公开接口 fetch 失败由页面降级为空态,build 可通过
+      - run: npm ci
+      - run: npm run build
+
+  docs:
+    name: Docs site (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qzt-docs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: qzt-docs/package-lock.json
+      - run: npm ci
+      - run: npm run build
