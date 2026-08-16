@@ -17,7 +17,7 @@ import (
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/repository"
-	"qzt-go-server/pkg/wecom"
+	"qzt-go-server/internal/pkg/wecom"
 )
 
 // wecom_auth.go 企业微信扫码登录服务。
