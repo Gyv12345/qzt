@@ -303,7 +303,8 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 		instance.CurrentNodeID = &nextNode.ID
 		s.instanceRepo.Update(ctx, instance)
 		s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusApproved)
-		s.sendFinishNotice(ctx, instance, resultApprove, "")
+		// 全通过:通知提交人 + 所有参与审批人(审批人也需知晓流程最终结果)
+		s.sendFinishNoticeToAll(ctx, instance, resultApprove, "")
 		return nil
 	}
 
@@ -615,15 +616,46 @@ const (
 // result 为 resultApprove/resultReject;comment 为审批意见/驳回原因(可空)。
 // 通知正文会带上单据类型与单据名称,让提交人知道是哪份单据出了结果。
 func (s *ApprovalService) sendFinishNotice(ctx context.Context, instance *apprmodel.ApprovalInstance, result, comment string) {
+	s.sendFinishNoticeWithParticipants(ctx, instance, result, comment, nil)
+}
+
+// sendFinishNoticeToAll 全通过时的完成通知:提交人 + 所有参与审批人。
+// 参与审批人也需要知晓流程最终结果(自己批完之后流程是否走完)。
+func (s *ApprovalService) sendFinishNoticeToAll(ctx context.Context, instance *apprmodel.ApprovalInstance, result, comment string) {
+	s.sendFinishNoticeWithParticipants(ctx, instance, result, comment, s.collectParticipants(ctx, instance))
+}
+
+// sendFinishNoticeWithParticipants 带额外参与者的完成通知。
+// participantIds 为参与审批人(已排除提交人,提交人恒为通知主体);空则只通知提交人。
+func (s *ApprovalService) sendFinishNoticeWithParticipants(ctx context.Context, instance *apprmodel.ApprovalInstance, result, comment string, participantIds []uint) {
 	content := buildFinishNotice(ctx, instance, result, comment)
 	xevent.Publish(ctx, "approval.finished", map[string]any{
-		"submitter_id":  instance.SubmitterID,
-		"instance_id":   instance.ID,
-		"resource_type": instance.Type,
-		"resource_id":   instance.ResourceID,
-		"result":        result,
-		"message":       content,
+		"submitter_id":    instance.SubmitterID,
+		"instance_id":     instance.ID,
+		"resource_type":   instance.Type,
+		"resource_id":     instance.ResourceID,
+		"result":          result,
+		"message":         content,
+		"participant_ids": participantIds,
 	})
+}
+
+// collectParticipants 收集实例的参与审批人(全部任务去重,含流转后软删的;
+// 排除提交人——他以发起人身份已单独收到结果通知,不重复)。
+func (s *ApprovalService) collectParticipants(ctx context.Context, instance *apprmodel.ApprovalInstance) []uint {
+	tasks, err := s.taskRepo.ListAllByInstance(ctx, instance.ID)
+	if err != nil {
+		return nil
+	}
+	seen := map[uint]bool{instance.SubmitterID: true}
+	ids := make([]uint, 0, len(tasks))
+	for _, t := range tasks {
+		if t.ApproverID > 0 && !seen[t.ApproverID] {
+			seen[t.ApproverID] = true
+			ids = append(ids, t.ApproverID)
+		}
+	}
+	return ids
 }
 
 // buildFinishNotice 组装审批结果通知正文:结果 + 单据类型「单据名称」+ 意见/原因。

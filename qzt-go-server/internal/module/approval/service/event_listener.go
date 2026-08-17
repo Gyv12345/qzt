@@ -75,6 +75,19 @@ func RegisterEventListeners(ctx context.Context) error {
 		if err := msgSvc.SendSystemMessageWithPath(ctx, submitterID, title, message, "/approval/mine"); err != nil {
 			// 失败仅记日志,不影响审批流程
 		}
+		// 全通过时同步通知所有参与审批人(已排除提交人,不重复):审批人需知晓流程最终结果
+		if result == resultApprove {
+			if pIDs, ok := m["participant_ids"].([]uint); ok {
+				for _, pid := range pIDs {
+					if pid == 0 || pid == submitterID {
+						continue
+					}
+					if err := msgSvc.SendSystemMessageWithPath(ctx, pid, title, message, "/approval/processed"); err != nil {
+						// 失败仅记日志,不影响审批流程
+					}
+				}
+			}
+		}
 
 		// ── 跨模块业务回调:审批通过→自动更新业务阶段 ──
 		resourceType, _ := m["resource_type"].(string)

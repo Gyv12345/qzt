@@ -111,6 +111,15 @@ func (r *TaskRepo) ListByInstance(ctx context.Context, instanceID uint) ([]apprm
 	return tasks, err
 }
 
+// ListAllByInstance 按实例列出全部任务(含流转后被软删的 node_round<0)。
+// 供"全通过通知所有参与审批人"收集参与者——节点完成后任务即被软删,只能查全量。
+func (r *TaskRepo) ListAllByInstance(ctx context.Context, instanceID uint) ([]apprmodel.ApprovalTask, error) {
+	var tasks []apprmodel.ApprovalTask
+	err := repoDB(ctx).Where("instance_id = ?", instanceID).
+		Order("id ASC").Find(&tasks).Error
+	return tasks, err
+}
+
 // MaxNodeRound 某实例某节点的当前最大轮次(0 表示首次)。
 func (r *TaskRepo) MaxNodeRound(ctx context.Context, instanceID, nodeID uint) int {
 	var maxRound int
