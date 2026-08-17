@@ -58,6 +58,30 @@ func RegisterEventListeners(ctx context.Context) error {
 		}
 	})
 
+	// 节点开始审批 → 抄送通知(cc_type=MEMBER 的用户,纯知会)
+	xevent.Subscribe("approval.cc", func(ctx context.Context, payload any) {
+		m, ok := payload.(map[string]any)
+		if !ok {
+			return
+		}
+		ccIDs, ok := m["cc_ids"].([]uint)
+		if !ok || len(ccIDs) == 0 {
+			return
+		}
+		content, _ := m["message"].(string)
+		if content == "" {
+			return
+		}
+		for _, uid := range ccIDs {
+			if uid == 0 {
+				continue
+			}
+			if err := msgSvc.SendSystemMessageWithPath(ctx, uid, "审批抄送通知", content, "/oa/message"); err != nil {
+				// 失败仅记日志,不影响审批流程
+			}
+		}
+	})
+
 	// 审批完成 → 通知提交人
 	xevent.Subscribe("approval.finished", func(ctx context.Context, payload any) {
 		m, ok := payload.(map[string]any)

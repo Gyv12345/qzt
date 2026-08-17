@@ -350,6 +350,10 @@ func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.A
 // createTasks 为节点创建审批任务并通知审批人。
 func (s *ApprovalService) createTasks(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, approverIDs []uint) error {
 	round := s.getNodeRound(ctx, instance.ID, node.ID)
+	// 节点首次激活时抄送通知(退回重审 round>1 不重复打扰)
+	if round == 1 {
+		s.notifyCc(ctx, node, instance)
+	}
 	for _, aid := range approverIDs {
 		task := &apprmodel.ApprovalTask{
 			NodeID:     node.ID,
@@ -370,6 +374,52 @@ func (s *ApprovalService) createTasks(ctx context.Context, node *apprmodel.Appro
 		})
 	}
 	return nil
+}
+
+// notifyCc 节点开始审批时抄送通知(cc_type=MEMBER 的用户列表)。
+// 抄送是纯知会(站内信+SSE+企微),抄送人无需操作;经事件总线由 listener 发送。
+func (s *ApprovalService) notifyCc(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance) {
+	cfg, err := s.approverRepo.GetByNodeID(ctx, node.ID)
+	if err != nil || cfg == nil || cfg.CcType != apprmodel.ApproverTypeMember {
+		return
+	}
+	ccIDs := parseUintArray(cfg.CcList)
+	if len(ccIDs) == 0 {
+		return
+	}
+	xevent.Publish(ctx, "approval.cc", map[string]any{
+		"cc_ids":      ccIDs,
+		"instance_id": instance.ID,
+		"message":     s.buildCcNotice(ctx, node, instance),
+	})
+}
+
+// buildCcNotice 组装抄送通知正文:单据类型「标题」+ 提交人 + 当前节点。
+func (s *ApprovalService) buildCcNotice(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance) string {
+	typeLabel := formTypeLabel[instance.Type]
+	if typeLabel == "" {
+		typeLabel = instance.Type
+	}
+	title := ""
+	if titles := fetchResourceTitles(ctx, []apprmodel.ApprovalInstance{*instance}); titles != nil {
+		title = titles[fmt.Sprintf("%s:%d", instance.Type, instance.ResourceID)]
+	}
+	subject := typeLabel
+	if title != "" {
+		subject = fmt.Sprintf("%s「%s」", typeLabel, title)
+	}
+	submitterName := ""
+	if u, err := s.userRepo.GetByID(ctx, instance.SubmitterID); err == nil && u != nil {
+		submitterName = u.Nickname
+		if submitterName == "" {
+			submitterName = u.Username
+		}
+	}
+	content := fmt.Sprintf("【抄送】%s已进入审批,当前节点「%s」", subject, node.Name)
+	if submitterName != "" {
+		content += ",提交人:" + submitterName
+	}
+	return content + "。请知悉,无需操作。"
 }
 
 // handleEmptyApprover 审批节点无可用审批人时,按节点 empty_approver_action 配置处理:

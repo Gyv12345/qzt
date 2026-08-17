@@ -168,6 +168,7 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
       fallback_approver: approverConfig.fallback_approver,
       same_submitter_action: approverConfig.same_submitter_action || 'SKIP',
       approver_list: parseUserIds(approverConfig.approver_list as string),
+      cc_list: parseUserIds(approverConfig.cc_list as string),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [node.id])
@@ -272,6 +273,20 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
                   />
                 </Form.Item>
               )}
+              <Form.Item
+                label="抄送人"
+                name="cc_list"
+                tooltip="节点开始审批时通知这些人(仅知会,无需审批操作);清空则不抄送"
+              >
+                <UserSelect
+                  mode="multiple"
+                  placeholder="选择抄送人(可空)"
+                  onChange={(ids: number[]) => {
+                    onApproverFieldChange('cc_list', JSON.stringify(ids ?? []))
+                    onApproverFieldChange('cc_type', ids && ids.length > 0 ? 'MEMBER' : '')
+                  }}
+                />
+              </Form.Item>
               <Form.Item label="空审批人处理" name="empty_approver_action">
                 <Select
                   options={EMPTY_ACTION_OPTIONS}
