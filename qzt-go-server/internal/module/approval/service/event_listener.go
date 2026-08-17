@@ -9,7 +9,6 @@ import (
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	finmodel "qzt-go-server/internal/model/finance"
-	"qzt-go-server/internal/pkg/notify"
 	crmrepo "qzt-go-server/internal/repository/crm"
 	finrepo "qzt-go-server/internal/repository/finance"
 	hrmrepo "qzt-go-server/internal/repository/hrm"
@@ -53,11 +52,10 @@ func RegisterEventListeners(ctx context.Context) error {
 			typeLabel = resourceType
 		}
 		content := fmt.Sprintf("您有一条「%s」审批待办需要处理", typeLabel)
-		if err := msgSvc.SendSystemMessage(ctx, approverID, title, content); err != nil {
+		// SendSystemMessageWithPath 内部已含 SSE+企微分发,勿再调 notify.Dispatch(会双发)
+		if err := msgSvc.SendSystemMessageWithPath(ctx, approverID, title, content, "/approval/todo"); err != nil {
 			// 失败仅记日志,不影响审批流程
 		}
-		// 通知分发(SSE + 企业微信)
-		notify.Dispatch(ctx, approverID, title, content, "/approval/todo")
 	})
 
 	// 审批完成 → 通知提交人
@@ -73,11 +71,10 @@ func RegisterEventListeners(ctx context.Context) error {
 			return
 		}
 		title := "审批结果通知"
-		if err := msgSvc.SendSystemMessage(ctx, submitterID, title, message); err != nil {
+		// SendSystemMessageWithPath 内部已含 SSE+企微分发,勿再调 notify.Dispatch(会双发)
+		if err := msgSvc.SendSystemMessageWithPath(ctx, submitterID, title, message, "/approval/mine"); err != nil {
 			// 失败仅记日志,不影响审批流程
 		}
-		// 通知分发(SSE + 企业微信)
-		notify.Dispatch(ctx, submitterID, title, message, "/approval/mine")
 
 		// ── 跨模块业务回调:审批通过→自动更新业务阶段 ──
 		resourceType, _ := m["resource_type"].(string)
@@ -140,6 +137,7 @@ func RegisterEventListeners(ctx context.Context) error {
 // 避免 import cycle:enterprise service 不 import approval,approval 用全局函数调用。
 type messageClient interface {
 	SendSystemMessage(ctx context.Context, receiverID uint, title, content string) error
+	SendSystemMessageWithPath(ctx context.Context, receiverID uint, title, content, path string) error
 }
 
 var globalMessageClient messageClient
@@ -160,5 +158,9 @@ func newEnterpriseMessageClient() messageClient {
 type noopMessageClient struct{}
 
 func (n *noopMessageClient) SendSystemMessage(ctx context.Context, receiverID uint, title, content string) error {
+	return nil
+}
+
+func (n *noopMessageClient) SendSystemMessageWithPath(ctx context.Context, receiverID uint, title, content, path string) error {
 	return nil
 }

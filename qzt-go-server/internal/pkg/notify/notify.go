@@ -54,6 +54,9 @@ func pushWecom(ctx context.Context, userID uint, title, content string) {
 	msg := fmt.Sprintf("%s\n%s", title, content)
 	if err := client.SendMessage(ctx, wecomUserID, "text", msg); err != nil {
 		xlogger.ErrorfCtx(ctx, "企业微信通知推送失败 user=%d wecom=%s: %v", userID, wecomUserID, err)
+	} else {
+		// 成功也留痕:同一通知若出现两条此日志,即存在重复 Dispatch(曾因双层分发双发企微)
+		xlogger.InfofCtx(ctx, "企业微信通知已推送 user=%d wecom=%s title=%s", userID, wecomUserID, title)
 	}
 }
 

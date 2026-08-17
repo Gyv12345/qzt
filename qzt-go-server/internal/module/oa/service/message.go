@@ -49,8 +49,14 @@ func (s *MessageService) Send(ctx context.Context, senderID uint, req *SendMessa
 	return nil
 }
 
-// SendSystemMessage 系统消息(senderId=0)。供审批引擎/事件总线调用。
+// SendSystemMessage 系统消息(senderId=0),点击跳消息中心。供跟进提醒等通用场景调用。
 func (s *MessageService) SendSystemMessage(ctx context.Context, receiverID uint, title, content string) error {
+	return s.SendSystemMessageWithPath(ctx, receiverID, title, content, "/oa/message")
+}
+
+// SendSystemMessageWithPath 系统消息 + 指定点击跳转路径。
+// 注意:内部已含通知分发(SSE+企微),调用方不要再调 notify.Dispatch,否则用户收到两条。
+func (s *MessageService) SendSystemMessageWithPath(ctx context.Context, receiverID uint, title, content, path string) error {
 	msg := &oamodel.OaMessage{
 		SenderID:    oamodel.SystemSenderID,
 		ReceiverID:  receiverID,
@@ -63,7 +69,7 @@ func (s *MessageService) SendSystemMessage(ctx context.Context, receiverID uint,
 		return err
 	}
 	// 通知分发(SSE + 企业微信)
-	notify.Dispatch(ctx, receiverID, title, content, "/approval/todo")
+	notify.Dispatch(ctx, receiverID, title, content, path)
 	return nil
 }
 
