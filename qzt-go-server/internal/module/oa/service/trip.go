@@ -9,8 +9,8 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
-	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/internal/repository"
+	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -99,7 +99,7 @@ func (s *TripService) Update(ctx context.Context, id uint, req *UpdateTripReques
 	if err != nil {
 		return repository.NotFoundOr(err, "出差单不存在")
 	}
-	if trip.ApprovalStatus != oamodel.ApprovalStatusNone && trip.ApprovalStatus != oamodel.ApprovalStatusRejected {
+	if !oamodel.CanEditApproval(trip.ApprovalStatus) {
 		return errors.New("仅未提交或已驳回的出差单可编辑")
 	}
 	trip.Title = req.Title

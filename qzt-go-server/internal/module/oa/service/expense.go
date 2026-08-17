@@ -10,8 +10,8 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
-	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/internal/repository"
+	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -145,7 +145,7 @@ func (s *ExpenseService) Update(ctx context.Context, id uint, req *UpdateExpense
 	if err != nil {
 		return repository.NotFoundOr(err, "报销单不存在")
 	}
-	if expense.ApprovalStatus != oamodel.ApprovalStatusNone && expense.ApprovalStatus != oamodel.ApprovalStatusRejected {
+	if !oamodel.CanEditApproval(expense.ApprovalStatus) {
 		return errors.New("仅未提交或已驳回的报销单可编辑")
 	}
 

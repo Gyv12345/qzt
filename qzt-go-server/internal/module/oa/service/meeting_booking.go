@@ -6,8 +6,8 @@ import (
 
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/pkg/numbergen"
-	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/internal/repository"
+	oarepo "qzt-go-server/internal/repository/oa"
 )
 
 // meeting_booking.go 会议预订服务。
@@ -21,14 +21,14 @@ func NewMeetingBookingService() *MeetingBookingService {
 }
 
 type CreateMeetingBookingRequest struct {
-	Title      string `json:"title" binding:"required"`
-	RoomID     uint   `json:"room_id" binding:"required"`
-	StartTime  string `json:"start_time" binding:"required"`
-	EndTime    string `json:"end_time" binding:"required"`
-	Attendees  int    `json:"attendees"`
-	Topic      string `json:"topic"`
-	Remark     string `json:"remark"`
-	DeptID     *uint  `json:"dept_id"`
+	Title     string `json:"title" binding:"required"`
+	RoomID    uint   `json:"room_id" binding:"required"`
+	StartTime string `json:"start_time" binding:"required"`
+	EndTime   string `json:"end_time" binding:"required"`
+	Attendees int    `json:"attendees"`
+	Topic     string `json:"topic"`
+	Remark    string `json:"remark"`
+	DeptID    *uint  `json:"dept_id"`
 }
 
 func (s *MeetingBookingService) Create(ctx context.Context, req *CreateMeetingBookingRequest, userID uint) (*oamodel.OaMeetingBooking, error) {
@@ -98,7 +98,7 @@ func (s *MeetingBookingService) Update(ctx context.Context, id uint, req *Update
 	if err != nil {
 		return repository.NotFoundOr(err, "会议预订不存在")
 	}
-	if booking.ApprovalStatus != oamodel.ApprovalStatusNone && booking.ApprovalStatus != oamodel.ApprovalStatusRejected {
+	if !oamodel.CanEditApproval(booking.ApprovalStatus) {
 		return errors.New("仅未提交或已驳回的预订可编辑")
 	}
 

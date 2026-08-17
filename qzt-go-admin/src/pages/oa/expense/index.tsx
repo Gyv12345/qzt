@@ -5,7 +5,7 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import { deleteExpense, listExpenses, markExpensePaid, submitExpenseApproval } from '../../../services/oa'
-import { APPROVAL_STATUS_MAP, type OaExpense } from '../../../types/oa'
+import { APPROVAL_STATUS_MAP, type OaExpense, canResubmitApproval} from '../../../types/oa'
 import ExpenseEditModal from './EditModal'
 import ExpenseDetailDrawer from './DetailDrawer'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
@@ -104,7 +104,7 @@ export default function ExpensePage() {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          {record.approval_status === 'NONE' && (
+          {canResubmitApproval(record.approval_status) && (
             <Popconfirm
               title="提交审批?"
               okText="提交"
@@ -116,7 +116,7 @@ export default function ExpensePage() {
               </Button>
             </Popconfirm>
           )}
-          {(record.approval_status === 'NONE' || record.approval_status === 'REJECTED') && (
+          {canResubmitApproval(record.approval_status) && (
             <Auth perm="oa:expense:edit">
               <Button type="link" size="small" onClick={() => openEdit(record.id)}>
                 编辑

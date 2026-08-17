@@ -88,7 +88,7 @@ func (s *LoanService) Update(ctx context.Context, id uint, req *UpdateLoanReques
 	if err != nil {
 		return repository.NotFoundOr(err, "借款单不存在")
 	}
-	if loan.ApprovalStatus != oamodel.ApprovalStatusNone && loan.ApprovalStatus != oamodel.ApprovalStatusRejected {
+	if !oamodel.CanEditApproval(loan.ApprovalStatus) {
 		return errors.New("仅未提交或已驳回的借款单可编辑")
 	}
 	loan.Title = req.Title

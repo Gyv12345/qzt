@@ -48,10 +48,12 @@ export default function ApprovalMinePage() {
       render: (_, record) => {
         switch (record.approval_status) {
           case 'PENDING':
+          case 'APPROVING':
             return <Tag color="processing">审批中</Tag>
           case 'APPROVED':
             return <Tag color="success">已通过</Tag>
           case 'REJECTED':
+          case 'UNAPPROVED':
             return <Tag color="error">已驳回</Tag>
           case 'REVOKED':
             return <Tag>已撤回</Tag>
@@ -74,7 +76,7 @@ export default function ApprovalMinePage() {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          {record.approval_status === 'PENDING' && (
+          {(record.approval_status === 'PENDING' || record.approval_status === 'APPROVING') && (
             <Auth perm="approval:mine:revoke">
               <Popconfirm
                 title="确认撤回该审批?"

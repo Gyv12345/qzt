@@ -11,8 +11,10 @@ interface InstanceDrawerProps {
 
 const STATUS_TAG: Record<string, { color: string; text: string }> = {
   PENDING: { color: 'processing', text: '审批中' },
+  APPROVING: { color: 'processing', text: '审批中' },
   APPROVED: { color: 'success', text: '已通过' },
   REJECTED: { color: 'error', text: '已驳回' },
+  UNAPPROVED: { color: 'error', text: '已驳回' },
   REVOKED: { color: 'default', text: '已撤回' },
 }
 

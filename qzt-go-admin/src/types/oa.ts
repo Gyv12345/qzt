@@ -45,8 +45,13 @@ export const APPROVAL_STATUS_MAP: Record<string, { text: string; color: string }
   APPROVING: { text: '审批中', color: 'processing' },
   APPROVED: { text: '已通过', color: 'success' },
   REJECTED: { text: '已驳回', color: 'error' },
+  UNAPPROVED: { text: '已驳回', color: 'error' },
   REVOKED: { text: '已撤回', color: 'warning' },
 }
+
+/** 该审批状态下是否允许编辑/重新提交(未提交、已驳回、已撤回)。 */
+export const canResubmitApproval = (status?: string) =>
+  ['NONE', 'UNAPPROVED', 'REJECTED', 'REVOKED'].includes(status || 'NONE')
 
 /** 出差申请 */
 export interface OaBusinessTrip {

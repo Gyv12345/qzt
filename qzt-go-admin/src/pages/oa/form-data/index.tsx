@@ -3,7 +3,7 @@ import { App, Button, Card, Col, Modal, Popconfirm, Row, Space, Tag } from 'antd
 import { PlusOutlined, FormOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
-import { APPROVAL_STATUS_MAP } from '../../../types/oa'
+import { APPROVAL_STATUS_MAP, canResubmitApproval} from '../../../types/oa'
 import { deleteFormData, listEnabledForms, listFormData, submitFormDataApproval } from '../../../services/oa'
 import type { OaFormData, OaFormTemplate } from '../../../types/oa'
 import DynamicFormFillModal from './FillModal'
@@ -84,12 +84,12 @@ export default function FormDataPage() {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          {record.approval_status === 'NONE' && (
+          {canResubmitApproval(record.approval_status) && (
             <Popconfirm title="提交审批?" okText="提交" cancelText="取消" onConfirm={() => handleSubmitApproval(record)}>
               <Button type="link" size="small">提交审批</Button>
             </Popconfirm>
           )}
-          {(record.approval_status === 'NONE' || record.approval_status === 'REJECTED') && (
+          {canResubmitApproval(record.approval_status) && (
             <Auth perm="oa:formdata:edit">
               <Button type="link" size="small" onClick={() => {
                 const tpl = templates.find((t) => t.id === record.template_id)

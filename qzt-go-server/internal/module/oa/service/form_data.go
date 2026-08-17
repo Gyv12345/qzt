@@ -77,7 +77,7 @@ func (s *FormDataService) Update(ctx context.Context, id uint, req *UpdateFormDa
 	if err != nil {
 		return repository.NotFoundOr(err, "表单数据不存在")
 	}
-	if data.ApprovalStatus != oamodel.ApprovalStatusNone && data.ApprovalStatus != oamodel.ApprovalStatusRejected {
+	if !oamodel.CanEditApproval(data.ApprovalStatus) {
 		return errors.New("仅未提交或已驳回的表单可编辑")
 	}
 	data.FieldValues = req.FieldValues

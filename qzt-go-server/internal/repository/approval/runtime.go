@@ -60,6 +60,16 @@ func (r *InstanceRepo) ListByIDs(ctx context.Context, ids []uint) ([]apprmodel.A
 	return list, err
 }
 
+// HasApproving 判断某业务资源是否存在审批中的活跃实例。
+// 供 Push 防重复提审:审批中不允许再次提交;驳回/撤回/已通过终态不拦(可重新发起)。
+func (r *InstanceRepo) HasApproving(ctx context.Context, formType string, resourceID uint) (bool, error) {
+	var count int64
+	err := repoDB(ctx).Model(&apprmodel.ApprovalInstance{}).
+		Where("type = ? AND resource_id = ? AND approval_status = ?", formType, resourceID, apprmodel.StatusApproving).
+		Count(&count).Error
+	return count > 0, err
+}
+
 // HasInstance 判断某业务资源是否已有审批实例(任何状态)。
 // 供各业务模块的 Delete 调用:已进入审批流程的记录不允许删除,避免出现孤儿审批实例。
 func HasInstance(ctx context.Context, formType string, resourceID uint) bool {

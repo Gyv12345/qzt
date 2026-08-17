@@ -64,6 +64,10 @@ func (s *ApprovalService) Push(ctx context.Context, req *PushRequest, submitterI
 	if !isValidFormType(req.FormType) {
 		return nil, errors.New("不支持的表单类型: " + req.FormType)
 	}
+	// 防重复提审:审批中的资源不允许再次提交(驳回/撤回后可重新发起,创建新实例)
+	if approving, err := s.instanceRepo.HasApproving(ctx, req.FormType, req.ResourceID); err == nil && approving {
+		return nil, errors.New("该单据已有审批中的流程,请勿重复提交(可先撤回)")
+	}
 	// OA_CUSTOM 按 resource 查 template_key,实现每个表单模板一条独立审批流;
 	// 找不到模板专属启用流程时回退到 OA_CUSTOM 通用流程(form_key='')。
 	formKey := ""

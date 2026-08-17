@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { deleteMeetingBooking, listMeetingBookings, listMeetingRooms, submitMeetingBookingApproval } from '../../../services/oa'
-import { APPROVAL_STATUS_MAP, type OaMeetingBooking, type OaMeetingRoom } from '../../../types/oa'
+import { APPROVAL_STATUS_MAP, type OaMeetingBooking, type OaMeetingRoom, canResubmitApproval} from '../../../types/oa'
 import MeetingBookingEditModal from './EditModal'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 
@@ -58,6 +58,7 @@ export default function MeetingBookingPage() {
         APPROVING: { text: '审批中' },
         APPROVED: { text: '已通过' },
         REJECTED: { text: '已驳回' },
+        UNAPPROVED: { text: '已驳回' },
         REVOKED: { text: '已撤回' },
       },
       render: (_, r) => {
@@ -72,12 +73,12 @@ export default function MeetingBookingPage() {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          {record.approval_status === 'NONE' && (
+          {canResubmitApproval(record.approval_status) && (
             <Popconfirm title="提交审批?" okText="提交" cancelText="取消" onConfirm={() => handleSubmit(record)}>
               <Button type="link" size="small">提交审批</Button>
             </Popconfirm>
           )}
-          {(record.approval_status === 'NONE' || record.approval_status === 'REJECTED') && (
+          {canResubmitApproval(record.approval_status) && (
             <Auth perm="oa:meeting:edit">
               <Button type="link" size="small" onClick={() => { setEditingId(record.id); setEditOpen(true) }}>编辑</Button>
             </Auth>
