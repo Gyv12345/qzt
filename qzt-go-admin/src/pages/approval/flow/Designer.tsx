@@ -276,7 +276,7 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
         <Space>
           <strong>{detail?.name || '流程设计'}</strong>
           <span style={{ color: '#999', fontSize: 12 }}>
-            点击连线上的 + 插入节点;点击节点编辑属性
+            点击连线上的 + 插入节点;点击节点编辑属性;选中条件节点可 + 追加平行分支
           </span>
           <span style={{ color: '#999', fontSize: 12 }}>
             条件分支按从左到右顺序匹配,首个满足即走;都不满足走兜底分支(未连条件的分支)
