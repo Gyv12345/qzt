@@ -12,6 +12,7 @@ import { maskPhone, maskEmail } from '../../../utils/mask'
 import { ALL_DEPT_KEY, NONE_DEPT_KEY, collectDeptAndSub, deptToTreeNodes } from './deptTree'
 import UserEditModal from './UserEditModal'
 import HandoverModal from './HandoverModal'
+import ResetPasswordModal from './ResetPasswordModal'
 import './index.css'
 
 /** 系统用户管理:左侧部门树 + 右侧用户表格(前端按部门/关键词过滤) */
@@ -30,6 +31,8 @@ export default function UserPage() {
 
   // 离职交接
   const [handoverTarget, setHandoverTarget] = useState<SysUser | null>(null)
+  // 重置密码
+  const [resetPwdTarget, setResetPwdTarget] = useState<SysUser | null>(null)
   const [keyword, setKeyword] = useState('')
 
   // 拉全量用户(供前端按部门/关键词过滤)
@@ -148,7 +151,7 @@ export default function UserPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 200,
+      width: 250,
       fixed: 'right',
       render: (_, record) => (
         <Space>
@@ -156,6 +159,13 @@ export default function UserPage() {
             <Button type="link" size="small" onClick={() => openEdit(record)}>
               编辑
             </Button>
+          </Auth>
+          <Auth perm="system:user:resetPwd">
+            {record.id !== 1 && (
+              <Button type="link" size="small" onClick={() => setResetPwdTarget(record)}>
+                重置密码
+              </Button>
+            )}
           </Auth>
           {record.username !== 'admin' && (
             <Button
@@ -256,6 +266,7 @@ export default function UserPage() {
         onSuccess={reloadUsers}
       />
       <HandoverModal target={handoverTarget} onClose={() => setHandoverTarget(null)} />
+      <ResetPasswordModal target={resetPwdTarget} onClose={() => setResetPwdTarget(null)} />
     </div>
   )
 }

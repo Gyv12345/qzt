@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"qzt-go-server/internal/middleware"
 	"qzt-go-server/internal/module/system/service"
 	"qzt-go-server/internal/module/system/errcode"
 	response "qzt-go-server/pkg/xresponse"
@@ -15,6 +16,17 @@ type RoleHandler struct {
 
 func NewRoleHandler() *RoleHandler {
 	return &RoleHandler{svc: service.NewRoleService()}
+}
+
+// alertBuiltinRoleWrite 针对内置超管角色(id=1)的写操作尝试(无论成败)推送
+// 安全告警给根账户本人。err 为对应 service 调用的结果。
+func alertBuiltinRoleWrite(c *gin.Context, action string, err error) {
+	result := "成功"
+	if err != nil {
+		result = "被拒绝: " + err.Error()
+	}
+	service.AlertRootAccountWrite(c.Request.Context(), action, "超级管理员角色",
+		middleware.GetUsername(c), c.ClientIP(), result)
 }
 
 // Create 创建角色
@@ -83,7 +95,11 @@ func (h *RoleHandler) Update(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	if err := h.svc.Update(c.Request.Context(), uint(id), &req); err != nil {
+	err = h.svc.Update(c.Request.Context(), uint(id), &req)
+	if id == 1 {
+		alertBuiltinRoleWrite(c, "更新角色", err)
+	}
+	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}
@@ -104,7 +120,11 @@ func (h *RoleHandler) Delete(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误")
 		return
 	}
-	if err := h.svc.Delete(c.Request.Context(), uint(id)); err != nil {
+	err = h.svc.Delete(c.Request.Context(), uint(id))
+	if id == 1 {
+		alertBuiltinRoleWrite(c, "删除角色", err)
+	}
+	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}

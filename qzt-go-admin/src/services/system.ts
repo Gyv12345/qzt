@@ -12,6 +12,7 @@ import type {
   OperationLogQuery,
   PageParams,
   PageResult,
+  ResetPasswordRequest,
   SysAPI,
   SysConfig,
   SysDict,
@@ -59,6 +60,10 @@ export const createUser = (data: CreateUserRequest) => request.post('/system/use
 
 export const updateUser = (id: number, data: UpdateUserRequest) =>
   request.put(`/system/users/${id}`, data)
+
+// 重置用户密码(管理员,无需旧密码);重置后该用户所有会话失效且登录失败锁定解除
+export const resetUserPassword = (id: number, data: ResetPasswordRequest) =>
+  request.put(`/system/users/${id}/reset-password`, data)
 
 export const deleteUser = (id: number) => request.delete(`/system/users/${id}`)
 

@@ -112,6 +112,18 @@ func (s *RoleService) Update(ctx context.Context, id uint, req *UpdateRoleReques
 		return repository.NotFoundOr(err, "角色不存在")
 	}
 
+	// super_admin 角色(id=1)为系统内置:名称/排序/备注可改(展示性字段,无害),
+	// 状态与数据权限不可改,防止内置角色被禁用或收窄造成权限体系异常
+	// (与 Delete 的 id==1 保护呼应)。按"真正变化"判定,无变化的回填放行。
+	if id == 1 {
+		if req.Status != nil && *req.Status != role.Status {
+			return errors.New("超级管理员角色状态不可修改")
+		}
+		if req.DataScope != nil && *req.DataScope != role.DataScope {
+			return errors.New("超级管理员角色数据权限不可修改")
+		}
+	}
+
 	if req.Name != "" {
 		role.Name = req.Name
 	}

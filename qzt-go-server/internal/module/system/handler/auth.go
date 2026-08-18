@@ -51,6 +51,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	middleware.RecordLogin(c, "登录", res.UserID, req.Username, true, "")
+	// 根账户(admin)登录成功即时提醒本人:带 IP 归属地的企微/SSE 推送,
+	// 非本人登录时真超管能第一时间发现并改密。
+	if res.UserID == service.RootAccountID {
+		service.AlertRootAccountLogin(c.Request.Context(), c.ClientIP())
+	}
 	response.OK(c, res)
 }
 
@@ -425,6 +430,9 @@ func (h *AuthHandler) WecomCallback(c *gin.Context) {
 		return
 	}
 	middleware.RecordLogin(c, "企业微信扫码登录", resp.UserID, resp.Username, true, "")
+	if resp.UserID == service.RootAccountID {
+		service.AlertRootAccountLogin(c.Request.Context(), c.ClientIP())
+	}
 	// 桌面端轮询模式:token 已存 Redis 供 PC 轮询,这里提示扫码端(手机)回电脑端
 	if isScanPoll {
 		response.OK(c, gin.H{"scan_login": true, "message": "登录成功,请在电脑端查看"})

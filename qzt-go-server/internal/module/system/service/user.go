@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"qzt-go-server/internal/model"
-	"qzt-go-server/pkg/xcryption"
+	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/repository"
+	"qzt-go-server/pkg/xcryption"
 	"gorm.io/gorm"
 )
 
@@ -105,20 +106,14 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 		return repository.NotFoundOr(err, "用户不存在")
 	}
 
-	// admin(id=1) 是系统根账户,必须始终持有超级管理员角色(id=1),
-	// 防止经由此 Update 把超管角色摘掉导致权限体系锁死(与 Delete 的 id==1 保护呼应)。
-	// 仅当请求带了角色字段(非 nil)才校验;不带则不动角色,避免普通改昵称被误拦。
-	if id == 1 && req.RoleIDs != nil {
-		hasSuperAdmin := false
-		for _, rid := range req.RoleIDs {
-			if rid == 1 {
-				hasSuperAdmin = true
-				break
-			}
-		}
-		if !hasSuperAdmin {
-			return errors.New("超级管理员账户必须保留超级管理员角色")
-		}
+	// admin(id=1) 是系统根账户,防篡改硬保护:密码/状态/角色经由本接口一律不可
+	// 变更——重置根账户密码即接管系统,禁用即锁死权限体系,而角色变更对持有
+	// 代码级 RBAC 绕过的根账户没有任何合法收益。根账户改密只走个人中心
+	// 「修改密码」(验旧密码)。资料字段(昵称/头像/邮箱等)不受限。
+	// 判定口径是"真正变化"而非"字段存在":前端编辑表单会回填当前 status/role_ids,
+	// 无变化的回填必须放行,否则根账户连改昵称都会被拦。
+	if id == 1 && req.Password != "" {
+		return errors.New("超级管理员密码仅可在个人中心修改")
 	}
 
 	// 先判断密码/状态/角色是否真正变化(基于 user 当前值,必须在下面赋值之前判断,
@@ -141,6 +136,12 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 				}
 			}
 		}
+	}
+	if id == 1 && statusChanged {
+		return errors.New("超级管理员账户状态不可修改")
+	}
+	if id == 1 && rolesChanged {
+		return errors.New("超级管理员账户角色不可修改")
 	}
 
 	if req.Nickname != "" {
@@ -185,6 +186,39 @@ func (s *UserService) Update(ctx context.Context, id uint, req *UpdateUserReques
 	})
 }
 
+// ResetPasswordRequest 管理员重置用户密码请求(无需旧密码)。
+type ResetPasswordRequest struct {
+	Password string `json:"password" binding:"required,min=6,max=72"`
+}
+
+// ResetPassword 管理员重置指定用户的密码(典型场景:用户忘记密码)。
+// 与 Update 不同,只动密码一个字段,不会连带覆盖部门/上级/角色等资料。
+// TokenVersion+1 撤销该用户已签发的全部会话;同时清除该用户名的登录失败
+// 计数,避免"密码已重置却仍被失败锁拦 15 分钟"。
+func (s *UserService) ResetPassword(ctx context.Context, id uint, req *ResetPasswordRequest) error {
+	// admin(id=1) 是系统根账户:免旧密码重置其密码等于直接接管系统,任何操作者
+	// (含其他超管)都不允许。根账户改密只走个人中心「修改密码」(需验旧密码)。
+	if id == 1 {
+		return errors.New("超级管理员密码仅可在个人中心修改,不可被重置")
+	}
+	user, err := s.userRepo.GetByID(ctx, id)
+	if err != nil {
+		return repository.NotFoundOr(err, "用户不存在")
+	}
+
+	hashed, err := xcryption.HashPassword(req.Password)
+	if err != nil {
+		return errors.New("密码加密失败")
+	}
+	user.Password = hashed
+	user.TokenVersion++
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return err
+	}
+	cache.ClearLoginFailByUsername(user.Username)
+	return nil
+}
+
 func (s *UserService) Delete(ctx context.Context, id, currentUserID uint) error {
 	// admin(id=1) 是系统根账户,无论角色如何变更都不可删除,防止权限体系锁死。
 	if id == 1 {
@@ -207,7 +241,7 @@ func (s *UserService) Delete(ctx context.Context, id, currentUserID uint) error 
 
 func (s *UserService) List(ctx context.Context, page, pageSize int) ([]model.SysUser, int64, error) {
 	return s.userRepo.PageList(ctx, page, pageSize, &repository.QueryOptions{
-		Order:    []string{"id DESC"},
+		Order:    []string{"id ASC"},
 		Preloads: []string{"Roles"},
 	})
 }

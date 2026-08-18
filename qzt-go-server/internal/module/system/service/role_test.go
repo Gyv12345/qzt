@@ -264,3 +264,49 @@ func TestRoleDelete_Guards(t *testing.T) {
 		})
 	}
 }
+
+// TestRoleUpdate_BuiltinRoleGuards 内置超管角色(id=1)更新守卫:
+// 状态与数据权限不可改(防篡改),名称/排序可改;相同值回填放行;
+// 普通角色的状态修改不受影响。
+func TestRoleUpdate_BuiltinRoleGuards(t *testing.T) {
+	env := newTestEnv(t, nil)
+	ctx := context.Background()
+	env.seedRole(t, 1, model.SuperAdminRoleCode, "超级管理员")
+	env.seedRole(t, 2, "ops", "运维")
+	svc := NewRoleService()
+
+	rejectCases := []struct {
+		name       string
+		req        *UpdateRoleRequest
+		wantErrSub string
+	}{
+		{"禁用内置角色被拒", &UpdateRoleRequest{Status: ptrInt8(0)}, "超级管理员角色状态不可修改"},
+		{"收窄内置角色数据权限被拒", &UpdateRoleRequest{DataScope: ptrInt8(5)}, "超级管理员角色数据权限不可修改"},
+	}
+	for _, c := range rejectCases {
+		t.Run(c.name, func(t *testing.T) {
+			err := svc.Update(ctx, 1, c.req)
+			if err == nil || !strings.Contains(err.Error(), c.wantErrSub) {
+				t.Fatalf("应拒绝并提示 %q, 实际 err=%v", c.wantErrSub, err)
+			}
+		})
+	}
+
+	// 名称/排序/相同值回填可改(回填值取自当前落库值,避免依赖列默认值)
+	cur, err := svc.GetByID(ctx, 1)
+	if err != nil {
+		t.Fatalf("回读内置角色失败: %v", err)
+	}
+	if err := svc.Update(ctx, 1, &UpdateRoleRequest{Name: "超级管理员", Sort: cur.Sort, Status: ptrInt8(cur.Status), DataScope: ptrInt8(cur.DataScope)}); err != nil {
+		t.Fatalf("名称/排序/相同值回填应成功: %v", err)
+	}
+
+	// 普通角色状态修改不受守卫影响
+	if err := svc.Update(ctx, 2, &UpdateRoleRequest{Status: ptrInt8(0)}); err != nil {
+		t.Fatalf("普通角色改状态应成功: %v", err)
+	}
+	got, err := svc.GetByID(ctx, 2)
+	if err != nil || got.Status != 0 {
+		t.Fatalf("普通角色状态应已禁用, got=%+v err=%v", got, err)
+	}
+}

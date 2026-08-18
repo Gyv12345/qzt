@@ -129,6 +129,21 @@ func ClearLoginFail(username, ip string) {
 	store.Del(loginUserKey(username))
 }
 
+// ClearLoginFailByUsername 清除某用户名全部维度的登录失败计数。管理员重置密码时
+// 不知道该用户历史登录的来源 IP,无法逐 IP 清除,故按 login:fail:<username>:* 模式
+// 扫删。清理失败静默忽略——锁本身有 15 分钟 TTL,不应阻断重置密码主流程。
+// Scan 返回已去前缀的 key,直接传给 Del 即可。
+func ClearLoginFailByUsername(username string) {
+	keys, err := store.Scan("login:fail:" + username + ":*")
+	if err != nil {
+		return
+	}
+	for _, k := range keys {
+		store.Del(k)
+	}
+	store.Del(loginUserKey(username))
+}
+
 func GetLoginLockTTL(username, ip string) time.Duration {
 	ttlIP, _ := store.TTL(loginKey(username, ip))
 	ttlUser, _ := store.TTL(loginUserKey(username))

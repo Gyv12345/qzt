@@ -96,6 +96,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/users", userHandler.Create)
 		auth.GET("/users/:id", userHandler.GetByID)
 		auth.PUT("/users/:id", userHandler.Update)
+		auth.PUT("/users/:id/reset-password", userHandler.ResetPassword)
 		auth.DELETE("/users/:id", userHandler.Delete)
 
 		// 角色管理

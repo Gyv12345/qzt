@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"slices"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 
 	"qzt-go-server/internal/middleware"
+	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/module/system/service"
 	response "qzt-go-server/pkg/xresponse"
@@ -17,6 +19,28 @@ type UserHandler struct {
 
 func NewUserHandler() *UserHandler {
 	return &UserHandler{svc: service.NewUserService()}
+}
+
+// rejectRoleGrantByNonSuperAdmin 分配 super_admin 角色(id=1,持有者代码级绕过
+// 全部 RBAC)仅限超级管理员操作者本人,防止仅持用户管理权限的普通管理员
+// 给自己或他人授超管角色完成自我提权。命中拦截时已写响应并返回 true。
+func rejectRoleGrantByNonSuperAdmin(c *gin.Context, roleIDs []uint) bool {
+	if !slices.Contains(roleIDs, 1) || slices.Contains(middleware.GetRoleCodes(c), model.SuperAdminRoleCode) {
+		return false
+	}
+	response.Fail(c, errcode.ErrForbidden, "仅超级管理员可分配超级管理员角色")
+	return true
+}
+
+// alertRootAccountWrite 针对根账户(id=1)的写操作尝试(无论被守卫拒绝还是放行)
+// 推送安全告警给根账户本人。err 为对应 service 调用的结果。
+func alertRootAccountWrite(c *gin.Context, action string, err error) {
+	result := "成功"
+	if err != nil {
+		result = "被拒绝: " + err.Error()
+	}
+	service.AlertRootAccountWrite(c.Request.Context(), action, "超级管理员账户",
+		middleware.GetUsername(c), c.ClientIP(), result)
 }
 
 // Create 创建用户
@@ -33,6 +57,10 @@ func (h *UserHandler) Create(c *gin.Context) {
 	var req service.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+
+	if rejectRoleGrantByNonSuperAdmin(c, req.RoleIDs) {
 		return
 	}
 
@@ -72,7 +100,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 
 // Update 更新用户
 // @Summary      更新用户
-// @Description  更新用户资料/密码/角色;改密或改角色会使已签发 token 失效
+// @Description  更新用户资料/密码/角色;改密或改角色会使已签发 token 失效。超级管理员账户(id=1)的密码/状态/角色不可经由本接口变更,仅限资料字段
 // @Tags         用户管理
 // @Accept       json
 // @Produce      json
@@ -94,7 +122,50 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := h.svc.Update(c.Request.Context(), uint(id), &req); err != nil {
+	if rejectRoleGrantByNonSuperAdmin(c, req.RoleIDs) {
+		return
+	}
+
+	err = h.svc.Update(c.Request.Context(), uint(id), &req)
+	if id == 1 {
+		alertRootAccountWrite(c, "更新用户", err)
+	}
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, nil)
+}
+
+// ResetPassword 重置用户密码
+// @Summary      重置用户密码
+// @Description  管理员重置指定用户密码(无需旧密码,典型场景:用户忘记密码)。会使该用户所有已登录会话失效,并清除其登录失败锁定。超级管理员账户(id=1)不可被重置
+// @Tags         用户管理
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      int                          true  "用户ID"
+// @Param        body  body      service.ResetPasswordRequest  true  "重置密码请求"
+// @Success      200   {object}  xresponse.Response
+// @Router       /system/users/{id}/reset-password [put]
+func (h *UserHandler) ResetPassword(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误")
+		return
+	}
+
+	var req service.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+
+	err = h.svc.ResetPassword(c.Request.Context(), uint(id), &req)
+	if id == 1 {
+		alertRootAccountWrite(c, "重置密码", err)
+	}
+	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}
@@ -117,7 +188,11 @@ func (h *UserHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := h.svc.Delete(c.Request.Context(), uint(id), middleware.GetUserID(c)); err != nil {
+	err = h.svc.Delete(c.Request.Context(), uint(id), middleware.GetUserID(c))
+	if id == 1 {
+		alertRootAccountWrite(c, "删除用户", err)
+	}
+	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}

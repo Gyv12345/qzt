@@ -1,6 +1,8 @@
 // user_test.go UserService 关键守卫测试(近期安全修复的回归):
 //   - Delete:超管账户(id=1)不可删、不能删自己、持超管角色者不可删;
-//   - Update:admin(id=1) 必须保留超管角色(id=1),不带角色字段时不误拦;
+//   - Update:admin(id=1) 密码/状态/角色不可变更(防篡改硬保护),
+//     无变化回填(编辑表单回填相同 status/role_ids)放行;
+//   - ResetPassword:根账户不可被重置密码(接管直达通道);
 //   - TokenVersion 只在密码/状态/角色真正变化时 +1(编辑资料不应踢人会话);
 //   - UpdateProfile 仅允许改昵称/头像/邮箱/手机。
 //
@@ -14,6 +16,7 @@ import (
 	"testing"
 
 	"qzt-go-server/internal/model"
+	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/pkg/xcryption"
 )
 
@@ -51,10 +54,10 @@ func TestUserDelete_Guards(t *testing.T) {
 	}
 }
 
-// TestUserUpdate_AdminKeepsSuperAdminRole admin(id=1) 的角色保护:
-// 带 role_ids 但不含超管角色(含清空)一律拒绝;保留超管角色的变更放行;
-// 不带 role_ids 的普通编辑不触发该校验、也不动角色。
-func TestUserUpdate_AdminKeepsSuperAdminRole(t *testing.T) {
+// TestUserUpdate_AdminImmutability admin(id=1) 防篡改硬保护回归:
+// 密码/状态/角色经由 Update 一律不可变更(无论怎么变),仅资料字段放行;
+// 前端编辑表单回填的相同 status/role_ids 属于无变化回填,必须放行。
+func TestUserUpdate_AdminImmutability(t *testing.T) {
 	env := newTestEnv(t, nil)
 	ctx := context.Background()
 	env.seedRole(t, 1, model.SuperAdminRoleCode, "超级管理员")
@@ -63,48 +66,75 @@ func TestUserUpdate_AdminKeepsSuperAdminRole(t *testing.T) {
 	svc := NewUserService()
 
 	rejectCases := []struct {
-		name    string
-		roleIDs []uint
+		name       string
+		req        *UpdateUserRequest
+		wantErrSub string
 	}{
-		{"摘掉超管角色", []uint{2}},
-		{"清空角色", []uint{}},
+		{"改密码被拒", &UpdateUserRequest{Password: "NewPass123"}, "超级管理员密码仅可在个人中心修改"},
+		{"禁用被拒", &UpdateUserRequest{Status: ptrInt8(0)}, "超级管理员账户状态不可修改"},
+		{"摘掉超管角色被拒", &UpdateUserRequest{RoleIDs: []uint{2}}, "超级管理员账户角色不可修改"},
+		{"清空角色被拒", &UpdateUserRequest{RoleIDs: []uint{}}, "超级管理员账户角色不可修改"},
+		{"新增角色被拒(即使保留超管角色)", &UpdateUserRequest{RoleIDs: []uint{1, 2}}, "超级管理员账户角色不可修改"},
 	}
 	for _, c := range rejectCases {
 		t.Run(c.name, func(t *testing.T) {
-			err := svc.Update(ctx, 1, &UpdateUserRequest{RoleIDs: c.roleIDs})
-			if err == nil || err.Error() != "超级管理员账户必须保留超级管理员角色" {
-				t.Fatalf("应拒绝 %s, 实际 err=%v", c.name, err)
+			before, _ := svc.GetByID(ctx, 1)
+			err := svc.Update(ctx, 1, c.req)
+			if err == nil || !strings.Contains(err.Error(), c.wantErrSub) {
+				t.Fatalf("应拒绝并提示 %q, 实际 err=%v", c.wantErrSub, err)
 			}
 			got, _ := svc.GetByID(ctx, 1)
+			if got.TokenVersion != before.TokenVersion {
+				t.Fatalf("被拒的更新不应落库, TokenVersion before=%d after=%d", before.TokenVersion, got.TokenVersion)
+			}
 			if len(got.Roles) != 1 || got.Roles[0].ID != 1 {
 				t.Fatalf("被拒后 admin 角色应保持不变, got=%v", got.Roles)
+			}
+			if c.req.Password != "" && xcryption.CheckPassword(got.Password, c.req.Password) {
+				t.Fatal("被拒后密码不应被改动")
 			}
 		})
 	}
 
-	// 保留超管角色的变更放行
-	if err := svc.Update(ctx, 1, &UpdateUserRequest{RoleIDs: []uint{1, 2}}); err != nil {
-		t.Fatalf("保留超管角色的更新应成功: %v", err)
+	// 编辑表单回填场景:带相同 status/role_ids(无变化)+ 改昵称,应放行且不踢会话。
+	before, _ := svc.GetByID(ctx, 1)
+	err := svc.Update(ctx, 1, &UpdateUserRequest{
+		Nickname: "新昵称", Status: ptrInt8(1), RoleIDs: []uint{1},
+	})
+	if err != nil {
+		t.Fatalf("无变化回填+资料编辑应成功: %v", err)
 	}
 	got, _ := svc.GetByID(ctx, 1)
-	if len(got.Roles) != 2 {
-		t.Fatalf("admin 应持有 2 个角色, got=%v", got.Roles)
-	}
-	versionAfterRoleChange := got.TokenVersion // 新增角色会 +1,后续以此次为基线
-
-	// 不带 role_ids:守卫跳过,角色不动,也不踢会话
-	if err := svc.Update(ctx, 1, &UpdateUserRequest{Nickname: "新昵称"}); err != nil {
-		t.Fatalf("不带角色的普通编辑应成功: %v", err)
-	}
-	got, _ = svc.GetByID(ctx, 1)
 	if got.Nickname != "新昵称" {
 		t.Fatalf("昵称应已更新, got %q", got.Nickname)
 	}
-	if len(got.Roles) != 2 {
-		t.Fatalf("不带 role_ids 的编辑不应改动角色, got=%v", got.Roles)
+	if got.TokenVersion != before.TokenVersion {
+		t.Fatalf("无变化回填不应 bump TokenVersion: before=%d after=%d", before.TokenVersion, got.TokenVersion)
 	}
-	if got.TokenVersion != versionAfterRoleChange {
-		t.Fatalf("角色集合未变的编辑不应 bump TokenVersion: before=%d after=%d", versionAfterRoleChange, got.TokenVersion)
+	if len(got.Roles) != 1 || got.Roles[0].ID != 1 {
+		t.Fatalf("admin 角色应保持不变, got=%v", got.Roles)
+	}
+}
+
+// TestUserResetPassword_RootRejected 根账户(id=1)不可被管理员重置密码:
+// 这是接管系统的直达通道,任何操作者都被拒绝,密码与 TokenVersion 均不变。
+func TestUserResetPassword_RootRejected(t *testing.T) {
+	env := newTestEnv(t, nil)
+	ctx := context.Background()
+	env.seedRole(t, 1, model.SuperAdminRoleCode, "超级管理员")
+	before := env.seedUser(t, 1, "admin", 1, 1)
+	svc := NewUserService()
+
+	err := svc.ResetPassword(ctx, 1, &ResetPasswordRequest{Password: "hacked123"})
+	if err == nil || !strings.Contains(err.Error(), "不可被重置") {
+		t.Fatalf("重置根账户密码应被拒绝, 实际 err=%v", err)
+	}
+	got, _ := svc.GetByID(ctx, 1)
+	if !xcryption.CheckPassword(got.Password, testPassword) {
+		t.Fatal("被拒后根账户密码不应被改动")
+	}
+	if got.TokenVersion != before.TokenVersion {
+		t.Fatalf("被拒后不应 bump TokenVersion: before=%d after=%d", before.TokenVersion, got.TokenVersion)
 	}
 }
 
@@ -214,5 +244,41 @@ func TestUpdateProfile_OnlyAllowedFields(t *testing.T) {
 	}
 	if !xcryption.CheckPassword(got.Password, testPassword) {
 		t.Fatal("UpdateProfile 不应改动密码")
+	}
+}
+
+// TestUserResetPassword 管理员重置密码三要素:新密码落库可校验、TokenVersion+1
+// (撤销旧会话)、该用户名全部维度的登录失败计数被清除(重置完立即可登录)。
+func TestUserResetPassword(t *testing.T) {
+	env := newTestEnv(t, nil)
+	ctx := context.Background()
+	env.seedRole(t, 11, "ops", "运维")
+	env.seedUser(t, 201, "locked", 1, 11)
+	svc := NewUserService()
+
+	// 制造失败计数:两个 IP 维度 + 用户名维度(IncrLoginFail 内部同步累加)
+	cache.IncrLoginFail("locked", "1.1.1.1")
+	cache.IncrLoginFail("locked", "1.1.1.1")
+	cache.IncrLoginFail("locked", "2.2.2.2")
+
+	before, err := svc.GetByID(ctx, 201)
+	if err != nil {
+		t.Fatalf("获取用户失败: %v", err)
+	}
+	if err := svc.ResetPassword(ctx, 201, &ResetPasswordRequest{Password: "newpass123"}); err != nil {
+		t.Fatalf("重置密码应成功: %v", err)
+	}
+
+	got, _ := svc.GetByID(ctx, 201)
+	if !xcryption.CheckPassword(got.Password, "newpass123") {
+		t.Fatal("重置后新密码应校验通过")
+	}
+	if got.TokenVersion != before.TokenVersion+1 {
+		t.Fatalf("重置密码应 bump TokenVersion: before=%d after=%d", before.TokenVersion, got.TokenVersion)
+	}
+	for _, k := range env.store.snapshotKeys() {
+		if strings.HasPrefix(k, "login:fail:") {
+			t.Fatalf("重置密码应清除该用户全部登录失败计数, 残留 key=%q", k)
+		}
 	}
 }

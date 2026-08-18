@@ -29,11 +29,13 @@ interface UserEditModalProps {
   onSuccess: () => void
 }
 
-/** 用户新增/编辑表单(部门/直属上级/角色/状态) */
+/** 用户新增/编辑表单(部门/直属上级/角色/状态);根账户(id=1)的密码/角色/状态锁定,仅资料可改 */
 export default function UserEditModal({ open, editing, deptTree, prefillDept, onOpenChange, onSuccess }: UserEditModalProps) {
   const { message } = App.useApp()
   const [form] = Form.useForm<UserFormValues>()
   const [roleOptions, setRoleOptions] = useState<{ label: string; value: number }[]>([])
+  // admin(id=1) 是系统根账户:密码/角色/状态后端硬保护拒绝变更,前端直接锁定表单项
+  const isRoot = editing?.id === 1
 
   const handleOpenChange = (next: boolean) => {
     if (next) {
@@ -61,12 +63,6 @@ export default function UserEditModal({ open, editing, deptTree, prefillDept, on
   }
 
   const handleSubmit = async (values: UserFormValues) => {
-    // admin(id=1) 必须始终保留超级管理员角色(id=1):后端硬拦,前端兜底补回,
-    // 避免取消勾选后提交直接报错。
-    const roleIds =
-      editing?.id === 1
-        ? Array.from(new Set([1, ...(values.role_ids ?? [])]))
-        : values.role_ids
     const payload = {
       nickname: values.nickname,
       dept_id: values.dept_id ?? null,
@@ -74,7 +70,7 @@ export default function UserEditModal({ open, editing, deptTree, prefillDept, on
       email: values.email,
       phone: values.phone,
       status: values.status ? 1 : 0,
-      role_ids: roleIds,
+      role_ids: values.role_ids,
     }
     if (editing) {
       await updateUser(editing.id, {
@@ -105,13 +101,13 @@ export default function UserEditModal({ open, editing, deptTree, prefillDept, on
       width={640}
       grid
     >
-      {editing?.id === 1 && (
+      {isRoot && (
         <Col span={24}>
           <Alert
             type="warning"
             showIcon
             style={{ marginBottom: 16 }}
-            message="超级管理员角色受系统保护,不可移除(仅昵称/邮箱/手机等资料可自由修改)"
+            message="超级管理员账户受系统保护:密码/角色/状态不可在此修改(改密请前往个人中心),仅资料字段可修改"
           />
         </Col>
       )}
@@ -144,20 +140,22 @@ export default function UserEditModal({ open, editing, deptTree, prefillDept, on
           <UserSelect allowClear placeholder="选择直属上级(审批用)" />
         </ProForm.Item>
       </Col>
-      <ProFormText.Password
-        name="password"
-        label="密码"
-        rules={
-          editing
-            ? [{ min: 6, message: '密码至少 6 位' }]
-            : [
-                { required: true, message: '请输入密码' },
-                { min: 6, message: '密码至少 6 位' },
-              ]
-        }
-        placeholder={editing ? '留空则不修改密码' : '至少 6 位'}
-        colProps={{ span: 12 }}
-      />
+      {!isRoot && (
+        <ProFormText.Password
+          name="password"
+          label="密码"
+          rules={
+            editing
+              ? [{ min: 6, message: '密码至少 6 位' }]
+              : [
+                  { required: true, message: '请输入密码' },
+                  { min: 6, message: '密码至少 6 位' },
+                ]
+          }
+          placeholder={editing ? '留空则不修改密码' : '至少 6 位'}
+          colProps={{ span: 12 }}
+        />
+      )}
       <ProFormText
         name="email"
         label="邮箱"
@@ -167,12 +165,12 @@ export default function UserEditModal({ open, editing, deptTree, prefillDept, on
       <ProFormText name="phone" label="手机号" colProps={{ span: 12 }} />
       <Col span={12}>
         <ProForm.Item name="role_ids" label="角色">
-          <Select mode="multiple" allowClear placeholder="选择角色" options={roleOptions} />
+          <Select mode="multiple" allowClear placeholder="选择角色" options={roleOptions} disabled={isRoot} />
         </ProForm.Item>
       </Col>
       <Col span={12}>
         <ProForm.Item name="status" label="状态" valuePropName="checked">
-          <Switch checkedChildren="正常" unCheckedChildren="停用" />
+          <Switch checkedChildren="正常" unCheckedChildren="停用" disabled={isRoot} />
         </ProForm.Item>
       </Col>
     </ModalForm>
