@@ -45,12 +45,12 @@ export default async function HomePage() {
   const heroSubtitle = siteCfg?.hero_subtitle || siteCfg?.description
     || `${SITE.description}。即时的产品、团队与合作客户信息, 数据来源于业务系统实时同步。`;
 
-  // 从首页配置中提取各板块数据
+  // 从首页配置中提取各板块数据(产品最多展示排头 6 项,其余通过「查看全部」进入单页)
   const showProducts = homeCfg?.product?.enabled !== false;
   const showPartners = homeCfg?.partner?.enabled !== false;
   const showTeam = homeCfg?.team?.enabled !== false;
 
-  const products = homeCfg?.product?.items?.map(toProduct) ?? [];
+  const products = (homeCfg?.product?.items ?? []).slice(0, 6).map(toProduct);
   const partners = homeCfg?.partner?.items?.map(toPartner) ?? [];
   const team = homeCfg?.team?.items?.map(toTeamMember) ?? [];
 

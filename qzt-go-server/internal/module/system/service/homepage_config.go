@@ -183,7 +183,8 @@ func (s *HomepageConfigService) fetchItemInfo(ctx context.Context, module string
 		return c.Name, c.Level
 	case "team":
 		n, _ := s.itemRepo.GetTeamUserName(ctx, itemID)
-		return n, ""
+		roleNames, _ := s.itemRepo.UserRoleNames(ctx, []uint{itemID})
+		return n, roleNames[itemID]
 	}
 	return "", ""
 }

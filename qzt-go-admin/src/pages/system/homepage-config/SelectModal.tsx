@@ -113,9 +113,8 @@ export default function SelectModal({
   }
 
   const columns: ProColumns<SelectableItem>[] = [
-    { title: 'ID', dataIndex: 'id', width: 80, search: false },
-    { title: '名称', dataIndex: 'name', width: 200, search: false },
-    { title: '补充信息', dataIndex: 'sub_info', width: 200, search: false },
+    { title: '名称', dataIndex: 'name', width: 220, search: false },
+    { title: '补充信息', dataIndex: 'sub_info', width: 220, search: false },
     {
       title: '关键词',
       dataIndex: 'keyword',

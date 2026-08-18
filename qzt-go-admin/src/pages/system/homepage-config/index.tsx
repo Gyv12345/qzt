@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { App, Button, Card, Popconfirm, Space, Switch, Table, Tag } from 'antd'
+import { App, Button, Card, Popconfirm, Space, Switch, Table, Tabs, Tag } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SettingOutlined } from '@ant-design/icons'
 import Auth from '../../../components/Auth'
@@ -11,10 +11,18 @@ import {
 import type { HomepageFeature, HomepageModule } from '../../../types'
 import SelectModal, { type ModuleKey } from './SelectModal'
 
+/** 板块 Tab 顺序 */
+const TAB_ITEMS: { key: ModuleKey; label: string }[] = [
+  { key: 'product', label: '产品' },
+  { key: 'partner', label: '合作伙伴' },
+  { key: 'team', label: '团队成员' },
+]
+
 export default function HomepageConfigPage() {
   const { message } = App.useApp()
   const [modules, setModules] = useState<HomepageModule[]>([])
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<ModuleKey>('product')
   const [modalModule, setModalModule] = useState<{
     key: ModuleKey
     name: string
@@ -58,10 +66,10 @@ export default function HomepageConfigPage() {
   }
 
   const featureColumns: ColumnsType<HomepageFeature> = [
-    { title: '排序', dataIndex: 'sort', width: 60 },
-    { title: 'ID', dataIndex: 'item_id', width: 80 },
-    { title: '名称', dataIndex: 'item_name', width: 200 },
-    { title: '补充信息', dataIndex: 'sub_info', width: 200 },
+    { title: '序号', width: 60, render: (_, __, index) => index + 1 },
+    { title: '名称', dataIndex: 'item_name' },
+    { title: '补充信息', dataIndex: 'sub_info' },
+    { title: '排序', dataIndex: 'sort', width: 70 },
     {
       title: '操作',
       width: 80,
@@ -79,58 +87,64 @@ export default function HomepageConfigPage() {
 
   return (
     <Space direction="vertical" size={16} style={{ display: 'flex' }}>
-      {modules.map((mod) => (
-        <Card
-          key={mod.module}
-          loading={loading}
-          title={
-            <Space>
-              <span>{mod.module_name}</span>
-              {mod.enabled ? (
-                <Tag color="green">已开启</Tag>
-              ) : (
-                <Tag>已关闭</Tag>
-              )}
-            </Space>
-          }
-          extra={
-            <Space>
-              <span style={{ fontSize: 13, color: '#666' }}>CMS首页显示</span>
-              <Auth perm="system:homepage:toggle">
-                <Switch
-                  checked={mod.enabled}
-                  onChange={(checked) => handleToggle(mod, checked)}
-                />
-              </Auth>
-            </Space>
-          }
-        >
-          <div style={{ marginBottom: 12 }}>
-            <Auth perm="system:homepage:sync">
-              <Button
-                type="primary"
-                icon={<SettingOutlined />}
-                onClick={() => openSelect(mod)}
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as ModuleKey)}
+        items={TAB_ITEMS.map(({ key, label }) => {
+          const mod = modules.find((m) => m.module === key)
+          return {
+            key,
+            label: (
+              <Space size={6}>
+                {label}
+                {mod && <Tag color={mod.enabled ? 'green' : undefined}>{mod.enabled ? '已开启' : '已关闭'}</Tag>}
+              </Space>
+            ),
+            children: (
+              <Card
+                loading={loading}
+                title={`${label}板块`}
+                extra={
+                  <Space>
+                    <span style={{ fontSize: 13, color: '#666' }}>官网首页显示</span>
+                    <Auth perm="system:homepage:toggle">
+                      <Switch
+                        checked={mod?.enabled}
+                        onChange={(checked) => mod && handleToggle(mod, checked)}
+                      />
+                    </Auth>
+                  </Space>
+                }
               >
-                选择展示项
-              </Button>
-            </Auth>
-            <span style={{ marginLeft: 12, color: '#999', fontSize: 13 }}>
-              {mod.features.length > 0
-                ? `已精选 ${mod.features.length} 项`
-                : '未精选，CMS 首页将展示全部上架/正常项'}
-            </span>
-          </div>
-          <Table<HomepageFeature>
-            rowKey="id"
-            columns={featureColumns}
-            dataSource={mod.features}
-            pagination={false}
-            size="small"
-            locale={{ emptyText: '暂无精选条目' }}
-          />
-        </Card>
-      ))}
+                <div style={{ marginBottom: 12 }}>
+                  <Auth perm="system:homepage:sync">
+                    <Button
+                      type="primary"
+                      icon={<SettingOutlined />}
+                      onClick={() => mod && openSelect(mod)}
+                    >
+                      选择展示项
+                    </Button>
+                  </Auth>
+                  <span style={{ marginLeft: 12, color: '#999', fontSize: 13 }}>
+                    {mod && mod.features.length > 0
+                      ? `已精选 ${mod.features.length} 项,按勾选顺序展示${key === 'product' ? '(官网首页最多展示前 6 项)' : ''}`
+                      : '未精选，官网首页将展示全部上架/正常项'}
+                  </span>
+                </div>
+                <Table<HomepageFeature>
+                  rowKey="id"
+                  columns={featureColumns}
+                  dataSource={mod?.features}
+                  pagination={false}
+                  size="small"
+                  locale={{ emptyText: '暂无精选条目' }}
+                />
+              </Card>
+            ),
+          }
+        })}
+      />
 
       {modalModule && (
         <SelectModal
