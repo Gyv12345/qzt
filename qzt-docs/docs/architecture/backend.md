@@ -18,7 +18,7 @@ qzt-go-server/
 │   ├── config/             # 配置加载 (Viper)
 │   ├── middleware/         # 中间件实现
 │   ├── mcp/                # MCP 协议服务端（AI 工具接口）
-│   ├── pkg/                # 通用工具（响应、错误、上下文、存储、邮件）
+│   ├── pkg/                # 通用工具（响应、错误、上下文、存储）
 │   └── module/             # 业务模块（核心）
 │       ├── crm/            # 客户关系管理
 │       │   ├── handler/    # HTTP 处理层
@@ -36,9 +36,7 @@ qzt-go-server/
 │       ├── enterprise/     # 定时任务
 │       ├── kb/             # 知识库
 │       ├── cloud/          # 企业网盘
-│       ├── mail/           # 邮件服务
 │       ├── cms/            # 内容管理
-│       ├── ai/             # AI 助手
 │       ├── api/            # 公共服务（文件上传、附件、BI 仪表盘）
 │       └── system/         # 系统管理
 ├── docs/sql/               # 建表 DDL + 种子数据（手动执行）

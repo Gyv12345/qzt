@@ -11,7 +11,7 @@ const features = [
   { title: 'PSI 进销存', icon: '📦', desc: '采购、销售、库存、供应商、仓库，出入库流水实时联动' },
   { title: '财务管理', icon: '💰', desc: '会计科目、记账凭证、发票管理，回款自动生成财务凭证' },
   { title: 'HRM 人事管理', icon: '👥', desc: '组织架构、员工全生命周期、考勤薪资、离职一键交接' },
-  { title: 'AI 智能助手', icon: '🤖', desc: '回访话术生成、跟进记录AI提取、日报周报自动生成、MCP协议' },
+  { title: 'AI 业务系统', icon: '🤖', desc: '全模块 333 个功能 MCP 开放，Claude / Cursor 等 AI 客户端连上即可用自然语言操作系统' },
   { title: 'CMS 内容管理', icon: '📝', desc: 'Markdown富文本编辑、分类标签管理、一键同步企业官网' },
   { title: '数据分析', icon: '📊', desc: 'CRM/HRM/财务/进销存多维度BI仪表盘，ECharts可视化' },
 ];

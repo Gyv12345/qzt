@@ -39,7 +39,8 @@ sidebar_label: 整体架构
                 │  ┌─────────────────────────────────────┐  │
                 │  │  业务模块 (每个实现 Module 接口)      │  │
                 │  │  CRM · HRM · PSI · Finance · CMS    │  │
-                │  │  Approval · System · AI · MCP ...   │  │
+                │  │  Approval · System · OA · KB ...    │  │
+                │  │  (另挂 /mcp: 全功能 MCP 开放)        │  │
                 │  └─────────────────────────────────────┘  │
                 │                                           │
                 │  分层: handler → service → repository     │

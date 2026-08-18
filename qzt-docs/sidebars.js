@@ -28,7 +28,7 @@ const sidebars = {
     'modules/enterprise',
     'modules/kb',
     'modules/cloud',
-    'modules/mail',
+    'modules/ai',
     'modules/api',
   ],
   deployment: [

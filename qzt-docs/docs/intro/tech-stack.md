@@ -82,11 +82,10 @@ sidebar_label: 技术栈
 
 | 类别 | 技术 | 说明 |
 | --- | --- | --- |
-| 模型接口 | **OpenAI 兼容协议** | 一套接口对接多家模型 |
-| 支持模型 | **DeepSeek、通义千问、GPT、Claude** | 按场景选择 |
-| 流式输出 | SSE | 实时打字机效果 |
-| 向量检索 | 可选 pgvector / Milvus | RAG 知识库检索 |
-| 工具协议 | **MCP（Model Context Protocol）** | 标准化 AI 工具调用，对接 Claude / Cursor |
+| 工具协议 | **MCP（Model Context Protocol）** | 全部业务功能以 333 个 MCP 工具开放，Streamable HTTP 传输 |
+| AI 客户端 | **Claude Desktop、Cursor、Cline、Continue** | 任一支持 MCP 的 AI 工具均可直连操作系统 |
+| 认证 | **API Key（`qzt_` 前缀）** | 个人中心自助创建，按工具集裁剪开放范围 |
+| 权限 | **Casbin RBAC** | MCP 工具调用与 HTTP 接口共享同一份操作级权限策略 |
 
 ## 版本要求速查
 
