@@ -106,7 +106,7 @@ export default function HomepageConfigPage() {
                 title={`${label}板块`}
                 extra={
                   <Space>
-                    <span style={{ fontSize: 13, color: '#666' }}>官网首页显示</span>
+                    <span style={{ fontSize: 13, color: '#666' }}>在官网首页展示</span>
                     <Auth perm="system:homepage:toggle">
                       <Switch
                         checked={mod?.enabled}
