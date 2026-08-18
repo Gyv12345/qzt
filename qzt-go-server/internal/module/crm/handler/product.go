@@ -141,20 +141,15 @@ func (h *ProductHandler) List(c *gin.Context) {
 
 // ── 公开(免鉴权)商品接口 ──
 
-// PublicList 上架商品列表(公开)
-// @Summary  上架商品列表(公开)
-// @Description  返回已上架(status=1)商品分页列表,免鉴权,供官网展示
+// PublicList 商品列表(公开)
+// @Summary  商品列表(公开)
+// @Description  返回「官网内容→官网首页配置→产品」精选的上架商品(板块关闭或未配置精选时为空,不含成本价),免鉴权
 // @Tags     CMS公开
 // @Produce  json
-// @Param    page       query  int     false  "页码(默认1)"
-// @Param    page_size  query  int     false  "每页条数(默认10,最大100)"
-// @Param    keyword    query  string  false  "商品名称/编号模糊"
-// @Param    category   query  string  false  "分类"
 // @Success  200  {object}  xresponse.Response
 // @Router   /crm/public/products [get]
 func (h *ProductHandler) PublicList(c *gin.Context) {
-	p := syservice.GetPagination(c)
-	list, total, err := h.svc.ListPublished(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), c.Query("category"))
+	list, total, err := h.svc.ListPublished(c.Request.Context())
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
@@ -164,7 +159,7 @@ func (h *ProductHandler) PublicList(c *gin.Context) {
 
 // PublicGetByID 商品详情(公开)
 // @Summary  商品详情(公开)
-// @Description  返回已上架商品详情(不含成本价),免鉴权
+// @Description  返回精选上架商品详情(未精选的商品按不存在处理,不含成本价),免鉴权
 // @Tags     CMS公开
 // @Produce  json
 // @Param    id  path      int  true  "商品ID"

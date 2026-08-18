@@ -255,18 +255,13 @@ func (h *CustomerHandler) OwnerHistory(c *gin.Context) {
 
 // PublicList 合作方列表(公开)
 // @Summary  合作方/客户列表(公开)
-// @Description  返回正常状态(status=1)客户作为官网合作方展示,免鉴权
+// @Description  返回「官网内容→官网首页配置→合作伙伴」精选的客户(板块关闭或未配置精选时为空),免鉴权
 // @Tags     CMS公开
 // @Produce  json
-// @Param    page       query  int     false  "页码(默认1)"
-// @Param    page_size  query  int     false  "每页条数(默认10,最大100)"
-// @Param    keyword    query  string  false  "客户名称模糊"
-// @Param    industry   query  string  false  "行业"
 // @Success  200  {object}  xresponse.Response
 // @Router   /crm/public/partners [get]
 func (h *CustomerHandler) PublicList(c *gin.Context) {
-	p := syservice.GetPagination(c)
-	list, total, err := h.svc.ListPartners(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), c.Query("industry"))
+	list, total, err := h.svc.ListPartners(c.Request.Context())
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

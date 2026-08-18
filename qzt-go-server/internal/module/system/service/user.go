@@ -14,10 +14,18 @@ import (
 
 type UserService struct {
 	userRepo *repository.UserRepo
+	// 官网团队成员由「官网内容→官网首页配置→团队成员」精选决定,
+	// 公开接口据此过滤,不能把全部系统用户暴露到官网。
+	homepageModuleRepo  *repository.HomepageModuleRepo
+	homepageFeatureRepo *repository.HomepageFeatureRepo
 }
 
 func NewUserService() *UserService {
-	return &UserService{userRepo: repository.NewUserRepo()}
+	return &UserService{
+		userRepo:            repository.NewUserRepo(),
+		homepageModuleRepo:  repository.NewHomepageModuleRepo(),
+		homepageFeatureRepo: repository.NewHomepageFeatureRepo(),
+	}
 }
 
 type CreateUserRequest struct {
@@ -291,19 +299,55 @@ type PublicTeamMemberDTO struct {
 	Position string `json:"position"` // 职位:取角色名(若无则为空)
 }
 
-// ListTeam 公开团队成员分页列表(只返回 status=正常 的用户)。
+// ListTeam 公开团队成员列表,只返回「官网内容→官网首页配置→团队成员」里
+// 精选的用户,按精选顺序排列;板块关闭或未配置精选时返回空列表。
+// 绝不回退为全量用户——公开接口不能把全部员工暴露到官网。
 // 职位用其角色名拼接展示;邮箱/电话/密码等敏感字段一律不输出。
-func (s *UserService) ListTeam(ctx context.Context, page, pageSize int) ([]PublicTeamMemberDTO, int64, error) {
-	users, total, err := s.userRepo.PageList(ctx, page, pageSize, &repository.QueryOptions{
+func (s *UserService) ListTeam(ctx context.Context) ([]PublicTeamMemberDTO, int64, error) {
+	mod, err := s.homepageModuleRepo.GetOne(ctx, &repository.QueryOptions{
+		Where: map[string]any{"module": "team"},
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return []PublicTeamMemberDTO{}, 0, nil
+		}
+		return nil, 0, err
+	}
+	if !mod.Enabled {
+		return []PublicTeamMemberDTO{}, 0, nil
+	}
+
+	features, err := s.homepageFeatureRepo.ListByModule(ctx, "team")
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(features) == 0 {
+		return []PublicTeamMemberDTO{}, 0, nil
+	}
+	ids := make([]uint, 0, len(features))
+	for _, f := range features {
+		ids = append(ids, f.ItemID)
+	}
+
+	// 精选里可能混入已停用/已删除的成员,按 status=1 过滤后按精选顺序重排
+	users, err := s.userRepo.List(ctx, &repository.QueryOptions{
 		Where:    map[string]any{"status": 1},
+		Conds:    []repository.Cond{{Query: "id IN ?", Args: []any{ids}}},
 		Preloads: []string{"Roles"},
-		Order:    []string{"id ASC"},
 	})
 	if err != nil {
 		return nil, 0, err
 	}
-	out := make([]PublicTeamMemberDTO, 0, len(users))
-	for _, u := range users {
+	byID := make(map[uint]*model.SysUser, len(users))
+	for i := range users {
+		byID[users[i].ID] = &users[i]
+	}
+	out := make([]PublicTeamMemberDTO, 0, len(ids))
+	for _, id := range ids {
+		u, ok := byID[id]
+		if !ok {
+			continue
+		}
 		position := ""
 		if len(u.Roles) > 0 {
 			names := make([]string, 0, len(u.Roles))
@@ -320,5 +364,5 @@ func (s *UserService) ListTeam(ctx context.Context, page, pageSize int) ([]Publi
 			ID: u.ID, Nickname: nickname, Avatar: u.Avatar, Position: position,
 		})
 	}
-	return out, total, nil
+	return out, int64(len(out)), nil
 }

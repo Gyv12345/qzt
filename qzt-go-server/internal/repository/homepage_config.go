@@ -152,37 +152,6 @@ func (r *HomepageItemRepo) ListTeamByIDs(ctx context.Context, ids []uint) ([]Hom
 	return rows, err
 }
 
-// ListLatestProducts 取最新 n 条上架产品(无精选时的降级行为)。
-func (r *HomepageItemRepo) ListLatestProducts(ctx context.Context, n int) ([]HomepageProductRow, error) {
-	var rows []HomepageProductRow
-	err := dbFrom(ctx).Table("crm_product").
-		Select("id, name, image_url, description, category").
-		Where("status = 1").
-		Order("id DESC").
-		Limit(n).
-		Scan(&rows).Error
-	return rows, err
-}
-
-// ListLatestPartners 取最新 n 条上架客户。
-func (r *HomepageItemRepo) ListLatestPartners(ctx context.Context, n int) ([]HomepagePartnerRow, error) {
-	var rows []HomepagePartnerRow
-	err := dbFrom(ctx).Table("crm_customer").
-		Select("id, name, level, industry, source").
-		Where("status = 1").
-		Order("id DESC").
-		Limit(n).
-		Scan(&rows).Error
-	return rows, err
-}
-
-// ListLatestTeamUsers 取前 n 个启用用户(model.SysUser,首页团队区降级行为)。
-func (r *HomepageItemRepo) ListLatestTeamUsers(ctx context.Context, n int) ([]model.SysUser, error) {
-	var users []model.SysUser
-	err := dbFrom(ctx).Where("status = 1").Order("id ASC").Limit(n).Find(&users).Error
-	return users, err
-}
-
 // UserRoleNames 批量查用户角色名(user_id → "角色A、角色B",团队职位拼接用)。
 func (r *HomepageItemRepo) UserRoleNames(ctx context.Context, userIDs []uint) (map[uint]string, error) {
 	type userRole struct {

@@ -250,16 +250,13 @@ func (h *UserHandler) ListOptions(c *gin.Context) {
 
 // PublicTeam 团队成员列表(公开)
 // @Summary  团队成员列表(公开)
-// @Description  返回正常状态用户作为官网团队成员展示(仅 nickname/avatar/position),免鉴权
+// @Description  返回「官网内容→官网首页配置→团队成员」精选的用户(板块关闭或未配置精选时为空),免鉴权
 // @Tags     CMS公开
 // @Produce  json
-// @Param    page       query  int  false  "页码(默认1)"
-// @Param    page_size  query  int  false  "每页条数(默认10,最大100)"
 // @Success  200  {object}  xresponse.Response
 // @Router   /system/public/team [get]
 func (h *UserHandler) PublicTeam(c *gin.Context) {
-	p := service.GetPagination(c)
-	list, total, err := h.svc.ListTeam(c.Request.Context(), p.Page, p.PageSize)
+	list, total, err := h.svc.ListTeam(c.Request.Context())
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

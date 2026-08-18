@@ -159,9 +159,9 @@ func (s *HomepageConfigService) PublicHomepage(ctx context.Context) (map[string]
 				ids = append(ids, f.ItemID)
 			}
 			items = s.fetchItemsByIDs(ctx, m.Module, ids)
-		} else {
-			items = s.fetchLatestItems(ctx, m.Module)
 		}
+		// 无精选时不降级:公开露出必须经对应板块显式精选,
+		// 绝不自动取全量产品/客户/用户。
 		if items == nil {
 			items = []HomepageSectionItem{}
 		}
@@ -201,46 +201,6 @@ func (s *HomepageConfigService) fetchItemsByIDs(ctx context.Context, module stri
 	case "team":
 		rows, _ := s.itemRepo.ListTeamByIDs(ctx, ids)
 		return reorderTeam(ctx, s, rows, ids)
-	}
-	return nil
-}
-
-// fetchLatestItems 取最新 N 条(无精选时的降级行为)。
-func (s *HomepageConfigService) fetchLatestItems(ctx context.Context, module string) []HomepageSectionItem {
-	switch module {
-	case "product":
-		rows, _ := s.itemRepo.ListLatestProducts(ctx, 6)
-		items := make([]HomepageSectionItem, 0, len(rows))
-		for _, r := range rows {
-			items = append(items, HomepageSectionItem{
-				ID: r.ID, Name: r.Name, ImageURL: r.ImageURL,
-				Description: r.Description, Category: r.Category,
-			})
-		}
-		return items
-	case "partner":
-		rows, _ := s.itemRepo.ListLatestPartners(ctx, 8)
-		items := make([]HomepageSectionItem, 0, len(rows))
-		for _, r := range rows {
-			items = append(items, HomepageSectionItem{
-				ID: r.ID, Name: r.Name, Level: r.Level,
-				Industry: r.Industry, Source: r.Source,
-			})
-		}
-		return items
-	case "team":
-		users, _ := s.itemRepo.ListLatestTeamUsers(ctx, 4)
-		items := make([]HomepageSectionItem, 0, len(users))
-		for _, u := range users {
-			nickname := u.Nickname
-			if nickname == "" {
-				nickname = u.Username
-			}
-			items = append(items, HomepageSectionItem{
-				ID: u.ID, Name: nickname, Avatar: u.Avatar,
-			})
-		}
-		return items
 	}
 	return nil
 }

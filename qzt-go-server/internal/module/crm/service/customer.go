@@ -36,15 +36,21 @@ type CustomerService struct {
 	collabRepo  *crrepo.CustomerCollaborationRepo
 	historyRepo *crrepo.CustomerOwnerHistoryRepo
 	fieldSvc    *CustomFieldService
+	// 官网合作方由「官网内容→官网首页配置→合作伙伴」精选决定,
+	// 公开接口据此过滤,不能把 CRM 全部客户暴露到官网。
+	homepageModuleRepo  *repository.HomepageModuleRepo
+	homepageFeatureRepo *repository.HomepageFeatureRepo
 }
 
 func NewCustomerService() *CustomerService {
 	return &CustomerService{
-		repo:        crrepo.NewCustomerRepo(),
-		contactRepo: crrepo.NewCustomerContactRepo(),
-		collabRepo:  crrepo.NewCustomerCollaborationRepo(),
-		historyRepo: crrepo.NewCustomerOwnerHistoryRepo(),
-		fieldSvc:    NewCustomFieldService(),
+		repo:                crrepo.NewCustomerRepo(),
+		contactRepo:         crrepo.NewCustomerContactRepo(),
+		collabRepo:          crrepo.NewCustomerCollaborationRepo(),
+		historyRepo:         crrepo.NewCustomerOwnerHistoryRepo(),
+		fieldSvc:            NewCustomFieldService(),
+		homepageModuleRepo:  repository.NewHomepageModuleRepo(),
+		homepageFeatureRepo: repository.NewHomepageFeatureRepo(),
 	}
 }
 
@@ -128,30 +134,59 @@ type PublicPartnerDTO struct {
 	Source   string `json:"source"`
 }
 
-// ListPartners 公开合作方分页列表(只返回 status=正常 的客户,作为官网展示的合作客户)。
-func (s *CustomerService) ListPartners(ctx context.Context, page, pageSize int, keyword, industry string) ([]PublicPartnerDTO, int64, error) {
-	opts := &repository.QueryOptions{
-		Where:  map[string]any{"status": crmmodel.CustomerStatusNormal},
-		Select: []string{"id", "name", "level", "industry", "source"},
-		Order:  []string{"id DESC"},
+// ListPartners 公开合作方列表,只返回「官网内容→官网首页配置→合作伙伴」
+// 精选的客户,按精选顺序排列;板块关闭或未配置精选时返回空列表。
+// 绝不回退为全量客户——公开接口不能把 CRM 全部客户暴露到官网。
+func (s *CustomerService) ListPartners(ctx context.Context) ([]PublicPartnerDTO, int64, error) {
+	mod, err := s.homepageModuleRepo.GetOne(ctx, &repository.QueryOptions{
+		Where: map[string]any{"module": "partner"},
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return []PublicPartnerDTO{}, 0, nil
+		}
+		return nil, 0, err
 	}
-	if keyword != "" {
-		opts.Search = map[string]string{"name": keyword}
+	if !mod.Enabled {
+		return []PublicPartnerDTO{}, 0, nil
 	}
-	if industry != "" {
-		opts.Where["industry"] = industry
-	}
-	customers, total, err := s.repo.PageList(ctx, page, pageSize, opts)
+
+	features, err := s.homepageFeatureRepo.ListByModule(ctx, "partner")
 	if err != nil {
 		return nil, 0, err
 	}
-	out := make([]PublicPartnerDTO, 0, len(customers))
-	for _, c := range customers {
+	if len(features) == 0 {
+		return []PublicPartnerDTO{}, 0, nil
+	}
+	ids := make([]uint, 0, len(features))
+	for _, f := range features {
+		ids = append(ids, f.ItemID)
+	}
+
+	// 精选里可能混入已删除/已非正常状态的客户,过滤后按精选顺序重排
+	customers, err := s.repo.List(ctx, &repository.QueryOptions{
+		Where:  map[string]any{"status": crmmodel.CustomerStatusNormal},
+		Select: []string{"id", "name", "level", "industry", "source"},
+		Conds:  []repository.Cond{{Query: "id IN ?", Args: []any{ids}}},
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	byID := make(map[uint]*crmmodel.CrmCustomer, len(customers))
+	for i := range customers {
+		byID[customers[i].ID] = &customers[i]
+	}
+	out := make([]PublicPartnerDTO, 0, len(ids))
+	for _, id := range ids {
+		c, ok := byID[id]
+		if !ok {
+			continue
+		}
 		out = append(out, PublicPartnerDTO{
 			ID: c.ID, Name: c.Name, Level: c.Level, Industry: c.Industry, Source: c.Source,
 		})
 	}
-	return out, total, nil
+	return out, int64(len(out)), nil
 }
 
 // GetByID 客户详情(含自定义字段值)。
