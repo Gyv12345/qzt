@@ -4,8 +4,8 @@ import (
 	"context"
 
 	oamodel "qzt-go-server/internal/model/oa"
-	oarepo "qzt-go-server/internal/repository/oa"
 	"qzt-go-server/internal/repository"
+	oarepo "qzt-go-server/internal/repository/oa"
 )
 
 // meeting_room.go 会议室管理服务。
@@ -14,7 +14,9 @@ type MeetingRoomService struct {
 	repo *oarepo.MeetingRoomRepo
 }
 
-func NewMeetingRoomService() *MeetingRoomService { return &MeetingRoomService{repo: oarepo.NewMeetingRoomRepo()} }
+func NewMeetingRoomService() *MeetingRoomService {
+	return &MeetingRoomService{repo: oarepo.NewMeetingRoomRepo()}
+}
 
 type CreateMeetingRoomRequest struct {
 	Name      string `json:"name" binding:"required"`

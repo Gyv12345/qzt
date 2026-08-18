@@ -6270,24 +6270,7 @@ paths:
       - 公共接口
   /crm/public/partners:
     get:
-      description: 返回正常状态(status=1)客户作为官网合作方展示,免鉴权
-      parameters:
-      - description: 页码(默认1)
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数(默认10,最大100)
-        in: query
-        name: page_size
-        type: integer
-      - description: 客户名称模糊
-        in: query
-        name: keyword
-        type: string
-      - description: 行业
-        in: query
-        name: industry
-        type: string
+      description: 返回「官网内容→官网首页配置→合作伙伴」精选的客户(板块关闭或未配置精选时为空),免鉴权
       produces:
       - application/json
       responses:
@@ -6300,24 +6283,7 @@ paths:
       - CMS公开
   /crm/public/products:
     get:
-      description: 返回已上架(status=1)商品分页列表,免鉴权,供官网展示
-      parameters:
-      - description: 页码(默认1)
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数(默认10,最大100)
-        in: query
-        name: page_size
-        type: integer
-      - description: 商品名称/编号模糊
-        in: query
-        name: keyword
-        type: string
-      - description: 分类
-        in: query
-        name: category
-        type: string
+      description: 返回「官网内容→官网首页配置→产品」精选的上架商品(板块关闭或未配置精选时为空,不含成本价),免鉴权
       produces:
       - application/json
       responses:
@@ -6325,12 +6291,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/xresponse.Response'
-      summary: 上架商品列表(公开)
+      summary: 商品列表(公开)
       tags:
       - CMS公开
   /crm/public/products/{id}:
     get:
-      description: 返回已上架商品详情(不含成本价),免鉴权
+      description: 返回精选上架商品详情(未精选的商品按不存在处理,不含成本价),免鉴权
       parameters:
       - description: 商品ID
         in: path
@@ -12164,16 +12130,7 @@ paths:
       - CMS公开
   /system/public/team:
     get:
-      description: 返回正常状态用户作为官网团队成员展示(仅 nickname/avatar/position),免鉴权
-      parameters:
-      - description: 页码(默认1)
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数(默认10,最大100)
-        in: query
-        name: page_size
-        type: integer
+      description: 返回「官网内容→官网首页配置→团队成员」精选的用户(板块关闭或未配置精选时为空),免鉴权
       produces:
       - application/json
       responses:
@@ -12188,8 +12145,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: 超管专用。硬删除所有 CRM/审批/HRM/财务/PSI/CMS 业务表数据,保留系统配置/字典/权限/组织架构等骨架。需 body
-        {confirm:"RESET"} 二次确认。
+      description: 超管专用。清表前先删除业务附件对应的存储文件(OSS/本地),再硬删除所有 CRM(客户/线索/商机/合同/跟进/工单)/项目/审批实例/HRM(员工/考勤/薪酬/绩效/候选人)/财务(凭证/发票/应收)/PSI
+        进销存单据/CMS(文章/页面)/OA(报销/差旅/借款/日程/工作日志/表单数据/会议室预订/消息/公告)及附件与运行日志数据。保留系统配置/字典/权限/组织架构/基础档案,以及知识库/云盘/资产。需
+        body {confirm:"RESET"} 二次确认。
       parameters:
       - description: 确认信息(confirm 必须为 RESET)
         in: body
@@ -12565,7 +12523,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: 更新用户资料/密码/角色;改密或改角色会使已签发 token 失效
+      description: 更新用户资料/密码/角色;改密或改角色会使已签发 token 失效。超级管理员账户(id=1)的密码/状态/角色不可经由本接口变更,仅限资料字段
       parameters:
       - description: 用户ID
         in: path
@@ -12594,7 +12552,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: 管理员重置指定用户密码(无需旧密码,典型场景:用户忘记密码)。会使该用户所有已登录会话失效,并清除其登录失败锁定
+      description: 管理员重置指定用户密码(无需旧密码,典型场景:用户忘记密码)。会使该用户所有已登录会话失效,并清除其登录失败锁定。超级管理员账户(id=1)不可被重置
       parameters:
       - description: 用户ID
         in: path
