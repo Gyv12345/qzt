@@ -38,10 +38,11 @@ INSERT INTO cms_homepage_module (id, module, module_name, enabled, sort) VALUES
   (3, 'team',    '我们的团队', 1, 3)
   ON DUPLICATE KEY UPDATE module_name = VALUES(module_name);
 
--- ── 菜单: 官网首页配置 (挂在「系统配置」目录下, parent_id=876) ──
+-- ── 菜单: 官网首页配置 (挂在「官网内容」目录下, parent_id=111;
+--    2026-08-18 从「系统配置」目录(876)迁入——展示内容由业务人员维护,归官网内容域) ──
 INSERT INTO sys_menu (id, parent_id, name, path, component, icon, sort, type, permission, visible, status, created_at, updated_at) VALUES
-  (960, 876, '官网首页配置', '/system/homepage-config', 'system/homepage-config/index', 'DesktopOutlined', 7, 1, 'system:homepage:list', 1, 1, NOW(), NOW())
-  ON DUPLICATE KEY UPDATE name=VALUES(name), path=VALUES(path), component=VALUES(component);
+  (960, 111, '官网首页配置', '/cms/homepage-config', 'cms/homepage-config/index', 'DesktopOutlined', 5, 1, 'system:homepage:list', 1, 1, NOW(), NOW())
+  ON DUPLICATE KEY UPDATE name=VALUES(name), parent_id=VALUES(parent_id), path=VALUES(path), component=VALUES(component);
 
 -- 按钮权限
 INSERT INTO sys_menu (id, parent_id, name, type, permission, sort, status, created_at, updated_at) VALUES
