@@ -82,6 +82,27 @@ func NewOSS(cfg OSSConfig) (*OSS, error) {
 	}, nil
 }
 
+// Delete 实现 Uploader 接口:按 visibility 删除公共/私有桶中的对象。
+// OSS DeleteObject 对不存在的 key 返回 2xx(幂等),无需先查询。
+// 私有桶未配置时返回 ErrPrivateBucketDisabled。
+func (s *OSS) Delete(objectKey string, visibility string) error {
+	key := strings.TrimSpace(objectKey)
+	if key == "" {
+		return nil
+	}
+	b := s.privateBucket
+	if visibility == VisibilityPublic {
+		b = s.bucket
+	}
+	if b == nil {
+		return ErrPrivateBucketDisabled
+	}
+	if err := b.DeleteObject(key); err != nil {
+		return fmt.Errorf("delete oss object %q: %w", key, err)
+	}
+	return nil
+}
+
 // Save 实现 Uploader 接口。校验文件 → 随机文件名 → 上传到 OSS → 返回 UploadedFile。
 func (s *OSS) Save(file *multipart.FileHeader, folders ...string) (*UploadedFile, error) {
 	if file == nil {

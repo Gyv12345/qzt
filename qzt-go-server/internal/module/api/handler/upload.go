@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"mime"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -34,17 +33,9 @@ const (
 	defaultSignTTL               = time.Hour // 私有文件签名下载 URL 有效期
 )
 
-// fileUploader 文件存储抽象，便于测试注入替身。
-type fileUploader interface {
-	Save(file *multipart.FileHeader, folders ...string) (*storage.UploadedFile, error)
-	SavePrivate(file *multipart.FileHeader, folders ...string) (*storage.UploadedFile, error)
-	SavePrivateBytes(name string, data []byte, contentType string, folders ...string) (*storage.UploadedFile, error)
-	SignURL(objectKey string, ttl time.Duration) (string, error)
-}
-
 // UploadHandler 文件上传与签名下载 handler(双桶)。
 type UploadHandler struct {
-	uploader fileUploader
+	uploader storage.Uploader
 }
 
 // UploadResult 上传结果，包含文件信息与资源访问域名。

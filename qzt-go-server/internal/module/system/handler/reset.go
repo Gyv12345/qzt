@@ -27,7 +27,7 @@ type resetRequest struct {
 
 // ResetBusinessData 一键清理业务数据
 // @Summary      清理业务数据
-// @Description  超管专用。硬删除所有 CRM/审批/HRM/财务/PSI/CMS 业务表数据,保留系统配置/字典/权限/组织架构等骨架。需 body {confirm:"RESET"} 二次确认。
+// @Description  超管专用。清表前先删除业务附件对应的存储文件(OSS/本地),再硬删除所有 CRM(客户/线索/商机/合同/跟进/工单)/项目/审批实例/HRM(员工/考勤/薪酬/绩效/候选人)/财务(凭证/发票/应收)/PSI 进销存单据/CMS(文章/页面)/OA(报销/差旅/借款/日程/工作日志/表单数据/会议室预订/消息/公告)及附件与运行日志数据。保留系统配置/字典/权限/组织架构/基础档案,以及知识库/云盘/资产。需 body {confirm:"RESET"} 二次确认。
 // @Tags         系统重置
 // @Accept       json
 // @Produce      json

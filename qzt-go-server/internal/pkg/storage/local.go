@@ -382,6 +382,34 @@ func (s *Local) SavePrivateBytes(name string, data []byte, contentType string, f
 	)
 }
 
+// Delete 实现 Uploader 接口:按 visibility 删除公共/私有目录下的文件。
+// 文件不存在视为成功(幂等)。key 做 Clean + 拒绝 "..",防路径穿越。
+func (s *Local) Delete(objectKey string, visibility string) error {
+	key := strings.TrimSpace(objectKey)
+	if key == "" {
+		return nil
+	}
+	base := s.privateDir
+	if base == "" {
+		base = s.directory
+	}
+	if visibility == VisibilityPublic {
+		base = s.directory
+	}
+	cleanKey := strings.TrimPrefix(filepath.Clean("/"+key), "/")
+	if strings.Contains(cleanKey, "..") {
+		return fmt.Errorf("invalid object key %q", objectKey)
+	}
+	full := filepath.Join(base, filepath.FromSlash(cleanKey))
+	if err := os.Remove(full); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("delete local file %q: %w", full, err)
+	}
+	return nil
+}
+
 // SignURL 为本地私有文件生成后端代理下载 URL: <prefix>?t=<token>&k=<key>。
 // prefix 默认 /api/file/dl(直连后端);前端反代时配 storage.download_prefix 为 /prod-api/api/file/dl。
 // token = base64url(payload) + "." + base64url(hmac-sha256(payload, secret)),

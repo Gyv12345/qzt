@@ -35,6 +35,11 @@ type Uploader interface {
 	// SignURL 为私有桶文件生成短期有效的下载 URL。
 	// OSS 返回阿里云预签名 GET;local 返回后端代理下载 URL。
 	SignURL(objectKey string, ttl time.Duration) (string, error)
+
+	// Delete 删除已存储的对象。visibility 取 VisibilityPublic/VisibilityPrivate
+	// (空串按私有处理,与上传默认一致)。删除不存在的对象视为成功(幂等),
+	// 便于数据重置/孤儿清理场景无需先探测对象是否存在。
+	Delete(objectKey string, visibility string) error
 }
 
 // 存储可见性。
