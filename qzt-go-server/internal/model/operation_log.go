@@ -38,6 +38,8 @@ type SysOperationLog struct {
 	ErrorMsg   string `json:"error_msg" gorm:"type:text;comment:失败信息"`
 	// 客户端IP
 	ClientIP   string `json:"client_ip" gorm:"size:64;index;comment:客户端IP"`
+	// IP归属地(查询时由ipregion解析填充,不入库)
+	Region     string `json:"region" gorm:"-"`
 	// User-Agent
 	UserAgent  string `json:"user_agent" gorm:"size:255;comment:User-Agent"`
 	// 耗时(毫秒)

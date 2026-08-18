@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"qzt-go-server/internal/model"
+	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/repository"
 )
 
@@ -56,11 +57,24 @@ func (s *OperationLogService) List(ctx context.Context, page, pageSize int, req 
 		kw := "%" + req.Keyword + "%"
 		q.Conds = append(q.Conds, repository.Cond{Query: "action LIKE ? OR path LIKE ?", Args: []any{kw, kw}})
 	}
-	return s.repo.PageList(ctx, page, pageSize, q)
+	list, total, err := s.repo.PageList(ctx, page, pageSize, q)
+	if err != nil {
+		return nil, 0, err
+	}
+	// 查询时实时解析 IP 归属地(历史数据也能显示;ipregion 未加载则 Region 为空)
+	for i := range list {
+		list[i].Region = ipregion.Lookup(list[i].ClientIP)
+	}
+	return list, total, nil
 }
 
 func (s *OperationLogService) GetByID(ctx context.Context, id uint) (*model.SysOperationLog, error) {
-	return s.repo.GetByID(ctx, id)
+	log, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	log.Region = ipregion.Lookup(log.ClientIP)
+	return log, nil
 }
 
 func (s *OperationLogService) Delete(ctx context.Context, id uint) error {

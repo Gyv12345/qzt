@@ -97,6 +97,13 @@ export default function OperLogPage() {
     },
     { title: 'IP', dataIndex: 'client_ip', width: 120, search: false },
     {
+      title: '归属地',
+      dataIndex: 'region',
+      width: 180,
+      search: false,
+      render: (_, r) => r.region || '-',
+    },
+    {
       title: '结果',
       dataIndex: 'success',
       search: false,
@@ -202,6 +209,7 @@ export default function OperLogPage() {
               </Descriptions.Item>
               <Descriptions.Item label="路径">{current.path}</Descriptions.Item>
               <Descriptions.Item label="IP">{current.client_ip}</Descriptions.Item>
+              <Descriptions.Item label="归属地">{current.region || '-'}</Descriptions.Item>
               <Descriptions.Item label="User-Agent">{current.user_agent || '-'}</Descriptions.Item>
               <Descriptions.Item label="结果">
                 {current.success ? (
