@@ -267,6 +267,10 @@ export interface UpdateUserRequest {
   role_ids?: number[]
 }
 
+export interface ResetPasswordRequest {
+  password: string
+}
+
 export interface CreateRoleRequest {
   name: string
   code: string
@@ -400,17 +404,14 @@ export interface SysSiteConfig {
   site_name: string
   logo_url: string
   favicon_url: string
-  slogan: string
   description: string
+  hero_badge: string
+  hero_title: string
+  hero_subtitle: string
   contact_phone: string
   contact_email: string
   contact_address: string
-  contact_qq: string
-  contact_wechat: string
   work_hours: string
-  weibo_url: string
-  wechat_qr_url: string
-  linkedin_url: string
   icp_beian: string
   public_security_beian: string
   public_security_beian_url: string
@@ -426,17 +427,14 @@ export interface UpdateSiteConfigRequest {
   site_name?: string
   logo_url?: string
   favicon_url?: string
-  slogan?: string
   description?: string
+  hero_badge?: string
+  hero_title?: string
+  hero_subtitle?: string
   contact_phone?: string
   contact_email?: string
   contact_address?: string
-  contact_qq?: string
-  contact_wechat?: string
   work_hours?: string
-  weibo_url?: string
-  wechat_qr_url?: string
-  linkedin_url?: string
   icp_beian?: string
   public_security_beian?: string
   public_security_beian_url?: string

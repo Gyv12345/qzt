@@ -41,8 +41,8 @@ export default async function HomePage() {
 
   // Hero 区域配置(从站点配置读,留空回退到站点名称/描述)
   const heroBadge = siteCfg?.hero_badge || "企业级业务管理平台";
-  const heroTitle = siteCfg?.hero_title || SITE.name;
-  const heroSubtitle = siteCfg?.hero_subtitle
+  const heroTitle = siteCfg?.hero_title || siteCfg?.site_name || SITE.name;
+  const heroSubtitle = siteCfg?.hero_subtitle || siteCfg?.description
     || `${SITE.description}。即时的产品、团队与合作客户信息, 数据来源于业务系统实时同步。`;
 
   // 从首页配置中提取各板块数据

@@ -15770,6 +15770,52 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/system/users/{id}/reset-password": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "管理员重置指定用户密码(无需旧密码,典型场景:用户忘记密码)。会使该用户所有已登录会话失效,并清除其登录失败锁定",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "重置用户密码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "重置密码请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -15830,19 +15876,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "company": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1000
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 }
             }
         },
@@ -16164,6 +16215,10 @@ const docTemplate = `{
                 },
                 "path": {
                     "description": "实际请求路径",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "IP归属地(查询时由ipregion解析填充,不入库)",
                     "type": "string"
                 },
                 "req_params": {
@@ -18534,6 +18589,19 @@ const docTemplate = `{
                 }
             }
         },
+        "service.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 6
+                }
+            }
+        },
         "service.RoleAPIItem": {
             "type": "object",
             "properties": {
@@ -19763,12 +19831,6 @@ const docTemplate = `{
                 "contact_phone": {
                     "type": "string"
                 },
-                "contact_qq": {
-                    "type": "string"
-                },
-                "contact_wechat": {
-                    "type": "string"
-                },
                 "copyright": {
                     "type": "string"
                 },
@@ -19793,9 +19855,6 @@ const docTemplate = `{
                 "keywords": {
                     "type": "string"
                 },
-                "linkedin_url": {
-                    "type": "string"
-                },
                 "logo_url": {
                     "type": "string"
                 },
@@ -19809,15 +19868,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "site_name": {
-                    "type": "string"
-                },
-                "slogan": {
-                    "type": "string"
-                },
-                "wechat_qr_url": {
-                    "type": "string"
-                },
-                "weibo_url": {
                     "type": "string"
                 },
                 "work_hours": {

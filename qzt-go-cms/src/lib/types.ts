@@ -89,7 +89,6 @@ export type SiteConfig = Record<string, string>;
 export interface SiteInfo {
   site_name: string;
   logo_url: string;
-  slogan: string;
   description: string;
   contact_phone: string;
   contact_email: string;
@@ -104,6 +103,7 @@ export interface SiteInfo {
   hero_subtitle?: string;
   favicon_url?: string;
   keywords?: string;
+  analytics_code?: string;
 }
 
 // ── 首页板块配置(来自 /system/public/homepage-config) ──

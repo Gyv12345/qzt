@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Analytics } from "@/components/Analytics";
 import { SITE } from "@/lib/site";
 import { getSiteConfig } from "@/lib/api";
 
@@ -25,10 +26,17 @@ const sansFont = Noto_Sans_SC({
 export async function generateMetadata(): Promise<Metadata> {
   let siteName = SITE.name;
   let logoUrl = "";
+  let description = SITE.description;
+  let keywords: string | undefined;
+  let icon = "";
   try {
     const cfg = await getSiteConfig();
     if (cfg.site_name) siteName = cfg.site_name;
     if (cfg.logo_url) logoUrl = cfg.logo_url;
+    if (cfg.description) description = cfg.description;
+    if (cfg.keywords) keywords = cfg.keywords;
+    // 浏览器标签页图标:优先站点配置的网站图标,留空回退 Logo
+    icon = cfg.favicon_url || cfg.logo_url;
   } catch {
     // 回退到环境变量
   }
@@ -38,13 +46,14 @@ export async function generateMetadata(): Promise<Metadata> {
       default: `${siteName} - ${SITE.description}`,
       template: `%s | ${siteName}`,
     },
-    description: SITE.description,
+    description,
+    keywords,
     metadataBase: new URL(SITE.url),
     alternates: { canonical: "/" },
-    icons: logoUrl ? { icon: logoUrl, apple: logoUrl } : undefined,
+    icons: icon ? { icon, apple: icon } : undefined,
     openGraph: {
       title: siteName,
-      description: SITE.description,
+      description,
       url: SITE.url,
       siteName,
       locale: "zh_CN",
@@ -54,9 +63,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  let analyticsCode = "";
+  try {
+    const cfg = await getSiteConfig();
+    analyticsCode = cfg.analytics_code || "";
+  } catch {
+    // 后端不可用时不注入统计
+  }
+
   return (
     <html lang="zh-CN" className={`${displayFont.variable} ${sansFont.variable}`}>
       <body className="font-sans">
@@ -76,6 +93,7 @@ export default function RootLayout({
         <Header />
         <main className="min-h-[60vh]">{children}</main>
         <Footer />
+        <Analytics code={analyticsCode} />
       </body>
     </html>
   );

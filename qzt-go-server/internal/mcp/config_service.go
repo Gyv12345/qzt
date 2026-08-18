@@ -54,7 +54,6 @@ type siteUpdateReq struct {
 	SiteName               string
 	LogoURL                string
 	FaviconURL             string
-	Slogan                 string
 	Description            string
 	HeroBadge              string
 	HeroTitle              string
@@ -62,32 +61,27 @@ type siteUpdateReq struct {
 	ContactPhone           string
 	ContactEmail           string
 	ContactAddress         string
-	ContactQQ              string
-	ContactWechat          string
 	WorkHours              string
-	WeiboURL               string
-	WechatQrURL            string
-	LinkedInURL            string
 	ICPBeian               string
 	PublicSecurityBeian    string
 	PublicSecurityBeianURL string
 	Keywords               string
 	AnalyticsCode          string
 	Copyright              string
+	McpURL                 string
 }
 
 func (r *siteUpdateReq) toService() *syservice.UpdateSiteConfigRequest {
 	return &syservice.UpdateSiteConfigRequest{
 		SiteName: r.SiteName, LogoURL: r.LogoURL, FaviconURL: r.FaviconURL,
-		Slogan: r.Slogan, Description: r.Description,
-		HeroBadge: r.HeroBadge, HeroTitle: r.HeroTitle, HeroSubtitle: r.HeroSubtitle,
+		Description: r.Description,
+		HeroBadge:   r.HeroBadge, HeroTitle: r.HeroTitle, HeroSubtitle: r.HeroSubtitle,
 		ContactPhone: r.ContactPhone, ContactEmail: r.ContactEmail,
-		ContactAddress: r.ContactAddress, ContactQQ: r.ContactQQ,
-		ContactWechat: r.ContactWechat, WorkHours: r.WorkHours,
-		WeiboURL: r.WeiboURL, WechatQrURL: r.WechatQrURL, LinkedInURL: r.LinkedInURL,
+		ContactAddress: r.ContactAddress, WorkHours: r.WorkHours,
 		ICPBeian: r.ICPBeian, PublicSecurityBeian: r.PublicSecurityBeian,
 		PublicSecurityBeianURL: r.PublicSecurityBeianURL,
-		Keywords: r.Keywords, AnalyticsCode: r.AnalyticsCode, Copyright: r.Copyright,
+		Keywords:               r.Keywords, AnalyticsCode: r.AnalyticsCode, Copyright: r.Copyright,
+		McpURL: r.McpURL,
 	}
 }
 

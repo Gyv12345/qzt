@@ -24,9 +24,9 @@ func (r *SiteConfigRepo) Get(ctx context.Context) (*model.SysSiteConfig, error) 
 // Update 更新站点配置。
 func (r *SiteConfigRepo) Update(ctx context.Context, cfg *model.SysSiteConfig) error {
 	return r.BaseRepo.Update(ctx, cfg,
-		"SiteName", "LogoURL", "FaviconURL", "Slogan", "Description",
-		"ContactPhone", "ContactEmail", "ContactAddress", "ContactQQ", "ContactWechat", "WorkHours",
-		"WeiboURL", "WechatQrURL", "LinkedInURL",
+		"SiteName", "LogoURL", "FaviconURL",
+		"HeroBadge", "HeroTitle", "HeroSubtitle", "Description",
+		"ContactPhone", "ContactEmail", "ContactAddress", "WorkHours",
 		"ICPBeian", "PublicSecurityBeian", "PublicSecurityBeianURL",
-		"Keywords", "AnalyticsCode", "Copyright")
+		"Keywords", "AnalyticsCode", "Copyright", "McpURL")
 }

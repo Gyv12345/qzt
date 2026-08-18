@@ -3068,24 +3068,22 @@ CREATE TABLE `sys_site_config` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `site_name` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '站点名称(企业名)',
   `logo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Logo图片URL',
-  `favicon_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Favicon图标URL',
-  `slogan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '品牌标语/Slogan',
+  `favicon_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '网站图标URL',
+  `hero_badge` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '首页Hero小标签',
+  `hero_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '首页Hero大标题',
+  `hero_subtitle` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '首页Hero副标题',
   `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '站点描述(SEO meta description)',
   `contact_phone` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '联系电话',
   `contact_email` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '联系邮箱',
   `contact_address` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '公司地址',
-  `contact_qq` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '客服QQ',
-  `contact_wechat` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微信号/客服二维码URL',
   `work_hours` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '工作时间(如 周一至周五 9:00-18:00)',
-  `weibo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微博链接',
-  `wechat_qr_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微信公众号二维码URL',
-  `linked_in_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'LinkedIn链接',
   `icp_beian` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'ICP备案号(如 京ICP备xxxxxxxx号)',
   `public_security_beian` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '公安备案号',
   `public_security_beian_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '公安备案跳转链接',
   `keywords` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'SEO关键词(逗号分隔)',
   `analytics_code` text COLLATE utf8mb4_unicode_ci COMMENT '统计代码(GA/百度统计等JS)',
   `copyright` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '版权声明(如 © 2024 某某科技有限公司)',
+  `mcp_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'MCP服务地址',
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
   `deleted_at` datetime(3) DEFAULT NULL,
@@ -3094,8 +3092,8 @@ CREATE TABLE `sys_site_config` (
   KEY `idx_sys_site_config_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `sys_site_config` (`id`, `site_name`, `logo_url`, `favicon_url`, `slogan`, `description`, `contact_phone`, `contact_email`, `contact_address`, `contact_qq`, `contact_wechat`, `work_hours`, `weibo_url`, `wechat_qr_url`, `linked_in_url`, `icp_beian`, `public_security_beian`, `public_security_beian_url`, `keywords`, `analytics_code`, `copyright`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'qzt-dev', '', '', '', '企业级业务管理平台', '', '', '', '', '', '周一至周五 9:00-18:00', '', '', '', '', '', '', '', '', '© 2024 你的企业名称', '2026-08-04 10:51:25.610', '2026-08-04 10:51:25.610', NULL);
+INSERT INTO `sys_site_config` (`id`, `site_name`, `logo_url`, `favicon_url`, `hero_badge`, `hero_title`, `hero_subtitle`, `description`, `contact_phone`, `contact_email`, `contact_address`, `work_hours`, `icp_beian`, `public_security_beian`, `public_security_beian_url`, `keywords`, `analytics_code`, `copyright`, `mcp_url`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'qzt-dev', '', '', '', '', '', '企业级业务管理平台', '', '', '', '周一至周五 9:00-18:00', '', '', '', '', '', '© 2024 你的企业名称', '', '2026-08-04 10:51:25.610', '2026-08-04 10:51:25.610', NULL);
 
 DROP TABLE IF EXISTS `sys_storage_config`;
 

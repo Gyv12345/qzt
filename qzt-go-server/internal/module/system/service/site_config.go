@@ -27,28 +27,21 @@ func (s *SiteConfigService) Get(ctx context.Context) (*model.SysSiteConfig, erro
 
 // UpdateSiteConfigRequest 更新站点信息请求(全部可选,空值保留原值)。
 type UpdateSiteConfigRequest struct {
-	SiteName    string `json:"site_name"`
-	LogoURL     string `json:"logo_url"`
-	FaviconURL  string `json:"favicon_url"`
-	Slogan      string `json:"slogan"`
-	HeroBadge   string `json:"hero_badge"`
-	HeroTitle   string `json:"hero_title"`
+	SiteName     string `json:"site_name"`
+	LogoURL      string `json:"logo_url"`
+	FaviconURL   string `json:"favicon_url"`
+	HeroBadge    string `json:"hero_badge"`
+	HeroTitle    string `json:"hero_title"`
 	HeroSubtitle string `json:"hero_subtitle"`
-	Description string `json:"description"`
+	Description  string `json:"description"`
 
 	ContactPhone   string `json:"contact_phone"`
 	ContactEmail   string `json:"contact_email"`
 	ContactAddress string `json:"contact_address"`
-	ContactQQ      string `json:"contact_qq"`
-	ContactWechat  string `json:"contact_wechat"`
 	WorkHours      string `json:"work_hours"`
 
-	WeiboURL    string `json:"weibo_url"`
-	WechatQrURL string `json:"wechat_qr_url"`
-	LinkedInURL string `json:"linkedin_url"`
-
-	ICPBeian              string `json:"icp_beian"`
-	PublicSecurityBeian   string `json:"public_security_beian"`
+	ICPBeian               string `json:"icp_beian"`
+	PublicSecurityBeian    string `json:"public_security_beian"`
 	PublicSecurityBeianURL string `json:"public_security_beian_url"`
 
 	Keywords      string `json:"keywords"`
@@ -73,9 +66,6 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	if req.FaviconURL != "" {
 		cfg.FaviconURL = req.FaviconURL
 	}
-	if req.Slogan != "" {
-		cfg.Slogan = req.Slogan
-	}
 	if req.HeroBadge != "" {
 		cfg.HeroBadge = req.HeroBadge
 	}
@@ -97,23 +87,8 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	if req.ContactAddress != "" {
 		cfg.ContactAddress = req.ContactAddress
 	}
-	if req.ContactQQ != "" {
-		cfg.ContactQQ = req.ContactQQ
-	}
-	if req.ContactWechat != "" {
-		cfg.ContactWechat = req.ContactWechat
-	}
 	if req.WorkHours != "" {
 		cfg.WorkHours = req.WorkHours
-	}
-	if req.WeiboURL != "" {
-		cfg.WeiboURL = req.WeiboURL
-	}
-	if req.WechatQrURL != "" {
-		cfg.WechatQrURL = req.WechatQrURL
-	}
-	if req.LinkedInURL != "" {
-		cfg.LinkedInURL = req.LinkedInURL
 	}
 	if req.ICPBeian != "" {
 		cfg.ICPBeian = req.ICPBeian

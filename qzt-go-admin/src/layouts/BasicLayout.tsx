@@ -4,6 +4,8 @@ import { LogoutOutlined, SettingOutlined, UserOutlined, AppstoreOutlined, DownOu
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
 import { fetchUserInfo, logout } from '../services/auth'
+import { getSiteConfig } from '../services/system'
+import type { SysSiteConfig } from '../types'
 import MenuIcon from '../components/MenuIcon'
 import ErrorBoundary from '../components/ErrorBoundary'
 import MessageBox from '../components/layout/MessageBox'
@@ -36,6 +38,9 @@ function isSystemModule(menu: SysMenu): boolean {
   if (menu.path?.startsWith('/system')) return true
   return (menu.children ?? []).some(isSystemModule)
 }
+
+/** 站点信息(logo/站点名称)模块级缓存:布局重复挂载(登录跳转等)时避免闪烁 */
+let siteCfgCache: Pick<SysSiteConfig, 'site_name' | 'logo_url'> | null = null
 
 interface MenuChain {
   module: SysMenu
@@ -76,6 +81,18 @@ export default function BasicLayout() {
   const [error, setError] = useState(false)
   /** 左侧第二列展开的分组 id(用户点击分组但未跳转时也需要展开) */
   const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null)
+  /** 站点信息:顶栏 logo/名称取自「系统设置-站点信息」,未配置时回退默认样式 */
+  const [siteCfg, setSiteCfg] = useState<Pick<SysSiteConfig, 'site_name' | 'logo_url'> | null>(siteCfgCache)
+
+  useEffect(() => {
+    if (siteCfgCache) return
+    getSiteConfig()
+      .then((cfg) => {
+        siteCfgCache = { site_name: cfg.site_name, logo_url: cfg.logo_url }
+        setSiteCfg(siteCfgCache)
+      })
+      .catch(() => {})
+  }, [])
 
   const load = () => {
     setLoading(true)
@@ -188,8 +205,12 @@ export default function BasicLayout() {
           onClick={() => navigate('/dashboard')}
           style={{ cursor: 'pointer' }}
         >
-          <div className="qzt-logo-mark">Q</div>
-          <div className="qzt-logo-title">业务管理平台</div>
+          {siteCfg?.logo_url ? (
+            <img src={siteCfg.logo_url} alt={siteCfg?.site_name || 'logo'} className="qzt-logo-img" />
+          ) : (
+            <div className="qzt-logo-mark">Q</div>
+          )}
+          <div className="qzt-logo-title">{siteCfg?.site_name || '业务管理平台'}</div>
         </div>
 
         <div className="qzt-module-nav" data-guide="global:module-nav">

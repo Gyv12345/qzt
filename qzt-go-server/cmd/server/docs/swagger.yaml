@@ -37,14 +37,19 @@ definitions:
   handler.PublicContactRequest:
     properties:
       company:
+        maxLength: 100
         type: string
       email:
+        maxLength: 100
         type: string
       message:
+        maxLength: 1000
         type: string
       name:
+        maxLength: 50
         type: string
       phone:
+        maxLength: 30
         type: string
     required:
     - message
@@ -271,6 +276,9 @@ definitions:
         type: string
       path:
         description: 实际请求路径
+        type: string
+      region:
+        description: IP归属地(查询时由ipregion解析填充,不入库)
         type: string
       req_params:
         description: 请求参数(脱敏+截断)
@@ -1868,6 +1876,15 @@ definitions:
     - comment
     - task_id
     type: object
+  service.ResetPasswordRequest:
+    properties:
+      password:
+        maxLength: 72
+        minLength: 6
+        type: string
+    required:
+    - password
+    type: object
   service.RoleAPIItem:
     properties:
       method:
@@ -2678,10 +2695,6 @@ definitions:
         type: string
       contact_phone:
         type: string
-      contact_qq:
-        type: string
-      contact_wechat:
-        type: string
       copyright:
         type: string
       description:
@@ -2698,8 +2711,6 @@ definitions:
         type: string
       keywords:
         type: string
-      linkedin_url:
-        type: string
       logo_url:
         type: string
       mcp_url:
@@ -2709,12 +2720,6 @@ definitions:
       public_security_beian_url:
         type: string
       site_name:
-        type: string
-      slogan:
-        type: string
-      wechat_qr_url:
-        type: string
-      weibo_url:
         type: string
       work_hours:
         type: string
@@ -12583,6 +12588,35 @@ paths:
       security:
       - BearerAuth: []
       summary: 更新用户
+      tags:
+      - 用户管理
+  /system/users/{id}/reset-password:
+    put:
+      consumes:
+      - application/json
+      description: 管理员重置指定用户密码(无需旧密码,典型场景:用户忘记密码)。会使该用户所有已登录会话失效,并清除其登录失败锁定
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 重置密码请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 重置用户密码
       tags:
       - 用户管理
   /system/users/options:
