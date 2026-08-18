@@ -407,6 +407,47 @@ function McpConfigSection({ apiKey, mcpUrl }: { apiKey: string; mcpUrl: string }
   )
 }
 
+/** 可用模块勾选组:label 带「全选/清空」快捷切换 */
+function ToolsetCheckboxGroup({
+  options,
+  extra,
+}: {
+  options: { label: React.ReactNode; value: string }[]
+  extra?: string
+}) {
+  const form = Form.useFormInstance<{ name: string; toolsets?: string[] }>()
+  const selected = Form.useWatch('toolsets', form) ?? []
+  const allSelected = options.length > 0 && selected.length >= options.length
+  return (
+    <ProFormCheckbox.Group
+      name="toolsets"
+      label={
+        <span>
+          可用模块(MCP 工具集)
+          <Typography.Link
+            style={{ marginLeft: 8 }}
+            onClick={(e) => {
+              e.preventDefault()
+              form.setFieldsValue({ toolsets: allSelected ? [] : options.map((o) => o.value) })
+            }}
+          >
+            {allSelected ? '清空' : '全选'}
+          </Typography.Link>
+        </span>
+      }
+      options={options}
+      extra={extra}
+      fieldProps={{
+        style: {
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          rowGap: 4,
+        },
+      }}
+    />
+  )
+}
+
 /** API Key 管理 */
 export function ApiKeyTab() {
   const [keys, setKeys] = useState<SysApiKey[]>([])
@@ -446,11 +487,18 @@ export function ApiKeyTab() {
     load()
   }
 
-  // 工具集勾选项(带实时工具数)
-  const toolsetOptions = catalog.map((t) => ({
-    label: `${t.name}(${t.tool_count})`,
-    value: t.key,
-  }))
+  // 工具集勾选项:短标签「主名(工具数)」三列对齐,悬浮看功能明细
+  const toolsetOptions = catalog.map((t) => {
+    const main = t.name.split(/[(（]/)[0].trim()
+    return {
+      label: (
+        <Tooltip title={t.name}>
+          <span>{main}({t.tool_count})</span>
+        </Tooltip>
+      ),
+      value: t.key,
+    }
+  })
 
   // 工具集展示:空 = 不限制(全部);否则显示数量,hover 看明细
   const renderToolsets = (toolsets?: string[]) => {
@@ -487,9 +535,7 @@ export function ApiKeyTab() {
             placeholder="给这个 Key 起个名字,便于识别用途"
             rules={[{ required: true, message: '请输入名称' }]}
           />
-          <ProFormCheckbox.Group
-            name="toolsets"
-            label="可用模块(MCP 工具集)"
+          <ToolsetCheckboxGroup
             options={toolsetOptions}
             extra="勾选后该 Key 只能使用所选模块的 MCP 工具;不勾选 = 不限制(暴露全部工具,会显著增加 AI 的上下文占用)"
           />
@@ -559,9 +605,7 @@ export function ApiKeyTab() {
                     label="名称"
                     rules={[{ required: true, message: '请输入名称' }]}
                   />
-                  <ProFormCheckbox.Group
-                    name="toolsets"
-                    label="可用模块(MCP 工具集)"
+                  <ToolsetCheckboxGroup
                     options={toolsetOptions}
                     extra="不勾选任何模块 = 不限制(暴露全部工具)"
                   />
