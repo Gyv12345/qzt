@@ -78,6 +78,7 @@ export default function TicketPage() {
           const data = await listTickets({ page: current || 1, page_size: pageSize || 10, ...rest })
           return { data: data.list, total: data.total, success: true }
         }}
+        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         toolBarRender={() => [
           <Auth perm="crm:ticket:add" key="add">
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingId(null); setEditOpen(true) }}>新建工单</Button>

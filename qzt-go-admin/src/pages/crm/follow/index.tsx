@@ -6,7 +6,6 @@ import {
   Col,
   DatePicker,
   Form,
-  InputNumber,
   Popconfirm,
   Space,
   Typography,
@@ -22,8 +21,11 @@ import {
 } from '@ant-design/pro-components'
 import dayjs, { type Dayjs } from 'dayjs'
 import Auth from '../../../components/Auth'
+import ContactSelect from '../../../components/ContactSelect'
+import ContractSelect from '../../../components/ContractSelect'
 import CustomerSelect from '../../../components/CustomerSelect'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
+import OpportunitySelect from '../../../components/OpportunitySelect'
 import {
   convertFollowPlan,
   createFollowPlan,
@@ -77,6 +79,8 @@ export default function CrmFollowPage() {
   const [editing, setEditing] = useState<CrmFollowPlan | null>(null)
   const [converting, setConverting] = useState<CrmFollowPlan | null>(null)
   const [customerMap, setCustomerMap] = useState<Record<number, string>>({})
+  // 已选客户时,商机/联系人/合同下拉仅展示该客户名下的记录
+  const selectedCustomerId = Form.useWatch('customer_id', createForm)
 
   useEffect(() => {
     listCustomers({ page: 1, page_size: 100 })
@@ -180,21 +184,21 @@ export default function CrmFollowPage() {
   const relationFields = (
     <>
       <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-        关联资源可按需填写ID
+        关联资源为可选项;选择客户后,商机/联系人/合同将只展示该客户名下的记录。
       </Typography.Text>
       <Col span={12}>
         <ProForm.Item name="opportunity_id" label="关联商机">
-          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="商机ID" />
+          <OpportunitySelect customerId={selectedCustomerId} />
         </ProForm.Item>
       </Col>
       <Col span={12}>
         <ProForm.Item name="contact_id" label="关联联系人">
-          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="联系人ID" />
+          <ContactSelect customerId={selectedCustomerId} />
         </ProForm.Item>
       </Col>
       <Col span={12}>
         <ProForm.Item name="contract_id" label="关联合同">
-          <InputNumber min={1} precision={0} style={{ width: '100%' }} placeholder="合同ID" />
+          <ContractSelect customerId={selectedCustomerId} />
         </ProForm.Item>
       </Col>
     </>

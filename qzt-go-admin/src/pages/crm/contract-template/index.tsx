@@ -105,7 +105,7 @@ export default function ContractTemplatePage() {
   }
 
   const columns: ProColumns<CrmContractTemplate>[] = [
-    { title: 'ID', dataIndex: 'id', width: 60, search: false },
+    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
     { title: '模板名称', dataIndex: 'name', ellipsis: true },
     {
       title: '状态',
@@ -160,6 +160,7 @@ export default function ContractTemplatePage() {
           })
           return { data: res.list, total: res.total, success: true }
         }}
+        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         toolBarRender={() => [
           <Auth key="add" perm="crm:contractTemplate:add">
             <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>

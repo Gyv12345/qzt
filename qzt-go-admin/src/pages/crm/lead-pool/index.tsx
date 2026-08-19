@@ -5,6 +5,8 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import Auth from '../../../components/Auth'
 import PoolPickRuleModal from '../components/PoolPickRuleModal'
 import PoolRecycleRuleModal from '../components/PoolRecycleRuleModal'
+import { parseIdArray } from '../components/poolForm'
+import { usePoolNameMaps } from '../components/usePoolNameMaps'
 import { deleteLeadPool, listLeadPools, recycleLeadPool, setLeadPoolPickRule, setLeadPoolRecycleRule } from '../../../services/lead'
 import type { CrmLeadPool } from '../../../types/lead'
 import LeadPoolEditModal from './LeadPoolEditModal'
@@ -13,6 +15,7 @@ import LeadPoolEditModal from './LeadPoolEditModal'
 export default function LeadPoolPage() {
   const { message } = App.useApp()
   const actionRef = useRef<ActionType>(null)
+  const { deptName, roleName, userName } = usePoolNameMaps()
   const [editOpen, setEditOpen] = useState(false)
   const [editing, setEditing] = useState<CrmLeadPool | null>(null)
   const [currentPool, setCurrentPool] = useState<CrmLeadPool | null>(null)
@@ -62,16 +65,21 @@ export default function LeadPoolPage() {
       width: 220,
       render: (_, r) => {
         const parts: string[] = []
-        if (r.scope_dept_ids) parts.push(`部门 ${r.scope_dept_ids}`)
-        if (r.scope_role_ids) parts.push(`角色 ${r.scope_role_ids}`)
-        return parts.length ? parts.join(' ') : '全部'
+        const deptIds = parseIdArray(r.scope_dept_ids)
+        const roleIds = parseIdArray(r.scope_role_ids)
+        if (deptIds.length) parts.push(`部门 ${deptIds.map(deptName).join('、')}`)
+        if (roleIds.length) parts.push(`角色 ${roleIds.map(roleName).join('、')}`)
+        return parts.length ? parts.join(';') : '全部'
       },
     },
     {
       title: '管理员',
       dataIndex: 'admin_user_ids',
       width: 180,
-      render: (_, r) => r.admin_user_ids || '-',
+      render: (_, r) => {
+        const names = parseIdArray(r.admin_user_ids).map(userName)
+        return names.length ? names.join('、') : '-'
+      },
     },
     {
       title: '启用',
