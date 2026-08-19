@@ -3,6 +3,7 @@ import { App, Button, Card, Popconfirm, Space, Switch, Table, Tabs, Tag } from '
 import type { ColumnsType } from 'antd/es/table'
 import { SettingOutlined } from '@ant-design/icons'
 import Auth from '../../../components/Auth'
+import IndexTag from '../../../components/IndexTag'
 import {
   getHomepageConfig,
   removeHomepageFeature,
@@ -66,7 +67,7 @@ export default function HomepageConfigPage() {
   }
 
   const featureColumns: ColumnsType<HomepageFeature> = [
-    { title: '序号', width: 60, render: (_, __, index) => index + 1 },
+    { title: '序号', width: 60, render: (_, __, index) => <IndexTag index={index} /> },
     { title: '名称', dataIndex: 'item_name' },
     { title: '补充信息', dataIndex: 'sub_info' },
     { title: '排序', dataIndex: 'sort', width: 70 },

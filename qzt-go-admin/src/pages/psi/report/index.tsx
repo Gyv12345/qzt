@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, DatePicker, Empty, Select, Space, Table } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
+import IndexTag from '../../../components/IndexTag'
 import { getPurchaseSummary, getSalesRanking, listEnabledWarehouses } from '../../../services/psi'
 import type { PsiPurchaseSummaryItem, PsiSalesRankItem, PsiWarehouse } from '../../../types/psi'
 
@@ -83,7 +84,7 @@ export default function PsiReportPage() {
     {
       title: '排名',
       width: 80,
-      render: (_: unknown, __: PsiSalesRankItem, index: number) => index + 1,
+      render: (_: unknown, __: PsiSalesRankItem, index: number) => <IndexTag index={index} />,
     },
     {
       title: '商品',
