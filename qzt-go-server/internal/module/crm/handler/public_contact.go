@@ -98,14 +98,14 @@ func (h *LeadHandler) PublicContact(c *gin.Context) {
 func notifyAdminsNewLead(lead *crmmodel.CrmLead) {
 	ctx := context.Background()
 
-	// 查询超管角色用户 ID
+	// 查询超管角色用户 ID(sys_user_role 真实列名是 sys_user_id/sys_role_id)
 	var userIDs []uint
 	err := repository.DBFrom(ctx).
 		Table("sys_user_role AS ur").
-		Joins("JOIN sys_role AS r ON r.id = ur.role_id").
-		Joins("JOIN sys_user AS u ON u.id = ur.user_id").
+		Joins("JOIN sys_role AS r ON r.id = ur.sys_role_id").
+		Joins("JOIN sys_user AS u ON u.id = ur.sys_user_id").
 		Where("r.code = ? AND u.status = 1 AND u.deleted_at IS NULL", "super_admin").
-		Pluck("ur.user_id", &userIDs).Error
+		Pluck("ur.sys_user_id", &userIDs).Error
 	if err != nil || len(userIDs) == 0 {
 		return
 	}
