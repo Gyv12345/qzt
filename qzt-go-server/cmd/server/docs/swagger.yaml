@@ -378,6 +378,22 @@ definitions:
         description: 企业微信UserID
         type: string
     type: object
+  service.AccountPayload:
+    properties:
+      app_id:
+        maxLength: 64
+        type: string
+      app_secret:
+        description: 编辑留空=保留原值
+        maxLength: 128
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - app_id
+    - name
+    type: object
   service.AddCollaboratorRequest:
     properties:
       collaboration_type:
@@ -7848,6 +7864,213 @@ paths:
       summary: 启用岗位列表(下拉用,免RBAC)
       tags:
       - 人力资源管理
+  /marketing/accounts:
+    get:
+      description: 列出全部营销渠道账号(token 字段脱敏不返回)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 渠道账号列表
+      tags:
+      - 营销
+    post:
+      consumes:
+      - application/json
+      description: 新增巨量引擎渠道账号(状态=待授权)
+      parameters:
+      - description: 账号信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AccountPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 新增渠道账号
+      tags:
+      - 营销
+  /marketing/accounts/:id:
+    delete:
+      description: 软删账号;同步日志保留可查
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除渠道账号
+      tags:
+      - 营销
+    put:
+      consumes:
+      - application/json
+      description: 编辑账号;secret 留空保留原值;AppID/Secret 变化会重置为待授权
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 账号信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AccountPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 编辑渠道账号
+      tags:
+      - 营销
+  /marketing/accounts/:id/authorize-url:
+    get:
+      description: 生成 OAuth 授权链接(state 存 Redis 5 分钟);redirect_uri 由前端按当前后台域名推导
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 授权回调地址
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 生成巨量授权链接
+      tags:
+      - 营销
+  /marketing/accounts/:id/sync:
+    post:
+      description: 手动触发一次该账号的飞鱼线索拉取(同步执行,返回统计)
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 立即同步线索
+      tags:
+      - 营销
+  /marketing/logs:
+    get:
+      description: 分页查询营销线索同步日志(账号/状态/关键词/日期窗)
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 渠道账号ID
+        in: query
+        name: account_id
+        type: integer
+      - description: 状态(1已入库 2重复跳过 3失败)
+        in: query
+        name: status
+        type: integer
+      - description: 关键词(姓名/手机号)
+        in: query
+        name: keyword
+        type: string
+      - description: 开始日期(YYYY-MM-DD)
+        in: query
+        name: start_time
+        type: string
+      - description: 结束日期(YYYY-MM-DD)
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 同步日志列表
+      tags:
+      - 营销
+  /marketing/logs/:id:
+    get:
+      description: 日志详情(含巨量返回的原始报文)
+      parameters:
+      - description: 日志ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 同步日志详情
+      tags:
+      - 营销
+  /marketing/oauth/callback:
+    get:
+      description: 免鉴权。巨量授权完成后重定向到此,校验 state 换 token,返回简单结果页
+      parameters:
+      - description: 授权码
+        in: query
+        name: auth_code
+        required: true
+        type: string
+      - description: 授权状态
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML 结果页
+          schema:
+            type: string
+      summary: 巨量 OAuth 回调(公开)
+      tags:
+      - 公共接口
   /oa/expenses:
     get:
       parameters:

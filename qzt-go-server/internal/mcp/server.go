@@ -114,6 +114,8 @@ func buildServer() *server.MCPServer {
 	registerHrmWriteTools(s)
 	// PSI 写操作 + 资产/退货只读(仓库/供应商/资产/采购/销售/退货/其他出入库)
 	registerPsiWriteTools(s)
+	// 营销(渠道账号/线索同步日志/手动同步)
+	registerMarketingTools(s)
 
 	return s
 }

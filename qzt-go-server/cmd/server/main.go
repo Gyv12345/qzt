@@ -29,6 +29,7 @@ import (
 	oasvc "qzt-go-server/internal/module/oa/service"
 	kbmod "qzt-go-server/internal/module/kb"
 	cloudmod "qzt-go-server/internal/module/cloud"
+	mktmod "qzt-go-server/internal/module/marketing"
 	projmod "qzt-go-server/internal/module/project"
 	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/pkg/setting"
@@ -69,7 +70,7 @@ func main() {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 13 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project）
+	// 4. 组装路由（注册 14 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project/marketing）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -84,6 +85,7 @@ func main() {
 		kbmod.New(),
 		cloudmod.New(),
 		projmod.New(),
+		mktmod.New(),
 	)
 
 	// 4.45 注册 MCP Server(挂载 /mcp 到 gin engine,API Key 认证)

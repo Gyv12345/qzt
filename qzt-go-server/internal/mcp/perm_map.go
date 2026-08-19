@@ -375,6 +375,10 @@ var toolPermMap = map[string]toolPerm{
 	"oa_work_log_get":               {"GET", "/oa/work-logs/:id"},
 	"oa_work_log_list":              {"GET", "/oa/work-logs"},
 	"oa_work_log_update":            {"PUT", "/oa/work-logs/:id"},
+	// ── 营销:渠道账号/同步日志/手动同步 ──
+	"marketing_account_list":  {"GET", "/marketing/accounts"},
+	"marketing_log_list":      {"GET", "/marketing/logs"},
+	"marketing_sync_trigger":  {"POST", "/marketing/accounts/:id/sync"},
 }
 
 // authOnlyTools 收录"仅需认证"的工具(对应 HTTP authenticated 组,登录即可用)。

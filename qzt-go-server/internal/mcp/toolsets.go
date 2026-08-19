@@ -32,6 +32,7 @@ type Toolset struct {
 // toolsetCatalog 工具集目录(展示顺序即勾选 UI 顺序)。
 var toolsetCatalog = []Toolset{
 	{Key: "crm", Name: "CRM(客户/线索/商机/合同/回款/工单)", Prefixes: []string{"crm"}},
+	{Key: "marketing", Name: "营销(渠道账号/线索同步)", Prefixes: []string{"marketing"}},
 	{Key: "oa", Name: "OA 办公(站内信/公告/日程/报销/出差/借款/会议/表单)", Prefixes: []string{"oa"}},
 	{Key: "hrm", Name: "人力资源(组织/员工/考勤/薪酬/招聘/绩效)", Prefixes: []string{"hrm"}},
 	{Key: "psi", Name: "进销存(供应商/仓库/采购/销售/库存/资产)", Prefixes: []string{"psi"}},

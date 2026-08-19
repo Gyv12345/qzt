@@ -7975,6 +7975,320 @@
                 }
             }
         },
+        "/marketing/accounts": {
+            "get": {
+                "description": "列出全部营销渠道账号(token 字段脱敏不返回)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "渠道账号列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "新增巨量引擎渠道账号(状态=待授权)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "新增渠道账号",
+                "parameters": [
+                    {
+                        "description": "账号信息",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AccountPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/marketing/accounts/:id": {
+            "put": {
+                "description": "编辑账号;secret 留空保留原值;AppID/Secret 变化会重置为待授权",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "编辑渠道账号",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账号ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "账号信息",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AccountPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "软删账号;同步日志保留可查",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "删除渠道账号",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账号ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/marketing/accounts/:id/authorize-url": {
+            "get": {
+                "description": "生成 OAuth 授权链接(state 存 Redis 5 分钟);redirect_uri 由前端按当前后台域名推导",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "生成巨量授权链接",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账号ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "授权回调地址",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/marketing/accounts/:id/sync": {
+            "post": {
+                "description": "手动触发一次该账号的飞鱼线索拉取(同步执行,返回统计)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "立即同步线索",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账号ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/marketing/logs": {
+            "get": {
+                "description": "分页查询营销线索同步日志(账号/状态/关键词/日期窗)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "同步日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "渠道账号ID",
+                        "name": "account_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1已入库 2重复跳过 3失败)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键词(姓名/手机号)",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "开始日期(YYYY-MM-DD)",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束日期(YYYY-MM-DD)",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/marketing/logs/:id": {
+            "get": {
+                "description": "日志详情(含巨量返回的原始报文)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "营销"
+                ],
+                "summary": "同步日志详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "日志ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/marketing/oauth/callback": {
+            "get": {
+                "description": "免鉴权。巨量授权完成后重定向到此,校验 state 换 token,返回简单结果页",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "公共接口"
+                ],
+                "summary": "巨量 OAuth 回调(公开)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "授权码",
+                        "name": "auth_code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "授权状态",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML 结果页",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/oa/expenses": {
             "get": {
                 "security": [
@@ -16286,6 +16600,28 @@
                 "wecom_user_id": {
                     "description": "企业微信UserID",
                     "type": "string"
+                }
+            }
+        },
+        "service.AccountPayload": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "name"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "app_secret": {
+                    "description": "编辑留空=保留原值",
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },
