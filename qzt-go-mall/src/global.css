@@ -1,0 +1,58 @@
+:root {
+  color-scheme: light;
+  --mall-primary: #2e6be6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  background: #f4f5f7;
+  -webkit-font-smoothing: antialiased;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue',
+    'Microsoft YaHei', sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 页面通用留白 */
+.page {
+  min-height: 100vh;
+  padding-bottom: 24px;
+}
+
+/* 顶部导航条 */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #fff;
+  border-bottom: 1px solid #eceef2;
+}
+
+.topbar-title {
+  font-size: 17px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+/* 空态 */
+.empty-tip {
+  text-align: center;
+  color: #9aa0a8;
+  font-size: 14px;
+  padding: 60px 0;
+}

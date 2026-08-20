@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Badge, ErrorBlock } from 'antd-mobile'
+import { Badge, ErrorBlock, Toast } from 'antd-mobile'
 import {
   AccountBookOutlined,
   AimOutlined,
@@ -49,6 +49,7 @@ import {
 import type { CSSProperties, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth'
+import { fetchPublicConfigs } from '../../services/auth'
 import { getDashboardOverview } from '../../services/dashboard'
 import { listTodos } from '../../services/approval'
 import type { DashboardOverview } from '../../types/dashboard'
@@ -68,6 +69,12 @@ interface GridEntry {
 export default function Home() {
   const profile = useAuthStore((s) => s.profile)
   const navigate = useNavigate()
+  // 商城入口地址(后端公开配置 mall_url,私有化部署各自配置;不写死域名)
+  const [mallUrl, setMallUrl] = useState('')
+
+  useEffect(() => {
+    fetchPublicConfigs().then((cfg) => setMallUrl(cfg.mall_url || ''))
+  }, [])
   const [overview, setOverview] = useState<DashboardOverview | null>(null)
   const [todoCount, setTodoCount] = useState(0)
   const [todoList, setTodoList] = useState<{ id: number; title: string; created_at: string }[]>([])
@@ -189,6 +196,11 @@ export default function Home() {
     { key: 'cloud', label: '网盘', icon: <CloudOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/cloud' },
   ]
 
+  // 商城(外部独立站点,地址来自后端 mall_url 配置)
+  const mallEntries: GridEntry[] = [
+    { key: 'mall', label: '商城', icon: <ShoppingCartOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/mall' },
+  ]
+
   // 人事宫格
   const hrmEntries: GridEntry[] = [
     { key: 'employee', label: '员工', icon: <UserOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/employee' },
@@ -205,7 +217,18 @@ export default function Home() {
 
   const renderGrid = (entries: GridEntry[]) =>
     entries.map((e) => (
-      <div key={e.key} className="home-grid-item" onClick={() => navigate(e.path)}>
+      <div
+        key={e.key}
+        className="home-grid-item"
+        onClick={() => {
+          if (e.key === 'mall') {
+            if (mallUrl) window.open(mallUrl, '_blank', 'noopener')
+            else Toast.show('商城未开通,请联系管理员配置')
+            return
+          }
+          navigate(e.path)
+        }}
+      >
         <div className="home-grid-icon" style={{ background: e.iconBg, color: 'var(--brand)' }}>
           {e.icon}
           {e.badge ? <span className="home-grid-badge">{e.badge > 99 ? '99+' : e.badge}</span> : null}
@@ -312,6 +335,11 @@ export default function Home() {
       <div className="home-section">
         <div className="home-section-title">网盘</div>
         <div className="home-grid">{renderGrid(cloudEntries)}</div>
+      </div>
+
+      <div className="home-section">
+        <div className="home-section-title">商城</div>
+        <div className="home-grid">{renderGrid(mallEntries)}</div>
       </div>
 
       {/* 审批待办预览 */}
