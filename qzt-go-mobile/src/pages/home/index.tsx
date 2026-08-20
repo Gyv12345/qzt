@@ -26,7 +26,6 @@ import {
   IdcardOutlined,
   ImportOutlined,
   MoneyCollectOutlined,
-  MessageOutlined,
   PayCircleOutlined,
   ProfileOutlined,
   ProjectOutlined,
@@ -35,7 +34,6 @@ import {
   RiseOutlined,
   RollbackOutlined,
   ScheduleOutlined,
-  SettingOutlined,
   ShopOutlined,
   ShoppingCartOutlined,
   SoundOutlined,
@@ -83,11 +81,13 @@ export default function Home() {
       .then((res) => {
         setTodoCount(res.total)
         setTodoList(
-          (res.list ?? []).map((t) => ({
-            id: t.id,
-            title: t.type ? `${t.type} #${t.id}` : `审批 #${t.id}`,
-            created_at: t.created_at,
-          })),
+          (res.list ?? [])
+            .filter((t) => t.instance != null)
+            .map((t) => ({
+              id: t.instance!.id,
+              title: t.instance!.resource_title || t.instance!.form_type_label || '审批单',
+              created_at: t.created_at,
+            })),
         )
       })
       .catch(() => setTodoFailed(true))
@@ -109,25 +109,34 @@ export default function Home() {
       ]
     : []
 
-  // 常用业务宫格
-  const primaryEntries: GridEntry[] = [
+  // 数据看板(移动端独有,独立分组置顶)
+  const dashboardEntries: GridEntry[] = [
     { key: 'dashboard', label: '数据看板', icon: <DashboardOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/dashboard' },
-    { key: 'customer', label: '客户', icon: <TeamOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/customer' },
+  ]
+
+  // 客户管理(对齐后台顶级目录,线索在客户前)
+  const crmEntries: GridEntry[] = [
     { key: 'lead', label: '线索', icon: <AimOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/lead' },
+    { key: 'lead-pool', label: '线索公海', icon: <GlobalOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/lead/pool' },
+    { key: 'customer', label: '客户', icon: <TeamOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/customer' },
+    { key: 'customer-pool', label: '客户公海', icon: <GlobalOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/customer/pool' },
     { key: 'opp', label: '商机', icon: <RiseOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/opportunity' },
     { key: 'contract', label: '合同', icon: <FileProtectOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/contract' },
+    { key: 'follow-plan', label: '跟进计划', icon: <ScheduleOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/follow-plan' },
+    { key: 'ticket', label: '工单', icon: <CustomerServiceOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/ticket' },
+    { key: 'product', label: '产品', icon: <AppstoreOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/product' },
+  ]
+
+  // 审批中心
+  const approvalEntries: GridEntry[] = [
     {
       key: 'approval',
-      label: '审批',
+      label: '我的审批',
       icon: <AuditOutlined />,
       iconBg: 'var(--icon-bg-approval)',
       path: '/approval',
       badge: todoCount || undefined,
     },
-    { key: 'ticket', label: '工单', icon: <CustomerServiceOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/ticket' },
-    { key: 'product', label: '产品', icon: <AppstoreOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/product' },
-    { key: 'customer-pool', label: '客户公海', icon: <GlobalOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/customer/pool' },
-    { key: 'lead-pool', label: '线索公海', icon: <GlobalOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/lead/pool' },
   ]
 
   // 进销存宫格
@@ -150,27 +159,40 @@ export default function Home() {
     { key: 'expense', label: '报销', icon: <MoneyCollectOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/expense' },
     { key: 'trip', label: '出差', icon: <CompassOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/trip' },
     { key: 'loan', label: '借款', icon: <WalletOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/loan' },
-    { key: 'leave', label: '请假', icon: <RestOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
     { key: 'worklog', label: '日志', icon: <EditOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/work-log' },
     { key: 'schedule', label: '日程', icon: <CalendarOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/schedule' },
     { key: 'meeting', label: '会议', icon: <VideoCameraOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/meeting' },
-    { key: 'follow-plan', label: '跟进计划', icon: <ScheduleOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/follow-plan' },
+    { key: 'news', label: '资讯', icon: <ReadOutlined />, iconBg: 'var(--icon-bg-news)', path: '/news' },
+    { key: 'notice', label: '公告', icon: <SoundOutlined />, iconBg: 'var(--icon-bg-notice)', path: '/notice' },
   ]
 
-  // 财务+项目+知识宫格
-  const bizEntries: GridEntry[] = [
+  // 财务管理
+  const financeEntries: GridEntry[] = [
     { key: 'receivable', label: '应收应付', icon: <AccountBookOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/finance/receivable' },
     { key: 'account', label: '科目', icon: <ProfileOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/finance/account' },
     { key: 'voucher', label: '凭证', icon: <FileDoneOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/finance/voucher' },
     { key: 'invoice', label: '发票', icon: <FileTextOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/finance/invoice' },
+  ]
+
+  // 项目管理
+  const projectEntries: GridEntry[] = [
     { key: 'project', label: '项目', icon: <ProjectOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/project' },
+  ]
+
+  // 知识库
+  const kbEntries: GridEntry[] = [
     { key: 'kb', label: '知识库', icon: <BookOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/kb' },
+  ]
+
+  // 网盘
+  const cloudEntries: GridEntry[] = [
     { key: 'cloud', label: '网盘', icon: <CloudOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/cloud' },
   ]
 
   // 人事宫格
   const hrmEntries: GridEntry[] = [
     { key: 'employee', label: '员工', icon: <UserOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/employee' },
+    { key: 'leave', label: '请假', icon: <RestOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
     { key: 'leave', label: '请假', icon: <RestOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
     { key: 'clock', label: '打卡', icon: <ClockCircleOutlined />, iconBg: 'var(--icon-bg-success, var(--brand))', path: '/clock' },
     { key: 'department', label: '部门', icon: <ApartmentOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/department' },
@@ -179,14 +201,6 @@ export default function Home() {
     { key: 'job', label: '招聘', icon: <UserAddOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/hrm/job' },
     { key: 'attendance-summary', label: '考勤汇总', icon: <CarryOutOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/attendance-summary' },
     { key: 'payroll', label: '薪资', icon: <PayCircleOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/hrm/payroll' },
-  ]
-
-  // 更多宫格
-  const moreEntries: GridEntry[] = [
-    { key: 'msg', label: '消息', icon: <MessageOutlined />, iconBg: 'var(--icon-bg-msg)', path: '/messages' },
-    { key: 'news', label: '资讯', icon: <ReadOutlined />, iconBg: 'var(--icon-bg-news)', path: '/news' },
-    { key: 'notice', label: '公告', icon: <SoundOutlined />, iconBg: 'var(--icon-bg-notice)', path: '/notice' },
-    { key: 'settings', label: '设置', icon: <SettingOutlined />, iconBg: 'var(--icon-bg-settings)', path: '/mine' },
   ]
 
   const renderGrid = (entries: GridEntry[]) =>
@@ -240,28 +254,34 @@ export default function Home() {
         </div>
       )}
 
-      {/* 常用业务 */}
+      {/* 数据看板(移动端独有) */}
       <div className="home-section">
-        <div className="home-section-title">常用业务</div>
-        <div className="home-grid">{renderGrid(primaryEntries)}</div>
+        <div className="home-section-title">数据看板</div>
+        <div className="home-grid">{renderGrid(dashboardEntries)}</div>
       </div>
 
-      {/* OA 办公 */}
+      {/* 客户管理 */}
       <div className="home-section">
-        <div className="home-section-title">OA 办公</div>
+        <div className="home-section-title">客户管理</div>
+        <div className="home-grid">{renderGrid(crmEntries)}</div>
+      </div>
+
+      {/* 办公中心 */}
+      <div className="home-section">
+        <div className="home-section-title">办公中心</div>
         <div className="home-grid">{renderGrid(oaEntries)}</div>
       </div>
 
-      {/* 财务·项目 */}
+      {/* 知识库 */}
       <div className="home-section">
-        <div className="home-section-title">财务 · 项目</div>
-        <div className="home-grid">{renderGrid(bizEntries)}</div>
+        <div className="home-section-title">知识库</div>
+        <div className="home-grid">{renderGrid(kbEntries)}</div>
       </div>
 
-      {/* 人事 */}
+      {/* 审批中心 */}
       <div className="home-section">
-        <div className="home-section-title">人事</div>
-        <div className="home-grid">{renderGrid(hrmEntries)}</div>
+        <div className="home-section-title">审批中心</div>
+        <div className="home-grid">{renderGrid(approvalEntries)}</div>
       </div>
 
       {/* 进销存 */}
@@ -270,10 +290,28 @@ export default function Home() {
         <div className="home-grid">{renderGrid(psiEntries)}</div>
       </div>
 
-      {/* 更多 */}
+      {/* 人事管理 */}
       <div className="home-section">
-        <div className="home-section-title">更多</div>
-        <div className="home-grid">{renderGrid(moreEntries)}</div>
+        <div className="home-section-title">人事管理</div>
+        <div className="home-grid">{renderGrid(hrmEntries)}</div>
+      </div>
+
+      {/* 财务管理 */}
+      <div className="home-section">
+        <div className="home-section-title">财务管理</div>
+        <div className="home-grid">{renderGrid(financeEntries)}</div>
+      </div>
+
+      {/* 项目管理 */}
+      <div className="home-section">
+        <div className="home-section-title">项目管理</div>
+        <div className="home-grid">{renderGrid(projectEntries)}</div>
+      </div>
+
+      {/* 网盘 */}
+      <div className="home-section">
+        <div className="home-section-title">网盘</div>
+        <div className="home-grid">{renderGrid(cloudEntries)}</div>
       </div>
 
       {/* 审批待办预览 */}
