@@ -13,11 +13,10 @@ export default function TypePalette({ loading, onAdd }: TypePaletteProps) {
   return (
     <div
       style={{
+        flex: 1,
         background: '#fff',
         borderRadius: 8,
         padding: 16,
-        maxHeight: '72vh',
-        overflowY: 'auto',
         border: '1px solid #f0f0f0',
       }}
     >

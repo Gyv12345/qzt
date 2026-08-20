@@ -19,10 +19,11 @@ export default function FieldPreview({ fields, label, selectedId, onSelect, onMo
   return (
     <div
       style={{
+        flex: 1,
         background: '#fff',
         borderRadius: 8,
         padding: 16,
-        minHeight: '72vh',
+        minHeight: 320,
         border: '1px solid #f0f0f0',
       }}
     >

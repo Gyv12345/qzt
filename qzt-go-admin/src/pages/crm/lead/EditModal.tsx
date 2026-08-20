@@ -56,6 +56,15 @@ export default function LeadEditModal({ open, editing, onOpenChange, onSuccess }
     return defs
   }
 
+  // 弹窗打开即拉取字段定义(新增时 editing 为空,不走下方回填逻辑,也必须展示自定义字段);
+  // 每次打开重新拉,保证配置页新增/删除的字段即时生效
+  useEffect(() => {
+    if (!open) return
+    listCustomFields('LEAD')
+      .then(setCustomFields)
+      .catch(() => {})
+  }, [open])
+
   // 打开编辑时拉详情(含自定义字段值)回填
   useEffect(() => {
     if (!open || !editing) return

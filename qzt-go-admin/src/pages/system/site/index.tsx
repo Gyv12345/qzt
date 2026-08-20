@@ -48,7 +48,7 @@ export default function SiteConfigPage() {
   }
 
   return (
-    <Space direction="vertical" size={16} style={{ display: 'flex', maxWidth: 960 }}>
+    <Space direction="vertical" size={16} style={{ display: 'flex' }}>
       <Card title="站点信息">
         <ProForm<SiteFormValues>
           form={form}

@@ -97,14 +97,15 @@ export default function CrmFieldPage() {
         style={{ marginBottom: 16 }}
       />
 
+      {/* 三栏随内容自然增高、由页面整体滚动;Col 用 flex 让三块面板高度对齐 */}
       <Row gutter={16}>
         {/* 左栏:字段类型面板 */}
-        <Col span={6}>
+        <Col span={6} style={{ display: 'flex' }}>
           <TypePalette loading={loading} onAdd={handleAdd} />
         </Col>
 
         {/* 中栏:表单预览 */}
-        <Col span={11}>
+        <Col span={11} style={{ display: 'flex' }}>
           <FieldPreview
             fields={fields}
             label={currentLabel}
@@ -116,7 +117,7 @@ export default function CrmFieldPage() {
         </Col>
 
         {/* 右栏:属性编辑 */}
-        <Col span={7}>
+        <Col span={7} style={{ display: 'flex' }}>
           <PropEditor field={selectedField} formKey={currentKey} onSaved={loadFields} />
         </Col>
       </Row>
