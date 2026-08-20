@@ -63,8 +63,8 @@ export default function LoanList() {
           { name: 'title', label: '借款标题', type: 'text', required: true },
           { name: 'loan_type', label: '借款类型', type: 'select', required: true, options: LOAN_TYPE_OPTIONS },
           { name: 'amount', label: '借款金额', type: 'number', required: true },
-          { name: 'expected_repay_date', label: '预计还款日期', type: 'date', datePrecision: 'date' },
-          { name: 'purpose', label: '借款事由', type: 'textarea' },
+          { name: 'expected_date', label: '预计还款日期', type: 'date', datePrecision: 'date' },
+          { name: 'reason', label: '借款事由', type: 'textarea' },
         ]}
         onClose={() => setShowNew(false)}
         onSubmit={async (v) => {
@@ -72,8 +72,8 @@ export default function LoanList() {
             title: v.title,
             loan_type: v.loan_type,
             amount: v.amount ? String(v.amount) : '0',
-            expected_repay_date: v.expected_repay_date || undefined,
-            purpose: v.purpose || undefined,
+            expected_date: v.expected_date || undefined,
+            reason: v.reason || undefined,
           })
           refresh()
         }}

@@ -142,12 +142,13 @@ export const createCloudFolder = (data: { parent_id: number; name: string; scope
 
 // ── 借款新建(补充) ──
 
+// 字段名与后端 CreateLoanRequest 对齐:expected_date / reason(旧写法 expected_repay_date/purpose 会被后端丢弃)
 export const createLoan = (data: {
   title: string
   loan_type: string
   amount: string
-  expected_repay_date?: string
-  purpose?: string
+  expected_date?: string
+  reason?: string
 }) => request.post('/oa/loans', data)
 
 // ── 编辑 / 删除(补充) ──
