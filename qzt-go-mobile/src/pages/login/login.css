@@ -278,3 +278,24 @@
     animation: none;
   }
 }
+
+/* 矮屏(≤720px,如 iPhone SE 667px):压缩纵向间距,保证含企微登录按钮时内容不超视口出滚动条 */
+@media (max-height: 720px) {
+  .qz-badge {
+    margin-top: 18px;
+  }
+  .qz-title {
+    margin-top: 12px;
+    font-size: 30px;
+  }
+  .qz-subtitle {
+    margin-top: 6px;
+  }
+  .qz-card {
+    margin-top: 20px;
+    padding: 20px;
+  }
+  .qz-foot {
+    margin-top: 20px;
+  }
+}

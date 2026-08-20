@@ -4,6 +4,7 @@ import type {
   ApprovalActionPayload,
   ApprovalInstance,
   ApprovalInstanceDetail,
+  ApprovalTaskItem,
 } from '../types/approval'
 
 interface ApprovalPageResult<T> {
@@ -15,11 +16,11 @@ export interface TodoQuery extends PageParams {}
 
 /** 待办列表 */
 export const listTodos = (params: TodoQuery) =>
-  request.get<unknown, ApprovalPageResult<ApprovalInstance>>('/approval/todos', { params })
+  request.get<unknown, ApprovalPageResult<ApprovalTaskItem>>('/approval/todos', { params })
 
 /** 已办列表 */
 export const listProcessed = (params: TodoQuery) =>
-  request.get<unknown, ApprovalPageResult<ApprovalInstance>>('/approval/processed', { params })
+  request.get<unknown, ApprovalPageResult<ApprovalTaskItem>>('/approval/processed', { params })
 
 /** 我发起的 */
 export const listInitiated = (params: TodoQuery) =>

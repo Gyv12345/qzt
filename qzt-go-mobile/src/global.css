@@ -93,11 +93,18 @@ body.dm-dark {
   --adm-card-border-color: var(--border);
 }
 
+/* 移动端基础重置:UA 默认 body margin 8px 会让 100vh 页面恒定溢出 16px 出滚动条 */
+body {
+  margin: 0;
+}
+
 /* 全局背景 */
 #root {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  /* 移动端地址栏展开时 100vh > 可视高度,优先 dvh */
+  min-height: 100dvh;
   transition: background 0.25s ease, color 0.25s ease;
 }
 

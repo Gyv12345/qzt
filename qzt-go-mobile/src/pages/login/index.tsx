@@ -13,6 +13,9 @@ export default function Login() {
   const [wecomLoading, setWecomLoading] = useState(false)
 
   useEffect(() => {
+    // 企微网页授权链接(open.weixin.qq.com/connect/oauth2/authorize)仅在企微内置
+    // 浏览器内能静默授权,普通浏览器/个人微信打开是报错页,故只在企微内才显示按钮
+    if (!/wxwork/i.test(navigator.userAgent)) return
     listEnabledOauth().then((providers) => setWecomEnabled(providers.includes('wecom')))
   }, [])
 

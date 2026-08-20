@@ -16,6 +16,10 @@ export interface ApprovalInstance {
   comment: string
   created_at: string
   updated_at: string
+  /** 业务单据标题(后端 enrichment,如「办公用品领用 BD20260813001」) */
+  resource_title?: string
+  /** 表单类型中文名(后端 enrichment) */
+  form_type_label?: string
 }
 
 export interface ApprovalTask {
@@ -45,8 +49,13 @@ export interface ApprovalRecord {
 }
 
 /** 审批实例详情(含任务与记录) */
-export interface ApprovalInstanceDetail {
-  ApprovalInstance: ApprovalInstance
+/** 待办/已办列表项:审批任务,instance 嵌套所属实例(含 enrichment) */
+export interface ApprovalTaskItem extends ApprovalTask {
+  instance?: ApprovalInstance | null
+}
+
+/** 审批实例详情(后端扁平返回:实例字段 + resource_title/form_type_label + tasks/records) */
+export interface ApprovalInstanceDetail extends ApprovalInstance {
   tasks: ApprovalTask[]
   records: ApprovalRecord[]
 }

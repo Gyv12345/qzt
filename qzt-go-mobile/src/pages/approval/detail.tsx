@@ -3,6 +3,7 @@ import { Button, Card, Dialog, ErrorBlock, List, NavBar, Popup, Space, SpinLoadi
 import { useParams, useNavigate } from 'react-router-dom'
 import { approve, getInstance, reject, revoke } from '../../services/approval'
 import type { ApprovalInstanceDetail } from '../../types/approval'
+import { useAuthStore } from '../../stores/auth'
 
 const STATUS_TEXT: Record<string, string> = {
   PENDING: '待处理',
@@ -11,6 +12,14 @@ const STATUS_TEXT: Record<string, string> = {
   REJECTED: '已驳回',
   REVOKED: '已撤回',
   UNAPPROVED: '未通过',
+}
+
+/** 审批记录 result → 文案 */
+const RESULT_TEXT: Record<string, string> = {
+  APPROVE: '通过',
+  REJECT: '驳回',
+  AUTO_PASS: '自动通过',
+  REVOKE: '撤回',
 }
 
 export default function ApprovalDetail() {
@@ -22,6 +31,7 @@ export default function ApprovalDetail() {
   const [acting, setActing] = useState(false)
   const [showReject, setShowReject] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const myId = useAuthStore((s) => s.profile?.id)
 
   const load = () => {
     if (!id) return
@@ -45,9 +55,8 @@ export default function ApprovalDetail() {
     return <ErrorBlock status="default" title="加载失败" description="审批详情获取失败" />
   }
 
-  const inst = detail.ApprovalInstance
-  // 找到当前用户的待办任务(状态 PENDING)
-  const myTask = detail.tasks.find((t) => t.status === 'PENDING')
+  // 找到当前用户的待审任务(可操作的任务状态为 APPROVING,且审批人是本人)
+  const myTask = detail.tasks.find((t) => t.status === 'APPROVING' && t.approver_id === myId)
   const canAct = !!myTask
 
   const doApprove = async () => {
@@ -93,7 +102,7 @@ export default function ApprovalDetail() {
     if (!ok) return
     setActing(true)
     try {
-      await revoke(inst.id)
+      await revoke(detail.id)
       Toast.show({ icon: 'success', content: '已撤回' })
       load()
     } finally {
@@ -107,13 +116,13 @@ export default function ApprovalDetail() {
 
       <Card title="基本信息" style={{ margin: 8 }}>
         <List>
-          <List.Item extra={`#${inst.resource_id}`}>业务单据</List.Item>
-          <List.Item extra={inst.type}>表单类型</List.Item>
-          <List.Item extra={STATUS_TEXT[inst.approval_status] || inst.approval_status}>
+          <List.Item extra={detail.resource_title || '-'}>标题</List.Item>
+          <List.Item extra={detail.form_type_label || detail.type}>表单类型</List.Item>
+          <List.Item extra={STATUS_TEXT[detail.approval_status] || detail.approval_status}>
             审批状态
           </List.Item>
-          <List.Item extra={inst.submit_time}>提审时间</List.Item>
-          {inst.comment && <List.Item extra={inst.comment}>备注</List.Item>}
+          <List.Item extra={detail.submit_time}>提审时间</List.Item>
+          {detail.comment && <List.Item extra={detail.comment}>备注</List.Item>}
         </List>
       </Card>
 
@@ -123,7 +132,7 @@ export default function ApprovalDetail() {
             {detail.records.map((r) => (
               <Steps.Step
                 key={r.id}
-                title={STATUS_TEXT[r.result] || r.result}
+                title={RESULT_TEXT[r.result] || STATUS_TEXT[r.result] || r.result}
                 description={
                   <span style={{ fontSize: 12 }}>
                     {r.comment ? `${r.comment} · ` : ''}
@@ -150,7 +159,7 @@ export default function ApprovalDetail() {
       )}
 
       {/* 撤回(审批中、且非待我审批时显示;后端校验发起人身份) */}
-      {(inst.approval_status === 'PENDING' || inst.approval_status === 'APPROVING') && !canAct && (
+      {(detail.approval_status === 'PENDING' || detail.approval_status === 'APPROVING') && !canAct && (
         <div style={{ padding: 16 }}>
           <Button block color="warning" fill="outline" loading={acting} onClick={doRevoke}>
             撤回审批
