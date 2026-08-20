@@ -149,9 +149,11 @@ export interface ContactPayload {
 /**
  * 提交官网留言(公开接口,无需鉴权)。
  * 后端自动创建 CRM 线索到公海池并通知管理员。
+ * 浏览器走同源 /api/contact(Next 服务端代理):API_BASE 是服务器内网地址,
+ * 构建期内联进浏览器包后访客根本访问不到(曾经导致生产留言全部失败)。
  */
 export async function submitContact(data: ContactPayload): Promise<{ lead_no: string }> {
-  const res = await fetch(API_BASE + "/crm/public/contact", {
+  const res = await fetch("/api/contact", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
