@@ -159,7 +159,7 @@ func (r *AttendanceSummaryRepo) Update(ctx context.Context, m *hrmmodel.HrmAtten
 // GetByEmpMonth 按员工+年月查汇总。
 func (r *AttendanceSummaryRepo) GetByEmpMonth(ctx context.Context, employeeID uint, yearMonth string) (*hrmmodel.HrmAttendanceSummary, error) {
 	var s hrmmodel.HrmAttendanceSummary
-	err := repoDB(ctx).Where("employee_id = ? AND year_month = ?", employeeID, yearMonth).First(&s).Error
+	err := repoDB(ctx).Where("employee_id = ? AND `year_month` = ?", employeeID, yearMonth).First(&s).Error
 	return &s, err
 }
 
@@ -167,7 +167,7 @@ func (r *AttendanceSummaryRepo) GetByEmpMonth(ctx context.Context, employeeID ui
 func (r *AttendanceSummaryRepo) List(ctx context.Context, yearMonth string, departmentID uint) ([]hrmmodel.HrmAttendanceSummary, error) {
 	q := repoDB(ctx).Model(&hrmmodel.HrmAttendanceSummary{})
 	if yearMonth != "" {
-		q = q.Where("year_month = ?", yearMonth)
+		q = q.Where("`year_month` = ?", yearMonth)
 	}
 	if departmentID > 0 {
 		q = q.Where("employee_id IN (SELECT id FROM hrm_employee WHERE department_id = ?)", departmentID)

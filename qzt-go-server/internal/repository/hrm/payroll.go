@@ -40,7 +40,7 @@ func NewPayrollRepo() *PayrollRepo { return &PayrollRepo{} }
 // GetByEmpMonth 按员工+年月查工资条。
 func (r *PayrollRepo) GetByEmpMonth(ctx context.Context, employeeID uint, yearMonth string) (*hrmmodel.HrmPayroll, error) {
 	var p hrmmodel.HrmPayroll
-	err := repoDB(ctx).Where("employee_id = ? AND year_month = ?", employeeID, yearMonth).First(&p).Error
+	err := repoDB(ctx).Where("employee_id = ? AND `year_month` = ?", employeeID, yearMonth).First(&p).Error
 	return &p, err
 }
 
@@ -54,7 +54,7 @@ func (r *PayrollRepo) Update(ctx context.Context, m *hrmmodel.HrmPayroll) error 
 func (r *PayrollRepo) List(ctx context.Context, yearMonth string, departmentID uint) ([]hrmmodel.HrmPayroll, error) {
 	q := repoDB(ctx).Model(&hrmmodel.HrmPayroll{})
 	if yearMonth != "" {
-		q = q.Where("year_month = ?", yearMonth)
+		q = q.Where("`year_month` = ?", yearMonth)
 	}
 	if departmentID > 0 {
 		q = q.Where("employee_id IN (SELECT id FROM hrm_employee WHERE department_id = ?)", departmentID)

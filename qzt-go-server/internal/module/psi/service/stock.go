@@ -70,6 +70,7 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 }
 
 // MovementDetail 收发明细查询。按仓库/商品/业务类型过滤,分页,按 id 倒序。
+// 批量回填 product_name(否则前端只能显示 商品#ID)。
 func (s *StockService) MovementDetail(ctx context.Context, page, pageSize int, warehouseID, productID uint, bizType string) ([]psimodel.PsiStockMovement, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
 	where := map[string]any{}
@@ -85,7 +86,26 @@ func (s *StockService) MovementDetail(ctx context.Context, page, pageSize int, w
 	if len(where) > 0 {
 		q.Where = where
 	}
-	return s.movementRepo.PageList(ctx, page, pageSize, q)
+	list, total, err := s.movementRepo.PageList(ctx, page, pageSize, q)
+	if err != nil || len(list) == 0 {
+		return list, total, err
+	}
+	productIDs := make([]uint, 0, len(list))
+	for _, m := range list {
+		productIDs = append(productIDs, m.ProductID)
+	}
+	products, err := s.fetchProducts(ctx, productIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+	pMap := make(map[uint]string, len(products))
+	for _, p := range products {
+		pMap[p.ID] = p.Name
+	}
+	for i := range list {
+		list[i].ProductName = pMap[list[i].ProductID]
+	}
+	return list, total, nil
 }
 
 // GetBalance 查询某商品在某仓库的结余(不存在返回 0)。

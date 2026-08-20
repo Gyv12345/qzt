@@ -51,6 +51,8 @@ type PsiStockMovement struct {
 	// 操作人ID
 	OperatorID   *uint           `json:"operator_id" gorm:"index;comment:操作人ID"`
 	Remark       string          `json:"remark" gorm:"size:500"`
+	// 商品名称(非表字段,列表接口批量回填,避免前端用裸 ID 显示)
+	ProductName  string          `json:"product_name" gorm:"-"`
 	base.BaseModel
 }
 

@@ -9,8 +9,9 @@ import (
 // 表名/列名均为服务端常量(apprmodel.FormTable 白名单、service 的 resourceTitleColumn 映射),
 // 不接收任何客户端输入,SQL 标识符拼接是安全的。
 
-// ScanResourceTitles 批量查业务表标题列,返回 id → 标题。
-// table/col 由调用方从常量映射取出(待办/已办/我发起的列表 enrichment 用)。
+// ScanResourceTitles 批量查业务表标题,返回 id → 标题。
+// table 与 col(可为 CONCAT_WS 等表达式)均由调用方从服务端常量映射取出,不接收客户端输入
+// (待办/已办/我发起的列表 enrichment 用)。
 func ScanResourceTitles(ctx context.Context, table, col string, ids []uint) (map[uint]string, error) {
 	var rows []struct {
 		ID    uint   `gorm:"column:id"`

@@ -66,6 +66,14 @@ func (s *ArticleService) Create(ctx context.Context, req *CreateArticleRequest, 
 		if err := s.articleRepo.Create(ctx, article); err != nil {
 			return err
 		}
+		// 发布状态但 slug 为空时回填 a<ID>:公开端文章链接是 slug||id 兜底,
+		// 空 slug 会生成 /news/<id> 链接,而详情页只按 slug 解析 → 404。
+		if article.Status == cmsmodel.ArticleStatusPublished && article.Slug == "" {
+			article.Slug = "a" + strconv.FormatUint(uint64(article.ID), 10)
+			if err := s.articleRepo.Update(ctx, article); err != nil {
+				return err
+			}
+		}
 		if len(req.TagIDs) > 0 {
 			return s.articleRepo.SetTags(ctx, article.ID, req.TagIDs)
 		}
@@ -139,6 +147,11 @@ func (s *ArticleService) Update(ctx context.Context, id uint, req *UpdateArticle
 		article.IsHot = *req.IsHot
 	}
 	article.Sort = req.Sort
+
+	// 同 Create:发布状态不允许空 slug(空 slug 的公开链接 /news/<id> 会 404)
+	if article.Status == cmsmodel.ArticleStatusPublished && article.Slug == "" {
+		article.Slug = "a" + strconv.FormatUint(uint64(id), 10)
+	}
 
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.articleRepo.Update(ctx, article); err != nil {
