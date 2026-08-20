@@ -19,6 +19,7 @@ import {
   updateAccount,
 } from '../../../services/marketing'
 import type { MarketingAccount, MarketingAccountPayload } from '../../../types/marketing'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 巨量 OAuth 回调地址:按当前后台域名推导(私有化部署不写死域名) */
 const callbackUrl = `${window.location.origin}/prod-api/marketing/oauth/callback`
@@ -107,7 +108,7 @@ export default function MarketingAccountPage() {
   }
 
   const columns: ProColumns<MarketingAccount>[] = [
-    { title: '序号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef, { title: '序号' }),
     { title: '账号名称', dataIndex: 'name', search: false, width: 140 },
     {
       title: '渠道',

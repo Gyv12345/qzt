@@ -10,6 +10,7 @@ import { usePoolNameMaps } from '../components/usePoolNameMaps'
 import { deleteCustomerPool, listCustomerPools, recyclePool, setPoolPickRule, setPoolRecycleRule } from '../../../services/crm'
 import type { CrmCustomerPool } from '../../../types/crm'
 import PoolEditModal from './PoolEditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 客户公海池管理:池配置 + 领取/回收规则 + 手动回收 */
 export default function PoolPage() {
@@ -47,7 +48,7 @@ export default function PoolPage() {
   }
 
   const columns: ProColumns<CrmCustomerPool>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     {
       title: '名称',
       dataIndex: 'name',

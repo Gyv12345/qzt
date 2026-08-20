@@ -22,6 +22,7 @@ import {
   updateConfig,
 } from '../../../services/system'
 import type { SysConfig } from '../../../types'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface ConfigFormValues {
   name: string
@@ -117,7 +118,7 @@ export default function ConfigPage() {
   }
 
   const columns: ProColumns<SysConfig>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     { title: '配置名称', dataIndex: 'name', width: 160 },
     { title: '键', dataIndex: 'key', width: 220, copyable: true, ellipsis: true },
     {

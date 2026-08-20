@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import { listEnabledWarehouses, listStock } from '../../../services/psi'
 import type { PsiStock, PsiWarehouse } from '../../../types/psi'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function StockPage() {
   const actionRef = useRef<ActionType>(null)
@@ -19,7 +20,7 @@ export default function StockPage() {
   )
 
   const columns: ProColumns<PsiStock>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     {
       title: '商品',
       dataIndex: 'product_name',

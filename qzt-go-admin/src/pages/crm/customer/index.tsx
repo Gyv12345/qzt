@@ -33,6 +33,7 @@ import { useUserStore } from '../../../stores/users'
 import type { CrmCustomField, CrmCustomer, CrmCustomerPayload } from '../../../types/crm'
 import CustomFieldItem, { buildFieldValueMap, serializeFieldValues } from './CustomFields'
 import DetailDrawer from './DetailDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface CustomerFormValues {
   name: string
@@ -144,7 +145,7 @@ export default function CustomerPage() {
 
   const columns: ProColumns<CrmCustomer>[] = [
     // ---- 隐藏搜索列 ----
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '客户名称', dataIndex: 'keyword', hideInTable: true },
     {
       title: '等级',

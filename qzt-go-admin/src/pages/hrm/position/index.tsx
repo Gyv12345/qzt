@@ -21,6 +21,7 @@ import {
   updatePosition,
 } from '../../../services/hrm'
 import type { HrmDepartment, HrmPosition, HrmPositionPayload } from '../../../types/hrm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface PositionFormValues {
   department_id: number
@@ -113,7 +114,7 @@ export default function PositionPage() {
   }
 
   const columns: ProColumns<HrmPosition>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '名称', dataIndex: 'name', width: 160, search: false },
     { title: '编码', dataIndex: 'code', width: 140, search: false },
     {

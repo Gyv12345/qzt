@@ -7,6 +7,7 @@ import Auth from '../../../components/Auth'
 import { deleteMessage, listInbox, listOutbox, markAllMessagesRead, markMessageRead } from '../../../services/oa'
 import type { OaMessage } from '../../../types/oa'
 import MessageEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function MessagePage() {
   const { message } = App.useApp()
@@ -33,7 +34,7 @@ export default function MessagePage() {
   }
 
   const columns: ProColumns<OaMessage>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '标题', dataIndex: 'title', width: 200, ellipsis: true,
       render: (_, r) => (
         <a onClick={() => { setPreviewing(r); if (r.is_read === 0) handleMarkRead(r.id) }}>

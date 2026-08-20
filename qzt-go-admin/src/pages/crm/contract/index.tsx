@@ -19,6 +19,7 @@ import CustomerDetailDrawer from '../customer/DetailDrawer'
 import ContractEditModal from './EditModal'
 import ContractDetailDrawer from './DetailDrawer'
 import { APPROVAL_STATUS, money } from './constants'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function ContractPage() {
   const { message } = App.useApp()
@@ -79,7 +80,7 @@ export default function ContractPage() {
   // ---------- 列表 ----------
 
   const columns: ProColumns<CrmContract>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '合同名称', dataIndex: 'keyword', hideInTable: true },
     {
       title: '客户',

@@ -13,6 +13,7 @@ import {
 import Auth from '../../../components/Auth'
 import { createTag, deleteTag, listTags, updateTag } from '../../../services/cms'
 import type { CmsTag } from '../../../types/cms'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface TagFormValues {
   name: string
@@ -71,7 +72,7 @@ export default function TagPage() {
   }
 
   const columns: ProColumns<CmsTag>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '名称', dataIndex: 'name', width: 180, search: false },
     { title: '别名', dataIndex: 'slug', width: 160, search: false },
     { title: '排序', dataIndex: 'sort', width: 70, search: false },

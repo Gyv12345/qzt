@@ -8,6 +8,7 @@ import { deleteProject, listProjects, updateProject } from '../../services/proje
 import { PROJECT_STATUS, PRIORITY_MAP, type ProjProject } from '../../types/project'
 import ProjectEditModal from './EditModal'
 import ProjectDetailDrawer from './DetailDrawer'
+import { pageIndexColumn } from '../../components/IndexTag'
 
 export default function ProjectPage() {
   const { message } = App.useApp()
@@ -35,7 +36,7 @@ export default function ProjectPage() {
   }
 
   const columns: ProColumns<ProjProject>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     {
       title: '项目编号',
       dataIndex: 'project_no',

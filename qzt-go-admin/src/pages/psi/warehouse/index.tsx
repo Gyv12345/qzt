@@ -23,6 +23,7 @@ import {
 } from '../../../services/psi'
 import { useUserStore } from '../../../stores/users'
 import type { PsiWarehouse, PsiWarehousePayload } from '../../../types/psi'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface WarehouseFormValues {
   code: string
@@ -97,7 +98,7 @@ export default function WarehousePage() {
   }
 
   const columns: ProColumns<PsiWarehouse>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '编码', dataIndex: 'code', width: 120, search: false },
     { title: '名称', dataIndex: 'name', width: 160, search: false },
     { title: '地址', dataIndex: 'address', width: 200, search: false },

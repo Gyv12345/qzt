@@ -7,6 +7,7 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import { approveLeave, listLeaves, submitLeaveApproval } from '../../../services/hrm'
 import { LEAVE_APPROVAL_STATUS, type HrmLeave } from '../../../types/hrm'
 import LeaveEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function LeavePage() {
   const { message } = App.useApp()
@@ -26,7 +27,7 @@ export default function LeavePage() {
   }
 
   const columns: ProColumns<HrmLeave>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'leave_no', width: 150 },
     {
       title: '请假类型',

@@ -17,6 +17,7 @@ import Auth from '../../../components/Auth'
 import ExportButtons from '../../../components/ExportButtons'
 import { createInvoice, listInvoices } from '../../../services/finance'
 import type { CreateInvoicePayload, FinInvoice } from '../../../types/finance'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const INVOICE_TYPE_OPTIONS = [
   { label: '增值税专用发票', value: 'VAT_SPECIAL' },
@@ -84,7 +85,7 @@ export default function InvoicePage() {
   }
 
   const columns: ProColumns<FinInvoice>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '发票号', dataIndex: 'invoice_no', width: 170, search: false },
     {
       title: '方向',

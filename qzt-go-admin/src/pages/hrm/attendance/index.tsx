@@ -2,12 +2,13 @@ import { useRef } from 'react'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import { listAttendanceSummary } from '../../../services/hrm'
 import type { HrmAttendanceSummary } from '../../../types/hrm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function AttendancePage() {
   const actionRef = useRef<ActionType>(null)
 
   const columns: ProColumns<HrmAttendanceSummary>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '工号', dataIndex: 'emp_no', width: 100, search: false },
     { title: '姓名', dataIndex: 'emp_name', width: 100 },
     { title: '部门', dataIndex: 'dept_name', width: 120, search: false },

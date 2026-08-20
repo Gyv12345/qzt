@@ -23,6 +23,7 @@ import {
   updateRole,
 } from '../../../services/system'
 import type { SysMenu, SysRole } from '../../../types'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface RoleFormValues {
   name: string
@@ -174,7 +175,7 @@ export default function RolePage() {
   }
 
   const columns: ProColumns<SysRole>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     { title: '名称', dataIndex: 'name', width: 140 },
     { title: '编码', dataIndex: 'code', width: 140 },
     { title: '排序', dataIndex: 'sort', width: 70 },

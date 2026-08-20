@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import { listJobLogs } from '../../../services/enterprise'
 import type { EntJobLog } from '../../../types/enterprise'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function JobLogPage() {
   const actionRef = useRef<ActionType>(null)
@@ -11,7 +12,7 @@ export default function JobLogPage() {
   const initialJobId = jobIdParam ? Number(jobIdParam) : undefined
 
   const columns: ProColumns<EntJobLog>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: 'ID', dataIndex: 'id', width: 90, search: false },
     {
       title: '任务ID',

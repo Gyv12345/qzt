@@ -13,6 +13,7 @@ import LeadDetailDrawer from './DetailDrawer'
 import ReleaseModal from './ReleaseModal'
 import TransferModal from './TransferModal'
 import OwnerHistoryModal from './OwnerHistoryModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function LeadPage() {
   const { message } = App.useApp()
@@ -52,7 +53,7 @@ export default function LeadPage() {
   }
 
   const columns: ProColumns<CrmLead>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '线索名称', dataIndex: 'keyword', hideInTable: true },
     {
       title: '级别',

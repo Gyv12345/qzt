@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { App, Button, Input, Popconfirm, Space, Spin, Tag, Tree } from 'antd'
 import { PlusOutlined, SwapOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
-import { ProTable, type ProColumns } from '@ant-design/pro-components'
+import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { deleteUser, listAllUsers } from '../../../services/system'
 import { getDepartmentTree } from '../../../services/hrm'
@@ -14,10 +14,12 @@ import UserEditModal from './UserEditModal'
 import HandoverModal from './HandoverModal'
 import ResetPasswordModal from './ResetPasswordModal'
 import './index.css'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 系统用户管理:左侧部门树 + 右侧用户表格(前端按部门/关键词过滤) */
 export default function UserPage() {
   const { message } = App.useApp()
+  const actionRef = useRef<ActionType>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<SysUser | null>(null)
   const [deptTree, setDeptTree] = useState<HrmDepartment[]>([])
@@ -110,7 +112,7 @@ export default function UserPage() {
   }
 
   const columns: ProColumns<SysUser>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     { title: '用户名', dataIndex: 'username', width: 120 },
     { title: '昵称', dataIndex: 'nickname', width: 120 },
     {
@@ -232,6 +234,7 @@ export default function UserPage() {
       <div className="qzt-user-main">
         <ProTable<SysUser>
           rowKey="id"
+          actionRef={actionRef}
           columns={columns}
           scroll={{ x: 'max-content' }}
           search={false}

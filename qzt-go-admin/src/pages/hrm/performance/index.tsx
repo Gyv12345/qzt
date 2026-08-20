@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deletePerformance, listPerformances, reviewPerformance, selfReviewPerformance } from '../../../services/hrm'
 import { PERF_STATUS, type HrmPerformance } from '../../../types/hrm'
 import PerfEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function PerformancePage() {
   const { message } = App.useApp()
@@ -41,7 +42,7 @@ export default function PerformancePage() {
   }
 
   const columns: ProColumns<HrmPerformance>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '考核编号', dataIndex: 'perf_no', width: 140 },
     { title: '标题', dataIndex: 'title', width: 180, ellipsis: true },
     { title: '员工', dataIndex: 'employee_name', width: 100 },

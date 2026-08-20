@@ -37,6 +37,7 @@ import {
   updateArticle,
 } from '../../../services/cms'
 import type { CmsArticle, CmsArticlePayload, CmsCategory } from '../../../types/cms'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface ArticleFormValues {
   title: string
@@ -158,7 +159,7 @@ export default function ArticlePage() {
   }
 
   const columns: ProColumns<CmsArticle>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '标题/别名', dataIndex: 'keyword', hideInTable: true },
     {
       title: '分类',

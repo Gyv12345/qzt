@@ -4,6 +4,7 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import { listMyProcessed } from '../../../services/approval'
 import type { ApprovalRecord } from '../../../types/approval'
 import InstanceDrawer from '../InstanceDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function ApprovalDonePage() {
   const actionRef = useRef<ActionType>(null)
@@ -16,7 +17,7 @@ export default function ApprovalDonePage() {
   }
 
   const columns: ProColumns<ApprovalRecord>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '轮次', dataIndex: 'node_round', width: 70, search: false },
     {
       title: '结果',

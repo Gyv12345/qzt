@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteWorkLog, listWorkLogs } from '../../../services/oa'
 import { LOG_TYPE_MAP, type OaWorkLog } from '../../../types/oa'
 import WorkLogEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function WorkLogPage() {
   const { message } = App.useApp()
@@ -20,7 +21,7 @@ export default function WorkLogPage() {
   }
 
   const columns: ProColumns<OaWorkLog>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'log_no', width: 150, search: false },
     {
       title: '类型',

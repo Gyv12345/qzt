@@ -19,6 +19,7 @@ import {
   updateSupplier,
 } from '../../../services/psi'
 import type { PsiSupplier, PsiSupplierPayload } from '../../../types/psi'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface SupplierFormValues {
   name: string
@@ -95,7 +96,7 @@ export default function SupplierPage() {
   }
 
   const columns: ProColumns<PsiSupplier>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '名称', dataIndex: 'name', width: 180, search: false },
     { title: '编号', dataIndex: 'supplier_no', width: 140, search: false },
     { title: '联系人', dataIndex: 'contact_person', width: 110, search: false },

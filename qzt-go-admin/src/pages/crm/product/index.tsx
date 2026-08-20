@@ -36,6 +36,7 @@ import type {
   CrmProduct,
   CrmProductPayload,
 } from '../../../types/crm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface ProductFormValues {
   name: string
@@ -111,7 +112,7 @@ export default function ProductPage() {
   }
 
   const columns: ProColumns<CrmProduct>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '产品名称', dataIndex: 'keyword', hideInTable: true },
     {
       title: '分类',

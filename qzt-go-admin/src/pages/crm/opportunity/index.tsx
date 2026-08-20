@@ -37,6 +37,7 @@ import type {
   CrmStageRecord,
   StageDef,
 } from '../../../types/crm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function OpportunityPage() {
   const { message } = App.useApp()
@@ -142,7 +143,7 @@ export default function OpportunityPage() {
   }
 
   const columns: ProColumns<CrmOpportunity>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '关键词', dataIndex: 'keyword', hideInTable: true },
     {
       title: '客户',

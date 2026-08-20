@@ -17,6 +17,7 @@ import Auth from '../../../components/Auth'
 import ExportButtons from '../../../components/ExportButtons'
 import { confirmVoucher, createVoucher, listAccounts, listVouchers } from '../../../services/finance'
 import type { CreateVoucherPayload, FinAccount, FinVoucher } from '../../../types/finance'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const DIRECTION_OPTIONS = [
   { label: '借方', value: 'DEBIT' },
@@ -87,7 +88,7 @@ export default function VoucherPage() {
   }
 
   const columns: ProColumns<FinVoucher>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '凭证号', dataIndex: 'voucher_no', width: 150, search: false },
     {
       title: '凭证日期',

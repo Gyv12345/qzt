@@ -26,6 +26,7 @@ import type {
   CrmContractTemplate,
   CrmContractTemplatePayload,
 } from '../../../types/crm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface TemplateFormValues {
   name: string
@@ -105,7 +106,7 @@ export default function ContractTemplatePage() {
   }
 
   const columns: ProColumns<CrmContractTemplate>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '模板名称', dataIndex: 'name', ellipsis: true },
     {
       title: '状态',

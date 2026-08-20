@@ -7,6 +7,7 @@ import { deleteTicket, listTickets } from '../../../services/crm'
 import { TICKET_STATUS, TICKET_PRIORITY, type CrmTicket } from '../../../types/crm'
 import TicketEditModal from './EditModal'
 import TicketDetailDrawer from './DetailDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function TicketPage() {
   const { message } = App.useApp()
@@ -25,7 +26,7 @@ export default function TicketPage() {
   }
 
   const columns: ProColumns<CrmTicket>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     {
       title: '工单号', dataIndex: 'ticket_no', width: 140,
       render: (_, r) => <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openDetail(r.id)}>{r.ticket_no}</Button>,

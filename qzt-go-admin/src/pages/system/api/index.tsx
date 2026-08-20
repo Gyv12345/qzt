@@ -12,6 +12,7 @@ import {
 import Auth from '../../../components/Auth'
 import { createApi, deleteApi, listApis, updateApi } from '../../../services/system'
 import type { SysAPI } from '../../../types'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface ApiFormValues {
   path: string
@@ -82,7 +83,7 @@ export default function ApiPage() {
   }
 
   const columns: ProColumns<SysAPI>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     {
       title: '请求方式',
       dataIndex: 'method',

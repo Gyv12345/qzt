@@ -23,6 +23,7 @@ import {
 import type { CrmContactPayload } from '../../../types/crm'
 import { maskPhone, maskEmail } from '../../../utils/mask'
 import DetailDrawer from './DetailDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface ContactFormValues {
   name: string
@@ -98,7 +99,7 @@ export default function ContactPage() {
   }
 
   const columns: ProColumns<CrmContactListItem>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     {
       title: '关键词',
       dataIndex: 'keyword',

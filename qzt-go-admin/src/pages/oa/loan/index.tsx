@@ -7,6 +7,7 @@ import { deleteLoan, listLoans, markLoanRepaid, submitLoanApproval } from '../..
 import { APPROVAL_STATUS_MAP, type OaLoan, canResubmitApproval} from '../../../types/oa'
 import LoanEditModal from './EditModal'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const REPAY_TEXT: Record<number, string> = { 0: '未还', 1: '部分', 2: '已还清' }
 const REPAY_COLOR: Record<number, string> = { 0: 'default', 1: 'warning', 2: 'success' }
@@ -36,7 +37,7 @@ export default function LoanPage() {
   }
 
   const columns: ProColumns<OaLoan>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'loan_no', width: 150 },
     { title: '标题', dataIndex: 'title', width: 180, ellipsis: true },
     { title: '类型', dataIndex: 'loan_type', width: 100 },

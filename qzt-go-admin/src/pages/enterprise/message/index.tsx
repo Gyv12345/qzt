@@ -23,6 +23,7 @@ import {
 } from '../../../services/enterprise'
 import type { EntMessage } from '../../../types/enterprise'
 import { useUserStore } from '../../../stores/users'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 type BoxType = 'inbox' | 'outbox'
 
@@ -107,7 +108,7 @@ export default function MessagePage() {
   }
 
   const buildColumns = (box: BoxType): ProColumns<EntMessage>[] => [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(box === 'inbox' ? inboxRef : outboxRef),
     {
       title: '标题',
       dataIndex: 'title',

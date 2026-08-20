@@ -7,6 +7,7 @@ import { deleteFormTemplate, listFormTemplates, toggleFormTemplate } from '../..
 import type { OaFormTemplate } from '../../../types/oa'
 import FormTemplateEditModal from './Designer'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function FormTemplatePage() {
   const { message } = App.useApp()
@@ -28,7 +29,7 @@ export default function FormTemplatePage() {
   }
 
   const columns: ProColumns<OaFormTemplate>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '标识', dataIndex: 'form_key', width: 150, search: false },
     { title: '名称', dataIndex: 'name', width: 180 },
     {

@@ -10,6 +10,7 @@ import {
   listOperationLogs,
 } from '../../../services/system'
 import type { OperationLogQuery, SysOperationLog } from '../../../types'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const LongText = ({ text }: { text: string }) =>
   text ? (
@@ -53,7 +54,7 @@ export default function OperLogPage() {
   }
 
   const columns: ProColumns<SysOperationLog>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '用户名', dataIndex: 'username', hideInTable: true },
     { title: '模块', dataIndex: 'module', hideInTable: true },
     { title: 'IP', dataIndex: 'client_ip', hideInTable: true },

@@ -6,6 +6,7 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import Auth from '../../../components/Auth'
 import { listDocuments, deleteDocument, listCategories } from '../../../services/kb'
 import type { KbDocument, KbCategory } from '../../../types/kb'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function DocumentListPage() {
   const { message } = App.useApp()
@@ -26,7 +27,7 @@ export default function DocumentListPage() {
   }
 
   const columns: ProColumns<KbDocument>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     {
       title: '标题',
       dataIndex: 'title',

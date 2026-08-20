@@ -7,6 +7,7 @@ import { deleteMeetingBooking, listMeetingBookings, listMeetingRooms, submitMeet
 import { APPROVAL_STATUS_MAP, type OaMeetingBooking, type OaMeetingRoom, canResubmitApproval} from '../../../types/oa'
 import MeetingBookingEditModal from './EditModal'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function MeetingBookingPage() {
   const { message } = App.useApp()
@@ -34,7 +35,7 @@ export default function MeetingBookingPage() {
   }
 
   const columns: ProColumns<OaMeetingBooking>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'booking_no', width: 160, search: false },
     { title: '标题', dataIndex: 'title', width: 200, ellipsis: true },
     {

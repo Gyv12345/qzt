@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteMeetingRoom, listMeetingRooms } from '../../../services/oa'
 import { MEETING_ROOM_STATUS_MAP, type OaMeetingRoom } from '../../../types/oa'
 import MeetingRoomEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function MeetingRoomPage() {
   const { message } = App.useApp()
@@ -20,7 +21,7 @@ export default function MeetingRoomPage() {
   }
 
   const columns: ProColumns<OaMeetingRoom>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '名称', dataIndex: 'name', width: 160 },
     { title: '位置', dataIndex: 'location', width: 180, search: false, ellipsis: true },
     { title: '容量(人)', dataIndex: 'capacity', width: 90, search: false },

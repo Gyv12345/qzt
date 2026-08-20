@@ -7,6 +7,7 @@ import { deleteJob, listJobs, updateJob } from '../../../services/hrm'
 import { JOB_STATUS, type HrmJob } from '../../../types/hrm'
 import JobEditModal from './JobEditModal'
 import CandidateDrawer from './CandidateDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function RecruitmentPage() {
   const { message } = App.useApp()
@@ -29,7 +30,7 @@ export default function RecruitmentPage() {
   }
 
   const columns: ProColumns<HrmJob>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '职位编号', dataIndex: 'job_no', width: 140 },
     {
       title: '职位名称', dataIndex: 'title', width: 180,

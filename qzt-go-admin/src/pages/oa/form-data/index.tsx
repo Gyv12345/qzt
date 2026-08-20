@@ -7,6 +7,7 @@ import { APPROVAL_STATUS_MAP, canResubmitApproval} from '../../../types/oa'
 import { deleteFormData, listEnabledForms, listFormData, submitFormDataApproval } from '../../../services/oa'
 import type { OaFormData, OaFormTemplate } from '../../../types/oa'
 import DynamicFormFillModal from './FillModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function FormDataPage() {
   const { message } = App.useApp()
@@ -48,7 +49,7 @@ export default function FormDataPage() {
   }
 
   const columns: ProColumns<OaFormData>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'data_no', width: 160, search: false },
     { title: '表单', dataIndex: 'template_name', width: 140 },
     {

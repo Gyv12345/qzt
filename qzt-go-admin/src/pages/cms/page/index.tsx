@@ -16,6 +16,7 @@ import Auth from '../../../components/Auth'
 import MarkdownEditor from '../../../components/MarkdownEditor'
 import { createPage, deletePage, listPages, updatePage } from '../../../services/cms'
 import type { CmsPage, CmsPagePayload } from '../../../types/cms'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface PageFormValues {
   title: string
@@ -83,7 +84,7 @@ export default function CmsPagePage() {
   }
 
   const columns: ProColumns<CmsPage>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '标题/别名', dataIndex: 'keyword', hideInTable: true },
     { title: '标题', dataIndex: 'title', width: 240, search: false },
     { title: '类型', dataIndex: 'link_type', width: 80, search: false,

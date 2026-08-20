@@ -11,6 +11,7 @@ import Auth from '../../../components/Auth'
 import { approveTask, listMyTodos, rejectTask } from '../../../services/approval'
 import type { ApprovalTask } from '../../../types/approval'
 import InstanceDrawer from '../InstanceDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface CommentFormValues {
   comment?: string
@@ -60,7 +61,7 @@ export default function ApprovalTodoPage() {
   }
 
   const columns: ProColumns<ApprovalTask>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     {
       title: '类型',
       width: 100,
@@ -72,7 +73,7 @@ export default function ApprovalTodoPage() {
       width: 240,
       search: false,
       ellipsis: true,
-      render: (_, record) => record.instance?.resource_title || (record.instance ? `#${record.instance.resource_id}` : '-'),
+      render: (_, record) => record.instance?.resource_title || '-',
     },
     { title: '轮次', dataIndex: 'node_round', width: 70, search: false },
     {

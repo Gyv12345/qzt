@@ -16,6 +16,7 @@ import {
   type CalendarEvent,
 } from '../../../types/oa'
 import ScheduleEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function SchedulePage() {
   const { message } = App.useApp()
@@ -79,7 +80,7 @@ export default function SchedulePage() {
   }
 
   const columns: ProColumns<OaSchedule>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'schedule_no', width: 150, search: false },
     { title: '标题', dataIndex: 'title', width: 200, ellipsis: true },
     {

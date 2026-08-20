@@ -10,6 +10,7 @@ import { usePoolNameMaps } from '../components/usePoolNameMaps'
 import { deleteLeadPool, listLeadPools, recycleLeadPool, setLeadPoolPickRule, setLeadPoolRecycleRule } from '../../../services/lead'
 import type { CrmLeadPool } from '../../../types/lead'
 import LeadPoolEditModal from './LeadPoolEditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 线索公海池管理:池配置 + 领取/回收规则 + 手动回收 */
 export default function LeadPoolPage() {
@@ -47,7 +48,7 @@ export default function LeadPoolPage() {
   }
 
   const columns: ProColumns<CrmLeadPool>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     {
       title: '名称',
       dataIndex: 'name',

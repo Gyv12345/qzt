@@ -4,6 +4,7 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import Auth from '../../../components/Auth'
 import { getLog, listAccounts, listLogs, type LogQuery } from '../../../services/marketing'
 import type { MarketingAccount, MarketingLeadLog } from '../../../types/marketing'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const STATUS_ENUM = {
   1: { text: '已入库', status: 'Success' },
@@ -43,7 +44,7 @@ export default function MarketingLogPage() {
   }
 
   const columns: ProColumns<MarketingLeadLog>[] = [
-    { title: '序号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef, { title: '序号' }),
     {
       title: '关键词',
       dataIndex: 'keyword',

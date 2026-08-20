@@ -31,6 +31,7 @@ import type {
   PsiStockOrderItem,
   PsiWarehouse,
 } from '../../../types/psi'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export type Direction = 'in' | 'out'
 
@@ -148,7 +149,7 @@ export default function StockOrderTable({ direction }: { direction: Direction })
   }
 
   const columns: ProColumns<PsiStockOrder>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '单号', dataIndex: 'order_no', width: 180, search: false },
     {
       title: '业务类型',

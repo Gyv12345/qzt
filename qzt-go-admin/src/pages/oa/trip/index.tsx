@@ -9,6 +9,7 @@ import TripEditModal from './EditModal'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 import { usePageGuide } from '../../../components/guide/usePageGuide'
 import { GuideHelpButton } from '../../../components/guide/GuideHelpButton'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function TripPage() {
   usePageGuide('oa.trip')
@@ -30,7 +31,7 @@ export default function TripPage() {
   }
 
   const columns: ProColumns<OaBusinessTrip>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'trip_no', width: 150 },
     { title: '标题', dataIndex: 'title', width: 180, ellipsis: true },
     { title: '目的地', dataIndex: 'destination', width: 120 },

@@ -9,6 +9,7 @@ import { APPROVAL_STATUS_MAP, type OaExpense, canResubmitApproval} from '../../.
 import ExpenseEditModal from './EditModal'
 import ExpenseDetailDrawer from './DetailDrawer'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function ExpensePage() {
   const { message } = App.useApp()
@@ -52,7 +53,7 @@ export default function ExpensePage() {
   }
 
   const columns: ProColumns<OaExpense>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     {
       title: '报销单号',
       dataIndex: 'expense_no',

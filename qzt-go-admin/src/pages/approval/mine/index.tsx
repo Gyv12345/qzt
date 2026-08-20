@@ -5,6 +5,7 @@ import Auth from '../../../components/Auth'
 import { listMyInitiated, revokeApprovalInstance } from '../../../services/approval'
 import type { ApprovalInstance } from '../../../types/approval'
 import InstanceDrawer from '../InstanceDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function ApprovalMinePage() {
   const { message } = App.useApp()
@@ -24,7 +25,7 @@ export default function ApprovalMinePage() {
   }
 
   const columns: ProColumns<ApprovalInstance>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     {
       title: '类型',
       dataIndex: 'form_type_label',
@@ -38,7 +39,7 @@ export default function ApprovalMinePage() {
       width: 240,
       search: false,
       ellipsis: true,
-      render: (_, record) => record.resource_title || `#${record.resource_id}`,
+      render: (_, record) => record.resource_title || '-',
     },
     {
       title: '状态',

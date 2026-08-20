@@ -17,6 +17,7 @@ import {
 } from '../../../services/approval'
 import type { ApprovalFlow } from '../../../types/approval'
 import Designer from './Designer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface FlowFormValues {
   name: string
@@ -69,7 +70,7 @@ export default function ApprovalFlowPage() {
   }
 
   const columns: ProColumns<ApprovalFlow>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '名称', dataIndex: 'name', width: 200, search: false },
     {
       title: '表单类型',

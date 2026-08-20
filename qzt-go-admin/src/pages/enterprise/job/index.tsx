@@ -14,6 +14,7 @@ import {
 import Auth from '../../../components/Auth'
 import { createJob, deleteJob, listJobs, runJob, updateJob } from '../../../services/enterprise'
 import type { EntJob } from '../../../types/enterprise'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface JobFormValues {
   job_name: string
@@ -85,7 +86,7 @@ export default function JobPage() {
   }
 
   const columns: ProColumns<EntJob>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '任务名', dataIndex: 'job_name', width: 180 },
     { title: '处理器', dataIndex: 'bean_class', width: 200, search: false },
     { title: 'Cron 表达式', dataIndex: 'cron_expression', width: 140, search: false },

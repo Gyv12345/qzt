@@ -20,6 +20,7 @@ import {
   withdrawNotice,
 } from '../../../services/oa'
 import type { OaNotice } from '../../../types/oa'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface NoticeFormValues {
   title: string
@@ -88,7 +89,7 @@ export default function NoticePage() {
   }
 
   const columns: ProColumns<OaNotice>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '标题', dataIndex: 'title', width: 240, ellipsis: true },
     {
       title: '类型',

@@ -40,6 +40,7 @@ import type {
   CrmFollowPlanPayload,
   CrmFollowRecordPayload,
 } from '../../../types/crm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
@@ -205,7 +206,7 @@ export default function CrmFollowPage() {
   )
 
   const columns: ProColumns<CrmFollowPlan>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70 },
+    pageIndexColumn(actionRef),
     {
       title: '类型',
       dataIndex: 'type',

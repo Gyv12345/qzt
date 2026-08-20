@@ -3,12 +3,13 @@ import { Tag } from 'antd'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import { listLoginLogs } from '../../../services/system'
 import type { LoginLogQuery, SysLoginLog } from '../../../types'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function LoginLogPage() {
   const actionRef = useRef<ActionType>(null)
 
   const columns: ProColumns<SysLoginLog>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '用户名', dataIndex: 'username', width: 140 },
     { title: '动作', dataIndex: 'action', width: 120, search: false },
     {

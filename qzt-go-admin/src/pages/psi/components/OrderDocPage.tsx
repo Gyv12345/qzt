@@ -19,6 +19,7 @@ import CustomerSelect from '../../../components/CustomerSelect'
 import { GuideHelpButton } from '../../../components/guide/GuideHelpButton'
 import { listEnabledSuppliers, listEnabledWarehouses, type PsiPageResult } from '../../../services/psi'
 import { listCustomers, listProducts } from '../../../services/crm'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 四类购销单据(采购单/销售单/采购退货/销售退货)公共的列表行/明细行结构 */
 export interface OrderDocRecord {
@@ -317,7 +318,7 @@ export default function OrderDocPage<T extends OrderDocRecord>({
   }
 
   const columns: ProColumns<T>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '单号', dataIndex: 'order_no', width: 180, search: false },
     {
       title: partyLabel,

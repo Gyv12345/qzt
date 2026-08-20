@@ -14,6 +14,7 @@ import {
 import Auth from '../../../components/Auth'
 import { createDict, deleteDict, listDicts, updateDict } from '../../../services/system'
 import type { SysDict } from '../../../types'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface DictItemFormValues {
   label: string
@@ -99,7 +100,7 @@ export default function DictPage() {
   }
 
   const columns: ProColumns<SysDict>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '字典名称', dataIndex: 'keyword', hideInTable: true },
     { title: '名称', dataIndex: 'name', width: 160, search: false },
     { title: '编码', dataIndex: 'code', width: 180, search: false },

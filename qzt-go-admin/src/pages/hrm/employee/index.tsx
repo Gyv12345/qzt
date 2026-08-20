@@ -22,6 +22,7 @@ import type {
 import { maskPhone, maskEmail } from '../../../utils/mask'
 import EmployeeEditModal, { type DeptTreeNode } from './EmployeeEditModal'
 import ChangesDrawer from './ChangesDrawer'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const toTreeData = (list: HrmDepartment[]): DeptTreeNode[] =>
   list.map((d) => ({
@@ -97,7 +98,7 @@ export default function EmployeePage() {
     id ? (positionMap.get(id) ?? `#${id}`) : '-'
 
   const columns: ProColumns<HrmEmployee>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '工号', dataIndex: 'emp_no', width: 110, search: false },
     { title: '姓名', dataIndex: 'name', width: 110, search: false },
     {

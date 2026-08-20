@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { deleteAsset, listAssets } from '../../../services/psi'
 import { ASSET_STATUS, type PsiAsset } from '../../../types/psi'
 import AssetEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 export default function AssetPage() {
   const { message } = App.useApp()
@@ -20,7 +21,7 @@ export default function AssetPage() {
   }
 
   const columns: ProColumns<PsiAsset>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '资产编号', dataIndex: 'asset_no', width: 140 },
     { title: '名称', dataIndex: 'name', width: 160, ellipsis: true },
     { title: '类别', dataIndex: 'category', width: 80 },

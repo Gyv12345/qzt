@@ -3,6 +3,7 @@ import { Tag } from 'antd'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import { listEnabledWarehouses, listStockMovements } from '../../../services/psi'
 import type { PsiStockMovement, PsiWarehouse } from '../../../types/psi'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const BIZ_TYPE_MAP: Record<string, { label: string; color: string }> = {
   PURCHASE_IN: { label: '采购入库', color: 'green' },
@@ -29,7 +30,7 @@ export default function MovementPage() {
   )
 
   const columns: ProColumns<PsiStockMovement>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '单号', dataIndex: 'biz_order_no', width: 180, search: false },
     {
       title: '业务类型',

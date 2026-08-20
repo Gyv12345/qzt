@@ -15,6 +15,7 @@ import {
 import Auth from '../../../components/Auth'
 import { createAccount, listAccounts } from '../../../services/finance'
 import type { CreateAccountPayload, FinAccount } from '../../../types/finance'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 科目类型选项 */
 const ACCOUNT_TYPE_OPTIONS = [
@@ -91,7 +92,7 @@ export default function AccountPage() {
   }
 
   const columns: ProColumns<FinAccount>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 70, search: false },
+    pageIndexColumn(actionRef),
     { title: '科目编码', dataIndex: 'code', width: 120, search: false },
     { title: '科目名称', dataIndex: 'name', width: 180, search: false },
     {

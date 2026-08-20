@@ -6,6 +6,7 @@ import Auth from '../../../components/Auth'
 import { listReceivables, settleReceivable } from '../../../services/finance'
 import { SETTLE_STATUS, type FinReceivable } from '../../../types/finance'
 import ReceivableEditModal from './EditModal'
+import { pageIndexColumn } from '../../../components/IndexTag'
 
 const DIRECTION_TEXT: Record<string, { text: string; color: string }> = {
   RECEIVABLE: { text: '应收', color: 'blue' },
@@ -35,7 +36,7 @@ export default function ReceivablePage() {
   }
 
   const columns: ProColumns<FinReceivable>[] = [
-    { title: '编号', valueType: 'indexBorder', width: 60 },
+    pageIndexColumn(actionRef, { width: 60 }),
     { title: '单号', dataIndex: 'doc_no', width: 150 },
     {
       title: '方向',
