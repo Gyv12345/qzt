@@ -12,6 +12,7 @@ export default function GoodsList() {
   const [goods, setGoods] = useState<MallGoods[]>([])
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState('')
+  const [category, setCategory] = useState('')
   const items = useCartStore((s) => s.items)
 
   useEffect(() => {
@@ -21,11 +22,21 @@ export default function GoodsList() {
       .finally(() => setLoading(false))
   }, [])
 
+  // 分类列表(去重;SKU 少,直接从数据提取)
+  const categories = useMemo(() => {
+    const set = new Set<string>()
+    goods.forEach((g) => g.category && set.add(g.category))
+    return Array.from(set)
+  }, [goods])
+
   const filtered = useMemo(() => {
     const k = keyword.trim().toLowerCase()
-    if (!k) return goods
-    return goods.filter((g) => g.name.toLowerCase().includes(k) || g.category.toLowerCase().includes(k))
-  }, [goods, keyword])
+    return goods.filter((g) => {
+      if (category && g.category !== category) return false
+      if (!k) return true
+      return g.name.toLowerCase().includes(k) || g.category.toLowerCase().includes(k)
+    })
+  }, [goods, keyword, category])
 
   const count = cartCount(items)
 
@@ -46,6 +57,40 @@ export default function GoodsList() {
         <SearchOutline fontSize={16} color="#9aa0a8" />
         <Input placeholder="搜索商品名称 / 分类" value={keyword} onChange={setKeyword} clearable style={{ '--font-size': 14 } as never} />
       </div>
+
+      {categories.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, padding: '8px 12px 0', overflowX: 'auto', background: '#fff' }}>
+          <span
+            onClick={() => setCategory('')}
+            style={{
+              flexShrink: 0,
+              padding: '5px 14px',
+              borderRadius: 14,
+              fontSize: 13,
+              background: category === '' ? '#2e6be6' : '#eef0f4',
+              color: category === '' ? '#fff' : '#444',
+            }}
+          >
+            全部
+          </span>
+          {categories.map((c) => (
+            <span
+              key={c}
+              onClick={() => setCategory(category === c ? '' : c)}
+              style={{
+                flexShrink: 0,
+                padding: '5px 14px',
+                borderRadius: 14,
+                fontSize: 13,
+                background: category === c ? '#2e6be6' : '#eef0f4',
+                color: category === c ? '#fff' : '#444',
+              }}
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="empty-tip">加载中…</div>

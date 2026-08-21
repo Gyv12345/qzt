@@ -119,10 +119,10 @@ type CreateOrderItemRequest struct {
 // CreateOrderRequest 公开下单请求。
 type CreateOrderRequest struct {
 	Items        []CreateOrderItemRequest `json:"items" binding:"required,min=1,max=50,dive"`
-	ContactName  string                   `json:"contact_name" binding:"required"`
-	ContactPhone string                   `json:"contact_phone" binding:"required"`
-	Address      string                   `json:"address" binding:"required"`
-	Remark       string                   `json:"remark"`
+	ContactName  string                   `json:"contact_name" binding:"required,max=64"`
+	ContactPhone string                   `json:"contact_phone" binding:"required,max=30"`
+	Address      string                   `json:"address" binding:"required,max=255"`
+	Remark       string                   `json:"remark" binding:"max=500"`
 }
 
 // CreateOrderResult 下单结果。

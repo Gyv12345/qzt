@@ -34,6 +34,13 @@ definitions:
       pool_id:
         type: integer
     type: object
+  handler.GenerateSalesOrderBody:
+    properties:
+      warehouse_id:
+        type: integer
+    required:
+    - warehouse_id
+    type: object
   handler.PublicContactRequest:
     properties:
       company:
@@ -61,6 +68,14 @@ definitions:
       url:
         description: 短期有效的私有文件下载 URL
         type: string
+    type: object
+  handler.UpdateStatusBody:
+    properties:
+      status:
+        description: 1待处理 2已确认 3已完成 4已取消
+        type: integer
+    required:
+    - status
     type: object
   handler.UploadResult:
     properties:
@@ -1101,6 +1116,42 @@ definitions:
     required:
     - customer_id
     - name
+    type: object
+  service.CreateOrderItemRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: number
+    required:
+    - product_id
+    - quantity
+    type: object
+  service.CreateOrderRequest:
+    properties:
+      address:
+        maxLength: 255
+        type: string
+      contact_name:
+        maxLength: 64
+        type: string
+      contact_phone:
+        maxLength: 30
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/service.CreateOrderItemRequest'
+        maxItems: 50
+        minItems: 1
+        type: array
+      remark:
+        maxLength: 500
+        type: string
+    required:
+    - address
+    - contact_name
+    - contact_phone
+    - items
     type: object
   service.CreatePageRequest:
     properties:
@@ -7864,6 +7915,164 @@ paths:
       summary: 启用岗位列表(下拉用,免RBAC)
       tags:
       - 人力资源管理
+  /mall/orders:
+    get:
+      description: 分页查询商城订单,支持状态筛选与关键字(单号/联系人/手机)
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态(1待处理 2已确认 3已完成 4已取消,0全部)
+        in: query
+        name: status
+        type: integer
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城订单列表
+      tags:
+      - 商城管理
+  /mall/orders/{id}:
+    get:
+      description: 订单详情含明细、客户名与关联销售单号
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城订单详情
+      tags:
+      - 商城管理
+  /mall/orders/{id}/generate-sales-order:
+    post:
+      consumes:
+      - application/json
+      description: 对未自动生成销售单的订单(下单时无默认仓库),选择仓库补生成 PSI 销售单
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 仓库ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.GenerateSalesOrderBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城订单手动生成销售单
+      tags:
+      - 商城管理
+  /mall/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 确认/完成/取消订单;取消时同步关闭未出库的关联 PSI 销售单
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标状态
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateStatusBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城订单状态流转
+      tags:
+      - 商城管理
+  /mall/public/goods:
+    get:
+      description: 全部上架商品(crm_product status=1,不含成本价,附全仓库存汇总),免鉴权
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城商品列表(公开)
+      tags:
+      - 商城公开
+  /mall/public/orders:
+    post:
+      consumes:
+      - application/json
+      description: 免登录下单:校验上架商品、按 standard_price 快照计价;自动创建/复用散客客户并生成 PSI 销售单(无默认仓库时跳过,后台可补生成)。每
+        IP 每分钟限 5 单
+      parameters:
+      - description: 下单请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城下单(公开)
+      tags:
+      - 商城公开
+  /mall/public/orders/{orderNo}:
+    get:
+      description: 凭订单号查询订单状态与明细,免鉴权
+      parameters:
+      - description: 订单号
+        in: path
+        name: orderNo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 商城订单查询(公开)
+      tags:
+      - 商城公开
   /marketing/accounts:
     get:
       description: 列出全部营销渠道账号(token 字段脱敏不返回)

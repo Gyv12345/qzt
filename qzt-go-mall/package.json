@@ -12,12 +12,15 @@
     "antd-mobile": "^5.42.3",
     "antd-mobile-icons": "^0.3.0",
     "axios": "^1.11.0",
+    "dompurify": "^3.4.14",
+    "marked": "^18.0.10",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.8.0",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.2.0",
     "@types/node": "^26.1.2",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

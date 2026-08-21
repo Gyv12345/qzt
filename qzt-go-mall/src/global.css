@@ -56,3 +56,43 @@ a {
   font-size: 14px;
   padding: 60px 0;
 }
+
+/* Markdown 商品介绍 */
+.md-body h1,
+.md-body h2,
+.md-body h3 {
+  font-size: 15px;
+  margin: 14px 0 6px;
+}
+.md-body p {
+  margin: 8px 0;
+}
+.md-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.md-body th,
+.md-body td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 8px;
+  text-align: left;
+}
+.md-body th {
+  background: #f7f8fa;
+}
+.md-body ul,
+.md-body ol {
+  padding-left: 18px;
+  margin: 8px 0;
+}
+.md-body code {
+  background: #f2f3f5;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.md-body img {
+  max-width: 100%;
+}

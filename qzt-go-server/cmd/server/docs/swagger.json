@@ -7975,6 +7975,246 @@
                 }
             }
         },
+        "/mall/orders": {
+            "get": {
+                "description": "分页查询商城订单,支持状态筛选与关键字(单号/联系人/手机)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "商城订单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1待处理 2已确认 3已完成 4已取消,0全部)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/orders/{id}": {
+            "get": {
+                "description": "订单详情含明细、客户名与关联销售单号",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "商城订单详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/orders/{id}/generate-sales-order": {
+            "post": {
+                "description": "对未自动生成销售单的订单(下单时无默认仓库),选择仓库补生成 PSI 销售单",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "商城订单手动生成销售单",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "仓库ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.GenerateSalesOrderBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/orders/{id}/status": {
+            "put": {
+                "description": "确认/完成/取消订单;取消时同步关闭未出库的关联 PSI 销售单",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "商城订单状态流转",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "目标状态",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.UpdateStatusBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/public/goods": {
+            "get": {
+                "description": "全部上架商品(crm_product status=1,不含成本价,附全仓库存汇总),免鉴权",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城公开"
+                ],
+                "summary": "商城商品列表(公开)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/public/orders": {
+            "post": {
+                "description": "免登录下单:校验上架商品、按 standard_price 快照计价;自动创建/复用散客客户并生成 PSI 销售单(无默认仓库时跳过,后台可补生成)。每 IP 每分钟限 5 单",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城公开"
+                ],
+                "summary": "商城下单(公开)",
+                "parameters": [
+                    {
+                        "description": "下单请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/public/orders/{orderNo}": {
+            "get": {
+                "description": "凭订单号查询订单状态与明细,免鉴权",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城公开"
+                ],
+                "summary": "商城订单查询(公开)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "订单号",
+                        "name": "orderNo",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/marketing/accounts": {
             "get": {
                 "description": "列出全部营销渠道账号(token 字段脱敏不返回)",
@@ -16109,6 +16349,17 @@
                 }
             }
         },
+        "handler.GenerateSalesOrderBody": {
+            "type": "object",
+            "required": [
+                "warehouse_id"
+            ],
+            "properties": {
+                "warehouse_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.PublicContactRequest": {
             "type": "object",
             "required": [
@@ -16145,6 +16396,18 @@
                 "url": {
                     "description": "短期有效的私有文件下载 URL",
                     "type": "string"
+                }
+            }
+        },
+        "handler.UpdateStatusBody": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "description": "1待处理 2已确认 3已完成 4已取消",
+                    "type": "integer"
                 }
             }
         },
@@ -17680,6 +17943,56 @@
                 },
                 "stage": {
                     "type": "string"
+                }
+            }
+        },
+        "service.CreateOrderItemRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.CreateOrderRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "contact_name",
+                "contact_phone",
+                "items"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "contact_name": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "contact_phone": {
+                    "type": "string",
+                    "maxLength": 30
+                },
+                "items": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/service.CreateOrderItemRequest"
+                    }
+                },
+                "remark": {
+                    "type": "string",
+                    "maxLength": 500
                 }
             }
         },

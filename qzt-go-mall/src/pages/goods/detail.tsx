@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Stepper, Tag, Toast } from 'antd-mobile'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { listGoods } from '../../services/mall'
 import { useCartStore } from '../../stores/cart'
 import type { MallGoods } from '../../types/mall'
@@ -26,8 +28,7 @@ export default function GoodsDetail() {
   if (loading) return <div className="empty-tip">加载中…</div>
   if (!goods) return <div className="empty-tip">商品不存在或已下架</div>
 
-  return (
-    <div className="page">
+  return (    <div className="page">
       <div className="topbar">
         <a onClick={() => navigate(-1)} style={{ fontSize: 20 }}>
           ‹
@@ -81,7 +82,7 @@ export default function GoodsDetail() {
       {goods.description && (
         <div style={{ background: '#fff', padding: 14, marginTop: 10, fontSize: 14, lineHeight: 1.7, color: '#444' }}>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>商品介绍</div>
-          <div style={{ whiteSpace: 'pre-wrap' }}>{goods.description}</div>
+          <div className="md-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(goods.description) }} />
         </div>
       )}
 
@@ -121,4 +122,9 @@ export default function GoodsDetail() {
       </div>
     </div>
   )
+}
+
+/** 商品介绍 Markdown 渲染(marked 解析 + DOMPurify 消毒) */
+function renderMarkdown(md: string): string {
+  return DOMPurify.sanitize(marked.parse(md, { async: false }) as string)
 }
