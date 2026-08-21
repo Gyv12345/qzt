@@ -29,8 +29,14 @@ type SysSiteConfig struct {
 	Theme string `json:"theme" gorm:"size:50;comment:前台主题包(dark-tech/light-clean)"`
 	// 首页数字带(JSON: [{num,label}],空数组/留空不渲染)
 	StatsJSON string `json:"stats_json" gorm:"type:text;comment:首页数字带JSON"`
-	// 首页模块墙(JSON: [{icon,name,desc,pills,big}],空数组/留空不渲染)
+	// 首页模块墙(JSON: [{icon,name,desc,pills}],空数组/留空不渲染)
 	ModulesJSON string `json:"modules_json" gorm:"type:text;comment:首页模块墙JSON"`
+	// 首页优势区块徽章文字(留空回退「核心优势」)
+	ModulesBadge string `json:"modules_badge" gorm:"size:100;comment:首页优势区块徽章"`
+	// 首页优势区块标题(留空回退「为什么选择我们」)
+	ModulesTitle string `json:"modules_title" gorm:"size:255;comment:首页优势区块标题"`
+	// 首页优势区块副标题
+	ModulesDesc string `json:"modules_desc" gorm:"size:500;comment:首页优势区块副标题"`
 	// 首页底部CTA标题(留空回退中性文案)
 	CtaTitle string `json:"cta_title" gorm:"size:255;comment:首页底部CTA标题"`
 	// 首页底部CTA高亮词(渐变渲染,可空)

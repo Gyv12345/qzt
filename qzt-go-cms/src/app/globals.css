@@ -12,7 +12,7 @@
 :root,
 [data-theme="dark-tech"] {
   /* 背景阶 */
-  --c-base: #04070e;
+  --c-canvas: #04070e;
   --c-alt: rgba(8, 13, 24, 0.4);
   --c-deep: #020409;
   --c-surface: rgba(255, 255, 255, 0.03);
@@ -60,7 +60,7 @@
 
 /* ── light-clean 明亮企业 ── */
 [data-theme="light-clean"] {
-  --c-base: #f7f9fc;
+  --c-canvas: #f7f9fc;
   --c-alt: #eef2f8;
   --c-deep: #0c1f3a;
   --c-surface: #ffffff;
@@ -106,7 +106,7 @@ html {
 }
 
 body {
-  @apply bg-base text-normal antialiased;
+  @apply bg-canvas text-normal antialiased;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   transition: background-color 0.2s ease;
 }

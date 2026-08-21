@@ -9,8 +9,8 @@ const config: Config = {
     extend: {
       colors: {
         // ── 语义角色色: 全部引用 CSS 变量, 由 <html data-theme> 决定取值 ──
-        // 页面背景阶
-        base: "var(--c-base)", // 页面主背景
+        // 页面背景阶(canvas 命名避开 tailwind 内置字号 text-base 的冲突)
+        canvas: "var(--c-canvas)", // 页面主背景
         alt: "var(--c-alt)", // 交替 section 背景
         deep: "var(--c-deep)", // 页脚/收束块背景
         surface: "var(--c-surface)", // 卡片面

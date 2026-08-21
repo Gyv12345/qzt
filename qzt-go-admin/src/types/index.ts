@@ -411,6 +411,9 @@ export interface SysSiteConfig {
   theme: string
   stats_json: string
   modules_json: string
+  modules_badge: string
+  modules_title: string
+  modules_desc: string
   cta_title: string
   cta_highlight: string
   cta_subtitle: string
@@ -440,6 +443,9 @@ export interface UpdateSiteConfigRequest {
   theme?: string
   stats_json?: string
   modules_json?: string
+  modules_badge?: string
+  modules_title?: string
+  modules_desc?: string
   cta_title?: string
   cta_highlight?: string
   cta_subtitle?: string

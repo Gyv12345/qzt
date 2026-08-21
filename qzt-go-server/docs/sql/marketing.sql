@@ -119,7 +119,7 @@ INSERT INTO `sys_menu`
   (`id`, `parent_id`, `name`, `path`, `component`, `icon`, `sort`, `type`, `permission`, `visible`, `status`, `created_at`, `updated_at`)
 VALUES
   -- 营销顶级分组目录(与「客户管理」73 同级)
-  (980, 0, '营销', '', NULL, NULL, 2, 0, '', 1, 1, NOW(3), NOW(3)),
+  (980, 0, '营销', '', NULL, 'RocketOutlined', 2, 0, '', 1, 1, NOW(3), NOW(3)),
 
   -- 渠道账号菜单
   (981, 980, '渠道账号', '/marketing/account', 'marketing/account/index', 'ApiOutlined', 1, 1, 'marketing:account:list', 1, 1, NOW(3), NOW(3)),

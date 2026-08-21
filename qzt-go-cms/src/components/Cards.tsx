@@ -65,7 +65,7 @@ export function TeamCard({ member }: { member: TeamMember }) {
       <img
         src={img}
         alt={member.nickname}
-        className="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-brand-400/30 ring-offset-2 ring-offset-base"
+        className="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-brand-400/30 ring-offset-2 ring-offset-canvas"
         width={80}
         height={80}
       />

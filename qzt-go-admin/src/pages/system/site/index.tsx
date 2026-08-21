@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { App, Button, Card, Divider, Form, Space } from 'antd'
-import { ProForm, ProFormGroup, ProFormList, ProFormSelect, ProFormSwitch, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
+import { ProForm, ProFormGroup, ProFormList, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import ImageUpload from '../../../components/ImageUpload'
 import { getSiteConfig, updateSiteConfig } from '../../../services/system'
@@ -12,13 +12,11 @@ interface StatItem {
   label?: string
 }
 
-/** 模块墙条目(表单态;存储为 modules_json,pills 文本与数组互转) */
+/** 优势网格条目(表单态;存储为 modules_json) */
 interface ModuleItem {
   icon?: string
   name?: string
   desc?: string
-  pills_text?: string
-  big?: boolean
 }
 
 type SiteFormValues = UpdateSiteConfigRequest & {
@@ -42,15 +40,6 @@ const ICON_OPTIONS = [
   { label: '地球(网站)', value: 'globe' },
   { label: '星星(AI/亮点)', value: 'sparkles' },
 ]
-
-/** 逗号分隔文本 → 字符串数组(兼容中英文逗号,去空白) */
-function textToPills(text?: string): string[] {
-  if (!text) return []
-  return text
-    .split(/[,，]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
 
 /** 分节标题:与员工编辑等页面一致的左对齐分割线样式 */
 function Section({ title, note }: { title: string; note?: string }) {
@@ -79,12 +68,10 @@ export default function SiteConfigPage() {
     }
     try {
       modules = res.modules_json
-        ? (JSON.parse(res.modules_json) as (Omit<ModuleItem, 'pills_text'> & { pills?: string[] })[]).map((m) => ({
+        ? (JSON.parse(res.modules_json) as ModuleItem[]).map((m) => ({
             icon: m.icon,
             name: m.name,
             desc: m.desc,
-            big: m.big,
-            pills_text: Array.isArray(m.pills) ? m.pills.join(', ') : '',
           }))
         : []
     } catch {
@@ -105,10 +92,7 @@ export default function SiteConfigPage() {
       const stats = (values.stats_list ?? []).filter((s) => s?.num && s?.label)
       const modules = (values.modules_list ?? [])
         .filter((m) => m?.name)
-        .map((m) => {
-          const pills = textToPills(m.pills_text)
-          return { icon: m.icon || 'users', name: m.name, desc: m.desc || '', ...(pills.length ? { pills } : {}), ...(m.big ? { big: true } : {}) }
-        })
+        .map((m) => ({ icon: m.icon || 'users', name: m.name, desc: m.desc || '' }))
       const payload: UpdateSiteConfigRequest = Object.fromEntries(
         Object.entries({
           ...values,
@@ -184,21 +168,22 @@ export default function SiteConfigPage() {
               <ProFormText name="label" label="说明" placeholder="如 业务模块一体化" colProps={{ span: 16 }} />
             </ProFormGroup>
           </ProFormList>
+          <ProFormText name="modules_badge" label="优势区块徽章" placeholder="留空则显示 核心优势" colProps={{ span: 8 }} />
+          <ProFormText name="modules_title" label="优势区块标题" placeholder="留空则显示 为什么选择我们" colProps={{ span: 8 }} />
+          <ProFormText name="modules_desc" label="优势区块副标题" placeholder="选填" colProps={{ span: 8 }} />
           <ProFormList
             name="modules_list"
-            label="首页能力展示墙"
-            tooltip="以 bento 网格展示的产品能力/服务清单(勾选「大卡」的项放大 2 倍,建议最多 1 项);全部删除则首页不显示此区块"
+            label="首页核心优势"
+            tooltip="以图标+标题+一句话展示企业优势/服务承诺(如 20年行业经验 / 自有工厂 / 48小时交付 / 质保体系);全部删除则首页不显示此区块"
             colProps={{ span: 24 }}
-            creatorRecord={{ icon: 'users', name: '', desc: '', pills_text: '', big: false }}
-            creatorButtonProps={{ creatorButtonText: '添加能力项', position: 'bottom' }}
+            creatorRecord={{ icon: 'users', name: '', desc: '' }}
+            creatorButtonProps={{ creatorButtonText: '添加优势项', position: 'bottom' }}
             copyIconProps={false}
           >
             <ProFormGroup key="mod" grid>
               <ProFormSelect name="icon" label="图标" options={ICON_OPTIONS} colProps={{ span: 6 }} />
-              <ProFormText name="name" label="名称" placeholder="如 CRM 客户管理" colProps={{ span: 10 }} />
-              <ProFormText name="desc" label="一句话描述" placeholder="如 从线索到回款全流程" colProps={{ span: 8 }} />
-              <ProFormText name="pills_text" label="特性标签" tooltip="逗号分隔,仅「大卡」上会展示" placeholder="如 线索, 公海, 商机" colProps={{ span: 18 }} />
-              <ProFormSwitch name="big" label="展示为大卡" colProps={{ span: 6 }} />
+              <ProFormText name="name" label="标题" placeholder="如 20 年行业经验" colProps={{ span: 8 }} />
+              <ProFormText name="desc" label="一句话描述" placeholder="如 深耕行业二十年, 服务超 500 家企业" colProps={{ span: 10 }} />
             </ProFormGroup>
           </ProFormList>
 

@@ -220,11 +220,12 @@ export default async function HomePage() {
   const partners = homeCfg?.partner?.items?.map(toPartner) ?? [];
   const team = homeCfg?.team?.items?.map(toTeamMember) ?? [];
 
-  // 数字带/模块墙/CTA: 站点配置驱动, 留空则不渲染或回退中性文案
+  // 数字带/优势网格/CTA: 站点配置驱动, 留空则不渲染或回退中性文案
   const stats = parseStats(siteCfg?.stats_json);
   const modules = parseModules(siteCfg?.modules_json);
-  const bigModule = modules.find((m) => m.big);
-  const smallModules = bigModule ? modules.filter((m) => m !== bigModule) : modules;
+  const modulesBadge = siteCfg?.modules_badge || "核心优势";
+  const modulesTitle = siteCfg?.modules_title || "为什么选择我们";
+  const modulesDesc = siteCfg?.modules_desc || "";
   const ctaTitle = siteCfg?.cta_title || "联系我们, 开启合作";
   const ctaHighlight = siteCfg?.cta_highlight || "";
   const ctaSubtitle = siteCfg?.cta_subtitle || "留下您的联系方式, 我们会尽快与您沟通需求。";
@@ -281,40 +282,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 模块墙: bento 网格, 配置为空则不渲染;big 标记的项为大卡 */}
+      {/* 优势网格: icon+标题+描述小卡, 配置为空则不渲染(通用区块, 各行业客户皆可填自身优势) */}
       {modules.length > 0 && (
         <section className="container py-20 sm:py-24">
-          <SectionHead
-            badge="一体化能力"
-            title="一个系统, 装下企业的全部业务"
-            desc="模块自由组合, 数据天然打通 — 告别在多个系统之间来回切换"
-          />
-          <div className="grid auto-flow-dense grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {bigModule && (
-              <div className="group relative col-span-2 row-span-2 overflow-hidden rounded-2xl border border-brand-400/20 bigcard-bg p-6 shadow-card transition-all duration-200 hover:border-brand-400/40 hover:shadow-card-hover sm:p-8">
-                <div className="glow-orb -right-16 -top-16 h-48 w-48 bg-brand-500/20" aria-hidden="true" />
-                <div className="relative">
-                  <span className="inline-grid h-12 w-12 place-items-center rounded-xl border border-brand-400/30 bg-brand-500/15 text-brandtext shadow-glow-sm">
-                    <Icon className="h-6 w-6">{iconOf(bigModule.icon)}</Icon>
-                  </span>
-                  <h3 className="mt-5 font-display text-xl font-bold text-strong sm:text-2xl">{bigModule.name}</h3>
-                  <p className="mt-2 max-w-sm text-sm leading-7 text-muted">{bigModule.desc}</p>
-                  {bigModule.pills && bigModule.pills.length > 0 && (
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      {bigModule.pills.map((pill) => (
-                        <span
-                          key={pill}
-                          className="rounded-full border border-brand-400/20 bg-brand-500/10 px-3 py-1 text-xs font-medium text-brandtext"
-                        >
-                          {pill}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            {smallModules.map((m) => (
+          <SectionHead badge={modulesBadge} title={modulesTitle} desc={modulesDesc || undefined} />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {modules.map((m) => (
               <div
                 key={m.name}
                 className="group rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"

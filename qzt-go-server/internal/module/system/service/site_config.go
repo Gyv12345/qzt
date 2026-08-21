@@ -38,6 +38,9 @@ type UpdateSiteConfigRequest struct {
 	Theme        string `json:"theme"`
 	StatsJSON    string `json:"stats_json"`
 	ModulesJSON  string `json:"modules_json"`
+	ModulesBadge string `json:"modules_badge"`
+	ModulesTitle string `json:"modules_title"`
+	ModulesDesc  string `json:"modules_desc"`
 	CtaTitle     string `json:"cta_title"`
 	CtaHighlight string `json:"cta_highlight"`
 	CtaSubtitle  string `json:"cta_subtitle"`
@@ -93,6 +96,15 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	}
 	if req.ModulesJSON != "" {
 		cfg.ModulesJSON = req.ModulesJSON
+	}
+	if req.ModulesBadge != "" {
+		cfg.ModulesBadge = req.ModulesBadge
+	}
+	if req.ModulesTitle != "" {
+		cfg.ModulesTitle = req.ModulesTitle
+	}
+	if req.ModulesDesc != "" {
+		cfg.ModulesDesc = req.ModulesDesc
 	}
 	if req.CtaTitle != "" {
 		cfg.CtaTitle = req.CtaTitle

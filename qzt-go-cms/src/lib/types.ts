@@ -107,6 +107,9 @@ export interface SiteInfo {
   theme?: string;
   stats_json?: string;
   modules_json?: string;
+  modules_badge?: string;
+  modules_title?: string;
+  modules_desc?: string;
   cta_title?: string;
   cta_highlight?: string;
   cta_subtitle?: string;

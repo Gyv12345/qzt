@@ -78,6 +78,35 @@ WHERE `id` = 1 AND (`modules_json` IS NULL OR `modules_json` = '');
 
 UPDATE `sys_site_config` SET
   `cta_title` = '准备把业务搬进',
-  `cta_highlight` = '一个系统',
+  `cta_highlight` = '一个系统 ?',
   `cta_subtitle` = '私有化部署, 数据完全归企业所有。留下联系方式, 我们来聊聊您的场景。'
 WHERE `id` = 1 AND (`cta_title` IS NULL OR `cta_title` = '');
+
+-- 3) 优势区块标题字段(2026-08-21 晚追加;区块泛化为通用「核心优势」网格后补)
+SET @sql := IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'sys_site_config' AND COLUMN_NAME = 'modules_badge') = 0,
+  'ALTER TABLE `sys_site_config` ADD COLUMN `modules_badge` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT ''首页优势区块徽章'' AFTER `modules_json`',
+  'SELECT ''sys_site_config.modules_badge 已存在,跳过'' AS msg');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'sys_site_config' AND COLUMN_NAME = 'modules_title') = 0,
+  'ALTER TABLE `sys_site_config` ADD COLUMN `modules_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT ''首页优势区块标题'' AFTER `modules_badge`',
+  'SELECT ''sys_site_config.modules_title 已存在,跳过'' AS msg');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'sys_site_config' AND COLUMN_NAME = 'modules_desc') = 0,
+  'ALTER TABLE `sys_site_config` ADD COLUMN `modules_desc` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT ''首页优势区块副标题'' AFTER `modules_title`',
+  'SELECT ''sys_site_config.modules_desc 已存在,跳过'' AS msg');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- 厂商实例的区块标题(仅空值写入;留空时前台回退中性「核心优势/为什么选择我们」)
+UPDATE `sys_site_config` SET
+  `modules_badge` = '全模块一体化',
+  `modules_title` = '一个系统, 装下企业的全部业务',
+  `modules_desc` = '模块自由组合, 数据天然打通 — 告别在多个系统之间来回切换'
+WHERE `id` = 1 AND (`modules_badge` IS NULL OR `modules_badge` = '');
