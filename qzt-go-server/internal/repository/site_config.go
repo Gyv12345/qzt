@@ -26,6 +26,7 @@ func (r *SiteConfigRepo) Update(ctx context.Context, cfg *model.SysSiteConfig) e
 	return r.BaseRepo.Update(ctx, cfg,
 		"SiteName", "LogoURL", "FaviconURL",
 		"HeroBadge", "HeroTitle", "HeroSubtitle", "Description",
+		"Theme", "StatsJSON", "ModulesJSON", "CtaTitle", "CtaHighlight", "CtaSubtitle",
 		"ContactPhone", "ContactEmail", "ContactAddress", "WorkHours",
 		"ICPBeian", "PublicSecurityBeian", "PublicSecurityBeianURL",
 		"Keywords", "AnalyticsCode", "Copyright", "McpURL")

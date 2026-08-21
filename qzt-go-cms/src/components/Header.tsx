@@ -21,7 +21,7 @@ export async function Header() {
   }
 
   const navItemClass =
-    "rounded-md px-3 py-2 text-sm font-medium text-slate-400 no-underline transition-colors hover:bg-white/5 hover:text-white";
+    "rounded-md px-3 py-2 text-sm font-medium text-muted no-underline transition-colors hover:bg-raised hover:text-strong";
 
   // 移动端抽屉所需的扁平导航数据(固定导航 + 动态单页合并)
   const mobileItems: MobileNavItem[] = [
@@ -34,12 +34,12 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-night-950/75 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-line bg-headerbg backdrop-blur-xl">
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-400/30 to-transparent" />
       <div className="container flex h-16 items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-display text-lg font-bold text-white no-underline"
+          className="flex items-center gap-2.5 font-display text-lg font-bold text-strong no-underline"
         >
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element

@@ -67,15 +67,18 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   let analyticsCode = "";
+  let theme = "dark-tech";
   try {
     const cfg = await getSiteConfig();
     analyticsCode = cfg.analytics_code || "";
+    // 主题包白名单校验: 非法值回退默认, 防止旧数据/手滑输入
+    if (cfg.theme === "dark-tech" || cfg.theme === "light-clean") theme = cfg.theme;
   } catch {
-    // 后端不可用时不注入统计
+    // 后端不可用时用默认主题, 不注入统计
   }
 
   return (
-    <html lang="zh-CN" className={`${displayFont.variable} ${sansFont.variable}`}>
+    <html lang="zh-CN" data-theme={theme} className={`${displayFont.variable} ${sansFont.variable}`}>
       <body className="font-sans">
         {/* 组织级结构化数据,提升搜索引擎理解 */}
         <script

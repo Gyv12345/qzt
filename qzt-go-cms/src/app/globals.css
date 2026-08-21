@@ -2,6 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ══════════════════════════════════════════════════════════════
+   主题系统: 全站颜色/阴影/装饰只引用 CSS 变量,
+   <html data-theme="..."> 决定整套取值(由站点配置 theme 字段驱动,
+   layout.tsx 服务端注入, 无闪烁)。新增主题包 = 复制一段变量改值。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── dark-tech 深色科技(默认) ── */
+:root,
+[data-theme="dark-tech"] {
+  /* 背景阶 */
+  --c-base: #04070e;
+  --c-alt: rgba(8, 13, 24, 0.4);
+  --c-deep: #020409;
+  --c-surface: rgba(255, 255, 255, 0.03);
+  --c-raised: rgba(255, 255, 255, 0.05);
+  --c-line: rgba(255, 255, 255, 0.07);
+  /* 文字阶 */
+  --c-strong: #ffffff;
+  --c-normal: #cbd5e1;
+  --c-muted: #94a3b8;
+  --c-faint: #64748b;
+  --c-brand-text: #8ec0e6;
+  /* 品牌色阶(两套主题共用) */
+  --c-brand-200: #bcd9f0;
+  --c-brand-300: #8ec0e6;
+  --c-brand-400: #599dd6;
+  --c-brand-500: #357cbf;
+  --c-brand-600: #0f4c81;
+  --c-brand-700: #0a3a63;
+  --c-brand-800: #0b2f4f;
+  /* 强调琥珀 */
+  --c-accent: #d97706;
+  --c-accent-light: #fcd34d;
+  --c-accent-dark: #b45309;
+  /* 阴影 */
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(89, 157, 214, 0.25);
+  --shadow-glow-sm: 0 0 20px -4px rgba(89, 157, 214, 0.45);
+  --shadow-glow: 0 0 48px -8px rgba(89, 157, 214, 0.5);
+  /* 头部/抽屉(带透明度, 独立变量) */
+  --c-header-bg: rgba(4, 7, 14, 0.75);
+  --c-drawer-bg: rgba(4, 7, 14, 0.95);
+  /* 渐变文字 */
+  --c-grad-from: #8ec0e6;
+  --c-grad-via: #bcd9f0;
+  --c-grad-to: #fcd34d;
+  /* hero 装饰 */
+  --c-grid-line: rgba(148, 184, 226, 0.05);
+  --c-mesh: radial-gradient(ellipse 70% 55% at 50% -10%, rgba(53, 124, 191, 0.22), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 85% 20%, rgba(217, 119, 6, 0.06), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 10% 30%, rgba(53, 124, 191, 0.08), transparent 60%),
+    linear-gradient(to bottom, #060b16 0%, #04070e 100%);
+  /* 模块墙大卡底 */
+  --c-bigcard: linear-gradient(135deg, rgba(10, 58, 99, 0.5), rgba(11, 18, 32, 0.9));
+}
+
+/* ── light-clean 明亮企业 ── */
+[data-theme="light-clean"] {
+  --c-base: #f7f9fc;
+  --c-alt: #eef2f8;
+  --c-deep: #0c1f3a;
+  --c-surface: #ffffff;
+  --c-raised: #f1f4f9;
+  --c-line: #e3e9f2;
+  --c-strong: #13233f;
+  --c-normal: #3d4c66;
+  --c-muted: #64748b;
+  --c-faint: #9aa8bf;
+  --c-brand-text: #0f4c81;
+  --c-brand-200: #bcd9f0;
+  --c-brand-300: #8ec0e6;
+  --c-brand-400: #599dd6;
+  --c-brand-500: #357cbf;
+  --c-brand-600: #0f4c81;
+  --c-brand-700: #0a3a63;
+  --c-brand-800: #0b2f4f;
+  --c-accent: #d97706;
+  --c-accent-light: #b45309;
+  --c-accent-dark: #b45309;
+  --shadow-card: 0 1px 3px 0 rgba(15, 76, 129, 0.05), 0 4px 14px -2px rgba(15, 76, 129, 0.07);
+  --shadow-card-hover: 0 4px 8px -1px rgba(15, 76, 129, 0.08), 0 14px 28px -6px rgba(15, 76, 129, 0.14);
+  --shadow-glow-sm: 0 4px 16px -2px rgba(53, 124, 191, 0.3);
+  --shadow-glow: 0 8px 32px -4px rgba(53, 124, 191, 0.4);
+  --c-header-bg: rgba(255, 255, 255, 0.82);
+  --c-drawer-bg: rgba(247, 249, 252, 0.97);
+  --c-grad-from: #0f4c81;
+  --c-grad-via: #357cbf;
+  --c-grad-to: #b45309;
+  --c-grid-line: rgba(15, 76, 129, 0.06);
+  --c-mesh: radial-gradient(ellipse 70% 55% at 50% -10%, rgba(53, 124, 191, 0.14), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 85% 20%, rgba(217, 119, 6, 0.05), transparent 60%),
+    linear-gradient(to bottom, #eef4fb 0%, #f7f9fc 100%);
+  --c-bigcard: linear-gradient(135deg, rgba(15, 76, 129, 0.08), rgba(255, 255, 255, 0.9));
+}
+
 :root {
   --max-w: 1200px;
 }
@@ -11,8 +106,9 @@ html {
 }
 
 body {
-  @apply bg-night-950 text-slate-300 antialiased;
+  @apply bg-base text-normal antialiased;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  transition: background-color 0.2s ease;
 }
 
 /* 容器: 统一最大宽度并居中, padding 随断点放大 */
@@ -32,33 +128,32 @@ body {
   }
 }
 
-/* 链接默认样式 (深色底上品牌蓝提亮到 300) */
+/* 链接默认样式 */
 a {
-  @apply text-brand-300 transition-colors hover:text-brand-200;
+  @apply text-brandtext transition-colors;
+}
+a:hover {
+  color: var(--c-brand-400);
 }
 
 /* ── Hero 装饰工具类 ── */
 
-/* 几何网格底纹: 深色底上的细白线方格, 营造科技/专业感 */
+/* 几何网格底纹 */
 .hero-grid {
   background-image:
-    linear-gradient(to right, rgba(148, 184, 226, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 184, 226, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, var(--c-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--c-grid-line) 1px, transparent 1px);
   background-size: 48px 48px;
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
-/* 渐变 mesh: 顶部品牌蓝光晕 + 琥珀微光, 沉入深黑 */
+/* 渐变 mesh: 主题变量驱动 */
 .hero-mesh {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(53, 124, 191, 0.22), transparent 62%),
-    radial-gradient(ellipse 45% 40% at 85% 20%, rgba(217, 119, 6, 0.06), transparent 60%),
-    radial-gradient(ellipse 40% 35% at 10% 30%, rgba(53, 124, 191, 0.08), transparent 60%),
-    linear-gradient(to bottom, #060b16 0%, #04070e 100%);
+  background: var(--c-mesh);
 }
 
-/* 漂浮光斑: 大而模糊的品牌色圆斑, 用于 section 背景点缀 */
+/* 漂浮光斑: 大而模糊的品牌色圆斑 */
 .glow-orb {
   position: absolute;
   border-radius: 9999px;
@@ -66,22 +161,34 @@ a {
   pointer-events: none;
 }
 
-/* 渐变文字: 品牌浅蓝 → 琥珀亮金, 用于大标题重点词与数字 */
+/* 渐变文字: 用于大标题重点词与数字 */
 .text-gradient {
-  @apply bg-gradient-to-r from-brand-300 via-brand-200 to-accent-light bg-clip-text text-transparent;
+  background: linear-gradient(to right, var(--c-grad-from), var(--c-grad-via), var(--c-grad-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* 玻璃拟态卡片底 */
 .glass {
-  @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm;
+  @apply border border-line backdrop-blur-sm;
+  background: var(--c-surface);
 }
 
 /* 章节小徽章 */
 .section-badge {
-  @apply inline-block rounded-full border border-brand-400/20 bg-brand-500/10 px-3.5 py-1 text-xs font-medium tracking-wide text-brand-300;
+  @apply inline-block rounded-full border px-3.5 py-1 text-xs font-medium tracking-wide;
+  border-color: color-mix(in srgb, var(--c-brand-400) 25%, transparent);
+  background: color-mix(in srgb, var(--c-brand-500) 12%, transparent);
+  color: var(--c-brand-text);
 }
 
-/* ── 入场动效工具类 (staggered, 通过 animation-delay 错峰) ── */
+/* 模块墙大卡底 */
+.bigcard-bg {
+  background: var(--c-bigcard);
+}
+
+/* ── 入场动效工具类 ── */
 .fade-in-up {
   animation: fade-in-up 0.6s ease-out both;
 }
@@ -111,12 +218,12 @@ a {
   height: 3px;
   margin: 0.875rem auto 0;
   border-radius: 9999px;
-  background: linear-gradient(to right, #599dd6, #d97706);
+  background: linear-gradient(to right, var(--c-brand-400), var(--c-accent));
 }
 
-/* 文章正文 prose 样式 (CMS content 多为 HTML, 深色反转版) */
+/* 文章正文 prose 样式 (CMS content 多为 HTML, 语义色随主题切换) */
 .prose-content :where(h1, h2, h3) {
-  @apply mt-6 mb-3 font-semibold text-white;
+  @apply mt-6 mb-3 font-semibold text-strong;
 }
 .prose-content :where(h2) {
   @apply text-2xl;
@@ -125,41 +232,51 @@ a {
   @apply text-xl;
 }
 .prose-content :where(p) {
-  @apply my-3 leading-7 text-slate-300;
+  @apply my-3 leading-7 text-normal;
 }
 .prose-content :where(img) {
   @apply my-4 rounded-lg;
 }
 .prose-content :where(ul, ol) {
-  @apply my-3 ml-6 list-disc text-slate-300;
+  @apply my-3 ml-6 list-disc text-normal;
 }
 .prose-content :where(a) {
-  @apply text-brand-300 underline decoration-brand-400/40 underline-offset-2 hover:decoration-brand-300;
+  @apply underline underline-offset-2;
+  color: var(--c-brand-text);
+  text-decoration-color: color-mix(in srgb, var(--c-brand-400) 45%, transparent);
 }
 .prose-content :where(blockquote) {
-  @apply my-4 border-l-4 border-brand-400/30 bg-brand-500/10 py-2 pl-4 text-slate-300;
+  @apply my-4 border-l-4 py-2 pl-4 text-normal;
+  border-color: color-mix(in srgb, var(--c-brand-400) 35%, transparent);
+  background: color-mix(in srgb, var(--c-brand-500) 10%, transparent);
 }
 .prose-content :where(code) {
-  @apply rounded bg-white/[0.06] px-1.5 py-0.5 text-sm text-brand-200;
+  @apply rounded px-1.5 py-0.5 text-sm;
+  background: var(--c-raised);
+  color: var(--c-brand-text);
 }
 .prose-content :where(pre) {
-  @apply my-4 overflow-x-auto rounded-lg border border-white/[0.06] bg-night-900 p-4 text-sm text-slate-200;
+  @apply my-4 overflow-x-auto rounded-lg border border-line p-4 text-sm;
+  background: var(--c-alt);
+  color: var(--c-normal);
 }
 .prose-content :where(pre code) {
-  @apply bg-transparent p-0 text-slate-200;
+  @apply bg-transparent p-0;
+  color: var(--c-normal);
 }
 .prose-content :where(table) {
   @apply my-4 w-full border-collapse text-sm;
 }
 .prose-content :where(th, td) {
-  @apply border border-white/10 px-4 py-2 text-left text-slate-300;
+  @apply border border-line px-4 py-2 text-left text-normal;
 }
 .prose-content :where(thead) {
-  @apply bg-white/[0.04] text-slate-200;
+  background: var(--c-raised);
+  color: var(--c-strong);
 }
 .prose-content :where(hr) {
-  @apply my-6 border-white/10;
+  @apply my-6 border-line;
 }
 .prose-content :where(strong) {
-  @apply font-semibold text-white;
+  @apply font-semibold text-strong;
 }

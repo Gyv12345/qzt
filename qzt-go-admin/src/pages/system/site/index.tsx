@@ -1,12 +1,56 @@
 import { useEffect, useState } from 'react'
 import { App, Button, Card, Divider, Form, Space } from 'antd'
-import { ProForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
+import { ProForm, ProFormGroup, ProFormList, ProFormSelect, ProFormSwitch, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import ImageUpload from '../../../components/ImageUpload'
 import { getSiteConfig, updateSiteConfig } from '../../../services/system'
 import type { UpdateSiteConfigRequest } from '../../../types'
 
-type SiteFormValues = UpdateSiteConfigRequest
+/** 数字带条目(表单态;存储为 stats_json) */
+interface StatItem {
+  num?: string
+  label?: string
+}
+
+/** 模块墙条目(表单态;存储为 modules_json,pills 文本与数组互转) */
+interface ModuleItem {
+  icon?: string
+  name?: string
+  desc?: string
+  pills_text?: string
+  big?: boolean
+}
+
+type SiteFormValues = UpdateSiteConfigRequest & {
+  stats_list?: StatItem[]
+  modules_list?: ModuleItem[]
+}
+
+/** 模块墙可选图标(与官网前台 ICONS map 一一对应,新增图标需同步前端代码) */
+const ICON_OPTIONS = [
+  { label: '用户们(客户/团队)', value: 'users' },
+  { label: '文件勾选(审批)', value: 'fileCheck' },
+  { label: '包裹(库存/产品)', value: 'box' },
+  { label: '钱包(财务)', value: 'wallet' },
+  { label: '证件(人事)', value: 'idCard' },
+  { label: '日历(办公)', value: 'calendar' },
+  { label: '看板(项目)', value: 'kanban' },
+  { label: '书本(知识)', value: 'book' },
+  { label: '云(云盘)', value: 'cloud' },
+  { label: '喇叭(营销)', value: 'megaphone' },
+  { label: '购物袋(商城)', value: 'bag' },
+  { label: '地球(网站)', value: 'globe' },
+  { label: '星星(AI/亮点)', value: 'sparkles' },
+]
+
+/** 逗号分隔文本 → 字符串数组(兼容中英文逗号,去空白) */
+function textToPills(text?: string): string[] {
+  if (!text) return []
+  return text
+    .split(/[,，]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
 
 /** 分节标题:与员工编辑等页面一致的左对齐分割线样式 */
 function Section({ title, note }: { title: string; note?: string }) {
@@ -25,7 +69,28 @@ export default function SiteConfigPage() {
 
   const loadConfig = async () => {
     const res = await getSiteConfig()
-    form.setFieldsValue({ ...res })
+    // JSON 存储字段 → 表单列表态;解析失败按空数组,不阻塞表单
+    let stats: StatItem[] = []
+    let modules: ModuleItem[] = []
+    try {
+      stats = res.stats_json ? (JSON.parse(res.stats_json) as StatItem[]) : []
+    } catch {
+      stats = []
+    }
+    try {
+      modules = res.modules_json
+        ? (JSON.parse(res.modules_json) as (Omit<ModuleItem, 'pills_text'> & { pills?: string[] })[]).map((m) => ({
+            icon: m.icon,
+            name: m.name,
+            desc: m.desc,
+            big: m.big,
+            pills_text: Array.isArray(m.pills) ? m.pills.join(', ') : '',
+          }))
+        : []
+    } catch {
+      modules = []
+    }
+    form.setFieldsValue({ ...res, theme: res.theme || 'dark-tech', stats_list: stats, modules_list: modules })
   }
 
   useEffect(() => {
@@ -36,9 +101,24 @@ export default function SiteConfigPage() {
   const handleSave = async (values: SiteFormValues) => {
     setLoading(true)
     try {
-      // 空串转 undefined,避免把未填写字段覆盖为空
+      // 表单列表态 → JSON 存储字段;空数组存 '[]',前台不渲染对应区块
+      const stats = (values.stats_list ?? []).filter((s) => s?.num && s?.label)
+      const modules = (values.modules_list ?? [])
+        .filter((m) => m?.name)
+        .map((m) => {
+          const pills = textToPills(m.pills_text)
+          return { icon: m.icon || 'users', name: m.name, desc: m.desc || '', ...(pills.length ? { pills } : {}), ...(m.big ? { big: true } : {}) }
+        })
       const payload: UpdateSiteConfigRequest = Object.fromEntries(
-        Object.entries(values).map(([k, v]) => [k, v === '' ? undefined : v]),
+        Object.entries({
+          ...values,
+          stats_json: JSON.stringify(stats),
+          modules_json: JSON.stringify(modules),
+        })
+          // 临时表单字段不进请求
+          .filter(([k]) => k !== 'stats_list' && k !== 'modules_list')
+          // 空串转 undefined,避免把未填写字段覆盖为空
+          .map(([k, v]) => [k, v === '' ? undefined : v]),
       )
       await updateSiteConfig(payload)
       message.success('站点信息已保存')
@@ -75,6 +155,52 @@ export default function SiteConfigPage() {
           <ProFormText name="hero_badge" label="首页小标签" placeholder="如 私有化部署 · 数据归企业所有" colProps={{ span: 12 }} />
           <ProFormText name="hero_title" label="首页主标题" placeholder="留空则用站点名称" colProps={{ span: 24 }} />
           <ProFormTextArea name="hero_subtitle" label="首页副标题" placeholder="留空则用站点描述" colProps={{ span: 24 }} />
+
+          <Section title="官网外观与首页区块" note="控制官网整体风格与首屏营销内容" />
+          <ProFormSelect
+            name="theme"
+            label="官网主题"
+            tooltip="整套官网视觉风格,切换即全站换肤;后续会推出更多主题包"
+            options={[
+              { label: '深色科技(深蓝黑底 + 品牌蓝光晕)', value: 'dark-tech' },
+              { label: '明亮企业(白底大留白 + 品牌蓝)', value: 'light-clean' },
+            ]}
+            colProps={{ span: 12 }}
+          />
+          <ProFormText name="cta_title" label="底部号召标题" placeholder="留空则显示 联系我们,开启合作" colProps={{ span: 12 }} />
+          <ProFormText name="cta_highlight" label="号召标题高亮词" tooltip="以渐变亮色渲染的重点词,显示在主标题之后,可留空" placeholder="如 一个系统" colProps={{ span: 12 }} />
+          <ProFormText name="cta_subtitle" label="底部号召副标题" placeholder="留空则显示默认引导文案" colProps={{ span: 12 }} />
+          <ProFormList
+            name="stats_list"
+            label="首页数字带"
+            tooltip="主标题下方的硬指标数字(如 13 业务模块 / 500+ 客户);全部删除则首页不显示数字带"
+            colProps={{ span: 24 }}
+            creatorRecord={{ num: '', label: '' }}
+            creatorButtonProps={{ creatorButtonText: '添加数字', position: 'bottom' }}
+            copyIconProps={false}
+          >
+            <ProFormGroup key="stat" grid>
+              <ProFormText name="num" label="数字" placeholder="如 13 / 500+" colProps={{ span: 8 }} />
+              <ProFormText name="label" label="说明" placeholder="如 业务模块一体化" colProps={{ span: 16 }} />
+            </ProFormGroup>
+          </ProFormList>
+          <ProFormList
+            name="modules_list"
+            label="首页能力展示墙"
+            tooltip="以 bento 网格展示的产品能力/服务清单(勾选「大卡」的项放大 2 倍,建议最多 1 项);全部删除则首页不显示此区块"
+            colProps={{ span: 24 }}
+            creatorRecord={{ icon: 'users', name: '', desc: '', pills_text: '', big: false }}
+            creatorButtonProps={{ creatorButtonText: '添加能力项', position: 'bottom' }}
+            copyIconProps={false}
+          >
+            <ProFormGroup key="mod" grid>
+              <ProFormSelect name="icon" label="图标" options={ICON_OPTIONS} colProps={{ span: 6 }} />
+              <ProFormText name="name" label="名称" placeholder="如 CRM 客户管理" colProps={{ span: 10 }} />
+              <ProFormText name="desc" label="一句话描述" placeholder="如 从线索到回款全流程" colProps={{ span: 8 }} />
+              <ProFormText name="pills_text" label="特性标签" tooltip="逗号分隔,仅「大卡」上会展示" placeholder="如 线索, 公海, 商机" colProps={{ span: 18 }} />
+              <ProFormSwitch name="big" label="展示为大卡" colProps={{ span: 6 }} />
+            </ProFormGroup>
+          </ProFormList>
 
           <Section title="联系方式" note="显示在官网页脚,供客户联系" />
           <ProFormText name="contact_phone" label="联系电话" colProps={{ span: 12 }} />

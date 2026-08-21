@@ -33,7 +33,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      <div className="hero-mesh relative overflow-hidden border-b border-white/[0.06]">
+      <div className="hero-mesh relative overflow-hidden border-b border-line">
         <div className="hero-grid absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="container relative py-16">
           <PageHeader title={title} mb="mb-0" />

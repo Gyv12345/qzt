@@ -104,6 +104,27 @@ export interface SiteInfo {
   favicon_url?: string;
   keywords?: string;
   analytics_code?: string;
+  theme?: string;
+  stats_json?: string;
+  modules_json?: string;
+  cta_title?: string;
+  cta_highlight?: string;
+  cta_subtitle?: string;
+}
+
+/** 首页数字带条目(stats_json 解析结果) */
+export interface StatEntry {
+  num: string;
+  label: string;
+}
+
+/** 首页能力展示墙条目(modules_json 解析结果) */
+export interface ModuleEntry {
+  icon: string;
+  name: string;
+  desc?: string;
+  pills?: string[];
+  big?: boolean;
 }
 
 // ── 首页板块配置(来自 /system/public/homepage-config) ──

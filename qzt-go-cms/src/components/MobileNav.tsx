@@ -30,7 +30,7 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
   }, [open]);
 
   const drawer = (
-    <div className="fixed inset-0 top-16 z-[60] flex flex-col bg-night-950/95 backdrop-blur-xl md:hidden">
+    <div className="fixed inset-0 top-16 z-[60] flex flex-col bg-drawerbg backdrop-blur-xl md:hidden">
       <nav className="container flex flex-col gap-1 overflow-y-auto py-6">
         {items.map((item) =>
           item.external ? (
@@ -39,7 +39,7 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
               href={item.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg px-4 py-3.5 font-display text-lg font-medium text-slate-200 no-underline transition-colors hover:bg-white/5 hover:text-white"
+              className="rounded-lg px-4 py-3.5 font-display text-lg font-medium text-normal no-underline transition-colors hover:bg-raised hover:text-strong"
             >
               {item.label}
             </a>
@@ -47,8 +47,8 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-lg px-4 py-3.5 font-display text-lg font-medium no-underline transition-colors hover:bg-white/5 hover:text-white ${
-                pathname === item.href ? "bg-white/5 text-brand-300" : "text-slate-200"
+              className={`rounded-lg px-4 py-3.5 font-display text-lg font-medium no-underline transition-colors hover:bg-raised hover:text-strong ${
+                pathname === item.href ? "bg-raised text-brandtext" : "text-normal"
               }`}
             >
               {item.label}
@@ -65,7 +65,7 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
         type="button"
         aria-label={open ? "关闭菜单" : "打开菜单"}
         onClick={() => setOpen((v) => !v)}
-        className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-200"
+        className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-raised text-normal"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           {open ? (

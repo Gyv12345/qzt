@@ -35,6 +35,13 @@ type UpdateSiteConfigRequest struct {
 	HeroSubtitle string `json:"hero_subtitle"`
 	Description  string `json:"description"`
 
+	Theme        string `json:"theme"`
+	StatsJSON    string `json:"stats_json"`
+	ModulesJSON  string `json:"modules_json"`
+	CtaTitle     string `json:"cta_title"`
+	CtaHighlight string `json:"cta_highlight"`
+	CtaSubtitle  string `json:"cta_subtitle"`
+
 	ContactPhone   string `json:"contact_phone"`
 	ContactEmail   string `json:"contact_email"`
 	ContactAddress string `json:"contact_address"`
@@ -77,6 +84,24 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	}
 	if req.Description != "" {
 		cfg.Description = req.Description
+	}
+	if req.Theme != "" {
+		cfg.Theme = req.Theme
+	}
+	if req.StatsJSON != "" {
+		cfg.StatsJSON = req.StatsJSON
+	}
+	if req.ModulesJSON != "" {
+		cfg.ModulesJSON = req.ModulesJSON
+	}
+	if req.CtaTitle != "" {
+		cfg.CtaTitle = req.CtaTitle
+	}
+	if req.CtaHighlight != "" {
+		cfg.CtaHighlight = req.CtaHighlight
+	}
+	if req.CtaSubtitle != "" {
+		cfg.CtaSubtitle = req.CtaSubtitle
 	}
 	if req.ContactPhone != "" {
 		cfg.ContactPhone = req.ContactPhone

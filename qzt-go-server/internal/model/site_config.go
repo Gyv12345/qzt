@@ -24,6 +24,20 @@ type SysSiteConfig struct {
 	// 站点描述(SEO meta description)
 	Description string `json:"description" gorm:"size:500;comment:站点描述(SEO meta description)"`
 
+	// ── 首页展示(主题与营销区块,私有化部署可整体换肤/改写) ──
+	// 前台主题包(如 dark-tech 深色科技 / light-clean 明亮企业,默认 dark-tech)
+	Theme string `json:"theme" gorm:"size:50;comment:前台主题包(dark-tech/light-clean)"`
+	// 首页数字带(JSON: [{num,label}],空数组/留空不渲染)
+	StatsJSON string `json:"stats_json" gorm:"type:text;comment:首页数字带JSON"`
+	// 首页模块墙(JSON: [{icon,name,desc,pills,big}],空数组/留空不渲染)
+	ModulesJSON string `json:"modules_json" gorm:"type:text;comment:首页模块墙JSON"`
+	// 首页底部CTA标题(留空回退中性文案)
+	CtaTitle string `json:"cta_title" gorm:"size:255;comment:首页底部CTA标题"`
+	// 首页底部CTA高亮词(渐变渲染,可空)
+	CtaHighlight string `json:"cta_highlight" gorm:"size:100;comment:首页底部CTA高亮词"`
+	// 首页底部CTA副标题
+	CtaSubtitle string `json:"cta_subtitle" gorm:"size:500;comment:首页底部CTA副标题"`
+
 	// ── 联系方式 ──
 	// 联系电话
 	ContactPhone string `json:"contact_phone" gorm:"size:50;comment:联系电话"`

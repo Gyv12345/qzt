@@ -22,7 +22,7 @@ export default async function ProductsPage() {
   return (
     <>
       {/* 页面顶部淡渐变条带, 与首页 hero 呼应 */}
-      <div className="hero-mesh relative overflow-hidden border-b border-white/[0.06]">
+      <div className="hero-mesh relative overflow-hidden border-b border-line">
         <div className="hero-grid absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="container relative py-16">
           <PageHeader title="产品与服务" subtitle="全部在售产品, 数据实时同步" />

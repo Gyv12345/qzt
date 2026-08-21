@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
-      <div className="hero-mesh relative overflow-hidden border-b border-white/[0.06]">
+      <div className="hero-mesh relative overflow-hidden border-b border-line">
         <div className="hero-grid absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="container relative py-16">
           <PageHeader title="联系我们" mb="mb-0" />
@@ -24,8 +24,8 @@ export default function ContactPage() {
       <section className="container py-16">
         <div className="mx-auto max-w-2xl">
           <div className="mb-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold text-white">留下您的需求</h2>
-            <p className="text-slate-400">
+            <h2 className="mb-3 text-2xl font-bold text-strong">留下您的需求</h2>
+            <p className="text-muted">
               填写下方表单,我们的团队会在第一时间与您取得联系
             </p>
           </div>

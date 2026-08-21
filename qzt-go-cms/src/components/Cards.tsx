@@ -22,7 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 no-underline shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-white/[0.05] hover:shadow-card-hover"
+      className="group relative block overflow-hidden rounded-2xl border border-line bg-surface p-5 no-underline shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"
     >
       {/* 顶部 hover 光线 */}
       <span className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-brand-300 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
@@ -32,21 +32,21 @@ export function ProductCard({ product }: { product: Product }) {
         <img
           src={product.image_url}
           alt={product.name}
-          className="mb-4 aspect-video w-full rounded-lg border border-white/[0.06] object-cover"
+          className="mb-4 aspect-video w-full rounded-lg border border-line object-cover"
         />
       ) : (
-        <div className="mb-4 grid aspect-video place-items-center rounded-lg border border-brand-400/10 bg-gradient-to-br from-brand-900/60 to-night-800 font-display text-sm font-semibold text-brand-300">
+        <div className="mb-4 grid aspect-video place-items-center rounded-lg border border-brand-400/10 bigcard-bg font-display text-sm font-semibold text-brandtext">
           {product.category || "产品"}
         </div>
       )}
-      <h3 className="font-display font-semibold text-white transition-colors group-hover:text-brand-200">
+      <h3 className="font-display font-semibold text-strong transition-colors group-hover:text-brandtext">
         {product.name}
       </h3>
-      <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-slate-400">
+      <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted">
         {product.description ? stripMarkdown(product.description) || "暂无描述" : "暂无描述"}
       </p>
       <div className="mt-3.5 flex items-center justify-between">
-        <span className="text-xs text-slate-500">{product.product_no || "—"}</span>
+        <span className="text-xs text-faint">{product.product_no || "—"}</span>
         {Number(product.standard_price) > 0 && (
           <span className="font-display text-sm font-bold text-accent-light">¥{product.standard_price}</span>
         )}
@@ -60,17 +60,17 @@ export function TeamCard({ member }: { member: TeamMember }) {
   // eslint-disable-next-line @next/next/no-img-element
   const img = member.avatar && member.avatar.trim() !== "" ? member.avatar : avatarFallback;
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 text-center shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/20 hover:shadow-card-hover">
+    <div className="rounded-2xl border border-line bg-surface p-5 text-center shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/20 hover:shadow-card-hover">
       {/* 静态站点优先,使用普通 img 避免 next/image 配置负担 */}
       <img
         src={img}
         alt={member.nickname}
-        className="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-brand-400/30 ring-offset-2 ring-offset-night-950"
+        className="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-brand-400/30 ring-offset-2 ring-offset-base"
         width={80}
         height={80}
       />
-      <h3 className="mt-3.5 font-display font-semibold text-white">{member.nickname}</h3>
-      <p className="mt-1 text-sm text-slate-400">{member.position || "团队成员"}</p>
+      <h3 className="mt-3.5 font-display font-semibold text-strong">{member.nickname}</h3>
+      <p className="mt-1 text-sm text-muted">{member.position || "团队成员"}</p>
     </div>
   );
 }
@@ -78,13 +78,13 @@ export function TeamCard({ member }: { member: TeamMember }) {
 /** 合作方徽标卡片: 渐变首字方块 + 深色玻璃 */
 export function PartnerCard({ partner }: { partner: Partner }) {
   return (
-    <div className="group flex flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 text-center shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:shadow-card-hover">
+    <div className="group flex flex-col items-center justify-center rounded-2xl border border-line bg-surface p-6 text-center shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:shadow-card-hover">
       <div className="grid h-14 w-14 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-800 font-display text-lg font-bold text-white shadow-glow-sm transition-transform group-hover:scale-105">
         {partner.name.slice(0, 1)}
       </div>
-      <p className="mt-3 font-display font-medium text-white">{partner.name}</p>
+      <p className="mt-3 font-display font-medium text-strong">{partner.name}</p>
       {(partner.industry || partner.level) && (
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-faint">
           {[partner.industry, partner.level].filter(Boolean).join(" · ")}
         </p>
       )}
@@ -97,22 +97,22 @@ export function ArticleCard({ article }: { article: Article }) {
   return (
     <Link
       href={`/news/${article.slug || article.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 no-underline shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-white/[0.05] hover:shadow-card-hover"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface p-5 no-underline shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"
     >
       {/* 顶部 hover 光线 */}
       <span className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-brand-300 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-      <div className="mb-2.5 flex items-center gap-2 text-xs text-slate-500">
+      <div className="mb-2.5 flex items-center gap-2 text-xs text-faint">
         {article.category?.name && (
-          <span className="rounded-md border border-brand-400/20 bg-brand-500/10 px-2 py-0.5 font-medium text-brand-300">
+          <span className="rounded-md border border-brand-400/20 bg-brand-500/10 px-2 py-0.5 font-medium text-brandtext">
             {article.category.name}
           </span>
         )}
         {article.created_at && <time>{new Date(article.created_at).toLocaleDateString("zh-CN")}</time>}
       </div>
-      <h3 className="font-display font-semibold text-white transition-colors group-hover:text-brand-200">
+      <h3 className="font-display font-semibold text-strong transition-colors group-hover:text-brandtext">
         {article.title}
       </h3>
-      {article.summary && <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-slate-400">{article.summary}</p>}
+      {article.summary && <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted">{article.summary}</p>}
     </Link>
   );
 }

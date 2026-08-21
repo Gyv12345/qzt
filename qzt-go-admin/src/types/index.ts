@@ -408,6 +408,12 @@ export interface SysSiteConfig {
   hero_badge: string
   hero_title: string
   hero_subtitle: string
+  theme: string
+  stats_json: string
+  modules_json: string
+  cta_title: string
+  cta_highlight: string
+  cta_subtitle: string
   contact_phone: string
   contact_email: string
   contact_address: string
@@ -431,6 +437,12 @@ export interface UpdateSiteConfigRequest {
   hero_badge?: string
   hero_title?: string
   hero_subtitle?: string
+  theme?: string
+  stats_json?: string
+  modules_json?: string
+  cta_title?: string
+  cta_highlight?: string
+  cta_subtitle?: string
   contact_phone?: string
   contact_email?: string
   contact_address?: string
