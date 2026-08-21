@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Form, Input, Tag } from 'antd-mobile'
 import { getOrderByNo } from '../../services/mall'
@@ -18,7 +18,7 @@ export default function OrderQuery() {
   const [order, setOrder] = useState<PublicOrder | null>(null)
   const [error, setError] = useState('')
   const [querying, setQuerying] = useState(false)
-  const formRef = useRef<{ submit: () => void } | null>(null)
+  const [form] = Form.useForm()
   const initialNo = params.get('no') ?? ''
 
   const query = async (orderNo: string) => {
@@ -44,48 +44,62 @@ export default function OrderQuery() {
   return (
     <div className="page">
       <div className="topbar">
-        <a onClick={() => navigate(-1)} style={{ fontSize: 20 }}>‹</a>
+        <a className="topbar-back" onClick={() => navigate(-1)}>
+          ‹
+        </a>
         <div className="topbar-title">订单查询</div>
-        <div style={{ width: 20 }} />
+        <div style={{ width: 26 }} />
       </div>
 
-      <div style={{ background: '#fff', margin: '12px', borderRadius: 10, padding: 14 }}>
-        <Form
-          layout="horizontal"
-          form={formRef as never}
-          onFinish={(values) => query(String(values.order_no || ''))}
-          footer={
-            <Button block color="primary" loading={querying} style={{ borderRadius: 22 }} onClick={() => formRef.current?.submit()}>
-              查询
-            </Button>
-          }
-        >
-          <Form.Item name="order_no" label="订单号" initialValue={initialNo} rules={[{ required: true, message: '请输入订单号' }]}>
-            <Input placeholder="下单时返回的订单号(MO 开头)" clearable />
-          </Form.Item>
-        </Form>
+      <div style={{ padding: '10px 12px 0' }}>
+        <div className="card">
+          <Form
+            layout="horizontal"
+            form={form}
+            onFinish={(values) => query(String(values.order_no || ''))}
+            footer={
+              <Button
+                block
+                color="primary"
+                loading={querying}
+                style={{
+                  borderRadius: 999,
+                  background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))',
+                  border: 'none',
+                }}
+                onClick={() => form.submit()}
+              >
+                查询
+              </Button>
+            }
+          >
+            <Form.Item name="order_no" label="订单号" initialValue={initialNo} rules={[{ required: true, message: '请输入订单号' }]}>
+              <Input placeholder="下单时返回的订单号(MO 开头)" clearable />
+            </Form.Item>
+          </Form>
 
-        {error && <div style={{ textAlign: 'center', color: '#e5484d', fontSize: 13, padding: 12 }}>{error}</div>}
+          {error && <div style={{ textAlign: 'center', color: 'var(--adm-color-danger)', fontSize: 13, padding: 12 }}>{error}</div>}
+        </div>
 
         {order && (
-          <div style={{ marginTop: 14 }}>
+          <div className="card">
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ fontWeight: 700, fontSize: 15 }}>{order.order_no}</span>
+              <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{order.order_no}</span>
               <div style={{ flex: 1 }} />
               <Tag color={statusColor[order.status] ?? 'default'} fill="outline">
                 {order.status_label}
               </Tag>
             </div>
-            <div style={{ color: '#9aa0a8', fontSize: 12, margin: '6px 0 10px' }}>下单时间 {order.created_at}</div>
+            <div style={{ color: 'var(--ink-3)', fontSize: 12, margin: '6px 0 10px' }}>下单时间 {order.created_at}</div>
             {order.items.map((it, i) => (
-              <div key={i} style={{ display: 'flex', fontSize: 14, padding: '5px 0' }}>
+              <div key={i} style={{ display: 'flex', fontSize: 14, padding: '5px 0', color: 'var(--ink)' }}>
                 <span style={{ flex: 1 }}>{it.product_name}</span>
-                <span style={{ color: '#666', margin: '0 8px' }}>×{Number(it.quantity)}</span>
+                <span style={{ color: 'var(--ink-3)', margin: '0 8px' }}>×{Number(it.quantity)}</span>
                 <span>¥{Number(it.amount).toFixed(2)}</span>
               </div>
             ))}
-            <div style={{ textAlign: 'right', marginTop: 8, fontSize: 14 }}>
-              合计 <span style={{ color: '#e5484d', fontWeight: 700, fontSize: 18 }}>¥{Number(order.total_amount).toFixed(2)}</span>
+            <div style={{ textAlign: 'right', marginTop: 10, paddingTop: 10, borderTop: '1px dashed var(--line)', fontSize: 14 }}>
+              合计 <span className="price" style={{ fontSize: 20 }}>¥{Number(order.total_amount).toFixed(2)}</span>
             </div>
           </div>
         )}

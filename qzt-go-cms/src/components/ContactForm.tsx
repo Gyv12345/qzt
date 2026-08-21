@@ -48,10 +48,10 @@ export default function ContactForm() {
 
   if (status === "success") {
     return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-12 text-center">
+      <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-12 text-center">
         <div className="mb-4 text-5xl">✅</div>
-        <h3 className="mb-2 text-xl font-bold text-gray-900">提交成功!</h3>
-        <p className="text-gray-600">
+        <h3 className="mb-2 text-xl font-bold text-white">提交成功!</h3>
+        <p className="text-slate-400">
           感谢您的留言,我们的团队会尽快与您联系。
         </p>
       </div>
@@ -62,8 +62,8 @@ export default function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            姓名 <span className="text-red-500">*</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            姓名 <span className="text-red-400">*</span>
           </label>
           <input
             type="text"
@@ -73,12 +73,12 @@ export default function ContactForm() {
             value={form.name}
             onChange={handleChange}
             placeholder="您的姓名"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            电话 <span className="text-red-500">*</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            电话 <span className="text-red-400">*</span>
           </label>
           <input
             type="tel"
@@ -88,14 +88,14 @@ export default function ContactForm() {
             value={form.phone}
             onChange={handleChange}
             placeholder="您的手机号"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
           />
         </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">邮箱</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">邮箱</label>
           <input
             type="email"
             name="email"
@@ -103,11 +103,11 @@ export default function ContactForm() {
             value={form.email}
             onChange={handleChange}
             placeholder="您的邮箱(选填)"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">公司名称</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">公司名称</label>
           <input
             type="text"
             name="company"
@@ -115,14 +115,14 @@ export default function ContactForm() {
             value={form.company}
             onChange={handleChange}
             placeholder="您的公司(选填)"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
-          留言内容 <span className="text-red-500">*</span>
+        <label className="mb-1.5 block text-sm font-medium text-slate-300">
+          留言内容 <span className="text-red-400">*</span>
         </label>
         <textarea
           name="message"
@@ -132,7 +132,7 @@ export default function ContactForm() {
           value={form.message}
           onChange={handleChange}
           placeholder="请描述您的需求或问题..."
-          className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
         />
       </div>
 
@@ -149,18 +149,18 @@ export default function ContactForm() {
       />
 
       {status === "error" && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
+        <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
       )}
 
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 py-3.5 text-sm font-semibold text-white shadow-glow-sm transition hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60"
       >
         {status === "loading" ? "提交中..." : "提交留言"}
       </button>
 
-      <p className="text-center text-xs text-gray-400">
+      <p className="text-center text-xs text-slate-500">
         提交后我们将尽快与您联系,您的信息将被严格保密
       </p>
     </form>

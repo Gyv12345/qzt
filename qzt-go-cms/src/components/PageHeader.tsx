@@ -13,10 +13,10 @@ export function PageHeader({
 }) {
   return (
     <header className={`text-center ${mb}`}>
-      <h1 className="font-display text-3xl font-bold text-ink-900 sm:text-4xl">{title}</h1>
-      {subtitle && <p className="mt-3 text-ink-500">{subtitle}</p>}
+      <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">{title}</h1>
+      {subtitle && <p className="mt-3 text-slate-400">{subtitle}</p>}
       {/* 装饰下划线 */}
-      <span className="mx-auto mt-3.5 block h-[3px] w-12 rounded-full bg-gradient-to-r from-brand-600 to-brand-400" />
+      <span className="mx-auto mt-3.5 block h-[3px] w-12 rounded-full bg-gradient-to-r from-brand-400 to-accent" />
     </header>
   );
 }

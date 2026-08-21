@@ -57,29 +57,29 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <section className="container py-16">
-      <nav className="mb-6 text-sm text-ink-400">
-        <Link href="/news" className="no-underline hover:text-brand-700">
+      <nav className="mb-6 text-sm text-slate-500">
+        <Link href="/news" className="no-underline hover:text-brand-300">
           新闻动态
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-ink-600">{article.title}</span>
+        <span className="text-slate-300">{article.title}</span>
       </nav>
 
       <article className="mx-auto max-w-3xl">
         <header className="mb-6">
-          <div className="flex items-center gap-2 text-xs text-ink-400">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
             {article.category?.name && (
-              <span className="rounded-md bg-brand-50 px-2 py-0.5 font-medium text-brand-700">
+              <span className="rounded-md bg-brand-500/10 px-2 py-0.5 font-medium text-brand-300">
                 {article.category.name}
               </span>
             )}
             {article.created_at && <time>{new Date(article.created_at).toLocaleDateString("zh-CN")}</time>}
             {typeof article.view_count === "number" && <span>· {article.view_count} 阅读</span>}
           </div>
-          <h1 className="mt-3 font-display text-3xl font-bold leading-tight text-ink-900 sm:text-4xl">
+          <h1 className="mt-3 font-display text-3xl font-bold leading-tight text-white sm:text-4xl">
             {article.title}
           </h1>
-          {article.summary && <p className="mt-3 text-lg leading-8 text-ink-600">{article.summary}</p>}
+          {article.summary && <p className="mt-3 text-lg leading-8 text-slate-300">{article.summary}</p>}
         </header>
 
         {article.cover_url && (

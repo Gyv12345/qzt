@@ -50,26 +50,26 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <section className="container py-16">
-      <nav className="mb-6 text-sm text-ink-400">
-        <Link href="/products" className="no-underline hover:text-brand-700">
+      <nav className="mb-6 text-sm text-slate-500">
+        <Link href="/products" className="no-underline hover:text-brand-300">
           产品
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-ink-600">{product.name}</span>
+        <span className="text-slate-300">{product.name}</span>
       </nav>
 
       <article>
         <header className="mb-6">
           <div className="flex items-center gap-3">
-            <span className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
+            <span className="rounded-md bg-brand-500/10 px-2.5 py-1 text-xs font-medium text-brand-300">
               {product.category || "产品"}
             </span>
-            {product.product_no && <span className="text-sm text-ink-400">编号: {product.product_no}</span>}
+            {product.product_no && <span className="text-sm text-slate-500">编号: {product.product_no}</span>}
           </div>
-          <h1 className="mt-3 font-display text-3xl font-bold text-ink-900 sm:text-4xl">{product.name}</h1>
+          <h1 className="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">{product.name}</h1>
           {Number(product.standard_price) > 0 && (
             <p className="mt-3 font-display text-2xl font-bold text-accent-dark">
-              ¥ {product.standard_price} <span className="text-base font-normal text-ink-400">/ {product.unit || "件"}</span>
+              ¥ {product.standard_price} <span className="text-base font-normal text-slate-500">/ {product.unit || "件"}</span>
             </p>
           )}
         </header>
@@ -79,7 +79,7 @@ export default async function ProductDetailPage({ params }: Props) {
           <img
             src={product.image_url}
             alt={product.name}
-            className="mb-8 aspect-video w-full rounded-xl border border-ink-100 object-cover shadow-card"
+            className="mb-8 aspect-video w-full rounded-xl border border-white/[0.06] object-cover shadow-card"
           />
         )}
 

@@ -11,7 +11,7 @@ html {
 }
 
 body {
-  @apply bg-white text-ink-800 antialiased;
+  @apply bg-night-950 text-slate-300 antialiased;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -32,29 +32,53 @@ body {
   }
 }
 
-/* 链接默认样式 */
+/* 链接默认样式 (深色底上品牌蓝提亮到 300) */
 a {
-  @apply text-brand transition-colors hover:text-brand-dark;
+  @apply text-brand-300 transition-colors hover:text-brand-200;
 }
 
 /* ── Hero 装饰工具类 ── */
 
-/* 几何网格底纹: 细线方格, 营造科技/专业感 */
+/* 几何网格底纹: 深色底上的细白线方格, 营造科技/专业感 */
 .hero-grid {
   background-image:
-    linear-gradient(to right, rgba(15, 76, 129, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 76, 129, 0.06) 1px, transparent 1px);
+    linear-gradient(to right, rgba(148, 184, 226, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 184, 226, 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
-/* 渐变 mesh: 多层径向渐变叠加, 营造氛围深度 */
+/* 渐变 mesh: 顶部品牌蓝光晕 + 琥珀微光, 沉入深黑 */
 .hero-mesh {
   background:
-    radial-gradient(ellipse 60% 50% at 20% 0%, rgba(53, 124, 191, 0.12), transparent 60%),
-    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(217, 119, 6, 0.06), transparent 60%),
-    linear-gradient(to bottom, #eff6fc 0%, #ffffff 70%);
+    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(53, 124, 191, 0.22), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 85% 20%, rgba(217, 119, 6, 0.06), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 10% 30%, rgba(53, 124, 191, 0.08), transparent 60%),
+    linear-gradient(to bottom, #060b16 0%, #04070e 100%);
+}
+
+/* 漂浮光斑: 大而模糊的品牌色圆斑, 用于 section 背景点缀 */
+.glow-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+/* 渐变文字: 品牌浅蓝 → 琥珀亮金, 用于大标题重点词与数字 */
+.text-gradient {
+  @apply bg-gradient-to-r from-brand-300 via-brand-200 to-accent-light bg-clip-text text-transparent;
+}
+
+/* 玻璃拟态卡片底 */
+.glass {
+  @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm;
+}
+
+/* 章节小徽章 */
+.section-badge {
+  @apply inline-block rounded-full border border-brand-400/20 bg-brand-500/10 px-3.5 py-1 text-xs font-medium tracking-wide text-brand-300;
 }
 
 /* ── 入场动效工具类 (staggered, 通过 animation-delay 错峰) ── */
@@ -87,12 +111,12 @@ a {
   height: 3px;
   margin: 0.875rem auto 0;
   border-radius: 9999px;
-  background: linear-gradient(to right, #0f4c81, #357cbf);
+  background: linear-gradient(to right, #599dd6, #d97706);
 }
 
-/* 文章正文 prose 样式 (CMS content 多为 HTML) */
+/* 文章正文 prose 样式 (CMS content 多为 HTML, 深色反转版) */
 .prose-content :where(h1, h2, h3) {
-  @apply mt-6 mb-3 font-semibold text-ink-900;
+  @apply mt-6 mb-3 font-semibold text-white;
 }
 .prose-content :where(h2) {
   @apply text-2xl;
@@ -101,41 +125,41 @@ a {
   @apply text-xl;
 }
 .prose-content :where(p) {
-  @apply my-3 leading-7 text-ink-600;
+  @apply my-3 leading-7 text-slate-300;
 }
 .prose-content :where(img) {
   @apply my-4 rounded-lg;
 }
 .prose-content :where(ul, ol) {
-  @apply my-3 ml-6 list-disc text-ink-600;
+  @apply my-3 ml-6 list-disc text-slate-300;
 }
 .prose-content :where(a) {
-  @apply underline decoration-brand-300 underline-offset-2 hover:decoration-brand;
+  @apply text-brand-300 underline decoration-brand-400/40 underline-offset-2 hover:decoration-brand-300;
 }
 .prose-content :where(blockquote) {
-  @apply my-4 border-l-4 border-brand-200 bg-brand-50 py-2 pl-4 text-ink-600;
+  @apply my-4 border-l-4 border-brand-400/30 bg-brand-500/10 py-2 pl-4 text-slate-300;
 }
 .prose-content :where(code) {
-  @apply rounded bg-ink-100 px-1.5 py-0.5 text-sm text-brand-700;
+  @apply rounded bg-white/[0.06] px-1.5 py-0.5 text-sm text-brand-200;
 }
 .prose-content :where(pre) {
-  @apply my-4 overflow-x-auto rounded-lg bg-ink-900 p-4 text-sm text-ink-100;
+  @apply my-4 overflow-x-auto rounded-lg border border-white/[0.06] bg-night-900 p-4 text-sm text-slate-200;
 }
 .prose-content :where(pre code) {
-  @apply bg-transparent p-0 text-ink-100;
+  @apply bg-transparent p-0 text-slate-200;
 }
 .prose-content :where(table) {
   @apply my-4 w-full border-collapse text-sm;
 }
 .prose-content :where(th, td) {
-  @apply border border-ink-100 px-4 py-2 text-left;
+  @apply border border-white/10 px-4 py-2 text-left text-slate-300;
 }
 .prose-content :where(thead) {
-  @apply bg-ink-50 text-ink-600;
+  @apply bg-white/[0.04] text-slate-200;
 }
 .prose-content :where(hr) {
-  @apply my-6 border-ink-100;
+  @apply my-6 border-white/10;
 }
 .prose-content :where(strong) {
-  @apply font-semibold text-ink-900;
+  @apply font-semibold text-white;
 }

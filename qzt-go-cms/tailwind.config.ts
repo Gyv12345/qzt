@@ -43,6 +43,15 @@ const config: Config = {
           light: "#fcd34d",
           dark: "#b45309",
         },
+        // 深夜蓝黑 (整站深色背景阶, 950 为页面底色)
+        night: {
+          950: "#04070e",
+          900: "#080d18",
+          850: "#0b1220",
+          800: "#101a2e",
+          700: "#1b2942",
+          600: "#2a3d63",
+        },
       },
       fontFamily: {
         // 通过 CSS 变量引用 next/font 注入的字体 (见 layout.tsx)
@@ -50,10 +59,13 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        // 柔和卡片阴影, 替代 Tailwind 默认的生硬 shadow
-        card: "0 1px 3px 0 rgba(15, 76, 129, 0.04), 0 4px 12px -2px rgba(15, 76, 129, 0.06)",
-        "card-hover": "0 4px 6px -1px rgba(15, 76, 129, 0.08), 0 12px 24px -4px rgba(15, 76, 129, 0.12)",
+        // 深色底上的卡片阴影: 黑影塑形, 蓝光做 hover 光晕
+        card: "0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5)",
+        "card-hover": "0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(89, 157, 214, 0.25)",
         "hero-glow": "0 0 80px -20px rgba(53, 124, 191, 0.4)",
+        "glow-sm": "0 0 20px -4px rgba(89, 157, 214, 0.45)",
+        glow: "0 0 48px -8px rgba(89, 157, 214, 0.5)",
+        "accent-glow": "0 0 32px -8px rgba(217, 119, 6, 0.5)",
       },
       maxWidth: {
         container: "1200px",

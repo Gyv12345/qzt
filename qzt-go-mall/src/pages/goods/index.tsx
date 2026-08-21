@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Input, Tag } from 'antd-mobile'
+import { Input } from 'antd-mobile'
 import { RightOutline, SearchOutline } from 'antd-mobile-icons'
 import { listGoods } from '../../services/mall'
 import { useCartStore, cartCount } from '../../stores/cart'
 import type { MallGoods } from '../../types/mall'
 
-/** 商品列表:搜索(本地过滤)+ 图片卡片流 + 底部购物车栏 */
+/** 商品列表(商城首页):品牌顶栏 + banner + 悬浮搜索 + 分类胶囊 + 图片卡片流 + 底部购物车条 */
 export default function GoodsList() {
   const navigate = useNavigate()
   const [goods, setGoods] = useState<MallGoods[]>([])
@@ -42,49 +42,39 @@ export default function GoodsList() {
 
   return (
     <div className="page">
-      <div className="topbar">
-        <div style={{ fontWeight: 700, fontSize: 18 }}>🛒 企智通商城</div>
+      {/* 品牌顶栏 */}
+      <div className="brand-topbar">
+        <span className="brand-logo">企</span>
+        <span className="brand-name">企智通商城</span>
         <div style={{ flex: 1 }} />
-        <a
-          onClick={() => navigate('/order/query')}
-          style={{ fontSize: 13, color: '#666', display: 'flex', alignItems: 'center' }}
-        >
+        <a className="topbar-link" onClick={() => navigate('/order/query')}>
           查订单 <RightOutline fontSize={11} />
         </a>
       </div>
 
-      <div style={{ padding: '10px 12px 4px', background: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <SearchOutline fontSize={16} color="#9aa0a8" />
+      {/* banner: slogan + 装饰网格光斑 */}
+      <div className="banner">
+        <div className="banner-title">企业管理软件, 一站购齐</div>
+        <div className="banner-sub">源码级私有化部署 · 数据完全归企业所有</div>
+      </div>
+
+      {/* 悬浮搜索框 */}
+      <div className="search-wrap">
+        <SearchOutline fontSize={16} color="#93a0b8" />
         <Input placeholder="搜索商品名称 / 分类" value={keyword} onChange={setKeyword} clearable style={{ '--font-size': 14 } as never} />
       </div>
 
+      {/* 分类胶囊 */}
       {categories.length > 1 && (
-        <div style={{ display: 'flex', gap: 8, padding: '8px 12px 0', overflowX: 'auto', background: '#fff' }}>
-          <span
-            onClick={() => setCategory('')}
-            style={{
-              flexShrink: 0,
-              padding: '5px 14px',
-              borderRadius: 14,
-              fontSize: 13,
-              background: category === '' ? '#2e6be6' : '#eef0f4',
-              color: category === '' ? '#fff' : '#444',
-            }}
-          >
+        <div className="cat-row">
+          <span className={`cat-chip${category === '' ? ' active' : ''}`} onClick={() => setCategory('')}>
             全部
           </span>
           {categories.map((c) => (
             <span
               key={c}
+              className={`cat-chip${category === c ? ' active' : ''}`}
               onClick={() => setCategory(category === c ? '' : c)}
-              style={{
-                flexShrink: 0,
-                padding: '5px 14px',
-                borderRadius: 14,
-                fontSize: 13,
-                background: category === c ? '#2e6be6' : '#eef0f4',
-                color: category === c ? '#fff' : '#444',
-              }}
             >
               {c}
             </span>
@@ -92,62 +82,29 @@ export default function GoodsList() {
         </div>
       )}
 
+      {/* 商品卡片流 */}
       {loading ? (
         <div className="empty-tip">加载中…</div>
       ) : filtered.length === 0 ? (
         <div className="empty-tip">暂无在售商品,敬请期待</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: 12 }}>
+        <div className="goods-grid">
           {filtered.map((g) => (
-            <div
-              key={g.id}
-              onClick={() => navigate(`/goods/${g.id}`)}
-              style={{ background: '#fff', borderRadius: 10, overflow: 'hidden' }}
-            >
-              <div
-                style={{
-                  height: 150,
-                  background: '#f2f3f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+            <div key={g.id} className="goods-card" onClick={() => navigate(`/goods/${g.id}`)}>
+              <div className="goods-cover">
                 {g.image_url ? (
-                  <img src={g.image_url} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={g.image_url} alt={g.name} />
                 ) : (
                   <span style={{ fontSize: 40 }}>📦</span>
                 )}
               </div>
-              <div style={{ padding: '8px 10px 10px' }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    minHeight: 38,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {g.name}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 6, gap: 6 }}>
-                  <span style={{ color: '#e5484d', fontWeight: 700, fontSize: 16 }}>
-                    ¥{Number(g.standard_price).toFixed(2)}
-                  </span>
-                  <span style={{ color: '#9aa0a8', fontSize: 11 }}>/{g.unit || '件'}</span>
+              <div className="goods-info">
+                <div className="goods-name">{g.name}</div>
+                <div className="goods-meta">
+                  <span className="price">¥{Number(g.standard_price).toFixed(2)}</span>
+                  <span className="price-unit">/{g.unit || '件'}</span>
                   <div style={{ flex: 1 }} />
-                  {g.in_stock ? (
-                    <Tag color="primary" fill="outline" style={{ '--font-size': 10 } as never}>
-                      有货
-                    </Tag>
-                  ) : (
-                    <Tag color="default" style={{ '--font-size': 10 } as never}>
-                      缺货
-                    </Tag>
-                  )}
+                  {g.in_stock ? <span className="stock-tag">有货</span> : <span className="stock-tag out">缺货</span>}
                 </div>
               </div>
             </div>
@@ -155,23 +112,9 @@ export default function GoodsList() {
         </div>
       )}
 
+      {/* 底部悬浮购物车条 */}
       {count > 0 && (
-        <div
-          style={{
-            position: 'fixed',
-            left: 12,
-            right: 12,
-            bottom: 16,
-            background: '#2e6be6',
-            color: '#fff',
-            borderRadius: 24,
-            padding: '12px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            boxShadow: '0 4px 14px rgba(46,107,230,.35)',
-          }}
-          onClick={() => navigate('/cart')}
-        >
+        <div className="cart-float" onClick={() => navigate('/cart')}>
           <span style={{ fontSize: 20 }}>🛒</span>
           <span style={{ margin: '0 10px', fontSize: 14 }}>购物车({count})</span>
           <div style={{ flex: 1 }} />

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Button, Dialog, Stepper, SwipeAction, List } from 'antd-mobile'
+import { Button, Dialog, Stepper, SwipeAction } from 'antd-mobile'
 import { useCartStore, cartTotal } from '../../stores/cart'
 
 /** 购物车:改量/左滑删除/清空,底部合计与去结算 */
@@ -9,9 +9,9 @@ export default function Cart() {
   const total = cartTotal(items)
 
   return (
-    <div className="page">
+    <div className="page" style={{ paddingBottom: items.length > 0 ? 84 : 24 }}>
       <div className="topbar">
-        <a onClick={() => navigate(-1)} style={{ fontSize: 20 }}>
+        <a className="topbar-back" onClick={() => navigate(-1)}>
           ‹
         </a>
         <div className="topbar-title">购物车</div>
@@ -25,7 +25,7 @@ export default function Cart() {
                 onConfirm: clear,
               })
             }
-            style={{ fontSize: 13, color: '#e5484d' }}
+            style={{ fontSize: 13, color: 'var(--adm-color-danger)', cursor: 'pointer' }}
           >
             清空
           </a>
@@ -44,7 +44,7 @@ export default function Cart() {
           </div>
         </div>
       ) : (
-        <List style={{ marginTop: 10 }}>
+        <div style={{ padding: '10px 12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.map((it) => (
             <SwipeAction
               key={it.id}
@@ -57,64 +57,74 @@ export default function Cart() {
                 },
               ]}
             >
-              <List.Item
-                description={`¥${Number(it.price).toFixed(2)} / ${it.unit || '件'}`}
-                prefix={
+              <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 10,
+                    background: '#eef1f6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                  }}
+                >
+                  {it.image ? (
+                    <img src={it.image} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: 24 }}>📦</span>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 8,
-                      background: '#f2f3f5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
                       overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {it.image ? (
-                      <img src={it.image} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <span style={{ fontSize: 22 }}>📦</span>
-                    )}
+                    {it.name}
                   </div>
-                }
-                extra={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontWeight: 600 }}>&yen;{(Number(it.price) * it.quantity).toFixed(2)}</span>
+                  <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 3 }}>
+                    ¥{Number(it.price).toFixed(2)} / {it.unit || '件'}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+                    <span className="price" style={{ fontSize: 15 }}>
+                      &yen;{(Number(it.price) * it.quantity).toFixed(2)}
+                    </span>
+                    <div style={{ flex: 1 }} />
                     <Stepper min={0} max={999} value={it.quantity} onChange={(v) => setQuantity(it.id, v)} />
                   </div>
-                }
-              >
-                <div style={{ fontSize: 14, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {it.name}
                 </div>
-              </List.Item>
+              </div>
             </SwipeAction>
           ))}
-        </List>
+        </div>
       )}
 
       {items.length > 0 && (
-        <div
-          style={{
-            position: 'fixed',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: '#fff',
-            padding: '10px 14px',
-            borderTop: '1px solid #eceef2',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: 13, color: '#666' }}>合计</span>
-          <span style={{ color: '#e5484d', fontSize: 20, fontWeight: 700, margin: '0 6px 0 8px' }}>
+        <div className="bottom-bar">
+          <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>合计</span>
+          <span className="price" style={{ fontSize: 22, margin: '0 6px 0 6px' }}>
             ¥{total.toFixed(2)}
           </span>
           <div style={{ flex: 1 }} />
-          <Button color="primary" style={{ borderRadius: 22, minWidth: 120 }} onClick={() => navigate('/checkout')}>
+          <Button
+            color="primary"
+            style={{
+              borderRadius: 999,
+              minWidth: 128,
+              background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))',
+              border: 'none',
+              boxShadow: '0 4px 14px rgba(15,76,129,.35)',
+            }}
+            onClick={() => navigate('/checkout')}
+          >
             去结算
           </Button>
         </div>

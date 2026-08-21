@@ -20,7 +20,7 @@ export default async function PartnersPage() {
 
   return (
     <>
-      <div className="hero-mesh relative overflow-hidden border-b border-ink-100">
+      <div className="hero-mesh relative overflow-hidden border-b border-white/[0.06]">
         <div className="hero-grid absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="container relative py-16">
           <PageHeader title="合作伙伴" subtitle="我们服务的客户, 数据实时同步" />

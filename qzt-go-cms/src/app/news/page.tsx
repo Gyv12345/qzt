@@ -20,7 +20,7 @@ export default async function NewsPage() {
 
   return (
     <>
-      <div className="hero-mesh relative overflow-hidden border-b border-ink-100">
+      <div className="hero-mesh relative overflow-hidden border-b border-white/[0.06]">
         <div className="hero-grid absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="container relative py-16">
           <PageHeader title="新闻动态" subtitle="最新资讯与公告" />

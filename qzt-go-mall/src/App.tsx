@@ -1,18 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
-/** 商城路由:免登录,商品列表为首页 */
+/** 商城路由:免登录,商品列表为首页。app-shell 在 PC 端限宽居中(移动端全宽)。 */
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/goods" replace />} />
-        <Route path="/goods" element={lazyPage('goods')} />
-        <Route path="/goods/:id" element={lazyPage('goods/detail')} />
-        <Route path="/cart" element={lazyPage('cart')} />
-        <Route path="/checkout" element={lazyPage('checkout')} />
-        <Route path="/order/query" element={lazyPage('order/query')} />
-        <Route path="*" element={<Navigate to="/goods" replace />} />
-      </Routes>
+      <div className="app-shell">
+        <Routes>
+          <Route path="/" element={<Navigate to="/goods" replace />} />
+          <Route path="/goods" element={lazyPage('goods')} />
+          <Route path="/goods/:id" element={lazyPage('goods/detail')} />
+          <Route path="/cart" element={lazyPage('cart')} />
+          <Route path="/checkout" element={lazyPage('checkout')} />
+          <Route path="/order/query" element={lazyPage('order/query')} />
+          <Route path="*" element={<Navigate to="/goods" replace />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   )
 }

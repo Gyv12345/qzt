@@ -39,15 +39,15 @@ export default async function DynamicPage({ params }: Props) {
   } catch {
     return (
       <section className="container py-24 text-center">
-        <h1 className="font-display text-2xl font-bold text-ink-900">页面未找到</h1>
-        <p className="mt-4 text-ink-500">该页面可能已被删除或尚未发布。</p>
+        <h1 className="font-display text-2xl font-bold text-white">页面未找到</h1>
+        <p className="mt-4 text-slate-400">该页面可能已被删除或尚未发布。</p>
       </section>
     );
   }
 
   return (
     <>
-      <div className="hero-mesh relative overflow-hidden border-b border-ink-100">
+      <div className="hero-mesh relative overflow-hidden border-b border-white/[0.06]">
         <div className="hero-grid absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="container relative py-16">
           <PageHeader title={title} mb="mb-0" />
