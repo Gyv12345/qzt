@@ -1,10 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { MallGoods } from '../types/mall'
+import type { MallGoods, MallSku } from '../types/mall'
 
 export interface CartItem {
-  id: number
+  /** SKU ID(购物车条目唯一键;单规格商品为其默认规格 SKU) */
+  skuId: number
+  productId: number
   name: string
+  /** 规格描述(空 = 默认规格) */
+  spec: string
   price: string
   image: string
   unit: string
@@ -13,20 +17,20 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[]
-  add: (goods: MallGoods, quantity: number) => void
-  setQuantity: (id: number, quantity: number) => void
-  remove: (id: number) => void
+  add: (goods: MallGoods, sku: MallSku, quantity: number) => void
+  setQuantity: (skuId: number, quantity: number) => void
+  remove: (skuId: number) => void
   clear: () => void
 }
 
-/** 轻量购物车(localStorage 持久化,免登录商城) */
+/** 轻量购物车(localStorage 持久化,免登录商城)。条目按 SKU 区分(同商品不同规格各占一行) */
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      add: (goods, quantity) =>
+      add: (goods, sku, quantity) =>
         set((s) => {
-          const idx = s.items.findIndex((i) => i.id === goods.id)
+          const idx = s.items.findIndex((i) => i.skuId === sku.id)
           if (idx >= 0) {
             const items = [...s.items]
             items[idx] = { ...items[idx], quantity: items[idx].quantity + quantity }
@@ -36,24 +40,31 @@ export const useCartStore = create<CartState>()(
             items: [
               ...s.items,
               {
-                id: goods.id,
+                skuId: sku.id,
+                productId: goods.id,
                 name: goods.name,
-                price: goods.standard_price,
-                image: goods.image_url,
+                spec: sku.spec,
+                price: sku.price,
+                image: sku.image_url || goods.image_url,
                 unit: goods.unit,
                 quantity,
               },
             ],
           }
         }),
-      setQuantity: (id, quantity) =>
+      setQuantity: (skuId, quantity) =>
         set((s) => ({
-          items: quantity <= 0 ? s.items.filter((i) => i.id !== id) : s.items.map((i) => (i.id === id ? { ...i, quantity } : i)),
+          items: quantity <= 0 ? s.items.filter((i) => i.skuId !== skuId) : s.items.map((i) => (i.skuId === skuId ? { ...i, quantity } : i)),
         })),
-      remove: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
+      remove: (skuId) => set((s) => ({ items: s.items.filter((i) => i.skuId !== skuId) })),
       clear: () => set({ items: [] }),
     }),
-    { name: 'qzt-mall:cart' },
+    {
+      name: 'qzt-mall:cart',
+      // v2:条目主键从商品 id 改为 SKU id,旧缓存直接丢弃(免登录场景成本低)
+      version: 2,
+      migrate: () => ({ items: [] }),
+    },
   ),
 )
 

@@ -24,7 +24,10 @@ export interface MallOrderItem {
   id: number
   order_id: number
   product_id: number
+  sku_id?: number
   product_name: string
+  /** 规格描述快照(空 = 默认规格) */
+  spec?: string
   quantity: string
   unit_price: string
   amount: string

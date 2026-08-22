@@ -8,13 +8,16 @@ import (
 
 // stock.go 库存结余 + 出入库流水。
 
-// PsiStock 库存结余(按 商品+仓库 维度)。quantity 为在手库存。
+// PsiStock 库存结余(按 规格SKU+仓库 维度;product_id 冗余便于按商品聚合)。
+// quantity 为在手库存。历史数据 sku_id=0 表示未指定规格(按商品默认规格对待)。
 type PsiStock struct {
 	ID          uint            `json:"id" gorm:"primaryKey"`
-	// 商品ID(引用crm_product.id)
-	ProductID   uint            `json:"product_id" gorm:"index;uniqueIndex:uk_product_warehouse;not null;comment:商品ID(引用crm_product.id)"`
+	// 商品ID(引用crm_product.id,冗余自SKU)
+	ProductID   uint            `json:"product_id" gorm:"index:idx_product;not null;comment:商品ID(引用crm_product.id)"`
+	// 规格SKU ID(引用crm_product_sku.id;0=历史数据未指定)
+	SkuID       uint            `json:"sku_id" gorm:"uniqueIndex:uk_sku_warehouse;not null;default:0;comment:规格SKU ID"`
 	// 仓库ID
-	WarehouseID uint            `json:"warehouse_id" gorm:"index;uniqueIndex:uk_product_warehouse;not null;comment:仓库ID"`
+	WarehouseID uint            `json:"warehouse_id" gorm:"index;uniqueIndex:uk_sku_warehouse;not null;comment:仓库ID"`
 	// 在手数量
 	Quantity    decimal.Decimal `json:"quantity" gorm:"type:decimal(14,3);default:0;comment:在手数量"`
 	// 安全库存(预警阈值)
@@ -38,6 +41,8 @@ type PsiStockMovement struct {
 	BizOrderNo   string          `json:"biz_order_no" gorm:"size:64;index;comment:来源单据编号"`
 	// 商品ID
 	ProductID    uint            `json:"product_id" gorm:"index;not null;comment:商品ID"`
+	// 规格SKU ID(0=历史数据未指定)
+	SkuID        uint            `json:"sku_id" gorm:"index;not null;default:0;comment:规格SKU ID"`
 	// 仓库ID
 	WarehouseID  uint            `json:"warehouse_id" gorm:"index;not null;comment:仓库ID"`
 	// 入库数量
@@ -53,6 +58,8 @@ type PsiStockMovement struct {
 	Remark       string          `json:"remark" gorm:"size:500"`
 	// 商品名称(非表字段,列表接口批量回填,避免前端用裸 ID 显示)
 	ProductName  string          `json:"product_name" gorm:"-"`
+	// 规格描述(非表字段,列表接口批量回填展示用)
+	SkuSpec      string          `json:"sku_spec" gorm:"-"`
 	base.BaseModel
 }
 

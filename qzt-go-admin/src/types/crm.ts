@@ -182,6 +182,27 @@ export interface CrmProduct {
   updated_at: string
 }
 
+/** 商品规格 SKU。spec 为空串 = 默认规格(单规格商品的唯一 SKU) */
+export interface CrmProductSku {
+  id: number
+  product_id: number
+  spec: string
+  sku_no: string
+  price: string
+  cost_price: string
+  image_url: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CrmProductSkuPayload {
+  spec?: string
+  sku_no?: string
+  price?: number
+  cost_price?: number
+  image_url?: string
+}
+
 export interface CrmCustomerPool {
   id: number
   name: string

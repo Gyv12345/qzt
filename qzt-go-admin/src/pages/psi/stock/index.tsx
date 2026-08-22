@@ -28,6 +28,13 @@ export default function StockPage() {
       search: false,
       render: (_, record) => record.product_name || `#${record.product_id}`,
     },
+    {
+      title: '规格',
+      dataIndex: 'sku_spec',
+      width: 110,
+      search: false,
+      render: (_, record) => record.sku_spec || '默认规格',
+    },
     { title: '商品编号', dataIndex: 'product_no', width: 140, search: false },
     { title: '分类', dataIndex: 'category', width: 120, search: false },
     { title: '单位', dataIndex: 'unit', width: 80, search: false },

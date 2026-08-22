@@ -5,6 +5,7 @@ import {
   ModalForm,
   ProForm,
   ProFormDatePicker,
+  ProFormDependency,
   ProFormDigit,
   ProFormGroup,
   ProFormList,
@@ -18,7 +19,8 @@ import Auth from '../../../components/Auth'
 import CustomerSelect from '../../../components/CustomerSelect'
 import { GuideHelpButton } from '../../../components/guide/GuideHelpButton'
 import { listEnabledSuppliers, listEnabledWarehouses, type PsiPageResult } from '../../../services/psi'
-import { listCustomers, listProducts } from '../../../services/crm'
+import { listCustomers, listProducts, listProductSkus } from '../../../services/crm'
+import type { CrmProductSku } from '../../../types/crm'
 import { pageIndexColumn } from '../../../components/IndexTag'
 
 /** 四类购销单据(采购单/销售单/采购退货/销售退货)公共的列表行/明细行结构 */
@@ -43,6 +45,10 @@ export interface OrderDocRecord {
 export interface OrderDocItemRecord {
   id: number
   product_id: number
+  /** 规格 SKU ID(0/缺省 = 历史数据未指定) */
+  sku_id?: number
+  /** 规格描述(后端详情接口回填,空 = 默认规格) */
+  sku_spec?: string
   quantity: string
   received_quantity?: string
   shipped_quantity?: string
@@ -53,6 +59,7 @@ export interface OrderDocItemRecord {
 
 export interface OrderDocItemFormValues {
   product_id: number
+  sku_id?: number
   quantity: number
   unit_price?: number
   remark?: string
@@ -193,6 +200,16 @@ export default function OrderDocPage<T extends OrderDocRecord>({
   const [parties, setParties] = useState<{ id: number; name: string }[]>([])
   const [warehouses, setWarehouses] = useState<{ id: number; name: string }[]>([])
   const [products, setProducts] = useState<{ id: number; name: string }[]>([])
+  // 商品 -> 规格 SKU 列表(懒加载缓存;多于 1 条时明细行才出现「规格」选择)
+  const [skuMap, setSkuMap] = useState<Record<number, CrmProductSku[]>>({})
+
+  /** 加载并缓存某商品的规格列表(重复调用直接命中缓存) */
+  const ensureSkus = (productId?: number) => {
+    if (!productId || skuMap[productId]) return
+    listProductSkus(productId)
+      .then((res) => setSkuMap((prev) => ({ ...prev, [productId]: res.list ?? [] })))
+      .catch(() => {})
+  }
   const partyMap = useMemo(() => new Map(parties.map((p) => [p.id, p.name])), [parties])
   const warehouseMap = useMemo(() => new Map(warehouses.map((w) => [w.id, w.name])), [warehouses])
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p.name])), [products])
@@ -247,6 +264,8 @@ export default function OrderDocPage<T extends OrderDocRecord>({
   const openEdit = async (record: T) => {
     const detail = await service.get(record.id)
     setEditing(detail)
+    // 预载明细商品的规格列表(多规格商品编辑时回填「规格」选择)
+    ;(detail.items ?? []).forEach((it) => ensureSkus(it.product_id))
     form.setFieldsValue({
       party_id: detail.supplier_id ?? detail.customer_id,
       warehouse_id: detail.warehouse_id,
@@ -255,6 +274,7 @@ export default function OrderDocPage<T extends OrderDocRecord>({
       discount_amount: detail.discount_amount != null ? Number(detail.discount_amount) : 0,
       items: (detail.items ?? []).map((it) => ({
         product_id: it.product_id,
+        sku_id: it.sku_id || undefined,
         quantity: Number(it.quantity),
         unit_price: it.unit_price != null ? Number(it.unit_price) : undefined,
         remark: it.remark || undefined,
@@ -264,19 +284,24 @@ export default function OrderDocPage<T extends OrderDocRecord>({
   }
 
   const handleSubmit = async (values: OrderDocFormValues) => {
-    // 明细行规范化:空单价/备注转 undefined,与各页原逻辑一致
+    // 明细行规范化:空单价/备注转 undefined,与各页原逻辑一致;
+    // sku_id 校验归属(切换商品后残留的 sku 丢弃,由后端解析默认规格)
     const payload: OrderDocFormValues = {
       party_id: values.party_id,
       warehouse_id: values.warehouse_id,
       order_date: values.order_date || undefined,
       expected_date: values.expected_date || undefined,
       discount_amount: values.discount_amount ?? undefined,
-      items: (values.items ?? []).map((it) => ({
-        product_id: it.product_id,
-        quantity: it.quantity,
-        unit_price: it.unit_price ?? undefined,
-        remark: it.remark || undefined,
-      })),
+      items: (values.items ?? []).map((it) => {
+        const skuValid = it.sku_id && skuMap[it.product_id]?.some((s) => s.id === it.sku_id)
+        return {
+          product_id: it.product_id,
+          sku_id: skuValid ? it.sku_id : undefined,
+          quantity: it.quantity,
+          unit_price: it.unit_price ?? undefined,
+          remark: it.remark || undefined,
+        }
+      }),
     }
     if (editing) {
       await service.update?.(editing.id, payload)
@@ -472,8 +497,14 @@ export default function OrderDocPage<T extends OrderDocRecord>({
     {
       title: '商品',
       dataIndex: 'product_id',
-      width: 180,
+      width: 160,
       render: (v: number) => productMap.get(v) ?? v,
+    },
+    {
+      title: '规格',
+      dataIndex: 'sku_spec',
+      width: 110,
+      render: (v?: string) => v || '默认规格',
     },
     { title: '数量', dataIndex: 'quantity', width: 90 },
     ...(detailItemExtra === 'received'
@@ -635,26 +666,46 @@ export default function OrderDocPage<T extends OrderDocRecord>({
               label="商品"
               rules={[{ required: true, message: '请选择商品' }]}
               options={productOptions}
-              fieldProps={{ showSearch: true, optionFilterProp: 'label' }}
+              fieldProps={{
+                showSearch: true,
+                optionFilterProp: 'label',
+                onChange: (v) => ensureSkus(v as number),
+              }}
               placeholder="选择商品"
               colProps={{ span: 6 }}
             />
+            <ProFormDependency name={['product_id']}>
+              {({ product_id }) => {
+                const skus = product_id ? skuMap[product_id] : undefined
+                if (!skus || skus.length <= 1) return null
+                return (
+                  <ProFormSelect
+                    name="sku_id"
+                    label="规格"
+                    rules={[{ required: true, message: '请选择规格' }]}
+                    options={skus.map((s) => ({ label: s.spec || '默认规格', value: s.id }))}
+                    placeholder="选择规格"
+                    colProps={{ span: 5 }}
+                  />
+                )
+              }}
+            </ProFormDependency>
             <ProFormDigit
               name="quantity"
               label="数量"
               rules={[{ required: true, message: '请输入数量' }]}
               min={1}
               fieldProps={{ precision: 0 }}
-              colProps={{ span: 6 }}
+              colProps={{ span: 5 }}
             />
             <ProFormDigit
               name="unit_price"
               label="单价"
               min={0}
               fieldProps={{ precision: 2 }}
-              colProps={{ span: 6 }}
+              colProps={{ span: 4 }}
             />
-            <ProFormText name="remark" label="备注" colProps={{ span: 6 }} />
+            <ProFormText name="remark" label="备注" colProps={{ span: 4 }} />
           </ProFormGroup>
         </ProFormList>
       </ModalForm>

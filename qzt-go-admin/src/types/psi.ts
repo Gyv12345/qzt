@@ -64,9 +64,10 @@ export interface PsiWarehousePayload {
   remark?: string
 }
 
-/** 单据明细行(请求) */
+/** 单据明细行(请求)。sku_id 不传时后端解析商品默认规格(多规格商品必传) */
 export interface PsiOrderItemPayload {
   product_id: number
+  sku_id?: number
   quantity: number
   unit_price?: number
   unit_cost?: number
@@ -101,6 +102,9 @@ export interface PsiPurchaseOrderItem {
   id: number
   order_id: number
   product_id: number
+  sku_id?: number
+  /** 规格描述(后端回填,空 = 默认规格) */
+  sku_spec?: string
   quantity: string
   received_quantity: string
   unit_price: string
@@ -145,6 +149,9 @@ export interface PsiSalesOrderItem {
   id: number
   order_id: number
   product_id: number
+  sku_id?: number
+  /** 规格描述(后端回填,空 = 默认规格) */
+  sku_spec?: string
   quantity: string
   shipped_quantity?: string
   unit_price: string
@@ -187,6 +194,9 @@ export interface PsiReturnOrderItem {
   id: number
   order_id: number
   product_id: number
+  sku_id?: number
+  /** 规格描述(后端回填,空 = 默认规格) */
+  sku_spec?: string
   quantity: string
   unit_price?: string
   amount?: string
@@ -217,6 +227,9 @@ export interface PsiStockOrderItem {
   id: number
   order_id: number
   product_id: number
+  sku_id?: number
+  /** 规格描述(后端回填,空 = 默认规格) */
+  sku_spec?: string
   quantity: string
   unit_cost?: string
   remark: string
@@ -242,10 +255,13 @@ export interface PsiStockOutPayload {
   items: PsiOrderItemPayload[]
 }
 
-/** 库存结余 */
+/** 库存结余(按 规格SKU+仓库 维度) */
 export interface PsiStock {
   id: number
   product_id: number
+  sku_id: number
+  /** 规格描述(后端回填,空 = 默认规格) */
+  sku_spec: string
   warehouse_id: number
   quantity: string
   safety_stock: string
@@ -266,6 +282,11 @@ export interface PsiStockMovement {
   biz_order_id: number
   biz_order_no: string
   product_id: number
+  /** 商品名称(后端回填) */
+  product_name: string
+  sku_id: number
+  /** 规格描述(后端回填,空 = 默认规格) */
+  sku_spec: string
   warehouse_id: number
   in_qty: string
   out_qty: string

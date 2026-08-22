@@ -48,6 +48,8 @@ func NewPurchaseService() *PurchaseService {
 // PurchaseOrderItemRequest 采购单明细项。
 type PurchaseOrderItemRequest struct {
 	ProductID uint            `json:"product_id" binding:"required"`
+	// 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+	SkuID     uint            `json:"sku_id"`
 	Quantity  decimal.Decimal `json:"quantity" binding:"required"`
 	UnitPrice decimal.Decimal `json:"unit_price"`
 	Remark    string          `json:"remark"`
@@ -85,15 +87,19 @@ func (s *PurchaseService) Create(ctx context.Context, req *CreatePurchaseOrderRe
 	}
 	order.OrderDate = parseNullDate(req.OrderDate)
 
-	// 汇总金额/数量 + 构造明细
+	// 汇总金额/数量 + 构造明细(逐条解析规格 SKU)
 	var totalQty, totalAmt decimal.Decimal
 	details := make([]psimodel.PsiPurchaseOrderDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return nil, err
+		}
 		amt := it.Quantity.Mul(it.UnitPrice)
 		totalQty = totalQty.Add(it.Quantity)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiPurchaseOrderDetail{
-			ProductID: it.ProductID, Quantity: it.Quantity, ReceivedQuantity: decimal.Zero,
+			ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, ReceivedQuantity: decimal.Zero,
 			UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}
@@ -119,7 +125,7 @@ func (s *PurchaseService) Create(ctx context.Context, req *CreatePurchaseOrderRe
 	return order, nil
 }
 
-// GetByID 采购单详情(含明细)。
+// GetByID 采购单详情(含明细,回填规格描述)。
 func (s *PurchaseService) GetByID(ctx context.Context, id uint) (*PurchaseOrderDetailDTO, error) {
 	o, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
@@ -127,6 +133,9 @@ func (s *PurchaseService) GetByID(ctx context.Context, id uint) (*PurchaseOrderD
 	}
 	items, err := s.orderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := fillSkuSpec(ctx, len(items), func(i int) uint { return items[i].SkuID }, func(i int, spec string) { items[i].SkuSpec = spec }); err != nil {
 		return nil, err
 	}
 	return &PurchaseOrderDetailDTO{PsiPurchaseOrder: *o, Items: items}, nil
@@ -156,11 +165,15 @@ func (s *PurchaseService) Update(ctx context.Context, id uint, req *CreatePurcha
 	var totalQty, totalAmt decimal.Decimal
 	details := make([]psimodel.PsiPurchaseOrderDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return err
+		}
 		amt := it.Quantity.Mul(it.UnitPrice)
 		totalQty = totalQty.Add(it.Quantity)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiPurchaseOrderDetail{
-			OrderID: id, ProductID: it.ProductID, Quantity: it.Quantity, ReceivedQuantity: decimal.Zero,
+			OrderID: id, ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, ReceivedQuantity: decimal.Zero,
 			UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}
@@ -259,10 +272,14 @@ func (s *PurchaseService) StockIn(ctx context.Context, id uint, operatorID *uint
 	inputs := make([]*MovementInput, 0, len(items))
 	for i := range items {
 		it := &items[i]
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return err
+		}
 		inputs = append(inputs, &MovementInput{
 			BizType: psimodel.BizPurchaseIn, BizOrderType: BizOrderPurchaseOrder,
 			BizOrderID: &id, BizOrderNo: o.OrderNo,
-			ProductID: it.ProductID, WarehouseID: o.WarehouseID,
+			ProductID: it.ProductID, SkuID: skuID, WarehouseID: o.WarehouseID,
 			Quantity: it.Quantity, Direction: 1, UnitCost: it.UnitPrice,
 			OperatorID: operatorID, Remark: "采购入库 " + o.OrderNo,
 		})
@@ -309,10 +326,14 @@ func (s *PurchaseService) CreateReturn(ctx context.Context, req *CreatePurchaseR
 	var totalAmt decimal.Decimal
 	details := make([]psimodel.PsiPurchaseReturnDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return nil, err
+		}
 		amt := it.Quantity.Mul(it.UnitPrice)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiPurchaseReturnDetail{
-			ProductID: it.ProductID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
+			ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}
 	ret.TotalAmount = totalAmt
@@ -335,7 +356,7 @@ func (s *PurchaseService) CreateReturn(ctx context.Context, req *CreatePurchaseR
 	return ret, nil
 }
 
-// GetReturnByID 采购退货详情(含明细)。
+// GetReturnByID 采购退货详情(含明细,回填规格描述)。
 func (s *PurchaseService) GetReturnByID(ctx context.Context, id uint) (*PurchaseReturnDetailDTO, error) {
 	r, err := s.returnRepo.GetByID(ctx, id)
 	if err != nil {
@@ -343,6 +364,9 @@ func (s *PurchaseService) GetReturnByID(ctx context.Context, id uint) (*Purchase
 	}
 	items, err := s.returnDetailRepo.ListByReturn(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := fillSkuSpec(ctx, len(items), func(i int) uint { return items[i].SkuID }, func(i int, spec string) { items[i].SkuSpec = spec }); err != nil {
 		return nil, err
 	}
 	return &PurchaseReturnDetailDTO{PsiPurchaseReturn: *r, Items: items}, nil
@@ -396,10 +420,14 @@ func (s *PurchaseService) StockOutReturn(ctx context.Context, id uint, operatorI
 	inputs := make([]*MovementInput, 0, len(items))
 	for i := range items {
 		it := &items[i]
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return err
+		}
 		inputs = append(inputs, &MovementInput{
 			BizType: psimodel.BizPurchaseReturnOut, BizOrderType: BizOrderPurchaseReturn,
 			BizOrderID: &id, BizOrderNo: r.ReturnNo,
-			ProductID: it.ProductID, WarehouseID: r.WarehouseID,
+			ProductID: it.ProductID, SkuID: skuID, WarehouseID: r.WarehouseID,
 			Quantity: it.Quantity, Direction: -1, UnitCost: it.UnitPrice,
 			OperatorID: operatorID, Remark: "采购退货出库 " + r.ReturnNo,
 		})

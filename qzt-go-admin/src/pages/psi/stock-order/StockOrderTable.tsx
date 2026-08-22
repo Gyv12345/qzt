@@ -4,6 +4,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
   ProFormDatePicker,
+  ProFormDependency,
   ProFormDigit,
   ProFormList,
   ProFormRadio,
@@ -15,7 +16,8 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
-import { listProducts } from '../../../services/crm'
+import { listProducts, listProductSkus } from '../../../services/crm'
+import type { CrmProductSku } from '../../../types/crm'
 import {
   createStockInOrder,
   createStockOutOrder,
@@ -62,6 +64,7 @@ const BIZ_TYPE_COLORS: Record<string, string> = {
 
 interface StockOrderFormItem {
   product_id: number
+  sku_id?: number
   quantity: number
   unit_cost?: number
   remark?: string
@@ -85,6 +88,16 @@ export default function StockOrderTable({ direction }: { direction: Direction })
   const [detail, setDetail] = useState<PsiStockOrder | null>(null)
   const [warehouses, setWarehouses] = useState<PsiWarehouse[]>([])
   const [productOptions, setProductOptions] = useState<{ label: string; value: number }[]>([])
+  // 商品 -> 规格 SKU 列表(懒加载缓存;多于 1 条时明细行才出现「规格」选择)
+  const [skuMap, setSkuMap] = useState<Record<number, CrmProductSku[]>>({})
+
+  /** 加载并缓存某商品的规格列表(重复调用直接命中缓存) */
+  const ensureSkus = (productId?: number) => {
+    if (!productId || skuMap[productId]) return
+    listProductSkus(productId)
+      .then((res) => setSkuMap((prev) => ({ ...prev, [productId]: res.list ?? [] })))
+      .catch(() => {})
+  }
 
   const directionName = direction === 'in' ? '入库' : '出库'
   const bizOptions = BIZ_TYPE_OPTIONS[direction]
@@ -108,6 +121,10 @@ export default function StockOrderTable({ direction }: { direction: Direction })
     () => new Map(warehouses.map((w) => [w.id, w.name])),
     [warehouses],
   )
+  const productMap = useMemo(
+    () => new Map(productOptions.map((o) => [o.value, o.label])),
+    [productOptions],
+  )
 
   const openCreate = () => {
     form.resetFields()
@@ -116,14 +133,19 @@ export default function StockOrderTable({ direction }: { direction: Direction })
   }
 
   const handleSubmit = async (values: StockOrderFormValues) => {
-    const items: PsiOrderItemPayload[] = (values.items ?? []).map((item) => ({
-      product_id: item.product_id,
-      quantity: item.quantity,
-      ...(direction === 'in' && item.unit_cost !== undefined && item.unit_cost !== null
-        ? { unit_cost: item.unit_cost }
-        : {}),
-      remark: item.remark || undefined,
-    }))
+    const items: PsiOrderItemPayload[] = (values.items ?? []).map((item) => {
+      // sku_id 校验归属(切换商品后残留的 sku 丢弃,由后端解析默认规格)
+      const skuValid = item.sku_id && skuMap[item.product_id]?.some((s) => s.id === item.sku_id)
+      return {
+        product_id: item.product_id,
+        sku_id: skuValid ? item.sku_id : undefined,
+        quantity: item.quantity,
+        ...(direction === 'in' && item.unit_cost !== undefined && item.unit_cost !== null
+          ? { unit_cost: item.unit_cost }
+          : {}),
+        remark: item.remark || undefined,
+      }
+    })
     const payload = {
       warehouse_id: values.warehouse_id,
       biz_type: values.biz_type,
@@ -199,7 +221,18 @@ export default function StockOrderTable({ direction }: { direction: Direction })
   ]
 
   const detailItemColumns = [
-    { title: '商品', dataIndex: 'product_id', width: 120 },
+    {
+      title: '商品',
+      dataIndex: 'product_id',
+      width: 140,
+      render: (v: number) => productMap.get(v) ?? `#${v}`,
+    },
+    {
+      title: '规格',
+      dataIndex: 'sku_spec',
+      width: 100,
+      render: (v?: string) => v || '默认规格',
+    },
     { title: '数量', dataIndex: 'quantity', width: 100 },
     ...(direction === 'in'
       ? [{ title: '单价成本', dataIndex: 'unit_cost', width: 110 }]
@@ -273,9 +306,25 @@ export default function StockOrderTable({ direction }: { direction: Direction })
             rules={[{ required: true, message: '请选择商品' }]}
             options={productOptions}
             showSearch
-            fieldProps={{ optionFilterProp: 'label' }}
+            fieldProps={{ optionFilterProp: 'label', onChange: (v) => ensureSkus(v as number) }}
             width="md"
           />
+          <ProFormDependency name={['product_id']}>
+            {({ product_id }) => {
+              const skus = product_id ? skuMap[product_id] : undefined
+              if (!skus || skus.length <= 1) return null
+              return (
+                <ProFormSelect
+                  name="sku_id"
+                  label="规格"
+                  rules={[{ required: true, message: '请选择规格' }]}
+                  options={skus.map((s) => ({ label: s.spec || '默认规格', value: s.id }))}
+                  placeholder="选择规格"
+                  width="sm"
+                />
+              )
+            }}
+          </ProFormDependency>
           <ProFormDigit
             name="quantity"
             label="数量"

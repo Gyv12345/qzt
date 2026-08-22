@@ -35,6 +35,8 @@ type StockListRow struct {
 	ProductNo   string `json:"product_no"`
 	Unit        string `json:"unit"`
 	Category    string `json:"category"`
+	// 规格描述(空=默认规格/历史数据)
+	SkuSpec     string `json:"sku_spec"`
 }
 
 // MovementInput 描述一次库存变动的输入。
@@ -44,6 +46,7 @@ type MovementInput struct {
 	BizOrderID   *uint           // 来源单据ID(nil 表示无关联单据,如期初)
 	BizOrderNo   string          // 来源单据编号
 	ProductID    uint
+	SkuID        uint            // 规格SKU(结余按 SKU+仓库 维度;0=未指定,仅历史兼容)
 	WarehouseID  uint
 	Quantity     decimal.Decimal // 变动数量(始终为正,方向由 Direction 决定)
 	Direction    int             // +1 入库 / -1 出库
@@ -65,7 +68,7 @@ func (s *StockService) applyMovement(ctx context.Context, in *MovementInput) (de
 	delta := in.Quantity.Mul(decimal.NewFromInt(int64(in.Direction)))
 	if in.Direction < 0 {
 		// 出库:先校验结余是否充足
-		cur, err := s.stockRepo.GetByProductWarehouse(ctx, in.ProductID, in.WarehouseID)
+		cur, err := s.stockRepo.GetBySkuWarehouse(ctx, in.SkuID, in.WarehouseID)
 		if err == nil && cur.Quantity.LessThan(in.Quantity) {
 			return decimal.Zero, errors.New("库存不足")
 		}
@@ -73,7 +76,7 @@ func (s *StockService) applyMovement(ctx context.Context, in *MovementInput) (de
 
 	var balanceAfter decimal.Decimal
 	if err := repository.Transaction(ctx, func(ctx context.Context) error {
-		bal, err := s.stockRepo.UpsertAdjust(ctx, in.ProductID, in.WarehouseID, delta, decimal.Zero)
+		bal, err := s.stockRepo.UpsertAdjust(ctx, in.ProductID, in.SkuID, in.WarehouseID, delta, decimal.Zero)
 		if err != nil {
 			return err
 		}
@@ -95,6 +98,7 @@ func (s *StockService) applyMovement(ctx context.Context, in *MovementInput) (de
 			BizOrderID:   in.BizOrderID,
 			BizOrderNo:   in.BizOrderNo,
 			ProductID:    in.ProductID,
+			SkuID:        in.SkuID,
 			WarehouseID:  in.WarehouseID,
 			InQty:        inQty,
 			OutQty:       outQty,

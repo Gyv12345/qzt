@@ -50,7 +50,16 @@ export default function MovementPage() {
         return conf ? <Tag color={conf.color}>{conf.label}</Tag> : record.biz_type
       },
     },
-    { title: '商品', dataIndex: 'product_id', width: 100, search: false },
+    {
+      title: '商品',
+      dataIndex: 'product_id',
+      width: 160,
+      search: false,
+      render: (_, record) =>
+        record.product_name
+          ? `${record.product_name}${record.sku_spec ? `(${record.sku_spec})` : ''}`
+          : `#${record.product_id}`,
+    },
     {
       title: '仓库',
       dataIndex: 'warehouse_id',

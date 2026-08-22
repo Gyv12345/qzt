@@ -4,7 +4,7 @@ import { Input } from 'antd-mobile'
 import { RightOutline, SearchOutline } from 'antd-mobile-icons'
 import { listGoods } from '../../services/mall'
 import { useCartStore, cartCount } from '../../stores/cart'
-import type { MallGoods } from '../../types/mall'
+import { isMultiSpec, type MallGoods } from '../../types/mall'
 
 /** 商品列表(商城首页):品牌顶栏 + banner + 悬浮搜索 + 分类胶囊 + 图片卡片流 + 底部购物车条 */
 export default function GoodsList() {
@@ -101,7 +101,10 @@ export default function GoodsList() {
               <div className="goods-info">
                 <div className="goods-name">{g.name}</div>
                 <div className="goods-meta">
-                  <span className="price">¥{Number(g.standard_price).toFixed(2)}</span>
+                  <span className="price">
+                    ¥{minPrice(g).toFixed(2)}
+                    {isMultiSpec(g) && <span style={{ fontSize: 11, fontWeight: 400 }}> 起</span>}
+                  </span>
                   <span className="price-unit">/{g.unit || '件'}</span>
                   <div style={{ flex: 1 }} />
                   {g.in_stock ? <span className="stock-tag">有货</span> : <span className="stock-tag out">缺货</span>}
@@ -123,4 +126,10 @@ export default function GoodsList() {
       )}
     </div>
   )
+}
+
+/** 列表展示价:多规格商品取 SKU 最低价,单规格取标准价 */
+function minPrice(g: MallGoods): number {
+  const prices = (g.skus ?? []).map((s) => Number(s.price))
+  return prices.length > 0 ? Math.min(...prices) : Number(g.standard_price)
 }

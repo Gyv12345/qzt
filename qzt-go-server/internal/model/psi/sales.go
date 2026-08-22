@@ -47,6 +47,8 @@ type PsiSalesOrderDetail struct {
 	OrderID          uint            `json:"order_id" gorm:"index:idx_order;not null;comment:销售单ID"`
 	// 商品ID
 	ProductID        uint            `json:"product_id" gorm:"index;not null;comment:商品ID"`
+	// 规格SKU ID(引用crm_product_sku.id;0=历史数据未指定)
+	SkuID            uint            `json:"sku_id" gorm:"index;not null;default:0;comment:规格SKU ID"`
 	// 销售数量
 	Quantity         decimal.Decimal `json:"quantity" gorm:"type:decimal(14,3);not null;comment:销售数量"`
 	// 已出库数量(预留部分发货)
@@ -56,6 +58,8 @@ type PsiSalesOrderDetail struct {
 	// 金额
 	Amount           decimal.Decimal `json:"amount" gorm:"type:decimal(14,2);comment:金额"`
 	Remark           string          `json:"remark" gorm:"size:500"`
+	// 规格描述(非表字段,详情接口批量回填展示用)
+	SkuSpec          string          `json:"sku_spec" gorm:"-"`
 	base.BaseModel
 }
 
@@ -95,6 +99,8 @@ type PsiSalesReturnDetail struct {
 	ReturnID  uint            `json:"return_id" gorm:"index:idx_return;not null;comment:退货单ID"`
 	// 商品ID
 	ProductID uint            `json:"product_id" gorm:"index;not null;comment:商品ID"`
+	// 规格SKU ID(引用crm_product_sku.id;0=历史数据未指定)
+	SkuID     uint            `json:"sku_id" gorm:"index;not null;default:0;comment:规格SKU ID"`
 	// 退货数量
 	Quantity  decimal.Decimal `json:"quantity" gorm:"type:decimal(14,3);not null;comment:退货数量"`
 	// 单价
@@ -102,6 +108,8 @@ type PsiSalesReturnDetail struct {
 	// 金额
 	Amount    decimal.Decimal `json:"amount" gorm:"type:decimal(14,2);comment:金额"`
 	Remark    string          `json:"remark" gorm:"size:500"`
+	// 规格描述(非表字段,详情接口批量回填展示用)
+	SkuSpec   string          `json:"sku_spec" gorm:"-"`
 	base.BaseModel
 }
 

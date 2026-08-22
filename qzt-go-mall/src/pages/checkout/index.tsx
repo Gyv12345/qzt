@@ -82,9 +82,10 @@ export default function Checkout() {
         <div className="card">
           <div className="card-title">商品清单</div>
           {items.map((it) => (
-            <div key={it.id} style={{ display: 'flex', alignItems: 'center', padding: '6px 0', fontSize: 14 }}>
+            <div key={it.skuId} style={{ display: 'flex', alignItems: 'center', padding: '6px 0', fontSize: 14 }}>
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
                 {it.name}
+                {it.spec && <span style={{ color: 'var(--ink-3)', fontSize: 12 }}>({it.spec})</span>}
               </span>
               <span style={{ color: 'var(--ink-3)', margin: '0 8px' }}>×{it.quantity}</span>
               <span style={{ fontWeight: 600, color: 'var(--ink)' }}>¥{(Number(it.price) * it.quantity).toFixed(2)}</span>
@@ -104,7 +105,7 @@ export default function Checkout() {
               setSubmitting(true)
               try {
                 const res = await createOrder({
-                  items: items.map((it) => ({ product_id: it.id, quantity: it.quantity })),
+                  items: items.map((it) => ({ product_id: it.productId, sku_id: it.skuId, quantity: it.quantity })),
                   contact_name: String(values.contact_name || ''),
                   contact_phone: String(values.contact_phone || ''),
                   address: String(values.address || ''),

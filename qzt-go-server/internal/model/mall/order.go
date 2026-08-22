@@ -45,18 +45,22 @@ type MallOrder struct {
 
 func (MallOrder) TableName() string { return "mall_order" }
 
-// MallOrderItem 商城订单明细(下单时品名/价格快照)。
+// MallOrderItem 商城订单明细(下单时品名/规格/价格快照)。
 type MallOrderItem struct {
 	ID uint `json:"id" gorm:"primaryKey"`
 	// 订单ID
 	OrderID uint `json:"order_id" gorm:"index:idx_order;not null;comment:订单ID"`
 	// 商品ID(crm_product)
 	ProductID uint `json:"product_id" gorm:"comment:商品ID"`
+	// 规格SKU ID(crm_product_sku;0=历史数据未指定)
+	SkuID uint `json:"sku_id" gorm:"index;not null;default:0;comment:规格SKU ID"`
 	// 商品名称快照
 	ProductName string `json:"product_name" gorm:"size:255;comment:商品名称快照"`
+	// 规格描述快照(如 红色/M码;空=默认规格)
+	Spec string `json:"spec" gorm:"size:128;not null;default:'';comment:规格描述快照"`
 	// 数量
 	Quantity decimal.Decimal `json:"quantity" gorm:"type:decimal(14,3);comment:数量"`
-	// 单价快照(下单时 standard_price)
+	// 单价快照(下单时 SKU 售价,无 SKU 时为商品 standard_price)
 	UnitPrice decimal.Decimal `json:"unit_price" gorm:"type:decimal(14,2);comment:单价快照"`
 	// 金额
 	Amount decimal.Decimal `json:"amount" gorm:"type:decimal(14,2);comment:金额"`

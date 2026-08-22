@@ -25,6 +25,7 @@ import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
 import MarkdownEditor from '../../../components/MarkdownEditor'
 import ImageUpload from '../../../components/ImageUpload'
+import SkuDrawer from './SkuDrawer'
 import {
   createProduct,
   deleteProduct,
@@ -58,6 +59,10 @@ export default function ProductPage() {
   const [form] = Form.useForm<ProductFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmProduct | null>(null)
+
+  // 规格 SKU 管理
+  const [skuProduct, setSkuProduct] = useState<CrmProduct | null>(null)
+  const [skuOpen, setSkuOpen] = useState(false)
 
   const openCreate = () => {
     setEditing(null)
@@ -196,13 +201,25 @@ export default function ProductPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 220,
+      width: 260,
       fixed: 'right',
       render: (_, record) => (
         <Space>
           <Auth perm="crm:product:edit">
             <Button type="link" size="small" onClick={() => openEdit(record)}>
               编辑
+            </Button>
+          </Auth>
+          <Auth perm="crm:product:edit">
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                setSkuProduct(record)
+                setSkuOpen(true)
+              }}
+            >
+              规格
             </Button>
           </Auth>
           <Auth perm="crm:product:delete">
@@ -311,6 +328,7 @@ export default function ProductPage() {
           </ProForm.Item>
         </Col>
       </ModalForm>
+      <SkuDrawer product={skuProduct} open={skuOpen} onClose={() => setSkuOpen(false)} />
     </>
   )
 }

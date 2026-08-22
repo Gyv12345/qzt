@@ -125,6 +125,7 @@ export default function MallOrderPage() {
               dataSource={detail.items}
               columns={[
                 { title: '商品', dataIndex: 'product_name' },
+                { title: '规格', dataIndex: 'spec', width: 110, render: (v) => v || '默认规格' },
                 { title: '单价', dataIndex: 'unit_price', width: 100, render: (v) => `¥${Number(v).toFixed(2)}` },
                 { title: '数量', dataIndex: 'quantity', width: 80, render: (v) => Number(v) },
                 { title: '金额', dataIndex: 'amount', width: 110, render: (v) => `¥${Number(v).toFixed(2)}` },

@@ -93,7 +93,10 @@ export default function OrderQuery() {
             <div style={{ color: 'var(--ink-3)', fontSize: 12, margin: '6px 0 10px' }}>下单时间 {order.created_at}</div>
             {order.items.map((it, i) => (
               <div key={i} style={{ display: 'flex', fontSize: 14, padding: '5px 0', color: 'var(--ink)' }}>
-                <span style={{ flex: 1 }}>{it.product_name}</span>
+                <span style={{ flex: 1 }}>
+                  {it.product_name}
+                  {it.spec && <span style={{ color: 'var(--ink-3)', fontSize: 12 }}>({it.spec})</span>}
+                </span>
                 <span style={{ color: 'var(--ink-3)', margin: '0 8px' }}>×{Number(it.quantity)}</span>
                 <span>¥{Number(it.amount).toFixed(2)}</span>
               </div>

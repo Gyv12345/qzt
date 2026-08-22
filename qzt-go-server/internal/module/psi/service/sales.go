@@ -74,11 +74,15 @@ func (s *SalesService) Create(ctx context.Context, req *CreateSalesOrderRequest,
 	var totalQty, totalAmt decimal.Decimal
 	details := make([]psimodel.PsiSalesOrderDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return nil, err
+		}
 		amt := it.Quantity.Mul(it.UnitPrice)
 		totalQty = totalQty.Add(it.Quantity)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiSalesOrderDetail{
-			ProductID: it.ProductID, Quantity: it.Quantity, DeliveredQuantity: decimal.Zero,
+			ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, DeliveredQuantity: decimal.Zero,
 			UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}
@@ -103,7 +107,7 @@ func (s *SalesService) Create(ctx context.Context, req *CreateSalesOrderRequest,
 	return order, nil
 }
 
-// GetByID 销售单详情(含明细)。
+// GetByID 销售单详情(含明细,回填规格描述)。
 func (s *SalesService) GetByID(ctx context.Context, id uint) (*SalesOrderDetailDTO, error) {
 	o, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
@@ -111,6 +115,9 @@ func (s *SalesService) GetByID(ctx context.Context, id uint) (*SalesOrderDetailD
 	}
 	items, err := s.orderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := fillSkuSpec(ctx, len(items), func(i int) uint { return items[i].SkuID }, func(i int, spec string) { items[i].SkuSpec = spec }); err != nil {
 		return nil, err
 	}
 	return &SalesOrderDetailDTO{PsiSalesOrder: *o, Items: items}, nil
@@ -139,11 +146,15 @@ func (s *SalesService) Update(ctx context.Context, id uint, req *CreateSalesOrde
 	var totalQty, totalAmt decimal.Decimal
 	details := make([]psimodel.PsiSalesOrderDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return err
+		}
 		amt := it.Quantity.Mul(it.UnitPrice)
 		totalQty = totalQty.Add(it.Quantity)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiSalesOrderDetail{
-			OrderID: id, ProductID: it.ProductID, Quantity: it.Quantity, DeliveredQuantity: decimal.Zero,
+			OrderID: id, ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, DeliveredQuantity: decimal.Zero,
 			UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}
@@ -238,7 +249,12 @@ func (s *SalesService) StockOut(ctx context.Context, id uint, operatorID *uint) 
 
 	// 预校验库存充足(提前给出明确错误,避免部分出库后回滚)
 	for i := range items {
-		bal, err := s.stockSvc.GetBalance(ctx, items[i].ProductID, o.WarehouseID)
+		skuID, err := resolveSkuID(ctx, items[i].ProductID, items[i].SkuID)
+		if err != nil {
+			return err
+		}
+		items[i].SkuID = skuID
+		bal, err := s.stockSvc.GetBalance(ctx, skuID, o.WarehouseID)
 		if err != nil {
 			return err
 		}
@@ -253,7 +269,7 @@ func (s *SalesService) StockOut(ctx context.Context, id uint, operatorID *uint) 
 		inputs = append(inputs, &MovementInput{
 			BizType: psimodel.BizSalesOut, BizOrderType: BizOrderSalesOrder,
 			BizOrderID: &id, BizOrderNo: o.OrderNo,
-			ProductID: it.ProductID, WarehouseID: o.WarehouseID,
+			ProductID: it.ProductID, SkuID: it.SkuID, WarehouseID: o.WarehouseID,
 			Quantity: it.Quantity, Direction: -1, UnitCost: it.UnitPrice,
 			OperatorID: operatorID, Remark: "销售出库 " + o.OrderNo,
 		})
@@ -299,10 +315,14 @@ func (s *SalesService) CreateReturn(ctx context.Context, req *CreateSalesReturnR
 	var totalAmt decimal.Decimal
 	details := make([]psimodel.PsiSalesReturnDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return nil, err
+		}
 		amt := it.Quantity.Mul(it.UnitPrice)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiSalesReturnDetail{
-			ProductID: it.ProductID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
+			ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}
 	ret.TotalAmount = totalAmt
@@ -325,7 +345,7 @@ func (s *SalesService) CreateReturn(ctx context.Context, req *CreateSalesReturnR
 	return ret, nil
 }
 
-// GetReturnByID 销售退货详情(含明细)。
+// GetReturnByID 销售退货详情(含明细,回填规格描述)。
 func (s *SalesService) GetReturnByID(ctx context.Context, id uint) (*SalesReturnDetailDTO, error) {
 	r, err := s.returnRepo.GetByID(ctx, id)
 	if err != nil {
@@ -333,6 +353,9 @@ func (s *SalesService) GetReturnByID(ctx context.Context, id uint) (*SalesReturn
 	}
 	items, err := s.returnDetailRepo.ListByReturn(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := fillSkuSpec(ctx, len(items), func(i int) uint { return items[i].SkuID }, func(i int, spec string) { items[i].SkuSpec = spec }); err != nil {
 		return nil, err
 	}
 	return &SalesReturnDetailDTO{PsiSalesReturn: *r, Items: items}, nil
@@ -386,10 +409,14 @@ func (s *SalesService) StockInReturn(ctx context.Context, id uint, operatorID *u
 	inputs := make([]*MovementInput, 0, len(items))
 	for i := range items {
 		it := &items[i]
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return err
+		}
 		inputs = append(inputs, &MovementInput{
 			BizType: psimodel.BizSalesReturnIn, BizOrderType: BizOrderSalesReturn,
 			BizOrderID: &id, BizOrderNo: r.ReturnNo,
-			ProductID: it.ProductID, WarehouseID: r.WarehouseID,
+			ProductID: it.ProductID, SkuID: skuID, WarehouseID: r.WarehouseID,
 			Quantity: it.Quantity, Direction: 1, UnitCost: it.UnitPrice,
 			OperatorID: operatorID, Remark: "销售退货入库 " + r.ReturnNo,
 		})

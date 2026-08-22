@@ -35,6 +35,8 @@ import type {
   CrmPoolRecycleRule,
   CrmProduct,
   CrmProductPayload,
+  CrmProductSku,
+  CrmProductSkuPayload,
   CrmStageConfigResult,
   CrmStageRecord,
   StageDef,
@@ -273,6 +275,20 @@ export const updateProduct = (id: number, data: CrmProductPayload) =>
   request.put(`/crm/products/${id}`, data)
 
 export const deleteProduct = (id: number) => request.delete(`/crm/products/${id}`)
+
+// ---------- 产品规格 SKU ----------
+
+export const listProductSkus = (productId: number) =>
+  request.get<unknown, CrmPageResult<CrmProductSku>>(`/crm/products/${productId}/skus`)
+
+export const createProductSku = (productId: number, data: CrmProductSkuPayload) =>
+  request.post(`/crm/products/${productId}/skus`, data)
+
+export const updateProductSku = (productId: number, skuId: number, data: CrmProductSkuPayload) =>
+  request.put(`/crm/products/${productId}/skus/${skuId}`, data)
+
+export const deleteProductSku = (productId: number, skuId: number) =>
+  request.delete(`/crm/products/${productId}/skus/${skuId}`)
 
 // ---------- 公海池 ----------
 

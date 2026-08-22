@@ -32,6 +32,7 @@ type MallService struct {
 	itemRepo  *mallrepo.ItemRepo
 	custRepo  *crmrepo.CustomerRepo
 	prodRepo  *crmrepo.ProductRepo
+	skuRepo   *crmrepo.ProductSkuRepo
 	whRepo    *psirepo.WarehouseRepo
 	salesRepo *psirepo.SalesOrderRepo
 	salesSvc  *psisvc.SalesService
@@ -44,6 +45,7 @@ func NewMallService() *MallService {
 		itemRepo:  mallrepo.NewItemRepo(),
 		custRepo:  crmrepo.NewCustomerRepo(),
 		prodRepo:  crmrepo.NewProductRepo(),
+		skuRepo:   crmrepo.NewProductSkuRepo(),
 		whRepo:    psirepo.NewWarehouseRepo(),
 		salesRepo: psirepo.NewSalesOrderRepo(),
 		salesSvc:  psisvc.NewSalesService(),
@@ -51,6 +53,18 @@ func NewMallService() *MallService {
 }
 
 // ── 公开(免鉴权) ──
+
+// MallSkuDTO 商城商品规格视图。不含成本价。
+type MallSkuDTO struct {
+	ID       uint            `json:"id"`
+	Spec     string          `json:"spec"` // 规格描述(空=默认规格/单规格)
+	SkuNo    string          `json:"sku_no"`
+	Price    decimal.Decimal `json:"price"`
+	ImageURL string          `json:"image_url"`
+	// 全仓库存汇总(只做"有货/无货"参考)
+	StockQty decimal.Decimal `json:"stock_qty"`
+	InStock  bool            `json:"in_stock"`
+}
 
 // MallGoodsDTO 公开商品视图。不含成本价。
 type MallGoodsDTO struct {
@@ -65,9 +79,12 @@ type MallGoodsDTO struct {
 	// 全仓库存汇总(只做"有货/无货"参考,不承诺精确)
 	StockQty decimal.Decimal `json:"stock_qty"`
 	InStock  bool            `json:"in_stock"`
+	// 规格列表(单规格商品只有一条 spec 为空的记录,前端无需展示选择器)
+	Skus     []MallSkuDTO    `json:"skus"`
 }
 
 // PublicGoods 商城商品列表:全部上架商品(SKU 少,一次拉取,上限 200)。
+// 每个商品附带规格列表与按规格汇总的库存。
 func (s *MallService) PublicGoods(ctx context.Context) ([]MallGoodsDTO, error) {
 	products, err := s.prodRepo.List(ctx, &repository.QueryOptions{
 		Where: map[string]any{"status": crmmodel.ProductStatusOn},
@@ -79,32 +96,65 @@ func (s *MallService) PublicGoods(ctx context.Context) ([]MallGoodsDTO, error) {
 	if len(products) > 200 {
 		products = products[:200]
 	}
-
-	// 全仓库存汇总(一次 group by)
-	type stockRow struct {
-		ProductID uint
-		Qty       decimal.Decimal
+	productIDs := make([]uint, 0, len(products))
+	for _, p := range products {
+		productIDs = append(productIDs, p.ID)
 	}
-	var rows []stockRow
-	if err := repository.DBFrom(ctx).
-		Table(psimodel.PsiStock{}.TableName()).
-		Select("product_id AS product_id, SUM(quantity) AS qty").
-		Group("product_id").
-		Find(&rows).Error; err != nil {
+
+	// 批量取规格 + 全仓库存汇总(按 SKU group by)
+	skus, err := s.skuRepo.ListByProducts(ctx, productIDs)
+	if err != nil {
 		return nil, err
 	}
-	stockByProduct := make(map[uint]decimal.Decimal, len(rows))
+	skuIDs := make([]uint, 0, len(skus))
+	for _, sku := range skus {
+		skuIDs = append(skuIDs, sku.ID)
+	}
+	type stockRow struct {
+		SkuID uint
+		Qty   decimal.Decimal
+	}
+	var rows []stockRow
+	if len(skuIDs) > 0 {
+		if err := repository.DBFrom(ctx).
+			Table(psimodel.PsiStock{}.TableName()).
+			Select("sku_id AS sku_id, SUM(quantity) AS qty").
+			Where("sku_id IN ?", skuIDs).
+			Group("sku_id").
+			Find(&rows).Error; err != nil {
+			return nil, err
+		}
+	}
+	stockBySku := make(map[uint]decimal.Decimal, len(rows))
 	for _, r := range rows {
-		stockByProduct[r.ProductID] = r.Qty
+		stockBySku[r.SkuID] = r.Qty
+	}
+
+	skusByProduct := make(map[uint][]MallSkuDTO, len(products))
+	for _, sku := range skus {
+		qty := stockBySku[sku.ID]
+		skusByProduct[sku.ProductID] = append(skusByProduct[sku.ProductID], MallSkuDTO{
+			ID: sku.ID, Spec: sku.Spec, SkuNo: sku.SkuNo,
+			Price: sku.Price, ImageURL: sku.ImageURL,
+			StockQty: qty, InStock: qty.IsPositive(),
+		})
 	}
 
 	out := make([]MallGoodsDTO, 0, len(products))
 	for _, p := range products {
-		qty := stockByProduct[p.ID]
+		skuList := skusByProduct[p.ID]
+		if skuList == nil {
+			skuList = []MallSkuDTO{}
+		}
+		var qty decimal.Decimal
+		for _, sku := range skuList {
+			qty = qty.Add(sku.StockQty)
+		}
 		out = append(out, MallGoodsDTO{
 			ID: p.ID, Name: p.Name, ProductNo: p.ProductNo, Category: p.Category,
 			Unit: p.Unit, StandardPrice: p.StandardPrice, ImageURL: p.ImageURL,
 			Description: p.Description, StockQty: qty, InStock: qty.IsPositive(),
+			Skus: skuList,
 		})
 	}
 	return out, nil
@@ -113,6 +163,8 @@ func (s *MallService) PublicGoods(ctx context.Context) ([]MallGoodsDTO, error) {
 // CreateOrderItemRequest 下单明细项。
 type CreateOrderItemRequest struct {
 	ProductID uint            `json:"product_id" binding:"required"`
+	// 规格SKU ID(0=单规格商品自动取默认规格;多规格商品必须指定)
+	SkuID     uint            `json:"sku_id"`
 	Quantity  decimal.Decimal `json:"quantity" binding:"required"`
 }
 
@@ -145,9 +197,13 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 		return nil, errors.New("手机号格式不正确")
 	}
 
-	// 商品校验与快照
+	// 商品校验与快照(同商品多规格按 SKU 去重合并)
+	type itemKey struct {
+		productID, skuID uint
+	}
 	ids := make([]uint, 0, len(req.Items))
-	qtyByProduct := make(map[uint]decimal.Decimal, len(req.Items))
+	qtyBySku := make(map[itemKey]decimal.Decimal, len(req.Items))
+	productSeen := make(map[uint]bool, len(req.Items))
 	for _, it := range req.Items {
 		if !it.Quantity.IsPositive() {
 			return nil, errors.New("商品数量必须大于 0")
@@ -155,11 +211,15 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 		if it.Quantity.GreaterThan(decimal.NewFromInt(999)) {
 			return nil, errors.New("单件商品数量不能超过 999")
 		}
-		ids = append(ids, it.ProductID)
-		qtyByProduct[it.ProductID] = qtyByProduct[it.ProductID].Add(it.Quantity)
-	}
-	if len(ids) > len(qtyByProduct) {
-		return nil, errors.New("订单内商品重复")
+		key := itemKey{it.ProductID, it.SkuID}
+		if _, dup := qtyBySku[key]; dup {
+			return nil, errors.New("订单内商品规格重复")
+		}
+		qtyBySku[key] = it.Quantity
+		if !productSeen[it.ProductID] {
+			productSeen[it.ProductID] = true
+			ids = append(ids, it.ProductID)
+		}
 	}
 	products, err := s.prodRepo.List(ctx, &repository.QueryOptions{
 		Where: map[string]any{"status": crmmodel.ProductStatusOn},
@@ -176,17 +236,21 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 		prodByID[products[i].ID] = &products[i]
 	}
 
-	// 计价
+	// 计价(按 SKU 售价快照;sku_id=0 时解析商品默认规格)
 	var totalQty, totalAmt decimal.Decimal
 	items := make([]mallmodel.MallOrderItem, 0, len(req.Items))
 	for _, it := range req.Items {
 		p := prodByID[it.ProductID]
-		amt := it.Quantity.Mul(p.StandardPrice)
+		sku, err := s.skuRepo.ResolveForProduct(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return nil, errors.New("商品「" + p.Name + "」" + err.Error())
+		}
+		amt := it.Quantity.Mul(sku.Price)
 		totalQty = totalQty.Add(it.Quantity)
 		totalAmt = totalAmt.Add(amt)
 		items = append(items, mallmodel.MallOrderItem{
-			ProductID: p.ID, ProductName: p.Name,
-			Quantity: it.Quantity, UnitPrice: p.StandardPrice, Amount: amt,
+			ProductID: p.ID, SkuID: sku.ID, ProductName: p.Name, Spec: sku.Spec,
+			Quantity: it.Quantity, UnitPrice: sku.Price, Amount: amt,
 		})
 	}
 	if totalAmt.GreaterThan(decimal.NewFromInt(1_000_000)) {
@@ -282,7 +346,7 @@ func (s *MallService) tryGenerateSalesOrder(ctx context.Context, order *mallmode
 	salesItems := make([]psisvc.SalesOrderItemRequest, 0, len(items))
 	for _, it := range items {
 		salesItems = append(salesItems, psisvc.SalesOrderItemRequest{
-			ProductID: it.ProductID, Quantity: it.Quantity, UnitPrice: it.UnitPrice,
+			ProductID: it.ProductID, SkuID: it.SkuID, Quantity: it.Quantity, UnitPrice: it.UnitPrice,
 		})
 	}
 	salesOrder, err := s.salesSvc.Create(ctx, &psisvc.CreateSalesOrderRequest{
@@ -317,6 +381,7 @@ type PublicOrderDTO struct {
 // PublicOrderItemDTO 公开订单明细。
 type PublicOrderItemDTO struct {
 	ProductName string          `json:"product_name"`
+	Spec        string          `json:"spec"`
 	Quantity    decimal.Decimal `json:"quantity"`
 	UnitPrice   decimal.Decimal `json:"unit_price"`
 	Amount      decimal.Decimal `json:"amount"`
@@ -344,7 +409,7 @@ func (s *MallService) GetByOrderNo(ctx context.Context, orderNo string) (*Public
 	}
 	for _, it := range items {
 		dto.Items = append(dto.Items, PublicOrderItemDTO{
-			ProductName: it.ProductName, Quantity: it.Quantity,
+			ProductName: it.ProductName, Spec: it.Spec, Quantity: it.Quantity,
 			UnitPrice: it.UnitPrice, Amount: it.Amount,
 		})
 	}

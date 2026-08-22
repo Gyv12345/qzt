@@ -39,11 +39,15 @@ type PsiStockInOrderDetail struct {
 	OrderID   uint            `json:"order_id" gorm:"index:idx_order;not null;comment:入库单ID"`
 	// 商品ID
 	ProductID uint            `json:"product_id" gorm:"index;not null;comment:商品ID"`
+	// 规格SKU ID(引用crm_product_sku.id;0=历史数据未指定)
+	SkuID     uint            `json:"sku_id" gorm:"index;not null;default:0;comment:规格SKU ID"`
 	// 入库数量
 	Quantity  decimal.Decimal `json:"quantity" gorm:"type:decimal(14,3);not null;comment:入库数量"`
 	// 单位成本
 	UnitCost  decimal.Decimal `json:"unit_cost" gorm:"type:decimal(14,2);comment:单位成本"`
 	Remark    string          `json:"remark" gorm:"size:500"`
+	// 规格描述(非表字段,详情接口批量回填展示用)
+	SkuSpec   string          `json:"sku_spec" gorm:"-"`
 	base.BaseModel
 }
 
@@ -77,9 +81,13 @@ type PsiStockOutOrderDetail struct {
 	OrderID   uint            `json:"order_id" gorm:"index:idx_order;not null;comment:出库单ID"`
 	// 商品ID
 	ProductID uint            `json:"product_id" gorm:"index;not null;comment:商品ID"`
+	// 规格SKU ID(引用crm_product_sku.id;0=历史数据未指定)
+	SkuID     uint            `json:"sku_id" gorm:"index;not null;default:0;comment:规格SKU ID"`
 	// 出库数量
 	Quantity  decimal.Decimal `json:"quantity" gorm:"type:decimal(14,3);not null;comment:出库数量"`
 	Remark    string          `json:"remark" gorm:"size:500"`
+	// 规格描述(非表字段,详情接口批量回填展示用)
+	SkuSpec   string          `json:"sku_spec" gorm:"-"`
 	base.BaseModel
 }
 

@@ -45,7 +45,7 @@ type CreateProductRequest struct {
 	Description   string          `json:"description"`
 }
 
-// Create 创建商品(默认 status=上架)。
+// Create 创建商品(默认 status=上架,同事务自动补「默认规格」SKU)。
 func (s *ProductService) Create(ctx context.Context, req *CreateProductRequest) (*crmmodel.CrmProduct, error) {
 	productNo := req.ProductNo
 	if productNo == "" {
@@ -56,7 +56,13 @@ func (s *ProductService) Create(ctx context.Context, req *CreateProductRequest) 
 		StandardPrice: req.StandardPrice, CostPrice: req.CostPrice,
 		Status: crmmodel.ProductStatusOn, ImageURL: req.ImageURL, Description: req.Description,
 	}
-	if err := s.repo.Create(ctx, p); err != nil {
+	err := repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.repo.Create(ctx, p); err != nil {
+			return err
+		}
+		return EnsureDefaultSKU(ctx, p)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return p, nil
@@ -98,15 +104,26 @@ func (s *ProductService) Update(ctx context.Context, id uint, req *UpdateProduct
 	}
 	p.ImageURL = req.ImageURL
 	p.Description = req.Description
-	return s.repo.Update(ctx, p)
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.repo.Update(ctx, p); err != nil {
+			return err
+		}
+		// 单规格商品(仅默认规格SKU)价格/图随主表同步;多规格商品各规格独立
+		return SyncDefaultSKU(ctx, p)
+	})
 }
 
-// Delete 删除商品。
+// Delete 删除商品(同事务清理其 SKU)。
 func (s *ProductService) Delete(ctx context.Context, id uint) error {
 	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return repository.NotFoundOr(err, "商品不存在")
 	}
-	return s.repo.Delete(ctx, id)
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		if err := DeleteSKUsByProduct(ctx, id); err != nil {
+			return err
+		}
+		return s.repo.Delete(ctx, id)
+	})
 }
 
 // ── 公开(免鉴权)接口 ──

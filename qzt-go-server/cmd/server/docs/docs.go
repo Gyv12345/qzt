@@ -5386,6 +5386,172 @@ const docTemplate = `{
                 }
             }
         },
+        "/crm/products/{id}/skus": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商品管理"
+                ],
+                "summary": "商品SKU列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "商品ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商品管理"
+                ],
+                "summary": "新增商品SKU",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "商品ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "SKU信息",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpsertSkuRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/products/{id}/skus/{skuId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商品管理"
+                ],
+                "summary": "更新商品SKU",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "商品ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "SKU ID",
+                        "name": "skuId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "SKU信息",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpsertSkuRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商品管理"
+                ],
+                "summary": "删除商品SKU",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "商品ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "SKU ID",
+                        "name": "skuId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/crm/public/contact": {
             "post": {
                 "description": "公开接口,创建线索到公海池并通知管理员",
@@ -17964,6 +18130,10 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "number"
+                },
+                "sku_id": {
+                    "description": "规格SKU ID(0=单规格商品自动取默认规格;多规格商品必须指定)",
+                    "type": "integer"
                 }
             }
         },
@@ -19120,6 +19290,10 @@ const docTemplate = `{
                 "remark": {
                     "type": "string"
                 },
+                "sku_id": {
+                    "description": "规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)",
+                    "type": "integer"
+                },
                 "unit_price": {
                     "type": "number"
                 }
@@ -19211,6 +19385,10 @@ const docTemplate = `{
                 },
                 "remark": {
                     "type": "string"
+                },
+                "sku_id": {
+                    "description": "规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)",
+                    "type": "integer"
                 },
                 "unit_price": {
                     "type": "number"
@@ -19390,6 +19568,10 @@ const docTemplate = `{
                 "remark": {
                     "type": "string"
                 },
+                "sku_id": {
+                    "description": "规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)",
+                    "type": "integer"
+                },
                 "unit_cost": {
                     "type": "number"
                 }
@@ -19410,6 +19592,10 @@ const docTemplate = `{
                 },
                 "remark": {
                     "type": "string"
+                },
+                "sku_id": {
+                    "description": "规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)",
+                    "type": "integer"
                 }
             }
         },
@@ -20417,6 +20603,15 @@ const docTemplate = `{
                 "copyright": {
                     "type": "string"
                 },
+                "cta_highlight": {
+                    "type": "string"
+                },
+                "cta_subtitle": {
+                    "type": "string"
+                },
+                "cta_title": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -20444,6 +20639,18 @@ const docTemplate = `{
                 "mcp_url": {
                     "type": "string"
                 },
+                "modules_badge": {
+                    "type": "string"
+                },
+                "modules_desc": {
+                    "type": "string"
+                },
+                "modules_json": {
+                    "type": "string"
+                },
+                "modules_title": {
+                    "type": "string"
+                },
                 "public_security_beian": {
                     "type": "string"
                 },
@@ -20451,6 +20658,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "site_name": {
+                    "type": "string"
+                },
+                "stats_json": {
+                    "type": "string"
+                },
+                "theme": {
                     "type": "string"
                 },
                 "work_hours": {
@@ -20736,6 +20949,29 @@ const docTemplate = `{
                 },
                 "problems": {
                     "type": "string"
+                }
+            }
+        },
+        "service.UpsertSkuRequest": {
+            "type": "object",
+            "properties": {
+                "cost_price": {
+                    "type": "number"
+                },
+                "image_url": {
+                    "type": "string",
+                    "maxLength": 512
+                },
+                "price": {
+                    "type": "number"
+                },
+                "sku_no": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "spec": {
+                    "type": "string",
+                    "maxLength": 128
                 }
             }
         },

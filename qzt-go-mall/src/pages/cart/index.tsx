@@ -47,13 +47,13 @@ export default function Cart() {
         <div style={{ padding: '10px 12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.map((it) => (
             <SwipeAction
-              key={it.id}
+              key={it.skuId}
               rightActions={[
                 {
                   key: 'delete',
                   text: '删除',
                   color: 'danger',
-                  onClick: () => remove(it.id),
+                  onClick: () => remove(it.skuId),
                 },
               ]}
             >
@@ -91,14 +91,14 @@ export default function Cart() {
                     {it.name}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 3 }}>
-                    ¥{Number(it.price).toFixed(2)} / {it.unit || '件'}
+                    {it.spec ? `${it.spec} · ` : ''}¥{Number(it.price).toFixed(2)} / {it.unit || '件'}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
                     <span className="price" style={{ fontSize: 15 }}>
                       &yen;{(Number(it.price) * it.quantity).toFixed(2)}
                     </span>
                     <div style={{ flex: 1 }} />
-                    <Stepper min={0} max={999} value={it.quantity} onChange={(v) => setQuantity(it.id, v)} />
+                    <Stepper min={0} max={999} value={it.quantity} onChange={(v) => setQuantity(it.skuId, v)} />
                   </div>
                 </div>
               </div>

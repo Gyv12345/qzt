@@ -39,6 +39,8 @@ func NewStockIOService() *StockIOService {
 // StockInItemRequest 其他入库明细项。
 type StockInItemRequest struct {
 	ProductID uint            `json:"product_id" binding:"required"`
+	// 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+	SkuID     uint            `json:"sku_id"`
 	Quantity  decimal.Decimal `json:"quantity" binding:"required"`
 	UnitCost  decimal.Decimal `json:"unit_cost"`
 	Remark    string          `json:"remark"`
@@ -77,10 +79,14 @@ func (s *StockIOService) Create(ctx context.Context, req *CreateStockInRequest, 
 	var totalAmt decimal.Decimal
 	details := make([]psimodel.PsiStockInOrderDetail, 0, len(req.Items))
 	for _, it := range req.Items {
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
+		if err != nil {
+			return nil, err
+		}
 		amt := it.Quantity.Mul(it.UnitCost)
 		totalAmt = totalAmt.Add(amt)
 		details = append(details, psimodel.PsiStockInOrderDetail{
-			ProductID: it.ProductID, Quantity: it.Quantity, UnitCost: it.UnitCost, Remark: it.Remark,
+			ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, UnitCost: it.UnitCost, Remark: it.Remark,
 		})
 	}
 	order.TotalAmount = totalAmt
@@ -103,7 +109,7 @@ func (s *StockIOService) Create(ctx context.Context, req *CreateStockInRequest, 
 			inputs = append(inputs, &MovementInput{
 				BizType: psimodel.BizStockIn, BizOrderType: BizOrderStockIn,
 				BizOrderID: &order.ID, BizOrderNo: order.OrderNo,
-				ProductID: it.ProductID, WarehouseID: order.WarehouseID,
+				ProductID: it.ProductID, SkuID: it.SkuID, WarehouseID: order.WarehouseID,
 				Quantity: it.Quantity, Direction: 1, UnitCost: it.UnitCost,
 				OperatorID: operatorID, Remark: "其他入库 " + order.OrderNo,
 			})
@@ -116,7 +122,7 @@ func (s *StockIOService) Create(ctx context.Context, req *CreateStockInRequest, 
 	return order, nil
 }
 
-// GetInByID 其他入库单详情(含明细)。
+// GetInByID 其他入库单详情(含明细,回填规格描述)。
 func (s *StockIOService) GetInByID(ctx context.Context, id uint) (*StockInDetailDTO, error) {
 	o, err := s.inOrderRepo.GetByID(ctx, id)
 	if err != nil {
@@ -124,6 +130,9 @@ func (s *StockIOService) GetInByID(ctx context.Context, id uint) (*StockInDetail
 	}
 	items, err := s.inOrderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := fillSkuSpec(ctx, len(items), func(i int) uint { return items[i].SkuID }, func(i int, spec string) { items[i].SkuSpec = spec }); err != nil {
 		return nil, err
 	}
 	return &StockInDetailDTO{PsiStockInOrder: *o, Items: items}, nil
@@ -150,6 +159,8 @@ func (s *StockIOService) ListIn(ctx context.Context, page, pageSize int, warehou
 // StockOutItemRequest 其他出库明细项。
 type StockOutItemRequest struct {
 	ProductID uint            `json:"product_id" binding:"required"`
+	// 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+	SkuID     uint            `json:"sku_id"`
 	Quantity  decimal.Decimal `json:"quantity" binding:"required"`
 	Remark    string          `json:"remark"`
 }
@@ -185,18 +196,22 @@ func (s *StockIOService) CreateOut(ctx context.Context, req *CreateStockOutReque
 	}
 	details := make([]psimodel.PsiStockOutOrderDetail, 0, len(req.Items))
 	for _, it := range req.Items {
-		details = append(details, psimodel.PsiStockOutOrderDetail{
-			ProductID: it.ProductID, Quantity: it.Quantity, Remark: it.Remark,
-		})
-	}
-
-	// 预校验库存
-	for _, it := range req.Items {
-		bal, err := s.stockSvc.GetBalance(ctx, it.ProductID, order.WarehouseID)
+		skuID, err := resolveSkuID(ctx, it.ProductID, it.SkuID)
 		if err != nil {
 			return nil, err
 		}
-		if bal.LessThan(it.Quantity) {
+		details = append(details, psimodel.PsiStockOutOrderDetail{
+			ProductID: it.ProductID, SkuID: skuID, Quantity: it.Quantity, Remark: it.Remark,
+		})
+	}
+
+	// 预校验库存(按规格SKU)
+	for i := range details {
+		bal, err := s.stockSvc.GetBalance(ctx, details[i].SkuID, order.WarehouseID)
+		if err != nil {
+			return nil, err
+		}
+		if bal.LessThan(details[i].Quantity) {
 			return nil, errors.New("商品库存不足,无法出库")
 		}
 	}
@@ -217,7 +232,7 @@ func (s *StockIOService) CreateOut(ctx context.Context, req *CreateStockOutReque
 			inputs = append(inputs, &MovementInput{
 				BizType: psimodel.BizStockOut, BizOrderType: BizOrderStockOut,
 				BizOrderID: &order.ID, BizOrderNo: order.OrderNo,
-				ProductID: it.ProductID, WarehouseID: order.WarehouseID,
+				ProductID: it.ProductID, SkuID: it.SkuID, WarehouseID: order.WarehouseID,
 				Quantity: it.Quantity, Direction: -1,
 				OperatorID: operatorID, Remark: "其他出库 " + order.OrderNo,
 			})
@@ -230,7 +245,7 @@ func (s *StockIOService) CreateOut(ctx context.Context, req *CreateStockOutReque
 	return order, nil
 }
 
-// GetOutByID 其他出库单详情(含明细)。
+// GetOutByID 其他出库单详情(含明细,回填规格描述)。
 func (s *StockIOService) GetOutByID(ctx context.Context, id uint) (*StockOutDetailDTO, error) {
 	o, err := s.outOrderRepo.GetByID(ctx, id)
 	if err != nil {
@@ -238,6 +253,9 @@ func (s *StockIOService) GetOutByID(ctx context.Context, id uint) (*StockOutDeta
 	}
 	items, err := s.outOrderDetailRepo.ListByOrder(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := fillSkuSpec(ctx, len(items), func(i int) uint { return items[i].SkuID }, func(i int, spec string) { items[i].SkuSpec = spec }); err != nil {
 		return nil, err
 	}
 	return &StockOutDetailDTO{PsiStockOutOrder: *o, Items: items}, nil

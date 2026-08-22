@@ -174,6 +174,13 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.PUT("/products/:id", productHandler.Update)
 		auth.DELETE("/products/:id", productHandler.Delete)
 
+		// 产品规格 SKU
+		productSkuHandler := handler.NewProductSkuHandler()
+		auth.GET("/products/:id/skus", productSkuHandler.List)
+		auth.POST("/products/:id/skus", productSkuHandler.Create)
+		auth.PUT("/products/:id/skus/:skuId", productSkuHandler.Update)
+		auth.DELETE("/products/:id/skus/:skuId", productSkuHandler.Delete)
+
 		// 售后工单
 		auth.GET("/tickets", ticketHandler.List)
 		auth.POST("/tickets", ticketHandler.Create)

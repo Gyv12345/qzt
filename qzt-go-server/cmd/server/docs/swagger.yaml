@@ -1123,6 +1123,9 @@ definitions:
         type: integer
       quantity:
         type: number
+      sku_id:
+        description: 规格SKU ID(0=单规格商品自动取默认规格;多规格商品必须指定)
+        type: integer
     required:
     - product_id
     - quantity
@@ -1906,6 +1909,9 @@ definitions:
         type: number
       remark:
         type: string
+      sku_id:
+        description: 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+        type: integer
       unit_price:
         type: number
     required:
@@ -1967,6 +1973,9 @@ definitions:
         type: number
       remark:
         type: string
+      sku_id:
+        description: 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+        type: integer
       unit_price:
         type: number
     required:
@@ -2084,6 +2093,9 @@ definitions:
         type: number
       remark:
         type: string
+      sku_id:
+        description: 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+        type: integer
       unit_cost:
         type: number
     required:
@@ -2098,6 +2110,9 @@ definitions:
         type: number
       remark:
         type: string
+      sku_id:
+        description: 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+        type: integer
     required:
     - product_id
     - quantity
@@ -2764,6 +2779,12 @@ definitions:
         type: string
       copyright:
         type: string
+      cta_highlight:
+        type: string
+      cta_subtitle:
+        type: string
+      cta_title:
+        type: string
       description:
         type: string
       favicon_url:
@@ -2782,11 +2803,23 @@ definitions:
         type: string
       mcp_url:
         type: string
+      modules_badge:
+        type: string
+      modules_desc:
+        type: string
+      modules_json:
+        type: string
+      modules_title:
+        type: string
       public_security_beian:
         type: string
       public_security_beian_url:
         type: string
       site_name:
+        type: string
+      stats_json:
+        type: string
+      theme:
         type: string
       work_hours:
         type: string
@@ -2975,6 +3008,22 @@ definitions:
       plan:
         type: string
       problems:
+        type: string
+    type: object
+  service.UpsertSkuRequest:
+    properties:
+      cost_price:
+        type: number
+      image_url:
+        maxLength: 512
+        type: string
+      price:
+        type: number
+      sku_no:
+        maxLength: 64
+        type: string
+      spec:
+        maxLength: 128
         type: string
     type: object
   xresponse.Response:
@@ -6311,6 +6360,110 @@ paths:
       security:
       - BearerAuth: []
       summary: 更新商品
+      tags:
+      - 商品管理
+  /crm/products/{id}/skus:
+    get:
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 商品SKU列表
+      tags:
+      - 商品管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: SKU信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpsertSkuRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新增商品SKU
+      tags:
+      - 商品管理
+  /crm/products/{id}/skus/{skuId}:
+    delete:
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: SKU ID
+        in: path
+        name: skuId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除商品SKU
+      tags:
+      - 商品管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: SKU ID
+        in: path
+        name: skuId
+        required: true
+        type: integer
+      - description: SKU信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpsertSkuRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新商品SKU
       tags:
       - 商品管理
   /crm/public/contact:
