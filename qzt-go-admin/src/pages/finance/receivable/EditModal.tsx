@@ -44,7 +44,10 @@ export default function ReceivableEditModal({ open, onOpenChange, onSuccess }: E
       title="新增往来款"
       form={form}
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={(next) => {
+        if (next) form.resetFields()
+        onOpenChange(next)
+      }}
       modalProps={{ destroyOnHidden: true, maskClosable: false }}
       onFinish={handleSubmit}
       width={600}

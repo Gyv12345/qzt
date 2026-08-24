@@ -31,9 +31,15 @@ func (r *JobRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, er
 	return n, err
 }
 
-func (r *JobRepo) PageList(ctx context.Context, page, pageSize int, keyword string, status int8, deptID uint) ([]hrmmodel.HrmJob, int64, error) {
+func (r *JobRepo) PageList(ctx context.Context, page, pageSize int, keyword, jobNo, title string, status int8, deptID uint) ([]hrmmodel.HrmJob, int64, error) {
 	var list []hrmmodel.HrmJob
 	q := recruitDB(ctx).Model(&hrmmodel.HrmJob{})
+	if jobNo != "" {
+		q = q.Where("job_no LIKE ?", "%"+jobNo+"%")
+	}
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
 	if keyword != "" {
 		q = q.Where("title LIKE ? OR job_no LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}

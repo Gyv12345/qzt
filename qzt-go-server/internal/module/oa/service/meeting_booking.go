@@ -71,8 +71,8 @@ func (s *MeetingBookingService) Create(ctx context.Context, req *CreateMeetingBo
 	return booking, nil
 }
 
-func (s *MeetingBookingService) List(ctx context.Context, page, pageSize int, roomID, organizerID uint, approvalStatus, startDate, endDate string) ([]oamodel.OaMeetingBooking, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, roomID, organizerID, approvalStatus, startDate, endDate)
+func (s *MeetingBookingService) List(ctx context.Context, page, pageSize int, roomID, organizerID uint, title, approvalStatus, startDate, endDate string) ([]oamodel.OaMeetingBooking, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, roomID, organizerID, title, approvalStatus, startDate, endDate)
 }
 
 func (s *MeetingBookingService) GetByID(ctx context.Context, id uint) (*oamodel.OaMeetingBooking, error) {

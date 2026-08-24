@@ -25,6 +25,9 @@ func NewTripHandler() *TripHandler { return &TripHandler{svc: service.NewTripSer
 // @Security     BearerAuth
 // @Param        page             query  int     false  "页码"
 // @Param        page_size        query  int     false  "每页条数"
+// @Param        trip_no          query  string  false  "出差单号(模糊)"
+// @Param        title            query  string  false  "标题(模糊)"
+// @Param        destination      query  string  false  "目的地(模糊)"
 // @Param        applicant_id     query  int     false  "申请人ID"
 // @Param        approval_status  query  string  false  "审批状态"
 // @Success      200  {object}  xresponse.Response
@@ -32,7 +35,8 @@ func NewTripHandler() *TripHandler { return &TripHandler{svc: service.NewTripSer
 func (h *TripHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	applicantID, _ := strconv.ParseUint(c.Query("applicant_id"), 10, 64)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, uint(applicantID), c.Query("approval_status"))
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, uint(applicantID),
+		c.Query("trip_no"), c.Query("title"), c.Query("destination"), c.Query("approval_status"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

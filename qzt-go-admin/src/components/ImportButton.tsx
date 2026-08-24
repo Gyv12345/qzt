@@ -7,8 +7,8 @@
  * <ImportButton bizType="customer" onImported={() => actionRef.current?.reload()} />
  */
 
-import { useState, type HTMLAttributes } from 'react'
-import { App, Button, Dropdown, Modal, Table, Upload, type UploadProps } from 'antd'
+import { useRef, useState, type HTMLAttributes } from 'react'
+import { App, Button, Dropdown, Modal, Table } from 'antd'
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import request from '../utils/request'
 
@@ -30,6 +30,7 @@ export default function ImportButton({ bizType, label = '导入', onImported, ..
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDownloadTemplate = () => {
     // 直接下载模板文件
@@ -52,33 +53,27 @@ export default function ImportButton({ bizType, label = '导入', onImported, ..
       .catch(() => message.error('下载模板失败'))
   }
 
-  const uploadProps: UploadProps = {
-    accept: '.xlsx,.xls',
-    showUploadList: false,
-    beforeUpload: (file) => {
-      setUploading(true)
-      const formData = new FormData()
-      formData.append('file', file)
+  const handleFile = (file: File) => {
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
 
-      request
-        .post<unknown, ImportResult>(`/crm/import?biz_type=${bizType}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        .then((res) => {
-          setResult(res)
-          setModalOpen(true)
-          if (res.success > 0) {
-            message.success(`导入完成: 成功 ${res.success} 条${res.failed > 0 ? `, 失败 ${res.failed} 条` : ''}`)
-            onImported?.()
-          } else {
-            message.warning(`导入失败 ${res.failed} 条`)
-          }
-        })
-        .catch(() => message.error('导入失败,请检查文件格式'))
-        .finally(() => setUploading(false))
-
-      return false // 阻止 antd 自动上传
-    },
+    request
+      .post<unknown, ImportResult>(`/crm/import?biz_type=${bizType}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((res) => {
+        setResult(res)
+        setModalOpen(true)
+        if (res.success > 0) {
+          message.success(`导入完成: 成功 ${res.success} 条${res.failed > 0 ? `, 失败 ${res.failed} 条` : ''}`)
+          onImported?.()
+        } else {
+          message.warning(`导入失败 ${res.failed} 条`)
+        }
+      })
+      .catch(() => message.error('导入失败,请检查文件格式'))
+      .finally(() => setUploading(false))
   }
 
   return (
@@ -93,15 +88,25 @@ export default function ImportButton({ bizType, label = '导入', onImported, ..
             ],
             onClick: ({ key }) => {
               if (key === 'template') handleDownloadTemplate()
+              if (key === 'upload') fileInputRef.current?.click()
             },
           }}
         >
-          <Upload {...uploadProps}>
-            <Button icon={<UploadOutlined />} loading={uploading}>
-              {label}
-            </Button>
-          </Upload>
+          <Button icon={<UploadOutlined />} loading={uploading}>
+            {label}
+          </Button>
         </Dropdown>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleFile(file)
+            e.target.value = '' // 允许重复选择同一文件
+          }}
+        />
       </span>
 
       <Modal

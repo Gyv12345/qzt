@@ -188,9 +188,9 @@ func (s *AttendanceService) ApproveLeave(ctx context.Context, id, approverID uin
 	return s.leaveRepo.Update(ctx, leave)
 }
 
-// LeaveList 请假单列表(按员工或状态过滤)。
-func (s *AttendanceService) LeaveList(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmLeave, int64, error) {
-	return s.leaveRepo.Page(ctx, page, pageSize, employeeID, status)
+// LeaveList 请假单列表(按员工/单号/类型/审批状态过滤)。
+func (s *AttendanceService) LeaveList(ctx context.Context, page, pageSize int, employeeID uint, leaveNo, leaveType, approvalStatus, status string) ([]hrmmodel.HrmLeave, int64, error) {
+	return s.leaveRepo.Page(ctx, page, pageSize, employeeID, leaveNo, leaveType, approvalStatus, status)
 }
 
 // ── 加班 ──

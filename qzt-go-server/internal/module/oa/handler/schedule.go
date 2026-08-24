@@ -25,6 +25,7 @@ func NewScheduleHandler() *ScheduleHandler { return &ScheduleHandler{svc: servic
 // @Security     BearerAuth
 // @Param        page        query  int     false  "页码"
 // @Param        page_size   query  int     false  "每页条数"
+// @Param        title       query  string  false  "标题(模糊)"
 // @Param        event_type  query  string  false  "类型"
 // @Param        status      query  string  false  "状态"
 // @Param        start_date  query  string  false  "开始日期"
@@ -34,7 +35,7 @@ func NewScheduleHandler() *ScheduleHandler { return &ScheduleHandler{svc: servic
 func (h *ScheduleHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize,
-		middleware.GetUserID(c), c.Query("event_type"), c.Query("status"),
+		middleware.GetUserID(c), c.Query("title"), c.Query("event_type"), c.Query("status"),
 		c.Query("start_date"), c.Query("end_date"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

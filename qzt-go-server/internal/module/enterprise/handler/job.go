@@ -25,11 +25,12 @@ func NewJobHandler() *JobHandler { return &JobHandler{svc: service.NewJobService
 // @Security     BearerAuth
 // @Param        page       query  int  false  "页码(默认1)"
 // @Param        page_size  query  int  false  "每页条数(默认10,最大100)"
+// @Param        job_name   query  string  false  "任务名称(模糊)"
 // @Success      200  {object}  xresponse.Response
 // @Router       /enterprise/jobs [get]
 func (h *JobHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize)
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, c.Query("job_name"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

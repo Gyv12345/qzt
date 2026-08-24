@@ -1223,6 +1223,7 @@ definitions:
       opportunity_id:
         type: integer
       owner_id:
+        description: 缺省取当前登录人(handler 注入)
         type: integer
       plan_time:
         type: string
@@ -1232,7 +1233,6 @@ definitions:
         type: string
     required:
     - content
-    - owner_id
     - plan_time
     - type
     type: object
@@ -2708,6 +2708,7 @@ definitions:
       member_ids:
         type: string
       name:
+        description: 留空=不修改(支持仅改状态的部分更新)
         type: string
       priority:
         type: integer
@@ -2719,8 +2720,6 @@ definitions:
         type: integer
       tags:
         type: string
-    required:
-    - name
     type: object
   service.UpdateRecordRequest:
     properties:
@@ -6597,6 +6596,14 @@ paths:
         in: query
         name: keyword
         type: string
+      - description: 工单号(模糊)
+        in: query
+        name: ticket_no
+        type: string
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
       - description: 问题类型
         in: query
         name: category
@@ -6783,6 +6790,10 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 任务名称(模糊)
+        in: query
+        name: job_name
+        type: string
       produces:
       - application/json
       responses:
@@ -7036,6 +7047,14 @@ paths:
       - description: 关键词(往来方/单号)
         in: query
         name: keyword
+        type: string
+      - description: 单号(模糊)
+        in: query
+        name: doc_no
+        type: string
+      - description: 往来方(模糊)
+        in: query
+        name: party_name
         type: string
       produces:
       - application/json
@@ -7311,7 +7330,19 @@ paths:
         in: query
         name: employee_id
         type: integer
-      - description: 状态(PENDING/APPROVED/REJECTED)
+      - description: 请假单号(模糊)
+        in: query
+        name: leave_no
+        type: string
+      - description: 请假类型
+        in: query
+        name: leave_type
+        type: string
+      - description: 审批状态(NONE/APPROVING/APPROVED/UNAPPROVED/REVOKED)
+        in: query
+        name: approval_status
+        type: string
+      - description: 旧状态(兼容,PENDING/APPROVED/REJECTED)
         in: query
         name: status
         type: string
@@ -7793,6 +7824,14 @@ paths:
       - description: 关键词
         in: query
         name: keyword
+        type: string
+      - description: 职位编号(模糊)
+        in: query
+        name: job_no
+        type: string
+      - description: 职位名称(模糊)
+        in: query
+        name: title
         type: string
       - description: 状态
         in: query
@@ -8444,6 +8483,14 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 报销单号(模糊)
+        in: query
+        name: expense_no
+        type: string
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
       - description: 申请人ID
         in: query
         name: applicant_id
@@ -8602,6 +8649,10 @@ paths:
       - description: 模板标识
         in: query
         name: template_key
+        type: string
+      - description: 模板名称(模糊)
+        in: query
+        name: template_name
         type: string
       - description: 审批状态
         in: query
@@ -8875,6 +8926,14 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 借款单号(模糊)
+        in: query
+        name: loan_no
+        type: string
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
       - description: 借款人ID
         in: query
         name: applicant_id
@@ -9022,6 +9081,10 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
       - description: 会议室ID
         in: query
         name: room_id
@@ -9654,6 +9717,10 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
       - description: 类型
         in: query
         name: event_type
@@ -9806,6 +9873,18 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 出差单号(模糊)
+        in: query
+        name: trip_no
+        type: string
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
+      - description: 目的地(模糊)
+        in: query
+        name: destination
+        type: string
       - description: 申请人ID
         in: query
         name: applicant_id
@@ -9929,6 +10008,10 @@ paths:
         in: query
         name: log_type
         type: string
+      - description: 日志日期(YYYY-MM-DD)
+        in: query
+        name: log_date
+        type: string
       - description: 开始日期
         in: query
         name: start_date
@@ -10051,6 +10134,14 @@ paths:
       - description: 关键词
         in: query
         name: keyword
+        type: string
+      - description: 项目编号(模糊)
+        in: query
+        name: project_no
+        type: string
+      - description: 项目名称(模糊)
+        in: query
+        name: name
         type: string
       - description: 状态
         in: query

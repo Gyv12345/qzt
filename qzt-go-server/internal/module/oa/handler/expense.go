@@ -29,6 +29,8 @@ func NewExpenseHandler() *ExpenseHandler {
 // @Security     BearerAuth
 // @Param        page             query  int     false  "页码"
 // @Param        page_size        query  int     false  "每页条数"
+// @Param        expense_no       query  string  false  "报销单号(模糊)"
+// @Param        title            query  string  false  "标题(模糊)"
 // @Param        applicant_id     query  int     false  "申请人ID"
 // @Param        expense_type     query  string  false  "费用类型"
 // @Param        approval_status  query  string  false  "审批状态"
@@ -44,6 +46,7 @@ func (h *ExpenseHandler) List(c *gin.Context) {
 		paymentStatus = int8(n)
 	}
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, uint(applicantID),
+		c.Query("expense_no"), c.Query("title"),
 		c.Query("expense_type"), c.Query("approval_status"), paymentStatus)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

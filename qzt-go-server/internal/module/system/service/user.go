@@ -247,11 +247,15 @@ func (s *UserService) Delete(ctx context.Context, id, currentUserID uint) error 
 	return s.userRepo.Delete(ctx, id)
 }
 
-func (s *UserService) List(ctx context.Context, page, pageSize int) ([]model.SysUser, int64, error) {
-	return s.userRepo.PageList(ctx, page, pageSize, &repository.QueryOptions{
+func (s *UserService) List(ctx context.Context, page, pageSize int, keyword string) ([]model.SysUser, int64, error) {
+	opts := &repository.QueryOptions{
 		Order:    []string{"id ASC"},
 		Preloads: []string{"Roles"},
-	})
+	}
+	if keyword != "" {
+		opts.Search = map[string]string{"username": keyword, "nickname": keyword}
+	}
+	return s.userRepo.PageList(ctx, page, pageSize, opts)
 }
 
 // UserOptionDTO 选人简表(只暴露选人必需字段,不含邮箱/电话等)。

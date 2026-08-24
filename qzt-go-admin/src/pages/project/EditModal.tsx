@@ -47,7 +47,7 @@ export default function ProjectEditModal({ open, editingId, onOpenChange, onSucc
           contract_id: p.contract_id || undefined,
           manager_id: p.manager_id || undefined,
           priority: p.priority,
-          start_date: p.start_date?.slice(0, 10),
+          start_date: p.start_date ? p.start_date.slice(0, 10) : undefined,
           end_date: p.end_date?.slice(0, 10),
           tags: p.tags,
         })

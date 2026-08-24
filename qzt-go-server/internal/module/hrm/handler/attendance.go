@@ -127,14 +127,18 @@ func (h *AttendanceHandler) ApproveLeave(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        page         query  int     false  "页码"
 // @Param        page_size    query  int     false  "每页条数"
-// @Param        employee_id  query  int     false  "员工ID(可选)"
-// @Param        status       query  string  false  "状态(PENDING/APPROVED/REJECTED)"
+// @Param        employee_id     query  int     false  "员工ID(可选)"
+// @Param        leave_no        query  string  false  "请假单号(模糊)"
+// @Param        leave_type      query  string  false  "请假类型"
+// @Param        approval_status query  string  false  "审批状态(NONE/APPROVING/APPROVED/UNAPPROVED/REVOKED)"
+// @Param        status          query  string  false  "旧状态(兼容,PENDING/APPROVED/REJECTED)"
 // @Success      200  {object}  xresponse.Response
 // @Router       /hrm/attendance/leaves [get]
 func (h *AttendanceHandler) LeaveList(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	empID, _ := strconv.ParseUint(c.Query("employee_id"), 10, 64)
-	list, total, err := h.svc.LeaveList(c.Request.Context(), p.Page, p.PageSize, uint(empID), c.Query("status"))
+	list, total, err := h.svc.LeaveList(c.Request.Context(), p.Page, p.PageSize, uint(empID),
+		c.Query("leave_no"), c.Query("leave_type"), c.Query("approval_status"), c.Query("status"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

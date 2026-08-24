@@ -139,7 +139,7 @@ type CreatePlanRequest struct {
 	Content       string     `json:"content" binding:"required"`
 	PlanTime      xtime.DateTime     `json:"plan_time" binding:"required"`
 	RemindTime    xtime.NullDateTime `json:"remind_time"`
-	OwnerID       uint       `json:"owner_id" binding:"required"`
+	OwnerID       uint       `json:"owner_id"` // 缺省取当前登录人(handler 注入)
 	LeadID        *uint      `json:"lead_id"`
 	CustomerID    *uint      `json:"customer_id"`
 	OpportunityID *uint      `json:"opportunity_id"`

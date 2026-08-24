@@ -174,7 +174,8 @@ export interface PsiSalesOrderPayload {
 /** 退货单(采购退货/销售退货共用结构) */
 export interface PsiReturnOrder {
   id: number
-  order_no: string
+  order_no?: string
+  return_no?: string
   supplier_id?: number
   customer_id?: number
   warehouse_id: number

@@ -17,11 +17,14 @@ type WorkLogRepo struct {
 func NewWorkLogRepo() *WorkLogRepo { return &WorkLogRepo{} }
 
 // PageList 分页查询。支持按类型/日期范围筛选;数据权限通过 datascope 注入。
-func (r *WorkLogRepo) PageList(ctx context.Context, page, pageSize int, logType, startDate, endDate string) ([]oamodel.OaWorkLog, int64, error) {
+func (r *WorkLogRepo) PageList(ctx context.Context, page, pageSize int, logType, logDate, startDate, endDate string) ([]oamodel.OaWorkLog, int64, error) {
 	var list []oamodel.OaWorkLog
 	q := repository.DBFrom(ctx).Model(&oamodel.OaWorkLog{})
 	if logType != "" {
 		q = q.Where("log_type = ?", logType)
+	}
+	if logDate != "" {
+		q = q.Where("log_date = ?", logDate)
 	}
 	if startDate != "" {
 		q = q.Where("log_date >= ?", startDate)

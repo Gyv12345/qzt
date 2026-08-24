@@ -112,9 +112,13 @@ func (s *JobService) Delete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// List 分页查询任务。
-func (s *JobService) List(ctx context.Context, page, pageSize int) ([]entmodel.SysJob, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, nil)
+// List 分页查询任务(支持任务名模糊过滤)。
+func (s *JobService) List(ctx context.Context, page, pageSize int, jobName string) ([]entmodel.SysJob, int64, error) {
+	opts := &repository.QueryOptions{Order: []string{"id DESC"}}
+	if jobName != "" {
+		opts.Search = map[string]string{"job_name": jobName}
+	}
+	return s.repo.PageList(ctx, page, pageSize, opts)
 }
 
 // ListEnabled 列出所有启用的任务(调度器启动时加载)。

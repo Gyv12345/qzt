@@ -26,6 +26,7 @@ export default function LeaveEditModal({ open, onOpenChange, onSuccess }: EditMo
 
   useEffect(() => {
     if (open) {
+      form.resetFields()
       listEmployees({ page: 1, page_size: 100 }).then((res) => {
         setEmployees(
           res.list.map((e) => ({
@@ -35,7 +36,7 @@ export default function LeaveEditModal({ open, onOpenChange, onSuccess }: EditMo
         )
       })
     }
-  }, [open])
+  }, [open, form])
 
   const handleSubmit = async (values: FormValues) => {
     await applyLeave({

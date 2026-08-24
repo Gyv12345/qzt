@@ -56,8 +56,8 @@ func (s *WorkLogService) Create(ctx context.Context, req *CreateWorkLogRequest, 
 	return log, nil
 }
 
-func (s *WorkLogService) List(ctx context.Context, page, pageSize int, logType, startDate, endDate string) ([]oamodel.OaWorkLog, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, logType, startDate, endDate)
+func (s *WorkLogService) List(ctx context.Context, page, pageSize int, logType, logDate, startDate, endDate string) ([]oamodel.OaWorkLog, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, logType, logDate, startDate, endDate)
 }
 
 func (s *WorkLogService) GetByID(ctx context.Context, id uint) (*oamodel.OaWorkLog, error) {

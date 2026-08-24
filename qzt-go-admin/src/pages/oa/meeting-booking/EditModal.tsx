@@ -54,6 +54,7 @@ export default function MeetingBookingEditModal({ open, editingId, onOpenChange,
         })
       })
     } else {
+      form.resetFields()
       form.setFieldsValue({
         start_time: defaultTime(1),
         end_time: defaultTime(2),

@@ -36,6 +36,7 @@ export default function WorkLogEditModal({ open, editingId, onOpenChange, onSucc
         })
       })
     } else {
+      form.resetFields()
       // 默认填今天
       const today = new Date().toISOString().slice(0, 10)
       form.setFieldsValue({ log_type: 'DAILY', log_date: today })

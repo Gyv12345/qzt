@@ -42,6 +42,8 @@ export default function ReceivablePage() {
       title: '方向',
       dataIndex: 'direction',
       width: 80,
+      valueType: 'select',
+      valueEnum: DIRECTION_TEXT,
       render: (_, r) => {
         const d = DIRECTION_TEXT[r.direction] || { text: r.direction, color: 'default' }
         return <Tag color={d.color}>{d.text}</Tag>
@@ -65,6 +67,8 @@ export default function ReceivablePage() {
       title: '状态',
       dataIndex: 'status',
       width: 90,
+      valueType: 'select',
+      valueEnum: SETTLE_STATUS,
       render: (_, r) => {
         const s = SETTLE_STATUS[r.status] || SETTLE_STATUS[0]
         return <Tag color={s.color}>{s.text}</Tag>

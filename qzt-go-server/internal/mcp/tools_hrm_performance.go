@@ -88,6 +88,9 @@ func handleHrmPerformanceList(ctx context.Context, req mcp.CallToolRequest) (*mc
 	page, pageSize := mcpPage(req)
 	list, total, err := svc.List(ctx, page, pageSize,
 		req.GetString("keyword", ""),
+		req.GetString("perf_no", ""),
+		req.GetString("title", ""),
+		req.GetString("employee_name", ""),
 		req.GetString("period", ""),
 		int8(req.GetFloat("status", 0)),
 		uint(req.GetFloat("employee_id", 0)),

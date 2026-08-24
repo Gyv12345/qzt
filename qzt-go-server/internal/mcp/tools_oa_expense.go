@@ -86,6 +86,8 @@ func handleOaExpenseList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	page, pageSize := mcpPage(req)
 	list, total, err := svc.List(ctx, page, pageSize,
 		uint(req.GetFloat("applicant_id", 0)),
+		req.GetString("expense_no", ""),
+		req.GetString("title", ""),
 		req.GetString("expense_type", ""),
 		req.GetString("approval_status", ""),
 		int8(req.GetFloat("payment_status", 0)),

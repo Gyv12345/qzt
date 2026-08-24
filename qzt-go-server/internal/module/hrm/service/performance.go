@@ -90,8 +90,8 @@ func (s *PerformanceService) Create(ctx context.Context, req *CreatePerfRequest)
 	return p, nil
 }
 
-func (s *PerformanceService) List(ctx context.Context, page, pageSize int, keyword, period string, status int8, employeeID, deptID uint) ([]hrmmodel.HrmPerformance, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, keyword, period, status, employeeID, deptID)
+func (s *PerformanceService) List(ctx context.Context, page, pageSize int, keyword, perfNo, title, employeeName, period string, status int8, employeeID, deptID uint) ([]hrmmodel.HrmPerformance, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, keyword, perfNo, title, employeeName, period, status, employeeID, deptID)
 }
 
 func (s *PerformanceService) GetByID(ctx context.Context, id uint) (*hrmmodel.HrmPerformance, []hrmmodel.HrmPerfItem, error) {

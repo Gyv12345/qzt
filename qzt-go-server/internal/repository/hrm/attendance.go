@@ -70,11 +70,20 @@ func (r *LeaveRepo) Update(ctx context.Context, m *hrmmodel.HrmLeave) error {
 	return r.BaseRepo.Update(ctx, m, "LeaveNo", "LeaveType", "StartDate", "EndDate", "DurationDays", "Reason", "Status", "ApprovalStatus", "ApproverID", "ApproveTime", "ApproveRemark")
 }
 
-// Page 请假单分页(按 employeeID/status 可选过滤,id DESC),复用 BaseRepo.PageList。
-func (r *LeaveRepo) Page(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmLeave, int64, error) {
+// Page 请假单分页(按 employeeID/leaveNo/leaveType/审批状态/status 可选过滤,id DESC),复用 BaseRepo.PageList。
+func (r *LeaveRepo) Page(ctx context.Context, page, pageSize int, employeeID uint, leaveNo, leaveType, approvalStatus, status string) ([]hrmmodel.HrmLeave, int64, error) {
 	opts := &repository.QueryOptions{Order: []string{"id DESC"}}
 	if employeeID > 0 {
 		opts.Conds = append(opts.Conds, repository.Cond{Query: "employee_id = ?", Args: []any{employeeID}})
+	}
+	if leaveNo != "" {
+		opts.Conds = append(opts.Conds, repository.Cond{Query: "leave_no LIKE ?", Args: []any{"%" + leaveNo + "%"}})
+	}
+	if leaveType != "" {
+		opts.Conds = append(opts.Conds, repository.Cond{Query: "leave_type = ?", Args: []any{leaveType}})
+	}
+	if approvalStatus != "" {
+		opts.Conds = append(opts.Conds, repository.Cond{Query: "approval_status = ?", Args: []any{approvalStatus}})
 	}
 	if status != "" {
 		opts.Conds = append(opts.Conds, repository.Cond{Query: "status = ?", Args: []any{status}})

@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Popconfirm, Select, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { deleteLoan, listLoans, markLoanRepaid, submitLoanApproval } from '../../../services/oa'
-import { APPROVAL_STATUS_MAP, type OaLoan, canResubmitApproval} from '../../../types/oa'
+import { APPROVAL_STATUS_MAP, APPROVAL_STATUS_OPTIONS, type OaLoan, canResubmitApproval} from '../../../types/oa'
 import LoanEditModal from './EditModal'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
 import { pageIndexColumn } from '../../../components/IndexTag'
@@ -47,6 +47,8 @@ export default function LoanPage() {
       title: '审批状态',
       dataIndex: 'approval_status',
       width: 100,
+      valueType: 'select',
+      renderFormItem: () => <Select options={[...APPROVAL_STATUS_OPTIONS]} placeholder="全部" allowClear />,
       render: (_, r) => {
         const s = APPROVAL_STATUS_MAP[r.approval_status] ?? APPROVAL_STATUS_MAP.NONE
         return <Tag color={s.color}>{s.text}</Tag>

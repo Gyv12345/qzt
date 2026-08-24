@@ -82,6 +82,8 @@ func handleOaLoanList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	page, pageSize := mcpPage(req)
 	list, total, err := svc.List(ctx, page, pageSize,
 		uint(req.GetFloat("applicant_id", 0)),
+		req.GetString("loan_no", ""),
+		req.GetString("title", ""),
 		req.GetString("loan_type", ""),
 		req.GetString("approval_status", ""),
 		int8(req.GetFloat("repaid_status", 0)),

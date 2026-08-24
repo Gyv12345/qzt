@@ -32,7 +32,7 @@ import type {
 
 // ---------- 用户管理 ----------
 
-export const listUsers = (params?: PageParams) =>
+export const listUsers = (params?: PageParams & { keyword?: string }) =>
   request.get<unknown, PageResult<SysUser>>('/system/users', { params })
 
 /** 用户简表(仅登录无 RBAC):业务页面负责人显示/选择器用,不触发权限报错 */

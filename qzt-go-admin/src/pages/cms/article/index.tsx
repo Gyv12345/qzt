@@ -174,7 +174,6 @@ export default function ArticlePage() {
       },
     },
     {
-      key: 'status_search',
       title: '状态',
       dataIndex: 'status',
       hideInTable: true,
@@ -316,7 +315,7 @@ export default function ArticlePage() {
           colProps={{ span: 12 }}
         />
         <Col span={12}>
-          <ProForm.Item name="category_id" label="分类">
+          <ProForm.Item name="category_id" label="分类" rules={[{ required: true, message: '请选择分类' }]}>
             <TreeSelect
               treeData={categoryTreeData}
               allowClear

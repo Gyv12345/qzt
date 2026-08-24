@@ -31,10 +31,16 @@ type ExpenseRepo struct {
 
 func NewExpenseRepo() *ExpenseRepo { return &ExpenseRepo{} }
 
-// PageList 分页查询(支持申请人/类型/审批状态/打款状态过滤)。
-func (r *ExpenseRepo) PageList(ctx context.Context, page, pageSize int, applicantID uint, expenseType, approvalStatus string, paymentStatus int8) ([]oamodel.OaExpense, int64, error) {
+// PageList 分页查询(支持单号/标题模糊 + 申请人/类型/审批状态/打款状态过滤)。
+func (r *ExpenseRepo) PageList(ctx context.Context, page, pageSize int, applicantID uint, expenseNo, title, expenseType, approvalStatus string, paymentStatus int8) ([]oamodel.OaExpense, int64, error) {
 	var list []oamodel.OaExpense
 	q := repoDB(ctx).Model(&oamodel.OaExpense{})
+	if expenseNo != "" {
+		q = q.Where("expense_no LIKE ?", "%"+expenseNo+"%")
+	}
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
 	if applicantID > 0 {
 		q = q.Where("applicant_id = ?", applicantID)
 	}

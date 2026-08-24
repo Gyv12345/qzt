@@ -217,6 +217,7 @@ func handleOaMeetingBookingList(ctx context.Context, req mcp.CallToolRequest) (*
 	list, total, err := svc.List(ctx, page, pageSize,
 		uint(req.GetFloat("room_id", 0)),
 		uint(req.GetFloat("organizer_id", 0)),
+		req.GetString("title", ""),
 		req.GetString("approval_status", ""),
 		req.GetString("start_date", ""),
 		req.GetString("end_date", ""),

@@ -15,9 +15,12 @@ type FormDataRepo struct {
 
 func NewFormDataRepo() *FormDataRepo { return &FormDataRepo{} }
 
-func (r *FormDataRepo) PageList(ctx context.Context, page, pageSize int, templateID, submitterID uint, templateKey, approvalStatus string) ([]oamodel.OaFormData, int64, error) {
+func (r *FormDataRepo) PageList(ctx context.Context, page, pageSize int, templateID, submitterID uint, templateKey, templateName, approvalStatus string) ([]oamodel.OaFormData, int64, error) {
 	var list []oamodel.OaFormData
 	q := repository.DBFrom(ctx).Model(&oamodel.OaFormData{})
+	if templateName != "" {
+		q = q.Where("template_name LIKE ?", "%"+templateName+"%")
+	}
 	if templateID > 0 {
 		q = q.Where("template_id = ?", templateID)
 	}

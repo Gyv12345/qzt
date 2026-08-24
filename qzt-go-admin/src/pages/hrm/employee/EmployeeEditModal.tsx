@@ -169,7 +169,7 @@ export default function EmployeeEditModal({
             name="status"
             label="状态"
             rules={[{ required: true, message: '请选择状态' }]}
-            options={[{ label: '在职', value: 1 }, { label: '离职', value: 0 }]}
+            options={[{ label: '在职', value: 1 }, { label: '试用', value: 2 }, { label: '离职', value: 3 }]}
           />
         </Col>
       </Row>

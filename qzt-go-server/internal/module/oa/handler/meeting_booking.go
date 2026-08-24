@@ -27,6 +27,7 @@ func NewMeetingBookingHandler() *MeetingBookingHandler {
 // @Security     BearerAuth
 // @Param        page             query  int     false  "页码"
 // @Param        page_size        query  int     false  "每页条数"
+// @Param        title            query  string  false  "标题(模糊)"
 // @Param        room_id          query  int     false  "会议室ID"
 // @Param        organizer_id     query  int     false  "预订人ID"
 // @Param        approval_status  query  string  false  "审批状态"
@@ -39,7 +40,7 @@ func (h *MeetingBookingHandler) List(c *gin.Context) {
 	roomID, _ := strconv.ParseUint(c.Query("room_id"), 10, 64)
 	organizerID, _ := strconv.ParseUint(c.Query("organizer_id"), 10, 64)
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize,
-		uint(roomID), uint(organizerID), c.Query("approval_status"),
+		uint(roomID), uint(organizerID), c.Query("title"), c.Query("approval_status"),
 		c.Query("start_date"), c.Query("end_date"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

@@ -56,8 +56,8 @@ func (s *FormDataService) Create(ctx context.Context, req *CreateFormDataRequest
 	return data, nil
 }
 
-func (s *FormDataService) List(ctx context.Context, page, pageSize int, templateID, submitterID uint, templateKey, approvalStatus string) ([]oamodel.OaFormData, int64, error) {
-	return s.dataRepo.PageList(ctx, page, pageSize, templateID, submitterID, templateKey, approvalStatus)
+func (s *FormDataService) List(ctx context.Context, page, pageSize int, templateID, submitterID uint, templateKey, templateName, approvalStatus string) ([]oamodel.OaFormData, int64, error) {
+	return s.dataRepo.PageList(ctx, page, pageSize, templateID, submitterID, templateKey, templateName, approvalStatus)
 }
 
 func (s *FormDataService) GetByID(ctx context.Context, id uint) (*oamodel.OaFormData, error) {

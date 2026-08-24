@@ -174,6 +174,10 @@ export default function DocumentEditorPage() {
 
   const handleSave = async () => {
     if (!editor) return
+    if (!title.trim()) {
+      message.warning('请输入文档标题')
+      return
+    }
     setSaving(true)
     try {
       const html = editor.getHTML()

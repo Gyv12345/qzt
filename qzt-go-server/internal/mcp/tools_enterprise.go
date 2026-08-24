@@ -90,7 +90,7 @@ func registerEnterpriseTools(s *server.MCPServer) {
 func handleEnterpriseJobList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	svc := entsvc.NewJobService()
 	page, pageSize := mcpPage(req)
-	list, total, err := svc.List(ctx, page, pageSize)
+	list, total, err := svc.List(ctx, page, pageSize, req.GetString("job_name", ""))
 	if err != nil {
 		return resultError(fmt.Sprintf("查询定时任务列表失败: %v", err))
 	}

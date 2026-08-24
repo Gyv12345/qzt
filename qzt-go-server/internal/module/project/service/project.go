@@ -89,7 +89,7 @@ func (s *ProjectService) GetByID(ctx context.Context, id uint) (*projmodel.Proje
 }
 
 type UpdateProjectRequest struct {
-	Name         string `json:"name" binding:"required"`
+	Name         string `json:"name"` // 留空=不修改(支持仅改状态的部分更新)
 	Description  string `json:"description"`
 	CustomerID   *uint  `json:"customer_id"`
 	CustomerName string `json:"customer_name"`
@@ -109,21 +109,39 @@ func (s *ProjectService) Update(ctx context.Context, id uint, req *UpdateProject
 	if err != nil {
 		return repository.NotFoundOr(err, "项目不存在")
 	}
-	p.Name = req.Name
-	p.Description = req.Description
-	p.CustomerID = req.CustomerID
-	p.CustomerName = req.CustomerName
-	p.ContractID = req.ContractID
-	p.ManagerID = req.ManagerID
-	p.MemberIDs = req.MemberIDs
+	if req.Name != "" {
+		p.Name = req.Name
+	}
+	if req.Description != "" {
+		p.Description = req.Description
+	}
+	if req.CustomerID != nil {
+		p.CustomerID = req.CustomerID
+	}
+	if req.CustomerName != "" {
+		p.CustomerName = req.CustomerName
+	}
+	if req.ContractID != nil {
+		p.ContractID = req.ContractID
+	}
+	if req.ManagerID != nil {
+		p.ManagerID = req.ManagerID
+	}
+	if req.MemberIDs != "" {
+		p.MemberIDs = req.MemberIDs
+	}
 	if req.Status > 0 {
 		p.Status = req.Status
 	}
 	if req.Priority > 0 {
 		p.Priority = req.Priority
 	}
-	p.Progress = req.Progress
-	p.Tags = req.Tags
+	if req.Progress > 0 {
+		p.Progress = req.Progress
+	}
+	if req.Tags != "" {
+		p.Tags = req.Tags
+	}
 	if req.StartDate != "" {
 		if t, err := time.ParseInLocation("2006-01-02", req.StartDate, time.Local); err == nil {
 			p.StartDate = xtime.NewDateTime(t)

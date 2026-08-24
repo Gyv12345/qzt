@@ -64,8 +64,8 @@ func (s *RecruitmentService) CreateJob(ctx context.Context, req *CreateJobReques
 	return j, nil
 }
 
-func (s *RecruitmentService) ListJobs(ctx context.Context, page, pageSize int, keyword string, status int8, deptID uint) ([]hrmmodel.HrmJob, int64, error) {
-	return s.jobRepo.PageList(ctx, page, pageSize, keyword, status, deptID)
+func (s *RecruitmentService) ListJobs(ctx context.Context, page, pageSize int, keyword, jobNo, title string, status int8, deptID uint) ([]hrmmodel.HrmJob, int64, error) {
+	return s.jobRepo.PageList(ctx, page, pageSize, keyword, jobNo, title, status, deptID)
 }
 
 func (s *RecruitmentService) GetJob(ctx context.Context, id uint) (*hrmmodel.HrmJob, error) {
@@ -86,7 +86,7 @@ func (s *RecruitmentService) GetCandidate(ctx context.Context, id uint) (*hrmmod
 }
 
 type UpdateJobRequest struct {
-	Title           string `json:"title" binding:"required"`
+	Title           string `json:"title"` // 留空=不修改(支持仅改状态的部分更新)
 	DeptID          *uint  `json:"dept_id"`
 	DeptName        string `json:"dept_name"`
 	PositionID      *uint  `json:"position_id"`
@@ -105,17 +105,39 @@ func (s *RecruitmentService) UpdateJob(ctx context.Context, id uint, req *Update
 	if err != nil {
 		return errors.New("职位不存在")
 	}
-	j.Title = req.Title
-	j.DeptID = req.DeptID
-	j.DeptName = req.DeptName
-	j.PositionID = req.PositionID
-	j.Headcount = req.Headcount
-	j.SalaryRange = req.SalaryRange
-	j.Education = req.Education
-	j.Experience = req.Experience
-	j.Description = req.Description
-	j.Requirement = req.Requirement
-	j.HiringManagerID = req.HiringManagerID
+	if req.Title != "" {
+		j.Title = req.Title
+	}
+	if req.DeptID != nil {
+		j.DeptID = req.DeptID
+	}
+	if req.DeptName != "" {
+		j.DeptName = req.DeptName
+	}
+	if req.PositionID != nil {
+		j.PositionID = req.PositionID
+	}
+	if req.Headcount > 0 {
+		j.Headcount = req.Headcount
+	}
+	if req.SalaryRange != "" {
+		j.SalaryRange = req.SalaryRange
+	}
+	if req.Education != "" {
+		j.Education = req.Education
+	}
+	if req.Experience != "" {
+		j.Experience = req.Experience
+	}
+	if req.Description != "" {
+		j.Description = req.Description
+	}
+	if req.Requirement != "" {
+		j.Requirement = req.Requirement
+	}
+	if req.HiringManagerID != nil {
+		j.HiringManagerID = req.HiringManagerID
+	}
 	if req.Status > 0 {
 		oldStatus := j.Status
 		j.Status = req.Status
@@ -181,7 +203,7 @@ func (s *RecruitmentService) ListCandidates(ctx context.Context, page, pageSize 
 }
 
 type UpdateCandidateRequest struct {
-	Name          string `json:"name" binding:"required"`
+	Name          string `json:"name"` // 留空=不修改(支持仅改状态的部分更新)
 	Phone         string `json:"phone"`
 	Email         string `json:"email"`
 	Gender        string `json:"gender"`
@@ -202,19 +224,45 @@ func (s *RecruitmentService) UpdateCandidate(ctx context.Context, id uint, req *
 	if err != nil {
 		return errors.New("候选人不存在")
 	}
-	c.Name = req.Name
-	c.Phone = req.Phone
-	c.Email = req.Email
-	c.Gender = req.Gender
-	c.Age = req.Age
-	c.Education = req.Education
-	c.Experience = req.Experience
-	c.Company = req.Company
-	c.ResumeURL = req.ResumeURL
-	c.Source = req.Source
-	c.InterviewDate = req.InterviewDate
-	c.Remark = req.Remark
-	c.EvaluatorID = req.EvaluatorID
+	if req.Name != "" {
+		c.Name = req.Name
+	}
+	if req.Phone != "" {
+		c.Phone = req.Phone
+	}
+	if req.Email != "" {
+		c.Email = req.Email
+	}
+	if req.Gender != "" {
+		c.Gender = req.Gender
+	}
+	if req.Age > 0 {
+		c.Age = req.Age
+	}
+	if req.Education != "" {
+		c.Education = req.Education
+	}
+	if req.Experience != "" {
+		c.Experience = req.Experience
+	}
+	if req.Company != "" {
+		c.Company = req.Company
+	}
+	if req.ResumeURL != "" {
+		c.ResumeURL = req.ResumeURL
+	}
+	if req.Source != "" {
+		c.Source = req.Source
+	}
+	if req.InterviewDate != "" {
+		c.InterviewDate = req.InterviewDate
+	}
+	if req.Remark != "" {
+		c.Remark = req.Remark
+	}
+	if req.EvaluatorID != nil {
+		c.EvaluatorID = req.EvaluatorID
+	}
 	if req.Status > 0 {
 		c.Status = req.Status
 	}

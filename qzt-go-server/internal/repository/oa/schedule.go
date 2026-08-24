@@ -16,9 +16,12 @@ type ScheduleRepo struct {
 func NewScheduleRepo() *ScheduleRepo { return &ScheduleRepo{} }
 
 // PageList 分页查询。日程属于个人,按 creator_id 过滤。
-func (r *ScheduleRepo) PageList(ctx context.Context, page, pageSize int, creatorID uint, eventType, status, startDate, endDate string) ([]oamodel.OaSchedule, int64, error) {
+func (r *ScheduleRepo) PageList(ctx context.Context, page, pageSize int, creatorID uint, title, eventType, status, startDate, endDate string) ([]oamodel.OaSchedule, int64, error) {
 	var list []oamodel.OaSchedule
 	q := repository.DBFrom(ctx).Model(&oamodel.OaSchedule{})
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
 	if creatorID > 0 {
 		q = q.Where("creator_id = ?", creatorID)
 	}

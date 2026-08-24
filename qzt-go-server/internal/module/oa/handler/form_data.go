@@ -30,6 +30,7 @@ func NewFormDataHandler() *FormDataHandler {
 // @Param        template_id      query  int     false  "模板ID"
 // @Param        submitter_id     query  int     false  "提交人ID"
 // @Param        template_key     query  string  false  "模板标识"
+// @Param        template_name    query  string  false  "模板名称(模糊)"
 // @Param        approval_status  query  string  false  "审批状态"
 // @Success      200  {object}  xresponse.Response
 // @Router       /oa/form-data [get]
@@ -38,7 +39,7 @@ func (h *FormDataHandler) List(c *gin.Context) {
 	templateID, _ := strconv.ParseUint(c.Query("template_id"), 10, 64)
 	submitterID, _ := strconv.ParseUint(c.Query("submitter_id"), 10, 64)
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize,
-		uint(templateID), uint(submitterID), c.Query("template_key"), c.Query("approval_status"))
+		uint(templateID), uint(submitterID), c.Query("template_key"), c.Query("template_name"), c.Query("approval_status"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

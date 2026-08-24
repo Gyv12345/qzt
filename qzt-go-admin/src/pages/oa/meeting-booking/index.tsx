@@ -58,7 +58,6 @@ export default function MeetingBookingPage() {
         NONE: { text: '未提交' },
         APPROVING: { text: '审批中' },
         APPROVED: { text: '已通过' },
-        REJECTED: { text: '已驳回' },
         UNAPPROVED: { text: '已驳回' },
         REVOKED: { text: '已撤回' },
       },

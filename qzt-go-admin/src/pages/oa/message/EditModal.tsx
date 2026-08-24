@@ -79,7 +79,9 @@ export default function MessageEditModal({ open, onOpenChange, onSuccess }: Edit
       width={720}
     >
       <div style={{ marginBottom: 16 }}>
-        <div style={{ marginBottom: 4 }}>收件人</div>
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>收件人
+        </div>
         <Select
           showSearch
           placeholder="选择收件人"
@@ -99,7 +101,9 @@ export default function MessageEditModal({ open, onOpenChange, onSuccess }: Edit
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <div style={{ marginBottom: 4 }}>内容</div>
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>内容
+        </div>
         {isMarkdown ? (
           <MarkdownEditor value={content} onChange={setContent} height={250} />
         ) : (

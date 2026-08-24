@@ -79,7 +79,7 @@ func registerUserTools(s *server.MCPServer) {
 func handleUserList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	svc := sysvc.NewUserService()
 	page, pageSize := parsePaging(req)
-	list, total, err := svc.List(ctx, page, pageSize)
+	list, total, err := svc.List(ctx, page, pageSize, req.GetString("keyword", ""))
 	if err != nil {
 		return resultError(fmt.Sprintf("查询用户列表失败: %v", err))
 	}

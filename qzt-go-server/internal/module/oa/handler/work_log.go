@@ -26,6 +26,7 @@ func NewWorkLogHandler() *WorkLogHandler { return &WorkLogHandler{svc: service.N
 // @Param        page        query  int     false  "页码"
 // @Param        page_size   query  int     false  "每页条数"
 // @Param        log_type    query  string  false  "类型(DAILY/WEEKLY/MONTHLY)"
+// @Param        log_date    query  string  false  "日志日期(YYYY-MM-DD)"
 // @Param        start_date  query  string  false  "开始日期"
 // @Param        end_date    query  string  false  "结束日期"
 // @Success      200  {object}  xresponse.Response
@@ -33,7 +34,7 @@ func NewWorkLogHandler() *WorkLogHandler { return &WorkLogHandler{svc: service.N
 func (h *WorkLogHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize,
-		c.Query("log_type"), c.Query("start_date"), c.Query("end_date"))
+		c.Query("log_type"), c.Query("log_date"), c.Query("start_date"), c.Query("end_date"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

@@ -16,9 +16,18 @@ type TripRepo struct {
 
 func NewTripRepo() *TripRepo { return &TripRepo{} }
 
-func (r *TripRepo) PageList(ctx context.Context, page, pageSize int, applicantID uint, approvalStatus string) ([]oamodel.OaBusinessTrip, int64, error) {
+func (r *TripRepo) PageList(ctx context.Context, page, pageSize int, applicantID uint, tripNo, title, destination, approvalStatus string) ([]oamodel.OaBusinessTrip, int64, error) {
 	var list []oamodel.OaBusinessTrip
 	q := repository.DBFrom(ctx).Model(&oamodel.OaBusinessTrip{})
+	if tripNo != "" {
+		q = q.Where("trip_no LIKE ?", "%"+tripNo+"%")
+	}
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
+	if destination != "" {
+		q = q.Where("destination LIKE ?", "%"+destination+"%")
+	}
 	if applicantID > 0 {
 		q = q.Where("applicant_id = ?", applicantID)
 	}

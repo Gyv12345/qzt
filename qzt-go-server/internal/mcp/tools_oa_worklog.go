@@ -73,6 +73,7 @@ func handleOaWorkLogList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	page, pageSize := mcpPage(req)
 	list, total, err := svc.List(ctx, page, pageSize,
 		req.GetString("log_type", ""),
+		req.GetString("log_date", ""),
 		req.GetString("start_date", ""),
 		req.GetString("end_date", ""),
 	)

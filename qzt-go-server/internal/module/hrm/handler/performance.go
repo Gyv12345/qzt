@@ -26,7 +26,9 @@ func (h *PerformanceHandler) List(c *gin.Context) {
 	status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 	employeeID, _ := strconv.ParseUint(c.Query("employee_id"), 10, 64)
 	deptID, _ := strconv.ParseUint(c.Query("dept_id"), 10, 64)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), c.Query("period"), int8(status), uint(employeeID), uint(deptID))
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize,
+		c.Query("keyword"), c.Query("perf_no"), c.Query("title"), c.Query("employee_name"),
+		c.Query("period"), int8(status), uint(employeeID), uint(deptID))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

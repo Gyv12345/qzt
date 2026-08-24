@@ -31,6 +31,8 @@ func NewRecruitmentHandler() *RecruitmentHandler {
 // @Param        page      query  int     false  "页码"
 // @Param        page_size query  int     false  "每页条数"
 // @Param        keyword   query  string  false  "关键词"
+// @Param        job_no    query  string  false  "职位编号(模糊)"
+// @Param        title     query  string  false  "职位名称(模糊)"
 // @Param        status    query  int     false  "状态"
 // @Param        dept_id   query  int     false  "部门ID"
 // @Success      200  {object}  xresponse.Response
@@ -39,7 +41,8 @@ func (h *RecruitmentHandler) ListJobs(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 	deptID, _ := strconv.ParseUint(c.Query("dept_id"), 10, 64)
-	list, total, err := h.svc.ListJobs(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), int8(status), uint(deptID))
+	list, total, err := h.svc.ListJobs(c.Request.Context(), p.Page, p.PageSize,
+		c.Query("keyword"), c.Query("job_no"), c.Query("title"), int8(status), uint(deptID))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

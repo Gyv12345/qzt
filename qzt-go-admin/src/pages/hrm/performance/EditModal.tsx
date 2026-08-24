@@ -29,11 +29,12 @@ export default function PerfEditModal({ open, onOpenChange, onSuccess }: EditMod
 
   useEffect(() => {
     if (open) {
+      form.resetFields()
       listEmployees({ page: 1, page_size: 100 }).then((res) => {
         setEmployees(res.list.map((e) => ({ label: `${e.name}(${e.emp_no})`, value: e.id })))
       })
     }
-  }, [open])
+  }, [open, form])
 
   const handleSubmit = async (values: FormValues) => {
     await createPerformance({

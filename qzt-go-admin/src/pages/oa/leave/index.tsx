@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Popconfirm, Select, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import { approveLeave, listLeaves, submitLeaveApproval } from '../../../services/hrm'
 import { LEAVE_APPROVAL_STATUS, type HrmLeave } from '../../../types/hrm'
+import { APPROVAL_STATUS_OPTIONS } from '../../../types/oa'
 import LeaveEditModal from './EditModal'
 import { pageIndexColumn } from '../../../components/IndexTag'
 
@@ -44,6 +45,8 @@ export default function LeavePage() {
       title: '审批状态',
       dataIndex: 'approval_status',
       width: 100,
+      valueType: 'select',
+      renderFormItem: () => <Select options={[...APPROVAL_STATUS_OPTIONS]} placeholder="全部" allowClear />,
       render: (_, r) => {
         const s = LEAVE_APPROVAL_STATUS[r.approval_status] ?? LEAVE_APPROVAL_STATUS.NONE
         return <Tag color={s.color}>{s.text}</Tag>

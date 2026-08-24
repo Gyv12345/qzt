@@ -34,8 +34,20 @@ func NewReceivableHandler() *ReceivableHandler {
 // @Param        status       query  int     false  "结算状态(0未结1部分2已结清)"
 // @Param        biz_type     query  string  false  "业务类型"
 // @Param        keyword      query  string  false  "关键词(往来方/单号)"
+// @Param        doc_no       query  string  false  "单号(模糊)"
+// @Param        party_name   query  string  false  "往来方(模糊)"
 // @Success      200  {object}  xresponse.Response
 // @Router       /finance/receivables [get]
+// firstNonEmpty 返回第一个非空串(列表筛选参数兜底用)。
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (h *ReceivableHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	partyID, _ := strconv.ParseUint(c.Query("party_id"), 10, 64)
@@ -44,8 +56,9 @@ func (h *ReceivableHandler) List(c *gin.Context) {
 		n, _ := strconv.Atoi(v)
 		status = int8(n)
 	}
+	keyword := firstNonEmpty(c.Query("keyword"), c.Query("doc_no"), c.Query("party_name"))
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize,
-		c.Query("direction"), c.Query("party_type"), uint(partyID), status, c.Query("biz_type"), c.Query("keyword"))
+		c.Query("direction"), c.Query("party_type"), uint(partyID), status, c.Query("biz_type"), keyword)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

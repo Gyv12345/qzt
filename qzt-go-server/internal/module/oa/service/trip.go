@@ -70,8 +70,8 @@ func (s *TripService) Create(ctx context.Context, req *CreateTripRequest, userID
 	return trip, nil
 }
 
-func (s *TripService) List(ctx context.Context, page, pageSize int, applicantID uint, approvalStatus string) ([]oamodel.OaBusinessTrip, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, applicantID, approvalStatus)
+func (s *TripService) List(ctx context.Context, page, pageSize int, applicantID uint, tripNo, title, destination, approvalStatus string) ([]oamodel.OaBusinessTrip, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, applicantID, tripNo, title, destination, approvalStatus)
 }
 
 func (s *TripService) GetByID(ctx context.Context, id uint) (*oamodel.OaBusinessTrip, error) {

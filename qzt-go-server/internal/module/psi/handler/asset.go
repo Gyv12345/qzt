@@ -19,12 +19,23 @@ type AssetHandler struct {
 
 func NewAssetHandler() *AssetHandler { return &AssetHandler{svc: service.NewAssetService()} }
 
+// firstNonEmpty 返回第一个非空串(列表筛选参数兜底用)。
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (h *AssetHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 	ownerID, _ := strconv.ParseUint(c.Query("owner_id"), 10, 64)
 	deptID, _ := strconv.ParseUint(c.Query("dept_id"), 10, 64)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), c.Query("category"), int8(status), uint(ownerID), uint(deptID))
+	keyword := firstNonEmpty(c.Query("keyword"), c.Query("asset_no"), c.Query("name"))
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword, c.Query("category"), int8(status), uint(ownerID), uint(deptID))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Calendar, Card, Checkbox, Popconfirm, Space, Tag } from 'antd'
-import type { Dayjs } from 'dayjs'
+import dayjs, { type Dayjs } from 'dayjs'
 import { PlusOutlined, TableOutlined, CalendarOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
@@ -26,7 +26,7 @@ export default function SchedulePage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
   const [calendarData, setCalendarData] = useState<CalendarEvent[]>([])
-  const [calendarMonth, setCalendarMonth] = useState<Dayjs>()
+  const [calendarMonth, setCalendarMonth] = useState<Dayjs>(() => dayjs())
   // 来源筛选(默认全选)
   const [sources, setSources] = useState<string[]>(CALENDAR_SOURCE_KEYS)
 

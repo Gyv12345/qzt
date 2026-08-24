@@ -26,7 +26,8 @@ import { pageIndexColumn } from '../../../components/IndexTag'
 /** 四类购销单据(采购单/销售单/采购退货/销售退货)公共的列表行/明细行结构 */
 export interface OrderDocRecord {
   id: number
-  order_no: string
+  order_no?: string
+  return_no?: string
   supplier_id?: number
   customer_id?: number
   warehouse_id: number
@@ -344,7 +345,13 @@ export default function OrderDocPage<T extends OrderDocRecord>({
 
   const columns: ProColumns<T>[] = [
     pageIndexColumn(actionRef),
-    { title: '单号', dataIndex: 'order_no', width: 180, search: false },
+    {
+      title: '单号',
+      dataIndex: 'order_no',
+      width: 180,
+      search: false,
+      render: (_, record) => (record as { return_no?: string }).return_no ?? record.order_no ?? '-',
+    },
     {
       title: partyLabel,
       dataIndex: party === 'supplier' ? 'supplier_id' : 'customer_id',
@@ -522,7 +529,7 @@ export default function OrderDocPage<T extends OrderDocRecord>({
     detailFields.map((f) => {
       switch (f.key) {
         case 'no':
-          return { key: 'no', label: '单号', children: d.order_no, span: f.span }
+          return { key: 'no', label: '单号', children: (d as { return_no?: string }).return_no ?? d.order_no ?? '-', span: f.span }
         case 'party':
           return { key: 'party', label: partyLabel, children: renderParty(d), span: f.span }
         case 'warehouse':

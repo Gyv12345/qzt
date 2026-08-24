@@ -210,7 +210,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 // @Router       /system/users [get]
 func (h *UserHandler) List(c *gin.Context) {
 	p := service.GetPagination(c)
-	users, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize)
+	users, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

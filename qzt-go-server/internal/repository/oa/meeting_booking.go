@@ -16,9 +16,12 @@ type MeetingBookingRepo struct {
 func NewMeetingBookingRepo() *MeetingBookingRepo { return &MeetingBookingRepo{} }
 
 // PageList 分页查询。支持按会议室/组织者/审批状态/日期筛选。
-func (r *MeetingBookingRepo) PageList(ctx context.Context, page, pageSize int, roomID, organizerID uint, approvalStatus, startDate, endDate string) ([]oamodel.OaMeetingBooking, int64, error) {
+func (r *MeetingBookingRepo) PageList(ctx context.Context, page, pageSize int, roomID, organizerID uint, title, approvalStatus, startDate, endDate string) ([]oamodel.OaMeetingBooking, int64, error) {
 	var list []oamodel.OaMeetingBooking
 	q := repository.DBFrom(ctx).Model(&oamodel.OaMeetingBooking{})
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
 	if roomID > 0 {
 		q = q.Where("room_id = ?", roomID)
 	}

@@ -31,7 +31,7 @@ export default function LoanEditModal({ open, editingId, onOpenChange, onSuccess
           title: l.title,
           loan_type: l.loan_type,
           amount: Number(l.amount),
-          expected_date: l.expected_date?.slice(0, 10),
+          expected_date: l.expected_date ? l.expected_date.slice(0, 10) : undefined,
           reason: l.reason,
         })
       })

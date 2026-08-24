@@ -251,6 +251,7 @@ func handleOaFormDataList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		uint(req.GetFloat("template_id", 0)),
 		uint(req.GetFloat("submitter_id", 0)),
 		req.GetString("template_key", ""),
+		req.GetString("template_name", ""),
 		req.GetString("approval_status", ""),
 	)
 	if err != nil {

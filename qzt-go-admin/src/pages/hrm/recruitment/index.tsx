@@ -18,7 +18,7 @@ export default function RecruitmentPage() {
   const [candOpen, setCandOpen] = useState(false)
 
   const handleStatusChange = async (id: number, status: number) => {
-    await updateJob(id, { title: '', status })
+    await updateJob(id, { status })
     message.success('状态已更新')
     actionRef.current?.reload()
   }

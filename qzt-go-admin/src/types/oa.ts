@@ -49,6 +49,15 @@ export const APPROVAL_STATUS_MAP: Record<string, { text: string; color: string }
   REVOKED: { text: '已撤回', color: 'warning' },
 }
 
+/** 审批状态搜索下拉选项(后端驳回只写 UNAPPROVED,无 REJECTED 键)。 */
+export const APPROVAL_STATUS_OPTIONS = [
+  { label: '未提交', value: 'NONE' },
+  { label: '审批中', value: 'APPROVING' },
+  { label: '已通过', value: 'APPROVED' },
+  { label: '已驳回', value: 'UNAPPROVED' },
+  { label: '已撤回', value: 'REVOKED' },
+] as const
+
 /** 该审批状态下是否允许编辑/重新提交(未提交、已驳回、已撤回)。 */
 export const canResubmitApproval = (status?: string) =>
   ['NONE', 'UNAPPROVED', 'REJECTED', 'REVOKED'].includes(status || 'NONE')

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { App, Button, Card, Col, Modal, Popconfirm, Row, Space, Tag } from 'antd'
 import { PlusOutlined, FormOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
@@ -16,6 +16,22 @@ export default function FormDataPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<OaFormTemplate | null>(null)
   const [templates, setTemplates] = useState<OaFormTemplate[]>([])
+
+  // 下拉 valueEnum 稳定引用(内联对象每次渲染重建会干扰搜索表单交互)
+  const templateKeyEnum = useMemo(
+    () => Object.fromEntries(templates.map((t) => [t.form_key, { text: t.name }])),
+    [templates],
+  )
+  const approvalStatusEnum = useMemo(
+    () => ({
+      NONE: { text: '未提交' },
+      APPROVING: { text: '审批中' },
+      APPROVED: { text: '已通过' },
+      UNAPPROVED: { text: '已驳回' },
+      REVOKED: { text: '已撤回' },
+    }),
+    [],
+  )
   const [chooseOpen, setChooseOpen] = useState(false)
 
   useEffect(() => {
@@ -57,7 +73,7 @@ export default function FormDataPage() {
       dataIndex: 'template_key',
       width: 120,
       valueType: 'select',
-      valueEnum: Object.fromEntries(templates.map((t) => [t.form_key, { text: t.name }])),
+      valueEnum: templateKeyEnum,
       hideInTable: true,
     },
     {
@@ -65,13 +81,7 @@ export default function FormDataPage() {
       dataIndex: 'approval_status',
       width: 100,
       valueType: 'select',
-      valueEnum: {
-        NONE: { text: '未提交' },
-        APPROVING: { text: '审批中' },
-        APPROVED: { text: '已通过' },
-        REJECTED: { text: '已驳回' },
-        REVOKED: { text: '已撤回' },
-      },
+      valueEnum: approvalStatusEnum,
       render: (_, r) => {
         const s = APPROVAL_STATUS_MAP[r.approval_status] ?? APPROVAL_STATUS_MAP.NONE
         return <Tag color={s.color}>{s.text}</Tag>

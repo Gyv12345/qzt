@@ -17,7 +17,6 @@ export default function JobLogPage() {
     {
       title: '任务ID',
       dataIndex: 'job_id',
-      key: 'job_id_search',
       width: 90,
       hideInTable: true,
       valueType: 'digit',

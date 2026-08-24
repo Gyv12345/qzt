@@ -5769,6 +5769,18 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "工单号(模糊)",
+                        "name": "ticket_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "问题类型",
                         "name": "category",
                         "in": "query"
@@ -6065,6 +6077,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "每页条数(默认10,最大100)",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称(模糊)",
+                        "name": "job_name",
                         "in": "query"
                     }
                 ],
@@ -6476,6 +6494,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "关键词(往来方/单号)",
                         "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "单号(模糊)",
+                        "name": "doc_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "往来方(模糊)",
+                        "name": "party_name",
                         "in": "query"
                     }
                 ],
@@ -6925,7 +6955,25 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "状态(PENDING/APPROVED/REJECTED)",
+                        "description": "请假单号(模糊)",
+                        "name": "leave_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "请假类型",
+                        "name": "leave_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "审批状态(NONE/APPROVING/APPROVED/UNAPPROVED/REVOKED)",
+                        "name": "approval_status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "旧状态(兼容,PENDING/APPROVED/REJECTED)",
                         "name": "status",
                         "in": "query"
                     }
@@ -7705,6 +7753,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "关键词",
                         "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "职位编号(模糊)",
+                        "name": "job_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "职位名称(模糊)",
+                        "name": "title",
                         "in": "query"
                     },
                     {
@@ -8729,6 +8789,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "报销单号(模糊)",
+                        "name": "expense_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "申请人ID",
                         "name": "applicant_id",
@@ -8982,6 +9054,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "模板标识",
                         "name": "template_key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "模板名称(模糊)",
+                        "name": "template_name",
                         "in": "query"
                     },
                     {
@@ -9428,6 +9506,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "借款单号(模糊)",
+                        "name": "loan_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "借款人ID",
                         "name": "applicant_id",
@@ -9663,6 +9753,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "每页条数",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
                         "in": "query"
                     },
                     {
@@ -10702,6 +10798,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "类型",
                         "name": "event_type",
                         "in": "query"
@@ -10946,6 +11048,24 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "出差单号(模糊)",
+                        "name": "trip_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "目的地(模糊)",
+                        "name": "destination",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "申请人ID",
                         "name": "applicant_id",
@@ -11146,6 +11266,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "日志日期(YYYY-MM-DD)",
+                        "name": "log_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "开始日期",
                         "name": "start_date",
                         "in": "query"
@@ -11341,6 +11467,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "关键词",
                         "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "项目编号(模糊)",
+                        "name": "project_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "项目名称(模糊)",
+                        "name": "name",
                         "in": "query"
                     },
                     {
@@ -18254,7 +18392,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "content",
-                "owner_id",
                 "plan_time",
                 "type"
             ],
@@ -18278,6 +18415,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "owner_id": {
+                    "description": "缺省取当前登录人(handler 注入)",
                     "type": "integer"
                 },
                 "plan_time": {
@@ -20472,9 +20610,6 @@ const docTemplate = `{
         },
         "service.UpdateProjectRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
                 "contract_id": {
                     "type": "integer"
@@ -20498,6 +20633,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "description": "留空=不修改(支持仅改状态的部分更新)",
                     "type": "string"
                 },
                 "priority": {

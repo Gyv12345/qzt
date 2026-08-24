@@ -80,10 +80,20 @@ type DocumentHandler struct {
 
 func NewDocumentHandler() *DocumentHandler { return &DocumentHandler{svc: service.NewDocumentService()} }
 
+// firstNonEmpty 返回第一个非空串(列表筛选参数兜底用)。
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (h *DocumentHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	categoryID, _ := strconv.ParseUint(c.Query("category_id"), 10, 64)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, uint(categoryID), c.Query("keyword"), c.Query("status"))
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, uint(categoryID), firstNonEmpty(c.Query("keyword"), c.Query("title")), c.Query("status"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

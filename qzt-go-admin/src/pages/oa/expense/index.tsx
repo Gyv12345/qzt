@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Popconfirm, Select, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import { deleteExpense, listExpenses, markExpensePaid, submitExpenseApproval } from '../../../services/oa'
-import { APPROVAL_STATUS_MAP, type OaExpense, canResubmitApproval} from '../../../types/oa'
+import { APPROVAL_STATUS_MAP, APPROVAL_STATUS_OPTIONS, type OaExpense, canResubmitApproval} from '../../../types/oa'
 import ExpenseEditModal from './EditModal'
 import ExpenseDetailDrawer from './DetailDrawer'
 import ApprovalFlowSetup from '../../../components/ApprovalFlowSetup'
@@ -69,7 +69,7 @@ export default function ExpensePage() {
       title: '费用类型',
       dataIndex: 'expense_type',
       width: 100,
-      renderFormItem: () => <DictSelect code="EXPENSE_TYPE" placeholder="全部" />,
+      renderFormItem: () => <Select options={[...APPROVAL_STATUS_OPTIONS]} placeholder="全部" allowClear />,
       render: (_, r) => <DictTag code="EXPENSE_TYPE" value={r.expense_type} />,
     },
     {

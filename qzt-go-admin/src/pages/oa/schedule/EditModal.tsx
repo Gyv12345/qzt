@@ -49,6 +49,7 @@ export default function ScheduleEditModal({ open, editingId, onOpenChange, onSuc
         })
       })
     } else {
+      form.resetFields()
       form.setFieldsValue({
         event_type: 'OTHER',
         start_time: today(0),

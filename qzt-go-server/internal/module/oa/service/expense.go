@@ -111,8 +111,8 @@ func (s *ExpenseService) Create(ctx context.Context, req *CreateExpenseRequest, 
 }
 
 // List 报销单列表(分页)。
-func (s *ExpenseService) List(ctx context.Context, page, pageSize int, applicantID uint, expenseType, approvalStatus string, paymentStatus int8) ([]oamodel.OaExpense, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, applicantID, expenseType, approvalStatus, paymentStatus)
+func (s *ExpenseService) List(ctx context.Context, page, pageSize int, applicantID uint, expenseNo, title, expenseType, approvalStatus string, paymentStatus int8) ([]oamodel.OaExpense, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, applicantID, expenseNo, title, expenseType, approvalStatus, paymentStatus)
 }
 
 // GetByID 报销单详情(含明细行)。

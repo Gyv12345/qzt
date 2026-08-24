@@ -25,6 +25,8 @@ func NewLoanHandler() *LoanHandler { return &LoanHandler{svc: service.NewLoanSer
 // @Security     BearerAuth
 // @Param        page             query  int     false  "页码"
 // @Param        page_size        query  int     false  "每页条数"
+// @Param        loan_no          query  string  false  "借款单号(模糊)"
+// @Param        title            query  string  false  "标题(模糊)"
 // @Param        applicant_id     query  int     false  "借款人ID"
 // @Param        loan_type        query  string  false  "借款类型"
 // @Param        approval_status  query  string  false  "审批状态"
@@ -40,6 +42,7 @@ func (h *LoanHandler) List(c *gin.Context) {
 		repaidStatus = int8(n)
 	}
 	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, uint(applicantID),
+		c.Query("loan_no"), c.Query("title"),
 		c.Query("loan_type"), c.Query("approval_status"), repaidStatus)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

@@ -38,6 +38,7 @@ export default function MeetingRoomEditModal({ open, editingId, onOpenChange, on
         })
       })
     } else {
+      form.resetFields()
       form.setFieldsValue({ status: 'ENABLED', capacity: 10 })
     }
   }, [open, editingId, form])

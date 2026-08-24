@@ -83,6 +83,10 @@ export default function ContractTemplatePage() {
   }
 
   const handleSubmit = async (values: TemplateFormValues) => {
+    if (!content.trim()) {
+      message.warning('请输入模板正文')
+      return
+    }
     const payload: CrmContractTemplatePayload = {
       name: values.name,
       content,
@@ -224,11 +228,6 @@ export default function ContractTemplatePage() {
             <ProForm.Item
               label="模板正文(Markdown)"
               required
-              rules={[
-                {
-                  validator: () => (content.trim() ? Promise.resolve() : Promise.reject(new Error('请输入模板正文'))),
-                },
-              ]}
               colProps={{ span: 24 }}
             >
               <MarkdownEditor

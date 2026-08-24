@@ -71,8 +71,8 @@ func (s *ScheduleService) Create(ctx context.Context, req *CreateScheduleRequest
 	return sch, nil
 }
 
-func (s *ScheduleService) List(ctx context.Context, page, pageSize int, creatorID uint, eventType, status, startDate, endDate string) ([]oamodel.OaSchedule, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, creatorID, eventType, status, startDate, endDate)
+func (s *ScheduleService) List(ctx context.Context, page, pageSize int, creatorID uint, title, eventType, status, startDate, endDate string) ([]oamodel.OaSchedule, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, creatorID, title, eventType, status, startDate, endDate)
 }
 
 // ListByDateRange 日历视图:返回当前用户指定日期范围内的全部日程。

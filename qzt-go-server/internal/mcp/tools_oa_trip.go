@@ -79,6 +79,9 @@ func handleOaTripList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	page, pageSize := mcpPage(req)
 	list, total, err := svc.List(ctx, page, pageSize,
 		uint(req.GetFloat("applicant_id", 0)),
+		req.GetString("trip_no", ""),
+		req.GetString("title", ""),
+		req.GetString("destination", ""),
 		req.GetString("approval_status", ""),
 	)
 	if err != nil {

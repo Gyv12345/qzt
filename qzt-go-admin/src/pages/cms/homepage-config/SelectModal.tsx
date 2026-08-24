@@ -97,7 +97,7 @@ export default function SelectModal({
         }
       }
       // team
-      const res = await listUsers({ page, page_size: pageSize })
+      const res = await listUsers({ page, page_size: pageSize, keyword: params.keyword })
       return {
         data: res.list.map((u) => ({
           id: u.id,

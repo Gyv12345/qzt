@@ -166,6 +166,9 @@ func (h *FollowHandler) CreatePlan(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
+	if req.OwnerID == 0 {
+		req.OwnerID = middleware.GetUserID(c)
+	}
 	plan, err := h.svc.CreatePlan(c.Request.Context(), &req)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

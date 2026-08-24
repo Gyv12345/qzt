@@ -130,7 +130,14 @@ export default function EmployeePage() {
       dataIndex: 'status',
       width: 80,
       search: false,
-      render: (_, r) => (r.status === 1 ? <Tag color="green">在职</Tag> : <Tag>离职</Tag>),
+      render: (_, r) =>
+        r.status === 3 ? (
+          <Tag>离职</Tag>
+        ) : r.status === 2 ? (
+          <Tag color="blue">试用</Tag>
+        ) : (
+          <Tag color="green">在职</Tag>
+        ),
     },
     { title: '关键词', dataIndex: 'keyword', hideInTable: true },
     {
@@ -166,7 +173,8 @@ export default function EmployeePage() {
       valueType: 'select',
       valueEnum: {
         1: { text: '在职' },
-        0: { text: '离职' },
+        2: { text: '试用' },
+        3: { text: '离职' },
       },
     },
     {

@@ -29,9 +29,18 @@ func (r *PerformanceRepo) CountByNoPrefix(ctx context.Context, prefix string) (i
 	return n, err
 }
 
-func (r *PerformanceRepo) PageList(ctx context.Context, page, pageSize int, keyword, period string, status int8, employeeID, deptID uint) ([]hrmmodel.HrmPerformance, int64, error) {
+func (r *PerformanceRepo) PageList(ctx context.Context, page, pageSize int, keyword, perfNo, title, employeeName, period string, status int8, employeeID, deptID uint) ([]hrmmodel.HrmPerformance, int64, error) {
 	var list []hrmmodel.HrmPerformance
 	q := perfDB(ctx).Model(&hrmmodel.HrmPerformance{})
+	if perfNo != "" {
+		q = q.Where("perf_no LIKE ?", "%"+perfNo+"%")
+	}
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
+	if employeeName != "" {
+		q = q.Where("employee_name LIKE ?", "%"+employeeName+"%")
+	}
 	if keyword != "" {
 		q = q.Where("title LIKE ? OR employee_name LIKE ? OR perf_no LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}

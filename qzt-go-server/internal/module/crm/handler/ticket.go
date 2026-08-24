@@ -28,6 +28,8 @@ func NewTicketHandler() *TicketHandler { return &TicketHandler{svc: service.NewT
 // @Param        page        query  int     false  "页码"
 // @Param        page_size   query  int     false  "每页条数"
 // @Param        keyword     query  string  false  "关键词"
+// @Param        ticket_no   query  string  false  "工单号(模糊)"
+// @Param        title       query  string  false  "标题(模糊)"
 // @Param        category    query  string  false  "问题类型"
 // @Param        status      query  int     false  "状态"
 // @Param        priority    query  int     false  "优先级"
@@ -35,13 +37,24 @@ func NewTicketHandler() *TicketHandler { return &TicketHandler{svc: service.NewT
 // @Param        handler_id  query  int     false  "处理人ID"
 // @Success      200  {object}  xresponse.Response
 // @Router       /crm/tickets [get]
+// firstNonEmpty 返回第一个非空串(列表筛选参数兜底用)。
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (h *TicketHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 	priority, _ := strconv.Atoi(c.DefaultQuery("priority", "0"))
 	customerID, _ := strconv.ParseUint(c.Query("customer_id"), 10, 64)
 	handlerID, _ := strconv.ParseUint(c.Query("handler_id"), 10, 64)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), c.Query("category"), int8(status), int8(priority), uint(customerID), uint(handlerID))
+	keyword := firstNonEmpty(c.Query("keyword"), c.Query("ticket_no"), c.Query("title"))
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword, c.Query("category"), int8(status), int8(priority), uint(customerID), uint(handlerID))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

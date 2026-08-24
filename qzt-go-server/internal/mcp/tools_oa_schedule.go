@@ -87,6 +87,7 @@ func handleOaScheduleList(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	page, pageSize := mcpPage(req)
 	creatorID := uint(req.GetFloat("creator_id", float64(userIDFromContext(ctx))))
 	list, total, err := svc.List(ctx, page, pageSize, creatorID,
+		req.GetString("title", ""),
 		req.GetString("event_type", ""),
 		req.GetString("status", ""),
 		req.GetString("start_date", ""),

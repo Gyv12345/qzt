@@ -62,8 +62,8 @@ func (s *LoanService) Create(ctx context.Context, req *CreateLoanRequest, userID
 	return loan, nil
 }
 
-func (s *LoanService) List(ctx context.Context, page, pageSize int, applicantID uint, loanType, approvalStatus string, repaidStatus int8) ([]oamodel.OaLoan, int64, error) {
-	return s.repo.PageList(ctx, page, pageSize, applicantID, loanType, approvalStatus, repaidStatus)
+func (s *LoanService) List(ctx context.Context, page, pageSize int, applicantID uint, loanNo, title, loanType, approvalStatus string, repaidStatus int8) ([]oamodel.OaLoan, int64, error) {
+	return s.repo.PageList(ctx, page, pageSize, applicantID, loanNo, title, loanType, approvalStatus, repaidStatus)
 }
 
 func (s *LoanService) GetByID(ctx context.Context, id uint) (*oamodel.OaLoan, error) {

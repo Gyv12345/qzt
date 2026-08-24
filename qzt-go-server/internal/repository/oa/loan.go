@@ -15,9 +15,15 @@ type LoanRepo struct {
 
 func NewLoanRepo() *LoanRepo { return &LoanRepo{} }
 
-func (r *LoanRepo) PageList(ctx context.Context, page, pageSize int, applicantID uint, loanType, approvalStatus string, repaidStatus int8) ([]oamodel.OaLoan, int64, error) {
+func (r *LoanRepo) PageList(ctx context.Context, page, pageSize int, applicantID uint, loanNo, title, loanType, approvalStatus string, repaidStatus int8) ([]oamodel.OaLoan, int64, error) {
 	var list []oamodel.OaLoan
 	q := repository.DBFrom(ctx).Model(&oamodel.OaLoan{})
+	if loanNo != "" {
+		q = q.Where("loan_no LIKE ?", "%"+loanNo+"%")
+	}
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
 	if applicantID > 0 {
 		q = q.Where("applicant_id = ?", applicantID)
 	}

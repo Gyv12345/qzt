@@ -152,6 +152,8 @@ func handleHrmJobList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	page, pageSize := mcpPage(req)
 	list, total, err := svc.ListJobs(ctx, page, pageSize,
 		req.GetString("keyword", ""),
+		req.GetString("job_no", ""),
+		req.GetString("title", ""),
 		int8(req.GetFloat("status", 0)),
 		uint(req.GetFloat("dept_id", 0)),
 	)

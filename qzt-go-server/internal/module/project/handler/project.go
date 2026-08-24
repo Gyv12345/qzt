@@ -29,17 +29,30 @@ func NewProjectHandler() *ProjectHandler { return &ProjectHandler{svc: service.N
 // @Param        page       query  int     false  "页码"
 // @Param        page_size  query  int     false  "每页条数"
 // @Param        keyword    query  string  false  "关键词"
+// @Param        project_no query  string  false  "项目编号(模糊)"
+// @Param        name       query  string  false  "项目名称(模糊)"
 // @Param        status     query  int     false  "状态"
 // @Param        priority   query  int     false  "优先级"
 // @Param        manager_id query  int     false  "项目经理ID"
 // @Success      200  {object}  xresponse.Response
 // @Router       /project/projects [get]
+// firstNonEmpty 返回第一个非空串(列表筛选参数兜底用)。
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (h *ProjectHandler) List(c *gin.Context) {
 	p := syservice.GetPagination(c)
 	status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 	priority, _ := strconv.Atoi(c.DefaultQuery("priority", "0"))
 	managerID, _ := strconv.ParseUint(c.Query("manager_id"), 10, 64)
-	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, c.Query("keyword"), int8(status), int8(priority), uint(managerID))
+	keyword := firstNonEmpty(c.Query("keyword"), c.Query("project_no"), c.Query("name"))
+	list, total, err := h.svc.List(c.Request.Context(), p.Page, p.PageSize, keyword, int8(status), int8(priority), uint(managerID))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
