@@ -68,7 +68,14 @@ func (h *LeadHandler) PublicContact(c *gin.Context) {
 		leadName = req.Company + "-" + req.Name
 	}
 
-	// 构建线索(入公海,无负责人)
+	// 构建线索(入公海,无负责人):必须挂默认线索公海,否则公海页面永远查不到
+	var poolID *uint
+	var defaultPool crmmodel.CrmLeadPool
+	if err := repository.DBFrom(ctx).
+		Where("is_default = 1 AND enabled = 1 AND deleted_at IS NULL").
+		First(&defaultPool).Error; err == nil {
+		poolID = &defaultPool.ID
+	}
 	lead := &crmmodel.CrmLead{
 		Name:        leadName,
 		LeadNo:      leadNo,
@@ -79,6 +86,7 @@ func (h *LeadHandler) PublicContact(c *gin.Context) {
 		Source:      "官网留言",
 		Status:      crmmodel.LeadStatusNew,
 		InPool:      crmmodel.InPoolPublic,
+		PoolID:      poolID,
 		Remark:      req.Message,
 	}
 

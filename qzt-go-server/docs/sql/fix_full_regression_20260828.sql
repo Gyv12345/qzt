@@ -36,3 +36,18 @@ UPDATE fin_receivable SET party_name = (SELECT name FROM crm_customer WHERE id =
 WHERE doc_no = 'YS20260821001' AND party_name = '1';
 UPDATE fin_receivable SET party_name = (SELECT name FROM psi_supplier WHERE id = 2)
 WHERE doc_no = 'YF20260821001' AND party_name = '2';
+
+-- ⑪ sale 角色补授「配置」父目录(线索池菜单 352 的父级 130),
+--    父目录缺失导致前端路由树丢弃该页面,销售访问 /crm/lead-pool 直接 404
+INSERT IGNORE INTO sys_role_menu (sys_role_id, sys_menu_id) VALUES (3, 130);
+
+-- ⑫ sales_director 补授商城订单管理(确认/完成/取消/生成销售单),使商城订单确认无需超管
+INSERT IGNORE INTO sys_role_menu (sys_role_id, sys_menu_id) VALUES
+(9, 1000), (9, 1001), (9, 1002), (9, 1003), (9, 1004), (9, 1005);
+
+-- ⑫ casbin:sales_director 商城订单查看/确认/完成/取消/生成销售单
+INSERT IGNORE INTO casbin_rule (ptype, v0, v1, v2, v3, v4, v5) VALUES
+('p', 'sales_director', '/mall/orders', 'GET', '', '', ''),
+('p', 'sales_director', '/mall/orders/:id', 'GET', '', '', ''),
+('p', 'sales_director', '/mall/orders/:id/status', 'PUT', '', '', ''),
+('p', 'sales_director', '/mall/orders/:id/generate-sales-order', 'POST', '', '', '');
