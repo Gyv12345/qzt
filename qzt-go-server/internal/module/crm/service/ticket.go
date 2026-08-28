@@ -7,16 +7,16 @@ import (
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/pkg/numbergen"
-	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/internal/repository"
+	crrepo "qzt-go-server/internal/repository/crm"
 	"qzt-go-server/pkg/xtime"
 )
 
 // ticket.go 售后工单服务。
 
 type TicketService struct {
-	repo     *crrepo.TicketRepo
-	logRepo  *crrepo.TicketLogRepo
+	repo    *crrepo.TicketRepo
+	logRepo *crrepo.TicketLogRepo
 }
 
 func NewTicketService() *TicketService {
@@ -67,6 +67,12 @@ func (s *TicketService) GetByID(ctx context.Context, id uint) (*crmmodel.TicketD
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, repository.NotFoundOr(err, "工单不存在")
+	}
+	// 历史数据 customer_name 可能为空,动态回填避免详情显示空白
+	if t.CustomerName == "" && t.CustomerID != nil && *t.CustomerID > 0 {
+		if customers, err := crrepo.NewCustomerRepo().ListByIDs(ctx, []uint{*t.CustomerID}); err == nil && len(customers) > 0 {
+			t.CustomerName = customers[0].Name
+		}
 	}
 	logs, err := s.logRepo.ListByTicket(ctx, id)
 	if err != nil {
@@ -144,11 +150,11 @@ func (s *TicketService) ChangeStatus(ctx context.Context, id uint, req *ChangeSt
 			return err
 		}
 		log := &crmmodel.CrmTicketLog{
-			TicketID:  id,
-			Content:   logContent,
+			TicketID:   id,
+			Content:    logContent,
 			OperatorID: operatorID,
-			OldStatus: oldStatus,
-			NewStatus: req.Status,
+			OldStatus:  oldStatus,
+			NewStatus:  req.Status,
 		}
 		return s.logRepo.Create(ctx, log)
 	})

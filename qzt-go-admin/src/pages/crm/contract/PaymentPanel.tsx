@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { App, Button, Col, DatePicker, Drawer, Form, InputNumber, Popconfirm, Select, Space, Statistic, Table, Tag, type TableProps } from 'antd'
+import { App, Button, Drawer, Form, Popconfirm, Select, Space, Statistic, Table, Tag, type TableProps } from 'antd'
 import { PaperClipOutlined, PlusOutlined } from '@ant-design/icons'
-import { ModalForm, ProForm, ProFormTextArea } from '@ant-design/pro-components'
+import { ModalForm, ProForm, ProFormDatePicker, ProFormDigit, ProFormTextArea } from '@ant-design/pro-components'
 import dayjs, { type Dayjs } from 'dayjs'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import Auth from '../../../components/Auth'
@@ -45,6 +45,10 @@ interface PaymentPanelProps {
   onRefresh: () => Promise<void>
 }
 
+/** ProForm 在 Drawer+Tabs 场景下日期可能以字符串抵达 onFinish,统一归一化 */
+const toDateStr = (v: Dayjs | string | undefined): string =>
+  typeof v === 'string' ? v : v?.format('YYYY-MM-DD') ?? ''
+
 /** 合同详情抽屉的「回款管理」Tab:统计 + 回款计划/回款记录表格与增删改弹窗、回款附件 */
 export default function PaymentPanel({ contract, summary, records, loading, onRefresh }: PaymentPanelProps) {
   const { message } = App.useApp()
@@ -85,7 +89,7 @@ export default function PaymentPanel({ contract, summary, records, loading, onRe
 
   const handlePlanSubmit = async (values: PlanFormValues) => {
     const payload = {
-      plan_date: values.plan_date.format('YYYY-MM-DD'),
+      plan_date: toDateStr(values.plan_date),
       plan_amount: values.plan_amount,
       remark: values.remark,
     }
@@ -129,7 +133,7 @@ export default function PaymentPanel({ contract, summary, records, loading, onRe
 
   const handleRecordSubmit = async (values: RecordFormValues) => {
     const payload = {
-      received_date: values.received_date.format('YYYY-MM-DD'),
+      received_date: toDateStr(values.received_date),
       amount: values.amount,
       method: values.method,
       plan_id: values.plan_id,
@@ -363,24 +367,22 @@ export default function PaymentPanel({ contract, summary, records, loading, onRe
         width={640}
         grid
       >
-        <Col span={12}>
-          <ProForm.Item
-            name="plan_date"
-            label="计划日期"
-            rules={[{ required: true, message: '请选择计划日期' }]}
-          >
-            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item
-            name="plan_amount"
-            label="计划金额"
-            rules={[{ required: true, message: '请输入计划金额' }]}
-          >
-            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="计划金额" />
-          </ProForm.Item>
-        </Col>
+        <ProFormDatePicker
+          name="plan_date"
+          label="计划日期"
+          rules={[{ required: true, message: '请选择计划日期' }]}
+          fieldProps={{ style: { width: '100%' }, placeholder: '选择日期' }}
+          colProps={{ span: 12 }}
+        />
+        <ProFormDigit
+          name="plan_amount"
+          label="计划金额"
+          rules={[{ required: true, message: '请输入计划金额' }]}
+          min={0}
+          fieldProps={{ precision: 2 }}
+          placeholder="计划金额"
+          colProps={{ span: 12 }}
+        />
         <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
       </ModalForm>
 
@@ -395,41 +397,35 @@ export default function PaymentPanel({ contract, summary, records, loading, onRe
         width={640}
         grid
       >
-        <Col span={12}>
-          <ProForm.Item
-            name="received_date"
-            label="回款日期"
-            rules={[{ required: true, message: '请选择回款日期' }]}
-          >
-            <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item
-            name="amount"
-            label="回款金额"
-            rules={[{ required: true, message: '请输入回款金额' }]}
-          >
-            <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="回款金额" />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item name="method" label="回款方式">
-            <DictSelect code="PAYMENT_METHOD" placeholder="选择回款方式" />
-          </ProForm.Item>
-        </Col>
-        <Col span={12}>
-          <ProForm.Item name="plan_id" label="关联回款计划">
-            <Select
-              allowClear
-              placeholder="选择回款计划(可选)"
-              options={plans.map((p) => ({
-                label: `${p.plan_date ?? '-'} ¥${p.plan_amount}`,
-                value: p.id,
-              }))}
-            />
-          </ProForm.Item>
-        </Col>
+        <ProFormDatePicker
+          name="received_date"
+          label="回款日期"
+          rules={[{ required: true, message: '请选择回款日期' }]}
+          fieldProps={{ style: { width: '100%' }, placeholder: '选择日期' }}
+          colProps={{ span: 12 }}
+        />
+        <ProFormDigit
+          name="amount"
+          label="回款金额"
+          rules={[{ required: true, message: '请输入回款金额' }]}
+          min={0}
+          fieldProps={{ precision: 2 }}
+          placeholder="回款金额"
+          colProps={{ span: 12 }}
+        />
+        <ProForm.Item name="method" label="回款方式" colProps={{ span: 12 }}>
+          <DictSelect code="PAYMENT_METHOD" placeholder="选择回款方式" />
+        </ProForm.Item>
+        <ProForm.Item name="plan_id" label="关联回款计划" colProps={{ span: 12 }}>
+          <Select
+            allowClear
+            placeholder="选择回款计划(可选)"
+            options={plans.map((p) => ({
+              label: `${p.plan_date ?? '-'} ¥${p.plan_amount}`,
+              value: p.id,
+            }))}
+          />
+        </ProForm.Item>
         <ProFormTextArea name="remark" label="备注" placeholder="备注" colProps={{ span: 24 }} />
       </ModalForm>
     </>

@@ -189,7 +189,7 @@ export default function ContractPage() {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          {record.approval_status !== 'PROCESSING' && record.approval_status !== 'APPROVED' && (
+          {!['APPROVING', 'PROCESSING', 'APPROVED'].includes(record.approval_status) && (
             <Auth perm="crm:contract:edit">
               <Popconfirm
                 title="提交审批?"

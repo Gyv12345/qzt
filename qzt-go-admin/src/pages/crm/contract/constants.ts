@@ -11,8 +11,10 @@ export const PLAN_STATUS: Record<number, { text: string; color: string }> = {
 export const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
   NONE: { text: '未审批', color: 'default' },
   PROCESSING: { text: '审批中', color: 'processing' },
+  APPROVING: { text: '审批中', color: 'processing' },
   APPROVED: { text: '已通过', color: 'success' },
   REJECTED: { text: '已驳回', color: 'error' },
+  UNAPPROVED: { text: '已驳回', color: 'error' },
   REVOKED: { text: '已撤回', color: 'warning' },
 }
 
