@@ -8,7 +8,6 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 
 	crmsvc "qzt-go-server/internal/module/crm/service"
-	syservice "qzt-go-server/internal/module/system/service"
 )
 
 // tools_lead.go CRM 线索相关 MCP tools。
@@ -199,14 +198,17 @@ func handleLeadConvert(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 		return resultError(fmt.Sprintf("线索转化失败: %v", err))
 	}
 	return resultText(map[string]any{
-		"message":          "线索已转化为客户",
-		"customer_id":      customer.ID,
-		"customer_name":    customer.Name,
+		"message":       "线索已转化为客户",
+		"customer_id":   customer.ID,
+		"customer_name": customer.Name,
 	})
 }
 
 // getUserIDFromCtx 从 MCP 上下文获取操作人ID(复用 system 工具的 helper)。
+// getUserIDFromCtx 从 request context 取 API Key 绑定用户ID(mcpAuthMiddleware 注入)。
 func getUserIDFromCtx(ctx context.Context) uint {
-	_ = syservice.NewUserService // 占位,实际 userID 从 gin context 传入(见 mcpAuthMiddleware)
+	if v, ok := ctx.Value(mcpUserIDKey).(uint); ok {
+		return v
+	}
 	return 0
 }

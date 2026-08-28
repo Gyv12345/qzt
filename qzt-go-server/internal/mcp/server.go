@@ -176,6 +176,7 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 		// (mcpPermissionMiddleware)与工具集过滤(toolsetFilter)读取
 		// (mcpAuthMiddleware 写 gin context,但 MCP 工具 handler 拿到的是 request context)
 		reqCtx := context.WithValue(c.Request.Context(), mcpRoleCodesKey, roleCodes)
+		reqCtx = context.WithValue(reqCtx, mcpUserIDKey, user.ID)
 		reqCtx = context.WithValue(reqCtx, mcpToolsetsKey, ParseToolsets(apiKey.Toolsets))
 		c.Request = c.Request.WithContext(reqCtx)
 

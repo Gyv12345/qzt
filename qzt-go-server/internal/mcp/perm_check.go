@@ -33,6 +33,9 @@ type mcpCtxKey string
 
 const mcpRoleCodesKey mcpCtxKey = "mcp_role_codes"
 
+// mcpUserIDKey API Key 绑定用户的 ID(request context),供工具 handler 取"当前用户"。
+const mcpUserIDKey mcpCtxKey = "mcp_user_id"
+
 // mcpPermissionMiddleware 工具调用权限中间件:工具名→Casbin 校验。
 // 挂载方式:buildServer() 里 server.WithToolHandlerMiddleware(mcpPermissionMiddleware())。
 func mcpPermissionMiddleware() server.ToolHandlerMiddleware {
