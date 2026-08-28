@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 
 	"qzt-go-server/config"
+	"qzt-go-server/internal/version"
 	"qzt-go-server/pkg/xauth"
 	"qzt-go-server/pkg/xcolor"
 	"qzt-go-server/pkg/xenv"
@@ -246,7 +247,7 @@ func Logger() gin.HandlerFunc {
 		// 非生产环境控制台输出请求摘要
 		if !xenv.Prod() {
 			fmt.Printf("%s %s %20s | status %3s | biz code %6s | %8v | %5s  %#v | %12s | %s\n",
-				xcolor.GreenFont(fmt.Sprintf("[%s:%s]", cfg.Application.Server.Name, cfg.Application.Server.Version)),
+				xcolor.GreenFont(fmt.Sprintf("[%s:%s]", cfg.Application.Server.Name, version.Get().Version)),
 				xcolor.YellowFont("[access] |"),
 				startTime.Format(timeFmtWithMS),
 				xcolor.StatusCodeColor(c.Writer.Status()),

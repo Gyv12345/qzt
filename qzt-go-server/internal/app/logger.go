@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 
 	"qzt-go-server/config"
+	"qzt-go-server/internal/version"
 	"qzt-go-server/pkg/xlogger"
 )
 
@@ -17,7 +18,7 @@ func InitLogger(logPath string) {
 	cfg := config.Get()
 	xlogger.Init(logPath, xlogger.Options{
 		BaseServiceName:      cfg.Application.Server.Name,
-		BaseServiceVersion:   cfg.Application.Server.Version,
+		BaseServiceVersion:   version.Get().Version,
 		Output:               cfg.Log.Output,
 		LogEncoder:           cfg.Log.LogEncoder,
 		AccessEncoder:        cfg.Log.AccessEncoder,

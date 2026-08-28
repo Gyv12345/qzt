@@ -399,6 +399,14 @@ export interface OauthConfigPayload {
 
 // ---------- 站点信息(网站基础元数据) ----------
 
+/** 系统版本信息(GET /system/version,免鉴权) */
+export interface SystemVersionInfo {
+  version: string
+  git_commit: string
+  build_time: string
+  go_version: string
+}
+
 export interface SysSiteConfig {
   id: number
   site_name: string

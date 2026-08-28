@@ -16608,6 +16608,26 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/system/version": {
+            "get": {
+                "description": "返回后端版本号/Git 提交/构建时间/Go 版本。免鉴权,admin「关于系统」弹窗与部署后核验用。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统"
+                ],
+                "summary": "获取系统版本信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

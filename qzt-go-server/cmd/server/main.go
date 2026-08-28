@@ -35,6 +35,7 @@ import (
 	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/server"
+	"qzt-go-server/internal/version"
 	"qzt-go-server/pkg/xcolor"
 
 	_ "qzt-go-server/cmd/server/docs" // swagger 生成文档(注册 swaggerFiles)
@@ -54,7 +55,15 @@ func main() {
 	// -config 指向配置文件目录（默认 ./config）；-log 指向日志目录（默认 ./logs）
 	cfgPath := flag.String("config", "./config", "config directory path")
 	logPath := flag.String("log", "./logs", "log directory path")
+	showVersion := flag.Bool("version", false, "打印版本信息后退出")
 	flag.Parse()
+
+	// 打印版本信息后直接退出（部署核验用：./qzt-server -version）
+	if *showVersion {
+		vi := version.Get()
+		fmt.Printf("%s (commit %s, built %s, go %s)\n", vi.Version, vi.GitCommit, vi.BuildTime, vi.GoVersion)
+		return
+	}
 
 	// 1. 初始化全局资源（配置/时区/日志/存储/DB/Redis/Casbin/JWT）
 	if err := app.Init(*cfgPath, *logPath); err != nil {
@@ -118,7 +127,7 @@ func main() {
 	}
 
 	go func() {
-		printBanner(cfg.Application.Server.Name, cfg.Application.Server.Version, addr)
+		printBanner(cfg.Application.Server.Name, version.Get().Version, addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			app.Log.Fatalf("server run failed: %v", err)
 		}

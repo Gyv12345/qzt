@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState, Suspense } from 'react'
-import { Avatar, Button, Dropdown, Result, Spin } from 'antd'
-import { LogoutOutlined, SettingOutlined, UserOutlined, AppstoreOutlined, DownOutlined } from '@ant-design/icons'
+import { Avatar, Button, Descriptions, Dropdown, Modal, Result, Spin } from 'antd'
+import {
+  LogoutOutlined,
+  SettingOutlined,
+  UserOutlined,
+  AppstoreOutlined,
+  DownOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
 import { fetchUserInfo, logout } from '../services/auth'
-import { getSiteConfig } from '../services/system'
-import type { SysSiteConfig } from '../types'
+import { getSiteConfig, getVersion } from '../services/system'
+import type { SysMenu, SysSiteConfig, SystemVersionInfo } from '../types'
 import MenuIcon from '../components/MenuIcon'
 import ErrorBoundary from '../components/ErrorBoundary'
 import MessageBox from '../components/layout/MessageBox'
@@ -13,7 +20,6 @@ import NotificationHandler from '../components/layout/NotificationHandler'
 import LayoutSettings from '../components/layout/LayoutSettings'
 import HelpGuide from '../components/layout/HelpGuide'
 
-import type { SysMenu } from '../types'
 import './basic-layout.css'
 
 /** 过滤出可见菜单(排除按钮),并按 sort 排序 */
@@ -83,6 +89,10 @@ export default function BasicLayout() {
   const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null)
   /** 站点信息:顶栏 logo/名称取自「系统设置-站点信息」,未配置时回退默认样式 */
   const [siteCfg, setSiteCfg] = useState<Pick<SysSiteConfig, 'site_name' | 'logo_url'> | null>(siteCfgCache)
+  /** 「关于系统」弹窗:每次打开重新拉取版本信息 */
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const [verInfo, setVerInfo] = useState<SystemVersionInfo | null>(null)
+  const [verErr, setVerErr] = useState(false)
 
   useEffect(() => {
     if (siteCfgCache) return
@@ -159,6 +169,16 @@ export default function BasicLayout() {
   const goModule = (module: SysMenu) => {
     const path = firstLeafPath(module)
     if (path) navigate(path)
+  }
+
+  /** 打开「关于系统」弹窗并加载版本信息 */
+  const openAbout = () => {
+    setAboutOpen(true)
+    setVerInfo(null)
+    setVerErr(false)
+    getVersion()
+      .then(setVerInfo)
+      .catch(() => setVerErr(true))
   }
 
   const onPrimaryClick = (item: SysMenu) => {
@@ -253,6 +273,7 @@ export default function BasicLayout() {
                       { type: 'divider' as const },
                     ]
                   : [{ type: 'divider' as const }]),
+                { key: 'about', icon: <InfoCircleOutlined />, label: '关于系统' },
                 { key: 'logout', icon: <LogoutOutlined />, label: '退出登录', danger: true },
               ],
               onClick: async ({ key }) => {
@@ -260,6 +281,8 @@ export default function BasicLayout() {
                   navigate('/profile')
                 } else if (key === 'settings' && systemModule) {
                   goModule(systemModule)
+                } else if (key === 'about') {
+                  openAbout()
                 } else if (key === 'logout') {
                   await logout()
                   navigate('/login', { replace: true })
@@ -331,6 +354,30 @@ export default function BasicLayout() {
           </ErrorBoundary>
         </main>
       </div>
+
+      {/* 关于系统:展示后端构建版本信息(来自免鉴权接口 /system/version) */}
+      <Modal
+        title="关于系统"
+        open={aboutOpen}
+        footer={null}
+        width={440}
+        onCancel={() => setAboutOpen(false)}
+      >
+        {verErr ? (
+          <Result status="warning" title="版本信息加载失败" style={{ padding: '24px 0' }} />
+        ) : verInfo ? (
+          <Descriptions column={1} size="small" bordered>
+            <Descriptions.Item label="系统版本">{verInfo.version}</Descriptions.Item>
+            <Descriptions.Item label="Git 提交">{verInfo.git_commit}</Descriptions.Item>
+            <Descriptions.Item label="构建时间">{verInfo.build_time}</Descriptions.Item>
+            <Descriptions.Item label="Go 版本">{verInfo.go_version}</Descriptions.Item>
+          </Descriptions>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
+            <Spin />
+          </div>
+        )}
+      </Modal>
 
       <NotificationHandler />
     </div>

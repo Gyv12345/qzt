@@ -5,6 +5,16 @@ APP_PORT ?= 9000
 ENV ?= dev
 COMPOSE_FILE ?= deploy/docker-compose.yaml
 
+# --- 版本注入 ---
+# 版本号取 git tag(git describe):打完 tag 后 make build 产物自动带版本号,
+# 未打 tag 时显示最近 tag+N-g<hash> 形式,便于定位构建来源。
+GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+BUILD_TIME ?= $(shell date '+%Y-%m-%d %H:%M:%S')
+RELEASE_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+BUILD_LDFLAGS = -X 'qzt-go-server/internal/version.Version=$(RELEASE_VERSION)' \
+	-X 'qzt-go-server/internal/version.GitCommit=$(GIT_COMMIT)' \
+	-X 'qzt-go-server/internal/version.BuildTime=$(BUILD_TIME)'
+
 .PHONY: help
 help: ## Show this help
 	@awk 'BEGIN { \
@@ -24,9 +34,18 @@ run: ## Run server locally (dev env, auto-loads .env if present)
 	go run ./cmd/server -config ./config -log ./logs
 
 .PHONY: build
-build: ## Build server binary into bin/
+build: ## Build server binary into bin/ (version injected from git tags)
 	@mkdir -p bin
-	go build -o bin/$(APP_NAME) ./cmd/server
+	go build -ldflags "$(BUILD_LDFLAGS)" -o bin/$(APP_NAME) ./cmd/server
+
+.PHONY: version
+version: ## Print current release version (from git tags)
+	@echo $(RELEASE_VERSION)
+
+.PHONY: build-prod
+build-prod: ## Cross-compile linux/amd64 production binary into bin/
+	@mkdir -p bin
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(BUILD_LDFLAGS)" -o bin/$(APP_NAME)-linux-amd64 ./cmd/server
 
 .PHONY: tidy
 tidy: ## Clean up go.mod dependencies

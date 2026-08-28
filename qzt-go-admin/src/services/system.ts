@@ -22,6 +22,7 @@ import type {
   SysOperationLog,
   SysRole,
   SysSiteConfig,
+  SystemVersionInfo,
   SysUser,
   UpdateConfigRequest,
   UpdateRoleRequest,
@@ -184,6 +185,11 @@ export const getSiteConfig = () => request.get<unknown, SysSiteConfig>('/system/
 
 export const updateSiteConfig = (data: UpdateSiteConfigRequest) =>
   request.put('/system/site-config', data)
+
+// ---------- 系统版本 ----------
+
+/** 系统版本信息(免鉴权):「关于系统」弹窗与部署核验用 */
+export const getVersion = () => request.get<unknown, SystemVersionInfo>('/system/version')
 
 // ---------- 首页板块配置 ----------
 
