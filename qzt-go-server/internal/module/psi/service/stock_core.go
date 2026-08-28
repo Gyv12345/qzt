@@ -36,7 +36,9 @@ type StockListRow struct {
 	Unit        string `json:"unit"`
 	Category    string `json:"category"`
 	// 规格描述(空=默认规格/历史数据)
-	SkuSpec     string `json:"sku_spec"`
+	SkuSpec string `json:"sku_spec"`
+	// 仓库名称(停用仓库也回填,避免前端显示裸 ID)
+	WarehouseName string `json:"warehouse_name"`
 }
 
 // MovementInput 描述一次库存变动的输入。

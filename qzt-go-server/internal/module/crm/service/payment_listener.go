@@ -71,7 +71,7 @@ func RegisterPaymentListener(ctx context.Context) error {
 			Amount:      amountStr,
 			BizType:     "CONTRACT_PAYMENT",
 			BizID:       &recordID,
-			Remark:      fmt.Sprintf("合同#%d 回款自动生成", contractID),
+			Remark:      fmt.Sprintf("%s 回款自动生成", contractName),
 		}, 0) // operatorID=0 表示系统自动生成
 		if err != nil {
 			xlogger.ErrorfCtx(ctx, "回款自动生成凭证失败 record_id=%d: %v", recordID, err)

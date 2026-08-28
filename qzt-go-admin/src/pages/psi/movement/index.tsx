@@ -70,7 +70,7 @@ export default function MovementPage() {
         placeholder: '选择仓库',
         options: warehouses.map((w) => ({ label: w.name, value: w.id })),
       },
-      render: (_, record) => warehouseMap.get(record.warehouse_id) ?? `#${record.warehouse_id}`,
+      render: (_, record) => record.warehouse_name || warehouseMap.get(record.warehouse_id) || `#${record.warehouse_id}`,
     },
     {
       title: '入库',

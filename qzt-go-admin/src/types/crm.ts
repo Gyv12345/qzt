@@ -94,6 +94,8 @@ export interface CrmOpportunity {
   name: string
   opportunity_no: string
   customer_id: number
+  /** 客户名称(后端列表回填,可能为空) */
+  customer_name?: string
   expected_amount: string
   expected_close_date: string | null
   /** 阶段(字典 OPPORTUNITY_STAGE,运行期以阶段配置为准) */

@@ -57,7 +57,7 @@ func newOpportunityService() *opportunityServiceWrapper {
 	return &opportunityServiceWrapper{svc: crmsvc.NewOpportunityService()}
 }
 
-func (w *opportunityServiceWrapper) List(ctx context.Context, page, pageSize int, keyword, stage string) ([]crmmodel.CrmOpportunity, int64, error) {
+func (w *opportunityServiceWrapper) List(ctx context.Context, page, pageSize int, keyword, stage string) ([]crmsvc.OpportunityListRow, int64, error) {
 	return w.svc.List(ctx, page, pageSize, keyword, 0, stage)
 }
 

@@ -28,3 +28,15 @@ func (r *WarehouseRepo) ListEnabled(ctx context.Context) ([]psimodel.PsiWarehous
 		Order: []string{"sort ASC", "id ASC"},
 	})
 }
+
+// ListByIDs 按仓库 ID 集合批量查(含已软删,历史库存/流水展示兜底)。
+func (r *WarehouseRepo) ListByIDs(ctx context.Context, ids []uint) ([]psimodel.PsiWarehouse, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var list []psimodel.PsiWarehouse
+	if err := repository.DBFrom(ctx).Unscoped().Where("id IN ?", ids).Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
+}

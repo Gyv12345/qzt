@@ -138,8 +138,15 @@ func (s *OpportunityService) Delete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
 
+// OpportunityListRow 商机列表行:回填客户名(客户可能不在查看者数据范围内,
+// 前端拿不到名称会退化成裸 ID,故在服务层跨表回填)。
+type OpportunityListRow struct {
+	crmmodel.CrmOpportunity
+	CustomerName string `json:"customer_name"`
+}
+
 // List 商机列表(分页 + keyword 名称模糊 + customerID + stage 过滤)。
-func (s *OpportunityService) List(ctx context.Context, page, pageSize int, keyword string, customerID uint, stage string) ([]crmmodel.CrmOpportunity, int64, error) {
+func (s *OpportunityService) List(ctx context.Context, page, pageSize int, keyword string, customerID uint, stage string) ([]OpportunityListRow, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
 	where := map[string]any{}
 	if keyword != "" {
@@ -157,7 +164,28 @@ func (s *OpportunityService) List(ctx context.Context, page, pageSize int, keywo
 	if cond := datascope.BuildCond(ctx, "owner_id"); cond != nil {
 		q.Conds = append(q.Conds, *cond)
 	}
-	return s.repo.PageList(ctx, page, pageSize, q)
+	list, total, err := s.repo.PageList(ctx, page, pageSize, q)
+	if err != nil || len(list) == 0 {
+		rows := make([]OpportunityListRow, 0)
+		return rows, total, err
+	}
+	customerIDs := make([]uint, 0, len(list))
+	for _, o := range list {
+		customerIDs = append(customerIDs, o.CustomerID)
+	}
+	customers, err := crrepo.NewCustomerRepo().ListByIDs(ctx, customerIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+	cMap := make(map[uint]string, len(customers))
+	for _, c := range customers {
+		cMap[c.ID] = c.Name
+	}
+	rows := make([]OpportunityListRow, 0, len(list))
+	for _, o := range list {
+		rows = append(rows, OpportunityListRow{CrmOpportunity: o, CustomerName: cMap[o.CustomerID]})
+	}
+	return rows, total, nil
 }
 
 // Board 商机看板:按阶段分组(stage -> 商机列表)。

@@ -32,6 +32,19 @@ func fetchSkuSpecs(ctx context.Context, skuIDs []uint) (map[uint]string, error) 
 	return m, nil
 }
 
+// fetchWarehouseNames 按仓库 ID 集合批量取名称(含停用仓库,避免前端裸 ID 显示)。
+func fetchWarehouseNames(ctx context.Context, ids []uint) (map[uint]string, error) {
+	ws, err := psirepo.NewWarehouseRepo().ListByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[uint]string, len(ws))
+	for _, w := range ws {
+		m[w.ID] = w.Name
+	}
+	return m, nil
+}
+
 // StockList 库存结余分页列表。回填 crm_product 商品名/编号/单位/分类与 SKU 规格。
 // lowStock=true 时仅返回 quantity < safety_stock(且 safety_stock>0)的预警行。
 func (s *StockService) StockList(ctx context.Context, page, pageSize int, warehouseID uint, keyword string, lowStock bool) ([]StockListRow, int64, error) {
@@ -58,11 +71,13 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 	// 批量取商品信息
 	productIDs := make([]uint, 0, len(stocks))
 	skuIDs := make([]uint, 0, len(stocks))
+	warehouseIDs := make([]uint, 0, len(stocks))
 	for _, st := range stocks {
 		productIDs = append(productIDs, st.ProductID)
 		if st.SkuID > 0 {
 			skuIDs = append(skuIDs, st.SkuID)
 		}
+		warehouseIDs = append(warehouseIDs, st.WarehouseID)
 	}
 	products, err := s.fetchProducts(ctx, productIDs)
 	if err != nil {
@@ -76,6 +91,10 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 	if err != nil {
 		return nil, 0, err
 	}
+	whMap, err := fetchWarehouseNames(ctx, warehouseIDs)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	rows := make([]StockListRow, 0, len(stocks))
 	for _, st := range stocks {
@@ -83,7 +102,8 @@ func (s *StockService) StockList(ctx context.Context, page, pageSize int, wareho
 		row := StockListRow{
 			PsiStock:    st,
 			ProductName: p.Name, ProductNo: p.ProductNo, Unit: p.Unit, Category: p.Category,
-			SkuSpec: specMap[st.SkuID],
+			SkuSpec:       specMap[st.SkuID],
+			WarehouseName: whMap[st.WarehouseID],
 		}
 		// 低库存过滤已下沉到 SQL(见上方 q.Conds),此处不再内存过滤
 		// 关键词过滤(商品名/编号)
@@ -118,11 +138,13 @@ func (s *StockService) MovementDetail(ctx context.Context, page, pageSize int, w
 	}
 	productIDs := make([]uint, 0, len(list))
 	skuIDs := make([]uint, 0, len(list))
+	warehouseIDs := make([]uint, 0, len(list))
 	for _, m := range list {
 		productIDs = append(productIDs, m.ProductID)
 		if m.SkuID > 0 {
 			skuIDs = append(skuIDs, m.SkuID)
 		}
+		warehouseIDs = append(warehouseIDs, m.WarehouseID)
 	}
 	products, err := s.fetchProducts(ctx, productIDs)
 	if err != nil {
@@ -136,9 +158,14 @@ func (s *StockService) MovementDetail(ctx context.Context, page, pageSize int, w
 	if err != nil {
 		return nil, 0, err
 	}
+	whMap, err := fetchWarehouseNames(ctx, warehouseIDs)
+	if err != nil {
+		return nil, 0, err
+	}
 	for i := range list {
 		list[i].ProductName = pMap[list[i].ProductID]
 		list[i].SkuSpec = specMap[list[i].SkuID]
+		list[i].WarehouseName = whMap[list[i].WarehouseID]
 	}
 	return list, total, nil
 }

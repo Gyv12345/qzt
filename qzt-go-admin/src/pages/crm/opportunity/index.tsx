@@ -181,10 +181,13 @@ export default function OpportunityPage() {
           size="small"
           style={{ padding: 0 }}
           onClick={() =>
-            setViewCustomer({ id: r.customer_id, name: customerMap[r.customer_id] ?? '' } as CrmCustomer)
+            setViewCustomer({
+              id: r.customer_id,
+              name: r.customer_name || customerMap[r.customer_id] || '',
+            } as CrmCustomer)
           }
         >
-          {customerMap[r.customer_id] ?? `#${r.customer_id}`}
+          {r.customer_name || customerMap[r.customer_id] || `#${r.customer_id}`}
         </Button>
       ),
     },

@@ -158,3 +158,15 @@ func (r *CustomerCollaborationRepo) IsCollaborator(ctx context.Context, customer
 		Where: map[string]any{"customer_id": customerID, "user_id": userID},
 	})
 }
+
+// ListByIDs 按客户 ID 集合批量查(含已软删,商机等关联展示兜底)。
+func (r *CustomerRepo) ListByIDs(ctx context.Context, ids []uint) ([]crmmodel.CrmCustomer, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var list []crmmodel.CrmCustomer
+	if err := repository.DBFrom(ctx).Unscoped().Where("id IN ?", ids).Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
+}

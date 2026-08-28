@@ -264,6 +264,8 @@ export interface PsiStock {
   /** 规格描述(后端回填,空 = 默认规格) */
   sku_spec: string
   warehouse_id: number
+  /** 仓库名称(后端回填,含停用仓库) */
+  warehouse_name?: string
   quantity: string
   safety_stock: string
   product_name: string
@@ -289,6 +291,8 @@ export interface PsiStockMovement {
   /** 规格描述(后端回填,空 = 默认规格) */
   sku_spec: string
   warehouse_id: number
+  /** 仓库名称(后端回填,含停用仓库) */
+  warehouse_name?: string
   in_qty: string
   out_qty: string
   balance_after: string

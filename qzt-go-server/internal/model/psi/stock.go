@@ -60,6 +60,8 @@ type PsiStockMovement struct {
 	ProductName  string          `json:"product_name" gorm:"-"`
 	// 规格描述(非表字段,列表接口批量回填展示用)
 	SkuSpec      string          `json:"sku_spec" gorm:"-"`
+	// 仓库名称(非表字段,列表接口批量回填展示用;含停用仓库)
+	WarehouseName string         `json:"warehouse_name" gorm:"-"`
 	base.BaseModel
 }
 
