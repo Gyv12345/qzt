@@ -69,8 +69,9 @@ mysql -h <host> -u <user> -p qztgo < docs/sql/qztgo.sql
 
 ```bash
 make run        # 加载 .env + config/config.<env>.yaml，不自动建表/写种子
+```
 
-### 4. 构建
+### 5. 构建
 
 ```bash
 make build      # 产出 bin/qzt-server
@@ -91,12 +92,15 @@ Router -> Middleware -> Handler(API) -> Service -> Repository -> GORM -> MySQL/R
 
 ## 已实现模块
 
-12 个业务模块 + MCP Server，详见 [docs/FEATURES.md](docs/FEATURES.md)：
+15 个业务模块 + MCP Server：
 
-- **system**（系统地基）、**crm**（客户关系）、**hrm**（人力资源）、**psi**（进销存）
-- **cms**（内容管理）、**approval**（审批引擎）、**finance**（财务）、**oa**（协同办公）
-- **enterprise**（企业服务）、**project**（项目）、**ai**（AI 助手）、**api**（公共接口）
-- **mcp**（AI 工具层，90+ 工具，对接大模型）
+- **system**（系统地基：用户/角色/菜单/RBAC/字典/日志/站点配置）、**api**（公共接口：健康检查/上传/公共配置）
+- **crm**（客户/线索/商机/合同/回款/公海/产品 SKU）、**psi**（进销存：采购/销售/退货/库存/仓库/供应商）
+- **finance**（财务：应收应付/凭证/发票/科目）、**hrm**（人事：员工/考勤/工资/绩效/招聘）
+- **oa**（协同：报销/出差/借款/会议/日志/日程/公告）、**approval**（审批引擎：流程设计器/待办）
+- **cms**（官网内容管理）、**kb**（知识库）、**cloud**（云盘）、**project**（项目管理）
+- **enterprise**（企业服务：定时任务等）、**marketing**（营销：抖音线索对接）、**mall**（公开商城）
+- **mcp**（AI 工具层，挂载 `/mcp`，API Key 认证，全功能开放给大模型）
 
 新增业务模块：在 `internal/module/<name>/` 下实现 `Module` 接口，在 `cmd/server/main.go` 注册即可。
 
@@ -110,3 +114,13 @@ make up         # docker-compose 启动 mysql + redis + app
 
 容量与压测评估见 [docs/CAPACITY.md](docs/CAPACITY.md)（2C4G + 2C2G 单机承载约 150-400 在线用户，优化后可到 800）。
 文件存储（本地/OSS 双桶）见 [docs/OSS.md](docs/OSS.md)。
+
+## 许可与商业服务
+
+版权归 **河南爱编程网络科技有限公司** 所有，基于 [MIT 协议](../LICENSE) 开源——自行部署、使用、修改完全免费。
+
+- **官方部署服务**（由我们代为部署上线）：**500 元 / 次**
+- **二次开发 / 定制**：面谈
+
+详见[工作区 README](../README.md)「版权与商业服务」。
+
