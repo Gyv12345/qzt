@@ -33,7 +33,6 @@ type HandoverResult struct {
 	Contract     int64 `json:"contract"`      // 转移的合同数
 	FollowRec    int64 `json:"follow_record"` // 转移的跟进记录数
 	FollowPlan   int64 `json:"follow_plan"`   // 转移的跟进计划数
-	Collab       int64 `json:"collaboration"` // 转移的客户协作数
 	Ticket       int64 `json:"ticket"`        // 转移的工单数(处理人)
 	ContractTpl  int64 `json:"contract_tpl"`  // 转移的合同模板数
 	Project      int64 `json:"project"`       // 转移的项目数(负责人)
@@ -59,9 +58,6 @@ func (s *HandoverService) Handover(ctx context.Context, req *HandoverRequest) (*
 	result := &HandoverResult{}
 
 	// 客户协作有 uk_customer_user 唯一键:接收人已协作的行先删,否则整批 UPDATE 失败
-	if _, err := crrepo.DeleteDuplicatedCollaboration(ctx, req.FromUserID, req.ToUserID); err != nil {
-		return nil, fmt.Errorf("清理重复客户协作失败: %v", err)
-	}
 
 	// 按表批量更新归属字段,统计影响行数
 	updates := []struct {
@@ -76,7 +72,6 @@ func (s *HandoverService) Handover(ctx context.Context, req *HandoverRequest) (*
 		{"crm_contract", "owner_id", &result.Contract},
 		{"follow_up_record", "owner_id", &result.FollowRec},
 		{"follow_up_plan", "owner_id", &result.FollowPlan},
-		{"crm_customer_collaboration", "user_id", &result.Collab},
 		{"crm_ticket", "handler_id", &result.Ticket},
 		{"crm_contract_template", "owner_id", &result.ContractTpl},
 		// ── 项目 ──

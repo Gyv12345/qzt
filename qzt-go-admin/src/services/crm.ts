@@ -358,24 +358,6 @@ export const listContacts = (
   params?: { page?: number; page_size?: number; keyword?: string; customer_id?: number },
 ) => request.get<unknown, PageResult<CrmContactListItem>>('/crm/contacts', { params })
 
-// ---------- 客户团队协作 ----------
-export interface CrmCollaboration {
-  id: number
-  customer_id: number
-  user_id: number
-  collaboration_type: 'READ_ONLY' | 'COLLABORATION'
-  nickname: string
-  username: string
-  created_at: string
-}
-export const listCollaborations = (customerId: number) =>
-  request.get<unknown, CrmCollaboration[]>('/crm/customers/' + customerId + '/collaborations')
-export const addCollaboration = (customerId: number, data: { user_id: number; collaboration_type: string }) =>
-  request.post('/crm/customers/' + customerId + '/collaborations', data)
-export const updateCollaboration = (id: number, data: { collaboration_type: string }) =>
-  request.put('/crm/collaborations/' + id, data)
-export const deleteCollaboration = (id: number) =>
-  request.delete('/crm/collaborations/' + id)
 
 // ── 售后工单 ──
 

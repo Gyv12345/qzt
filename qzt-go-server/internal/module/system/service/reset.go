@@ -43,7 +43,6 @@ var businessTables = []string{
 	"crm_lead_owner_history",
 	"crm_lead",
 	"crm_customer_owner_history",
-	"crm_customer_collaboration",
 	"crm_customer_contact",
 	"crm_customer",
 	"crm_contract_template",

@@ -134,31 +134,6 @@ func (r *CustomerContactRepo) PageListAll(ctx context.Context, page, pageSize in
 
 // ── 协作 ──
 
-type CustomerCollaborationRepo struct {
-	repository.BaseRepo[crmmodel.CrmCustomerCollaboration]
-}
-
-func NewCustomerCollaborationRepo() *CustomerCollaborationRepo { return &CustomerCollaborationRepo{} }
-
-func (r *CustomerCollaborationRepo) Update(ctx context.Context, m *crmmodel.CrmCustomerCollaboration) error {
-	return r.BaseRepo.Update(ctx, m, "CollaborationType")
-}
-
-// ListByCustomer 按客户列协作成员。
-func (r *CustomerCollaborationRepo) ListByCustomer(ctx context.Context, customerID uint) ([]crmmodel.CrmCustomerCollaboration, error) {
-	return r.List(ctx, &repository.QueryOptions{
-		Where: map[string]any{"customer_id": customerID},
-		Order: []string{"id ASC"},
-	})
-}
-
-// IsCollaborator 判断用户是否为某客户的协作成员。
-func (r *CustomerCollaborationRepo) IsCollaborator(ctx context.Context, customerID, userID uint) (bool, error) {
-	return r.Exists(ctx, &repository.QueryOptions{
-		Where: map[string]any{"customer_id": customerID, "user_id": userID},
-	})
-}
-
 // ListByIDs 按客户 ID 集合批量查(含已软删,商机等关联展示兜底)。
 func (r *CustomerRepo) ListByIDs(ctx context.Context, ids []uint) ([]crmmodel.CrmCustomer, error) {
 	if len(ids) == 0 {

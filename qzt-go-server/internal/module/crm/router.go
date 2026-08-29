@@ -34,7 +34,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	stageHandler := handler.NewStageHandler()
 	contractTemplateHandler := handler.NewContractTemplateHandler()
 	contractItemHandler := handler.NewContractItemHandler()
-	collabHandler := handler.NewCollaborationHandler()
 	handoverHandler := handler.NewHandoverHandler()
 	changeLogHandler := handler.NewChangeLogHandler()
 	importExportHandler := handler.NewImportExportHandler()
@@ -110,10 +109,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.DELETE("/contacts/:id", DataScopeGuard("contact"), contactHandler.Delete)
 
 		// 客户团队协作
-		auth.GET("/customers/:id/collaborations", DataScopeGuard("customer"), collabHandler.List)
-		auth.POST("/customers/:id/collaborations", DataScopeGuard("customer"), collabHandler.Add)
-		auth.PUT("/collaborations/:id", DataScopeGuard("collaboration"), collabHandler.Update)
-		auth.DELETE("/collaborations/:id", DataScopeGuard("collaboration"), collabHandler.Delete)
 
 		// 离职交接:批量转移用户名下的业务资源
 		auth.POST("/handover", handoverHandler.Handover)

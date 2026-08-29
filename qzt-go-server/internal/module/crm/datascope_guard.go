@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"qzt-go-server/internal/app"
-	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/module/system/errcode"
+	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/pkg/xresponse"
 )
 
@@ -129,17 +129,16 @@ type ownerRef struct {
 }
 
 var ownerRefs = map[string]ownerRef{
-	"customer":        {"crm_customer", "owner_id", ""},
-	"lead":            {"crm_lead", "owner_id", ""},
-	"opportunity":     {"crm_opportunity", "owner_id", ""},
-	"contract":        {"crm_contract", "owner_id", ""},
-	"contact":         {"crm_customer_contact", "customer_id", "customer"},
-	"collaboration":   {"crm_customer_collaboration", "customer_id", "customer"},
-	"follow_record":   {"follow_up_record", "customer_id", "customer"},
-	"follow_plan":     {"follow_up_plan", "customer_id", "customer"},
-	"payment_plan":    {"crm_contract_payment_plan", "contract_id", "contract"},
-	"payment_record":  {"crm_contract_payment_record", "contract_id", "contract"},
-	"contract_item":   {"crm_contract_item", "contract_id", "contract"},
+	"customer":       {"crm_customer", "owner_id", ""},
+	"lead":           {"crm_lead", "owner_id", ""},
+	"opportunity":    {"crm_opportunity", "owner_id", ""},
+	"contract":       {"crm_contract", "owner_id", ""},
+	"contact":        {"crm_customer_contact", "customer_id", "customer"},
+	"follow_record":  {"follow_up_record", "customer_id", "customer"},
+	"follow_plan":    {"follow_up_plan", "customer_id", "customer"},
+	"payment_plan":   {"crm_contract_payment_plan", "contract_id", "contract"},
+	"payment_record": {"crm_contract_payment_record", "contract_id", "contract"},
+	"contract_item":  {"crm_contract_item", "contract_id", "contract"},
 }
 
 // resolveOwner 沿外键链解析记录最终归属人;记录不存在、列为 NULL 或链断裂

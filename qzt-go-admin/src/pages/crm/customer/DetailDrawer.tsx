@@ -10,7 +10,6 @@ import ContractsPanel from './ContractsPanel'
 import FollowPanel from './FollowPanel'
 import OpportunitiesPanel from './OpportunitiesPanel'
 import OwnerHistoryPanel from './OwnerHistoryPanel'
-import TeamPanel from './TeamPanel'
 import ChangeLogPanel from './ChangeLogPanel'
 
 const STATUS_MAP: Record<number, { text: string; color: string }> = {
@@ -117,11 +116,6 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
               key: 'contacts',
               label: '联系人',
               children: <ContactsPanel customerId={c.id} />,
-            },
-            {
-              key: 'team',
-              label: '团队',
-              children: <TeamPanel customerId={c.id} />,
             },
             {
               key: 'opportunities',

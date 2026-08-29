@@ -33,7 +33,6 @@ var customerFieldDefs = []diff.FieldDef{
 type CustomerService struct {
 	repo        *crrepo.CustomerRepo
 	contactRepo *crrepo.CustomerContactRepo
-	collabRepo  *crrepo.CustomerCollaborationRepo
 	historyRepo *crrepo.CustomerOwnerHistoryRepo
 	fieldSvc    *CustomFieldService
 	// 官网合作方由「官网内容→官网首页配置→合作伙伴」精选决定,
@@ -46,7 +45,6 @@ func NewCustomerService() *CustomerService {
 	return &CustomerService{
 		repo:                crrepo.NewCustomerRepo(),
 		contactRepo:         crrepo.NewCustomerContactRepo(),
-		collabRepo:          crrepo.NewCustomerCollaborationRepo(),
 		historyRepo:         crrepo.NewCustomerOwnerHistoryRepo(),
 		fieldSvc:            NewCustomFieldService(),
 		homepageModuleRepo:  repository.NewHomepageModuleRepo(),
@@ -265,10 +263,6 @@ func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 		if err := crrepoDeleteContactsByCustomer(ctx, id); err != nil {
 			return err
 		}
-		// 删协作
-		if err := crrepoDeleteCollaborationsByCustomer(ctx, id); err != nil {
-			return err
-		}
 		// 删自定义字段值
 		if err := s.fieldSvc.DeleteCustomerValues(ctx, formatResourceID(id)); err != nil {
 			return err
@@ -278,7 +272,7 @@ func (s *CustomerService) Delete(ctx context.Context, id uint) error {
 }
 
 // customerRefTables 删除客户时需要校验的业务引用表(表名 → 业务名称)。
-// 联系人/协作已由 Delete 级联软删,归属历史为审计流水保留,线索转化(converted_customer_id)为历史记录,均不阻止删除。
+// 联系人/自定义字段值已由 Delete 级联软删,归属历史为审计流水保留,线索转化(converted_customer_id)为历史记录,均不阻止删除。
 var customerRefTables = []struct {
 	table string
 	label string
@@ -460,11 +454,6 @@ func uintToStr(n uint) string {
 // crrepoDeleteContactsByCustomer 软删除某客户的全部联系人。
 func crrepoDeleteContactsByCustomer(ctx context.Context, customerID uint) error {
 	return crrepoDeleteByColumn(ctx, &crmmodel.CrmCustomerContact{}, "customer_id", customerID)
-}
-
-// crrepoDeleteCollaborationsByCustomer 软删除某客户的全部协作。
-func crrepoDeleteCollaborationsByCustomer(ctx context.Context, customerID uint) error {
-	return crrepoDeleteByColumn(ctx, &crmmodel.CrmCustomerCollaboration{}, "customer_id", customerID)
 }
 
 // crrepoDeleteByColumn 按列名软删除(GORM 软删除自动加 deleted_at 条件)。
