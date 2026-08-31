@@ -22,7 +22,7 @@ func NewTicketRepo() *TicketRepo { return &TicketRepo{} }
 // CountByNoPrefix 统计 ticket_no LIKE 前缀% 且非空的记录数(自动编号规则 GD 推算用)。
 func (r *TicketRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.CrmTicket{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.CrmTicket{}).
 		Where("ticket_no LIKE ?", prefix+"%").
 		Where("ticket_no != ''").
 		Count(&n).Error

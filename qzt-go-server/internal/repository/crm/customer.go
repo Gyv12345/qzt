@@ -43,7 +43,7 @@ func (r *CustomerRepo) CountByOwner(ctx context.Context, ownerID uint) (int64, e
 // CountByNoPrefix 统计 customer_no LIKE 前缀% 且非空的记录数(自动编号规则 KH 推算用)。
 func (r *CustomerRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.CrmCustomer{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.CrmCustomer{}).
 		Where("customer_no LIKE ?", prefix+"%").
 		Where("customer_no != ''").
 		Count(&n).Error
@@ -77,7 +77,7 @@ func (r *CustomerContactRepo) Update(ctx context.Context, m *crmmodel.CrmCustome
 // CountByNoPrefix 统计 contact_no LIKE 前缀% 且非空的记录数(自动编号规则 LXR 推算用)。
 func (r *CustomerContactRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.CrmCustomerContact{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.CrmCustomerContact{}).
 		Where("contact_no LIKE ?", prefix+"%").
 		Where("contact_no != ''").
 		Count(&n).Error

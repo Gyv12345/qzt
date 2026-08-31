@@ -103,7 +103,7 @@ func (r *LeaveRepo) SumApprovedLeaveDays(ctx context.Context, employeeID uint) (
 // CountByNoPrefix 统计同前缀请假单数(编号规则 QJ+日期+序号 推算用)。
 func (r *LeaveRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&hrmmodel.HrmLeave{}).
+	err := repoDB(ctx).Unscoped().Model(&hrmmodel.HrmLeave{}).
 		Where("leave_no LIKE ?", prefix+"%").
 		Where("leave_no != ''").
 		Count(&n).Error
@@ -146,7 +146,7 @@ func (r *OvertimeRepo) SumApprovedOvertimeHours(ctx context.Context, employeeID 
 // CountByNoPrefix 统计同前缀加班单数(编号规则 JB+日期+序号 推算用)。
 func (r *OvertimeRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&hrmmodel.HrmOvertime{}).
+	err := repoDB(ctx).Unscoped().Model(&hrmmodel.HrmOvertime{}).
 		Where("overtime_no LIKE ?", prefix+"%").
 		Where("overtime_no != ''").
 		Count(&n).Error

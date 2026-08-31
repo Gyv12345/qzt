@@ -23,7 +23,7 @@ func (r *FollowUpRecordRepo) Update(ctx context.Context, m *crmmodel.FollowUpRec
 // CountByNoPrefix 统计 follow_no LIKE 前缀% 且非空的记录数(自动编号规则 GJ 推算用)。
 func (r *FollowUpRecordRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.FollowUpRecord{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.FollowUpRecord{}).
 		Where("follow_no LIKE ?", prefix+"%").
 		Where("follow_no != ''").
 		Count(&n).Error

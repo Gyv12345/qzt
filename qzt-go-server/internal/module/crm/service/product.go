@@ -74,17 +74,18 @@ func (s *ProductService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmPro
 	return p, repository.NotFoundOr(err, "商品不存在")
 }
 
-// UpdateProductRequest 更新商品请求。
+// UpdateProductRequest 更新商品请求。除 Name 外全是指针:未传( nil)即不覆盖,真半增量;
+// 显式传 ""/0 才会清空,避免「补一个字段顺手抹掉其余」的全量覆盖事故。
 type UpdateProductRequest struct {
-	Name          string          `json:"name" binding:"required"`
-	ProductNo     string          `json:"product_no"`
-	Category      string          `json:"category"`
-	Unit          string          `json:"unit"`
-	StandardPrice decimal.Decimal `json:"standard_price"`
-	CostPrice     decimal.Decimal `json:"cost_price"`
-	Status        *int8           `json:"status"`
-	ImageURL      string          `json:"image_url"`
-	Description   string          `json:"description"`
+	Name          string           `json:"name" binding:"required"`
+	ProductNo     *string          `json:"product_no"`
+	Category      *string          `json:"category"`
+	Unit          *string          `json:"unit"`
+	StandardPrice *decimal.Decimal `json:"standard_price"`
+	CostPrice     *decimal.Decimal `json:"cost_price"`
+	Status        *int8            `json:"status"`
+	ImageURL      *string          `json:"image_url"`
+	Description   *string          `json:"description"`
 }
 
 // Update 更新商品。
@@ -94,16 +95,30 @@ func (s *ProductService) Update(ctx context.Context, id uint, req *UpdateProduct
 		return repository.NotFoundOr(err, "商品不存在")
 	}
 	p.Name = req.Name
-	p.ProductNo = req.ProductNo
-	p.Category = req.Category
-	p.Unit = req.Unit
-	p.StandardPrice = req.StandardPrice
-	p.CostPrice = req.CostPrice
+	if req.ProductNo != nil {
+		p.ProductNo = *req.ProductNo
+	}
+	if req.Category != nil {
+		p.Category = *req.Category
+	}
+	if req.Unit != nil {
+		p.Unit = *req.Unit
+	}
+	if req.StandardPrice != nil {
+		p.StandardPrice = *req.StandardPrice
+	}
+	if req.CostPrice != nil {
+		p.CostPrice = *req.CostPrice
+	}
 	if req.Status != nil {
 		p.Status = *req.Status
 	}
-	p.ImageURL = req.ImageURL
-	p.Description = req.Description
+	if req.ImageURL != nil {
+		p.ImageURL = *req.ImageURL
+	}
+	if req.Description != nil {
+		p.Description = *req.Description
+	}
 	return repository.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.repo.Update(ctx, p); err != nil {
 			return err

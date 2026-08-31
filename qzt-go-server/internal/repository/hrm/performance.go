@@ -22,7 +22,7 @@ func NewPerformanceRepo() *PerformanceRepo { return &PerformanceRepo{} }
 // CountByNoPrefix 统计同前缀绩效单数(编号规则 JX+日期+序号 推算用)。
 func (r *PerformanceRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := perfDB(ctx).Model(&hrmmodel.HrmPerformance{}).
+	err := perfDB(ctx).Unscoped().Model(&hrmmodel.HrmPerformance{}).
 		Where("perf_no LIKE ?", prefix+"%").
 		Where("perf_no != ''").
 		Count(&n).Error

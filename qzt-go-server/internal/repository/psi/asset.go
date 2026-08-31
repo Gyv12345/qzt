@@ -48,7 +48,7 @@ func (r *AssetRepo) Update(ctx context.Context, m *psimodel.PsiAsset) error {
 // CountByNoPrefix 统计同前缀资产数(资产编号 ZC+日期+序号 推算用)。
 func (r *AssetRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var count int64
-	err := repository.DBFrom(ctx).Model(&psimodel.PsiAsset{}).
+	err := repository.DBFrom(ctx).Unscoped().Model(&psimodel.PsiAsset{}).
 		Where("asset_no LIKE ?", prefix+"%").
 		Count(&count).Error
 	return count, err

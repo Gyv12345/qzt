@@ -41,7 +41,7 @@ func (r *ContractRepo) UpdateStageByID(ctx context.Context, id uint, stage strin
 // CountByNoPrefix 统计 contract_no LIKE 前缀% 且非空的记录数(自动编号规则 HT 推算用)。
 func (r *ContractRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.CrmContract{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.CrmContract{}).
 		Where("contract_no LIKE ?", prefix+"%").
 		Where("contract_no != ''").
 		Count(&n).Error

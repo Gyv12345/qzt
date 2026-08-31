@@ -33,7 +33,7 @@ func (r *SupplierRepo) ListEnabled(ctx context.Context) ([]psimodel.PsiSupplier,
 // CountByNoPrefix 统计同前缀供应商数(编号规则 GYS+日期+序号 推算用)。
 func (r *SupplierRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repository.DBFrom(ctx).Model(&psimodel.PsiSupplier{}).
+	err := repository.DBFrom(ctx).Unscoped().Model(&psimodel.PsiSupplier{}).
 		Where("supplier_no LIKE ?", prefix+"%").
 		Where("supplier_no != ''").
 		Count(&n).Error

@@ -51,7 +51,7 @@ func (r *ProjectRepo) Update(ctx context.Context, m *projmodel.ProjProject) erro
 // CountByNoPrefix 统计同前缀项目数(编号规则 XM+日期+序号 推算用)。
 func (r *ProjectRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := projDB(ctx).Model(&projmodel.ProjProject{}).
+	err := projDB(ctx).Unscoped().Model(&projmodel.ProjProject{}).
 		Where("project_no LIKE ?", prefix+"%").
 		Count(&n).Error
 	return n, err

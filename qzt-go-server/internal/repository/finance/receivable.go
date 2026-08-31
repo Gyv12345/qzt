@@ -56,7 +56,7 @@ func (r *ReceivableRepo) Update(ctx context.Context, m *finmodel.FinReceivable) 
 // CountByNoPrefix 统计同前缀往来单数(单号 YS/YF+日期+序号 推算用)。
 func (r *ReceivableRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var count int64
-	err := finDB(ctx).Model(&finmodel.FinReceivable{}).
+	err := finDB(ctx).Unscoped().Model(&finmodel.FinReceivable{}).
 		Where("doc_no LIKE ?", prefix+"%").
 		Count(&count).Error
 	return count, err

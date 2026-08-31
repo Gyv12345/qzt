@@ -83,7 +83,7 @@ func (r *VoucherRepo) Update(ctx context.Context, m *finmodel.FinVoucher) error 
 // CountByNoPrefix 统计同前缀凭证数(凭证编号 VyyyyMMdd-序号 的序号推算用)。
 func (r *VoucherRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var count int64
-	err := repoDB(ctx).Model(&finmodel.FinVoucher{}).Where("voucher_no LIKE ?", prefix+"%").Count(&count).Error
+	err := repoDB(ctx).Unscoped().Model(&finmodel.FinVoucher{}).Where("voucher_no LIKE ?", prefix+"%").Count(&count).Error
 	return count, err
 }
 

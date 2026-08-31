@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
 
@@ -184,11 +185,15 @@ func EnsureDefaultSKU(ctx context.Context, p *crmmodel.CrmProduct) error {
 	if skuNo == "" {
 		skuNo = fmt.Sprintf("SKU-P%d", p.ID)
 	}
-	// 商品编号被其他商品的 SKU 占用时(理论上不会,编号唯一约定)追加商品ID兜底
-	if exists, err := repo.Exists(ctx, &repository.QueryOptions{Where: map[string]any{"sku_no": skuNo}}); err != nil {
+	// 编号被占用(含软删行,uk_sku_no 唯一索引不豁免软删)时追加商品ID兜底
+	if exists, err := repo.ExistsByNoAny(ctx, skuNo); err != nil {
 		return err
 	} else if exists {
-		skuNo = fmt.Sprintf("%s-P%d", p.ProductNo, p.ID)
+		if p.ProductNo != "" {
+			skuNo = fmt.Sprintf("%s-P%d", p.ProductNo, p.ID)
+		} else {
+			skuNo = fmt.Sprintf("SKU-P%d-%d", p.ID, time.Now().Unix())
+		}
 	}
 	return repo.Create(ctx, &crmmodel.CrmProductSku{
 		ProductID: p.ID, Spec: "", SkuNo: skuNo,

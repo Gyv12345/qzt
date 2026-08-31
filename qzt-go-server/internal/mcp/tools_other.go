@@ -184,17 +184,17 @@ func registerProductTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("crm_product_update",
-			mcp.WithDescription("更新产品信息(只传要修改的字段)"),
+			mcp.WithDescription("更新产品信息(半增量:只传要修改的字段,未传字段保持原值)"),
 			mcp.WithNumber("id", mcp.Required(), mcp.Description("产品ID")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("产品名称")),
-			mcp.WithString("product_no", mcp.Description("产品编号")),
-			mcp.WithString("category", mcp.Description("分类")),
-			mcp.WithString("unit", mcp.Description("单位")),
-			mcp.WithNumber("standard_price", mcp.Description("标准价")),
-			mcp.WithNumber("cost_price", mcp.Description("成本价")),
-			mcp.WithNumber("status", mcp.Description("状态:1上架 2下架")),
-			mcp.WithString("image_url", mcp.Description("图片URL")),
-			mcp.WithString("description", mcp.Description("描述")),
+			mcp.WithString("product_no", mcp.Description("产品编号(传了才改)")),
+			mcp.WithString("category", mcp.Description("分类(传了才改)")),
+			mcp.WithString("unit", mcp.Description("单位(传了才改)")),
+			mcp.WithNumber("standard_price", mcp.Description("标准价(传了才改)")),
+			mcp.WithNumber("cost_price", mcp.Description("成本价(传了才改)")),
+			mcp.WithNumber("status", mcp.Description("状态:1上架 2下架(传了才改)")),
+			mcp.WithString("image_url", mcp.Description("图片URL(传了才改)")),
+			mcp.WithString("description", mcp.Description("描述(传了才改)")),
 		),
 		handleProductUpdate,
 	)
@@ -262,20 +262,35 @@ func handleProductUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if id == 0 || name == "" {
 		return resultError("产品ID(id)和名称(name)必填")
 	}
-	updateReq := &crmsvc.UpdateProductRequest{
-		Name:          name,
-		ProductNo:     req.GetString("product_no", ""),
-		Category:      req.GetString("category", ""),
-		Unit:          req.GetString("unit", ""),
-		StandardPrice: decimal.NewFromFloat(req.GetFloat("standard_price", 0)),
-		CostPrice:     decimal.NewFromFloat(req.GetFloat("cost_price", 0)),
-		ImageURL:      req.GetString("image_url", ""),
-		Description:   req.GetString("description", ""),
-	}
+	// 半增量:仅客户端显式传入的参数才覆盖,省略即保持原值
+	updateReq := &crmsvc.UpdateProductRequest{Name: name}
 	if args := req.GetArguments(); args != nil {
-		if _, ok := args["status"]; ok {
-			st := int8(req.GetFloat("status", 0))
+		if v, ok := args["product_no"].(string); ok {
+			updateReq.ProductNo = &v
+		}
+		if v, ok := args["category"].(string); ok {
+			updateReq.Category = &v
+		}
+		if v, ok := args["unit"].(string); ok {
+			updateReq.Unit = &v
+		}
+		if v, ok := args["standard_price"].(float64); ok {
+			sp := decimal.NewFromFloat(v)
+			updateReq.StandardPrice = &sp
+		}
+		if v, ok := args["cost_price"].(float64); ok {
+			cp := decimal.NewFromFloat(v)
+			updateReq.CostPrice = &cp
+		}
+		if v, ok := args["status"].(float64); ok {
+			st := int8(v)
 			updateReq.Status = &st
+		}
+		if v, ok := args["image_url"].(string); ok {
+			updateReq.ImageURL = &v
+		}
+		if v, ok := args["description"].(string); ok {
+			updateReq.Description = &v
 		}
 	}
 	if err := svc.Update(ctx, id, updateReq); err != nil {

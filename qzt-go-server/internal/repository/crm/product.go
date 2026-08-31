@@ -20,10 +20,11 @@ func (r *ProductRepo) Update(ctx context.Context, m *crmmodel.CrmProduct) error 
 		"Name", "ProductNo", "Category", "Unit", "StandardPrice", "CostPrice", "Status", "ImageURL", "Description")
 }
 
-// CountByNoPrefix 统计 product_no LIKE 前缀% 且非空的记录数(自动编号规则 CP 推算用)。
+// CountByNoPrefix 统计 product_no LIKE 前缀% 且非空、含软删的记录数(自动编号规则 CP 推算用)。
+// 计数必须含软删行:唯一索引不豁免软删,被软删行占过的编号复用会撞索引。
 func (r *ProductRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.CrmProduct{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.CrmProduct{}).
 		Where("product_no LIKE ?", prefix+"%").
 		Where("product_no != ''").
 		Count(&n).Error

@@ -43,7 +43,7 @@ func (r *LeadRepo) CountByOwner(ctx context.Context, ownerID uint) (int64, error
 // CountByNoPrefix 统计 lead_no LIKE 前缀% 且非空的记录数(自动编号规则 X 推算用)。
 func (r *LeadRepo) CountByNoPrefix(ctx context.Context, prefix string) (int64, error) {
 	var n int64
-	err := repoDB(ctx).Model(&crmmodel.CrmLead{}).
+	err := repoDB(ctx).Unscoped().Model(&crmmodel.CrmLead{}).
 		Where("lead_no LIKE ?", prefix+"%").
 		Where("lead_no != ''").
 		Count(&n).Error
