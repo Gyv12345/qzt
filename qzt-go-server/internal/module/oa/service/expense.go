@@ -48,14 +48,37 @@ type ExpenseItemInput struct {
 	Remark    string `json:"remark"`
 }
 
+// validateExpenseItems 校验明细行:至少一行、每行金额必须大于 0(防 0 元/负数明细冲抵)。
+func validateExpenseItems(items []ExpenseItemInput) error {
+	if len(items) == 0 {
+		return errors.New("请至少添加一行费用明细")
+	}
+	for i, it := range items {
+		amt, err := decimal.NewFromString(it.Amount)
+		if err != nil {
+			return fmt.Errorf("第%d行明细金额格式错误", i+1)
+		}
+		if !amt.IsPositive() {
+			return fmt.Errorf("第%d行明细金额必须大于0", i+1)
+		}
+	}
+	return nil
+}
+
 // Create 新建报销单(含明细行)。
 func (s *ExpenseService) Create(ctx context.Context, req *CreateExpenseRequest, userID uint) (*oamodel.OaExpense, error) {
 	if req.ApplicantID == 0 {
 		req.ApplicantID = userID
 	}
+	if err := validateExpenseItems(req.Items); err != nil {
+		return nil, err
+	}
 	amount, err := decimal.NewFromString(req.Amount)
 	if err != nil {
 		return nil, errors.New("金额格式错误")
+	}
+	if !amount.IsPositive() {
+		return nil, errors.New("报销总金额必须大于0")
 	}
 	expenseNo, _ := numbergen.Generate(ctx, "expense")
 
@@ -148,6 +171,9 @@ func (s *ExpenseService) Update(ctx context.Context, id uint, req *UpdateExpense
 	if !oamodel.CanEditApproval(expense.ApprovalStatus) {
 		return errors.New("仅未提交或已驳回的报销单可编辑")
 	}
+	if err := validateExpenseItems(req.Items); err != nil {
+		return err
+	}
 
 	if req.ExpenseType != "" {
 		expense.ExpenseType = req.ExpenseType
@@ -159,6 +185,9 @@ func (s *ExpenseService) Update(ctx context.Context, id uint, req *UpdateExpense
 		amount, err := decimal.NewFromString(req.Amount)
 		if err != nil {
 			return errors.New("金额格式错误")
+		}
+		if !amount.IsPositive() {
+			return errors.New("报销总金额必须大于0")
 		}
 		expense.Amount = amount
 	}

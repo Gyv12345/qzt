@@ -29,6 +29,7 @@ export default function SalesOrderPage() {
       itemsLabel="单据明细"
       party="customer"
       showApproval
+      statusLabels={{ 1: '待出库', 2: '已出库', 3: '已关闭' }}
       showDiscountInList
       detailItemExtra="shipped"
       detailFields={[

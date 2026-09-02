@@ -287,6 +287,10 @@ func (s *PurchaseService) StockIn(ctx context.Context, id uint, operatorID *uint
 	if err := s.stockSvc.applyMany(ctx, inputs); err != nil {
 		return err
 	}
+	// 回写明细已收数量(整单收货),详情「已收数量」不再恒 0
+	if err := s.orderDetailRepo.MarkReceivedByOrder(ctx, id); err != nil {
+		return err
+	}
 	// 更新单据状态为已入库
 	o.Status = psimodel.PurchaseStatusReceipt
 	return s.orderRepo.Update(ctx, o)

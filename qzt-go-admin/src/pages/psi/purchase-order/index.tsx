@@ -32,6 +32,7 @@ export default function PurchaseOrderPage() {
       itemsLabel="单据明细"
       party="supplier"
       showApproval
+      statusLabels={{ 1: '待入库', 2: '已入库', 3: '已关闭' }}
       showExpectedDate
       showDiscountInList
       guide

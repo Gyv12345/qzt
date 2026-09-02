@@ -153,7 +153,8 @@ export interface PsiSalesOrderItem {
   /** 规格描述(后端回填,空 = 默认规格) */
   sku_spec?: string
   quantity: string
-  shipped_quantity?: string
+  /** 已出库数量(后端字段为 delivered_quantity) */
+  delivered_quantity?: string
   unit_price: string
   amount: string
   remark: string

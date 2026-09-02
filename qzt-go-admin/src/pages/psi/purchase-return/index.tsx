@@ -26,6 +26,7 @@ export default function PurchaseReturnPage() {
       dateLabel="退货日期"
       itemsLabel="退货明细"
       party="supplier"
+      statusLabels={{ 1: '待出库', 2: '已完成' }}
       createMessage="采购退货单已创建"
       drawerWidth={720}
       detailFields={[

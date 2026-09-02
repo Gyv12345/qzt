@@ -3,6 +3,8 @@ package psi
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
 )
@@ -43,6 +45,13 @@ func (r *SalesOrderDetailRepo) ListByOrder(ctx context.Context, orderID uint) ([
 func (r *SalesOrderDetailRepo) DeleteByOrder(ctx context.Context, orderID uint) error {
 	return repository.DBFrom(ctx).Where("order_id = ?", orderID).
 		Delete(&psimodel.PsiSalesOrderDetail{}).Error
+}
+
+// MarkDeliveredByOrder 整单出库回写:已出库数量=数量(当前为整单发货,无部分发货)。
+func (r *SalesOrderDetailRepo) MarkDeliveredByOrder(ctx context.Context, orderID uint) error {
+	return repository.DBFrom(ctx).Model(&psimodel.PsiSalesOrderDetail{}).
+		Where("order_id = ?", orderID).
+		Update("delivered_quantity", gorm.Expr("quantity")).Error
 }
 
 // ── 销售退货 ──

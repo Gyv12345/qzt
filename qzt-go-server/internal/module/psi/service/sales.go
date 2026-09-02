@@ -277,6 +277,10 @@ func (s *SalesService) StockOut(ctx context.Context, id uint, operatorID *uint) 
 	if err := s.stockSvc.applyMany(ctx, inputs); err != nil {
 		return err
 	}
+	// 回写明细已出库数量(整单发货),详情「已发数量」不再恒 0
+	if err := s.orderDetailRepo.MarkDeliveredByOrder(ctx, id); err != nil {
+		return err
+	}
 	o.Status = psimodel.SalesStatusShipped
 	return s.orderRepo.Update(ctx, o)
 }

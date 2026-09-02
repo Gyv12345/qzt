@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 
 	psimodel "qzt-go-server/internal/model/psi"
 	"qzt-go-server/internal/repository"
@@ -79,6 +80,12 @@ func (r *PurchaseOrderDetailRepo) DeleteByOrder(ctx context.Context, orderID uin
 		Delete(&psimodel.PsiPurchaseOrderDetail{}).Error
 }
 
+// MarkReceivedByOrder 整单入库回写:已收数量=数量(当前为整单收货,无部分收货)。
+func (r *PurchaseOrderDetailRepo) MarkReceivedByOrder(ctx context.Context, orderID uint) error {
+	return repository.DBFrom(ctx).Model(&psimodel.PsiPurchaseOrderDetail{}).
+		Where("order_id = ?", orderID).
+		Update("received_quantity", gorm.Expr("quantity")).Error
+}
 // ── 采购退货 ──
 
 // PurchaseReturnRepo 采购退货。

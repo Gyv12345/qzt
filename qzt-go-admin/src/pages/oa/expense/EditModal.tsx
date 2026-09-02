@@ -65,6 +65,15 @@ export default function ExpenseEditModal({ open, editingId, onOpenChange, onSucc
     }))
     // 计算总额
     const total = items.reduce((sum, it) => sum + Number(it.amount || 0), 0)
+    // 明细至少一行且总金额大于 0(0 元报销单无业务意义,也过不了后端校验)
+    if (items.length === 0) {
+      message.error('请至少添加一行费用明细')
+      return false
+    }
+    if (total <= 0) {
+      message.error('报销总金额必须大于 0,请填写明细金额')
+      return false
+    }
     const payload = {
       title: values.title,
       expense_type: values.expense_type,

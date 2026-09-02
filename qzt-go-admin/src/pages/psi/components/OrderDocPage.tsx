@@ -52,7 +52,7 @@ export interface OrderDocItemRecord {
   sku_spec?: string
   quantity: string
   received_quantity?: string
-  shipped_quantity?: string
+  delivered_quantity?: string
   unit_price?: string
   amount?: string
   remark: string
@@ -123,6 +123,9 @@ export interface OrderDocPageProps<T extends OrderDocRecord> {
   party: PartyKind
   /** 列表与搜索是否含 审批状态(采购单/销售单) */
   showApproval?: boolean
+  /** 单据状态文案(键=status 值),传入即显示状态列并支持按状态筛选;
+   *  采购单 {1:待入库,2:已入库,3:已关闭} / 销售单 {1:待出库,2:已出库,3:已关闭} / 退货 {1:待处理,2:已完成} */
+  statusLabels?: Record<number, string>
   /** 表单与列表是否含 预计到货(仅采购单) */
   showExpectedDate?: boolean
   /** 列表是否含 优惠 列(采购单/销售单) */
@@ -163,9 +166,19 @@ const APPROVAL_STATUS: Record<string, { text: string; color: string }> = {
   REJECTED: { text: '已驳回', color: 'error' },
 }
 
-const STATUS_SEARCH_ENUM = {
-  1: { text: '正常' },
-  0: { text: '已作废' },
+/** 单据状态标签颜色: 1 进行中(待入库/待出库) 2 完成 3 已关闭 */
+const STATUS_TAG_COLOR: Record<number, string> = { 1: 'processing', 2: 'success', 3: 'default' }
+
+/** 单据可执行入库/出库:待处理且审批放行(无需审批或已通过) */
+function canStock(record: OrderDocRecord): boolean {
+  if (record.status !== 1) return false
+  const appr = record.approval_status ?? 'NONE'
+  return appr === 'NONE' || appr === 'APPROVED'
+}
+
+/** 单据可编辑/删除:待处理且不在审批中(驳回/未提交可改,已入库/已关闭不可) */
+function canEditDoc(record: OrderDocRecord): boolean {
+  return record.status === 1 && record.approval_status !== 'PENDING'
 }
 
 /**
@@ -181,6 +194,7 @@ export default function OrderDocPage<T extends OrderDocRecord>({
   itemsLabel,
   party,
   showApproval,
+  statusLabels,
   showExpectedDate,
   showDiscountInList,
   drawerWidth = 760,
@@ -429,9 +443,18 @@ export default function OrderDocPage<T extends OrderDocRecord>({
     {
       title: '状态',
       dataIndex: 'status',
-      hideInTable: true,
+      hideInTable: !statusLabels,
       valueType: 'select',
-      valueEnum: STATUS_SEARCH_ENUM,
+      width: 90,
+      valueEnum: statusLabels
+        ? Object.fromEntries(Object.entries(statusLabels).map(([k, v]) => [k, { text: v }]))
+        : undefined,
+      render: (_, record) =>
+        statusLabels?.[record.status] ? (
+          <Tag color={STATUS_TAG_COLOR[record.status] ?? 'default'}>{statusLabels[record.status]}</Tag>
+        ) : (
+          '-'
+        ),
     },
     ...(showApproval
       ? [
@@ -456,14 +479,14 @@ export default function OrderDocPage<T extends OrderDocRecord>({
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          {service.update && (
+          {service.update && canEditDoc(record) && (
             <Auth perm={perms.edit ?? ''}>
               <Button type="link" size="small" onClick={() => openEdit(record)}>
                 编辑
               </Button>
             </Auth>
           )}
-          {service.remove && (
+          {service.remove && canEditDoc(record) && (
             <Auth perm={perms.delete ?? ''}>
               <Popconfirm
                 title={`确认删除该${docName}?`}
@@ -478,7 +501,7 @@ export default function OrderDocPage<T extends OrderDocRecord>({
               </Popconfirm>
             </Auth>
           )}
-          {service.stock && (
+          {service.stock && canStock(record) && (
             <Auth perm={service.stock.perm}>
               <Popconfirm
                 title={service.stock.confirmTitle}
@@ -518,7 +541,7 @@ export default function OrderDocPage<T extends OrderDocRecord>({
       ? [{ title: '已收数量', dataIndex: 'received_quantity', width: 90, render: (v?: string) => v ?? '-' }]
       : []),
     ...(detailItemExtra === 'shipped'
-      ? [{ title: '已发数量', dataIndex: 'shipped_quantity', width: 90, render: (v?: string) => v ?? '-' }]
+      ? [{ title: '已发数量', dataIndex: 'delivered_quantity', width: 90, render: (v?: string) => v ?? '-' }]
       : []),
     { title: '单价', dataIndex: 'unit_price', width: 100, render: (v?: string) => v ?? '-' },
     { title: '金额', dataIndex: 'amount', width: 110, render: (v?: string) => v ?? '-' },
