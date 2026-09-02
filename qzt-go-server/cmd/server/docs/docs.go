@@ -2357,82 +2357,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/crm/collaborations/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "客户团队协作"
-                ],
-                "summary": "更新协作成员权限",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "协作ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新协作成员请求",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.UpdateCollaboratorRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "客户团队协作"
-                ],
-                "summary": "移除协作成员",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "协作ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/crm/contacts/{id}": {
             "get": {
                 "security": [
@@ -3828,82 +3752,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/crm/customers/{id}/collaborations": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "客户团队协作"
-                ],
-                "summary": "客户协作成员列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "客户ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "客户团队协作"
-                ],
-                "summary": "添加协作成员",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "客户ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "添加协作成员请求",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.AddCollaboratorRequest"
-                        }
                     }
                 ],
                 "responses": {
@@ -7005,7 +6853,7 @@ const docTemplate = `{
                 "summary": "申请请假",
                 "parameters": [
                     {
-                        "description": "请假请求",
+                        "description": "请假请求(employee_id 不传则取当前登录用户)",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -17218,22 +17066,6 @@ const docTemplate = `{
                 }
             }
         },
-        "service.AddCollaboratorRequest": {
-            "type": "object",
-            "required": [
-                "collaboration_type",
-                "user_id"
-            ],
-            "properties": {
-                "collaboration_type": {
-                    "description": "READ_ONLY / COLLABORATION",
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "service.ApproveRequest": {
             "type": "object",
             "required": [
@@ -19294,7 +19126,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "duration_days",
-                "employee_id",
                 "end_date",
                 "leave_type",
                 "start_date"
@@ -19304,6 +19135,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "employee_id": {
+                    "description": "0=从当前登录用户推导",
                     "type": "integer"
                 },
                 "end_date": {
@@ -19872,17 +19704,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
-                }
-            }
-        },
-        "service.UpdateCollaboratorRequest": {
-            "type": "object",
-            "required": [
-                "collaboration_type"
-            ],
-            "properties": {
-                "collaboration_type": {
-                    "type": "string"
                 }
             }
         },

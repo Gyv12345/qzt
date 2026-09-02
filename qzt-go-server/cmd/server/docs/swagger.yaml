@@ -409,17 +409,6 @@ definitions:
     - app_id
     - name
     type: object
-  service.AddCollaboratorRequest:
-    properties:
-      collaboration_type:
-        description: READ_ONLY / COLLABORATION
-        type: string
-      user_id:
-        type: integer
-    required:
-    - collaboration_type
-    - user_id
-    type: object
   service.ApproveRequest:
     properties:
       comment:
@@ -1809,6 +1798,7 @@ definitions:
       duration_days:
         type: string
       employee_id:
+        description: 0=从当前登录用户推导
         type: integer
       end_date:
         type: string
@@ -1824,7 +1814,6 @@ definitions:
         type: string
     required:
     - duration_days
-    - employee_id
     - end_date
     - leave_type
     - start_date
@@ -2193,13 +2182,6 @@ definitions:
         type: integer
     required:
     - name
-    type: object
-  service.UpdateCollaboratorRequest:
-    properties:
-      collaboration_type:
-        type: string
-    required:
-    - collaboration_type
     type: object
   service.UpdateConfigRequest:
     properties:
@@ -4497,53 +4479,6 @@ paths:
       summary: 全部标签
       tags:
       - 文章标签
-  /crm/collaborations/{id}:
-    delete:
-      parameters:
-      - description: 协作ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 移除协作成员
-      tags:
-      - 客户团队协作
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: 协作ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 更新协作成员请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.UpdateCollaboratorRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 更新协作成员权限
-      tags:
-      - 客户团队协作
   /crm/contacts/{id}:
     delete:
       parameters:
@@ -5410,53 +5345,6 @@ paths:
       summary: 更新客户
       tags:
       - 客户管理
-  /crm/customers/{id}/collaborations:
-    get:
-      parameters:
-      - description: 客户ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 客户协作成员列表
-      tags:
-      - 客户团队协作
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 客户ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 添加协作成员请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.AddCollaboratorRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 添加协作成员
-      tags:
-      - 客户团队协作
   /crm/customers/{id}/contacts:
     get:
       parameters:
@@ -7362,7 +7250,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: 请假请求
+      - description: 请假请求(employee_id 不传则取当前登录用户)
         in: body
         name: body
         required: true

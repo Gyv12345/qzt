@@ -75,7 +75,7 @@ func (h *AttendanceHandler) ClockList(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body  body      service.LeaveRequest  true  "请假请求"
+// @Param        body  body      service.LeaveRequest  true  "请假请求(employee_id 不传则取当前登录用户)"
 // @Success      200   {object}  xresponse.Response
 // @Router       /hrm/attendance/leaves [post]
 func (h *AttendanceHandler) ApplyLeave(c *gin.Context) {
@@ -84,7 +84,7 @@ func (h *AttendanceHandler) ApplyLeave(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	leave, err := h.svc.ApplyLeave(c.Request.Context(), &req)
+	leave, err := h.svc.ApplyLeave(c.Request.Context(), &req, middleware.GetUserID(c))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

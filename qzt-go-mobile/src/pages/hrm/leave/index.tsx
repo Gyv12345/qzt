@@ -3,7 +3,6 @@ import { InfiniteScroll, List, NavBar, PullToRefresh, Tag, FloatingBubble } from
 import { AddOutline } from 'antd-mobile-icons'
 import { useNavigate } from 'react-router-dom'
 import { listLeaves, applyLeave } from '../../../services/hrm'
-import { listEmployees } from '../../../services/hrm'
 import type { HrmLeave } from '../../../types/hrm'
 import { LEAVE_TYPE, LEAVE_APPROVAL_STATUS } from '../../../types/hrm'
 import { useInfiniteList } from '../../../hooks/useInfiniteList'
@@ -65,11 +64,9 @@ export default function LeaveList() {
           { name: 'reason', label: '事由', type: 'textarea' },
         ]}
         onSubmit={async (vals) => {
-          // 先查当前用户对应的员工 ID
-          const empRes = await listEmployees({ page: 1, page_size: 1, keyword: '' })
-          const empId = empRes.list?.[0]?.id || 1
+          // employee_id 传 0,后端从当前登录用户推导员工档案
           await applyLeave({
-            employee_id: empId,
+            employee_id: 0,
             leave_type: vals.leave_type,
             start_date: vals.start_date + ' 00:00:00',
             end_date: vals.end_date + ' 23:59:59',

@@ -126,7 +126,7 @@ func (s *AttendanceService) resolveEmployeeID(ctx context.Context, userID uint) 
 // LeaveRequest 请假请求。
 type LeaveRequest struct {
 	LeaveNo      string `json:"leave_no"` // 留空则自动生成
-	EmployeeID   uint   `json:"employee_id" binding:"required"`
+	EmployeeID   uint   `json:"employee_id"` // 0=从当前登录用户推导
 	LeaveType    string `json:"leave_type" binding:"required"`
 	StartDate    string `json:"start_date" binding:"required"` // yyyy-MM-dd HH:mm:ss
 	EndDate      string `json:"end_date" binding:"required"`
@@ -135,7 +135,15 @@ type LeaveRequest struct {
 }
 
 // ApplyLeave 申请请假。
-func (s *AttendanceService) ApplyLeave(ctx context.Context, req *LeaveRequest) (*hrmmodel.HrmLeave, error) {
+func (s *AttendanceService) ApplyLeave(ctx context.Context, req *LeaveRequest, userID uint) (*hrmmodel.HrmLeave, error) {
+	// employee_id 未传 → 从当前登录用户反查员工档案(与打卡一致)
+	if req.EmployeeID == 0 {
+		emp, err := s.resolveEmployeeID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		req.EmployeeID = emp
+	}
 	start, err := parseDateTime(req.StartDate)
 	if err != nil {
 		return nil, errors.New("start_date 格式错误,应为 yyyy-MM-dd HH:mm:ss")

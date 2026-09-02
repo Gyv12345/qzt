@@ -29,7 +29,7 @@ func registerHrmAttendanceTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("hrm_leave_create",
 			mcp.WithDescription("申请请假"),
-			mcp.WithNumber("employee_id", mcp.Required(), mcp.Description("员工ID")),
+			mcp.WithNumber("employee_id", mcp.Description("员工ID(不传则从当前登录用户推导)")),
 			mcp.WithString("leave_type", mcp.Required(), mcp.Description("请假类型(字典 LEAVE_TYPE)")),
 			mcp.WithString("start_date", mcp.Required(), mcp.Description("开始时间(YYYY-MM-DD HH:mm:ss)")),
 			mcp.WithString("end_date", mcp.Required(), mcp.Description("结束时间(YYYY-MM-DD HH:mm:ss)")),
@@ -110,8 +110,8 @@ func handleHrmLeaveCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	startDate := req.GetString("start_date", "")
 	endDate := req.GetString("end_date", "")
 	duration := req.GetString("duration_days", "")
-	if employeeID == 0 || leaveType == "" || startDate == "" || endDate == "" || duration == "" {
-		return resultError("员工ID(employee_id)、请假类型(leave_type)、开始时间(start_date)、结束时间(end_date)、天数(duration_days)必填")
+	if leaveType == "" || startDate == "" || endDate == "" || duration == "" {
+		return resultError("请假类型(leave_type)、开始时间(start_date)、结束时间(end_date)、天数(duration_days)必填")
 	}
 	leaveReq := &hrmsvc.LeaveRequest{
 		LeaveNo:      req.GetString("leave_no", ""),
@@ -122,7 +122,7 @@ func handleHrmLeaveCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		DurationDays: duration,
 		Reason:       req.GetString("reason", ""),
 	}
-	leave, err := svc.ApplyLeave(ctx, leaveReq)
+	leave, err := svc.ApplyLeave(ctx, leaveReq, userIDFromContext(ctx))
 	if err != nil {
 		return resultError(fmt.Sprintf("请假申请失败: %v", err))
 	}
