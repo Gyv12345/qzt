@@ -23,3 +23,11 @@ SET approval_type = 'SEQUENCE',
 WHERE id = 90
   AND flow_version_id = 25
   AND approval_type = 'AUTO_PASS';
+
+-- R7-①(2026-09-02 补) EXPENSE 改部门领导审批后发现:sale 角色无「审批中心」菜单(131),
+--   组长(zhangsan/lisi=sale)收到审批待办但页面 404,审批链 UI 断裂。补授:
+--   131 审批中心(目录) + 132 我的待办 + 135 我的已办 + 136 我发起的(不含 138 流程管理)。
+--   执行后需清权限缓存:redis DEL qzt:perm:user:3 qzt:perm:user:4(sale 角色用户)或等 10 分钟 TTL。
+INSERT IGNORE INTO sys_role_menu (sys_role_id, sys_menu_id) VALUES (3, 131), (3, 132), (3, 135), (3, 136);
+INSERT IGNORE INTO sys_role_menu (sys_role_id, sys_menu_id) VALUES (3, 133), (3, 134);
+-- (133=审批通过 134=审批驳回 按钮权限,同为 sale 缺失项)
