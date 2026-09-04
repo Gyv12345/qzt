@@ -1,81 +1,134 @@
-# qzt 工作区
+# 企智通 QZT —— 开源一站式企业管理平台
 
-企智通——企业级业务管理平台（CRM / 进销存 / 财务 / HRM / OA / 审批 / 官网 / 商城），单仓多项目。
+> 一个系统,管好企业的全部业务。**CRM + 审批流 + 进销存 + 财务 + HRM + OA + 项目 + 知识库 + 网盘 + 营销获客 + 商城 + 官网 CMS + AI(MCP)**,13 个业务模块长在同一套数据库上,MIT 协议完全开源,私有化部署,数据 100% 归企业所有。
 
-**本仓库是单一 git 仓库**：根目录即 git 根，所有子项目都在这一个仓库里（子目录无独立 `.git`）。git 操作在根目录进行；`make` / `pnpm` / `npm` 等构建命令需 `cd` 到对应子项目执行。
+线上示例:[企智通官网](https://devlovecode.com)(产品介绍 / 在线体验 / 文档)
 
-## 架构总览
+## 为什么是企智通?
+
+- **一体化,不是拼盘**:签了合同,财务自动生成应收;报销审批一通过,记账凭证自动落账;商城来了订单,进销存自动出库扣库存;抖音广告线索自动进销售公海。业务之间不需要人工"粘合"。
+- **开源 + 私有化**:全部源码无保留(MIT),部署在你自己的服务器上,MySQL / Redis 都是常见组件,没有黑盒云服务。
+- **AI 原生**:内置 MCP Server,把 300+ 业务操作开放给任意支持 MCP 的 AI 客户端(Claude、Cursor 等),自然语言直接查库存、录客户、走审批。
+- **多端形态**:管理后台(PC)+ 企业官网 + 移动端 H5 + 独立商城,一套后端全支持。
+
+## 功能模块
+
+| 模块 | 能力概览 |
+| --- | --- |
+| CRM 客户管理 | 线索/公海/查重、客户档案与自定义字段、联系人、商机阶段与漏斗、合同模板与审批、回款计划与登记、售后工单、产品与多规格 SKU |
+| 审批中心 | 待办/已办/我发起的;按表单类型配置审批流(多级、会签/或签、角色/主管/上级、空审批人兜底) |
+| 办公 OA | 可视化自定义表单、报销(审批通过自动记账)、出差、借款、请假、工作日志、日程、会议预订(冲突检测)、公告、站内信(SSE 实时推送) |
+| 进销存 PSI | 采购/销售单(审批 + 出入库)、多规格 SKU × 多仓库库存、收发明细、其他出入库(期初/盘盈亏/领用/报废)、供应商、仓库、固定资产、报表 |
+| 财务 | 会计科目、记账凭证、发票(自动算税)、应收应付(部分结算)、资产负债表/利润表 |
+| 人事 HRM | 部门/岗位/员工档案(履历)、考勤打卡 + 企业微信打卡自动同步、绩效考核(自评 + 评审)、招聘 |
+| 项目管理 | 项目关联客户合同,任务看板(负责人/优先级/截止) |
+| 知识库 / 网盘 | 分类树 + 文档 + 版本历史;个人/部门/公共三类空间 |
+| 营销获客 | 抖音/巨量引擎广告线索自动同步入公海,同步日志逐条留痕 |
+| 独立商城 | 免登录下单,商品复用 CRM 产品库,成交自动生成 PSI 销售单并扣库存 |
+| 官网 CMS | 文章/分类/单页/标签/首页板块后台可维护;联系表单自动创建 CRM 线索 |
+| 系统管理 | 用户/角色/菜单(RBAC + 四档数据权限)、字典、业务编号规则、企业微信扫码登录、操作/登录日志(IP 归属地)、定时任务 |
+| AI(MCP) | 内置 MCP Server:300+ 业务工具,API Key 认证、按模块裁剪、操作级鉴权、默认拒绝 |
+
+## 架构
 
 ```
-                    ┌──────────────┐
-                    │ qzt-go-server │  唯一数据源（Go + Gin + GORM + Casbin + Redis，:9000）
-                    └──────┬───────┘
-        ┌──────────┬────────┼──────────┬──────────┬─────────┐
-        │          │        │          │          │         │
-   qzt-go-admin  cms   qzt-go-mobile  qzt-go-mall qzt-ios qzt-android
-   （后台 SPA） （官网）  （员工 H5）  （公开商城）（原生 iOS）（原生 Android）
+                    ┌───────────────┐
+                    │ qzt-go-server │  唯一数据源(Go 1.25 + Gin + GORM + Casbin + Redis, :9000)
+                    └──────┬────────┘
+        ┌─────────┬────────┼─────────┬──────────┐
+        │         │        │         │          │
+   qzt-go-admin  qzt-go-cms  qzt-go-mobile  qzt-go-mall  qzt-docs
+   （管理后台 SPA）（企业官网）  （移动端 H5）  （公开商城）  （文档站）
 ```
 
-所有前端消费方统一走 `/prod-api` 前缀访问后端 API，响应统一信封 `{code, msg, data, timestamp}`（`code === 0` 为成功）。
-
-## 子项目
-
-| 子项目 | 角色 | 技术栈 | 本地端口 | 包管理 | 文档 |
-| --- | --- | --- | --- | --- | --- |
-| `qzt-go-server/` | 后端 API（全平台唯一数据源） | Go 1.25 + Gin + GORM + Casbin + Redis | 9000 | go mod | [README](qzt-go-server/README.md) · [AGENTS.md](qzt-go-server/AGENTS.md) |
-| `qzt-go-admin/` | 后台管理 SPA | Vite 7 + React 19 + antd 5 / ProComponents + Zustand | 5173 | pnpm | [README](qzt-go-admin/README.md) · [CLAUDE.md](qzt-go-admin/CLAUDE.md) |
-| `qzt-go-cms/` | 企业官网（公开站） | Next.js 15 (App Router) + React 19 + Tailwind 3 | 3000 | npm | [README](qzt-go-cms/README.md) |
-| `qzt-go-mobile/` | 移动端 H5（员工端） | Vite 7 + React 19 + antd-mobile + Zustand | 5174 | pnpm | [README](qzt-go-mobile/README.md) |
-| `qzt-go-mall/` | 独立公开商城站（免登录） | Vite 7 + React 19 + antd-mobile + Zustand | 5175 | pnpm | [README](qzt-go-mall/README.md) |
-| `qzt-ios/` | iOS 原生 App（SwiftUI） | SwiftUI + @Observable，iOS 17+ | — | Xcode | [README](qzt-ios/README.md) |
-| `qzt-android/` | Android 原生 App（Kotlin + Compose） | Kotlin 2.0 + Compose + Navigation | — | Gradle wrapper | [README](qzt-android/README.md) |
-| `qzt-docs/` | 文档站 | Docusaurus 3 + MDX | 3000 | npm | [README](qzt-docs/README.md) |
-
-移动端（qzt-go-mobile）没有独立指南文件，关键约定见 [AGENTS.md](AGENTS.md)「移动端关键约定」一节。
+- 后端是**模块化单体**:一个 Go 进程承载全部业务域(路由按模块自动挂载 `/crm`、`/psi`、`/finance`…),所有前端统一走 `/prod-api` 前缀消费 REST API,响应信封 `{code, msg, data, timestamp}`。
+- 分层:`Router → Middleware → Handler → Service → Repository → GORM`,跨模块依赖走 contract 接口。
+- 认证 JWT + Casbin RBAC;数据权限四档(全部/本部门/本部门及子/仅本人)在列表层自动过滤。
 
 ## 快速开始
 
-```bash
-# 1. 启动后端（qzt-go-server/，依赖 .env 与 config/config.dev.yaml，建表/种子走 docs/sql/）
-cd qzt-go-server && make run
+### 1. 初始化数据库(MySQL 8)
 
-# 2. 启动任意前端（各开一个终端）
-cd qzt-go-admin  && pnpm install && pnpm dev   # :5173
-cd qzt-go-mobile && pnpm install && pnpm dev   # :5174
-cd qzt-go-mall   && pnpm install && pnpm dev   # :5175
-cd qzt-go-cms    && npm install && npm run dev # :3000
+```bash
+mysql -u root -p -e "CREATE DATABASE qztgo DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci"
+# 地基表 + 种子数据(必须最先执行),再按需执行同目录模块 SQL
+mysql -u root -p qztgo < qzt-go-server/docs/sql/qztgo.sql
 ```
 
-后端端口固定 **9000**（8000 被本机占用，勿改回）。种子默认管理员 `admin / admin123`。
+`docs/sql/` 中 `rbac_test_*`、`fix_*`、`*_remove` 等为回归补丁/历史迁移,新装可跳过,详见该目录 README。
 
-## 关键约定（速览）
+### 2. 启动后端(:9000)
 
-- **建表与种子数据一律走 SQL**（`qzt-go-server/docs/sql/`），Go 代码不 AutoMigrate、不写种子。
-- **前端 API 统一 `/prod-api` 单前缀**：请求层 baseURL 带 `/prod-api`，Vite proxy 转发到 `localhost:9000` 并 rewrite 掉前缀；页面路由与后端 API 路径天然不冲突，新增业务模块无需改 vite 配置。
-- **后端模块 URL 前缀由模块 `Name()` 决定**：在 `cmd/server/main.go` 注册 `server.Module` 即自动挂 `/<name>`。
-- **admin 路由由后端菜单树驱动**：页面文件路径必须与 `sys_menu.component` 对应。
-- **私有化部署约束**：任何域名 / 地址不写死在代码里，一律走配置（`sys_site_config` / `.env` / 服务器地址可配置）。
-- 敏感配置只放 gitignored 的 `.env`，不入库。
+```bash
+cd qzt-go-server
+cp .env.example .env       # 填入 MySQL DSN / Redis / JWT_SECRET
+make run                   # 默认加载 .env 与 config/config.dev.yaml
+# Swagger: http://localhost:9000/swagger/index.html
+```
 
-完整工作区指南见 [AGENTS.md](AGENTS.md)；生产部署流程（编译 / rsync / systemd / pm2 / nginx）也以 AGENTS.md 为准。
+默认管理员:`admin / admin123`(登录后请立即修改)。
 
-## 版本与发布
+### 3. 启动管理后台(:5173)
 
-全平台统一**三段式语义化版本** `MAJOR.MINOR.PATCH`，当前版本 **v1.0.0**（2026-08-27 首次定版）。
+```bash
+cd qzt-go-admin
+pnpm install && pnpm dev   # dev 代理已把 /prod-api 转发到 localhost:9000
+```
 
-- **主版本 +1**：破坏性变更（表结构不兼容、API 移除）；**次版本 +1**：每次对外发布新功能（即一次部署）；**修订号 +1**：纯缺陷修复。
-- **发版流程**：提交后打 tag（`git tag vX.Y.Z && git push --tags`）→ 后端 `qzt-go-server/` 下 `make build` 自动把 tag 注入二进制（未打 tag 时显示 `最近tag+N-g<hash>` 形式），交叉编译用 `make build-prod`；各前端项目 `package.json` 的 `version` 同步改为 `X.Y.Z`。
-- **查看运行版本**：接口 `GET /system/version`（免鉴权，返回版本号/Git 提交/构建时间/Go 版本）、命令行 `./qzt-server -version`、admin 右上角头像菜单「关于系统」弹窗。
+### 4. 其它前端(可选)
 
-## 版权与商业服务
+```bash
+cd qzt-go-cms   && npm install && npm run dev    # 官网 :3000
+cd qzt-go-mobile && pnpm install && pnpm dev     # 移动端 H5 :5174
+cd qzt-go-mall  && pnpm install && pnpm dev      # 公开商城 :5175
+```
 
-**© 2026 河南爱编程网络科技有限公司** · 本项目以 [MIT 协议](LICENSE) 开源。
+生产部署参考各子项目 README 与 `docs/sql/README.md`(后端交叉编译 + systemd,前端静态托管 / Next.js 独立进程)。
 
-| 场景 | 费用 |
-| --- | --- |
-| 自己部署 / 使用 / 修改 | **免费**（MIT 授权，随意使用） |
-| 官方部署服务（由我们代为部署上线） | **500 元 / 次** |
-| 二次开发 / 定制需求 | 面谈 |
+## AI 接入(MCP)
 
-商务联系：[官网联系表单](https://devlovecode.com/contact)
+后端内置 MCP Server(Streamable HTTP,挂载 `/mcp`),把 CRM/进销存/财务/人事/OA 等模块的 300+ 业务操作封装为标准 MCP 工具:
 
+- 在管理后台「个人中心 → API Key」生成密钥(`qzt_` 前缀),按模块裁剪工具集;
+- 在任意支持 MCP 的客户端(Claude Desktop、Cursor、自建 Agent…)配置该地址与密钥即可;
+- 每次工具调用都经过操作级权限映射 + Casbin 鉴权,未授权操作默认拒绝,全量审计。
+
+效果:对 AI 说「帮我看看本月回款和库存预警」「新建一个客户,联系人王总」「提交一条请假」——它直接操作你的企智通。
+
+## 目录结构
+
+```
+qzt-go-server/   Go 后端(API/MCP/定时任务/文档与建表 SQL)
+qzt-go-admin/    管理后台(React 19 + antd 5 + ProComponents)
+qzt-go-cms/      企业官网(Next.js 15)
+qzt-go-mobile/   移动端 H5(React 19 + antd-mobile)
+qzt-go-mall/     独立公开商城(React 19 + antd-mobile)
+qzt-docs/        文档站(Docusaurus)
+docs/            产品/架构文档
+```
+
+> iOS / Android 原生客户端未包含在本开源仓库中。
+
+## 文档
+
+- 后端架构与编码规范:`qzt-go-server/docs/`(ARCHITECTURE / CODING / PRD)
+- 各子项目 README(构建、配置、联调约定)
+- 接口文档:后端启动后访问 `/swagger/index.html`
+- 在线文档站源码:`qzt-docs/`
+
+## 商务服务
+
+| 项目 | 费用 | 说明 |
+| --- | --- | --- |
+| 自部署 | **免费** | 开源协议允许任意使用,照本 README 部署即可 |
+| 交钥匙部署 | **500 元(一次性)** | 部署到你的服务器:环境搭建、上线、基础使用培训 |
+| 二次开发 | 500 元/天(5 天内) | 新功能、流程改造、第三方对接;超过 5 天 300 元/天 |
+
+- 官网:[devlovecode.com](https://devlovecode.com)(在线体验 / 需求留言)
+- 电话:15139960649(史晨阳)
+- 邮箱:shichenyang@devlovecode.com
+- 河南爱编程网络科技有限公司 · 河南洛阳
+
+## License
+
+[MIT](LICENSE) © 2026 河南爱编程网络科技有限公司

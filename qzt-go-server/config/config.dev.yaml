@@ -43,7 +43,7 @@ redis:
 
 jwt:
   issuer: qzt-server                                       # 签发者
-  jwt_secret: ${JWT_SECRET:-CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_BYTES}  # 密钥（生产环境务必修改并改用环境变量注入）
+  jwt_secret: ${JWT_SECRET:-CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_BYTES}  # 密钥（务必改成 32 字节以上的随机值,或用环境变量 JWT_SECRET 注入）
   access_expiration_time: 2h                               # access token 有效期
   refresh_expiration_time: 168h                            # refresh token 有效期（7 天）
 
