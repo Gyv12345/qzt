@@ -5,6 +5,7 @@ import { useSettingsStore } from '../../stores/settings'
 
 /** 预设主题色(取自 antd 官方色板,点击即换) */
 const PRESET_COLORS = [
+  { name: '拂晓蓝', value: '#1677ff' },
   { name: '极客蓝', value: '#2f54eb' },
   { name: '酱紫', value: '#722ed1' },
   { name: '明青', value: '#13c2c2' },

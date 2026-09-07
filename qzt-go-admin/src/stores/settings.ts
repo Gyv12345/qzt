@@ -23,8 +23,8 @@ interface SettingsState extends LayoutSettings {
 }
 
 export const DEFAULT_SETTINGS: LayoutSettings = {
-  colorPrimary: '#2f54eb',
-  colorInfo: '#2f54eb',
+  colorPrimary: '#1677ff',
+  colorInfo: '#1677ff',
   // 数据密集型后台更适合小圆角(6),更显紧凑专业;8 偏消费级 App
   borderRadius: 6,
   darkMode: false,
@@ -41,14 +41,17 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'qzt-go-admin:settings',
-      version: 3,
+      version: 4,
       // v1 默认圆角 8 → v2 调整为 6(旧用户若仍是旧默认值则归正,自定义值保留);
-      // v3 新增 compactMode / colorWeak,旧数据缺失字段补默认值
+      // v3 新增 compactMode / colorWeak,旧数据缺失字段补默认值;
+      // v4 默认主色亮蓝化 #2f54eb → #1677ff(仅归正仍为旧默认值的情况,自定义主色保留)
       migrate: (persisted: unknown) => {
         const s = (persisted ?? {}) as Partial<LayoutSettings>
         if (s.borderRadius === 8) s.borderRadius = DEFAULT_SETTINGS.borderRadius
         if (s.compactMode === undefined) s.compactMode = DEFAULT_SETTINGS.compactMode
         if (s.colorWeak === undefined) s.colorWeak = DEFAULT_SETTINGS.colorWeak
+        if (s.colorPrimary?.toLowerCase() === '#2f54eb') s.colorPrimary = DEFAULT_SETTINGS.colorPrimary
+        if (s.colorInfo?.toLowerCase() === '#2f54eb') s.colorInfo = DEFAULT_SETTINGS.colorInfo
         return s as LayoutSettings
       },
     },
