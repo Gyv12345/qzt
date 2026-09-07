@@ -1,92 +1,67 @@
-/* ===== 登录页:左右分屏 ===== */
+/* ===== 登录页:左 60% 亮蓝品牌区 + 右 40% 白色登录卡(与原型 login.html 一致) ===== */
 
 .login-wrap {
   display: flex;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-/* ── 左侧:品牌介绍区 ── */
+/* ── 左侧:品牌区 ── */
 .login-hero {
   position: relative;
-  flex: 1;
+  flex: 0 0 60%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 64px;
+  justify-content: space-between;
+  padding: 56px 64px;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(135deg, #0a0e27 0%, #141b3d 50%, #1e3a8a 100%);
+  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
 }
 
-/* 网格底纹 */
-.login-hero::before {
-  content: '';
+/* 网格底纹(通铺) */
+.login-hero-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 60px 60px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 65% at 35% 45%, #000 25%, transparent 100%);
-  mask-image: radial-gradient(ellipse 80% 65% at 35% 45%, #000 25%, transparent 100%);
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
   pointer-events: none;
 }
 
-/* 光晕:右上蓝 */
-.login-hero::after {
-  content: '';
+/* 流程节点装饰圆 */
+.login-hero-node {
   position: absolute;
-  width: 520px;
-  height: 520px;
-  right: -140px;
-  bottom: -180px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 108, 255, 0.3), transparent 70%);
+  background: rgba(255, 255, 255, 0.12);
   pointer-events: none;
 }
 
-/* 光晕:左下紫(通过额外元素实现,伪元素只能 2 个) */
-.login-hero-glow {
+/* 节点连线 */
+.login-hero-lines {
   position: absolute;
-  width: 400px;
-  height: 400px;
-  left: -120px;
-  top: -100px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.18), transparent 70%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  z-index: 0;
 }
 
-.login-hero-inner {
+/* 内容层抬到装饰之上 */
+.login-hero-logo,
+.login-hero-content,
+.login-hero-kw {
   position: relative;
-  z-index: 1;
-  max-width: 480px;
 }
 
-/* 顶部高光细线 */
-.login-hero-inner::before {
-  content: '';
-  position: absolute;
-  top: -36px;
-  left: 0;
-  width: 56px;
-  height: 3px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #3b6cff, transparent);
-}
-
-.login-brand {
+.login-hero-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 52px;
+  gap: 14px;
 }
 
-.login-brand-mark {
+.login-hero-mark {
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -95,144 +70,134 @@
   justify-content: center;
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, #3b6cff, #1677ff);
-  box-shadow: 0 4px 16px rgba(59, 108, 255, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   flex-shrink: 0;
   object-fit: cover;
 }
 
-.login-brand-name {
-  font-size: 18px;
+.login-hero-name {
+  font-size: 26px;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 2px;
 }
 
 .login-hero h1 {
-  font-size: 42px;
-  font-weight: 800;
-  line-height: 1.25;
-  margin: 0 0 22px;
-  letter-spacing: -0.5px;
-  background: linear-gradient(180deg, #ffffff 0%, #c7d2fe 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.login-hero .login-slogan {
-  font-size: 16px;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.72);
-  margin: 0 0 44px;
-}
-
-/* 功能亮点列表 */
-.login-features {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.login-feature {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 4px 0;
-  border-left: 2px solid transparent;
-  padding-left: 0;
-  transition: border-color 0.2s, padding-left 0.2s, background 0.2s;
-  border-radius: 0 8px 8px 0;
-}
-
-.login-feature:hover {
-  border-left-color: rgba(59, 108, 255, 0.8);
-  padding-left: 12px;
-  background: rgba(59, 108, 255, 0.06);
-}
-
-.login-feature-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  background: linear-gradient(135deg, rgba(59, 108, 255, 0.18), rgba(47, 84, 235, 0.1));
-  border: 1px solid rgba(59, 108, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(59, 108, 255, 0.15);
-  flex-shrink: 0;
-  color: #93b4ff;
-}
-
-.login-feature-title {
-  font-size: 15px;
+  font-size: 32px;
   font-weight: 600;
-  margin-bottom: 2px;
+  line-height: 1.5;
+  margin: 0 0 14px;
 }
 
-.login-feature-desc {
-  font-size: 13px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.55);
+.login-hero-slogan {
+  font-size: 16px;
+  opacity: 0.78;
+  margin: 0;
 }
 
-/* 信任标签 */
-.login-trust {
+.login-hero-kw {
   display: flex;
   gap: 10px;
-  margin-top: 40px;
+  flex-wrap: wrap;
 }
 
-.login-trust-tag {
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
-  padding: 5px 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  letter-spacing: 0.3px;
+.login-hero-kw span {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
+  padding: 4px 16px;
+  font-size: 13px;
+  opacity: 0.85;
 }
 
-/* ── 右侧:表单区 ── */
+/* ── 右侧:登录卡 ── */
 .login-panel {
-  width: 460px;
-  flex-shrink: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 40px;
+  justify-content: center;
   background: #fff;
+  padding: 40px;
 }
 
 .login-form-box {
-  width: 100%;
-  max-width: 340px;
+  width: 360px;
+  max-width: 100%;
 }
 
 .login-form-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2733;
+  font-size: 22px;
+  font-weight: 600;
+  color: #262626;
   margin-bottom: 6px;
 }
 
 .login-form-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: #8c8c8c;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
+}
+
+/* 登录错误提示(卡内内联,与原型一致) */
+.login-err {
+  display: none;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #ff4d4f;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.login-err.show {
+  display: block;
+}
+
+/* 记住登录 / 忘记密码 行 */
+.login-aux {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin: 4px 0 20px;
+}
+
+/* 「或」分隔线 */
+.login-div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #bfbfbf;
+  font-size: 12px;
+  margin: 20px 0;
+}
+
+.login-div::before,
+.login-div::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* 企微扫码二维码盒(替换表单展示) */
+.login-qr {
+  text-align: center;
+}
+
+.login-qr-tip {
+  font-size: 13px;
+  color: #595959;
+  margin: 12px 0 0;
 }
 
 .login-foot {
   margin-top: 48px;
   font-size: 12px;
   color: #bfbfbf;
-  text-align: center;
   line-height: 1.6;
+  text-align: center;
 }
 
 /* ── 响应式:窄屏隐藏左侧品牌区 ── */
@@ -240,13 +205,6 @@
   .login-hero {
     display: none;
   }
-  .login-panel {
-    width: 100%;
-  }
-}
-
-/* ── 响应式:超小屏适配 ── */
-@media (max-width: 480px) {
   .login-panel {
     padding: 24px;
   }

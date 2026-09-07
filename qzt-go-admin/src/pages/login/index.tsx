@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { App, Button, Divider, Form, Input, Modal, Spin } from 'antd'
-import {
-  LockOutlined,
-  UserOutlined,
-  SafetyCertificateOutlined,
-  TeamOutlined,
-  BarChartOutlined,
-  ApartmentOutlined,
-} from '@ant-design/icons'
+import { App, Button, Checkbox, Form, Input, Spin } from 'antd'
+import { WechatOutlined } from '@ant-design/icons'
 import { QRCodeSVG } from 'qrcode.react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -25,44 +18,29 @@ import './login.css'
 interface LoginForm {
   username: string
   password: string
+  remember?: boolean
 }
 
 type ScanStatus = 'loading' | 'waiting' | 'expired'
 
-// 左侧品牌区的功能亮点(展示平台核心能力)
-const FEATURES = [
-  {
-    icon: <TeamOutlined />,
-    title: 'CRM 全链路',
-    desc: '从线索到回款，一个系统跑完整个销售闭环',
-  },
-  {
-    icon: <SafetyCertificateOutlined />,
-    title: '审批自动化',
-    desc: '拖拽搭建审批流程，审批通过即业务生效',
-  },
-  {
-    icon: <BarChartOutlined />,
-    title: '数据驾驶舱',
-    desc: '销售漏斗、财务概览、库存周转实时洞察',
-  },
-  {
-    icon: <ApartmentOutlined />,
-    title: '15 模块一体化',
-    desc: '进销存 · HRM · 财务 · OA · 项目管理开箱即用',
-  },
-]
+/** 记住登录:仅记住用户名(密码不落盘) */
+const REMEMBER_KEY = 'qzt-go-admin:remember-username'
 
-const TRUST_TAGS = ['开源免费', '私有化部署', '数据自主可控']
+/** 品牌区底部能力关键词(与原型一致) */
+const KEYWORDS = ['CRM', 'OA 协同', '进销存', '人事 HR', '财务管理']
 
 export default function Login() {
   const { message } = App.useApp()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [errText, setErrText] = useState('')
   const [siteName, setSiteName] = useState('企业级业务管理平台')
   const [logoUrl, setLogoUrl] = useState('')
+  const [icp, setIcp] = useState('')
+  const [beian, setBeian] = useState('')
+  const rememberedUsername = localStorage.getItem(REMEMBER_KEY) ?? ''
 
-  // 企业微信扫码登录
+  // 企业微信扫码登录(登录卡内切换展示,与原型交互一致)
   const [wecomEnabled, setWecomEnabled] = useState(false)
   const [scanOpen, setScanOpen] = useState(false)
   const [qrUrl, setQrUrl] = useState('')
@@ -82,19 +60,27 @@ export default function Login() {
       const name = cfg.site_name || cfg.app_title || cfg.title
       if (name) setSiteName(name)
       if (cfg.logo_url) setLogoUrl(cfg.logo_url)
+      setIcp(cfg.icp_beian || '')
+      setBeian(cfg.public_security_beian || '')
     })
     listEnabledOauth().then((providers) => setWecomEnabled(providers.includes('wecom')))
     return () => stopPolling()
   }, [])
 
   const onFinish = async (values: LoginForm) => {
+    setErrText('')
+    if (values.remember) {
+      localStorage.setItem(REMEMBER_KEY, values.username.trim())
+    } else {
+      localStorage.removeItem(REMEMBER_KEY)
+    }
     setLoading(true)
     try {
       await login(values.username.trim(), values.password)
       await fetchUserInfo()
       navigate('/', { replace: true })
     } catch (e) {
-      message.error(e instanceof Error ? e.message : '登录失败')
+      setErrText(e instanceof Error ? e.message : '登录失败')
     } finally {
       setLoading(false)
     }
@@ -160,121 +146,143 @@ export default function Login() {
 
   return (
     <div className="login-wrap">
-      {/* 左侧:品牌介绍区 */}
+      {/* 左侧:亮蓝品牌区(网格 + 节点圆 + 连线装饰,与原型一致) */}
       <aside className="login-hero">
-        <span className="login-hero-glow" />
-        <div className="login-hero-inner">
-          <div className="login-brand">
-            {logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="login-brand-mark" />
-            ) : (
-              <span className="login-brand-mark">企</span>
-            )}
-            <span className="login-brand-name">{siteName}</span>
-          </div>
+        <div className="login-hero-grid" aria-hidden="true" />
+        <div
+          className="login-hero-node"
+          style={{ width: 220, height: 220, right: '8%', top: '12%' }}
+          aria-hidden="true"
+        />
+        <div
+          className="login-hero-node"
+          style={{ width: 120, height: 120, right: '24%', top: '34%', background: 'rgba(255,255,255,.08)' }}
+          aria-hidden="true"
+        />
+        <div
+          className="login-hero-node"
+          style={{ width: 64, height: 64, right: '18%', top: '28%', background: 'rgba(255,255,255,.2)' }}
+          aria-hidden="true"
+        />
+        <svg className="login-hero-lines" viewBox="0 0 900 900" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M120 760 L300 620 L520 680 L760 480" stroke="rgba(255,255,255,.22)" strokeWidth="1.5" fill="none" />
+          <path d="M180 300 L360 420 L560 340 L780 460" stroke="rgba(255,255,255,.16)" strokeWidth="1.5" fill="none" />
+          <circle cx="300" cy="620" r="4" fill="rgba(255,255,255,.5)" />
+          <circle cx="520" cy="680" r="4" fill="rgba(255,255,255,.5)" />
+          <circle cx="360" cy="420" r="4" fill="rgba(255,255,255,.4)" />
+          <circle cx="560" cy="340" r="4" fill="rgba(255,255,255,.4)" />
+        </svg>
 
-          <h1>让企业管理<br />回归简单</h1>
-          <p className="login-slogan">
-            15 个业务模块，一个平台搞定。<br />
-            从客户线索到财务入账，全链路打通。
-          </p>
+        <div className="login-hero-logo">
+          {logoUrl ? (
+            <img src={logoUrl} alt={siteName} className="login-hero-mark" />
+          ) : (
+            <span className="login-hero-mark">企</span>
+          )}
+          <span className="login-hero-name">{siteName}</span>
+        </div>
 
-          <div className="login-features">
-            {FEATURES.map((f) => (
-              <div className="login-feature" key={f.title}>
-                <span className="login-feature-icon">{f.icon}</span>
-                <div>
-                  <div className="login-feature-title">{f.title}</div>
-                  <div className="login-feature-desc">{f.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="login-hero-content">
+          <h1>
+            把 CRM、OA、进销存、人事、财务
+            <br />
+            装进同一个后台
+          </h1>
+          <p className="login-hero-slogan">一站式企业业务管理平台 · 专业、可信、高效</p>
+        </div>
 
-          <div className="login-trust">
-            {TRUST_TAGS.map((tag) => (
-              <span className="login-trust-tag" key={tag}>{tag}</span>
-            ))}
-          </div>
+        <div className="login-hero-kw">
+          {KEYWORDS.map((k) => (
+            <span key={k}>{k}</span>
+          ))}
         </div>
       </aside>
 
-      {/* 右侧:登录表单 */}
+      {/* 右侧:登录卡 */}
       <main className="login-panel">
         <div className="login-form-box">
           <div className="login-form-title">欢迎登录</div>
-          <div className="login-form-sub">请使用账号密码登录管理后台</div>
+          <div className="login-form-sub">请使用企业账号登录工作台</div>
 
-          <Form<LoginForm> size="large" onFinish={onFinish} initialValues={{ username: '', password: '' }}>
-            <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
-              <Input prefix={<UserOutlined />} placeholder="用户名" autoComplete="username" />
-            </Form.Item>
-            <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
-              <Input.Password prefix={<LockOutlined />} placeholder="密码" autoComplete="current-password" />
-            </Form.Item>
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" block loading={loading}>
-                登 录
-              </Button>
-            </Form.Item>
-          </Form>
-
-          {wecomEnabled && (
+          {!scanOpen ? (
             <>
-              <Divider plain style={{ margin: '16px 0' }}>其他登录方式</Divider>
-              <Button
-                block
+              <div className={errText ? 'login-err show' : 'login-err'} role="alert">
+                {errText}
+              </div>
+              <Form<LoginForm>
                 size="large"
-                onClick={openWecomScan}
-                style={{ borderColor: '#07c160', color: '#07c160' }}
+                initialValues={{ username: rememberedUsername, password: '', remember: true }}
+                onFinish={onFinish}
               >
-                企业微信登录
-              </Button>
+                <Form.Item name="username" rules={[{ required: true, message: '请输入账号' }]} style={{ marginBottom: 16 }}>
+                  <Input placeholder="账号" autoComplete="username" />
+                </Form.Item>
+                <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]} style={{ marginBottom: 4 }}>
+                  <Input.Password placeholder="密码" autoComplete="current-password" />
+                </Form.Item>
+                <div className="login-aux">
+                  <Form.Item name="remember" valuePropName="checked" noStyle>
+                    <Checkbox>记住登录</Checkbox>
+                  </Form.Item>
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ padding: 0, height: 'auto' }}
+                    onClick={() => message.info('请联系企业管理员重置密码')}
+                  >
+                    忘记密码？
+                  </Button>
+                </div>
+                <Button type="primary" htmlType="submit" block size="large" style={{ height: 42 }} loading={loading}>
+                  登 录
+                </Button>
+              </Form>
+
+              {wecomEnabled && (
+                <>
+                  <div className="login-div">或</div>
+                  <Button block size="large" style={{ height: 42, fontSize: 14 }} onClick={openWecomScan}>
+                    <WechatOutlined style={{ color: '#07c160', fontSize: 18 }} />
+                    企业微信扫码登录
+                  </Button>
+                </>
+              )}
             </>
+          ) : (
+            <div className="login-qr">
+              {scanStatus === 'loading' && (
+                <div style={{ padding: '32px 0' }}>
+                  <Spin />
+                  <p className="login-qr-tip">正在生成二维码...</p>
+                </div>
+              )}
+              {scanStatus === 'waiting' && qrUrl && (
+                <>
+                  <QRCodeSVG value={qrUrl} size={200} style={{ marginTop: 8 }} />
+                  <p className="login-qr-tip">请使用企业微信「扫一扫」</p>
+                </>
+              )}
+              {scanStatus === 'expired' && (
+                <>
+                  <p style={{ color: '#999', margin: '24px 0' }}>二维码已过期</p>
+                  <Button type="primary" onClick={openWecomScan}>
+                    刷新二维码
+                  </Button>
+                </>
+              )}
+              <Button type="text" style={{ marginTop: 8 }} onClick={closeScan}>
+                返回账号登录
+              </Button>
+            </div>
           )}
 
           <p className="login-foot">
             © {new Date().getFullYear()} {siteName}
             <br />
-            私有化部署 · 数据安全可控
+            {icp || beian ? [icp, beian].filter(Boolean).join(' · ') : '私有化部署 · 数据安全可控'}
           </p>
         </div>
       </main>
-
-      <Modal
-        title="企业微信扫码登录"
-        open={scanOpen}
-        footer={null}
-        onCancel={closeScan}
-        destroyOnClose
-        width={360}
-        maskClosable={false}
-      >
-        <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
-          {scanStatus === 'loading' && (
-            <div>
-              <Spin />
-              <p style={{ marginTop: 16, color: '#999', marginBottom: 0 }}>正在生成二维码...</p>
-            </div>
-          )}
-          {scanStatus === 'waiting' && qrUrl && (
-            <>
-              <QRCodeSVG value={qrUrl} size={200} style={{ margin: '0 auto' }} />
-              <p style={{ marginTop: 16, color: '#666', marginBottom: 0 }}>
-                请使用企业微信「扫一扫」
-              </p>
-            </>
-          )}
-          {scanStatus === 'expired' && (
-            <>
-              <p style={{ color: '#999', margin: '24px 0' }}>二维码已过期</p>
-              <Button type="primary" onClick={openWecomScan}>
-                刷新二维码
-              </Button>
-            </>
-          )}
-        </div>
-      </Modal>
     </div>
   )
 }
