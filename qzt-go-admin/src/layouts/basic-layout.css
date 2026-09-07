@@ -362,3 +362,30 @@ body.qzt-theme-weak {
 body.qzt-theme-weak img {
   filter: invert(100%);
 }
+
+/* ── 关于系统弹窗:联系方式(取自「系统设置-站点信息」,字段全空时整段隐藏) ── */
+.about-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #595959;
+}
+
+.about-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 20px;
+}
+
+.about-contact-item .anticon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.about-contact-item .k {
+  width: 60px;
+  color: #8c8c8c;
+  flex-shrink: 0;
+}

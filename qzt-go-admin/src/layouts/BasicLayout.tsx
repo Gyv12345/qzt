@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Suspense } from 'react'
-import { Avatar, Button, Descriptions, Dropdown, Modal, Result, Spin } from 'antd'
+import { Avatar, Button, Descriptions, Divider, Dropdown, Modal, Result, Spin, theme as antdTheme } from 'antd'
 import {
   LogoutOutlined,
   SettingOutlined,
@@ -7,6 +7,10 @@ import {
   AppstoreOutlined,
   DownOutlined,
   InfoCircleOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  EnvironmentOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
@@ -45,8 +49,14 @@ function isSystemModule(menu: SysMenu): boolean {
   return (menu.children ?? []).some(isSystemModule)
 }
 
-/** 站点信息(logo/站点名称)模块级缓存:布局重复挂载(登录跳转等)时避免闪烁 */
-let siteCfgCache: Pick<SysSiteConfig, 'site_name' | 'logo_url'> | null = null
+/** 站点信息子集:顶栏 logo/名称 + 「关于系统」联系方式 */
+type SiteCfgLite = Pick<
+  SysSiteConfig,
+  'site_name' | 'logo_url' | 'contact_phone' | 'contact_email' | 'contact_address' | 'work_hours'
+>
+
+/** 模块级缓存:布局重复挂载(登录跳转等)时避免闪烁 */
+let siteCfgCache: SiteCfgLite | null = null
 
 interface MenuChain {
   module: SysMenu
@@ -83,12 +93,14 @@ export default function BasicLayout() {
   const userLoaded = useAuthStore((s) => s.userLoaded)
   const menus = useAuthStore((s) => s.menus)
   const profile = useAuthStore((s) => s.profile)
+  /** antd 设计令牌:联系方式图标跟随主题色 */
+  const { token } = antdTheme.useToken()
   const [loading, setLoading] = useState(!userLoaded)
   const [error, setError] = useState(false)
   /** 左侧第二列展开的分组 id(用户点击分组但未跳转时也需要展开) */
   const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null)
   /** 站点信息:顶栏 logo/名称取自「系统设置-站点信息」,未配置时回退默认样式 */
-  const [siteCfg, setSiteCfg] = useState<Pick<SysSiteConfig, 'site_name' | 'logo_url'> | null>(siteCfgCache)
+  const [siteCfg, setSiteCfg] = useState<SiteCfgLite | null>(siteCfgCache)
   /** 「关于系统」弹窗:每次打开重新拉取版本信息 */
   const [aboutOpen, setAboutOpen] = useState(false)
   const [verInfo, setVerInfo] = useState<SystemVersionInfo | null>(null)
@@ -98,7 +110,14 @@ export default function BasicLayout() {
     if (siteCfgCache) return
     getSiteConfig()
       .then((cfg) => {
-        siteCfgCache = { site_name: cfg.site_name, logo_url: cfg.logo_url }
+        siteCfgCache = {
+          site_name: cfg.site_name,
+          logo_url: cfg.logo_url,
+          contact_phone: cfg.contact_phone,
+          contact_email: cfg.contact_email,
+          contact_address: cfg.contact_address,
+          work_hours: cfg.work_hours,
+        }
         setSiteCfg(siteCfgCache)
       })
       .catch(() => {})
@@ -376,6 +395,45 @@ export default function BasicLayout() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
             <Spin />
           </div>
+        )}
+
+        {/* 联系方式:取自「系统设置-站点信息」,字段全部为空时整段隐藏(适配私有化部署) */}
+        {siteCfg && (siteCfg.contact_phone || siteCfg.contact_email || siteCfg.contact_address || siteCfg.work_hours) && (
+          <>
+            <Divider plain style={{ margin: '16px 0 12px' }}>
+              联系我们
+            </Divider>
+            <div className="about-contact">
+              {siteCfg.contact_phone && (
+                <div className="about-contact-item">
+                  <PhoneOutlined style={{ color: token.colorPrimary }} />
+                  <span className="k">电话</span>
+                  <span>{siteCfg.contact_phone}</span>
+                </div>
+              )}
+              {siteCfg.contact_email && (
+                <div className="about-contact-item">
+                  <MailOutlined style={{ color: token.colorPrimary }} />
+                  <span className="k">邮箱</span>
+                  <span>{siteCfg.contact_email}</span>
+                </div>
+              )}
+              {siteCfg.contact_address && (
+                <div className="about-contact-item">
+                  <EnvironmentOutlined style={{ color: token.colorPrimary }} />
+                  <span className="k">地址</span>
+                  <span>{siteCfg.contact_address}</span>
+                </div>
+              )}
+              {siteCfg.work_hours && (
+                <div className="about-contact-item">
+                  <ClockCircleOutlined style={{ color: token.colorPrimary }} />
+                  <span className="k">服务时间</span>
+                  <span>{siteCfg.work_hours}</span>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </Modal>
 
