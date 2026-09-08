@@ -131,7 +131,7 @@ export default function Home() {
                 <div className={styles.pricingBadge}>推荐</div>
                 <div className={styles.pricingIcon}>🚀</div>
                 <h3 className={styles.pricingTitle}>部署服务</h3>
-                <div className={styles.pricingPrice}>¥500<span className={styles.pricingUnit}> / 次</span></div>
+                <div className={styles.pricingPrice}>¥1000<span className={styles.pricingUnit}> / 次</span></div>
                 <p className={styles.pricingDesc}>
                   不想自己折腾？我们帮你部署上线，当天可用。<br/>
                   一次付费，永久使用，后续无任何费用。
