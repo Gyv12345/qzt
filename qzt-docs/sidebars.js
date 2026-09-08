@@ -39,6 +39,10 @@ const sidebars = {
     'deployment/mobile',
     'deployment/capacity',
   ],
+  resources: [
+    'resources/whitepaper',
+    'resources/presentation',
+  ],
 };
 
 export default sidebars;

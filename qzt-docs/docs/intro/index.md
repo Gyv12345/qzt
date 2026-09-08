@@ -79,3 +79,4 @@ sidebar_label: 企智通
 - 了解[完整功能清单](./features)
 - 查看[技术栈细节](./tech-stack)
 - 阅读[整体架构设计](../architecture/overview)
+- 下载[产品白皮书](../resources/whitepaper)与[演示文稿](../resources/presentation)
