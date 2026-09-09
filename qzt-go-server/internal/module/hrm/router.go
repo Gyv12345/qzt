@@ -29,6 +29,13 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	{
 		authenticated.GET("/departments/tree", deptHandler.Tree)
 		authenticated.GET("/positions/enabled", positionHandler.ListEnabled)
+
+		// 考勤个人自助(打卡/我的打卡记录/加班):仅登录即可,与审批操作同一模式——
+		// service 层强制按登录人自身档案读写,不依赖菜单授权,移动端全员可用。
+		authenticated.POST("/attendance/clock", attendanceHandler.ClockIn)
+		authenticated.GET("/attendance/clocks", attendanceHandler.ClockList)
+		authenticated.GET("/attendance/overtimes", attendanceHandler.OvertimeList)
+		authenticated.POST("/attendance/overtimes", attendanceHandler.ApplyOvertime)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):CRUD。
@@ -57,14 +64,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.DELETE("/employees/:id", employeeHandler.Delete)
 		auth.GET("/employees/:id/changes", employeeHandler.Changes)
 
-		// 考勤管理
-		auth.POST("/attendance/clock", attendanceHandler.ClockIn)
-		auth.GET("/attendance/clocks", attendanceHandler.ClockList)
+		// 考勤管理(leaves/summary 涉及他人数据与 HR 口径,保持 RBAC)
 		auth.GET("/attendance/leaves", attendanceHandler.LeaveList)
 		auth.POST("/attendance/leaves", attendanceHandler.ApplyLeave)
 		auth.PUT("/attendance/leaves/:id/approve", attendanceHandler.ApproveLeave)
-		auth.GET("/attendance/overtimes", attendanceHandler.OvertimeList)
-		auth.POST("/attendance/overtimes", attendanceHandler.ApplyOvertime)
 		auth.PUT("/attendance/overtimes/:id/approve", attendanceHandler.ApproveOvertime)
 		auth.POST("/attendance/summary/generate", attendanceHandler.GenerateSummary)
 		auth.GET("/attendance/summary", attendanceHandler.SummaryList)

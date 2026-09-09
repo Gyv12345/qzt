@@ -17,58 +17,59 @@ import type {
 // ---------- 首页仪表盘统计 ----------
 
 export const getDashboardOverview = () =>
-  request.get<unknown, DashboardOverview>('/api/dashboard/overview')
+  request.get<unknown, DashboardOverview>('/api/dashboard/overview', { silent: true })
 
 /** 回款趋势,days 默认 30 */
 export const getSalesTrend = (days = 30) =>
-  request.get<unknown, DashboardTrendPoint[]>('/api/dashboard/sales-trend', { params: { days } })
+  request.get<unknown, DashboardTrendPoint[]>('/api/dashboard/sales-trend', { params: { days }, silent: true })
 
 export const getOpportunityFunnel = () =>
-  request.get<unknown, DashboardFunnelPoint[]>('/api/dashboard/opportunity-funnel')
+  request.get<unknown, DashboardFunnelPoint[]>('/api/dashboard/opportunity-funnel', { silent: true })
 
 /** 客户分布, dimension: level / source / industry */
 export const getCustomerDistribution = (dimension = 'level') =>
   request.get<unknown, DashboardDistributionPoint[]>('/api/dashboard/customer-distribution', {
     params: { dimension },
+    silent: true,
   })
 
 export const getFinanceSummary = (params?: { start_date?: string; end_date?: string }) =>
-  request.get<unknown, DashboardFinanceSummary>('/api/dashboard/finance-summary', { params })
+  request.get<unknown, DashboardFinanceSummary>('/api/dashboard/finance-summary', { params, silent: true })
 
 // ---------- BI 扩展:CRM ----------
 
 export const getContractTrend = (months = 6) =>
-  request.get<unknown, MonthTrend[]>('/api/dashboard/contract-trend', { params: { months } })
+  request.get<unknown, MonthTrend[]>('/api/dashboard/contract-trend', { params: { months }, silent: true })
 
 export const getSalesRanking = (limit = 10) =>
-  request.get<unknown, SalesRankingItem[]>('/api/dashboard/sales-ranking', { params: { limit } })
+  request.get<unknown, SalesRankingItem[]>('/api/dashboard/sales-ranking', { params: { limit }, silent: true })
 
 export const getLeadSourceDistribution = () =>
-  request.get<unknown, LabelValue[]>('/api/dashboard/lead-source-distribution')
+  request.get<unknown, LabelValue[]>('/api/dashboard/lead-source-distribution', { silent: true })
 
 // ---------- BI 扩展:HRM ----------
 
 export const getEmployeeDistribution = (dimension: 'department' | 'gender' | 'status' = 'department') =>
-  request.get<unknown, LabelValue[]>('/api/dashboard/employee-distribution', { params: { dimension } })
+  request.get<unknown, LabelValue[]>('/api/dashboard/employee-distribution', { params: { dimension }, silent: true })
 
 export const getHeadcountTrend = (months = 6) =>
-  request.get<unknown, MonthTrend[]>('/api/dashboard/headcount-trend', { params: { months } })
+  request.get<unknown, MonthTrend[]>('/api/dashboard/headcount-trend', { params: { months }, silent: true })
 
 export const getAttendanceSummary = (month?: string) =>
-  request.get<unknown, AttendanceSummaryItem[]>('/api/dashboard/attendance-summary', { params: { month } })
+  request.get<unknown, AttendanceSummaryItem[]>('/api/dashboard/attendance-summary', { params: { month }, silent: true })
 
 // ---------- BI 扩展:财务 ----------
 
 export const getFinanceTrend = (months = 6) =>
-  request.get<unknown, FinanceTrendItem[]>('/api/dashboard/finance-trend', { params: { months } })
+  request.get<unknown, FinanceTrendItem[]>('/api/dashboard/finance-trend', { params: { months }, silent: true })
 
 // ---------- BI 扩展:进销存 ----------
 
 export const getStockValueByWarehouse = () =>
-  request.get<unknown, StockValueItem[]>('/api/dashboard/stock-value-by-warehouse')
+  request.get<unknown, StockValueItem[]>('/api/dashboard/stock-value-by-warehouse', { silent: true })
 
 export const getSalesVsPurchase = (months = 6) =>
-  request.get<unknown, SalesVsPurchaseItem[]>('/api/dashboard/sales-vs-purchase', { params: { months } })
+  request.get<unknown, SalesVsPurchaseItem[]>('/api/dashboard/sales-vs-purchase', { params: { months }, silent: true })
 
 // ---------- 统一日历(聚合各模块待办) ----------
 

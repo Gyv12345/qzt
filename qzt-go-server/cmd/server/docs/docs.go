@@ -6740,12 +6740,6 @@ const docTemplate = `{
                 "summary": "打卡记录",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "员工ID(不传则取当前登录用户)",
-                        "name": "employee_id",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
                         "description": "开始日期(yyyy-MM-dd)",
                         "name": "start_date",
@@ -6942,12 +6936,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "每页条数",
                         "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "员工ID",
-                        "name": "employee_id",
                         "in": "query"
                     },
                     {

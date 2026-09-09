@@ -52,14 +52,12 @@ func (h *AttendanceHandler) ClockIn(c *gin.Context) {
 // @Tags         考勤管理
 // @Produce      json
 // @Security     BearerAuth
-// @Param        employee_id  query  int     false  "员工ID(不传则取当前登录用户)"
 // @Param        start_date   query  string  false  "开始日期(yyyy-MM-dd)"
 // @Param        end_date     query  string  false  "结束日期(yyyy-MM-dd)"
 // @Success      200  {object}  xresponse.Response
 // @Router       /hrm/attendance/clocks [get]
 func (h *AttendanceHandler) ClockList(c *gin.Context) {
-	empID, _ := strconv.ParseUint(c.Query("employee_id"), 10, 64)
-	list, err := h.svc.ClockList(c.Request.Context(), uint(empID), middleware.GetUserID(c), c.Query("start_date"), c.Query("end_date"))
+	list, err := h.svc.ClockList(c.Request.Context(), middleware.GetUserID(c), c.Query("start_date"), c.Query("end_date"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
@@ -163,7 +161,7 @@ func (h *AttendanceHandler) ApplyOvertime(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	ot, err := h.svc.ApplyOvertime(c.Request.Context(), &req)
+	ot, err := h.svc.ApplyOvertime(c.Request.Context(), &req, middleware.GetUserID(c))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
@@ -206,14 +204,12 @@ func (h *AttendanceHandler) ApproveOvertime(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        page         query  int     false  "页码"
 // @Param        page_size    query  int     false  "每页条数"
-// @Param        employee_id  query  int     false  "员工ID"
 // @Param        status       query  string  false  "状态"
 // @Success      200  {object}  xresponse.Response
 // @Router       /hrm/attendance/overtimes [get]
 func (h *AttendanceHandler) OvertimeList(c *gin.Context) {
 	p := syservice.GetPagination(c)
-	empID, _ := strconv.ParseUint(c.Query("employee_id"), 10, 64)
-	list, total, err := h.svc.OvertimeList(c.Request.Context(), p.Page, p.PageSize, uint(empID), c.Query("status"))
+	list, total, err := h.svc.OvertimeList(c.Request.Context(), p.Page, p.PageSize, middleware.GetUserID(c), c.Query("status"))
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return

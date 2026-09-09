@@ -7179,10 +7179,6 @@ paths:
   /hrm/attendance/clocks:
     get:
       parameters:
-      - description: 员工ID(不传则取当前登录用户)
-        in: query
-        name: employee_id
-        type: integer
       - description: 开始日期(yyyy-MM-dd)
         in: query
         name: start_date
@@ -7306,10 +7302,6 @@ paths:
       - description: 每页条数
         in: query
         name: page_size
-        type: integer
-      - description: 员工ID
-        in: query
-        name: employee_id
         type: integer
       - description: 状态
         in: query

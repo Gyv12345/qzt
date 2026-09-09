@@ -161,7 +161,7 @@ func handleHrmOvertimeCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		Reason:         req.GetString("reason", ""),
 		CompensateType: req.GetString("compensate_type", ""),
 	}
-	ot, err := svc.ApplyOvertime(ctx, otReq)
+	ot, err := svc.ApplyOvertime(ctx, otReq, userIDFromContext(ctx))
 	if err != nil {
 		return resultError(fmt.Sprintf("加班申请失败: %v", err))
 	}

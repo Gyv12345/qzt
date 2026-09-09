@@ -159,11 +159,8 @@ func handleHrmPositionList(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 
 func handleHrmClockList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	svc := hrmsvc.NewAttendanceService()
-	employeeID := uint(req.GetFloat("employee_id", 0))
-	if employeeID == 0 {
-		return resultError("员工ID(employee_id)必填")
-	}
-	list, err := svc.ClockList(ctx, employeeID, 0, req.GetString("start_date", ""), req.GetString("end_date", ""))
+	// 打卡记录为个人自助数据:固定按 Key 所属登录人查询
+	list, err := svc.ClockList(ctx, userIDFromContext(ctx), req.GetString("start_date", ""), req.GetString("end_date", ""))
 	if err != nil {
 		return resultError(fmt.Sprintf("查询打卡记录失败: %v", err))
 	}

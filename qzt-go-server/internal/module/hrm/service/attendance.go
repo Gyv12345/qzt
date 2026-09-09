@@ -55,14 +55,12 @@ func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest, us
 	if req.ClockType != hrmmodel.ClockTypeCheckIn && req.ClockType != hrmmodel.ClockTypeCheckOut {
 		return nil, errors.New("clock_type 只能是 CHECK_IN 或 CHECK_OUT")
 	}
-	// employee_id 未传 → 从当前登录用户反查员工档案
-	if req.EmployeeID == 0 {
-		emp, err := s.resolveEmployeeID(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-		req.EmployeeID = emp
+	// 个人自助接口:一律按登录人自身档案打卡,忽略客户端传入的 employee_id
+	emp, err := s.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return nil, err
 	}
+	req.EmployeeID = emp
 	now := time.Now()
 	today := xtime.NewDateTime(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()))
 
@@ -99,16 +97,13 @@ func (s *AttendanceService) ClockIn(ctx context.Context, req *ClockInRequest, us
 	return clock, nil
 }
 
-// ClockList 按员工+日期范围查打卡记录。employee_id 为 0 时从当前登录用户推导。
-func (s *AttendanceService) ClockList(ctx context.Context, employeeID, userID uint, startDate, endDate string) ([]hrmmodel.HrmAttendanceClock, error) {
-	if employeeID == 0 {
-		emp, err := s.resolveEmployeeID(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-		employeeID = emp
+// ClockList 当前登录人的打卡记录(个人自助接口:强制本人,忽略 employee_id 参数)。
+func (s *AttendanceService) ClockList(ctx context.Context, userID uint, startDate, endDate string) ([]hrmmodel.HrmAttendanceClock, error) {
+	emp, err := s.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return nil, err
 	}
-	return s.clockRepo.ListByEmpDate(ctx, employeeID, startDate, endDate)
+	return s.clockRepo.ListByEmpDate(ctx, emp, startDate, endDate)
 }
 
 // resolveEmployeeID 从系统用户ID反查员工档案ID。
@@ -216,8 +211,13 @@ type OvertimeRequest struct {
 	CompensateType string `json:"compensate_type"` // PAY / TO
 }
 
-// ApplyOvertime 申请加班。
-func (s *AttendanceService) ApplyOvertime(ctx context.Context, req *OvertimeRequest) (*hrmmodel.HrmOvertime, error) {
+// ApplyOvertime 申请加班(个人自助接口:强制按登录人自身档案,忽略 employee_id 参数)。
+func (s *AttendanceService) ApplyOvertime(ctx context.Context, req *OvertimeRequest, userID uint) (*hrmmodel.HrmOvertime, error) {
+	emp, err := s.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	req.EmployeeID = emp
 	start, err := parseDateTime(req.StartDate)
 	if err != nil {
 		return nil, errors.New("start_date 格式错误")
@@ -274,9 +274,13 @@ func (s *AttendanceService) ApproveOvertime(ctx context.Context, id, approverID 
 	return s.overtimeRepo.Update(ctx, ot)
 }
 
-// OvertimeList 加班单列表。
-func (s *AttendanceService) OvertimeList(ctx context.Context, page, pageSize int, employeeID uint, status string) ([]hrmmodel.HrmOvertime, int64, error) {
-	return s.overtimeRepo.Page(ctx, page, pageSize, employeeID, status)
+// OvertimeList 当前登录人的加班单(个人自助接口:强制本人)。
+func (s *AttendanceService) OvertimeList(ctx context.Context, page, pageSize int, userID uint, status string) ([]hrmmodel.HrmOvertime, int64, error) {
+	emp, err := s.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return nil, 0, err
+	}
+	return s.overtimeRepo.Page(ctx, page, pageSize, emp, status)
 }
 
 // ── 月度汇总 ──
