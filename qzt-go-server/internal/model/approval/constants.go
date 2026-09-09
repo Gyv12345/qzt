@@ -50,6 +50,11 @@ const (
 	ApproverTypeDeptHead         = "DEPT_HEAD"         // 部门负责人
 	ApproverTypeMultipleDeptHead = "MULTIPLE_DEPT_HEAD" // 多级部门负责人
 	ApproverTypeRole             = "ROLE"              // 角色
+
+	// 历史遗留枚举(旧版设计器产出,已存量的流程版本快照仍在使用)。
+	// 引擎解析时按别名兼容,防止旧快照审批人解析为空导致流程异常(R9-①)。
+	ApproverTypeLegacyDeptLeader = "DEPT_LEADER" // 旧"部门领导",等同 DEPT_HEAD
+	ApproverTypeLegacyUser       = "USER"        // 旧"指定用户",等同 MEMBER
 )
 
 // MultiApproverMode 多审批人模式。

@@ -427,7 +427,8 @@ func (s *ApprovalService) buildCcNotice(ctx context.Context, node *apprmodel.App
 }
 
 // handleEmptyApprover 审批节点无可用审批人时,按节点 empty_approver_action 配置处理:
-//   - AUTO_PASS: 自动通过
+//   - 节点完全没有审批人配置行:审批链未配置,fail-fast 自动驳回,不默认放行(R11-②)
+//   - AUTO_PASS: 自动通过(仅限设计器显式配置)
 //   - ASSIGN_SPECIFIC: 转交兜底人(fallback_approver);未配则退化为自动通过
 //   - ASSIGN_ADMIN: 转交超管(id=1)
 //   - REJECT 或未知: 实例判驳回,避免静默放行打穿审批
@@ -436,8 +437,11 @@ func (s *ApprovalService) handleEmptyApprover(ctx context.Context, node *apprmod
 	if c, err := s.approverRepo.GetByNodeID(ctx, node.ID); err == nil {
 		cfg = c
 	}
+	if cfg == nil {
+		return s.failInstance(ctx, instance, "审批节点「"+node.Name+"」未配置审批人,已自动驳回,请联系管理员修复审批流程")
+	}
 	action := apprmodel.EmptyApproverAutoPass
-	if cfg != nil && cfg.EmptyApproverAction != "" {
+	if cfg.EmptyApproverAction != "" {
 		action = cfg.EmptyApproverAction
 	}
 	switch action {
@@ -485,11 +489,11 @@ func (s *ApprovalService) resolveApprovers(ctx context.Context, node *apprmodel.
 		return nil, nil // 无配置 = 空审批人
 	}
 
-	// 按 approverType 解析
+	// 按 approverType 解析(含历史遗留枚举别名,兼容旧版本快照)
 	switch cfg.ApproverType {
-	case apprmodel.ApproverTypeMember:
+	case apprmodel.ApproverTypeMember, apprmodel.ApproverTypeLegacyUser:
 		return parseUintArray(cfg.ApproverList), nil
-	case apprmodel.ApproverTypeDeptHead, apprmodel.ApproverTypeMultipleDeptHead:
+	case apprmodel.ApproverTypeDeptHead, apprmodel.ApproverTypeMultipleDeptHead, apprmodel.ApproverTypeLegacyDeptLeader:
 		// DEPT_HEAD:提交人 → sys_user.dept_id → hrm_department.leader
 		return s.resolveDeptHead(ctx, submitterID)
 	case apprmodel.ApproverTypeRole:

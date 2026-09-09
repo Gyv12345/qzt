@@ -24,6 +24,7 @@ type AttendanceService struct {
 	overtimeRepo *hrmrepo.OvertimeRepo
 	summaryRepo *hrmrepo.AttendanceSummaryRepo
 	empRepo     *hrmrepo.EmployeeRepo
+	deptRepo    *hrmrepo.DepartmentRepo
 }
 
 func NewAttendanceService() *AttendanceService {
@@ -33,6 +34,7 @@ func NewAttendanceService() *AttendanceService {
 		overtimeRepo: hrmrepo.NewOvertimeRepo(),
 		summaryRepo: hrmrepo.NewAttendanceSummaryRepo(),
 		empRepo:     hrmrepo.NewEmployeeRepo(),
+		deptRepo:    hrmrepo.NewDepartmentRepo(),
 	}
 }
 
@@ -326,9 +328,67 @@ func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint
 	return summary, nil
 }
 
-// SummaryList 月度汇总列表(按部门或年月)。
-func (s *AttendanceService) SummaryList(ctx context.Context, yearMonth string, departmentID uint) ([]hrmmodel.HrmAttendanceSummary, error) {
-	return s.summaryRepo.List(ctx, yearMonth, departmentID)
+// AttendanceSummaryItem 月度汇总展示项:汇总数值 + 员工/部门展示字段
+// (admin 汇总页与 mobile 端依赖 employee_name/emp_no/dept_name,缺失会渲染裸 ID)。
+type AttendanceSummaryItem struct {
+	hrmmodel.HrmAttendanceSummary
+	EmployeeName string `json:"employee_name"`
+	EmpNo        string `json:"emp_no"`
+	DeptName     string `json:"dept_name"`
+}
+
+// SummaryList 月度汇总列表(按部门或年月),附带员工姓名/工号/部门名称。
+func (s *AttendanceService) SummaryList(ctx context.Context, yearMonth string, departmentID uint) ([]AttendanceSummaryItem, error) {
+	list, err := s.summaryRepo.List(ctx, yearMonth, departmentID)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]AttendanceSummaryItem, 0, len(list))
+	if len(list) == 0 {
+		return items, nil
+	}
+
+	// 批量取员工与部门展示信息;查询失败沿袭原语义:展示字段留空,不影响汇总数值
+	empIDs := make([]uint, 0, len(list))
+	for _, sm := range list {
+		empIDs = append(empIDs, sm.EmployeeID)
+	}
+	emps, err := s.empRepo.List(ctx, &repository.QueryOptions{
+		Conds: []repository.Cond{{Query: "id IN ?", Args: []any{empIDs}}},
+	})
+	if err != nil {
+		emps = nil
+	}
+	empByID := make(map[uint]hrmmodel.HrmEmployee, len(emps))
+	deptIDs := make([]uint, 0)
+	for _, e := range emps {
+		empByID[e.ID] = e
+		if e.DepartmentID > 0 {
+			deptIDs = append(deptIDs, e.DepartmentID)
+		}
+	}
+	deptByID := make(map[uint]string)
+	if len(deptIDs) > 0 {
+		depts, err := s.deptRepo.List(ctx, &repository.QueryOptions{
+			Conds: []repository.Cond{{Query: "id IN ?", Args: []any{deptIDs}}},
+		})
+		if err == nil {
+			for _, d := range depts {
+				deptByID[d.ID] = d.Name
+			}
+		}
+	}
+
+	for _, sm := range list {
+		item := AttendanceSummaryItem{HrmAttendanceSummary: sm}
+		if e, ok := empByID[sm.EmployeeID]; ok {
+			item.EmployeeName = e.Name
+			item.EmpNo = e.EmpNo
+			item.DeptName = deptByID[e.DepartmentID]
+		}
+		items = append(items, item)
+	}
+	return items, nil
 }
 
 // ── 内部辅助 ──
