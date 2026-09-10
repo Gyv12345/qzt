@@ -61,11 +61,22 @@ func (r *InstanceRepo) ListByIDs(ctx context.Context, ids []uint) ([]apprmodel.A
 }
 
 // HasApproving 判断某业务资源是否存在审批中的活跃实例。
-// 供 Push 防重复提审:审批中不允许再次提交;驳回/撤回/已通过终态不拦(可重新发起)。
+// 供 Push 防重复提审:审批中不允许再次提交;驳回/撤回后可重新发起。
 func (r *InstanceRepo) HasApproving(ctx context.Context, formType string, resourceID uint) (bool, error) {
 	var count int64
 	err := repoDB(ctx).Model(&apprmodel.ApprovalInstance{}).
 		Where("type = ? AND resource_id = ? AND approval_status = ?", formType, resourceID, apprmodel.StatusApproving).
+		Count(&count).Error
+	return count > 0, err
+}
+
+// HasApproved 判断某业务资源是否已存在审批通过的实例。
+// 供 Push 防重复提审:已通过是业务终态(单据状态已落地,如合同 SIGNED),
+// 再次 push 会生成与落地状态冲突的新实例,且驳回会污染已通过状态(R11-③)。
+func (r *InstanceRepo) HasApproved(ctx context.Context, formType string, resourceID uint) (bool, error) {
+	var count int64
+	err := repoDB(ctx).Model(&apprmodel.ApprovalInstance{}).
+		Where("type = ? AND resource_id = ? AND approval_status = ?", formType, resourceID, apprmodel.StatusApproved).
 		Count(&count).Error
 	return count > 0, err
 }
