@@ -85,7 +85,7 @@ func (s *PurchaseService) Create(ctx context.Context, req *CreatePurchaseOrderRe
 		OperatorID:     operatorID,
 		Remark:         req.Remark,
 	}
-	order.OrderDate = parseNullDate(req.OrderDate)
+	order.OrderDate = parseOrderDateOnCreate(req.OrderDate)
 
 	// 汇总金额/数量 + 构造明细(逐条解析规格 SKU)
 	var totalQty, totalAmt decimal.Decimal

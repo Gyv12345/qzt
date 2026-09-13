@@ -216,7 +216,7 @@ func (r *DashboardRepo) SalesTrend(ctx context.Context, start string) ([]TrendPo
 	var rows []TrendPoint
 	err := dbFrom(ctx).Table("crm_contract_payment_record").
 		Select("DATE(received_date) AS date, COUNT(*) AS count, COALESCE(SUM(amount),0) AS amount").
-		Where("received_date >= ?", start).
+		Where("received_date >= ?", start).Where("deleted_at IS NULL").
 		Group("DATE(received_date)").
 		Order("date ASC").
 		Scan(&rows).Error
@@ -229,7 +229,8 @@ func (r *DashboardRepo) SalesTrend(ctx context.Context, start string) ([]TrendPo
 // 校验后的列名(level/source/industry/status,防注入)。
 func (r *DashboardRepo) CustomerDistribution(ctx context.Context, dimension string, ds *Cond) ([]DistItem, error) {
 	q := dbFrom(ctx).Table("crm_customer").
-		Where(dimension + " != ''")
+		Where(dimension + " != ''").
+		Where("deleted_at IS NULL")
 	if ds != nil {
 		q = q.Where(ds.Query, ds.Args...)
 	}
@@ -245,7 +246,8 @@ func (r *DashboardRepo) CustomerDistribution(ctx context.Context, dimension stri
 
 // OpportunityFunnel 按阶段分组统计商机数量与金额。
 func (r *DashboardRepo) OpportunityFunnel(ctx context.Context, ds *Cond) ([]FunnelStage, error) {
-	q := dbFrom(ctx).Table("crm_opportunity")
+	q := dbFrom(ctx).Table("crm_opportunity").
+		Where("deleted_at IS NULL")
 	if ds != nil {
 		q = q.Where(ds.Query, ds.Args...)
 	}
@@ -265,23 +267,23 @@ func (r *DashboardRepo) FinanceSummary(ctx context.Context, startDate, endDate s
 	db := dbFrom(ctx)
 
 	// 采购总额(已入库)
-	pq := db.Table("psi_purchase_order").Where("status = ?", psimodel.PurchaseStatusReceipt)
+	pq := db.Table("psi_purchase_order").Where("status = ?", psimodel.PurchaseStatusReceipt).Where("deleted_at IS NULL")
 	pq = applyDashboardDateRange(pq, "order_date", startDate, endDate)
 	pq.Select("COALESCE(SUM(total_amount),0)").Scan(&data.PurchaseAmount)
 
 	// 销售总额(已出库)
-	sq := db.Table("psi_sales_order").Where("status = ?", psimodel.SalesStatusShipped)
+	sq := db.Table("psi_sales_order").Where("status = ?", psimodel.SalesStatusShipped).Where("deleted_at IS NULL")
 	sq = applyDashboardDateRange(sq, "order_date", startDate, endDate)
 	sq.Select("COALESCE(SUM(total_amount),0)").Scan(&data.SalesAmount)
 
 	// 回款总额
-	rq := db.Table("crm_contract_payment_record")
+	rq := db.Table("crm_contract_payment_record").Where("deleted_at IS NULL")
 	rq = applyDashboardDateRange(rq, "received_date", startDate, endDate)
 	rq.Select("COALESCE(SUM(amount),0)").Scan(&data.ReceivedAmount)
 
 	// 库存总值(在手数量 × 商品成本价,关联 crm_product.cost_price)
 	db.Table("psi_stock AS s").
-		Joins("LEFT JOIN crm_product AS p ON p.id = s.product_id").
+		Joins("LEFT JOIN crm_product AS p ON p.id = s.product_id AND p.deleted_at IS NULL").
 		Where("s.deleted_at IS NULL").
 		Select("COALESCE(SUM(s.quantity * p.cost_price),0)").Scan(&data.StockValue)
 
@@ -420,8 +422,8 @@ func (r *DashboardRepo) StockValueByWarehouse(ctx context.Context) ([]WarehouseS
 	var rows []WarehouseStockValueRow
 	err := dbFrom(ctx).Table("psi_stock AS s").
 		Select("COALESCE(w.name,'未知') AS warehouse, COALESCE(SUM(s.quantity * p.cost_price),0) AS stock_value, COALESCE(SUM(s.quantity),0) AS quantity").
-		Joins("LEFT JOIN psi_warehouse AS w ON w.id = s.warehouse_id").
-		Joins("LEFT JOIN crm_product AS p ON p.id = s.product_id").
+		Joins("LEFT JOIN psi_warehouse AS w ON w.id = s.warehouse_id AND w.deleted_at IS NULL").
+		Joins("LEFT JOIN crm_product AS p ON p.id = s.product_id AND p.deleted_at IS NULL").
 		Where("s.deleted_at IS NULL").
 		Group("w.id").Order("stock_value DESC").Scan(&rows).Error
 	return rows, err

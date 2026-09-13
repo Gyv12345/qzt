@@ -21,3 +21,12 @@ func parseNullDate(s string) xtime.NullDateTime {
 	}
 	return xtime.NullDateTime{}
 }
+
+// parseOrderDateOnCreate 单据创建场景的单据日期:未传时缺省当天。
+// 单据日期参与日期过滤型报表(财务概览/采购销售对比)聚合,落 NULL 会被漏计。
+func parseOrderDateOnCreate(s string) xtime.NullDateTime {
+	if nd := parseNullDate(s); !nd.IsZero() {
+		return nd
+	}
+	return xtime.NewNullDateTimeFromTime(time.Now())
+}
