@@ -29,6 +29,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/processed", todoHandler.ListProcessed)
 		authenticated.GET("/initiated", todoHandler.ListInitiated)
 		authenticated.GET("/instances/:id", todoHandler.GetDetail)
+		authenticated.GET("/instances/:id/resource", todoHandler.GetResource)
 
 		// 审批操作(push/approve/reject 不走 Casbin;revoke 同理)
 		authenticated.POST("/actions/push", actionHandler.Push)

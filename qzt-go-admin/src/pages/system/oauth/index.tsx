@@ -39,7 +39,17 @@ interface WecomFormValues {
   remark: string
 }
 
+interface WechatFormValues {
+  enabled: boolean
+  app_id: string
+  app_secret: string
+  redirect_uri: string
+  template_id: string
+  remark: string
+}
+
 const DEFAULT_REDIRECT = 'https://m.devlovecode.com/auth/wecom/bind'
+const DEFAULT_WECHAT_REDIRECT = 'https://m.devlovecode.com/auth/wechat/callback'
 
 export default function OauthConfigPage() {
   const { message } = App.useApp()
@@ -47,6 +57,11 @@ export default function OauthConfigPage() {
   const [loading, setLoading] = useState(false)
   /** 当前企业微信配置记录(单例:provider=wecom 的第一条) */
   const [record, setRecord] = useState<SysOauthConfig | null>(null)
+
+  const [wxForm] = Form.useForm<WechatFormValues>()
+  const [wxLoading, setWxLoading] = useState(false)
+  /** 当前微信服务号配置记录(单例:provider=wechat_mp 的第一条) */
+  const [wxRecord, setWxRecord] = useState<SysOauthConfig | null>(null)
 
   const load = async () => {
     const list = await listOauthConfigs()
@@ -61,6 +76,23 @@ export default function OauthConfigPage() {
       redirect_uri: rec?.redirect_uri || DEFAULT_REDIRECT,
       extra: rec?.extra ?? '',
       remark: rec?.remark ?? '',
+    })
+
+    const wxRec = list.find((c) => c.provider === 'wechat_mp') ?? null
+    setWxRecord(wxRec)
+    let templateID = ''
+    try {
+      templateID = JSON.parse(wxRec?.extra || '{}')?.template_id ?? ''
+    } catch {
+      templateID = ''
+    }
+    wxForm.setFieldsValue({
+      enabled: wxRec?.enabled === 1,
+      app_id: wxRec?.app_id ?? '',
+      app_secret: '',
+      redirect_uri: wxRec?.redirect_uri || DEFAULT_WECHAT_REDIRECT,
+      template_id: templateID,
+      remark: wxRec?.remark ?? '',
     })
   }
 
@@ -98,6 +130,44 @@ export default function OauthConfigPage() {
       await load()
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveWechat = async (values: WechatFormValues) => {
+    setWxLoading(true)
+    try {
+      // template_id 序列化进 extra(保留 extra 里已有的其他键)
+      let extra: Record<string, unknown> = {}
+      try {
+        extra = JSON.parse(wxRecord?.extra || '{}') ?? {}
+      } catch {
+        extra = {}
+      }
+      extra.template_id = values.template_id || ''
+      const payload: OauthConfigPayload = {
+        provider: 'wechat_mp',
+        name: '微信服务号(通知+免登录)',
+        app_id: values.app_id || undefined,
+        app_secret: values.app_secret || undefined, // 留空表示不修改
+        redirect_uri: values.redirect_uri || undefined,
+        extra: JSON.stringify(extra),
+        remark: values.remark || undefined,
+      }
+      let id = wxRecord?.id
+      if (id) {
+        await updateOauthConfig(id, payload)
+      } else {
+        await createOauthConfig(payload)
+        const list = await listOauthConfigs()
+        id = list.find((c) => c.provider === 'wechat_mp')?.id
+      }
+      if (id) {
+        await setOauthConfigEnable(id, values.enabled ? 1 : 0)
+      }
+      message.success('微信服务号配置已保存')
+      await load()
+    } finally {
+      setWxLoading(false)
     }
   }
 
@@ -181,6 +251,69 @@ export default function OauthConfigPage() {
           />
           <ProFormTextArea name="remark" label="备注" placeholder="备注信息" colProps={{ span: 24 }} />
         </ProForm>
+      </Card>
+
+      <Card title="微信服务号配置(通知推送 + 微信内免登录)" style={{ marginBottom: 16 }}>
+        <ProForm<WechatFormValues>
+          form={wxForm}
+          grid
+          onFinish={handleSaveWechat}
+          submitter={{
+            render: () => (
+              <Auth perm="system:oauth:edit">
+                <Button type="primary" loading={wxLoading} onClick={() => wxForm.submit()}>
+                  保存配置
+                </Button>
+              </Auth>
+            ),
+          }}
+        >
+          <ProFormSwitch
+            name="enabled"
+            label="启用"
+            tooltip="开启后,微信免登录与模板消息通知生效"
+            fieldProps={{ checkedChildren: '启用', unCheckedChildren: '停用' }}
+            colProps={{ span: 12 }}
+          />
+          <ProFormText
+            name="app_id"
+            label="AppID(应用ID)"
+            placeholder="公众平台 → 设置与开发 → 基本配置 → AppID"
+            rules={[{ required: true, message: '请输入 AppID' }]}
+            colProps={{ span: 12 }}
+          />
+          <Col span={12}>
+            <ProForm.Item name="app_secret" label="AppSecret(应用密钥)">
+              <Input.Password
+                placeholder={wxRecord?.id ? '留空表示不修改' : '基本配置 → AppSecret'}
+                autoComplete="new-password"
+              />
+            </ProForm.Item>
+          </Col>
+          <ProFormText
+            name="redirect_uri"
+            label="网页授权回调地址"
+            placeholder={DEFAULT_WECHAT_REDIRECT}
+            extra="需在公众平台「网页授权域名」配置 m.devlovecode.com,并把服务器 IP 加入 IP 白名单"
+            colProps={{ span: 12 }}
+          />
+          <ProFormText
+            name="template_id"
+            label="通知模板 ID"
+            tooltip="公众平台 → 功能 → 模板消息 → 添加「待办/审核提醒」类模板后复制 ID;留空则只启用免登录,不推通知"
+            placeholder="留空 = 不推送模板消息"
+            colProps={{ span: 12 }}
+          />
+          <ProFormTextArea name="remark" label="备注" placeholder="备注信息" colProps={{ span: 24 }} />
+        </ProForm>
+        <div style={{ fontSize: 13, lineHeight: 2, color: '#666' }}>
+          <p style={{ margin: '4px 0' }}>
+            <b>① 微信内免登录</b>：员工在微信中打开移动端可一键登录(需已绑定);绑定入口在移动端「我的 → 消息通知」。
+          </p>
+          <p style={{ margin: '4px 0' }}>
+            <b>② 模板消息通知</b>：需<b>已认证服务号</b>并配置模板 ID;审批待办、跟进提醒等会推送到员工微信,点击直达处理。
+          </p>
+        </div>
       </Card>
 
       <Card title="功能与消息通知说明">

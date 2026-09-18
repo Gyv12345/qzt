@@ -65,8 +65,16 @@ type SysSiteConfig struct {
 	// ── SEO ──
 	// SEO关键词(逗号分隔)
 	Keywords string `json:"keywords" gorm:"size:500;comment:SEO关键词(逗号分隔)"`
+	// SEO地域码(如 CN-henan-luoyang,输出 geo.region meta)
+	GeoRegion string `json:"geo_region" gorm:"size:100;comment:SEO地域码(如 CN-henan-luoyang)"`
+	// SEO地名(如 河南省洛阳市,输出 geo.placename meta)
+	GeoPlacename string `json:"geo_placename" gorm:"size:100;comment:SEO地名(如 河南省洛阳市)"`
+	// SEO坐标(纬度;经度,如 34.6197;112.4540,输出 geo.position/ICBM meta)
+	GeoPosition string `json:"geo_position" gorm:"size:50;comment:SEO坐标(纬度;经度,如 34.6197;112.4540)"`
 	// 统计代码(GA/百度统计等JS)
 	AnalyticsCode string `json:"analytics_code" gorm:"type:text;comment:统计代码(GA/百度统计等JS)"`
+	// 官网FAQ列表(JSON: [{q,a}],GEO问答结构,AI搜索引擎引用)
+	FaqJSON string `json:"faq_json" gorm:"type:text;comment:官网FAQ列表(JSON: [{q,a}],GEO问答结构)"`
 
 	// ── 其他 ──
 	// 版权声明(如 © 2024 某某科技有限公司)

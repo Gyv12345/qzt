@@ -104,3 +104,26 @@ func (h *TodoHandler) GetDetail(c *gin.Context) {
 	}
 	response.OK(c, detail)
 }
+
+// GetResource 审批原单摘要
+// @Summary      审批实例的原单摘要
+// @Description  按表单类型从业务表取只读摘要(标题字段+可选明细行),供详情抽屉展示"批的是什么";原单不存在时 found=false
+// @Tags         审批待办
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id  path      int  true  "实例ID"
+// @Success      200  {object}  xresponse.Response
+// @Router       /approval/instances/{id}/resource [get]
+func (h *TodoHandler) GetResource(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误")
+		return
+	}
+	summary, err := h.svc.GetResourceSummary(c.Request.Context(), uint(id))
+	if err != nil {
+		response.Fail(c, errcode.ErrNotFound, err.Error())
+		return
+	}
+	response.OK(c, summary)
+}

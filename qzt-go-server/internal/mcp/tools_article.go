@@ -46,7 +46,7 @@ func registerArticleTools(s *server.MCPServer) {
 			mcp.WithString("content", mcp.Description("正文(Markdown格式, 支持标题/表格/图片/代码块)")),
 			mcp.WithString("cover_url", mcp.Description("封面图URL")),
 			mcp.WithNumber("category_id", mcp.Description("分类ID")),
-			mcp.WithString("author_name", mcp.Description("作者昵称(默认: 企智通团队)")),
+			mcp.WithString("author_name", mcp.Description("作者昵称(默认: 行简团队)")),
 			mcp.WithNumber("status", mcp.Description("状态: 0草稿 1发布(默认1)")),
 			mcp.WithNumber("is_top", mcp.Description("置顶: 0否 1是")),
 			mcp.WithNumber("is_hot", mcp.Description("热门: 0否 1是")),
@@ -132,7 +132,7 @@ func handleArticleCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	status := int8(req.GetFloat("status", 1))
 	isTop := int8(req.GetFloat("is_top", 0))
 	isHot := int8(req.GetFloat("is_hot", 0))
-	authorName := req.GetString("author_name", "企智通团队")
+	authorName := req.GetString("author_name", "行简团队")
 
 	article, err := svc.Create(ctx, &cmssvc.CreateArticleRequest{
 		Title:      title,

@@ -5,7 +5,7 @@ sidebar_label: 功能总览
 
 # 功能总览
 
-企智通将企业管理所需的全部能力整合进同一个产品。下表按模块列出核心功能，每个模块都有独立的文档章节，详细说明数据模型、流程与配置。
+行简将企业管理所需的全部能力整合进同一个产品。下表按模块列出核心功能，每个模块都有独立的文档章节，详细说明数据模型、流程与配置。
 
 ## CRM · 客户关系管理
 
@@ -157,7 +157,7 @@ sidebar_label: 功能总览
 
 ## MCP 协议
 
-企智通实现了 **Model Context Protocol** 服务端，全部业务功能以标准 MCP 工具开放，允许 Claude Desktop、Cursor、Continue 等 AI 工具直接读写系统数据。
+行简实现了 **Model Context Protocol** 服务端，全部业务功能以标准 MCP 工具开放，允许 Claude Desktop、Cursor、Continue 等 AI 工具直接读写系统数据。
 
 - 14 个工具集、333 个工具：查客户、写跟进、提报销、审单据、盘库存……
 - API Key 级工具集裁剪 + Casbin 操作级鉴权，默认拒绝未授权调用

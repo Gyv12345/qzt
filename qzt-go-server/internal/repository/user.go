@@ -58,6 +58,15 @@ func (d *UserRepo) GetByWecomUserID(ctx context.Context, wecomUserID string) (*m
 	return &user, nil
 }
 
+// GetByWechatOpenID 按微信服务号 openid 查找用户(微信内免登录用)。找不到返回 gorm.ErrRecordNotFound。
+func (d *UserRepo) GetByWechatOpenID(ctx context.Context, openid string) (*model.SysUser, error) {
+	var user model.SysUser
+	if err := dbFrom(ctx).Preload("Roles").Where("wechat_openid = ?", openid).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // SearchOptions 用户简表检索:仅 status=正常 用户,按用户名/昵称模糊匹配,
 // 只 Select 选人必需字段(id/username/nickname/dept_id),供站内信收件人、
 // 转移负责人等登录即可用的选人场景。keyword 参数化绑定,limit 由服务端钳制。

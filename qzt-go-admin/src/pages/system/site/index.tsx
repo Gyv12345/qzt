@@ -19,9 +19,16 @@ interface ModuleItem {
   desc?: string
 }
 
+/** FAQ 条目(表单态;存储为 faq_json) */
+interface FaqItem {
+  q?: string
+  a?: string
+}
+
 type SiteFormValues = UpdateSiteConfigRequest & {
   stats_list?: StatItem[]
   modules_list?: ModuleItem[]
+  faq_list?: FaqItem[]
 }
 
 /** 模块墙可选图标(与官网前台 ICONS map 一一对应,新增图标需同步前端代码) */
@@ -61,6 +68,7 @@ export default function SiteConfigPage() {
     // JSON 存储字段 → 表单列表态;解析失败按空数组,不阻塞表单
     let stats: StatItem[] = []
     let modules: ModuleItem[] = []
+    let faqs: FaqItem[] = []
     try {
       stats = res.stats_json ? (JSON.parse(res.stats_json) as StatItem[]) : []
     } catch {
@@ -77,7 +85,12 @@ export default function SiteConfigPage() {
     } catch {
       modules = []
     }
-    form.setFieldsValue({ ...res, theme: res.theme || 'dark-tech', stats_list: stats, modules_list: modules })
+    try {
+      faqs = res.faq_json ? (JSON.parse(res.faq_json) as FaqItem[]) : []
+    } catch {
+      faqs = []
+    }
+    form.setFieldsValue({ ...res, theme: res.theme || 'dark-tech', stats_list: stats, modules_list: modules, faq_list: faqs })
   }
 
   useEffect(() => {
@@ -93,14 +106,16 @@ export default function SiteConfigPage() {
       const modules = (values.modules_list ?? [])
         .filter((m) => m?.name)
         .map((m) => ({ icon: m.icon || 'users', name: m.name, desc: m.desc || '' }))
+      const faqs = (values.faq_list ?? []).filter((f) => f?.q && f?.a)
       const payload: UpdateSiteConfigRequest = Object.fromEntries(
         Object.entries({
           ...values,
           stats_json: JSON.stringify(stats),
           modules_json: JSON.stringify(modules),
+          faq_json: JSON.stringify(faqs),
         })
           // 临时表单字段不进请求
-          .filter(([k]) => k !== 'stats_list' && k !== 'modules_list')
+          .filter(([k]) => k !== 'stats_list' && k !== 'modules_list' && k !== 'faq_list')
           // 空串转 undefined,避免把未填写字段覆盖为空
           .map(([k, v]) => [k, v === '' ? undefined : v]),
       )
@@ -208,6 +223,27 @@ export default function SiteConfigPage() {
             placeholder="如 企业管理平台,客户管理,进销存"
             colProps={{ span: 24 }}
           />
+          <ProFormText
+            name="geo_region"
+            label="SEO 地域码"
+            tooltip="输出到官网 geo.region meta 标签,帮助搜索引擎(尤其百度)识别企业所在地区域,提升本地搜索权重"
+            placeholder="如 CN-henan-luoyang(国别-省-市,小写)"
+            colProps={{ span: 8 }}
+          />
+          <ProFormText
+            name="geo_placename"
+            label="SEO 所在地名"
+            tooltip="输出到官网 geo.placename meta 标签,填写企业所在省市全称"
+            placeholder="如 河南省洛阳市"
+            colProps={{ span: 8 }}
+          />
+          <ProFormText
+            name="geo_position"
+            label="SEO 经纬度"
+            tooltip="输出到官网 geo.position / ICBM meta 标签,格式 纬度;经度(分号分隔),可从地图拾取坐标"
+            placeholder="如 34.6197;112.4540"
+            colProps={{ span: 8 }}
+          />
           <ProFormTextArea
             name="analytics_code"
             label="统计代码"
@@ -215,6 +251,22 @@ export default function SiteConfigPage() {
             placeholder="粘贴第三方统计的 <script> 代码"
             colProps={{ span: 24 }}
           />
+
+          <Section title="常见问题 (FAQ)" note="展示在官网 /faq 页,问答结构最容易被 AI 搜索引擎引用" />
+          <ProFormList
+            name="faq_list"
+            label="官网常见问题"
+            tooltip="以问答形式展示企业核心信息(是什么/多少钱/怎么部署等);全部删除则官网不显示 FAQ 页入口"
+            colProps={{ span: 24 }}
+            creatorRecord={{ q: '', a: '' }}
+            creatorButtonProps={{ creatorButtonText: '添加问题', position: 'bottom' }}
+            copyIconProps={false}
+          >
+            <ProFormGroup key="faq" grid>
+              <ProFormText name="q" label="问题" placeholder="如 行简收费吗?价格是多少?" colProps={{ span: 8 }} />
+              <ProFormTextArea name="a" label="答案" placeholder="事实性描述,含价格/数字等具体信息更易被 AI 引用" fieldProps={{ autoSize: { minRows: 1, maxRows: 4 } }} colProps={{ span: 16 }} />
+            </ProFormGroup>
+          </ProFormList>
 
           <Section title="AI 连接地址" />
           <ProFormText

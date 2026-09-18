@@ -10,6 +10,7 @@ import Mine from '../pages/mine'
 import Messages from '../pages/messages'
 import WecomBind from '../pages/wecom-bind'
 import WecomLogin from '../pages/wecom-login'
+import WechatLogin from '../pages/wechat-login'
 import NotFound from '../pages/error/404'
 
 // 业务详情页懒加载(减少首屏体积)
@@ -25,6 +26,7 @@ const ContractList = lazy(() => import('../pages/contract'))
 const ContractDetail = lazy(() => import('../pages/contract/detail'))
 const ApprovalList = lazy(() => import('../pages/approval'))
 const ApprovalDetail = lazy(() => import('../pages/approval/detail'))
+const WechatBindPage = lazy(() => import('../pages/wechat-bind'))
 const NewsList = lazy(() => import('../pages/news'))
 const NewsDetail = lazy(() => import('../pages/news/detail'))
 const NoticeList = lazy(() => import('../pages/notice'))
@@ -128,6 +130,7 @@ export default function AppRoutes() {
       { path: '/login', element: <Login /> },
       { path: '/auth/wecom/bind', element: <WecomBind /> },
       { path: '/auth/wecom/login', element: <WecomLogin /> },
+      { path: '/auth/wechat/callback', element: <WechatLogin /> },
       {
         path: '/',
         element: (
@@ -148,6 +151,14 @@ export default function AppRoutes() {
           },
           { path: '/messages', element: <Messages /> },
           { path: '/mine', element: <Mine /> },
+          {
+            path: '/wechat-bind',
+            element: (
+              <Suspense fallback={pageFallback}>
+                <WechatBindPage />
+              </Suspense>
+            ),
+          },
           // 非 TabBar 子路由(仍受 RequireAuth 保护,套 TabBarLayout)
           {
             path: '/customer',

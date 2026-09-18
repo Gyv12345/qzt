@@ -5,7 +5,7 @@ sidebar_position: 14
 
 # AI 业务系统
 
-企智通不只是一个管理后台，更是一个**AI 可直接操作的 业务系统**：全部业务模块（CRM、审批、OA、HRM、进销存、财务、项目、知识库、网盘、CMS……）共 **333 个功能**，全部通过 **MCP（Model Context Protocol）** 以标准工具接口对外开放。任何支持 MCP 的 AI 客户端——Claude Desktop、Cursor、Cline、Continue 等——连上之后，用一句自然语言就能完成查客户、写跟进、提报销、审单据、盘库存等操作。
+行简不只是一个管理后台，更是一个**AI 可直接操作的 业务系统**：全部业务模块（CRM、审批、OA、HRM、进销存、财务、项目、知识库、网盘、CMS……）共 **333 个功能**，全部通过 **MCP（Model Context Protocol）** 以标准工具接口对外开放。任何支持 MCP 的 AI 客户端——Claude Desktop、Cursor、Cline、Continue 等——连上之后，用一句自然语言就能完成查客户、写跟进、提报销、审单据、盘库存等操作。
 
 ```
 你说："把今天拜访的三家客户各建一条跟进记录，顺便看看华东仓的库存预警"
@@ -30,7 +30,7 @@ sidebar_position: 14
 
 [MCP（Model Context Protocol）](https://modelcontextprotocol.io) 是 AI 工具调用的开放标准，相当于 AI 世界的「USB 接口」：服务端声明一组**工具**（tool，含名称、参数 Schema、说明），AI 客户端把工具清单注入模型上下文，模型在对话中按需调用，服务端执行后返回结构化结果。
 
-企智通实现了完整的 MCP 服务端：
+行简实现了完整的 MCP 服务端：
 
 - **端点**：`https://你的域名/mcp`（Streamable HTTP 传输，无需本地桥接进程）
 - **认证**：`Authorization: Bearer qzt_xxxxxxxx`（API Key，个人中心自助创建）

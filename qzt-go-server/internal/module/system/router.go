@@ -35,6 +35,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	siteConfigHandler := handler.NewSiteConfigHandler()
 	homepageConfigHandler := handler.NewHomepageConfigHandler()
 	versionHandler := handler.NewVersionHandler()
+	wechatAuthHandler := handler.NewWechatAuthHandler()
 
 	// 公开路由（无需鉴权）：登录、刷新令牌、企业微信扫码登录、已启用第三方登录列表
 	rg.POST("/auth/login", middleware.LoginLimit(), authHandler.Login)
@@ -48,6 +49,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/auth/wecom/bind-oauth-url", authHandler.WecomBindOauthURL)
 	rg.GET("/auth/wecom/bind-callback", authHandler.WecomBindRedirect)
 	rg.POST("/auth/wecom/bind-callback", authHandler.WecomBindCallback)
+
+	// 微信服务号免登录(公开,微信浏览器内 OAuth 回调后由移动端 SPA 携 code 调用)
+	rg.GET("/auth/wechat/login-url", wechatAuthHandler.LoginURL)
+	rg.POST("/auth/wechat/login", wechatAuthHandler.Login)
 
 	// 站点信息(免鉴权,CMS/admin/h5 前台读取 logo/备案号等)
 	rg.GET("/site-config", siteConfigHandler.Get)
@@ -75,6 +80,12 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/auth/wecom/bind-status", authHandler.WecomBindStatus)
 		authenticated.POST("/auth/wecom/bind", authHandler.WecomBind)
 		authenticated.DELETE("/auth/wecom/bind", authHandler.WecomUnbind)
+
+		// 微信服务号绑定/解绑(已登录用户)
+		authenticated.GET("/auth/wechat/bind-url", wechatAuthHandler.BindURL)
+		authenticated.GET("/auth/wechat/bind-status", wechatAuthHandler.BindStatus)
+		authenticated.POST("/auth/wechat/bind", wechatAuthHandler.Bind)
+		authenticated.DELETE("/auth/wechat/bind", wechatAuthHandler.Unbind)
 		authenticated.GET("/menus/user", menuHandler.GetUserMenuTree)
 		authenticated.GET("/menus/tree", menuHandler.GetTree)
 		authenticated.GET("/roles/all", roleHandler.ListAll)

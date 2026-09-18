@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Form, Space } from 'antd'
+import { App, Button, Form, Space, Typography } from 'antd'
 import {
   ModalForm,
   ProFormTextArea,
@@ -73,7 +73,14 @@ export default function ApprovalTodoPage() {
       width: 240,
       search: false,
       ellipsis: true,
-      render: (_, record) => record.instance?.resource_title || '-',
+      render: (_, record) => {
+        const title = record.instance?.resource_title
+        return title ? (
+          <Typography.Link onClick={() => openDetail(record)}>{title}</Typography.Link>
+        ) : (
+          '-'
+        )
+      },
     },
     { title: '轮次', dataIndex: 'node_round', width: 70, search: false },
     {

@@ -1,6 +1,6 @@
 # qzt-docs
 
-企智通文档中心（Docusaurus 3 静态站）——面向用户/实施/二开的公开文档，生产地址 `https://docs.devlovecode.com`。
+行简文档中心（Docusaurus 3 静态站）——面向用户/实施/二开的公开文档，生产地址 `https://docs.devlovecode.com`。
 
 ## 内容结构（docs/）
 

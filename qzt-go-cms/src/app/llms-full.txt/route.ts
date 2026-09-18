@@ -1,6 +1,6 @@
-import { getArticles, getPartners, getProduct, getProducts, getTeam } from "@/lib/api";
+import { getArticles, getPartners, getProduct, getProducts, getSiteConfig, getTeam } from "@/lib/api";
 import { getPage } from "@/lib/api";
-import { llmsFullTxt, mdResponse } from "@/lib/markdown";
+import { llmsFullTxt, mdResponse, parseFaq } from "@/lib/markdown";
 
 /**
  * /llms-full.txt — 全站内容合集, 一个 Markdown 文件含所有详情。
@@ -9,12 +9,13 @@ import { llmsFullTxt, mdResponse } from "@/lib/markdown";
 export const revalidate = 300;
 
 export async function GET() {
-  const [productsRes, articlesRes, partnersRes, teamRes, aboutRes] = await Promise.all([
+  const [productsRes, articlesRes, partnersRes, teamRes, aboutRes, cfgRes] = await Promise.all([
     getProducts({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
     getArticles({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
     getPartners({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
     getTeam({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
     getPage("about").catch(() => ({ title: "关于我们", content: "" })),
+    getSiteConfig().catch(() => null),
   ]);
 
   // 拉取每个产品的详情 (含价格), 逐个请求, 失败的用基础信息兜底。
@@ -33,6 +34,7 @@ export async function GET() {
     articles: articlesRes.list,
     partners: partnersRes.list,
     team: teamRes.list,
+    faqs: parseFaq(cfgRes?.faq_json),
     about: { title: aboutRes.title || "关于我们", content: aboutRes.content || "" },
   });
 

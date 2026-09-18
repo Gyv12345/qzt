@@ -19,6 +19,8 @@ type SysUser struct {
 	TokenVersion int       `json:"-" gorm:"default:0;comment:会话版本，自增使旧 token 失效"`
 	// 企业微信UserID
 	WecomUserID  string    `json:"wecom_user_id" gorm:"size:64;index;comment:企业微信UserID"`
+	// 微信服务号openid(通知推送+微信内免登录)
+	WechatOpenID string    `json:"wechat_openid" gorm:"size:64;index;comment:微信服务号openid"`
 	Roles        []SysRole `json:"roles" gorm:"many2many:sys_user_role;"`
 	BaseModel
 }

@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${base}/products`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${base}/faq`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/partners`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/team`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/news`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
@@ -18,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/llms.txt`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/md`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/md/products`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/md/faq`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/md/news`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/md/partners`, lastModified: now, changeFrequency: "weekly", priority: 0.5 },
     { url: `${base}/md/team`, lastModified: now, changeFrequency: "weekly", priority: 0.5 },

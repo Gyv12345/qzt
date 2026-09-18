@@ -117,7 +117,7 @@ export interface ApprovalInstance {
   form_type_label?: string
 }
 
-/** 待办任务(我的待办列表项) */
+/** 待办任务(我的待办/已办列表项) */
 export interface ApprovalTask {
   id: number
   instance_id: number
@@ -125,6 +125,10 @@ export interface ApprovalTask {
   node_round: number
   approver_id?: number
   status?: string
+  /** 任务类型(CC抄送/SN加签/BK退回/NL常规) */
+  type?: string
+  /** 已办场景:该任务上我的审批动作(APPROVE/REJECT 等) */
+  action?: string
   created_at: string
   updated_at: string
   /** 列表接口可能附带实例信息 */
@@ -151,6 +155,41 @@ export interface ApprovalInstanceDetail extends ApprovalInstance {
   form_type_label?: string
   tasks: ApprovalTask[] | null
   records: ApprovalRecord[] | null
+}
+
+// ── 原单摘要(详情抽屉展示"批的是什么") ──
+
+/** 摘要键值字段;dict 非空时渲染前先映射字典中文 */
+export interface SummaryField {
+  label: string
+  value: string
+  dict?: string
+}
+
+/** 明细列定义 */
+export interface SummaryColumn {
+  key: string
+  label: string
+  dict?: string
+}
+
+/** 明细行(报销明细/单据商品行等) */
+export interface SummaryItems {
+  title: string
+  columns: SummaryColumn[]
+  rows: Record<string, string>[]
+}
+
+/** 原单摘要 */
+export interface ResourceSummary {
+  form_type: string
+  form_type_label: string
+  resource_id: number
+  title: string
+  /** 原单是否存在(未接入的类型/已删除的单据为 false) */
+  found: boolean
+  fields: SummaryField[]
+  items?: SummaryItems
 }
 
 // ── 流程设计(SaveDesign)相关类型 ──

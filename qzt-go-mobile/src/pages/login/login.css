@@ -44,6 +44,17 @@
   pointer-events: none;
 }
 
+/* React Bits Aurora: 品牌色阶极光, 只铺顶部、向下渐隐(无 WebGL 时该层为空) */
+.qz-login-aurora {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46vh;
+  opacity: 0.55;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 88%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 88%);
+}
+
 .qz-login-body {
   position: relative;
   display: flex;

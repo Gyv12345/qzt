@@ -1044,6 +1044,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/approval/instances/{id}/resource": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按表单类型从业务表取只读摘要(标题字段+可选明细行),供详情抽屉展示\"批的是什么\";原单不存在时 found=false",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批待办"
+                ],
+                "summary": "审批实例的原单摘要",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "实例ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/approval/instances/{id}/revoke": {
             "put": {
                 "security": [
@@ -14042,6 +14076,184 @@ const docTemplate = `{
                 }
             }
         },
+        "/system/auth/wechat/bind": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "用微信 OAuth code 绑定到当前用户(state 校验归属,一次性)。该微信已绑定其他账号则拒绝。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "绑定微信服务号",
+                "parameters": [
+                    {
+                        "description": "绑定请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "清空当前用户的微信服务号绑定",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "解绑微信服务号",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/auth/wechat/bind-status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回当前用户是否已绑定微信服务号",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "微信服务号绑定状态",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/auth/wechat/bind-url": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "当前用户发起微信绑定时获取授权 URL(微信浏览器内跳转)。state 已存 Redis 关联用户。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "微信服务号绑定授权URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/auth/wechat/login": {
+            "post": {
+                "description": "用微信 OAuth code 换取 openid 并登录(仅已绑定服务号的账号)。返回结构与账密登录一致。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "微信免登录",
+                "parameters": [
+                    {
+                        "description": "回调参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/system/auth/wechat/login-url": {
+            "get": {
+                "description": "返回微信网页授权 URL(scope=snsapi_base 静默授权)。移动端在微信浏览器内加载后 JS 跳转。需先在「第三方登录配置」启用微信服务号。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "微信免登录授权URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/auth/wecom/bind": {
             "post": {
                 "security": [
@@ -17024,6 +17236,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                },
+                "wechat_openid": {
+                    "description": "微信服务号openid(通知推送+微信内免登录)",
                     "type": "string"
                 },
                 "wecom_user_id": {

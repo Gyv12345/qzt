@@ -9,6 +9,7 @@ export const SITE = {
 export const NAV = [
   { href: "/", label: "首页" },
   { href: "/products", label: "产品" },
+  { href: "/faq", label: "常见问题" },
   { href: "/partners", label: "合作伙伴" },
   { href: "/team", label: "团队" },
   { href: "/news", label: "新闻动态" },

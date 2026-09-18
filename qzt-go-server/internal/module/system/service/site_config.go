@@ -55,7 +55,11 @@ type UpdateSiteConfigRequest struct {
 	PublicSecurityBeianURL string `json:"public_security_beian_url"`
 
 	Keywords      string `json:"keywords"`
+	GeoRegion     string `json:"geo_region"`
+	GeoPlacename  string `json:"geo_placename"`
+	GeoPosition   string `json:"geo_position"`
 	AnalyticsCode string `json:"analytics_code"`
+	FaqJSON       string `json:"faq_json"`
 	Copyright     string `json:"copyright"`
 	McpURL        string `json:"mcp_url"`
 }
@@ -139,8 +143,20 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	if req.Keywords != "" {
 		cfg.Keywords = req.Keywords
 	}
+	if req.GeoRegion != "" {
+		cfg.GeoRegion = req.GeoRegion
+	}
+	if req.GeoPlacename != "" {
+		cfg.GeoPlacename = req.GeoPlacename
+	}
+	if req.GeoPosition != "" {
+		cfg.GeoPosition = req.GeoPosition
+	}
 	if req.AnalyticsCode != "" {
 		cfg.AnalyticsCode = req.AnalyticsCode
+	}
+	if req.FaqJSON != "" {
+		cfg.FaqJSON = req.FaqJSON
 	}
 	if req.Copyright != "" {
 		cfg.Copyright = req.Copyright

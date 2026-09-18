@@ -1,6 +1,6 @@
 # qzt-go-mobile
 
-企智通移动端 H5（员工端）——30+ 业务页面全量接入 qzt-go-server 真实 API，覆盖 CRM / OA / PSI / 财务 / HRM / 项目 / 知识库 / 云盘 / 看板。生产部署在 `m.devlovecode.com`。
+行简移动端 H5（员工端）——30+ 业务页面全量接入 qzt-go-server 真实 API，覆盖 CRM / OA / PSI / 财务 / HRM / 项目 / 知识库 / 云盘 / 看板。生产部署在 `m.devlovecode.com`。
 
 ## 技术栈
 

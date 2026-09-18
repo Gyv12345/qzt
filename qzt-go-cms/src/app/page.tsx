@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 import { getArticles, getHomepageConfig, getSiteConfig } from "@/lib/api";
 import { ArticleCard, PartnerCard, ProductCard, TeamCard } from "@/components/Cards";
 import { EmptyState } from "@/components/EmptyState";
+import Aurora from "@/components/reactbits/Aurora";
+import BlurText from "@/components/reactbits/BlurText";
+import DotGrid from "@/components/reactbits/DotGrid";
+import GradientText from "@/components/reactbits/GradientText";
+import ShinyText from "@/components/reactbits/ShinyText";
 import { SITE } from "@/lib/site";
 import type { HomepageSectionItem, ModuleEntry, Partner, Product, StatEntry, TeamMember } from "@/lib/types";
 
@@ -232,20 +237,43 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Hero: 深蓝黑底 + 网格 + 顶部光晕 + 大标题 + 数字带 */}
+      {/* Hero: 深蓝黑底 + 交互式点阵(React Bits DotGrid, 鼠标滑过点亮/推动) + 大标题 + 数字带 */}
       <section className="hero-mesh relative overflow-hidden">
-        <div className="hero-grid absolute inset-0" aria-hidden="true" />
+        <div
+          className="absolute inset-0 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_40%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_40%,transparent_100%)]"
+          aria-hidden="true"
+        >
+          <DotGrid
+            dotSize={3}
+            gap={28}
+            baseColor="#16324f"
+            activeColor="#599dd6"
+            proximity={140}
+            shockRadius={220}
+            shockStrength={4}
+          />
+        </div>
         <div className="container relative pb-20 pt-24 text-center sm:pb-28 sm:pt-32">
           <span className="fade-in-up inline-flex items-center rounded-full border border-brand-400/20 bg-brand-500/10 px-4 py-1.5 text-xs font-medium text-brandtext backdrop-blur-sm">
             <span className="mr-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-brand-400" />
-            {heroBadge}
+            <ShinyText text={heroBadge} speed={3} delay={2} color="var(--c-brand-text)" shineColor="var(--c-strong)" />
           </span>
-          <h1 className="fade-in-up delay-100 mx-auto mt-7 max-w-4xl font-display text-4xl font-extrabold leading-[1.2] tracking-tight text-strong sm:text-5xl md:text-6xl md:leading-[1.15]">
-            {heroTitle}
+          <h1 className="fade-in-up delay-100 mx-auto mt-7 max-w-4xl font-display text-4xl font-extrabold leading-[1.2] tracking-tight sm:text-5xl md:text-6xl md:leading-[1.15]">
+            <GradientText
+              as="span"
+              colors={["var(--c-grad-from)", "var(--c-grad-via)", "var(--c-grad-to)"]}
+              animationSpeed={8}
+            >
+              {heroTitle}
+            </GradientText>
           </h1>
-          <p className="fade-in-up delay-200 mx-auto mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg">
-            {heroSubtitle}
-          </p>
+          <BlurText
+            text={heroSubtitle}
+            animateBy="characters"
+            delay={25}
+            className="mx-auto mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg"
+            style={{ justifyContent: "center" }}
+          />
           <div className="fade-in-up delay-300 mt-10 flex flex-wrap justify-center gap-4">
             {showProducts && (
               <Link
@@ -361,8 +389,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA 收尾: 光晕 + 大标题 + 行动按钮 */}
+      {/* CTA 收尾: 极光背景(React Bits Aurora) + 光晕 + 大标题 + 行动按钮 */}
       <section className="relative overflow-hidden border-t border-line">
+        <div className="absolute inset-0 opacity-70" aria-hidden="true">
+          <Aurora colorStops={["#0f4c81", "#357cbf", "#8ec0e6"]} amplitude={1.1} blend={0.5} />
+        </div>
         <div className="glow-orb left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2 bg-brand-500/15" aria-hidden="true" />
         <div className="container relative py-24 text-center sm:py-28">
           <h2 className="fade-in-up mx-auto max-w-2xl font-display text-3xl font-extrabold leading-tight text-strong sm:text-4xl">

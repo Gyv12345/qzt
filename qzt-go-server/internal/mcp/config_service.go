@@ -66,7 +66,11 @@ type siteUpdateReq struct {
 	PublicSecurityBeian    string
 	PublicSecurityBeianURL string
 	Keywords               string
+	GeoRegion              string
+	GeoPlacename           string
+	GeoPosition            string
 	AnalyticsCode          string
+	FaqJSON                string
 	Copyright              string
 	McpURL                 string
 }
@@ -81,7 +85,9 @@ func (r *siteUpdateReq) toService() *syservice.UpdateSiteConfigRequest {
 		ICPBeian: r.ICPBeian, PublicSecurityBeian: r.PublicSecurityBeian,
 		PublicSecurityBeianURL: r.PublicSecurityBeianURL,
 		Keywords:               r.Keywords, AnalyticsCode: r.AnalyticsCode, Copyright: r.Copyright,
-		McpURL: r.McpURL,
+		GeoRegion: r.GeoRegion, GeoPlacename: r.GeoPlacename, GeoPosition: r.GeoPosition,
+		FaqJSON:   r.FaqJSON,
+		McpURL:    r.McpURL,
 	}
 }
 

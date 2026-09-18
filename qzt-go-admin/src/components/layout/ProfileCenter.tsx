@@ -644,7 +644,7 @@ export function ApiKeyTab() {
             children: (
               <>
                 <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
-                  企智通 ERP 的 MCP 端点为
+                  行简 ERP 的 MCP 端点为
                   <Typography.Text code copyable>
                     {mcpUrl}
                   </Typography.Text>
@@ -685,7 +685,7 @@ export function ApiKeyTab() {
           🔗 MCP 客户端配置
         </Typography.Title>
         <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 4 }}>
-          将以下配置写入对应客户端,即可在你的 IDE / AI 助手里直接操作企智通 ERP。
+          将以下配置写入对应客户端,即可在你的 IDE / AI 助手里直接操作行简 ERP。
           下方已自动填入本次生成的 Key。
         </Typography.Paragraph>
         {created?.api_key && <McpConfigSection apiKey={created.api_key} mcpUrl={mcpUrl} />}

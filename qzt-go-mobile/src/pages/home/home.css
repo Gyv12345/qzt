@@ -13,6 +13,13 @@
   color: var(--text-on-brand);
   overflow: hidden;
 }
+/* React Bits Aurora: 弱化极光叠在品牌渐变上, 位于文字之下(无 WebGL 时该层为空) */
+.home-header-aurora {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  pointer-events: none;
+}
 .home-header::after {
   content: '';
   position: absolute;

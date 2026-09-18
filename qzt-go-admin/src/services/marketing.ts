@@ -51,3 +51,4 @@ export const listLogs = (params?: LogQuery) =>
 
 export const getLog = (id: number) =>
   request.get<unknown, { log: MarketingLeadLog; raw: string }>(`/marketing/logs/${id}`)
+

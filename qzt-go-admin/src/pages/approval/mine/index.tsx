@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import { listMyInitiated, revokeApprovalInstance } from '../../../services/approval'
@@ -39,7 +39,12 @@ export default function ApprovalMinePage() {
       width: 240,
       search: false,
       ellipsis: true,
-      render: (_, record) => record.resource_title || '-',
+      render: (_, record) =>
+        record.resource_title ? (
+          <Typography.Link onClick={() => openDetail(record)}>{record.resource_title}</Typography.Link>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '状态',

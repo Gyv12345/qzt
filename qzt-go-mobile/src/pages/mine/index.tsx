@@ -86,7 +86,7 @@ export default function Mine() {
   ]
 
   const generalMenus: MenuItem[] = [
-    { icon: <SoundOutline />, iconBg: 'var(--icon-bg-notice)', label: '消息通知', arrow: true, onClick: () => Toast.show({ content: '功能开发中' }) },
+    { icon: <SoundOutline />, iconBg: 'var(--icon-bg-notice)', label: '消息通知', arrow: true, onClick: () => navigate('/wechat-bind') },
     {
       icon: <SetOutline />, iconBg: 'var(--icon-bg-settings)', label: '清除缓存',
       onClick: () => { localStorage.removeItem('qzt-mobile:cached'); Toast.show({ icon: 'success', content: '缓存已清除' }) },
@@ -94,7 +94,7 @@ export default function Mine() {
   ]
 
   const aboutMenus: MenuItem[] = [
-    { icon: <GlobalOutline />, iconBg: 'var(--icon-bg-news)', label: '关于企智通', extra: APP_VERSION, arrow: true, onClick: () => setShowAbout(true) },
+    { icon: <GlobalOutline />, iconBg: 'var(--icon-bg-news)', label: '关于行简', extra: APP_VERSION, arrow: true, onClick: () => setShowAbout(true) },
   ]
 
   const renderMenu = (item: MenuItem, i: number) => (
@@ -185,7 +185,7 @@ export default function Mine() {
       <Popup visible={showAbout} onMaskClick={() => setShowAbout(false)} bodyStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16 }} position="bottom">
         <div style={{ padding: '32px 28px 40px', textAlign: 'center' }}>
           <div style={{ width: 76, height: 76, borderRadius: 20, background: 'var(--brand-gradient)', color: '#fff', fontSize: 38, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(47, 84, 235, 0.25)' }}>企</div>
-          <div style={{ fontSize: 19, fontWeight: 700 }}>企智通</div>
+          <div style={{ fontSize: 19, fontWeight: 700 }}>行简</div>
           <div style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 6 }}>企业级业务管理平台 {APP_VERSION}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 20 }}>
             {['CRM', 'OA办公', '进销存', '财务', '人事', '审批', '知识库', '网盘'].map((t) => (

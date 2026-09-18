@@ -44,8 +44,8 @@ export default function GoodsList() {
     <div className="page">
       {/* 品牌顶栏 */}
       <div className="brand-topbar">
-        <span className="brand-logo">企</span>
-        <span className="brand-name">企智通商城</span>
+        <span className="brand-logo">行</span>
+        <span className="brand-name">行简商城</span>
         <div style={{ flex: 1 }} />
         <a className="topbar-link" onClick={() => navigate('/order/query')}>
           查订单 <RightOutline fontSize={11} />

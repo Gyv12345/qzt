@@ -94,3 +94,39 @@ export async function getWecomLoginQrcode(
   }
   return body.data
 }
+
+// ---------- 微信服务号(免登录 + 通知绑定) ----------
+
+/** 获取微信网页授权登录 URL(免鉴权,仅在微信内置浏览器内可静默授权) */
+export async function getWechatLoginURL(): Promise<string> {
+  const res = await rawRequest.get<ApiResponse<{ url: string }>>(
+    '/system/auth/wechat/login-url',
+  )
+  const body = res.data
+  if (body.code !== 0) {
+    throw new Error(body.msg || '获取微信登录链接失败')
+  }
+  return body.data.url
+}
+
+/** 获取微信绑定授权 URL(需登录态,微信浏览器内跳转) */
+export function getWechatBindURL(): Promise<{ url: string; state: string }> {
+  return request.get<unknown, { url: string; state: string }>('/system/auth/wechat/bind-url')
+}
+
+/** 用微信授权 code 绑定到当前用户 */
+export function wechatBind(code: string, state: string): Promise<void> {
+  return request.post('/system/auth/wechat/bind', { code, state })
+}
+
+/** 解绑微信服务号 */
+export function wechatUnbind(): Promise<void> {
+  return request.delete('/system/auth/wechat/bind')
+}
+
+/** 查询当前用户微信绑定状态 */
+export function getWechatBindStatus(): Promise<{ bound: boolean; openid: string }> {
+  return request.get<unknown, { bound: boolean; openid: string }>(
+    '/system/auth/wechat/bind-status',
+  )
+}

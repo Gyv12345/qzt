@@ -78,12 +78,12 @@ function Feature({ icon, title, desc }) {
 
 export default function Home() {
   return (
-    <Layout title="企智通 · 一站式企业管理平台" description="CRM、审批、进销存、财务、HRM、AI一体化管理平台">
+    <Layout title="行简 · 一站式企业管理平台" description="CRM、审批、进销存、财务、HRM、AI一体化管理平台">
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'SoftwareApplication',
-          name: '企智通',
+          name: '行简',
           applicationCategory: 'BusinessApplication',
           operatingSystem: 'Web',
           description: '一站式企业管理平台,包含CRM客户管理、审批流程、进销存、财务、HRM、CMS、AI助手等模块',
@@ -167,7 +167,7 @@ export default function Home() {
         </section>
         <section className={styles.ctaSection}>
           <div className="container">
-            <h2 className={styles.ctaTitle}>开始使用企智通</h2>
+            <h2 className={styles.ctaTitle}>开始使用行简</h2>
             <p className={styles.ctaDesc}>软件免费 · 一次部署 · 数据私有</p>
             <div className={styles.buttons}>
               <Link className="button button--primary button--lg" to="/deployment/overview">

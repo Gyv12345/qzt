@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
-import { Button, Tag } from 'antd'
+import { Button, Tag, Typography } from 'antd'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import { listMyProcessed } from '../../../services/approval'
-import type { ApprovalRecord } from '../../../types/approval'
+import type { ApprovalTask } from '../../../types/approval'
 import InstanceDrawer from '../InstanceDrawer'
 import { pageIndexColumn } from '../../../components/IndexTag'
 
@@ -11,29 +11,48 @@ export default function ApprovalDonePage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerInstanceId, setDrawerInstanceId] = useState<number | null>(null)
 
-  const openDetail = (record: ApprovalRecord) => {
+  const openDetail = (record: ApprovalTask) => {
     setDrawerInstanceId(record.instance_id ?? null)
     setDrawerOpen(true)
   }
 
-  const columns: ProColumns<ApprovalRecord>[] = [
+  const columns: ProColumns<ApprovalTask>[] = [
     pageIndexColumn(actionRef),
+    {
+      title: '类型',
+      width: 100,
+      search: false,
+      render: (_, record) => record.instance?.form_type_label || record.instance?.type || '-',
+    },
+    {
+      title: '标题',
+      width: 240,
+      search: false,
+      ellipsis: true,
+      render: (_, record) => {
+        const title = record.instance?.resource_title
+        return title ? (
+          <Typography.Link onClick={() => openDetail(record)}>{title}</Typography.Link>
+        ) : (
+          '-'
+        )
+      },
+    },
     { title: '轮次', dataIndex: 'node_round', width: 70, search: false },
     {
-      title: '结果',
-      dataIndex: 'result',
+      title: '我的操作',
+      dataIndex: 'action',
       width: 90,
       search: false,
       render: (_, record) =>
-        record.result === 'APPROVE' ? (
+        record.action === 'APPROVE' ? (
           <Tag color="success">通过</Tag>
-        ) : record.result === 'REJECT' ? (
+        ) : record.action === 'REJECT' ? (
           <Tag color="error">驳回</Tag>
         ) : (
-          <Tag>{record.result || '-'}</Tag>
+          <Tag>{record.action || '-'}</Tag>
         ),
     },
-    { title: '意见', dataIndex: 'comment', width: 200, search: false, ellipsis: true },
     {
       title: '时间',
       dataIndex: 'created_at',
@@ -56,7 +75,7 @@ export default function ApprovalDonePage() {
 
   return (
     <>
-      <ProTable<ApprovalRecord>
+      <ProTable<ApprovalTask>
         rowKey="id"
         actionRef={actionRef}
         columns={columns}

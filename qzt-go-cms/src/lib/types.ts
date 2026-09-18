@@ -85,6 +85,12 @@ export interface CmsPage {
 /** 站点公共配置 key->value */
 export type SiteConfig = Record<string, string>;
 
+/** FAQ 条目(faq_json 解析结果,GEO 问答结构) */
+export interface FaqEntry {
+  q: string;
+  a: string;
+}
+
 /** 站点完整配置(来自 /system/site-config) */
 export interface SiteInfo {
   site_name: string;
@@ -103,7 +109,11 @@ export interface SiteInfo {
   hero_subtitle?: string;
   favicon_url?: string;
   keywords?: string;
+  geo_region?: string;
+  geo_placename?: string;
+  geo_position?: string;
   analytics_code?: string;
+  faq_json?: string;
   theme?: string;
   stats_json?: string;
   modules_json?: string;

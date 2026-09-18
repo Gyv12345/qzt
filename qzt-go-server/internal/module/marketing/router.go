@@ -10,6 +10,7 @@ import (
 
 // Module 营销模块。实现 server.Module 接口,注册在 /marketing 下。
 // 当前能力:巨量引擎(抖音)渠道账号管理 + OAuth 授权 + 飞鱼线索自动入库。
+// 智能外呼(阿里云 OutboundBot)已于 2026-09-14 因合规(电话营销监管)整体下线。
 type Module struct{}
 
 func New() *Module {

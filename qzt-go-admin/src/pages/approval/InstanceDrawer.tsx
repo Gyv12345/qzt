@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Descriptions, Drawer, Empty, Spin, Tag, Timeline, Typography } from 'antd'
-import { getApprovalInstance } from '../../services/approval'
-import type { ApprovalInstanceDetail } from '../../types/approval'
+import { Descriptions, Drawer, Empty, Spin, Table, Tag, Timeline, Typography } from 'antd'
+import { getApprovalInstance, getInstanceResource } from '../../services/approval'
+import { useDictStore } from '../../stores/dict'
+import type { ApprovalInstanceDetail, ResourceSummary } from '../../types/approval'
 
 interface InstanceDrawerProps {
   instanceId: number | null
@@ -24,18 +25,73 @@ const RESULT_TAG: Record<string, { color: string; text: string }> = {
   AUTO_PASS: { color: 'default', text: '自动通过' },
 }
 
-/** 审批实例详情抽屉(只读):基本信息 + 审批记录时间线 */
+/** 字典值 → 中文(dict store 已在应用启动时预载) */
+function dictLabel(code?: string, value?: string) {
+  if (!code || value === undefined || value === '') return value
+  return useDictStore.getState().label(code, value)
+}
+
+/** 原单摘要:字段键值 + 可选明细表 */
+function ResourceSummarySection({ summary }: { summary: ResourceSummary | null }) {
+  if (!summary) return null
+  if (!summary.found) {
+    return (
+      <>
+        <Typography.Title level={5} style={{ marginTop: 24 }}>
+          原单内容
+        </Typography.Title>
+        <Typography.Text type="secondary">原单不存在或已删除</Typography.Text>
+      </>
+    )
+  }
+  return (
+    <>
+      <Typography.Title level={5} style={{ marginTop: 24 }}>
+        原单内容
+      </Typography.Title>
+      <Descriptions column={1} bordered size="small">
+        {summary.fields.map((f) => (
+          <Descriptions.Item key={f.label} label={f.label}>
+            {dictLabel(f.dict, f.value) || '-'}
+          </Descriptions.Item>
+        ))}
+      </Descriptions>
+      {summary.items && summary.items.rows.length > 0 && (
+        <Table
+          style={{ marginTop: 12 }}
+          size="small"
+          pagination={false}
+          dataSource={summary.items.rows.map((row, i) => ({ key: i, ...row }))}
+          columns={summary.items.columns.map((c) => ({
+            title: c.label,
+            dataIndex: c.key,
+            render: (v: string) => dictLabel(c.dict, v) || '-',
+          }))}
+        />
+      )}
+    </>
+  )
+}
+
+/** 审批实例详情抽屉(只读):基本信息 + 原单摘要 + 审批记录时间线 */
 export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDrawerProps) {
   const [loading, setLoading] = useState(false)
   const [detail, setDetail] = useState<ApprovalInstanceDetail | null>(null)
+  const [summary, setSummary] = useState<ResourceSummary | null>(null)
 
   useEffect(() => {
     if (!open || !instanceId) return
     setLoading(true)
     setDetail(null)
-    getApprovalInstance(instanceId)
-      .then((res) => setDetail(res))
-      .finally(() => setLoading(false))
+    setSummary(null)
+    Promise.all([
+      getApprovalInstance(instanceId).catch(() => null),
+      getInstanceResource(instanceId).catch(() => null),
+    ]).then(([d, s]) => {
+      setDetail(d)
+      setSummary(s)
+      setLoading(false)
+    })
   }, [open, instanceId])
 
   const status = detail?.approval_status
@@ -87,6 +143,7 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
               <Descriptions.Item label="完成时间">{detail.approval_time || '-'}</Descriptions.Item>
               <Descriptions.Item label="备注">{detail.comment || '-'}</Descriptions.Item>
             </Descriptions>
+            <ResourceSummarySection summary={summary} />
             <Typography.Title level={5} style={{ marginTop: 24 }}>
               审批记录
             </Typography.Title>

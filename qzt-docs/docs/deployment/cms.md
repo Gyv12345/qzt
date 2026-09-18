@@ -94,7 +94,7 @@ npm run build
 ```bash
 # /opt/qzt-cms/.env.production
 NEXT_PUBLIC_API_BASE_URL=https://api.你的域名
-NEXT_PUBLIC_SITE_NAME=企智通
+NEXT_PUBLIC_SITE_NAME=行简
 ```
 
 部分环境变量（非 `NEXT_PUBLIC_` 前缀）仅在服务端可用，不会暴露给浏览器。

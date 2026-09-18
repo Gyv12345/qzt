@@ -29,5 +29,5 @@ func (r *SiteConfigRepo) Update(ctx context.Context, cfg *model.SysSiteConfig) e
 		"Theme", "StatsJSON", "ModulesJSON", "ModulesBadge", "ModulesTitle", "ModulesDesc", "CtaTitle", "CtaHighlight", "CtaSubtitle",
 		"ContactPhone", "ContactEmail", "ContactAddress", "WorkHours",
 		"ICPBeian", "PublicSecurityBeian", "PublicSecurityBeianURL",
-		"Keywords", "AnalyticsCode", "Copyright", "McpURL")
+		"Keywords", "GeoRegion", "GeoPlacename", "GeoPosition", "AnalyticsCode", "FaqJSON", "Copyright", "McpURL")
 }

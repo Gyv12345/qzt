@@ -1,4 +1,4 @@
-# 企智通 Admin 系统测试用例
+# 行简 Admin 系统测试用例
 
 > 测试环境：`https://admin.devlovecode.com`  
 > 测试账号：`admin / shijie123`（超管）  

@@ -5,7 +5,7 @@ sidebar_label: 数据库设计
 
 # 数据库设计
 
-企智通使用 **MySQL 8** 作为主存储。本文说明数据库的基本规范、命名约定、软删除策略与建表流程。
+行简使用 **MySQL 8** 作为主存储。本文说明数据库的基本规范、命名约定、软删除策略与建表流程。
 
 ## 基本规范
 
@@ -52,7 +52,7 @@ GORM 的 `gorm.Model` 已内置 `ID`、`CreatedAt`、`UpdatedAt`、`DeletedAt`�
 
 ## 软删除
 
-企智通**全表启用软删除**（soft delete），即删除操作不执行 `DELETE`，而是将 `deleted_at` 设为当前时间。
+行简**全表启用软删除**（soft delete），即删除操作不执行 `DELETE`，而是将 `deleted_at` 设为当前时间。
 
 ### 实现机制
 
@@ -73,7 +73,7 @@ GORM 的 `gorm.Model` 已内置 `ID`、`CreatedAt`、`UpdatedAt`、`DeletedAt`�
 
 ## 建表流程（SQL 文件优先）
 
-企智通**不使用 GORM 的 AutoMigrate** 自动建表，而是通过**显式的 SQL 迁移文件**管理 schema 演进。
+行简**不使用 GORM 的 AutoMigrate** 自动建表，而是通过**显式的 SQL 迁移文件**管理 schema 演进。
 
 ### 为什么不用 AutoMigrate
 

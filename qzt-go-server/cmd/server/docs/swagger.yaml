@@ -389,6 +389,9 @@ definitions:
         type: string
       username:
         type: string
+      wechat_openid:
+        description: 微信服务号openid(通知推送+微信内免登录)
+        type: string
       wecom_user_id:
         description: 企业微信UserID
         type: string
@@ -3664,6 +3667,27 @@ paths:
       security:
       - BearerAuth: []
       summary: 审批实例详情
+      tags:
+      - 审批待办
+  /approval/instances/{id}/resource:
+    get:
+      description: 按表单类型从业务表取只读摘要(标题字段+可选明细行),供详情抽屉展示"批的是什么";原单不存在时 found=false
+      parameters:
+      - description: 实例ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 审批实例的原单摘要
       tags:
       - 审批待办
   /approval/instances/{id}/revoke:
@@ -11690,6 +11714,114 @@ paths:
                   $ref: '#/definitions/service.LoginResponse'
               type: object
       summary: 刷新令牌
+      tags:
+      - 认证
+  /system/auth/wechat/bind:
+    delete:
+      description: 清空当前用户的微信服务号绑定
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 解绑微信服务号
+      tags:
+      - 认证
+    post:
+      consumes:
+      - application/json
+      description: 用微信 OAuth code 绑定到当前用户(state 校验归属,一次性)。该微信已绑定其他账号则拒绝。
+      parameters:
+      - description: 绑定请求
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 绑定微信服务号
+      tags:
+      - 认证
+  /system/auth/wechat/bind-status:
+    get:
+      description: 返回当前用户是否已绑定微信服务号
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 微信服务号绑定状态
+      tags:
+      - 认证
+  /system/auth/wechat/bind-url:
+    get:
+      description: 当前用户发起微信绑定时获取授权 URL(微信浏览器内跳转)。state 已存 Redis 关联用户。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 微信服务号绑定授权URL
+      tags:
+      - 认证
+  /system/auth/wechat/login:
+    post:
+      consumes:
+      - application/json
+      description: 用微信 OAuth code 换取 openid 并登录(仅已绑定服务号的账号)。返回结构与账密登录一致。
+      parameters:
+      - description: 回调参数
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.LoginResponse'
+              type: object
+      summary: 微信免登录
+      tags:
+      - 认证
+  /system/auth/wechat/login-url:
+    get:
+      description: 返回微信网页授权 URL(scope=snsapi_base 静默授权)。移动端在微信浏览器内加载后 JS 跳转。需先在「第三方登录配置」启用微信服务号。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 微信免登录授权URL
       tags:
       - 认证
   /system/auth/wecom/bind:

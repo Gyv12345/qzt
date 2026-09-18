@@ -64,3 +64,4 @@ export interface MarketingSyncResult {
   skipped: number
   failed: number
 }
+

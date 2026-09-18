@@ -56,3 +56,12 @@ gui-test-screenshots/
 
 # ── TypeScript 构建信息 ──
 *.tsbuildinfo
+
+# 演示视频工作目录（素材与成片不入库）
+demo-video/
+mcp-video/
+
+# agent 工具缓存
+.mimosa/
+.v2c/
+.video_agent/

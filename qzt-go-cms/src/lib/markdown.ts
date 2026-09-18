@@ -6,7 +6,7 @@
  *
  * 所有生成器为纯函数, 由 route handler 调用, 不触碰 HTML 页面逻辑。
  */
-import type { Article, Partner, Product, ProductDetail, TeamMember } from "./types";
+import type { Article, FaqEntry, Partner, Product, ProductDetail, TeamMember } from "./types";
 import { SITE } from "./site";
 
 // ── 轻量 HTML→Markdown 转换 ──────────────────────────────────────────
@@ -378,6 +378,56 @@ export function aboutToMd(title: string, content: string): string {
   return parts.join("\n");
 }
 
+// ── FAQ (GEO 问答结构) ───────────────────────────────────────────────
+
+/** 解析 site-config 的 faq_json; 非法/空数据一律返回空数组, 不阻塞页面。 */
+export function parseFaq(json?: string | null): FaqEntry[] {
+  if (!json) return [];
+  try {
+    const arr = JSON.parse(json) as FaqEntry[];
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((f) => f && typeof f.q === "string" && typeof f.a === "string" && f.q && f.a);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * FAQ 列表 → Markdown。问答结构是 AI 搜索引擎引用率最高的内容形态,
+ * 问题作为 H3 保留语义,答案紧跟其后,便于 LLM 切片检索。
+ */
+export function faqListToMd(list: FaqEntry[]): string {
+  const fm = frontmatter({
+    title: "常见问题 (FAQ)",
+    description: `${SITE.name} 常见问题解答: 产品定位、价格、私有化部署、AI 能力、数据安全等。`,
+    url: abs("/faq"),
+    md_url: abs("/md/faq"),
+    count: list.length,
+    source: SITE.name,
+  });
+
+  const parts: string[] = [
+    fm,
+    "",
+    "# 常见问题 (FAQ)",
+    "",
+    `以下是关于 ${SITE.name} 的常见问题与官方解答 (共 ${list.length} 条)。`,
+    "",
+  ];
+
+  if (list.length === 0) {
+    parts.push("*暂无 FAQ 数据。*");
+    return parts.join("\n");
+  }
+
+  for (const f of list) {
+    parts.push(`### ${f.q}`, "", f.a, "");
+  }
+
+  parts.push("---", "", `*来源: [${SITE.name}](${SITE.url}) · [查看网页版](${abs("/faq")})*`);
+  return parts.join("\n");
+}
+
 // ── llms.txt 标准 ─────────────────────────────────────────────────────
 
 /**
@@ -395,6 +445,7 @@ export function llmsTxt(): string {
     "## 板块",
     "",
     `- [产品与服务](${abs("/md/products")}): 全部在售产品列表与详情`,
+    `- [常见问题](${abs("/md/faq")}): 产品定位、价格、部署方式、AI 能力等官方解答`,
     `- [新闻动态](${abs("/md/news")}): 最新资讯与公告`,
     `- [团队](${abs("/md/team")}): 团队成员`,
     `- [合作伙伴](${abs("/md/partners")}): 合作客户与伙伴`,
@@ -433,6 +484,7 @@ export function mdIndex(): string {
     "## 板块",
     "",
     `- [产品与服务](${abs("/md/products")})`,
+    `- [常见问题](${abs("/md/faq")})`,
     `- [新闻动态](${abs("/md/news")})`,
     `- [团队](${abs("/md/team")})`,
     `- [合作伙伴](${abs("/md/partners")})`,
@@ -456,9 +508,10 @@ export function llmsFullTxt(opts: {
   articles: Article[];
   partners: Partner[];
   team: TeamMember[];
+  faqs?: FaqEntry[];
   about?: { title: string; content: string };
 }): string {
-  const { products, articles, partners, team, about } = opts;
+  const { products, articles, partners, team, faqs, about } = opts;
   const parts: string[] = [
     `# ${SITE.name} — 全站内容合集`,
     "",
@@ -475,6 +528,9 @@ export function llmsFullTxt(opts: {
     for (const p of products) {
       parts.push(productToMd(p), "", "---", "");
     }
+  }
+  if (faqs && faqs.length) {
+    parts.push(faqListToMd(faqs), "", "---", "");
   }
   if (articles.length) {
     parts.push("# 新闻动态", "");

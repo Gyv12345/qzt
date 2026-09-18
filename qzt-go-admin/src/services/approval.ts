@@ -5,9 +5,9 @@ import type {
   ApprovalFlowPayload,
   ApprovalInstance,
   ApprovalInstanceDetail,
-  ApprovalRecord,
   ApprovalTask,
   FormField,
+  ResourceSummary,
   SaveDesignRequest,
 } from '../types/approval'
 import type { PageParams } from '../types'
@@ -54,14 +54,19 @@ export const getFormFields = (formType: string, formKey?: string) =>
 export const listMyTodos = (params?: PageParams) =>
   request.get<unknown, ApprovalPageResult<ApprovalTask>>('/approval/todos', { params })
 
+/** 已办返回任务结构(含 instance enrichment;我的操作在 task.action,意见在实例 records 里) */
 export const listMyProcessed = (params?: PageParams) =>
-  request.get<unknown, ApprovalPageResult<ApprovalRecord>>('/approval/processed', { params })
+  request.get<unknown, ApprovalPageResult<ApprovalTask>>('/approval/processed', { params })
 
 export const listMyInitiated = (params?: PageParams) =>
   request.get<unknown, ApprovalPageResult<ApprovalInstance>>('/approval/initiated', { params })
 
 export const getApprovalInstance = (id: number) =>
   request.get<unknown, ApprovalInstanceDetail>(`/approval/instances/${id}`)
+
+/** 审批原单摘要(详情抽屉展示原单内容) */
+export const getInstanceResource = (id: number) =>
+  request.get<unknown, ResourceSummary>(`/approval/instances/${id}/resource`)
 
 /** 撤回审批(无请求体) */
 export const revokeApprovalInstance = (id: number) =>

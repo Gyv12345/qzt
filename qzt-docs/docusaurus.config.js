@@ -3,7 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: '企智通',
+  title: '行简',
   tagline: '一站式企业管理平台 · 文档中心',
   favicon: 'img/favicon.ico',
 
@@ -40,7 +40,7 @@ const config = {
     ({
       colorMode: { respectPrefersColorScheme: true },
       navbar: {
-        title: '企智通',
+        title: '行简',
         items: [
           { type: 'docSidebar', sidebarId: 'intro', position: 'left', label: '开始' },
           { type: 'docSidebar', sidebarId: 'architecture', position: 'left', label: '架构' },
@@ -73,7 +73,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} 企智通 · 河南爱编程网络科技有限公司`,
+        copyright: `Copyright © ${new Date().getFullYear()} 行简 · 河南爱编程网络科技有限公司`,
       },
       prism: {
         theme: prismThemes.github,

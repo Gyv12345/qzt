@@ -433,7 +433,11 @@ export interface SysSiteConfig {
   public_security_beian: string
   public_security_beian_url: string
   keywords: string
+  geo_region: string
+  geo_placename: string
+  geo_position: string
   analytics_code: string
+  faq_json: string
   copyright: string
   mcp_url: string
   created_at: string
@@ -465,7 +469,11 @@ export interface UpdateSiteConfigRequest {
   public_security_beian?: string
   public_security_beian_url?: string
   keywords?: string
+  geo_region?: string
+  geo_placename?: string
+  geo_position?: string
   analytics_code?: string
+  faq_json?: string
   copyright?: string
   mcp_url?: string
 }

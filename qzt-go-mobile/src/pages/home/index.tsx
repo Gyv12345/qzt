@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Badge, ErrorBlock, Toast } from 'antd-mobile'
 import {
   AccountBookOutlined,
@@ -52,6 +52,10 @@ import { useAuthStore } from '../../stores/auth'
 import { fetchPublicConfigs } from '../../services/auth'
 import { getDashboardOverview } from '../../services/dashboard'
 import { listTodos } from '../../services/approval'
+import GradientText from '../../components/reactbits/GradientText'
+import ShinyText from '../../components/reactbits/ShinyText'
+// React Bits: Aurora(ogl) 用 lazy 拆独立 chunk, 不进主 bundle
+const Aurora = lazy(() => import('../../components/reactbits/Aurora'))
 import type { DashboardOverview } from '../../types/dashboard'
 import './home.css'
 
@@ -241,12 +245,22 @@ export default function Home() {
     <div className="home-page">
       {/* 顶部品牌区 */}
       <div className="home-header">
+        {/* React Bits Aurora: 弱化极光叠在品牌渐变上(蓝系 hex 浅深主题通用; 无 WebGL 时为空) */}
+        <div className="home-header-aurora" aria-hidden>
+          <Suspense fallback={null}>
+            <Aurora colorStops={['#597ef7', '#1d39c4', '#2f54eb']} amplitude={0.9} blend={0.5} speed={0.5} />
+          </Suspense>
+        </div>
         <div className="home-brand-row">
           <div>
             <div className="home-greet">
-              你好,{profile?.nickname || profile?.username || '用户'}
+              <GradientText as="span" colors={['#ffffff', '#a9c9ff', '#ffffff']} animationSpeed={6}>
+                你好,{profile?.nickname || profile?.username || '用户'}
+              </GradientText>
             </div>
-            <div className="home-date">{dateStr}</div>
+            <div className="home-date">
+              <ShinyText text={dateStr} speed={3} delay={2} color="rgba(255,255,255,0.8)" shineColor="#ffffff" />
+            </div>
           </div>
           <div
             className="home-avatar"

@@ -40,6 +40,40 @@ func ScanBusinessRow(ctx context.Context, table string, resourceID uint, dest *m
 		Scan(dest).Error
 }
 
+// ScanBusinessDetailRows 裸查业务明细表多行(审批原单摘要用),按外键列过滤。
+// table 与 fkCol 均为服务端常量白名单,不接收客户端输入。
+func ScanBusinessDetailRows(ctx context.Context, table, fkCol string, resourceID uint, dest *[]map[string]any) error {
+	return repoDB(ctx).Table(table).
+		Where(fkCol+" = ?", resourceID).
+		Where("deleted_at IS NULL").
+		Order("id ASC").
+		Scan(dest).Error
+}
+
+// ScanRefNames 批量查引用表名称列,返回 id → 名称(原单摘要里把 customer_id 等
+// 外键解析成名称用)。不过滤软删:历史单据关联的名称仍应显示。
+func ScanRefNames(ctx context.Context, table, col string, ids []uint) (map[uint]string, error) {
+	if len(ids) == 0 {
+		return map[uint]string{}, nil
+	}
+	var rows []struct {
+		ID   uint   `gorm:"column:id"`
+		Name string `gorm:"column:name"`
+	}
+	err := repoDB(ctx).Table(table).
+		Select(fmt.Sprintf("id, %s AS name", col)).
+		Where("id IN ?", ids).
+		Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uint]string, len(rows))
+	for _, r := range rows {
+		out[r.ID] = r.Name
+	}
+	return out, nil
+}
+
 // UpdateResourceApprovalStatus 更新业务资源的审批状态列(审批通过/驳回/撤回时回写)。
 func UpdateResourceApprovalStatus(ctx context.Context, table string, resourceID uint, status string) error {
 	return repoDB(ctx).Table(table).Where("id = ?", resourceID).
