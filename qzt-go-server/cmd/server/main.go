@@ -16,23 +16,26 @@ import (
 	apimod "qzt-go-server/internal/module/api"
 	apprmod "qzt-go-server/internal/module/approval"
 	apprsvc "qzt-go-server/internal/module/approval/service"
+	cloudmod "qzt-go-server/internal/module/cloud"
 	"qzt-go-server/internal/module/cms"
 	crmmod "qzt-go-server/internal/module/crm"
 	crmsvc "qzt-go-server/internal/module/crm/service"
-	finmod "qzt-go-server/internal/module/finance"
 	entmod "qzt-go-server/internal/module/enterprise"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
+	finmod "qzt-go-server/internal/module/finance"
+	geomod "qzt-go-server/internal/module/geo"
 	hrmmod "qzt-go-server/internal/module/hrm"
-	psimod "qzt-go-server/internal/module/psi"
-	"qzt-go-server/internal/module/system"
+	kbmod "qzt-go-server/internal/module/kb"
+	mallmod "qzt-go-server/internal/module/mall"
+	mktmod "qzt-go-server/internal/module/marketing"
 	oamod "qzt-go-server/internal/module/oa"
 	oasvc "qzt-go-server/internal/module/oa/service"
-	kbmod "qzt-go-server/internal/module/kb"
-	cloudmod "qzt-go-server/internal/module/cloud"
-	mktmod "qzt-go-server/internal/module/marketing"
+	openmod "qzt-go-server/internal/module/open"
 	projmod "qzt-go-server/internal/module/project"
-	mallmod "qzt-go-server/internal/module/mall"
+	psimod "qzt-go-server/internal/module/psi"
+	"qzt-go-server/internal/module/system"
 	"qzt-go-server/internal/pkg/ipregion"
+	"qzt-go-server/internal/pkg/llm"
 	"qzt-go-server/internal/pkg/setting"
 	"qzt-go-server/internal/server"
 	"qzt-go-server/internal/version"
@@ -75,12 +78,19 @@ func main() {
 	// 数据库表结构和种子数据请通过 docs/sql/ 下的 SQL 脚本手动执行。
 	setting.Warm(context.Background())
 
+	// 2.5 初始化统一 LLM 网关(internal/pkg/llm):所有 AI 功能唯一的模型调用入口。
+	// API key 走 .env 的 LLM_API_KEY;未配置时 Chat 返回 ErrNotConfigured,不阻断启动。
+	llm.Init(llm.OptionsFromConfig(config.Get().LLM))
+	// 2.6 初始化向量嵌入客户端(P17 知识库 RAG):llm.embedding 配置节,API key 走
+	// .env 的 KB_EMBEDDING_API_KEY;未配置时 Embeddings 返回 ErrNotConfigured,RAG 走降级路径。
+	llm.InitEmbedding(llm.EmbeddingConfigToOptions(config.Get().LLM.Embedding))
+
 	// 3. 加载离线 IP 归属地库(登录日志展示 IP 大概地址;缺失仅记日志,不阻断)
 	if err := ipregion.Init("data/ip2region.xdb"); err != nil {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 15 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project/marketing/mall）
+	// 4. 组装路由（注册 17 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project/marketing/mall/geo/open）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -97,6 +107,8 @@ func main() {
 		projmod.New(),
 		mktmod.New(),
 		mallmod.New(),
+		geomod.New(),
+		openmod.New(),
 	)
 
 	// 4.45 注册 MCP Server(挂载 /mcp 到 gin engine,API Key 认证)

@@ -24,6 +24,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	tagHandler := handler.NewTagHandler()
 	articleHandler := handler.NewArticleHandler()
 	pageHandler := handler.NewPageHandler()
+	trackHandler := handler.NewTrackHandler()
+	pushHandler := handler.NewPushHandler()
+	versionHandler := handler.NewVersionHandler()
+	mediaHandler := handler.NewMediaHandler()
 
 	// 公开路由（无需鉴权）：前台站点/小程序消费的只读接口。
 	// 注意 slug 路由须注册在 :id 之前，避免 /articles/slug/xxx 与 /articles/:id 冲突。
@@ -32,10 +36,14 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		public.GET("/articles", articleHandler.ListPublished)
 		public.GET("/articles/slug/:slug", articleHandler.PublicGetBySlug)
 		public.GET("/articles/:id", articleHandler.PublicGetByID)
+		// 站内搜索(P21):ngram 全文检索公开可见文章
+		public.GET("/search", articleHandler.SearchPublished)
 		public.GET("/categories", categoryHandler.PublicTree)
 		public.GET("/tags", tagHandler.PublicList)
 		public.GET("/pages/:slug", pageHandler.PublicGetBySlug)
 		public.GET("/pages", pageHandler.PublicList)
+		// 官网埋点批量上报(只写,IP/UA 服务端提取)
+		public.POST("/track", trackHandler.Ingest)
 	}
 
 	// 已认证路由（仅 JWT，无 RBAC）：下拉与树查询。
@@ -70,11 +78,28 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.PUT("/articles/:id", articleHandler.Update)
 		auth.DELETE("/articles/:id", articleHandler.Delete)
 
+		// 文章版本快照与回滚(P20)
+		auth.GET("/articles/:id/versions", versionHandler.List)
+		auth.POST("/articles/:id/versions/:version_id/rollback", versionHandler.Rollback)
+
+		// 媒体库(P22)
+		auth.GET("/media", mediaHandler.List)
+		auth.POST("/media/delete", mediaHandler.Delete)
+
 		// 单页管理
 		auth.GET("/pages", pageHandler.List)
 		auth.POST("/pages", pageHandler.Create)
 		auth.GET("/pages/:id", pageHandler.GetByID)
 		auth.PUT("/pages/:id", pageHandler.Update)
 		auth.DELETE("/pages/:id", pageHandler.Delete)
+
+		// 访问统计
+		auth.GET("/track/summary", trackHandler.Summary)
+		auth.GET("/track/list", trackHandler.List)
+
+		// 搜索引擎推送(百度主动推送/IndexNow)
+		auth.POST("/push/baidu", pushHandler.PushBaidu)
+		auth.POST("/push/indexnow", pushHandler.PushIndexNow)
+		auth.GET("/push/logs", pushHandler.ListPushLogs)
 	}
 }

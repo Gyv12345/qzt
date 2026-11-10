@@ -26,7 +26,7 @@ func (r *SalaryStructureRepo) GetByEmployee(ctx context.Context, employeeID uint
 
 func (r *SalaryStructureRepo) Update(ctx context.Context, m *hrmmodel.HrmSalaryStructure) error {
 	return r.BaseRepo.Update(ctx, m, "BaseSalary", "PositionAllow", "PerformanceAllow",
-		"MealAllow", "TransportAllow", "SocialInsRate", "HousingFundRate", "SocialInsBase", "HousingFundBase", "Remark")
+		"MealAllow", "TransportAllow", "SocialInsRate", "HousingFundRate", "SocialInsBase", "HousingFundBase", "PlanID", "Remark")
 }
 
 // ── 工资条 ──

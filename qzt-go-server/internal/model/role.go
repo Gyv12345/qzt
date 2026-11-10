@@ -4,6 +4,10 @@ package model
 // 由 SeedData 创建，禁止复用或删除。与 config/rbac_model.conf 的 matcher 一致。
 const SuperAdminRoleCode = "super_admin"
 
+// DemoRoleCode 演示账号标记角色。挂在对外公开的演示账号上，
+// 持有者被禁止签发 API Key 与调用 MCP（业务登录演示不受影响）。
+const DemoRoleCode = "demo"
+
 // 数据权限范围。
 const (
 	DataScopeAll         int8 = 1 // 全部数据

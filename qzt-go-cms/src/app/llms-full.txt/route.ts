@@ -10,10 +10,10 @@ export const revalidate = 300;
 
 export async function GET() {
   const [productsRes, articlesRes, partnersRes, teamRes, aboutRes, cfgRes] = await Promise.all([
-    getProducts({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
-    getArticles({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
-    getPartners({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
-    getTeam({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
+    getProducts({ page_size: 100 }).catch(() => ({ list: [], total: 0 })),
+    getArticles({ page_size: 100 }).catch(() => ({ list: [], total: 0 })),
+    getPartners({ page_size: 100 }).catch(() => ({ list: [], total: 0 })),
+    getTeam({ page_size: 100 }).catch(() => ({ list: [], total: 0 })),
     getPage("about").catch(() => ({ title: "关于我们", content: "" })),
     getSiteConfig().catch(() => null),
   ]);

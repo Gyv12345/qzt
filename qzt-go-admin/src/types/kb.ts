@@ -20,6 +20,8 @@ export interface KbDocument {
   creator_id: number
   last_editor_id: number | null
   view_count: number
+  /** RAG 切片数（未向量化为 0） */
+  chunk_count: number
   created_at: string
   updated_at: string
 }

@@ -32,14 +32,33 @@ type Uploader interface {
 	// 适用于代码生成的文件(如合同 PDF 渲染结果)直接落盘。仍校验扩展名白名单与大小上限。
 	SavePrivateBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error)
 
+	// SaveBytes 把内存字节存储到公共桶(无需 multipart 包装),返回可直链访问的 URL。
+	// 适用于代码生成/外部拉取的资源(如 GEO 产线下载的视频成片)直接落公共桶。
+	// 仍校验扩展名白名单与大小上限。
+	SaveBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error)
+
 	// SignURL 为私有桶文件生成短期有效的下载 URL。
 	// OSS 返回阿里云预签名 GET;local 返回后端代理下载 URL。
 	SignURL(objectKey string, ttl time.Duration) (string, error)
 
-	// Delete 删除已存储的对象。visibility 取 VisibilityPublic/VisibilityPrivate
+	// Delete 删除已存储的对象。visibility 取 VisibilityPublic/Private
 	// (空串按私有处理,与上传默认一致)。删除不存在的对象视为成功(幂等),
-	// 便于数据重置/孤儿清理场景无需先探测对象是否存在。
+	// 无需先探测对象是否存在。
 	Delete(objectKey string, visibility string) error
+
+	// List 媒体库列举公共桶对象(P22)。按 key 升序,最多 maxKeys 条;
+	// prefix 为空列全桶。OSS 走 ListObjectsV2;local 走目录树遍历。
+	List(prefix string, maxKeys int) ([]MediaObject, error)
+}
+
+// MediaObject 媒体对象元信息(媒体库列表)。
+type MediaObject struct {
+	// 对象 key(直链拼接/删除用)
+	Key string `json:"key"`
+	// 字节数
+	Size int64 `json:"size"`
+	// 最后修改时间
+	LastModified time.Time `json:"last_modified"`
 }
 
 // 存储可见性。

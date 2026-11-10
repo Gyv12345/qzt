@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { App, Button, Checkbox, Form, Input, Spin } from 'antd'
 import { WechatOutlined } from '@ant-design/icons'
 import { QRCodeSVG } from 'qrcode.react'
@@ -13,6 +14,11 @@ import {
 } from '../../services/auth'
 import { useAuthStore } from '../../stores/auth'
 import type { LoginResult } from '../../types'
+import BlurText from '../../components/reactbits/BlurText'
+import GradientText from '../../components/reactbits/GradientText'
+import ShinyText from '../../components/reactbits/ShinyText'
+// React Bits: Aurora(ogl) 用 lazy 拆独立 chunk, 文字组件(motion)体积小可直接引
+const Aurora = lazy(() => import('../../components/reactbits/Aurora'))
 import './login.css'
 
 interface LoginForm {
@@ -28,6 +34,20 @@ const REMEMBER_KEY = 'qzt-go-admin:remember-username'
 
 /** 品牌区底部能力关键词(与原型一致) */
 const KEYWORDS = ['CRM', 'OA 协同', '进销存', '人事 HR', '财务管理']
+
+/**
+ * chunk 级错误边界: Aurora 懒加载 chunk 失败(如重新部署后旧 index.html 引用旧 hash chunk)时
+ * 渲染 null 静默降级, 避免纯装饰背景失败卸载整棵登录树导致白屏。
+ */
+class ChunkErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
+}
 
 export default function Login() {
   const { message } = App.useApp()
@@ -148,6 +168,14 @@ export default function Login() {
     <div className="login-wrap">
       {/* 左侧:亮蓝品牌区(网格 + 节点圆 + 连线装饰,与原型一致) */}
       <aside className="login-hero">
+        {/* React Bits Aurora: 弱化极光叠在品牌渐变上(蓝系 hex 浅深通用; 无 WebGL 时为空) */}
+        <div className="login-hero-aurora" aria-hidden="true">
+          <ChunkErrorBoundary>
+            <Suspense fallback={null}>
+              <Aurora colorStops={['#597ef7', '#1d39c4', '#2f54eb']} amplitude={0.9} blend={0.5} speed={0.5} />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </div>
         <div className="login-hero-grid" aria-hidden="true" />
         <div
           className="login-hero-node"
@@ -184,11 +212,24 @@ export default function Login() {
 
         <div className="login-hero-content">
           <h1>
-            把 CRM、OA、进销存、人事、财务
-            <br />
-            装进同一个后台
+            {/* React Bits BlurText: 中文按字符 stagger 入场(两行错落) */}
+            <BlurText
+              text="把 CRM、OA、进销存、人事、财务"
+              animateBy="characters"
+              delay={30}
+              className="login-hero-line"
+            />
+            <BlurText text="装进同一个后台" animateBy="characters" delay={45} className="login-hero-line" />
           </h1>
-          <p className="login-hero-slogan">一站式企业业务管理平台 · 专业、可信、高效</p>
+          <p className="login-hero-slogan">
+            <ShinyText
+              text="一站式企业业务管理平台 · 专业、可信、高效"
+              speed={3}
+              delay={2}
+              color="rgba(255,255,255,0.85)"
+              shineColor="#ffffff"
+            />
+          </p>
         </div>
 
         <div className="login-hero-kw">
@@ -201,7 +242,12 @@ export default function Login() {
       {/* 右侧:登录卡 */}
       <main className="login-panel">
         <div className="login-form-box">
-          <div className="login-form-title">欢迎登录</div>
+          <div className="login-form-title">
+            {/* React Bits GradientText: 标题流动渐变(品牌蓝, as="span" 适配行内标题) */}
+            <GradientText as="span" colors={['#2f54eb', '#1677ff', '#8ec0e6']} animationSpeed={6}>
+              欢迎登录
+            </GradientText>
+          </div>
           <div className="login-form-sub">请使用企业账号登录工作台</div>
 
           {!scanOpen ? (

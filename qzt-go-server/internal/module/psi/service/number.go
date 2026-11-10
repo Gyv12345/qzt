@@ -17,6 +17,8 @@ const (
 	prefixSalesReturn    = "SRI" // 销售退货 Sales Return In
 	prefixStockIn        = "SIN" // 其他入库 Stock IN
 	prefixStockOut       = "SOT" // 其他出库 Stock OuT
+	prefixStocktake      = "PD"  // 库存盘点 PanDian
+	prefixTransfer       = "DB"  // 库存调拨 DiaoBo
 )
 
 // genOrderNo 生成单据编号。

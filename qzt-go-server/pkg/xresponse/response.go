@@ -92,6 +92,19 @@ func Unauthorized(c *gin.Context, msg string) {
 	unauthorized(c, msg)
 }
 
+// TooManyRequests 返回 429 并中止后续处理。body 仍是统一信封。
+// 用于中间件拦截场景——Fail 不 abort，会让请求穿透到 handler 造成双写。
+func TooManyRequests(c *gin.Context, msg string) {
+	c.Set(BizCode, e.HttpTooManyRequests.GetErrCode())
+	c.Set(BizMsg, msg)
+	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+		"code":      e.HttpTooManyRequests.GetErrCode(),
+		"msg":       msg,
+		"data":      struct{}{},
+		"timestamp": time.Now().UTC().UnixMilli(),
+	})
+}
+
 // forbidden 返回 403 并中止后续处理。
 func forbidden(c *gin.Context, msg string) {
 	c.Set(BizCode, e.HttpForbidden.GetErrCode())

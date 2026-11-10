@@ -17,7 +17,7 @@
 - 一个功能增量一个文件，命名 `{模块或功能}.sql`；文件头注释标明**用途、ID 分配区间、执行方式**。
 - 必须幂等：`CREATE TABLE IF NOT EXISTS` + `INSERT ... ON DUPLICATE KEY UPDATE`，或先 DELETE 固定 ID 区间再 INSERT。
 - 菜单/API/字典等种子的 ID 使用固定区间，避免与既有数据冲突（写新文件前先查 `sys_menu` 等表现有 max ID）。
-- **禁止**用 Go 代码建表或写种子（不要新增 `AutoMigrate()` / `SeedData()`，不要往 `internal/model/seed_data.go` 历史遗留文件追加内容）。
+- **禁止**用 Go 代码建表或写种子（不要新增 `AutoMigrate()` / `SeedData()`；历史遗留的 `internal/model/seed_data.go` 已删除，不要恢复）。
 
 ## SQL 文件索引
 

@@ -5,6 +5,6 @@ import { mdResponse, partnerListToMd } from "@/lib/markdown";
 export const revalidate = 300;
 
 export async function GET() {
-  const { list } = await getPartners({ page_size: 200 }).catch(() => ({ list: [], total: 0 }));
+  const { list } = await getPartners({ page_size: 100 }).catch(() => ({ list: [], total: 0 }));
   return mdResponse(partnerListToMd(list));
 }

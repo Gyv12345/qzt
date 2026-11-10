@@ -143,6 +143,8 @@ export default function SelectModal({
         request={request}
         rowSelection={{
           selectedRowKeys: selected,
+          // 翻页/搜索后 dataSource 变化时保留不在当前页的选中项(跨页累计选择)
+          preserveSelectedRowKeys: true,
           onChange: (keys) => setSelected(keys as number[]),
         }}
         toolBarRender={false}

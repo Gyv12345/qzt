@@ -16,7 +16,16 @@ export default function StockList() {
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
-      <NavBar onBack={() => navigate(-1)}>库存查询</NavBar>
+      <NavBar
+        onBack={() => navigate(-1)}
+        right={
+          <span style={{ fontSize: 13, marginRight: 12 }} onClick={() => navigate('/psi/stocktake')}>
+            盘点
+          </span>
+        }
+      >
+        库存查询
+      </NavBar>
       <div style={{ padding: 8, background: 'var(--bg-card)' }}>
         <SearchBar placeholder="搜索产品名称/编码" onSearch={setKeyword} onClear={() => setKeyword('')} />
       </div>

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getArticleBySlug, getArticles } from "@/lib/api";
+import { SITE } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -95,7 +96,8 @@ export default async function ArticlePage({ params }: Props) {
         )}
       </article>
 
-      {/* 文章结构化数据 */}
+      {/* 文章结构化数据: author/publisher/dateModified/mainEntityOfPage 供 AI 引擎
+          判定内容时效性与信源权威性(BreadcrumbList 与页面面包屑一致) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -105,7 +107,33 @@ export default async function ArticlePage({ params }: Props) {
             headline: article.title,
             description: article.summary,
             datePublished: article.created_at,
+            dateModified: article.updated_at || article.created_at,
+            author: {
+              "@type": "Organization",
+              name: article.author_name || "行简软件",
+              url: SITE.url,
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "河南爱编程网络科技有限公司",
+              url: SITE.url,
+            },
+            mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE.url}/news/${slug}` },
             ...(article.cover_url && { image: [article.cover_url] }),
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "首页", item: SITE.url },
+              { "@type": "ListItem", position: 2, name: "新闻动态", item: `${SITE.url}/news` },
+              { "@type": "ListItem", position: 3, name: article.title },
+            ],
           }),
         }}
       />

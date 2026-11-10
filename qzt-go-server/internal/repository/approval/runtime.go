@@ -152,7 +152,7 @@ func (r *TaskRepo) MaxNodeRound(ctx context.Context, instanceID, nodeID uint) in
 
 // Update 覆写。
 func (r *TaskRepo) Update(ctx context.Context, m *apprmodel.ApprovalTask) error {
-	return r.BaseRepo.Update(ctx, m, "Status", "Action", "NodeRound")
+	return r.BaseRepo.Update(ctx, m, "Status", "Action", "NodeRound", "DelegatorID", "ApproverID")
 }
 
 // SoftDeleteByInstanceNode 软删指定实例+节点的任务(node_round 置 -1)。

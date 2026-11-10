@@ -314,6 +314,91 @@ body,
   padding: 16px;
 }
 
+/* ── 多 Tab 模式(布局设置可开关):内容区顶部 Tab 栏 + keep-alive 面板 ── */
+.qzt-content.with-tabs {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden; /* 滚动下放到每个面板,独立保留各 Tab 的滚动位置 */
+}
+
+.qzt-tabbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fff;
+  border-bottom: 1px solid #e6e9f2;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.qzt-tabbar::-webkit-scrollbar {
+  height: 4px;
+}
+.qzt-tabbar::-webkit-scrollbar-thumb {
+  background: #d5dae6;
+  border-radius: 2px;
+}
+
+.qzt-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #5a6376;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.18s, color 0.18s;
+}
+.qzt-tab:hover {
+  background: #f4f6fb;
+  color: #1f2733;
+}
+.qzt-tab.active {
+  background: rgba(22, 119, 255, 0.09);
+  color: #1677ff;
+  font-weight: 600;
+}
+.qzt-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.qzt-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #9aa3b5;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.qzt-tab:hover .qzt-tab-close,
+.qzt-tab.active .qzt-tab-close {
+  opacity: 1;
+}
+.qzt-tab-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #1f2733;
+}
+
+/* keep-alive 面板:非激活面板由内联样式 display:none 隐藏,DOM 常驻 */
+.qzt-tabpane {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
 /* ===== 深色模式适配(由设置里的「深色模式」开启,App.tsx 给 body 挂 qzt-theme-dark) ===== */
 body.qzt-theme-dark .qzt-side-primary {
   background: #1f1f1f;
@@ -352,6 +437,28 @@ body.qzt-theme-dark .qzt-side-leaf.active {
 }
 body.qzt-theme-dark .qzt-content {
   background: #141414;
+}
+body.qzt-theme-dark .qzt-tabbar {
+  background: #1f1f1f;
+  border-bottom-color: #303030;
+}
+body.qzt-theme-dark .qzt-tab {
+  color: rgba(255, 255, 255, 0.65);
+}
+body.qzt-theme-dark .qzt-tab:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+body.qzt-theme-dark .qzt-tab.active {
+  background: rgba(90, 124, 255, 0.18);
+  color: #5a7cff;
+}
+body.qzt-theme-dark .qzt-tab-close {
+  color: rgba(255, 255, 255, 0.45);
+}
+body.qzt-theme-dark .qzt-tab-close:hover {
+  background: #3a3a3a;
+  color: #fff;
 }
 
 /* ===== 色弱模式(由设置里的「色弱模式」开启,App.tsx 给 body 挂 qzt-theme-weak) ===== */

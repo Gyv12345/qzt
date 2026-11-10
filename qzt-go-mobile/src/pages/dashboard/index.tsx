@@ -21,6 +21,7 @@ import type {
   DashboardTrendPoint,
 } from '../../types/dashboard'
 import { BarChart, FunnelChart, LineChart, PieChart } from '../../components/Chart'
+import CountUp from '../../components/reactbits/CountUp'
 
 const STAGE_LABEL: Record<string, string> = {
   PROSPECTING: '初步接触', QUALIFIED: '需求确认', PROPOSAL: '方案报价',
@@ -100,16 +101,17 @@ export default function DashboardPage() {
     getStockValueByWarehouse().then((r) => setStockValue(r || [])).catch(() => {})
   }, [tab])
 
-  const kpis = overview
+  // num 有值时走 React Bits CountUp 数字滚动; 否则(金额的 compact 格式)静态渲染
+  const kpis: { label: string; value: string; num?: number }[] = overview
     ? [
-        { label: '客户总数', value: String(overview.customer_total) },
-        { label: '公海客户', value: String(overview.customer_public) },
-        { label: '商机总数', value: String(overview.opportunity_total) },
-        { label: '赢单商机', value: String(overview.opportunity_won) },
+        { label: '客户总数', value: String(overview.customer_total), num: overview.customer_total },
+        { label: '公海客户', value: String(overview.customer_public), num: overview.customer_public },
+        { label: '商机总数', value: String(overview.opportunity_total), num: overview.opportunity_total },
+        { label: '赢单商机', value: String(overview.opportunity_won), num: overview.opportunity_won },
         { label: '合同金额', value: fmtMoney(overview.contract_amount) },
         { label: '回款金额', value: fmtMoney(overview.received_amount) },
-        { label: '待审批', value: String(overview.approval_pending) },
-        { label: '库存预警', value: String(overview.stock_warning) },
+        { label: '待审批', value: String(overview.approval_pending), num: overview.approval_pending },
+        { label: '库存预警', value: String(overview.stock_warning), num: overview.stock_warning },
       ]
     : []
 
@@ -134,7 +136,9 @@ export default function DashboardPage() {
               <div style={{ margin: 8, padding: 12, background: 'var(--bg-card)', borderRadius: 12, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                 {kpis.map((k) => (
                   <div key={k.label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand)' }}>{k.value}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand)' }}>
+                      {typeof k.num === 'number' ? <CountUp to={k.num} duration={1.5} /> : k.value}
+                    </div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{k.label}</div>
                   </div>
                 ))}

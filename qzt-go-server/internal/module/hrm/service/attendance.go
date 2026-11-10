@@ -19,22 +19,29 @@ import (
 
 // AttendanceService 考勤服务。
 type AttendanceService struct {
-	clockRepo   *hrmrepo.AttendanceClockRepo
-	leaveRepo   *hrmrepo.LeaveRepo
+	clockRepo    *hrmrepo.AttendanceClockRepo
+	leaveRepo    *hrmrepo.LeaveRepo
 	overtimeRepo *hrmrepo.OvertimeRepo
-	summaryRepo *hrmrepo.AttendanceSummaryRepo
-	empRepo     *hrmrepo.EmployeeRepo
-	deptRepo    *hrmrepo.DepartmentRepo
+	summaryRepo  *hrmrepo.AttendanceSummaryRepo
+	empRepo      *hrmrepo.EmployeeRepo
+	deptRepo     *hrmrepo.DepartmentRepo
+	// 排班 v2(有排班员工按班次口径重算;无排班员工保持原口径不变)
+	scheduleRepo *hrmrepo.ScheduleRepo
+	holidayRepo  *hrmrepo.HolidayRepo
+	shiftRepo    *hrmrepo.ShiftRepo
 }
 
 func NewAttendanceService() *AttendanceService {
 	return &AttendanceService{
-		clockRepo:   hrmrepo.NewAttendanceClockRepo(),
-		leaveRepo:   hrmrepo.NewLeaveRepo(),
+		clockRepo:    hrmrepo.NewAttendanceClockRepo(),
+		leaveRepo:    hrmrepo.NewLeaveRepo(),
 		overtimeRepo: hrmrepo.NewOvertimeRepo(),
-		summaryRepo: hrmrepo.NewAttendanceSummaryRepo(),
-		empRepo:     hrmrepo.NewEmployeeRepo(),
-		deptRepo:    hrmrepo.NewDepartmentRepo(),
+		summaryRepo:  hrmrepo.NewAttendanceSummaryRepo(),
+		empRepo:      hrmrepo.NewEmployeeRepo(),
+		deptRepo:     hrmrepo.NewDepartmentRepo(),
+		scheduleRepo: hrmrepo.NewScheduleRepo(),
+		holidayRepo:  hrmrepo.NewHolidayRepo(),
+		shiftRepo:    hrmrepo.NewShiftRepo(),
 	}
 }
 
@@ -122,7 +129,7 @@ func (s *AttendanceService) resolveEmployeeID(ctx context.Context, userID uint) 
 
 // LeaveRequest 请假请求。
 type LeaveRequest struct {
-	LeaveNo      string `json:"leave_no"` // 留空则自动生成
+	LeaveNo      string `json:"leave_no"`    // 留空则自动生成
 	EmployeeID   uint   `json:"employee_id"` // 0=从当前登录用户推导
 	LeaveType    string `json:"leave_type" binding:"required"`
 	StartDate    string `json:"start_date" binding:"required"` // yyyy-MM-dd HH:mm:ss
@@ -202,12 +209,12 @@ func (s *AttendanceService) LeaveList(ctx context.Context, page, pageSize int, e
 
 // OvertimeRequest 加班请求。
 type OvertimeRequest struct {
-	OvertimeNo    string `json:"overtime_no"` // 留空则自动生成
-	EmployeeID    uint   `json:"employee_id" binding:"required"`
-	StartDate     string `json:"start_date" binding:"required"`
-	EndDate       string `json:"end_date" binding:"required"`
-	DurationHours string `json:"duration_hours" binding:"required"`
-	Reason        string `json:"reason"`
+	OvertimeNo     string `json:"overtime_no"` // 留空则自动生成
+	EmployeeID     uint   `json:"employee_id" binding:"required"`
+	StartDate      string `json:"start_date" binding:"required"`
+	EndDate        string `json:"end_date" binding:"required"`
+	DurationHours  string `json:"duration_hours" binding:"required"`
+	Reason         string `json:"reason"`
 	CompensateType string `json:"compensate_type"` // PAY / TO
 }
 
@@ -239,7 +246,7 @@ func (s *AttendanceService) ApplyOvertime(ctx context.Context, req *OvertimeRequ
 		otNo, _ = numbergen.Generate(ctx, "overtime")
 	}
 	ot := &hrmmodel.HrmOvertime{
-		OvertimeNo:    otNo,
+		OvertimeNo:     otNo,
 		EmployeeID:     req.EmployeeID,
 		StartDate:      xtime.NewDateTime(start),
 		EndDate:        xtime.NewDateTime(end),
@@ -286,6 +293,8 @@ func (s *AttendanceService) OvertimeList(ctx context.Context, page, pageSize int
 // ── 月度汇总 ──
 
 // GenerateSummary 生成月度考勤汇总(按 employeeID + yearMonth,如 "2026-08")。
+// 双口径:员工当月有排班(schedule)→按班次口径重算(应出勤=排班且非法定假日天数,
+// 迟到/早退/缺卡逐日判定);无排班→保持原简化口径(workDays=22)完全不变。
 func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint, yearMonth string) (*hrmmodel.HrmAttendanceSummary, error) {
 	// 解析年月
 	year, month, err := parseYearMonth(yearMonth)
@@ -294,11 +303,8 @@ func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint
 	}
 	startOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
-
-	// 统计打卡:迟到次数/早退次数/实际出勤天数
-	// 简化:统计该月打卡记录天数(查询出错沿袭原语义:忽略,按 0 计)
-	actualDays, _ := s.clockRepo.CountDistinctCheckInDates(ctx, employeeID, hrmmodel.ClockTypeCheckIn,
-		startOfMonth.Format("2006-01-02"), endOfMonth.Format("2006-01-02"))
+	startStr := startOfMonth.Format("2006-01-02")
+	endStr := endOfMonth.Format("2006-01-02")
 
 	// 统计已批准的请假天数(出错沿袭原语义:忽略,按 0 计)
 	leaveDays, _ := s.leaveRepo.SumApprovedLeaveDays(ctx, employeeID)
@@ -306,7 +312,15 @@ func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint
 	// 统计已批准的加班时长(出错沿袭原语义:忽略,按 0 计)
 	otHours, _ := s.overtimeRepo.SumApprovedOvertimeHours(ctx, employeeID)
 
-	// 应出勤天数(简化:工作日 = 22)
+	// ── 排班口径(员工当月有排班时启用) ──
+	schedules, _ := s.scheduleRepo.ListByEmpRange(ctx, employeeID, startStr, endStr)
+	if len(schedules) > 0 {
+		return s.generateSummaryByShift(ctx, employeeID, yearMonth, schedules, leaveDays, otHours)
+	}
+
+	// ── 原口径(无排班,完全不变) ──
+	actualDays, _ := s.clockRepo.CountDistinctCheckInDates(ctx, employeeID, hrmmodel.ClockTypeCheckIn,
+		startStr, endStr)
 	workDays := 22
 
 	// 查是否已有汇总记录
@@ -330,6 +344,107 @@ func (s *AttendanceService) GenerateSummary(ctx context.Context, employeeID uint
 		}
 	}
 	return summary, nil
+}
+
+// generateSummaryByShift 排班口径汇总:逐排班日按班次判定迟到/早退/缺卡。
+func (s *AttendanceService) generateSummaryByShift(ctx context.Context, employeeID uint, yearMonth string, schedules []hrmmodel.HrmSchedule, leaveDays, otHours decimal.Decimal) (*hrmmodel.HrmAttendanceSummary, error) {
+	startOfMonth, _ := parseYearMonthToStart(yearMonth)
+	endOfMonth := startOfMonth.AddDate(0, 1, -1)
+
+	// 节假日与班次预取
+	holidays, _ := s.holidayRepo.ListByRange(ctx, startOfMonth.Format("2006-01-02"), endOfMonth.Format("2006-01-02"))
+	holidayType := make(map[string]string, len(holidays))
+	for _, h := range holidays {
+		holidayType[time.Time(h.HolidayDate).Format("2006-01-02")] = h.Type
+	}
+	shiftIDs := make([]uint, 0, len(schedules))
+	for _, sc := range schedules {
+		shiftIDs = append(shiftIDs, sc.ShiftID)
+	}
+	shifts, _ := s.shiftRepo.List(ctx, &repository.QueryOptions{
+		Conds: []repository.Cond{{Query: "id IN ?", Args: []any{shiftIDs}}},
+	})
+	shiftByID := make(map[uint]hrmmodel.HrmShift, len(shifts))
+	for _, sh := range shifts {
+		shiftByID[sh.ID] = sh
+	}
+
+	// 当月打卡(按日期索引上班/下班卡)
+	clocks, _ := s.clockRepo.ListByEmpDate(ctx, employeeID, startOfMonth.Format("2006-01-02"), endOfMonth.Format("2006-01-02"))
+	inByDate := make(map[string]time.Time)
+	outByDate := make(map[string]time.Time)
+	for _, c := range clocks {
+		key := time.Time(c.ClockDate).Format("2006-01-02")
+		if c.ClockType == hrmmodel.ClockTypeCheckIn {
+			inByDate[key] = time.Time(c.ClockTime).In(time.Local)
+		} else {
+			outByDate[key] = time.Time(c.ClockTime).In(time.Local)
+		}
+	}
+
+	// 逐排班日判定
+	workDays, actualDays, lateCount, earlyCount, missingDays := 0, 0, 0, 0, 0
+	for _, sc := range schedules {
+		day := time.Time(sc.ScheduleDate).Format("2006-01-02")
+		shift := shiftByID[sc.ShiftID]
+		var inT, outT *time.Time
+		if v, ok := inByDate[day]; ok {
+			inT = &v
+		}
+		if v, ok := outByDate[day]; ok {
+			outT = &v
+		}
+		res := EvaluateShiftDay(&shift, holidayType[day], inT, outT)
+		if res.ShouldAttend {
+			workDays++
+		}
+		if res.Present {
+			actualDays++
+		}
+		if res.LateMinutes > 0 {
+			lateCount++
+		}
+		if res.EarlyMinutes > 0 {
+			earlyCount++
+		}
+		if res.MissingIn {
+			missingDays++
+		}
+	}
+
+	// 查是否已有汇总记录
+	existing, err := s.summaryRepo.GetByEmpMonth(ctx, employeeID, yearMonth)
+	summary := &hrmmodel.HrmAttendanceSummary{
+		EmployeeID:    employeeID,
+		YearMonth:     yearMonth,
+		WorkDays:      workDays,
+		ActualDays:    int(actualDays),
+		LateCount:     lateCount,
+		EarlyCount:    earlyCount,
+		MissingDays:   missingDays,
+		LeaveDays:     leaveDays,
+		OvertimeHours: otHours,
+	}
+	if err == nil {
+		summary.ID = existing.ID
+		if err := s.summaryRepo.Update(ctx, summary); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.summaryRepo.Create(ctx, summary); err != nil {
+			return nil, err
+		}
+	}
+	return summary, nil
+}
+
+// parseYearMonthToStart yyyy-MM → 当月 1 号零点。
+func parseYearMonthToStart(ym string) (time.Time, error) {
+	t, err := time.ParseInLocation("2006-01", ym, time.Local)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("year_month 格式错误: %w", err)
+	}
+	return t, nil
 }
 
 // AttendanceSummaryItem 月度汇总展示项:汇总数值 + 员工/部门展示字段
@@ -410,4 +525,3 @@ func parseYearMonth(ym string) (int, int, error) {
 	}
 	return t.Year(), int(t.Month()), nil
 }
-

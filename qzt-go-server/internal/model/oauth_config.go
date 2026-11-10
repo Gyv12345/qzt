@@ -10,6 +10,7 @@ const (
 	OAuthProviderDing     = "ding"      // 钉钉(预留)
 	OAuthProviderFeishu   = "feishu"    // 飞书(预留)
 	OAuthProviderWechatMP = "wechat_mp" // 微信服务号(通知推送+微信内免登录)
+	OAuthProviderDouyin   = "douyin"    // 抖音开放平台(GEO 信源视频直发)
 )
 
 // SysOauthConfig 第三方登录配置。

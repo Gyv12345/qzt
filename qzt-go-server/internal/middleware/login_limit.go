@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"qzt-go-server/internal/pkg/cache"
-	e "qzt-go-server/pkg/xerror"
 	"qzt-go-server/pkg/xresponse"
 )
 
@@ -20,8 +19,7 @@ func LoginLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if cache.IsLoginLocked("_", c.ClientIP()) {
 			ttl := cache.GetLoginLockTTL("_", c.ClientIP())
-			xresponse.Fail(c, e.HttpTooManyRequests.GetErrCode(),
-				"登录失败次数过多，请 "+humanDuration(ttl)+" 后再试")
+			xresponse.TooManyRequests(c, "登录失败次数过多，请 "+humanDuration(ttl)+"后再试")
 			return
 		}
 		c.Next()

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { NAV, SITE } from "@/lib/site";
 import { getSiteConfig } from "@/lib/api";
 
+/** 开源仓库地址, 与 layout.tsx 结构化数据 sameAs 保持一致 */
+const GITHUB_URL = "https://github.com/Gyv12345/qzt";
+
 /** 底部页脚。深色块收束页面, 文字反白, 营造层级感。 */
 export async function Footer() {
   let siteName = SITE.name;
@@ -80,12 +83,27 @@ export async function Footer() {
           <p className="font-display text-sm font-semibold text-strong">关于</p>
           <p className="mt-3 text-sm leading-6 text-faint">企业级业务管理平台</p>
           <p className="text-sm leading-6 text-faint">私有化部署 · 模块自由组合</p>
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 block text-sm leading-6 text-faint no-underline transition-colors hover:text-strong"
+          >
+            开源仓库: github.com/Gyv12345/qzt
+          </a>
         </div>
       </div>
       <div className="border-t border-line py-5">
         <div className="container flex flex-col items-center gap-2 text-center text-xs text-faint">
           <p>{copyright || `© ${year} ${siteName}. All rights reserved.`}</p>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            {/* 隐私政策:收集个人信息(留言表单/第一方埋点)的 PIPL 告知入口 */}
+            <Link
+              href="/p/privacy"
+              className="text-faint no-underline transition-colors hover:text-muted"
+            >
+              隐私政策
+            </Link>
             {icp && (
               <a
                 href="https://beian.miit.gov.cn"

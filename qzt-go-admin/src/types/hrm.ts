@@ -265,3 +265,51 @@ export interface HrmAttendanceSummary {
   leave_days: number
   overtime_hours: number
 }
+
+// ── 排班管理(P14) ──
+
+/** 考勤班次 */
+export interface HrmShift {
+  id: number
+  name: string
+  /** 上班时间 HH:mm:ss */
+  start_time: string
+  /** 下班时间 HH:mm:ss */
+  end_time: string
+  flex_minutes: number
+  cross_day: number
+  status: number
+}
+
+/** 节假日 */
+export interface HrmHoliday {
+  id: number
+  /** yyyy-MM-dd */
+  holiday_date: string
+  name: string
+  /** HOLIDAY 放假 / WORKDAY 调休补班 */
+  type: string
+}
+
+/** 考勤组 */
+export interface HrmAttendanceGroup {
+  id: number
+  name: string
+  dept_id: number | null
+  shift_id: number
+  status: number
+}
+
+/** 排班月视图行 */
+export interface HrmScheduleMonthRow {
+  id: number
+  employee_id: number
+  /** yyyy-MM-dd(后端 date 列,JSON 带时间尾巴) */
+  schedule_date: string
+  shift_id: number
+  source: string
+  shift_name: string
+  start_time: string
+  end_time: string
+  employee_name: string
+}

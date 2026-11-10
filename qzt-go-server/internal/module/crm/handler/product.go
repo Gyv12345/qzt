@@ -143,7 +143,7 @@ func (h *ProductHandler) List(c *gin.Context) {
 
 // PublicList 商品列表(公开)
 // @Summary  商品列表(公开)
-// @Description  返回「官网内容→官网首页配置→产品」精选的上架商品(板块关闭或未配置精选时为空,不含成本价),免鉴权
+// @Description  返回「官网内容→官网首页配置→产品」精选的商品,精选即公开展示的唯一门槛(板块关闭或未配置精选时为空,不含成本价),免鉴权
 // @Tags     CMS公开
 // @Produce  json
 // @Success  200  {object}  xresponse.Response
@@ -159,7 +159,7 @@ func (h *ProductHandler) PublicList(c *gin.Context) {
 
 // PublicGetByID 商品详情(公开)
 // @Summary  商品详情(公开)
-// @Description  返回精选上架商品详情(未精选的商品按不存在处理,不含成本价),免鉴权
+// @Description  返回精选商品详情(未精选的商品按不存在处理,不含成本价),免鉴权
 // @Tags     CMS公开
 // @Produce  json
 // @Param    id  path      int  true  "商品ID"

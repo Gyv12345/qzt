@@ -1,0 +1,19 @@
+# mall.devlovecode.com 公开商城, 允许搜索引擎与 AI 爬虫收录。
+# 站点为 SPA, 商品列表页为唯一稳定入口, 暂无独立 sitemap。
+User-Agent: *
+Allow: /
+
+User-Agent: GPTBot
+Allow: /
+
+User-Agent: OAI-SearchBot
+Allow: /
+
+User-Agent: ClaudeBot
+Allow: /
+
+User-Agent: PerplexityBot
+Allow: /
+
+User-Agent: Bytespider
+Allow: /

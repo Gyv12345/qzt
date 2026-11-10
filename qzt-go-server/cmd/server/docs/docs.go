@@ -694,6 +694,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/approval/actions/transfer": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "将分配给自己的待办任务转办(TRANSFER,责任让渡)或委托(DELEGATE,受托代审)给其他用户;原地改审批人,写审计记录并通知新审批人",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批操作"
+                ],
+                "summary": "转办/委托审批任务",
+                "parameters": [
+                    {
+                        "description": "转办/委托请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/approval/flows": {
             "get": {
                 "security": [
@@ -1025,6 +1064,40 @@ const docTemplate = `{
                     "审批待办"
                 ],
                 "summary": "审批实例详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "实例ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approval/instances/{id}/graph": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按实例绑定的流程版本返回节点图+连线+已走/当前轨迹(visited_node_ids/current_node_id),供详情抽屉轨迹可视化",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批待办"
+                ],
+                "summary": "审批实例流程图",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1607,6 +1680,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/cms/articles/{id}/versions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "文章版本列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/articles/{id}/versions/{version_id}/rollback": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "回滚文章到指定版本",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "版本ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/cms/categories": {
             "get": {
                 "security": [
@@ -1807,6 +1956,83 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/media": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "列举公共桶对象并拼直链,keyword 过滤 key 子串",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "媒体库"
+                ],
+                "summary": "媒体库列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "key 关键字过滤",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "最多返回条数(默认200,最大500)",
+                        "name": "max_keys",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/media/delete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "媒体库"
+                ],
+                "summary": "删除媒体对象",
+                "parameters": [
+                    {
+                        "description": "删除请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.MediaDeleteRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -2159,6 +2385,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/cms/public/search": {
+            "get": {
+                "description": "ngram 全文检索标题/摘要/正文,仅公开可见文章(P19 守卫)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CMS公开"
+                ],
+                "summary": "文章搜索(公开)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索词",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码(默认1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认10,最大100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/cms/public/tags": {
             "get": {
                 "description": "返回全部标签,供前台站点",
@@ -2169,6 +2436,156 @@ const docTemplate = `{
                     "CMS公开"
                 ],
                 "summary": "标签列表(公开)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/public/track": {
+            "post": {
+                "description": "官网前台访客行为批量上报,单批最多 20 条;IP/UA 由服务端从请求上下文提取",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CMS公开"
+                ],
+                "summary": "埋点批量上报(公开)",
+                "parameters": [
+                    {
+                        "description": "事件批次",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.TrackIngestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/push/baidu": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "将URL或文章公开链接提交到百度主动推送(24h内已推过的自动跳过;配额耗尽即停)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "搜索引擎推送"
+                ],
+                "summary": "推送百度",
+                "parameters": [
+                    {
+                        "description": "URL列表或文章ID列表",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.pushRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/push/indexnow": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "将URL或文章公开链接批量提交到 IndexNow(自动分发 Bing/Yandex 等)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "搜索引擎推送"
+                ],
+                "summary": "推送 IndexNow",
+                "parameters": [
+                    {
+                        "description": "URL列表或文章ID列表",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.pushRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/push/logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "搜索引擎推送"
+                ],
+                "summary": "推送日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码(默认1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认10,最大100)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "通道过滤 baidu/indexnow",
+                        "name": "channel",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2379,6 +2796,90 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/track/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "近 N 天原始事件分页,排查用",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "访问统计"
+                ],
+                "summary": "埋点事件列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码(默认1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认20,最大100)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "时间窗口天数(默认7,最大180)",
+                        "name": "days",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "事件名过滤",
+                        "name": "event",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cms/track/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "近 N 天(含今日)PV/UV、按天序列、页面/事件/来源 Top 榜",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "访问统计"
+                ],
+                "summary": "访问统计汇总",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "统计窗口天数(默认7,最大180)",
+                        "name": "days",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5490,7 +5991,7 @@ const docTemplate = `{
         },
         "/crm/public/products": {
             "get": {
-                "description": "返回「官网内容→官网首页配置→产品」精选的上架商品(板块关闭或未配置精选时为空,不含成本价),免鉴权",
+                "description": "返回「官网内容→官网首页配置→产品」精选的商品,精选即公开展示的唯一门槛(板块关闭或未配置精选时为空,不含成本价),免鉴权",
                 "produces": [
                     "application/json"
                 ],
@@ -5510,7 +6011,7 @@ const docTemplate = `{
         },
         "/crm/public/products/{id}": {
             "get": {
-                "description": "返回精选上架商品详情(未精选的商品按不存在处理,不含成本价),免鉴权",
+                "description": "返回精选商品详情(未精选的商品按不存在处理,不含成本价),免鉴权",
                 "produces": [
                     "application/json"
                 ],
@@ -6719,6 +7220,1269 @@ const docTemplate = `{
                 }
             }
         },
+        "/geo/platforms": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "平台列表(API Key 只回掩码)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "新增监测平台",
+                "parameters": [
+                    {
+                        "description": "平台",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PlatformPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/platforms/:id": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "编辑平台(api_key 留空保留原值)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "平台ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "平台",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PlatformPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "删除平台",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "平台ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/platforms/douyin/accounts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "已绑定的抖音账号",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/platforms/douyin/accounts/:id": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "解绑抖音账号",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账号ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/platforms/douyin/authorize": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "获取抖音授权链接(浏览器打开扫码授权)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/platforms/douyin/bind": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "用授权回调 code 绑定抖音账号",
+                "parameters": [
+                    {
+                        "description": "code",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.bindDouyinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/prompts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "提示词列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "分组 brand/category/scenario",
+                        "name": "group_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "问题关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "新增提示词",
+                "parameters": [
+                    {
+                        "description": "提示词",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PromptPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/prompts/:id": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "编辑提示词",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "提示词ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "提示词",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PromptPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "删除提示词",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "提示词ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/runs": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "监测轮次列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "手动触发监测(异步执行)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/runs/:id": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "轮次详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "轮次ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/runs/:id/export": {
+            "get": {
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "导出轮次明细(CSV,UTF-8 BOM)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "轮次ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/runs/:id/results": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "轮次结果明细(含回答全文)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "轮次ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "稿件列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "类型 article/video/video_script",
+                        "name": "content_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "平台 wechat_mp/douyin/xhs/zhihu/csdn/toutiao",
+                        "name": "platform",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态 generated/pushed/published/failed/skipped",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "质检状态 none/pass/warn/blocked",
+                        "name": "qc_status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "手工新增稿件",
+                "parameters": [
+                    {
+                        "description": "稿件",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SourcePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/:id": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "编辑稿件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "稿件",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SourcePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "删除稿件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/:id/douyin": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "把已出片的视频稿直发抖音(account_id 留空取第一个可用账号)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "账号(可选)",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/handler.douyinPushRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/:id/publish": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "拉取 freepublish 发布状态(成功回填发布URL)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "提交 freepublish 直接发布(仅认证账号)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/:id/push": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "推送稿件到公众号草稿箱(仅图文)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/:id/qc": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "手动质检稿件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "稿件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/:id/variants": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "基于母稿生成另一平台差异化分发稿",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "母稿ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "平台",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.variantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/generate": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "手动产稿(领取选题并即时产一篇图文)",
+                "parameters": [
+                    {
+                        "description": "留空则自动领取选题",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/handler.generateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/sources/run": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "立即执行一轮产线(选题→图文+视频→投递,耗时数分钟)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/topics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "选题列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态 pending/approved/rejected/used",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "来源 matrix/ai/manual",
+                        "name": "origin",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "新增选题",
+                "parameters": [
+                    {
+                        "description": "选题",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.TopicPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/topics/:id": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "编辑选题",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "选题ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "选题",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.TopicPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "删除选题",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "选题ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/topics/:id/review": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "审批选题(approve=true 通过进入产稿队列,false 驳回)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "选题ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "审批",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.reviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/topics/generate": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "AI 生成选题(读最近监测结果找新机会)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/geo/trend": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GEO"
+                ],
+                "summary": "最近 N 轮指标趋势",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "轮数上限(默认12)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/attendance-groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "考勤组列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "新建考勤组",
+                "parameters": [
+                    {
+                        "description": "考勤组请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AttendanceGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/attendance-groups/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "更新考勤组",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "考勤组ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "考勤组请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AttendanceGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "删除考勤组",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "考勤组ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/hrm/attendance/clock": {
             "post": {
                 "security": [
@@ -7592,6 +9356,312 @@ const docTemplate = `{
                 }
             }
         },
+        "/hrm/holidays": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "节假日列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "年份(如 2026)",
+                        "name": "year",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "新建节假日",
+                "parameters": [
+                    {
+                        "description": "节假日请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.HolidayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/holidays/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "更新节假日",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "节假日ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "节假日请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.HolidayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "删除节假日",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "节假日ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/insurance-plans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "社保方案列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "新建社保方案",
+                "parameters": [
+                    {
+                        "description": "社保方案请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.InsurancePlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/insurance-plans/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "更新社保方案",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "方案ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "社保方案请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.InsurancePlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "删除社保方案",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "方案ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/hrm/jobs": {
             "get": {
                 "security": [
@@ -7793,6 +9863,44 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/service.SaveStructureRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/payroll/structure/v2": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "保存薪酬结构(支持挂社保方案)",
+                "parameters": [
+                    {
+                        "description": "薪酬结构请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SaveStructureV2Request"
                         }
                     }
                 ],
@@ -8072,6 +10180,492 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/salary-items": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "工资项列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "新建工资项",
+                "parameters": [
+                    {
+                        "description": "工资项请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SalaryItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/salary-items/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "更新工资项",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "工资项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "工资项请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SalaryItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-薪酬设置"
+                ],
+                "summary": "删除工资项",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "工资项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/schedules/batch": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "整月批量排班(upsert)",
+                "parameters": [
+                    {
+                        "description": "批量排班请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ScheduleBatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/schedules/month": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "排班月视图",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "月份(yyyy-MM)",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/schedules/my": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按登录用户反查员工档案,返回本人当月排班(班次+假日标注);仅登录不走 RBAC",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "我的排班月视图",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "月份(yyyy-MM)",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/schedules/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "删除排班",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "排班ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/shifts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "班次列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "新建班次",
+                "parameters": [
+                    {
+                        "description": "班次请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/hrm/shifts/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "更新班次",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "班次ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "班次请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "人事-排班管理"
+                ],
+                "summary": "删除班次",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "班次ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/kb/documents/{id}/reindex": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "强制重建文档的切片与向量（embedding 未配置时报错）",
+                "tags": [
+                    "KB"
+                ],
+                "summary": "重建文档向量索引",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文档ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "chunks": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -11306,6 +13900,313 @@ const docTemplate = `{
                 }
             }
         },
+        "/open/v1/events": {
+            "get": {
+                "description": "返回平台出站事件目录,供订阅方(OA/外部系统)对齐契约",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "事件目录(开放)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/open/v1/org/tree": {
+            "get": {
+                "description": "hrm 部门树透出,供 OA 系统做组织同步",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "组织树(开放)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/open/webhook-events": {
+            "get": {
+                "description": "分页查询 webhook 投递日志(webhook/事件/状态/时间窗过滤)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "投递日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "webhookID",
+                        "name": "webhook_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "事件类型",
+                        "name": "event_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0待投递 1成功 2失败重试中 3死信",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/open/webhook-events/:id/retry": {
+            "post": {
+                "description": "将失败/死信事件置回待投递,由投递 job 重新发送",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "重试投递",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "事件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/open/webhooks": {
+            "get": {
+                "description": "列出全部 webhook 端点(secret 脱敏)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "Webhook列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建 webhook 端点;secret 缺省服务端生成,明文仅创建响应返回一次",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "创建Webhook",
+                "parameters": [
+                    {
+                        "description": "配置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.WebhookPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/open/webhooks/:id": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "Webhook详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新端点配置;事件码校验同创建",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "更新Webhook",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "配置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.WebhookPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "软删端点;投递日志保留可查",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "删除Webhook",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/open/webhooks/:id/status": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "开放集成"
+                ],
+                "summary": "启停Webhook",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "{status:1启用/0停用}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/project/projects": {
             "get": {
                 "security": [
@@ -12887,6 +15788,228 @@ const docTemplate = `{
                 }
             }
         },
+        "/psi/stock-transfer-orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "调拨单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "调出仓库ID",
+                        "name": "from_warehouse_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "调入仓库ID",
+                        "name": "to_warehouse_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1在途 2完成 3已作废)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "创建调拨单(在途,执行时才动库存)",
+                "parameters": [
+                    {
+                        "description": "创建调拨请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateTransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stock-transfer-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "调拨单详情(含明细)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "调拨单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "删除调拨单(仅已作废可删)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "调拨单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stock-transfer-orders/{id}/cancel": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "作废调拨单(仅在途可作废)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "调拨单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stock-transfer-orders/{id}/execute": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "执行调拨(出+入同事务,数量守恒)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "调拨单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/psi/stock/movements": {
             "get": {
                 "security": [
@@ -12931,6 +16054,265 @@ const docTemplate = `{
                         "description": "业务类型",
                         "name": "biz_type",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stocktake-orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "盘点单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "仓库ID",
+                        "name": "warehouse_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1盘点中 2已确认 3已作废)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "创建盘点单(冻结账面快照)",
+                "parameters": [
+                    {
+                        "description": "创建盘点请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateStocktakeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stocktake-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "盘点单详情(含明细)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "录实盘数(批量)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "实盘请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateActualRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "删除盘点单(仅已作废可删)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stocktake-orders/{id}/cancel": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "作废盘点单",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/stocktake-orders/{id}/confirm": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "进销存-库存管理"
+                ],
+                "summary": "确认盘点(差异派生盘盈/盘亏流水)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -16738,6 +20120,22 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.MediaDeleteRequest": {
+            "type": "object",
+            "required": [
+                "object_keys"
+            ],
+            "properties": {
+                "object_keys": {
+                    "description": "要删除的对象 key 清单",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "handler.PublicContactRequest": {
             "type": "object",
             "required": [
@@ -16833,10 +20231,69 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.bindDouyinRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.douyinPushRequest": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.generateRequest": {
+            "type": "object",
+            "properties": {
+                "topic_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.pushRequest": {
+            "type": "object",
+            "properties": {
+                "article_ids": {
+                    "description": "或给文章ID(按 slug 拼公开链接,无 slug 的自动跳过)",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "urls": {
+                    "description": "直接给完整 URL(会被域名白名单过滤)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "handler.resetRequest": {
             "type": "object",
             "properties": {
                 "confirm": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.reviewRequest": {
+            "type": "object",
+            "properties": {
+                "approve": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handler.variantRequest": {
+            "type": "object",
+            "properties": {
+                "platform": {
                     "type": "string"
                 }
             }
@@ -17317,8 +20774,35 @@ const docTemplate = `{
                 "node_number": {
                     "type": "string"
                 },
+                "pass_post_config": {
+                    "type": "string"
+                },
+                "reject_post_config": {
+                    "type": "string"
+                },
                 "same_submitter_action": {
                     "type": "string"
+                }
+            }
+        },
+        "service.AttendanceGroupRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "shift_id"
+            ],
+            "properties": {
+                "dept_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "shift_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },
@@ -17480,11 +20964,19 @@ const docTemplate = `{
                 "cover_url": {
                     "type": "string"
                 },
+                "expire_at": {
+                    "description": "内容有效期至(空=永久)",
+                    "type": "string"
+                },
                 "is_hot": {
                     "type": "integer"
                 },
                 "is_top": {
                     "type": "integer"
+                },
+                "publish_at": {
+                    "description": "定时发布时间(空=立即;\"YYYY-MM-DD HH:mm:ss\"或RFC3339)",
+                    "type": "string"
                 },
                 "slug": {
                     "type": "string"
@@ -18946,6 +22438,20 @@ const docTemplate = `{
                 }
             }
         },
+        "service.CreateStocktakeRequest": {
+            "type": "object",
+            "required": [
+                "warehouse_id"
+            ],
+            "properties": {
+                "remark": {
+                    "type": "string"
+                },
+                "warehouse_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.CreateSupplierRequest": {
             "type": "object",
             "required": [
@@ -19091,6 +22597,35 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "service.CreateTransferRequest": {
+            "type": "object",
+            "required": [
+                "from_warehouse_id",
+                "items",
+                "to_warehouse_id"
+            ],
+            "properties": {
+                "from_warehouse_id": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/service.TransferItemRequest"
+                    }
+                },
+                "order_date": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "to_warehouse_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -19326,6 +22861,65 @@ const docTemplate = `{
                 }
             }
         },
+        "service.HolidayRequest": {
+            "type": "object",
+            "required": [
+                "holiday_date",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "holiday_date": {
+                    "description": "yyyy-MM-dd",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "HOLIDAY / WORKDAY",
+                    "type": "string"
+                }
+            }
+        },
+        "service.InsurancePlanRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "base_max": {
+                    "type": "number"
+                },
+                "base_min": {
+                    "type": "number"
+                },
+                "fund_rate": {
+                    "type": "number"
+                },
+                "injury_rate": {
+                    "type": "number"
+                },
+                "maternity_rate": {
+                    "type": "number"
+                },
+                "medical_rate": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pension_rate": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "unemployment_rate": {
+                    "type": "number"
+                }
+            }
+        },
         "service.LeaveRequest": {
             "type": "object",
             "required": [
@@ -19468,6 +23062,50 @@ const docTemplate = `{
                 }
             }
         },
+        "service.PlatformPayload": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "base_url": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.PromptPayload": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "group_type": {
+                    "description": "brand/category/scenario",
+                    "type": "string"
+                },
+                "question": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.PurchaseOrderItemRequest": {
             "type": "object",
             "required": [
@@ -19561,6 +23199,37 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
+                }
+            }
+        },
+        "service.SalaryItemRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "kind",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "fixed_amount": {
+                    "type": "number"
+                },
+                "formula": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },
@@ -19662,6 +23331,85 @@ const docTemplate = `{
                 }
             }
         },
+        "service.SaveStructureV2Request": {
+            "type": "object",
+            "required": [
+                "employee_id"
+            ],
+            "properties": {
+                "base_salary": {
+                    "type": "number"
+                },
+                "employee_id": {
+                    "type": "integer"
+                },
+                "housing_fund_base": {
+                    "type": "number"
+                },
+                "housing_fund_rate": {
+                    "type": "number"
+                },
+                "meal_allowance": {
+                    "type": "number"
+                },
+                "performance_allowance": {
+                    "type": "number"
+                },
+                "plan_id": {
+                    "type": "integer"
+                },
+                "position_allowance": {
+                    "type": "number"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "social_ins_base": {
+                    "type": "number"
+                },
+                "social_ins_rate": {
+                    "type": "number"
+                },
+                "transport_allowance": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.ScheduleBatchItem": {
+            "type": "object",
+            "required": [
+                "date",
+                "shift_id"
+            ],
+            "properties": {
+                "date": {
+                    "description": "yyyy-MM-dd",
+                    "type": "string"
+                },
+                "shift_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.ScheduleBatchRequest": {
+            "type": "object",
+            "required": [
+                "employee_id",
+                "items"
+            ],
+            "properties": {
+                "employee_id": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/service.ScheduleBatchItem"
+                    }
+                }
+            }
+        },
         "service.SendMessageRequest": {
             "type": "object",
             "required": [
@@ -19723,6 +23471,60 @@ const docTemplate = `{
                 },
                 "remark": {
                     "type": "string"
+                }
+            }
+        },
+        "service.ShiftRequest": {
+            "type": "object",
+            "required": [
+                "end_time",
+                "name",
+                "start_time"
+            ],
+            "properties": {
+                "cross_day": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "flex_minutes": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.SourcePayload": {
+            "type": "object",
+            "properties": {
+                "content_md": {
+                    "type": "string"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "digest": {
+                    "type": "string"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "topic_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -19824,6 +23626,65 @@ const docTemplate = `{
                 }
             }
         },
+        "service.TopicPayload": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.TrackIngestRequest": {
+            "type": "object"
+        },
+        "service.TransferItemRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "sku_id": {
+                    "description": "规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)",
+                    "type": "integer"
+                }
+            }
+        },
+        "service.TransferRequest": {
+            "type": "object",
+            "required": [
+                "target_user_id",
+                "task_id"
+            ],
+            "properties": {
+                "comment": {
+                    "description": "转办/委托说明(可空)",
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "TRANSFER(默认)/DELEGATE",
+                    "type": "string"
+                },
+                "target_user_id": {
+                    "type": "integer"
+                },
+                "task_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.UpdateAPIRequest": {
             "type": "object",
             "properties": {
@@ -19841,6 +23702,9 @@ const docTemplate = `{
                 }
             }
         },
+        "service.UpdateActualRequest": {
+            "type": "object"
+        },
         "service.UpdateArticleRequest": {
             "type": "object",
             "required": [
@@ -19856,11 +23720,19 @@ const docTemplate = `{
                 "cover_url": {
                     "type": "string"
                 },
+                "expire_at": {
+                    "description": "内容有效期至(空=清除改永久)",
+                    "type": "string"
+                },
                 "is_hot": {
                     "type": "integer"
                 },
                 "is_top": {
                     "type": "integer"
+                },
+                "publish_at": {
+                    "description": "定时发布时间(空=清除定时改立即;\"YYYY-MM-DD HH:mm:ss\"或RFC3339)",
+                    "type": "string"
                 },
                 "slug": {
                     "type": "string"
@@ -20796,7 +24668,19 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "faq_json": {
+                    "type": "string"
+                },
                 "favicon_url": {
+                    "type": "string"
+                },
+                "geo_placename": {
+                    "type": "string"
+                },
+                "geo_position": {
+                    "type": "string"
+                },
+                "geo_region": {
                     "type": "string"
                 },
                 "hero_badge": {
@@ -21153,6 +25037,34 @@ const docTemplate = `{
                 "spec": {
                     "type": "string",
                     "maxLength": 128
+                }
+            }
+        },
+        "service.WebhookPayload": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "events": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "remark": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string",
+                    "maxLength": 512
                 }
             }
         },

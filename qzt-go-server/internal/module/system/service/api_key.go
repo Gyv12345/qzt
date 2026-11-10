@@ -63,8 +63,18 @@ type CreateKeyResult struct {
 	Toolsets  []string `json:"toolsets"`
 }
 
-// Create 为用户创建 API Key。
+// Create 为用户创建 API Key。演示账号(demo 角色)禁止签发。
 func (s *ApiKeyService) Create(ctx context.Context, userID uint, req *CreateKeyRequest) (*CreateKeyResult, error) {
+	user, err := repository.NewUserRepo().GetByID(ctx, userID)
+	if err != nil {
+		return nil, errors.New("用户不存在")
+	}
+	for _, r := range user.Roles {
+		if r.Code == model.DemoRoleCode {
+			return nil, errors.New("演示账号不支持创建 API Key，请使用正式账号")
+		}
+	}
+
 	// 生成明文 Key: qzt_<32位hex>
 	raw := make([]byte, 16)
 	if _, err := rand.Read(raw); err != nil {

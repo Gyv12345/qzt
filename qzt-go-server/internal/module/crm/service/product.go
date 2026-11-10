@@ -174,8 +174,8 @@ func (s *ProductService) curatedProductFeatures(ctx context.Context) ([]model.Cm
 }
 
 // ListPublished 公开产品列表,只返回「官网内容→官网首页配置→产品」精选的
-// 上架商品,按精选顺序排列;板块关闭或未配置精选时返回空列表,绝不回退
-// 为全量上架商品。返回 PublicProductDTO,不含成本价。
+// 商品(精选即公开展示的唯一门槛,不再要求上架),按精选顺序排列;板块关闭
+// 或未配置精选时返回空列表,绝不回退为全量商品。返回 PublicProductDTO,不含成本价。
 func (s *ProductService) ListPublished(ctx context.Context) ([]PublicProductDTO, int64, error) {
 	features, err := s.curatedProductFeatures(ctx)
 	if err != nil {
@@ -189,9 +189,8 @@ func (s *ProductService) ListPublished(ctx context.Context) ([]PublicProductDTO,
 		ids = append(ids, f.ItemID)
 	}
 
-	// 精选里可能混入已下架/已删除的商品,按 status=上架 过滤后按精选顺序重排
+	// 精选里可能混入已删除的商品,模型查询自动过滤软删除,按精选顺序重排
 	products, err := s.repo.List(ctx, &repository.QueryOptions{
-		Where: map[string]any{"status": crmmodel.ProductStatusOn},
 		Conds: []repository.Cond{{Query: "id IN ?", Args: []any{ids}}},
 	})
 	if err != nil {
@@ -215,7 +214,7 @@ func (s *ProductService) ListPublished(ctx context.Context) ([]PublicProductDTO,
 	return out, int64(len(out)), nil
 }
 
-// GetPublishedByID 公开商品详情(仅「精选 + 上架」)。隐藏成本价。
+// GetPublishedByID 公开商品详情(仅精选,精选即公开;隐藏成本价)。
 func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*PublicProductDTO, error) {
 	features, err := s.curatedProductFeatures(ctx)
 	if err != nil {
@@ -233,7 +232,7 @@ func (s *ProductService) GetPublishedByID(ctx context.Context, id uint) (*Public
 		return nil, repository.NotFoundOr(gorm.ErrRecordNotFound, "商品不存在")
 	}
 	p, err := s.repo.GetOne(ctx, &repository.QueryOptions{
-		Where: map[string]any{"id": id, "status": crmmodel.ProductStatusOn},
+		Where: map[string]any{"id": id},
 	})
 	if err != nil {
 		return nil, repository.NotFoundOr(err, "商品不存在")

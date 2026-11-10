@@ -103,6 +103,30 @@ func (s *OSS) Delete(objectKey string, visibility string) error {
 	return nil
 }
 
+// List 媒体库列举公共桶对象(ListObjectsV2,按 key 升序)。
+func (s *OSS) List(prefix string, maxKeys int) ([]MediaObject, error) {
+	if maxKeys <= 0 || maxKeys > 500 {
+		maxKeys = 200
+	}
+	lsRes, err := s.bucket.ListObjectsV2(oss.Prefix(prefix), oss.MaxKeys(maxKeys))
+	if err != nil {
+		return nil, fmt.Errorf("list oss objects: %v", err)
+	}
+	list := make([]MediaObject, 0, len(lsRes.Objects))
+	for _, obj := range lsRes.Objects {
+		// 跳过伪目录占位对象(0 字节且以 / 结尾)
+		if strings.HasSuffix(obj.Key, "/") {
+			continue
+		}
+		list = append(list, MediaObject{
+			Key:          obj.Key,
+			Size:         obj.Size,
+			LastModified: obj.LastModified,
+		})
+	}
+	return list, nil
+}
+
 // Save 实现 Uploader 接口。校验文件 → 随机文件名 → 上传到 OSS → 返回 UploadedFile。
 func (s *OSS) Save(file *multipart.FileHeader, folders ...string) (*UploadedFile, error) {
 	if file == nil {
@@ -285,6 +309,65 @@ func (s *OSS) SavePrivateBytes(name string, data []byte, contentType string, fol
 		Size:         int64(len(data)),
 		ContentType:  mediaType,
 		Visibility:   VisibilityPrivate,
+	}, nil
+}
+
+// SaveBytes 实现 Uploader 接口:把内存字节上传到公共桶(无需 multipart 包装),
+// 返回的 URL 可直链/CDN 访问。name 用于推断扩展名;contentType 留空则按
+// 扩展名白名单映射。适用于代码生成的文件(如 GEO 产线下载的视频成片)。
+func (s *OSS) SaveBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error) {
+	if len(data) == 0 {
+		return nil, ErrEmptyFile
+	}
+	if int64(len(data)) > s.maxBytes {
+		return nil, ErrFileTooLarge
+	}
+	if len(folders) > 1 {
+		return nil, ErrInvalidFolder
+	}
+
+	extension := strings.ToLower(filepath.Ext(name))
+	expectedContentType, allowed := s.allowedTypes[extension]
+	if !allowed {
+		return nil, fmt.Errorf("%w: extension %q", ErrInvalidFileType, extension)
+	}
+	mediaType := strings.TrimSpace(contentType)
+	if mediaType == "" {
+		mediaType = expectedContentType
+	}
+
+	folder := ""
+	if len(folders) == 1 {
+		folder = folders[0]
+	}
+	relativeFolder, err := s.resolveFolder(folder)
+	if err != nil {
+		return nil, err
+	}
+
+	fileName, err := randomFileName(extension)
+	if err != nil {
+		return nil, err
+	}
+	relativePath := relativeFolder + "/" + fileName
+
+	objectKey := relativePath
+	if err := s.bucket.PutObject(objectKey, bytes.NewReader(data),
+		oss.ContentType(mediaType),
+		oss.ContentDisposition("inline"),
+		oss.ObjectACL(oss.ACLPublicRead),
+	); err != nil {
+		return nil, fmt.Errorf("upload to oss public bucket failed: %w", err)
+	}
+
+	return &UploadedFile{
+		OriginalName: name,
+		FileName:     fileName,
+		RelativePath: relativePath,
+		URL:          s.buildURL(objectKey),
+		Size:         int64(len(data)),
+		ContentType:  mediaType,
+		Visibility:   VisibilityPublic,
 	}, nil
 }
 

@@ -55,6 +55,7 @@ const EmployeeDetail = lazy(() => import('../pages/hrm/employee/detail'))
 const LeaveList = lazy(() => import('../pages/hrm/leave'))
 const LeaveDetail = lazy(() => import('../pages/hrm/leave/detail'))
 const ClockPage = lazy(() => import('../pages/clock'))
+const MySchedulePage = lazy(() => import('../pages/hrm/my-schedule'))
 const DepartmentList = lazy(() => import('../pages/hrm/department'))
 const PositionList = lazy(() => import('../pages/hrm/position'))
 const PerformanceList = lazy(() => import('../pages/hrm/performance'))
@@ -81,6 +82,10 @@ const StockInList = lazy(() => import('../pages/psi/stock-in'))
 const StockInDetail = lazy(() => import('../pages/psi/stock-in/detail'))
 const StockOutList = lazy(() => import('../pages/psi/stock-out'))
 const StockOutDetail = lazy(() => import('../pages/psi/stock-out/detail'))
+const StocktakeList = lazy(() => import('../pages/psi/stocktake'))
+const StocktakeDetail = lazy(() => import('../pages/psi/stocktake/detail'))
+const StockTransferList = lazy(() => import('../pages/psi/stocktransfer'))
+const StockTransferDetail = lazy(() => import('../pages/psi/stocktransfer/detail'))
 // CRM 补充
 const DashboardPage = lazy(() => import('../pages/dashboard'))
 const ProductList = lazy(() => import('../pages/product'))
@@ -369,6 +374,10 @@ export default function AppRoutes() {
             element: <Suspense fallback={pageFallback}><ClockPage /></Suspense>,
           },
           {
+            path: '/hrm/my-schedule',
+            element: <Suspense fallback={pageFallback}><MySchedulePage /></Suspense>,
+          },
+          {
             path: '/psi/purchase',
             element: <Suspense fallback={pageFallback}><PurchaseList /></Suspense>,
           },
@@ -423,6 +432,22 @@ export default function AppRoutes() {
           {
             path: '/psi/stock-in',
             element: <Suspense fallback={pageFallback}><StockInList /></Suspense>,
+          },
+          {
+            path: '/psi/stocktake',
+            element: <Suspense fallback={pageFallback}><StocktakeList /></Suspense>,
+          },
+          {
+            path: '/psi/stocktake/:id',
+            element: <Suspense fallback={pageFallback}><StocktakeDetail /></Suspense>,
+          },
+          {
+            path: '/psi/stocktransfer',
+            element: <Suspense fallback={pageFallback}><StockTransferList /></Suspense>,
+          },
+          {
+            path: '/psi/stocktransfer/:id',
+            element: <Suspense fallback={pageFallback}><StockTransferDetail /></Suspense>,
           },
           {
             path: '/psi/stock-in/:id',

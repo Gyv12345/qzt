@@ -5,6 +5,6 @@ import { articleListToMd, mdResponse } from "@/lib/markdown";
 export const revalidate = 300;
 
 export async function GET() {
-  const { list } = await getArticles({ page_size: 200 }).catch(() => ({ list: [], total: 0 }));
+  const { list } = await getArticles({ page_size: 100 }).catch(() => ({ list: [], total: 0 }));
   return mdResponse(articleListToMd(list));
 }

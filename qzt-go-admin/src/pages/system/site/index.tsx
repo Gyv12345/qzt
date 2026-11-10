@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { App, Button, Card, Divider, Form, Space } from 'antd'
+import { App, Button, Card, Divider, Form, Popconfirm, Space } from 'antd'
+import type { FormListFieldData, FormListOperation } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons'
 import { ProForm, ProFormGroup, ProFormList, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import ImageUpload from '../../../components/ImageUpload'
@@ -56,6 +58,21 @@ function Section({ title, note }: { title: string; note?: string }) {
       {note && <span style={{ fontSize: 12, color: '#999', fontWeight: 400, marginLeft: 8 }}>{note}</span>}
     </Divider>
   )
+}
+
+/** 行删除需二次确认:替换 ProFormList 默认删除图标,确认后才移除该行(移除后仍需点「保存」提交) */
+function confirmDeleteAction(field: FormListFieldData, action: FormListOperation, label: string) {
+  return [
+    <Popconfirm
+      key="delete"
+      title={`确认删除${label}?`}
+      okText="删除"
+      cancelText="取消"
+      onConfirm={() => action.remove(field.name)}
+    >
+      <DeleteOutlined style={{ color: 'rgba(0, 0, 0, 0.45)', cursor: 'pointer' }} />
+    </Popconfirm>,
+  ]
 }
 
 export default function SiteConfigPage() {
@@ -177,6 +194,7 @@ export default function SiteConfigPage() {
             creatorRecord={{ num: '', label: '' }}
             creatorButtonProps={{ creatorButtonText: '添加数字', position: 'bottom' }}
             copyIconProps={false}
+            actionRender={(field, action) => confirmDeleteAction(field, action, '该条数字')}
           >
             <ProFormGroup key="stat" grid>
               <ProFormText name="num" label="数字" placeholder="如 13 / 500+" colProps={{ span: 8 }} />
@@ -194,6 +212,7 @@ export default function SiteConfigPage() {
             creatorRecord={{ icon: 'users', name: '', desc: '' }}
             creatorButtonProps={{ creatorButtonText: '添加优势项', position: 'bottom' }}
             copyIconProps={false}
+            actionRender={(field, action) => confirmDeleteAction(field, action, '该条优势项')}
           >
             <ProFormGroup key="mod" grid>
               <ProFormSelect name="icon" label="图标" options={ICON_OPTIONS} colProps={{ span: 6 }} />
@@ -261,6 +280,7 @@ export default function SiteConfigPage() {
             creatorRecord={{ q: '', a: '' }}
             creatorButtonProps={{ creatorButtonText: '添加问题', position: 'bottom' }}
             copyIconProps={false}
+            actionRender={(field, action) => confirmDeleteAction(field, action, '该条问题')}
           >
             <ProFormGroup key="faq" grid>
               <ProFormText name="q" label="问题" placeholder="如 行简收费吗?价格是多少?" colProps={{ span: 8 }} />

@@ -9,6 +9,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
+    { url: `${base}/services`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/services/custom-software`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/services/miniprogram`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/services/app`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/products`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/faq`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/partners`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
@@ -18,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // GEO: Markdown 入口, 供 AI 搜索引擎发现
     { url: `${base}/llms.txt`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/md`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/md/services`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/md/products`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/md/faq`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/md/news`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
@@ -27,8 +32,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const [productsRes, newsRes] = await Promise.all([
-    getProducts({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
-    getArticles({ page_size: 200 }).catch(() => ({ list: [], total: 0 })),
+    getProducts({ page_size: 100 }).catch(() => ({ list: [], total: 0 })),
+    getArticles({ page_size: 100 }).catch(() => ({ list: [], total: 0 })),
   ]);
 
   const productRoutes: MetadataRoute.Sitemap = productsRes.list.map((p) => ({

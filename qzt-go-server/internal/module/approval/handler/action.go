@@ -89,6 +89,30 @@ func (h *ActionHandler) Reject(c *gin.Context) {
 	response.OK(c, nil)
 }
 
+// Transfer 转办/委托
+// @Summary      转办/委托审批任务
+// @Description  将分配给自己的待办任务转办(TRANSFER,责任让渡)或委托(DELEGATE,受托代审)给其他用户;原地改审批人,写审计记录并通知新审批人
+// @Tags         审批操作
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      service.TransferRequest  true  "转办/委托请求"
+// @Success      200   {object}  xresponse.Response
+// @Router       /approval/actions/transfer [post]
+func (h *ActionHandler) Transfer(c *gin.Context) {
+	var req service.TransferRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+	userID := middleware.GetUserID(c)
+	if err := h.svc.Transfer(c.Request.Context(), &req, userID); err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, nil)
+}
+
 // Revoke 撤回
 // @Summary      撤回审批
 // @Description  提交人撤回审批中的实例

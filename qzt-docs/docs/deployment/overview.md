@@ -83,6 +83,14 @@ sidebar_position: 1
 - 与 admin 部署方式一致，区别在于静态目录与域名不同；
 - 详见 [Mobile 部署](./mobile)。
 
+### desktop（桌面客户端）—— 无需服务器部署
+
+桌面客户端不占用上述四个服务席位，它是**安装到用户本机的原生应用**（Tauri 2 壳，前端复用 admin），通过后端 API 远程访问服务端，对服务器零新增负担：
+
+- **服务器侧**：无需任何部署与配置（若后端 CORS 配置了白名单，放行 webview origin 即可，见[前端架构](../architecture/frontend#desktop--桌面端)）；
+- **分发**：本地 `pnpm tauri build` 产出安装包（当前 macOS `.app` / `.dmg`，Windows 在路线图中），随交付发给客户或挂 CDN 下载；
+- **默认直连生产**：安装包内置 `https://admin.你的域名/prod-api` 作为 API 基址，装完即用。
+
 ## SSL 证书
 
 生产环境使用 **Let's Encrypt 通配符证书**，一张证书覆盖 `你的域名` 及其所有子域名（`*.你的域名`）：

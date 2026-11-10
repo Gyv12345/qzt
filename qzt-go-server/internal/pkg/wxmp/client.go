@@ -41,6 +41,10 @@ type Config struct {
 	Secret      string
 	RedirectURI string // OAuth 回调地址(指向移动端 SPA 页面)
 	TemplateID  string // 通知模板 ID(存于 Extra JSON,可为空=通知渠道关闭)
+	// 稿件默认封面永久素材 media_id(存于 Extra JSON source_thumb_media_id,可为空=
+	// 首次推草稿时自动上传内置封面并缓存)。在公众号后台上传更精美的封面后,
+	// 把素材 media_id 填进 Extra 即可替换。
+	ThumbMediaID string
 }
 
 // Client 服务号 API 客户端。

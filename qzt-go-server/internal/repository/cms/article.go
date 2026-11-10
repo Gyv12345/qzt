@@ -2,6 +2,7 @@ package cms
 
 import (
 	"context"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -27,13 +28,24 @@ func (r *ArticleRepo) GetByID(ctx context.Context, id uint) (*cmsmodel.CmsArticl
 func (r *ArticleRepo) Update(ctx context.Context, m *cmsmodel.CmsArticle) error {
 	return r.BaseRepo.Update(ctx, m,
 		"Title", "Slug", "Summary", "Content", "CoverURL", "CategoryID",
-		"AuthorID", "AuthorName", "Status", "IsTop", "IsHot", "ViewCount", "Sort")
+		"AuthorID", "AuthorName", "Status", "PublishAt", "ExpireAt", "IsTop", "IsHot", "ViewCount", "Sort")
 }
 
 // IncrementView 原子递增浏览量（best-effort，失败不阻断读取）。
 func (r *ArticleRepo) IncrementView(ctx context.Context, id uint) error {
 	return repository.DBFrom(ctx).Model(&cmsmodel.CmsArticle{}).Where("id = ?", id).
 		UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
+}
+
+// ListRecentlyUpdatedPublished 近期有更新且已发布的文章(供搜索引擎推送兜底任务筛选)。
+// 按 updated_at 倒序,limit 截断。
+func (r *ArticleRepo) ListRecentlyUpdatedPublished(ctx context.Context, since time.Time, limit int) ([]cmsmodel.CmsArticle, error) {
+	var list []cmsmodel.CmsArticle
+	err := repository.DBFrom(ctx).Model(&cmsmodel.CmsArticle{}).
+		Where("status = ? AND updated_at >= ? AND slug <> ''", cmsmodel.ArticleStatusPublished, since).
+		Where("(expire_at IS NULL OR expire_at > NOW())").
+		Order("updated_at DESC").Limit(limit).Find(&list).Error
+	return list, err
 }
 
 // SetTags 整体替换文章标签（全量覆盖）。tagIDs 为空则清空。
@@ -68,6 +80,48 @@ func (r *ArticleRepo) PageListByTag(ctx context.Context, page, pageSize int, tag
 	var list []cmsmodel.CmsArticle
 	if err := db.Preload("Category").Preload("Tags").
 		Order("cms_article.is_top DESC, cms_article.sort ASC, cms_article.id DESC").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
+}
+
+// PublicVisibleCond 公开可见性守卫（P19）：status=已发布 且 定时发布时间已到 且 未过期。
+// 服务端可信 SQL（无客户端输入），公开列表/slug 详情/id 详情/md 镜像/sitemap 同源共用。
+func PublicVisibleCond() repository.Cond {
+	return repository.Cond{
+		Query: "(publish_at IS NULL OR publish_at <= NOW()) AND (expire_at IS NULL OR expire_at > NOW())",
+	}
+}
+
+// ListDueToPublish 查询「刚到点」的文章（publish_at ∈ (from,to]，已发布、未过期、有 slug），
+// 供到点推送定时任务筛选。窗口由调用方给定（每分钟任务传 10 分钟容错窗口）。
+func (r *ArticleRepo) ListDueToPublish(ctx context.Context, from, to time.Time) ([]cmsmodel.CmsArticle, error) {
+	var list []cmsmodel.CmsArticle
+	err := repository.DBFrom(ctx).Model(&cmsmodel.CmsArticle{}).
+		Where("status = ? AND publish_at > ? AND publish_at <= ? AND slug <> ''", cmsmodel.ArticleStatusPublished, from, to).
+		Where("(expire_at IS NULL OR expire_at > NOW())").
+		Order("publish_at ASC").Find(&list).Error
+	return list, err
+}
+
+// SearchPublished 全文搜索公开可见文章（P21）。
+// MySQL ngram 全文检索（MATCH 列与 ft_cms_article_search 索引列一致：title/summary/content），
+// 叠加 P19 公开守卫（已发布+定时到点+未过期）。
+func (r *ArticleRepo) SearchPublished(ctx context.Context, q string, page, pageSize int) ([]cmsmodel.CmsArticle, int64, error) {
+	db := repository.DBFrom(ctx).Model(&cmsmodel.CmsArticle{}).
+		Where("MATCH(title, summary, content) AGAINST(? IN NATURAL LANGUAGE MODE)", q).
+		Where("status = ?", cmsmodel.ArticleStatusPublished).
+		Where("(publish_at IS NULL OR publish_at <= NOW())").
+		Where("(expire_at IS NULL OR expire_at > NOW())")
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var list []cmsmodel.CmsArticle
+	if err := db.Preload("Category").
+		Order("is_top DESC, sort ASC, id DESC").
 		Offset((page - 1) * pageSize).Limit(pageSize).
 		Find(&list).Error; err != nil {
 		return nil, 0, err

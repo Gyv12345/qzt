@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { LoginResult, SysMenu, SysUser } from '../types'
+import { useTabsStore } from './tabs'
 
 const TOKEN_KEY = 'qzt-go-admin:tokens'
 
@@ -53,6 +54,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   clearAuth: () => {
     localStorage.removeItem(TOKEN_KEY)
+    // 同步清空多 Tab,避免换账号后残留上一个账号无权限页面的 Tab
+    useTabsStore.getState().reset()
     set({
       accessToken: '',
       refreshToken: '',

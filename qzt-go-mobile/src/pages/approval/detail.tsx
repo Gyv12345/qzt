@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, Dialog, ErrorBlock, List, NavBar, Popup, Space, SpinLoading, Steps, TextArea, Toast } from 'antd-mobile'
+import { Button, Card, Dialog, ErrorBlock, List, NavBar, Popup, Selector, Space, SpinLoading, Steps, TextArea, Toast } from 'antd-mobile'
 import { useParams, useNavigate } from 'react-router-dom'
-import { approve, getInstance, reject, revoke } from '../../services/approval'
+import { approve, getInstance, reject, revoke, transfer } from '../../services/approval'
 import type { ApprovalInstanceDetail } from '../../types/approval'
+import UserPicker from '../../components/UserPicker'
 import { useAuthStore } from '../../stores/auth'
+import type { SysUserOption } from '../../services/user'
 
 const STATUS_TEXT: Record<string, string> = {
   PENDING: '待处理',
@@ -20,6 +22,8 @@ const RESULT_TEXT: Record<string, string> = {
   REJECT: '驳回',
   AUTO_PASS: '自动通过',
   REVOKE: '撤回',
+  TRANSFER: '转办',
+  DELEGATE: '委托',
 }
 
 export default function ApprovalDetail() {
@@ -31,6 +35,12 @@ export default function ApprovalDetail() {
   const [acting, setActing] = useState(false)
   const [showReject, setShowReject] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  // 转办/委托(P13 移动端入口)
+  const [showTransfer, setShowTransfer] = useState(false)
+  const [transferMode, setTransferMode] = useState<'TRANSFER' | 'DELEGATE'>('TRANSFER')
+  const [pickedUser, setPickedUser] = useState<SysUserOption | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const [transferComment, setTransferComment] = useState('')
   const myId = useAuthStore((s) => s.profile?.id)
 
   const load = () => {
@@ -96,6 +106,36 @@ export default function ApprovalDetail() {
     }
   }
 
+  // ── 转办/委托 ──
+  const openTransfer = () => {
+    setTransferMode('TRANSFER')
+    setPickedUser(null)
+    setTransferComment('')
+    setShowTransfer(true)
+  }
+
+  const confirmTransfer = async () => {
+    if (!myTask) return
+    if (!pickedUser) {
+      Toast.show({ content: '请选择目标审批人' })
+      return
+    }
+    setShowTransfer(false)
+    setActing(true)
+    try {
+      await transfer({
+        task_id: myTask.id,
+        target_user_id: pickedUser.id,
+        mode: transferMode,
+        comment: transferComment.trim() || undefined,
+      })
+      Toast.show({ icon: 'success', content: transferMode === 'DELEGATE' ? '已委托' : '已转办' })
+      load()
+    } finally {
+      setActing(false)
+    }
+  }
+
   // 撤回(审批中显示;后端校验是否发起人)
   const doRevoke = async () => {
     const ok = await Dialog.confirm({ content: '确认撤回该审批?' })
@@ -155,6 +195,15 @@ export default function ApprovalDetail() {
               驳回
             </Button>
           </Space>
+          <Button
+            block
+            color="default"
+            fill="none"
+            style={{ marginTop: 12 }}
+            onClick={openTransfer}
+          >
+            转办 / 委托
+          </Button>
         </div>
       )}
 
@@ -187,6 +236,54 @@ export default function ApprovalDetail() {
           确认驳回
         </Button>
       </Popup>
+
+      {/* 转办/委托弹窗 */}
+      <Popup
+        visible={showTransfer}
+        onMaskClick={() => setShowTransfer(false)}
+        bodyStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, padding: 16 }}
+        destroyOnClose
+      >
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>转办 / 委托</div>
+        <Selector
+          options={[
+            { label: '转办(任务让渡,我出队)', value: 'TRANSFER' },
+            { label: '委托(他人代审,责任仍在我)', value: 'DELEGATE' },
+          ]}
+          value={[transferMode]}
+          onChange={(v) => setTransferMode(v[0] as 'TRANSFER' | 'DELEGATE')}
+        />
+        <List style={{ marginTop: 12 }}>
+          <List.Item
+            extra={pickedUser ? pickedUser.nickname || pickedUser.username : '请选择'}
+            clickable
+            onClick={() => setShowPicker(true)}
+          >
+            目标审批人
+          </List.Item>
+        </List>
+        <TextArea
+          placeholder="转办/委托说明(可选)"
+          rows={2}
+          value={transferComment}
+          onChange={setTransferComment}
+          maxLength={200}
+          style={{ marginTop: 12 }}
+        />
+        <Button block color="primary" size="large" style={{ marginTop: 12 }} loading={acting} onClick={confirmTransfer}>
+          确认
+        </Button>
+      </Popup>
+
+      <UserPicker
+        visible={showPicker}
+        title="选择目标审批人"
+        onClose={() => setShowPicker(false)}
+        onPick={(u) => {
+          setPickedUser(u)
+          setShowPicker(false)
+        }}
+      />
     </div>
   )
 }

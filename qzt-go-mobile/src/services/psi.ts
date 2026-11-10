@@ -12,6 +12,10 @@ import type {
   PsiSalesReturn,
   PsiStockInOrder,
   PsiStockOutOrder,
+  PsiStocktake,
+  PsiStocktakeDetail,
+  PsiStockTransfer,
+  PsiStockTransferDetail,
 } from '../types/psi'
 
 interface PageResult<T> { list: T[]; total: number }
@@ -34,7 +38,7 @@ export const getSalesOrder = (id: number) =>
 
 // ── 库存 ──
 
-export const listStock = (params: PageParams & { keyword?: string }) =>
+export const listStock = (params: PageParams & { keyword?: string; warehouse_id?: number }) =>
   request.get<unknown, PageResult<PsiStock>>('/psi/stock', { params })
 
 // ── 资产 ──
@@ -182,3 +186,48 @@ export const createWarehouse = (data: { name: string; code?: string; address?: s
 export const updateWarehouse = (id: number, data: Partial<Parameters<typeof createWarehouse>[0]>) =>
   request.put(`/psi/warehouses/${id}`, data)
 export const deleteWarehouse = (id: number) => request.delete(`/psi/warehouses/${id}`)
+
+// ---------- 库存盘点/调拨(P15 移动端) ----------
+
+export const listStocktakeOrders = (params?: PageParams & { status?: number }) =>
+  request.get<unknown, { list: PsiStocktake[]; total: number }>('/psi/stocktake-orders', { params })
+
+export const getStocktakeOrder = (id: number) =>
+  request.get<unknown, PsiStocktakeDetail>(`/psi/stocktake-orders/${id}`)
+
+export const createStocktakeOrder = (data: { warehouse_id: number; remark?: string }) =>
+  request.post('/psi/stocktake-orders', data)
+
+export const saveStocktakeActual = (id: number, items: { item_id: number; actual_qty: number }[]) =>
+  request.put(`/psi/stocktake-orders/${id}`, { items })
+
+export const confirmStocktakeOrder = (id: number) =>
+  request.post(`/psi/stocktake-orders/${id}/confirm`)
+
+export const cancelStocktakeOrder = (id: number) =>
+  request.put(`/psi/stocktake-orders/${id}/cancel`)
+
+export const deleteStocktakeOrder = (id: number) =>
+  request.delete(`/psi/stocktake-orders/${id}`)
+
+export const listStockTransferOrders = (params?: PageParams & { status?: number }) =>
+  request.get<unknown, { list: PsiStockTransfer[]; total: number }>('/psi/stock-transfer-orders', { params })
+
+export const getStockTransferOrder = (id: number) =>
+  request.get<unknown, PsiStockTransferDetail>(`/psi/stock-transfer-orders/${id}`)
+
+export const createStockTransferOrder = (data: {
+  from_warehouse_id: number
+  to_warehouse_id: number
+  remark?: string
+  items: { product_id: number; sku_id?: number; quantity: number }[]
+}) => request.post('/psi/stock-transfer-orders', data)
+
+export const executeStockTransferOrder = (id: number) =>
+  request.post(`/psi/stock-transfer-orders/${id}/execute`)
+
+export const cancelStockTransferOrder = (id: number) =>
+  request.put(`/psi/stock-transfer-orders/${id}/cancel`)
+
+export const deleteStockTransferOrder = (id: number) =>
+  request.delete(`/psi/stock-transfer-orders/${id}`)

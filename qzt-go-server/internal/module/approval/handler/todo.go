@@ -105,6 +105,29 @@ func (h *TodoHandler) GetDetail(c *gin.Context) {
 	response.OK(c, detail)
 }
 
+// GetInstanceGraph 实例流程图
+// @Summary      审批实例流程图
+// @Description  按实例绑定的流程版本返回节点图+连线+已走/当前轨迹(visited_node_ids/current_node_id),供详情抽屉轨迹可视化
+// @Tags         审批待办
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id  path      int  true  "实例ID"
+// @Success      200  {object}  xresponse.Response
+// @Router       /approval/instances/{id}/graph [get]
+func (h *TodoHandler) GetInstanceGraph(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误")
+		return
+	}
+	graph, err := h.svc.GetInstanceGraph(c.Request.Context(), uint(id))
+	if err != nil {
+		response.Fail(c, errcode.ErrNotFound, err.Error())
+		return
+	}
+	response.OK(c, graph)
+}
+
 // GetResource 审批原单摘要
 // @Summary      审批实例的原单摘要
 // @Description  按表单类型从业务表取只读摘要(标题字段+可选明细行),供详情抽屉展示"批的是什么";原单不存在时 found=false

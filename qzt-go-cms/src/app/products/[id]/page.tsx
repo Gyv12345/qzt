@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getProducts, getProduct } from "@/lib/api";
+import { SITE } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -91,7 +92,8 @@ export default async function ProductDetailPage({ params }: Props) {
         )}
       </article>
 
-      {/* 产品结构化数据, 利于搜索引擎富结果 */}
+      {/* 产品结构化数据: brand/availability/offer URL 供 AI 引擎抽取
+          "XX 多少钱/在哪买"类问题(BreadcrumbList 与页面面包屑一致) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -102,13 +104,29 @@ export default async function ProductDetailPage({ params }: Props) {
             description: product.description,
             sku: product.product_no,
             category: product.category,
-            ...(Number(product.standard_price) > 0 && {
-              offers: {
-                "@type": "Offer",
-                price: product.standard_price,
-                priceCurrency: "CNY",
-              },
-            }),
+            brand: { "@type": "Brand", name: "行简软件" },
+            ...(product.image_url && { image: [product.image_url] }),
+            offers: {
+              "@type": "Offer",
+              price: Number(product.standard_price) > 0 ? product.standard_price : "0",
+              priceCurrency: "CNY",
+              availability: "https://schema.org/InStock",
+              url: `${SITE.url}/products/${id}`,
+            },
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "首页", item: SITE.url },
+              { "@type": "ListItem", position: 2, name: "产品与服务", item: `${SITE.url}/products` },
+              { "@type": "ListItem", position: 3, name: product.name },
+            ],
           }),
         }}
       />

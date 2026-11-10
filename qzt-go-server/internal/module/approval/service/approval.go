@@ -16,9 +16,9 @@ import (
 	"qzt-go-server/pkg/xtime"
 )
 
-// approval.go 审批引擎核心:提审 + 审批操作 + 节点流转。
+// approval.go 审批引擎核心:提审 + 审批操作(通过/驳回/撤回/转办/委托) + 节点流转。
 // 移植自 qztcrm ApprovalResourceService + ApprovalActionService(简化版)。
-// 支持会签(ALL)/或签(ANY)/依次(SEQUENTIAL),加签/退回后续扩展。
+// 支持会签(ALL)/或签(ANY)/依次(SEQUENTIAL);转办/委托已支持,加签/退回后续扩展。
 
 // ApprovalService 审批引擎核心服务。
 type ApprovalService struct {
@@ -63,6 +63,14 @@ type PushRequest struct {
 func (s *ApprovalService) Push(ctx context.Context, req *PushRequest, submitterID uint) (*apprmodel.ApprovalInstance, error) {
 	if !isValidFormType(req.FormType) {
 		return nil, errors.New("不支持的表单类型: " + req.FormType)
+	}
+	// 资源存在性校验(R24 观察①):单据不存在或已软删时拒绝提审,避免悬挂实例与幽灵待办。
+	// QUOTATION/ORDER 等表未建时 Scan 报错,按「无法校验」降级放行(与原单摘要 Found=false 口径一致)。
+	if table, ok := apprmodel.FormTable[req.FormType]; ok {
+		var row map[string]any
+		if err := apprrepo.ScanBusinessRow(ctx, table, req.ResourceID, &row); err == nil && len(row) == 0 {
+			return nil, fmt.Errorf("单据不存在或已删除,无法发起审批: %s#%d", req.FormType, req.ResourceID)
+		}
 	}
 	// 防重复提审:审批中/已通过的资源不允许再次提交(驳回/撤回后可重新发起,创建新实例)
 	if approving, err := s.instanceRepo.HasApproving(ctx, req.FormType, req.ResourceID); err == nil && approving {
@@ -210,11 +218,132 @@ func (s *ApprovalService) Reject(ctx context.Context, req *RejectRequest, userID
 		}
 		// 清当前节点其他待办
 		s.taskRepo.SoftDeleteByInstanceNode(ctx, task.InstanceID, task.NodeID)
+		// P17:节点级驳回后操作(字段更新+自定义 webhook),失败不阻断主流程
+		if rejectCfg, err := s.approverRepo.GetByNodeID(ctx, task.NodeID); err == nil && rejectCfg != nil {
+			ApplyPostConfig(ctx, rejectCfg.RejectPostConfig, instance, "reject")
+		}
 		// 资源状态写回
 		s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusUnapproved)
 		s.sendFinishNotice(ctx, instance, resultReject, req.Comment)
 		return nil
 	})
+}
+
+// ── 转办/委托 ──
+
+// TransferRequest 转办/委托请求。
+type TransferRequest struct {
+	TaskID       uint   `json:"task_id" binding:"required"`
+	TargetUserID uint   `json:"target_user_id" binding:"required"`
+	Mode         string `json:"mode"`    // TRANSFER(默认)/DELEGATE
+	Comment      string `json:"comment"` // 转办/委托说明(可空)
+}
+
+// Transfer 转办/委托:把当前审批人的任务让渡给目标用户(原地改 task.approver_id)。
+//   - TRANSFER(转办):任务让渡出队,责任完全转移;
+//   - DELEGATE(委托):受托人代审,责任仍在委托人(task.delegator_id 留痕)。
+//
+// 两者机械动作一致,差异在审计记录(result=TRANSFER/DELEGATE)与 delegator_id 留痕。
+func (s *ApprovalService) Transfer(ctx context.Context, req *TransferRequest, userID uint) error {
+	mode := req.Mode
+	if mode == "" {
+		mode = apprmodel.ActionTransfer
+	}
+	if mode != apprmodel.ActionTransfer && mode != apprmodel.ActionDelegate {
+		return errors.New("不支持的操作类型,仅支持转办(TRANSFER)/委托(DELEGATE)")
+	}
+	return repository.Transaction(ctx, func(ctx context.Context) error {
+		task, err := s.loadAndCheckTask(ctx, req.TaskID, userID, apprmodel.TaskStatusApproving)
+		if err != nil {
+			return err
+		}
+		instance, err := s.instanceRepo.GetByID(ctx, task.InstanceID)
+		if err != nil {
+			return errors.New("审批实例不存在")
+		}
+		if instance.ApprovalStatus != apprmodel.StatusApproving {
+			return errors.New("仅审批中的实例可转办/委托")
+		}
+		if err := validateTransferTarget(req.TargetUserID, userID, instance.SubmitterID); err != nil {
+			return err
+		}
+		// 目标用户须存在且启用
+		target, err := s.userRepo.GetByID(ctx, req.TargetUserID)
+		if err != nil || target == nil {
+			return errors.New("目标审批人不存在")
+		}
+		if target.Status != 1 {
+			return errors.New("目标审批人已禁用")
+		}
+		// 防重复:目标在该节点已有活跃任务(含已批)时不允许再转,避免同节点同人两条待办
+		nodeTasks, err := s.taskRepo.ListByInstanceNode(ctx, task.InstanceID, task.NodeID)
+		if err != nil {
+			return err
+		}
+		for _, t := range nodeTasks {
+			if t.ID != task.ID && t.ApproverID == req.TargetUserID {
+				return errors.New("该用户在此审批节点已有任务,不能重复转办")
+			}
+		}
+		// 原地改审批人;delegator_id 记上一手(转办=让渡,委托=受托代审责任仍在委托人)
+		fromID := task.ApproverID
+		task.ApproverID = req.TargetUserID
+		task.DelegatorID = &fromID
+		if err := s.taskRepo.Update(ctx, task); err != nil {
+			return err
+		}
+		// 审计记录(result=TRANSFER/DELEGATE)
+		fromName, toName := userDisplayName(ctx, s.userRepo, fromID), userDisplayName(ctx, s.userRepo, req.TargetUserID)
+		var label string
+		if mode == apprmodel.ActionDelegate {
+			label = fmt.Sprintf("「%s」委托「%s」代审,责任仍在「%s」", fromName, toName, fromName)
+		} else {
+			label = fmt.Sprintf("「%s」转办给「%s」", fromName, toName)
+		}
+		if req.Comment != "" {
+			label += ":" + req.Comment
+		}
+		if err := s.recordRepo.Create(ctx, &apprmodel.ApprovalRecord{
+			InstanceID: task.InstanceID,
+			TaskID:     &task.ID,
+			NodeID:     task.NodeID,
+			NodeRound:  task.NodeRound,
+			Result:     mode,
+			Comment:    label,
+		}); err != nil {
+			return err
+		}
+		// 通知新审批人(站内信+SSE+企微,复用任务分配事件)
+		xevent.Publish(ctx, "approval.task.assigned", map[string]any{
+			"approver_id":   req.TargetUserID,
+			"instance_id":   instance.ID,
+			"resource_type": instance.Type,
+			"resource_id":   instance.ResourceID,
+		})
+		return nil
+	})
+}
+
+// validateTransferTarget 校验转办/委托目标(纯函数,便于单测):不能转给自己或提交人。
+func validateTransferTarget(targetUserID, operatorID, submitterID uint) error {
+	if targetUserID == operatorID {
+		return errors.New("不能转办给自己")
+	}
+	if submitterID > 0 && targetUserID == submitterID {
+		return errors.New("不能转办/委托给提交人")
+	}
+	return nil
+}
+
+// userDisplayName 用户显示名(昵称优先,回退用户名,查无返回 #id)。包级函数,引擎与待办服务共用。
+func userDisplayName(ctx context.Context, userRepo *repository.UserRepo, userID uint) string {
+	if u, err := userRepo.GetByID(ctx, userID); err == nil && u != nil {
+		if u.Nickname != "" {
+			return u.Nickname
+		}
+		return u.Username
+	}
+	return fmt.Sprintf("#%d", userID)
 }
 
 // Revoke 撤回(提交人)。
@@ -239,6 +368,13 @@ func (s *ApprovalService) Revoke(ctx context.Context, instanceID, submitterID ui
 			s.taskRepo.SoftDeleteByInstanceNode(ctx, instanceID, *instance.CurrentNodeID)
 		}
 		s.updateResourceStatus(ctx, instance.Type, instance.ResourceID, apprmodel.StatusRevoked)
+		// P17:撤回 → 发布 approval.revoked(出站 webhook 转发)
+		xevent.Publish(ctx, "approval.revoked", map[string]any{
+			"instance_id":   instance.ID,
+			"resource_type": instance.Type,
+			"resource_id":   instance.ResourceID,
+			"submitter_id":  instance.SubmitterID,
+		})
 		return nil
 	})
 }
@@ -254,8 +390,12 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 
 	// 获取节点的审批人配置(判断 ALL/ANY/SEQUENTIAL)
 	mode := apprmodel.MultiModeAny // 默认或签
-	if apprCfg, err := s.approverRepo.GetByNodeID(ctx, task.NodeID); err == nil && apprCfg.MultiApproverMode != "" {
-		mode = apprCfg.MultiApproverMode
+	var apprCfg *apprmodel.ApprovalNodeApprover
+	if cfg, err := s.approverRepo.GetByNodeID(ctx, task.NodeID); err == nil && cfg != nil {
+		apprCfg = cfg
+		if cfg.MultiApproverMode != "" {
+			mode = cfg.MultiApproverMode
+		}
 	}
 
 	// 检查节点是否完成
@@ -296,6 +436,10 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 
 	// 节点完成:清当前节点待办
 	s.taskRepo.SoftDeleteByInstanceNode(ctx, task.InstanceID, task.NodeID)
+	// P17:节点级通过后操作(字段更新+自定义 webhook),失败不阻断流转
+	if apprCfg != nil {
+		ApplyPostConfig(ctx, apprCfg.PassPostConfig, instance, "pass")
+	}
 
 	// 找下一节点
 	nextNode, err := s.getNextNode(ctx, instance, task.NodeID)

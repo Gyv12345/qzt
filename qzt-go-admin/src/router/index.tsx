@@ -1,4 +1,4 @@
-import { lazy, useEffect, useMemo, useState, type ComponentType, type ReactElement } from 'react'
+import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import { Navigate, useRoutes, type RouteObject } from 'react-router-dom'
 import { Button, Result, Spin } from 'antd'
 import { useAuthStore } from '../stores/auth'
@@ -11,18 +11,7 @@ import Login from '../pages/login'
 import Profile from '../pages/profile'
 import WecomBind from '../pages/wecom-bind'
 import NotFound from '../pages/error/404'
-
-/** pages 目录下所有页面,按后端菜单的 component 字段(如 system/user/index)解析 */
-const pageModules = import.meta.glob('../pages/**/*.tsx')
-
-function lazyPage(component: string) {
-  const loader = pageModules[`../pages/${component}.tsx`]
-  if (!loader) return NotFound
-  return lazy(loader as () => Promise<{ default: ComponentType }>)
-}
-
-// Dashboard 单独 lazy:它间接引入 echarts,懒加载可将 echarts 移出首屏 bundle
-const Dashboard = lazy(() => import('../pages/dashboard'))
+import { Dashboard, extraRoutes, getPage } from './pages'
 
 /** 将后端菜单树(type=1 且有 component)拍平为路由 */
 function buildMenuRoutes(menus: SysMenu[]): RouteObject[] {
@@ -30,7 +19,7 @@ function buildMenuRoutes(menus: SysMenu[]): RouteObject[] {
   const walk = (list: SysMenu[]) => {
     for (const m of list) {
       if (m.type === 1 && m.component && m.status === 1) {
-        const Page = lazyPage(m.component)
+        const Page = getPage(m.component)
         routes.push({ path: m.path, element: <Page /> })
       }
       if (m.children?.length) walk(m.children)
@@ -40,14 +29,9 @@ function buildMenuRoutes(menus: SysMenu[]): RouteObject[] {
   return routes
 }
 
-/** 非菜单页面(不显示在侧栏,但需要路由,如编辑器/详情页) */
-const extraRoutes: { path: string; component: string }[] = [
-  { path: '/kb/document/editor', component: 'kb/document/editor' },
-]
-
 function buildExtraRoutes(): RouteObject[] {
   return extraRoutes.map((r) => {
-    const Page = lazyPage(r.component)
+    const Page = getPage(r.component)
     return { path: r.path, element: <Page /> }
   })
 }

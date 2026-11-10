@@ -13,6 +13,12 @@ import type {
   PsiStockMovement,
   PsiStockOrder,
   PsiStockOutPayload,
+  PsiStocktake,
+  PsiStocktakeActualPayload,
+  PsiStocktakeDetail,
+  PsiStockTransfer,
+  PsiStockTransferDetail,
+  PsiStockTransferPayload,
   PsiSupplier,
   PsiSupplierPayload,
   PsiWarehouse,
@@ -256,3 +262,44 @@ export const updateAsset = (id: number, data: Partial<Parameters<typeof createAs
 }) => request.put(`/psi/assets/${id}`, data)
 
 export const deleteAsset = (id: number) => request.delete(`/psi/assets/${id}`)
+
+// ---------- 库存盘点/调拨(P15) ----------
+
+export const listStocktakeOrders = (params?: PageParams & { warehouse_id?: number; status?: number }) =>
+  request.get<unknown, PsiPageResult<PsiStocktake>>('/psi/stocktake-orders', { params })
+
+export const getStocktakeOrder = (id: number) =>
+  request.get<unknown, PsiStocktakeDetail>(`/psi/stocktake-orders/${id}`)
+
+export const createStocktakeOrder = (data: { warehouse_id: number; remark?: string }) =>
+  request.post('/psi/stocktake-orders', data)
+
+export const updateStocktakeActual = (id: number, data: PsiStocktakeActualPayload) =>
+  request.put(`/psi/stocktake-orders/${id}`, data)
+
+export const confirmStocktakeOrder = (id: number) =>
+  request.post(`/psi/stocktake-orders/${id}/confirm`)
+
+export const cancelStocktakeOrder = (id: number) =>
+  request.put(`/psi/stocktake-orders/${id}/cancel`)
+
+export const deleteStocktakeOrder = (id: number) =>
+  request.delete(`/psi/stocktake-orders/${id}`)
+
+export const listStockTransferOrders = (params?: PageParams & { from_warehouse_id?: number; to_warehouse_id?: number; status?: number }) =>
+  request.get<unknown, PsiPageResult<PsiStockTransfer>>('/psi/stock-transfer-orders', { params })
+
+export const getStockTransferOrder = (id: number) =>
+  request.get<unknown, PsiStockTransferDetail>(`/psi/stock-transfer-orders/${id}`)
+
+export const createStockTransferOrder = (data: PsiStockTransferPayload) =>
+  request.post('/psi/stock-transfer-orders', data)
+
+export const executeStockTransferOrder = (id: number) =>
+  request.post(`/psi/stock-transfer-orders/${id}/execute`)
+
+export const cancelStockTransferOrder = (id: number) =>
+  request.put(`/psi/stock-transfer-orders/${id}/cancel`)
+
+export const deleteStockTransferOrder = (id: number) =>
+  request.delete(`/psi/stock-transfer-orders/${id}`)

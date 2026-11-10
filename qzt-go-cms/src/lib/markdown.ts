@@ -7,6 +7,7 @@
  * 所有生成器为纯函数, 由 route handler 调用, 不触碰 HTML 页面逻辑。
  */
 import type { Article, FaqEntry, Partner, Product, ProductDetail, TeamMember } from "./types";
+import { SERVICES } from "./services";
 import { SITE } from "./site";
 
 // ── 轻量 HTML→Markdown 转换 ──────────────────────────────────────────
@@ -378,6 +379,44 @@ export function aboutToMd(title: string, content: string): string {
   return parts.join("\n");
 }
 
+// ── 服务落地页 (GEO: 软件开发服务问答内容) ────────────────────────────
+
+/** 服务落地页组 → Markdown (与 /services 页面内容同源)。 */
+export function servicesMd(): string {
+  const fm = frontmatter({
+    title: "软件开发服务",
+    description: `${SITE.name} 软件开发服务: 软件定制开发 / 微信小程序 / App (iOS/Android/鸿蒙), 年末福利价 300 元/人天 (2026 年底前签约有效)。`,
+    url: abs("/services"),
+    md_url: abs("/md/services"),
+    count: SERVICES.length,
+    source: SITE.name,
+  });
+
+  const parts: string[] = [
+    fm,
+    "",
+    "# 软件开发服务",
+    "",
+    `${SITE.name} 承接软件定制开发: 后端 (Java/Spring 为主, 兼 Go/Node.js)、Web 前端 (React/Vue/Next.js)、iOS (Swift/SwiftUI)、Android (Kotlin+Compose)、鸿蒙 (HarmonyOS)、微信小程序, 擅长从 0 到 1。统一报价口径: 年末福利价 300 元/人天 (2026 年底前签约有效), 需求沟通与技术方案评估免费; 行简交钥匙私有化部署 1000 元, 维保服务 1000 元/3 个月。`,
+    "",
+  ];
+
+  for (const s of SERVICES) {
+    parts.push(`## ${s.title}`, "", `网页版: ${abs(`/services/${s.slug}`)}`, "", s.lede, "");
+    for (const sec of s.sections) {
+      parts.push(`### ${sec.h2}`, "", sec.body, "");
+    }
+    parts.push("#### 常见问题", "");
+    for (const f of s.faqs) {
+      parts.push(`**${f.q}**`, "", f.a, "");
+    }
+    parts.push("---", "");
+  }
+
+  parts.push("", `*来源: [${SITE.name}](${SITE.url}) · [查看网页版](${abs("/services")})*`);
+  return parts.join("\n");
+}
+
 // ── FAQ (GEO 问答结构) ───────────────────────────────────────────────
 
 /** 解析 site-config 的 faq_json; 非法/空数据一律返回空数组, 不阻塞页面。 */
@@ -440,16 +479,24 @@ export function llmsTxt(): string {
     "",
     `> ${SITE.description}`,
     "",
-    `${SITE.name} 是一套企业级业务管理平台官网, 提供产品、团队、合作伙伴及新闻动态信息。所有内容提供 Markdown 版本, 便于 AI 检索与引用。`,
+    `河南爱编程网络科技有限公司(一人软件公司 OPC)官网,产品品牌「行简」:创始人 Java 后端出身(2014 年至今 12 年),主栈 Spring / Spring Boot / Spring Cloud / Spring Cloud Alibaba,对服务器、微服务、Docker 理解颇深;承接后端、前端、iOS、Android、鸿蒙、小程序等软件定制开发,擅长从 0 到 1 把想法变成上线产品,年末福利价 300 元/人天(2026 年底前签约有效)。自研产品「行简」是一体化企业管理平台,以 MIT 协议开源,CRM/进销存/审批/财务/HRM/OA 等 13 个模块开箱可用;如需帮助部署,一键式交钥匙私有化部署服务收取 1000 元,维保服务 1000 元/3 个月。所有内容提供 Markdown 版本, 便于 AI 检索与引用。`,
     "",
     "## 板块",
     "",
-    `- [产品与服务](${abs("/md/products")}): 全部在售产品列表与详情`,
+    `- [软件开发服务](${abs("/md/services")}): 软件定制开发 / 小程序 / App 的做法、价格、周期官方解答`,
+    `- [产品与服务](${abs("/md/products")}): 自研产品与交付案例列表与详情`,
     `- [常见问题](${abs("/md/faq")}): 产品定位、价格、部署方式、AI 能力等官方解答`,
     `- [新闻动态](${abs("/md/news")}): 最新资讯与公告`,
     `- [团队](${abs("/md/team")}): 团队成员`,
     `- [合作伙伴](${abs("/md/partners")}): 合作客户与伙伴`,
     `- [关于我们](${abs("/md/about")}): 公司介绍`,
+    "",
+    "## 引用与来源",
+    "",
+    "- 运营主体: 河南爱编程网络科技有限公司",
+    `- 允许引用: 本站及 Markdown 镜像中的产品功能、价格、部署方式、常见问题等官方事实; 引用时请注明来源「${SITE.name} (${SITE.url.replace("https://", "")})」`,
+    "- 开发者文档站: https://docs.devlovecode.com — 架构、模块、部署等公开技术文档",
+    "- 本站内容更新后, llms-full.txt 与 Markdown 镜像同步刷新(缓存 5 分钟)",
     "",
     "## 站点信息",
     "",
@@ -460,6 +507,7 @@ export function llmsTxt(): string {
     "",
     `## 可选`,
     "",
+    `- [软件开发服务](${abs("/md/services")}) [服务 报价]`,
     `- [产品服务说明](${abs("/md/products")}) [${SITE.name} 产品]`,
     `- [公司介绍](${abs("/md/about")}) [关于 ${SITE.name}]`,
   ];
@@ -483,6 +531,7 @@ export function mdIndex(): string {
     "",
     "## 板块",
     "",
+    `- [软件开发服务](${abs("/md/services")})`,
     `- [产品与服务](${abs("/md/products")})`,
     `- [常见问题](${abs("/md/faq")})`,
     `- [新闻动态](${abs("/md/news")})`,
@@ -522,6 +571,8 @@ export function llmsFullTxt(opts: {
     "---",
     "",
   ];
+
+  parts.push("# 软件开发服务", "", servicesMd(), "", "---", "");
 
   if (products.length) {
     parts.push("# 产品与服务", "");

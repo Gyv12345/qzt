@@ -75,6 +75,16 @@ export async function Header() {
             )
           )}
         </nav>
+        {/* P21 站内搜索入口: 原生 GET 表单,无 JS 也能用 */}
+        <form action="/search" className="hidden md:block">
+          <input
+            type="search"
+            name="q"
+            placeholder="搜索站内内容"
+            aria-label="站内搜索"
+            className="w-36 rounded-full border border-line bg-raised px-3 py-1.5 text-sm text-strong placeholder:text-muted transition-all focus:w-48 focus:border-brand-400 focus:outline-none"
+          />
+        </form>
         <MobileNav items={mobileItems} />
       </div>
     </header>

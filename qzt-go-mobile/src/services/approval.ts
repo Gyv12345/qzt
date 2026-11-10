@@ -41,6 +41,14 @@ export const reject = (payload: ApprovalActionPayload) =>
 /** 撤回 */
 export const revoke = (id: number) => request.put(`/approval/instances/${id}/revoke`)
 
+/** 转办/委托(TRANSFER=任务让渡出队;DELEGATE=受托代审,责任仍在委托人) */
+export const transfer = (payload: {
+  task_id: number
+  target_user_id: number
+  mode?: 'TRANSFER' | 'DELEGATE'
+  comment?: string
+}) => request.post('/approval/actions/transfer', payload)
+
 /** 发起审批(form_type: CONTRACT/EXPENSE/LEAVE/TRIP/LOAN 等;resource_id 业务单据ID) */
 export const pushApproval = (formType: string, resourceId: number, comment?: string) =>
   request.post('/approval/actions/push', { form_type: formType, resource_id: resourceId, comment })

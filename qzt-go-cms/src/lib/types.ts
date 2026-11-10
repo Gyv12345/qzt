@@ -61,6 +61,8 @@ export interface Article {
   is_top?: number;
   is_hot?: number;
   created_at?: string;
+  updated_at?: string;
+  author_name?: string;
 }
 
 export interface Category {

@@ -162,7 +162,82 @@ const ICONS = {
       <path d="M20.5 4.5h-3" />
     </>
   ),
+  database: (
+    <>
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+    </>
+  ),
+  monitor: (
+    <>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+    </>
+  ),
+  smartphone: (
+    <>
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <path d="M12 18h.01" />
+    </>
+  ),
+  tablet: (
+    <>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <path d="M12 18h.01" />
+    </>
+  ),
+  layers: (
+    <>
+      <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+      <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+      <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+    </>
+  ),
+  messageCircle: <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />,
 };
+
+/** 服务范围: 六端承接(公司核心能力, 硬编码——这是公司定位, 不随后台配置变化) */
+const SERVICES: { icon: keyof typeof ICONS; name: string; desc: string }[] = [
+  { icon: "database", name: "后端开发", desc: "Java · Spring 全家桶 · 微服务 · Docker, 2014 年起 12 年后端功底" },
+  { icon: "monitor", name: "Web 前端", desc: "React · Vue · Next.js, 管理后台、官网与数据大屏" },
+  { icon: "smartphone", name: "iOS", desc: "Swift / SwiftUI 原生应用, App Store 上架全流程" },
+  { icon: "tablet", name: "Android", desc: "Kotlin + Compose 原生应用, 主流应用市场发布" },
+  { icon: "layers", name: "鸿蒙 HarmonyOS", desc: "ArkTS 原生应用, 适配纯血鸿蒙生态" },
+  { icon: "messageCircle", name: "微信小程序", desc: "原生 / uni-app / 云开发, 免服务器方案可选" },
+];
+
+/** 年末福利定价(硬编码, 与 FAQ/关于页口径一致: 2026 年底前签约有效) */
+const PRICING = [
+  {
+    name: "软件定制开发",
+    price: "300",
+    unit: "元/人天",
+    tag: "年末福利价",
+    highlight: true,
+    desc: "按人天计价, 小预算也能启动。MVP 几千元起, 从想法到上线。",
+    items: ["需求梳理与技术方案", "原型设计与开发", "测试、部署与上线", "源码完整交付"],
+  },
+  {
+    name: "行简交钥匙部署",
+    price: "1000",
+    unit: "元 · 一次性",
+    tag: "开源平台",
+    highlight: false,
+    desc: "开源一体化管理平台(MIT 协议), 软件授权费为零。",
+    items: ["CRM/进销存/财务/HRM/OA 等 13 模块", "服务器环境搭建与部署上线", "数据初始化与使用培训", "私有化部署, 数据归企业所有"],
+  },
+  {
+    name: "维保服务",
+    price: "1000",
+    unit: "元 / 3 个月",
+    tag: "持续保障",
+    highlight: false,
+    desc: "上线不是终点, 保障持续稳定使用。",
+    items: ["问题第一时间响应与修复", "小调整与配置优化", "运行状态巡检", "续保灵活按需"],
+  },
+];
 
 /** 模块墙图标查找: icon key 来自站点配置 modules_json, 未知 key 回退 users。 */
 function iconOf(key?: string): ReactNode {
@@ -280,14 +355,14 @@ export default async function HomePage() {
                 href="/products"
                 className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-700 px-7 py-3 text-sm font-semibold text-white no-underline shadow-glow-sm transition-all hover:-translate-y-0.5 hover:shadow-glow"
               >
-                查看产品
+                看看案例
               </Link>
             )}
             <Link
-              href="/about"
+              href="/contact"
               className="rounded-lg border border-line bg-raised px-7 py-3 text-sm font-semibold text-normal no-underline backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/40 hover:text-strong"
             >
-              了解我们
+              聊聊你的想法
             </Link>
           </div>
 
@@ -307,6 +382,37 @@ export default async function HomePage() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* 服务范围: 六端承接(公司核心能力) */}
+      <section className="container py-20 sm:py-24">
+        <SectionHead
+          badge="我们能做什么"
+          title="全端承接的软件定制开发"
+          desc="一个团队, 覆盖软件落地的全部环节: 需求、原型、开发、部署、上线"
+        />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          {SERVICES.map((s) => (
+            <div
+              key={s.name}
+              className="group rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"
+            >
+              <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-raised text-brandtext transition-colors group-hover:border-brand-400/30 group-hover:bg-brand-500/15">
+                <Icon>{ICONS[s.icon]}</Icon>
+              </span>
+              <h3 className="mt-4 font-display text-sm font-semibold text-strong sm:text-base">{s.name}</h3>
+              <p className="mt-1 text-xs leading-5 text-faint sm:text-[13px] sm:leading-6">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <Link
+            href="/services"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-5 py-2.5 text-sm font-medium text-normal no-underline transition-colors hover:border-brand-400/40 hover:text-brandtext"
+          >
+            查看各服务的做法、价格与周期 →
+          </Link>
         </div>
       </section>
 
@@ -331,11 +437,68 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* 年末福利定价: 透明报价, 口径与 FAQ/关于页一致 */}
+      <section className="border-y border-line bg-alt py-20 sm:py-24">
+        <div className="container">
+          <SectionHead
+            badge="年末福利"
+            title="300 元/人天, 把想法做出来"
+            desc="2026 年底前签约有效 · 需求沟通与技术方案评估免费"
+          />
+          <div className="grid gap-5 md:grid-cols-3">
+            {PRICING.map((p) => (
+              <div
+                key={p.name}
+                className={`flex flex-col rounded-2xl border p-6 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 ${
+                  p.highlight
+                    ? "border-brand-400/40 bg-surface shadow-glow-sm hover:shadow-glow"
+                    : "border-line bg-surface hover:border-brand-400/20 hover:shadow-card-hover"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display text-base font-semibold text-strong">{p.name}</h3>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      p.highlight ? "bg-brand-500/15 text-brandtext" : "bg-raised text-faint"
+                    }`}
+                  >
+                    {p.tag}
+                  </span>
+                </div>
+                <p className="mt-4 font-display text-3xl font-extrabold tracking-tight">
+                  <span className="text-gradient">¥{p.price}</span>
+                  <span className="ml-1.5 text-sm font-normal text-faint">{p.unit}</span>
+                </p>
+                <p className="mt-2 text-xs leading-5 text-muted sm:text-[13px]">{p.desc}</p>
+                <ul className="mt-4 flex flex-1 flex-col gap-2 text-xs text-muted sm:text-[13px]">
+                  {p.items.map((it) => (
+                    <li key={it} className="flex items-start gap-2">
+                      <span className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" aria-hidden="true" />
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/contact"
+                  className={`mt-6 rounded-lg px-5 py-2.5 text-center text-sm font-semibold no-underline transition-all hover:-translate-y-0.5 ${
+                    p.highlight
+                      ? "bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-glow-sm hover:shadow-glow"
+                      : "border border-line bg-raised text-normal hover:border-brand-400/40 hover:text-strong"
+                  }`}
+                >
+                  获取报价
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 产品精选 */}
       {showProducts && (
         <section className="border-y border-line bg-alt py-20 sm:py-24">
           <div className="container">
-            <SectionHead badge="产品与服务" title="即时的产品信息" desc="来源于业务系统实时同步" moreHref="/products" />
+            <SectionHead badge="产品与案例" title="自研产品与交付案例" desc="行简开源平台 · 精选交付案例, 数据实时同步" moreHref="/products" />
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
               {products.length > 0 ? (
                 products.map((p) => <ProductCard key={p.id} product={p} />)

@@ -54,6 +54,8 @@ import { getDashboardOverview } from '../../services/dashboard'
 import { listTodos } from '../../services/approval'
 import GradientText from '../../components/reactbits/GradientText'
 import ShinyText from '../../components/reactbits/ShinyText'
+import CountUp from '../../components/reactbits/CountUp'
+import FadeContent from '../../components/reactbits/FadeContent'
 // React Bits: Aurora(ogl) 用 lazy 拆独立 chunk, 不进主 bundle
 const Aurora = lazy(() => import('../../components/reactbits/Aurora'))
 import type { DashboardOverview } from '../../types/dashboard'
@@ -68,6 +70,18 @@ interface GridEntry {
   iconBg: string
   path: string
   badge?: number
+}
+
+/** React Bits FadeContent 包裹的分组宫格区(滚动到视口才显现); 模块级定义避免每次渲染重挂载 */
+function FadeSection({ title, children }: { title: ReactNode; children: ReactNode }) {
+  return (
+    <FadeContent duration={500}>
+      <div className="home-section">
+        <div className="home-section-title">{title}</div>
+        {children}
+      </div>
+    </FadeContent>
+  )
 }
 
 export default function Home() {
@@ -108,11 +122,12 @@ export default function Home() {
   const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 星期${WEEKDAYS[now.getDay()]}`
 
   const ov = overview
-  const stats = ov
+  // num 有值时走 React Bits CountUp 数字滚动; 否则(如回款的 compact 格式)静态渲染
+  const stats: { label: string; value: string; num?: number }[] = ov
     ? [
-        { label: '客户', value: String(ov.customer_total) },
-        { label: '商机', value: String(ov.opportunity_total) },
-        { label: '合同', value: String(ov.contract_total) },
+        { label: '客户', value: String(ov.customer_total), num: ov.customer_total },
+        { label: '商机', value: String(ov.opportunity_total), num: ov.opportunity_total },
+        { label: '合同', value: String(ov.contract_total), num: ov.contract_total },
         {
           label: '回款',
           value: Number(ov.received_amount || '0').toLocaleString('zh-CN', { notation: 'compact' }),
@@ -209,7 +224,6 @@ export default function Home() {
   const hrmEntries: GridEntry[] = [
     { key: 'employee', label: '员工', icon: <UserOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/employee' },
     { key: 'leave', label: '请假', icon: <RestOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
-    { key: 'leave', label: '请假', icon: <RestOutlined />, iconBg: 'var(--icon-bg-approval)', path: '/hrm/leave' },
     { key: 'clock', label: '打卡', icon: <ClockCircleOutlined />, iconBg: 'var(--icon-bg-success, var(--brand))', path: '/clock' },
     { key: 'department', label: '部门', icon: <ApartmentOutlined />, iconBg: 'var(--icon-bg-crm)', path: '/hrm/department' },
     { key: 'position', label: '岗位', icon: <IdcardOutlined />, iconBg: 'var(--icon-bg-opp)', path: '/hrm/position' },
@@ -279,82 +293,54 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 核心指标 */}
+      {/* 核心指标(React Bits: 数字走 CountUp 滚动, 非 number 回退静态文本) */}
       {stats.length > 0 && (
-        <div className="home-stats">
-          {stats.map((s) => (
-            <div className="home-stat" key={s.label}>
-              <div className="home-stat-value">{s.value}</div>
-              <div className="home-stat-label">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <FadeContent duration={500}>
+          <div className="home-stats">
+            {stats.map((s) => (
+              <div className="home-stat" key={s.label}>
+                <div className="home-stat-value">
+                  {typeof s.num === 'number' ? <CountUp to={s.num} duration={1.5} /> : s.value}
+                </div>
+                <div className="home-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </FadeContent>
       )}
 
-      {/* 数据看板(移动端独有) */}
-      <div className="home-section">
-        <div className="home-section-title">数据看板</div>
-        <div className="home-grid">{renderGrid(dashboardEntries)}</div>
-      </div>
+      {/* 数据看板(移动端独有); FadeContent 滚动显现 */}
+      <FadeSection title="数据看板">{renderGrid(dashboardEntries)}</FadeSection>
 
       {/* 客户管理 */}
-      <div className="home-section">
-        <div className="home-section-title">客户管理</div>
-        <div className="home-grid">{renderGrid(crmEntries)}</div>
-      </div>
+      <FadeSection title="客户管理">{renderGrid(crmEntries)}</FadeSection>
 
       {/* 办公中心 */}
-      <div className="home-section">
-        <div className="home-section-title">办公中心</div>
-        <div className="home-grid">{renderGrid(oaEntries)}</div>
-      </div>
+      <FadeSection title="办公中心">{renderGrid(oaEntries)}</FadeSection>
 
       {/* 知识库 */}
-      <div className="home-section">
-        <div className="home-section-title">知识库</div>
-        <div className="home-grid">{renderGrid(kbEntries)}</div>
-      </div>
+      <FadeSection title="知识库">{renderGrid(kbEntries)}</FadeSection>
 
       {/* 审批中心 */}
-      <div className="home-section">
-        <div className="home-section-title">审批中心</div>
-        <div className="home-grid">{renderGrid(approvalEntries)}</div>
-      </div>
+      <FadeSection title="审批中心">{renderGrid(approvalEntries)}</FadeSection>
 
       {/* 进销存 */}
-      <div className="home-section">
-        <div className="home-section-title">进销存</div>
-        <div className="home-grid">{renderGrid(psiEntries)}</div>
-      </div>
+      <FadeSection title="进销存">{renderGrid(psiEntries)}</FadeSection>
 
       {/* 人事管理 */}
-      <div className="home-section">
-        <div className="home-section-title">人事管理</div>
-        <div className="home-grid">{renderGrid(hrmEntries)}</div>
-      </div>
+      <FadeSection title="人事管理">{renderGrid(hrmEntries)}</FadeSection>
 
       {/* 财务管理 */}
-      <div className="home-section">
-        <div className="home-section-title">财务管理</div>
-        <div className="home-grid">{renderGrid(financeEntries)}</div>
-      </div>
+      <FadeSection title="财务管理">{renderGrid(financeEntries)}</FadeSection>
 
       {/* 项目管理 */}
-      <div className="home-section">
-        <div className="home-section-title">项目管理</div>
-        <div className="home-grid">{renderGrid(projectEntries)}</div>
-      </div>
+      <FadeSection title="项目管理">{renderGrid(projectEntries)}</FadeSection>
 
       {/* 网盘 */}
-      <div className="home-section">
-        <div className="home-section-title">网盘</div>
-        <div className="home-grid">{renderGrid(cloudEntries)}</div>
-      </div>
+      <FadeSection title="网盘">{renderGrid(cloudEntries)}</FadeSection>
 
-      <div className="home-section">
-        <div className="home-section-title">商城</div>
-        <div className="home-grid">{renderGrid(mallEntries)}</div>
-      </div>
+      {/* 商城 */}
+      <FadeSection title="商城">{renderGrid(mallEntries)}</FadeSection>
 
       {/* 审批待办预览 */}
       <div className="home-section">

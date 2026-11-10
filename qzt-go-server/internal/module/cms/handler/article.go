@@ -84,6 +84,26 @@ func (h *ArticleHandler) ListPublished(c *gin.Context) {
 	response.OK(c, gin.H{"list": list, "total": total})
 }
 
+// SearchPublished 文章全文搜索(公开,无需登录)
+// @Summary      文章搜索(公开)
+// @Description  ngram 全文检索标题/摘要/正文,仅公开可见文章(P19 守卫)
+// @Tags         CMS公开
+// @Produce      json
+// @Param        q          query  string  true   "搜索词"
+// @Param        page       query  int     false  "页码(默认1)"
+// @Param        page_size  query  int     false  "每页条数(默认10,最大100)"
+// @Success      200  {object}  xresponse.Response
+// @Router       /cms/public/search [get]
+func (h *ArticleHandler) SearchPublished(c *gin.Context) {
+	p := pagination.GetPagination(c)
+	list, total, err := h.svc.SearchPublished(c.Request.Context(), c.Query("q"), p.Page, p.PageSize)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, gin.H{"list": list, "total": total})
+}
+
 // GetByID 文章详情
 // @Summary      文章详情
 // @Tags         文章管理
@@ -120,7 +140,7 @@ func (h *ArticleHandler) PublicGetByID(c *gin.Context) {
 		response.Fail(c, errcode.ErrParam, "参数错误")
 		return
 	}
-	article, err := h.svc.GetByID(c.Request.Context(), uint(id))
+	article, err := h.svc.GetPublicByID(c.Request.Context(), uint(id))
 	if err != nil {
 		response.Fail(c, errcode.ErrArticleNotFound, err.Error())
 		return

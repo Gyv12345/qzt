@@ -13,10 +13,11 @@ import (
 	apprmod "qzt-go-server/internal/module/approval"
 	"qzt-go-server/internal/module/cms"
 	crmmod "qzt-go-server/internal/module/crm"
-	finmod "qzt-go-server/internal/module/finance"
 	entmod "qzt-go-server/internal/module/enterprise"
+	finmod "qzt-go-server/internal/module/finance"
 	hrmmod "qzt-go-server/internal/module/hrm"
 	oamod "qzt-go-server/internal/module/oa"
+	openmod "qzt-go-server/internal/module/open"
 	projmod "qzt-go-server/internal/module/project"
 	psimod "qzt-go-server/internal/module/psi"
 	"qzt-go-server/internal/module/system"
@@ -49,6 +50,7 @@ func NewTestServer(t *testing.T) (baseURL string) {
 			finmod.New(),
 			oamod.New(),
 			projmod.New(),
+			openmod.New(),
 		)
 		testServer = httptest.NewServer(engine)
 	})

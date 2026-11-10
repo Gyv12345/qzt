@@ -19,13 +19,18 @@ type PayrollService struct {
 	structureRepo *hrmrepo.SalaryStructureRepo
 	payrollRepo   *hrmrepo.PayrollRepo
 	attSvc        *AttendanceService
+	// P16 公式引擎模式(启用工资项时按项求值;未启用走原口径)
+	salaryItemRepo    *hrmrepo.SalaryItemRepo
+	insurancePlanRepo *hrmrepo.InsurancePlanRepo
 }
 
 func NewPayrollService() *PayrollService {
 	return &PayrollService{
-		structureRepo: hrmrepo.NewSalaryStructureRepo(),
-		payrollRepo:   hrmrepo.NewPayrollRepo(),
-		attSvc:        NewAttendanceService(),
+		structureRepo:     hrmrepo.NewSalaryStructureRepo(),
+		payrollRepo:       hrmrepo.NewPayrollRepo(),
+		attSvc:            NewAttendanceService(),
+		salaryItemRepo:    hrmrepo.NewSalaryItemRepo(),
+		insurancePlanRepo: hrmrepo.NewInsurancePlanRepo(),
 	}
 }
 
@@ -111,6 +116,13 @@ func (s *PayrollService) GeneratePayroll(ctx context.Context, req *GeneratePayro
 		return nil, errors.New("员工薪酬结构不存在,请先配置")
 	}
 
+	// 1.5 P16 公式引擎模式:系统启用了工资项(hrm_salary_item 有启用行)→按项求值;
+	// 未启用则完全走下方原口径(数值与旧版一字不变,QA 契约保住)。
+	items, itemErr := s.salaryItemRepo.ListEnabled(ctx)
+	if itemErr == nil && len(items) > 0 {
+		return s.generatePayrollByItems(ctx, req, structure, items)
+	}
+
 	// 2. 算应发
 	otherAllow := structure.MealAllow.Add(structure.TransportAllow)
 	grossPay := structure.BaseSalary.
@@ -143,19 +155,19 @@ func (s *PayrollService) GeneratePayroll(ctx context.Context, req *GeneratePayro
 	netPay := grossPay.Sub(socialInsDed).Sub(housingFundDed).Sub(tax)
 
 	payroll := &hrmmodel.HrmPayroll{
-		EmployeeID:         req.EmployeeID,
-		YearMonth:          req.YearMonth,
-		BaseSalary:         structure.BaseSalary,
-		PositionAllow:      structure.PositionAllow,
-		PerformanceAllow:   structure.PerformanceAllow,
-		OtherAllow:         otherAllow,
-		GrossPay:           grossPay,
-		SocialInsDeduction: socialInsDed,
+		EmployeeID:           req.EmployeeID,
+		YearMonth:            req.YearMonth,
+		BaseSalary:           structure.BaseSalary,
+		PositionAllow:        structure.PositionAllow,
+		PerformanceAllow:     structure.PerformanceAllow,
+		OtherAllow:           otherAllow,
+		GrossPay:             grossPay,
+		SocialInsDeduction:   socialInsDed,
 		HousingFundDeduction: housingFundDed,
-		TaxableIncome:      taxableIncome,
-		Tax:                tax,
-		NetPay:             netPay,
-		Status:             hrmmodel.PayrollStatusDraft,
+		TaxableIncome:        taxableIncome,
+		Tax:                  tax,
+		NetPay:               netPay,
+		Status:               hrmmodel.PayrollStatusDraft,
 	}
 
 	// upsert:同员工同月份已存在则更新
@@ -208,13 +220,14 @@ func (s *PayrollService) MarkPaid(ctx context.Context, id uint) error {
 // taxableIncome 为已扣除5000起征点后的应纳税所得额(月度)。
 //
 // 税率表:
-//   ≤3000:           3%   速算扣除 0
-//   ≤12000:          10%  速算扣除 210
-//   ≤25000:          20%  速算扣除 1410
-//   ≤35000:          25%  速算扣除 2660
-//   ≤55000:          30%  速算扣除 4410
-//   ≤80000:          35%  速算扣除 7160
-//   >80000:          45%  速算扣除 15160
+//
+//	≤3000:           3%   速算扣除 0
+//	≤12000:          10%  速算扣除 210
+//	≤25000:          20%  速算扣除 1410
+//	≤35000:          25%  速算扣除 2660
+//	≤55000:          30%  速算扣除 4410
+//	≤80000:          35%  速算扣除 7160
+//	>80000:          45%  速算扣除 15160
 func calculateTax(taxableIncome decimal.Decimal) decimal.Decimal {
 	if taxableIncome.LessThanOrEqual(decimal.Zero) {
 		return decimal.Zero

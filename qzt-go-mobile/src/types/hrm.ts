@@ -228,6 +228,16 @@ export interface HrmSalaryStructure {
   created_at: string
 }
 
+/** 我的排班行(P14 移动端) */
+export interface MyScheduleRow {
+  date: string
+  shift_name: string
+  start_time: string
+  end_time: string
+  is_holiday: boolean
+  holiday_name: string
+}
+
 export const PERF_STATUS: Record<number, { text: string; color: string }> = {
   1: { text: '草稿', color: 'default' },
   2: { text: '进行中', color: 'warning' },

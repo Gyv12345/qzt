@@ -79,3 +79,14 @@ func UpdateResourceApprovalStatus(ctx context.Context, table string, resourceID 
 	return repoDB(ctx).Table(table).Where("id = ?", resourceID).
 		Update("approval_status", status).Error
 }
+
+// UpdateResourceFields 按白名单列更新业务资源字段(PassPostConfig.field_updates 用)。
+// table 来自 FormTable 常量;columns 必须已通过 FormUpdatableFields 校验,
+// 值走参数化写入。返回实际更新的列数。
+func UpdateResourceFields(ctx context.Context, table string, resourceID uint, updates map[string]any) (int64, error) {
+	if len(updates) == 0 {
+		return 0, nil
+	}
+	res := repoDB(ctx).Table(table).Where("id = ?", resourceID).Updates(updates)
+	return res.RowsAffected, res.Error
+}

@@ -37,6 +37,93 @@ type Config struct {
 	JWT         JwtConfig         `mapstructure:"jwt"`
 	Storage     StorageConfig     `mapstructure:"storage"`
 	Cors        CorsConfig        `mapstructure:"cors"`
+	LLM         LLMConfig         `mapstructure:"llm"`
+	VideoGen    VideoGenConfig    `mapstructure:"videogen"`
+	Geo         GeoConfig         `mapstructure:"geo"`
+	SEO         SEOConfig         `mapstructure:"seo"`
+}
+
+// SEOConfig 搜索引擎主动推送(internal/pkg/searchpush + cms 模块)配置。
+// baidu_token / indexnow_key 只走 gitignored .env 注入
+// (GEO_BAIDU_TOKEN / SEO_INDEXNOW_KEY),留空即对应通道禁用。
+type SEOConfig struct {
+	// Site 站点根地址,如 https://devlovecode.com。既是推送 URL 的拼接前缀,
+	// 也是域名白名单——白名单外的 URL 一律不推。
+	Site string `mapstructure:"site"`
+	// BaiduToken 百度搜索资源平台 API 推送 token(.env GEO_BAIDU_TOKEN)。
+	BaiduToken string `mapstructure:"baidu_token"`
+	// IndexNowKey IndexNow 密钥,须与站点 https://<site>/<key>.txt 内容一致(.env SEO_INDEXNOW_KEY)。
+	IndexNowKey string `mapstructure:"indexnow_key"`
+	// DailyQuota 每日兜底任务推给百度的最大条数(与百度每日配额对齐,默认 10)。
+	DailyQuota int `mapstructure:"daily_quota"`
+}
+
+// GeoConfig GEO 信源产线开关（internal/module/geo）。
+type GeoConfig struct {
+	// AutoPush 定时产稿后自动推送公众号草稿箱（草稿不公开可删；群发仍在 mp 后台人工确认）。
+	AutoPush bool `mapstructure:"auto_push"`
+	// TopicAutoApprove AI 生成的选题是否免审批直接进入产稿队列（默认 false=人工审批）。
+	TopicAutoApprove bool `mapstructure:"topic_auto_approve"`
+}
+
+// VideoGenConfig AI 文生视频网关（internal/pkg/videogen）配置。
+// api_key 只走 gitignored .env 注入（VIDEOGEN_API_KEY），留空表示未配置——
+// GEO 信源产线的视频步自动跳过，不阻塞图文。
+type VideoGenConfig struct {
+	// Provider 供应商：ark=火山方舟即梦 Seedance（默认，也是当前唯一实现）。
+	Provider string `mapstructure:"provider"`
+	// BaseURL API 根地址（ark 默认 https://ark.cn-beijing.volces.com/api/v3）。
+	BaseURL string `mapstructure:"base_url"`
+	// APIKey 供应商密钥，只进 .env。
+	APIKey string `mapstructure:"api_key"`
+	// Model 模型名，如 doubao-seedance-1-0-lite-t2v-250428。
+	Model string `mapstructure:"model"`
+	// Resolution 分辨率 480p/720p/1080p（默认 720p；1080p 体积大注意上传上限）。
+	Resolution string `mapstructure:"resolution"`
+	// DurationSeconds 单条时长秒数（Seedance 支持 5/10，默认 5）。
+	DurationSeconds int `mapstructure:"duration_seconds"`
+	// Ratio 画幅（16:9/9:16/1:1，默认 16:9；抖音竖屏用 9:16）。
+	Ratio string `mapstructure:"ratio"`
+}
+
+// LLMConfig 统一 LLM 网关（internal/pkg/llm）配置，OpenAI chat completions 兼容协议。
+// api_key 只走 gitignored .env 注入（LLM_API_KEY），留空表示未配置——
+// llm.Chat 会返回明确错误，各 AI 功能可用 llm.Enabled() 预判走降级路径。
+type LLMConfig struct {
+	// BaseURL OpenAI 兼容 API 根地址，如 https://api.deepseek.com（DeepSeek）或
+	// https://dashscope.aliyuncs.com/compatible-mode/v1（通义兼容模式）。
+	BaseURL string `mapstructure:"base_url"`
+	// APIKey 供应商密钥，只进 .env。
+	APIKey string `mapstructure:"api_key"`
+	// Model 默认模型，如 deepseek-chat / qwen-plus。
+	Model string `mapstructure:"model"`
+	// Timeout 单次 HTTP 调用超时。
+	Timeout time.Duration `mapstructure:"timeout"`
+	// MaxRetries 429/5xx/网络错误的最大重试次数。
+	MaxRetries int `mapstructure:"max_retries"`
+	// RPM 进程级每分钟最大请求数（令牌桶），0 不限流。
+	RPM int `mapstructure:"rpm"`
+	// CacheTTL 相同请求的响应缓存 TTL，0 关闭。
+	CacheTTL time.Duration `mapstructure:"cache_ttl"`
+	// Embedding 向量嵌入配置节（P17 知识库 RAG）。embedding 供应商常与 chat 不同家，
+	// 独立 base_url/api_key/model；APIKey 留空表示未配置，RAG 功能走降级路径。
+	Embedding EmbeddingConfig `mapstructure:"embedding"`
+}
+
+// EmbeddingConfig 向量嵌入（OpenAI 兼容 /embeddings）配置。
+// 与 chat 配置解耦：换 embedding 供应商只改本节，不影响 Chat。
+type EmbeddingConfig struct {
+	// BaseURL OpenAI 兼容根地址（固定拼 /embeddings），如
+	// https://dashscope.aliyuncs.com/compatible-mode/v1（通义兼容模式）。
+	BaseURL string `mapstructure:"base_url"`
+	// APIKey 供应商密钥，只进 .env（KB_EMBEDDING_API_KEY）。
+	APIKey string `mapstructure:"api_key"`
+	// Model 嵌入模型名，如 text-embedding-v3（通义）/ BAAI/bge-m3（硅基流动）。
+	Model string `mapstructure:"model"`
+	// Timeout 单次 HTTP 调用超时。
+	Timeout time.Duration `mapstructure:"timeout"`
+	// MaxRetries 429/5xx/网络错误的最大重试次数。
+	MaxRetries int `mapstructure:"max_retries"`
 }
 
 // CorsConfig 跨域配置。AllowOrigins 为空时保持反射任意 Origin(兼容既有

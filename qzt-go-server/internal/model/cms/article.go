@@ -1,6 +1,10 @@
 package cms
 
-import "qzt-go-server/internal/model/base"
+import (
+	"time"
+
+	"qzt-go-server/internal/model/base"
+)
 
 // article.go CMS 文章。归属一个分类(CategoryID),关联多个标签(many2many)。
 
@@ -31,6 +35,10 @@ type CmsArticle struct {
 	AuthorName string `json:"author_name" gorm:"size:64;comment:作者昵称(快照)"`
 	// 0草稿 1已发布
 	Status     int8   `json:"status" gorm:"default:0;index;comment:0草稿 1已发布"`
+	// 定时发布时间(NULL=立即)
+	PublishAt *time.Time `json:"publish_at" gorm:"comment:定时发布时间(NULL=立即)"`
+	// 内容有效期至(NULL=永久)
+	ExpireAt  *time.Time `json:"expire_at" gorm:"comment:内容有效期至(NULL=永久)"`
 	// 0否 1置顶
 	IsTop      int8   `json:"is_top" gorm:"default:0;comment:0否 1置顶"`
 	// 0否 1热门

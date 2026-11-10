@@ -147,10 +147,10 @@ JSON 序列化 + 响应       ~2-5 ms
 ### 单接口压测示例（wrk）
 
 ```bash
-# 先登录拿 token
+# 先登录拿 token（用你的实际管理员账号密码，不要使用默认口令对外公开文档示例）
 TOKEN=$(curl -s http://localhost:9000/system/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin123"}' | jq -r '.data.access_token')
+  -d '{"username":"admin","password":"<你的管理员密码>"}' | jq -r '.data.access_token')
 
 # 压客户列表（典型读接口）
 wrk -t2 -c50 -d60s -H "Authorization: Bearer $TOKEN" \

@@ -122,12 +122,13 @@ func (r *HomepageItemRepo) GetTeamUserName(ctx context.Context, id uint) (string
 	return u.Username, err
 }
 
-// ListProductsByIDs 按指定 ID 取上架产品。
+// ListProductsByIDs 按指定 ID 取精选产品。精选即公开展示的唯一门槛,
+// 不再要求上架(上架/下架仅是产品管理标记);过滤已删除。
 func (r *HomepageItemRepo) ListProductsByIDs(ctx context.Context, ids []uint) ([]HomepageProductRow, error) {
 	var rows []HomepageProductRow
 	err := dbFrom(ctx).Table("crm_product").
 		Select("id, name, image_url, description, category").
-		Where("id IN ? AND status = 1", ids).
+		Where("id IN ? AND deleted_at IS NULL", ids).
 		Scan(&rows).Error
 	return rows, err
 }

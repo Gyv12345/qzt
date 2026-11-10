@@ -24,6 +24,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	stockIOHandler := handler.NewStockIOHandler()
 	reportHandler := handler.NewReportHandler()
 	assetHandler := handler.NewAssetHandler()
+	stocktakeHandler := handler.NewStocktakeHandler()
+	transferHandler := handler.NewTransferHandler()
 
 	// 已认证路由(仅 JWT,无 RBAC):库存结余、收发明细、报表等查询类。
 	// 静态路径须先于 :id 注册,避免与参数路由冲突。
@@ -95,6 +97,23 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/stock-out-orders", stockIOHandler.ListOut)
 		auth.POST("/stock-out-orders", stockIOHandler.CreateOut)
 		auth.GET("/stock-out-orders/:id", stockIOHandler.GetOutByID)
+
+		// 库存盘点(创建冻结快照→录实盘→确认派生盘盈亏)
+		auth.GET("/stocktake-orders", stocktakeHandler.List)
+		auth.POST("/stocktake-orders", stocktakeHandler.Create)
+		auth.GET("/stocktake-orders/:id", stocktakeHandler.GetByID)
+		auth.PUT("/stocktake-orders/:id", stocktakeHandler.UpdateActual)
+		auth.POST("/stocktake-orders/:id/confirm", stocktakeHandler.Confirm)
+		auth.PUT("/stocktake-orders/:id/cancel", stocktakeHandler.Cancel)
+		auth.DELETE("/stocktake-orders/:id", stocktakeHandler.Delete)
+
+		// 库存调拨(创建在途→执行出+入同事务)
+		auth.GET("/stock-transfer-orders", transferHandler.ListTransfer)
+		auth.POST("/stock-transfer-orders", transferHandler.CreateTransfer)
+		auth.GET("/stock-transfer-orders/:id", transferHandler.GetTransferByID)
+		auth.POST("/stock-transfer-orders/:id/execute", transferHandler.ExecuteTransfer)
+		auth.PUT("/stock-transfer-orders/:id/cancel", transferHandler.CancelTransfer)
+		auth.DELETE("/stock-transfer-orders/:id", transferHandler.DeleteTransfer)
 
 		// 固定资产
 		auth.GET("/assets", assetHandler.List)

@@ -10,6 +10,9 @@ const config = {
   url: 'https://docs.devlovecode.com',
   baseUrl: '/',
 
+  // sitemap 与页面 URL 统一带尾部斜杠, 避免无斜杠 URL 多一跳 301（2026-10-28 第十五轮合法验证 P3）
+  trailingSlash: true,
+
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
@@ -73,7 +76,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} 行简 · 河南爱编程网络科技有限公司`,
+        copyright: `Copyright © ${new Date().getFullYear()} 行简 · 河南爱编程网络科技有限公司 · <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">豫ICP备2024074107号-2</a>`,
       },
       prism: {
         theme: prismThemes.github,

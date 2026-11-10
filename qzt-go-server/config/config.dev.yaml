@@ -43,7 +43,7 @@ redis:
 
 jwt:
   issuer: qzt-server                                       # 签发者
-  jwt_secret: ${JWT_SECRET:-CHANGE_ME_TO_A_LONG_RANDOM_SECRET}  # 密钥（生产环境务必修改并改用环境变量注入）
+  jwt_secret: ${JWT_SECRET:-Tphd67F7Mi%Aapi5iXsXX5ZRJxZF*6wK}  # 密钥（生产环境务必修改并改用环境变量注入）
   access_expiration_time: 2h                               # access token 有效期
   refresh_expiration_time: 168h                            # refresh token 有效期（7 天）
 
@@ -66,3 +66,47 @@ storage:
 # 跨域白名单(可选):留空保持反射(本地 dev 前后端分离直连 5173/5174/3000 需要)
 cors:
   allow_origins: []
+
+# 统一 LLM 网关(internal/pkg/llm):OpenAI 兼容协议,所有 AI 功能唯一调用入口。
+# api_key 只走 .env 注入(LLM_API_KEY);留空=未配置,llm.Chat 返回 ErrNotConfigured。
+# base_url 常用值:DeepSeek https://api.deepseek.com ;通义兼容模式 https://dashscope.aliyuncs.com/compatible-mode/v1
+llm:
+  base_url: ${LLM_BASE_URL:-https://api.deepseek.com}
+  api_key: ${LLM_API_KEY:-}
+  model: ${LLM_MODEL:-deepseek-chat}
+  timeout: 60s
+  max_retries: 2
+  rpm: 120                  # 进程级每分钟最大请求数(令牌桶),0 不限流
+  cache_ttl: 0s             # 相同请求响应缓存 TTL,0 关闭
+  # P17 知识库 RAG：向量嵌入独立供应商(embedding 常与 chat 不同家),key 走 .env;api_key 留空=未配置,RAG 走降级路径
+  embedding:
+    base_url: ${KB_EMBEDDING_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+    api_key: ${KB_EMBEDDING_API_KEY:-}
+    model: ${KB_EMBEDDING_MODEL:-text-embedding-v3}
+    timeout: 30s
+    max_retries: 2
+
+# AI 文生视频网关(internal/pkg/videogen):GEO 信源产线视频生产端,当前实现火山方舟即梦 Seedance。
+# api_key 只走 .env 注入(VIDEOGEN_API_KEY);留空=未配置,产线视频步自动跳过。
+# 开通入口:火山引擎方舟控制台开通 doubao-seedance 模型;计费按条(720p/5s 约 0.5 元)。
+videogen:
+  provider: ark
+  base_url: ${VIDEOGEN_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+  api_key: ${VIDEOGEN_API_KEY:-}
+  model: ${VIDEOGEN_MODEL:-doubao-seedance-1-0-lite-t2v-250428}
+  resolution: 720p          # 480p/720p/1080p
+  duration_seconds: 5       # Seedance 支持 5/10
+  ratio: 16:9               # 抖音竖屏改 9:16
+
+# GEO 信源产线开关(internal/module/geo)。
+geo:
+  auto_push: true             # 定时产稿后自动推送公众号草稿箱(群发仍在 mp 后台人工确认)
+  topic_auto_approve: false   # AI 生成的选题是否免审批直接进入产稿队列
+
+# 搜索引擎主动推送(internal/pkg/searchpush,cms 模块/官网 SEO)。
+# site 既是推送 URL 拼接前缀也是域名白名单;token/key 留空即对应通道禁用。
+seo:
+  site: "https://devlovecode.com"
+  baidu_token: "${GEO_BAIDU_TOKEN:-}"     # 百度搜索资源平台 API 推送 token,只进 .env
+  indexnow_key: "${SEO_INDEXNOW_KEY:-}"   # IndexNow 密钥,须与站点 /<key>.txt 文件一致,只进 .env
+  daily_quota: 10                          # 每日兜底任务推给百度的最大条数(与百度每日配额对齐)

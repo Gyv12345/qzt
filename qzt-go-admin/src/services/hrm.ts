@@ -1,5 +1,6 @@
 import request from '../utils/request'
 import type {
+  HrmAttendanceGroup,
   HrmAttendanceSummary,
   HrmCandidate,
   HrmDepartment,
@@ -7,11 +8,14 @@ import type {
   HrmEmployee,
   HrmEmployeeChange,
   HrmEmployeePayload,
+  HrmHoliday,
   HrmJob,
   HrmLeave,
   HrmPerformance,
   HrmPosition,
   HrmPositionPayload,
+  HrmScheduleMonthRow,
+  HrmShift,
 } from '../types/hrm'
 import type { PageParams } from '../types'
 
@@ -211,3 +215,137 @@ export interface AttendanceSummaryQuery extends PageParams {
 /** 考勤汇总列表 */
 export const listAttendanceSummary = (params?: AttendanceSummaryQuery) =>
   request.get<unknown, HrmPageResult<HrmAttendanceSummary>>('/hrm/attendance/summary', { params })
+
+// ---------- 排班管理(P14) ----------
+
+export const listShifts = (params?: PageParams) =>
+  request.get<unknown, HrmPageResult<HrmShift>>('/hrm/shifts', { params })
+
+export const createShift = (data: { name: string; start_time: string; end_time: string; flex_minutes?: number; cross_day?: number; status?: number }) =>
+  request.post('/hrm/shifts', data)
+
+export const updateShift = (id: number, data: Parameters<typeof createShift>[0]) =>
+  request.put(`/hrm/shifts/${id}`, data)
+
+export const deleteShift = (id: number) => request.delete(`/hrm/shifts/${id}`)
+
+export const listHolidays = (params?: PageParams & { year?: string }) =>
+  request.get<unknown, HrmPageResult<HrmHoliday>>('/hrm/holidays', { params })
+
+export const createHoliday = (data: { holiday_date: string; name: string; type: string }) =>
+  request.post('/hrm/holidays', data)
+
+export const updateHoliday = (id: number, data: { name: string; type: string }) =>
+  request.put(`/hrm/holidays/${id}`, data)
+
+export const deleteHoliday = (id: number) => request.delete(`/hrm/holidays/${id}`)
+
+export const listAttendanceGroups = (params?: PageParams) =>
+  request.get<unknown, HrmPageResult<HrmAttendanceGroup>>('/hrm/attendance-groups', { params })
+
+export const createAttendanceGroup = (data: { name: string; dept_id?: number; shift_id: number; status?: number }) =>
+  request.post('/hrm/attendance-groups', data)
+
+export const updateAttendanceGroup = (id: number, data: Parameters<typeof createAttendanceGroup>[0]) =>
+  request.put(`/hrm/attendance-groups/${id}`, data)
+
+export const deleteAttendanceGroup = (id: number) =>
+  request.delete(`/hrm/attendance-groups/${id}`)
+
+export const listScheduleMonth = (month: string) =>
+  request.get<unknown, { list: HrmScheduleMonthRow[] }>('/hrm/schedules/month', { params: { month } })
+
+export const batchSchedule = (data: { employee_id: number; items: { date: string; shift_id: number }[] }) =>
+  request.post('/hrm/schedules/batch', data)
+
+export const deleteSchedule = (id: number) => request.delete(`/hrm/schedules/${id}`)
+
+// ---------- 薪酬设置(P16) ----------
+
+export interface InsurancePlanPayload {
+  name: string
+  pension_rate: number
+  medical_rate: number
+  unemployment_rate: number
+  injury_rate: number
+  maternity_rate: number
+  fund_rate: number
+  base_min?: number
+  base_max?: number
+  status?: number
+}
+
+export const listInsurancePlans = (params?: PageParams) =>
+  request.get<unknown, HrmPageResult<InsurancePlanRow>>('/hrm/insurance-plans', { params })
+
+export const createInsurancePlan = (data: InsurancePlanPayload) =>
+  request.post('/hrm/insurance-plans', data)
+
+export const updateInsurancePlan = (id: number, data: InsurancePlanPayload) =>
+  request.put(`/hrm/insurance-plans/${id}`, data)
+
+export const deleteInsurancePlan = (id: number) =>
+  request.delete(`/hrm/insurance-plans/${id}`)
+
+export interface InsurancePlanRow {
+  id: number
+  name: string
+  pension_rate: string
+  medical_rate: string
+  unemployment_rate: string
+  injury_rate: string
+  maternity_rate: string
+  fund_rate: string
+  base_min: string | null
+  base_max: string | null
+  status: number
+}
+
+export interface SalaryItemPayload {
+  code: string
+  name: string
+  kind: 'INCOME' | 'DEDUCT' | 'TAX'
+  formula?: string
+  fixed_amount?: number
+  sort?: number
+  status?: number
+}
+
+export const listSalaryItems = (params?: PageParams) =>
+  request.get<unknown, HrmPageResult<SalaryItemRow>>('/hrm/salary-items', { params })
+
+export const createSalaryItem = (data: SalaryItemPayload) =>
+  request.post('/hrm/salary-items', data)
+
+export const updateSalaryItem = (id: number, data: SalaryItemPayload) =>
+  request.put(`/hrm/salary-items/${id}`, data)
+
+export const deleteSalaryItem = (id: number) =>
+  request.delete(`/hrm/salary-items/${id}`)
+
+export interface SalaryItemRow {
+  id: number
+  code: string
+  name: string
+  kind: 'INCOME' | 'DEDUCT' | 'TAX'
+  formula: string
+  fixed_amount: string
+  sort: number
+  status: number
+}
+
+/** 保存薪酬结构(v2:支持挂社保方案) */
+export const saveSalaryStructureV2 = (data: {
+  employee_id: number
+  base_salary?: number
+  position_allowance?: number
+  performance_allowance?: number
+  meal_allowance?: number
+  transport_allowance?: number
+  social_ins_rate?: number
+  housing_fund_rate?: number
+  social_ins_base?: number
+  housing_fund_base?: number
+  plan_id?: number
+  remark?: string
+}) => request.put('/hrm/payroll/structure/v2', data)

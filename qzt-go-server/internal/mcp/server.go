@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -45,10 +46,10 @@ func StartMCP(r *gin.Engine) {
 // buildServer 构建带 CRM tools 的 MCP Server。
 func buildServer() *server.MCPServer {
 	s := server.NewMCPServer(
-		"QZT Enterprise ERP",
+		"行简 · 一站式企业管理平台",
 		"1.0.0",
 		server.WithToolCapabilities(true),
-		server.WithInstructions("QZT 企业级 ERP 系统。可通过这些工具管理客户、商机、合同、跟进等 CRM 业务。所有操作需通过 API Key 认证。"),
+		server.WithInstructions("行简企业级管理系统。可通过这些工具管理客户、商机、合同、跟进等 CRM 业务。所有操作需通过 API Key 认证。"),
 		// 工具操作级权限控制:工具名→HTTP API 的 Casbin 校验(见 perm_check.go)
 		server.WithToolHandlerMiddleware(mcpPermissionMiddleware()),
 		// API Key 级工具集过滤:list 可见性与 call 调用双重生效(见 toolsets.go)
@@ -163,13 +164,20 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 写入 context key(与 Auth 中间件相同,tool handler 可通过 middleware 取值)
-		c.Set(middleware.CtxUserIDKey, user.ID)
-		c.Set(middleware.CtxUsernameKey, user.Username)
 		roleCodes := make([]string, 0, len(user.Roles))
 		for _, r := range user.Roles {
 			roleCodes = append(roleCodes, r.Code)
 		}
+		// 演示账号禁止走 MCP(公开演示环境不开放生产数据读写入口)
+		if slices.Contains(roleCodes, model.DemoRoleCode) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "演示账号不支持 MCP 调用,请使用正式账号"})
+			c.Abort()
+			return
+		}
+
+		// 写入 context key(与 Auth 中间件相同,tool handler 可通过 middleware 取值)
+		c.Set(middleware.CtxUserIDKey, user.ID)
+		c.Set(middleware.CtxUsernameKey, user.Username)
 		c.Set(middleware.CtxRoleCodesKey, roleCodes)
 		middleware.InjectDataScope(c, user)
 		// 额外把 roleCodes / toolsets 写入 request context,供 MCP 工具权限中间件

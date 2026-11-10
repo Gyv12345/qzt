@@ -32,6 +32,10 @@ export interface PsiSalesOrder {
 export interface PsiStock {
   id: number
   product_id: number
+  /** 规格SKU ID(0=历史数据未指定) */
+  sku_id: number
+  /** 规格描述(后端回填,空=默认规格) */
+  sku_spec?: string
   product_name: string
   product_no: string
   warehouse_id: number
@@ -220,4 +224,87 @@ export const STOCK_OUT_BIZ_TYPE: Record<string, string> = {
 export const STOCK_IO_STATUS: Record<number, { text: string; color: string }> = {
   1: { text: '待生效', color: 'warning' },
   2: { text: '已生效', color: 'success' },
+}
+
+// ── 库存盘点/调拨(P15 移动端) ──
+
+export const STOCKTAKE_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '盘点中', color: 'warning' },
+  2: { text: '已确认', color: 'success' },
+  3: { text: '已作废', color: 'default' },
+}
+
+export const STOCK_TRANSFER_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '在途', color: 'warning' },
+  2: { text: '完成', color: 'success' },
+  3: { text: '已作废', color: 'default' },
+}
+
+/** 盘点单 */
+export interface PsiStocktake {
+  id: number
+  stocktake_no: string
+  warehouse_id: number
+  status: number
+  take_date: string
+  remark: string
+  warehouse_name?: string
+  items?: PsiStocktakeItem[]
+}
+
+/** 盘点明细 */
+export interface PsiStocktakeItem {
+  id: number
+  product_id: number
+  sku_id: number
+  sku_spec?: string
+  expected_qty: string
+  actual_qty: string | null
+  diff_qty: string
+  remark: string
+}
+
+/** 盘点单详情(含明细) */
+export type PsiStocktakeDetail = PsiStocktake & {
+  items: PsiStocktakeItem[] | null
+}
+
+/** 调拨单 */
+export interface PsiStockTransfer {
+  id: number
+  transfer_no: string
+  from_warehouse_id: number
+  to_warehouse_id: number
+  status: number
+  transfer_date: string
+  remark: string
+  from_warehouse_name?: string
+  to_warehouse_name?: string
+  items?: PsiStockTransferItem[]
+}
+
+/** 调拨明细 */
+export interface PsiStockTransferItem {
+  id: number
+  product_id: number
+  sku_id: number
+  sku_spec?: string
+  quantity: string
+  remark: string
+}
+
+/** 调拨单详情(含明细) */
+export type PsiStockTransferDetail = PsiStockTransfer & {
+  items: PsiStockTransferItem[] | null
+}
+
+/** 库存结余行(调拨选商品用) */
+export interface PsiStockRow {
+  id: number
+  product_id: number
+  sku_id: number
+  warehouse_id: number
+  quantity: string
+  product_name?: string
+  sku_spec?: string
 }

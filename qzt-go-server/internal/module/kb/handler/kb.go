@@ -148,6 +148,24 @@ func (h *DocumentHandler) Delete(c *gin.Context) {
 	response.OK(c, nil)
 }
 
+// Reindex POST /kb/documents/:id/reindex — 强制重建文档向量切片（P17）。
+// @Summary 重建文档向量索引
+// @Description 强制重建文档的切片与向量（embedding 未配置时报错）
+// @Tags KB
+// @Security BearerAuth
+// @Param id path int true "文档ID"
+// @Success 200 {object} xresponse.Response{data=object{chunks=int}}
+// @Router /kb/documents/{id}/reindex [post]
+func (h *DocumentHandler) Reindex(c *gin.Context) {
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	n, err := h.svc.ReindexDocument(c.Request.Context(), uint(id), middleware.GetUserID(c))
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, gin.H{"chunks": n})
+}
+
 // ── 版本 Handler ──
 
 type VersionHandler struct {

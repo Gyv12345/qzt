@@ -10,6 +10,7 @@ import (
 	"qzt-go-server/internal/repository"
 	apprrepo "qzt-go-server/internal/repository/approval"
 	psirepo "qzt-go-server/internal/repository/psi"
+	"qzt-go-server/pkg/xevent"
 )
 
 // sales.go 销售管理:销售订单 + 销售退货 + 执行出库/退货入库。
@@ -41,13 +42,13 @@ type SalesOrderItemRequest = PurchaseOrderItemRequest
 
 // CreateSalesOrderRequest 创建销售单请求。
 type CreateSalesOrderRequest struct {
-	CustomerID     uint                     `json:"customer_id" binding:"required"`
-	ContractID     *uint                    `json:"contract_id"`
-	WarehouseID    uint                     `json:"warehouse_id" binding:"required"`
-	OrderDate      string                   `json:"order_date"`
-	DiscountAmount decimal.Decimal          `json:"discount_amount"`
-	Remark         string                   `json:"remark"`
-	Items          []SalesOrderItemRequest  `json:"items" binding:"required,min=1,dive"`
+	CustomerID     uint                    `json:"customer_id" binding:"required"`
+	ContractID     *uint                   `json:"contract_id"`
+	WarehouseID    uint                    `json:"warehouse_id" binding:"required"`
+	OrderDate      string                  `json:"order_date"`
+	DiscountAmount decimal.Decimal         `json:"discount_amount"`
+	Remark         string                  `json:"remark"`
+	Items          []SalesOrderItemRequest `json:"items" binding:"required,min=1,dive"`
 }
 
 // SalesOrderDetailDTO 销售单详情含明细。
@@ -282,19 +283,29 @@ func (s *SalesService) StockOut(ctx context.Context, id uint, operatorID *uint) 
 		return err
 	}
 	o.Status = psimodel.SalesStatusShipped
-	return s.orderRepo.Update(ctx, o)
+	if err := s.orderRepo.Update(ctx, o); err != nil {
+		return err
+	}
+	// P17:出库成功 → 发布事件(open 模块订阅转发为出站 webhook;投递失败不影响出库)
+	xevent.Publish(ctx, "psi.sales_order.stock_out", map[string]any{
+		"order_id":     o.ID,
+		"order_no":     o.OrderNo,
+		"customer_id":  o.CustomerID,
+		"total_amount": o.TotalAmount,
+	})
+	return nil
 }
 
 // ── 销售退货 ──
 
 // CreateSalesReturnRequest 创建销售退货请求。
 type CreateSalesReturnRequest struct {
-	OrderID     *uint                      `json:"order_id"`
-	CustomerID  uint                       `json:"customer_id" binding:"required"`
-	WarehouseID uint                       `json:"warehouse_id" binding:"required"`
-	ReturnDate  string                     `json:"return_date"`
-	Remark      string                     `json:"remark"`
-	Items       []SalesOrderItemRequest    `json:"items" binding:"required,min=1,dive"`
+	OrderID     *uint                   `json:"order_id"`
+	CustomerID  uint                    `json:"customer_id" binding:"required"`
+	WarehouseID uint                    `json:"warehouse_id" binding:"required"`
+	ReturnDate  string                  `json:"return_date"`
+	Remark      string                  `json:"remark"`
+	Items       []SalesOrderItemRequest `json:"items" binding:"required,min=1,dive"`
 }
 
 // SalesReturnDetailDTO 销售退货详情含明细。

@@ -41,6 +41,17 @@ definitions:
     required:
     - warehouse_id
     type: object
+  handler.MediaDeleteRequest:
+    properties:
+      object_keys:
+        description: 要删除的对象 key 清单
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - object_keys
+    type: object
   handler.PublicContactRequest:
     properties:
       company:
@@ -106,9 +117,47 @@ definitions:
     required:
     - items
     type: object
+  handler.bindDouyinRequest:
+    properties:
+      code:
+        type: string
+    type: object
+  handler.douyinPushRequest:
+    properties:
+      account_id:
+        type: integer
+    type: object
+  handler.generateRequest:
+    properties:
+      topic_id:
+        type: integer
+    type: object
+  handler.pushRequest:
+    properties:
+      article_ids:
+        description: 或给文章ID(按 slug 拼公开链接,无 slug 的自动跳过)
+        items:
+          type: integer
+        type: array
+      urls:
+        description: 直接给完整 URL(会被域名白名单过滤)
+        items:
+          type: string
+        type: array
+    type: object
   handler.resetRequest:
     properties:
       confirm:
+        type: string
+    type: object
+  handler.reviewRequest:
+    properties:
+      approve:
+        type: boolean
+    type: object
+  handler.variantRequest:
+    properties:
+      platform:
         type: string
     type: object
   model.SysAPI:
@@ -443,8 +492,26 @@ definitions:
         type: string
       node_number:
         type: string
+      pass_post_config:
+        type: string
+      reject_post_config:
+        type: string
       same_submitter_action:
         type: string
+    type: object
+  service.AttendanceGroupRequest:
+    properties:
+      dept_id:
+        type: integer
+      name:
+        type: string
+      shift_id:
+        type: integer
+      status:
+        type: integer
+    required:
+    - name
+    - shift_id
     type: object
   service.ChangePasswordRequest:
     properties:
@@ -549,10 +616,16 @@ definitions:
         type: string
       cover_url:
         type: string
+      expire_at:
+        description: 内容有效期至(空=永久)
+        type: string
       is_hot:
         type: integer
       is_top:
         type: integer
+      publish_at:
+        description: 定时发布时间(空=立即;"YYYY-MM-DD HH:mm:ss"或RFC3339)
+        type: string
       slug:
         type: string
       sort:
@@ -1541,6 +1614,15 @@ definitions:
     - items
     - warehouse_id
     type: object
+  service.CreateStocktakeRequest:
+    properties:
+      remark:
+        type: string
+      warehouse_id:
+        type: integer
+    required:
+    - warehouse_id
+    type: object
   service.CreateSupplierRequest:
     properties:
       address:
@@ -1638,6 +1720,26 @@ definitions:
         type: string
     required:
     - title
+    type: object
+  service.CreateTransferRequest:
+    properties:
+      from_warehouse_id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/service.TransferItemRequest'
+        minItems: 1
+        type: array
+      order_date:
+        type: string
+      remark:
+        type: string
+      to_warehouse_id:
+        type: integer
+    required:
+    - from_warehouse_id
+    - items
+    - to_warehouse_id
     type: object
   service.CreateTripRequest:
     properties:
@@ -1796,6 +1898,46 @@ definitions:
     - employee_id
     - year_month
     type: object
+  service.HolidayRequest:
+    properties:
+      holiday_date:
+        description: yyyy-MM-dd
+        type: string
+      name:
+        type: string
+      type:
+        description: HOLIDAY / WORKDAY
+        type: string
+    required:
+    - holiday_date
+    - name
+    - type
+    type: object
+  service.InsurancePlanRequest:
+    properties:
+      base_max:
+        type: number
+      base_min:
+        type: number
+      fund_rate:
+        type: number
+      injury_rate:
+        type: number
+      maternity_rate:
+        type: number
+      medical_rate:
+        type: number
+      name:
+        type: string
+      pension_rate:
+        type: number
+      status:
+        type: integer
+      unemployment_rate:
+        type: number
+    required:
+    - name
+    type: object
   service.LeaveRequest:
     properties:
       duration_days:
@@ -1893,6 +2035,35 @@ definitions:
     - end_date
     - start_date
     type: object
+  service.PlatformPayload:
+    properties:
+      api_key:
+        type: string
+      base_url:
+        type: string
+      enabled:
+        type: boolean
+      model:
+        type: string
+      name:
+        type: string
+      remark:
+        type: string
+    type: object
+  service.PromptPayload:
+    properties:
+      enabled:
+        type: boolean
+      group_type:
+        description: brand/category/scenario
+        type: string
+      question:
+        type: string
+      remark:
+        type: string
+      sort:
+        type: integer
+    type: object
   service.PurchaseOrderItemRequest:
     properties:
       product_id:
@@ -1956,6 +2127,27 @@ definitions:
         type: string
       path:
         type: string
+    type: object
+  service.SalaryItemRequest:
+    properties:
+      code:
+        type: string
+      fixed_amount:
+        type: number
+      formula:
+        type: string
+      kind:
+        type: string
+      name:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: integer
+    required:
+    - code
+    - kind
+    - name
     type: object
   service.SalesOrderItemRequest:
     properties:
@@ -2022,6 +2214,59 @@ definitions:
     required:
     - employee_id
     type: object
+  service.SaveStructureV2Request:
+    properties:
+      base_salary:
+        type: number
+      employee_id:
+        type: integer
+      housing_fund_base:
+        type: number
+      housing_fund_rate:
+        type: number
+      meal_allowance:
+        type: number
+      performance_allowance:
+        type: number
+      plan_id:
+        type: integer
+      position_allowance:
+        type: number
+      remark:
+        type: string
+      social_ins_base:
+        type: number
+      social_ins_rate:
+        type: number
+      transport_allowance:
+        type: number
+    required:
+    - employee_id
+    type: object
+  service.ScheduleBatchItem:
+    properties:
+      date:
+        description: yyyy-MM-dd
+        type: string
+      shift_id:
+        type: integer
+    required:
+    - date
+    - shift_id
+    type: object
+  service.ScheduleBatchRequest:
+    properties:
+      employee_id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/service.ScheduleBatchItem'
+        minItems: 1
+        type: array
+    required:
+    - employee_id
+    - items
+    type: object
   service.SendMessageRequest:
     properties:
       content:
@@ -2063,6 +2308,42 @@ definitions:
         type: string
     required:
     - amount
+    type: object
+  service.ShiftRequest:
+    properties:
+      cross_day:
+        type: integer
+      end_time:
+        type: string
+      flex_minutes:
+        type: integer
+      name:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: integer
+    required:
+    - end_time
+    - name
+    - start_time
+    type: object
+  service.SourcePayload:
+    properties:
+      content_md:
+        type: string
+      content_type:
+        type: string
+      digest:
+        type: string
+      genre:
+        type: string
+      platform:
+        type: string
+      title:
+        type: string
+      topic_id:
+        type: integer
     type: object
   service.StageDef:
     properties:
@@ -2129,6 +2410,46 @@ definitions:
     required:
     - module
     type: object
+  service.TopicPayload:
+    properties:
+      question:
+        type: string
+      reason:
+        type: string
+    type: object
+  service.TrackIngestRequest:
+    type: object
+  service.TransferItemRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: number
+      remark:
+        type: string
+      sku_id:
+        description: 规格SKU ID(0=自动解析商品默认规格;多规格商品必须指定)
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  service.TransferRequest:
+    properties:
+      comment:
+        description: 转办/委托说明(可空)
+        type: string
+      mode:
+        description: TRANSFER(默认)/DELEGATE
+        type: string
+      target_user_id:
+        type: integer
+      task_id:
+        type: integer
+    required:
+    - target_user_id
+    - task_id
+    type: object
   service.UpdateAPIRequest:
     properties:
       description:
@@ -2140,6 +2461,8 @@ definitions:
       path:
         type: string
     type: object
+  service.UpdateActualRequest:
+    type: object
   service.UpdateArticleRequest:
     properties:
       category_id:
@@ -2148,10 +2471,16 @@ definitions:
         type: string
       cover_url:
         type: string
+      expire_at:
+        description: 内容有效期至(空=清除改永久)
+        type: string
       is_hot:
         type: integer
       is_top:
         type: integer
+      publish_at:
+        description: 定时发布时间(空=清除定时改立即;"YYYY-MM-DD HH:mm:ss"或RFC3339)
+        type: string
       slug:
         type: string
       sort:
@@ -2771,7 +3100,15 @@ definitions:
         type: string
       description:
         type: string
+      faq_json:
+        type: string
       favicon_url:
+        type: string
+      geo_placename:
+        type: string
+      geo_position:
+        type: string
+      geo_region:
         type: string
       hero_badge:
         type: string
@@ -3009,6 +3346,26 @@ definitions:
       spec:
         maxLength: 128
         type: string
+    type: object
+  service.WebhookPayload:
+    properties:
+      events:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 128
+        type: string
+      remark:
+        maxLength: 255
+        type: string
+      status:
+        type: integer
+      url:
+        maxLength: 512
+        type: string
+    required:
+    - name
+    - url
     type: object
   xresponse.Response:
     properties:
@@ -3453,6 +3810,30 @@ paths:
       summary: 审批驳回
       tags:
       - 审批操作
+  /approval/actions/transfer:
+    post:
+      consumes:
+      - application/json
+      description: 将分配给自己的待办任务转办(TRANSFER,责任让渡)或委托(DELEGATE,受托代审)给其他用户;原地改审批人,写审计记录并通知新审批人
+      parameters:
+      - description: 转办/委托请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 转办/委托审批任务
+      tags:
+      - 审批操作
   /approval/flows:
     get:
       parameters:
@@ -3667,6 +4048,27 @@ paths:
       security:
       - BearerAuth: []
       summary: 审批实例详情
+      tags:
+      - 审批待办
+  /approval/instances/{id}/graph:
+    get:
+      description: 按实例绑定的流程版本返回节点图+连线+已走/当前轨迹(visited_node_ids/current_node_id),供详情抽屉轨迹可视化
+      parameters:
+      - description: 实例ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 审批实例流程图
       tags:
       - 审批待办
   /approval/instances/{id}/resource:
@@ -4015,6 +4417,53 @@ paths:
       summary: 更新文章
       tags:
       - 文章管理
+  /cms/articles/{id}/versions:
+    get:
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 文章版本列表
+      tags:
+      - 文章管理
+  /cms/articles/{id}/versions/{version_id}/rollback:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 版本ID
+        in: path
+        name: version_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 回滚文章到指定版本
+      tags:
+      - 文章管理
   /cms/categories:
     get:
       parameters:
@@ -4145,6 +4594,53 @@ paths:
       summary: 分类树
       tags:
       - 文章分类
+  /cms/media:
+    get:
+      description: 列举公共桶对象并拼直链,keyword 过滤 key 子串
+      parameters:
+      - description: key 关键字过滤
+        in: query
+        name: keyword
+        type: string
+      - description: 最多返回条数(默认200,最大500)
+        in: query
+        name: max_keys
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 媒体库列表
+      tags:
+      - 媒体库
+  /cms/media/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 删除请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.MediaDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除媒体对象
+      tags:
+      - 媒体库
   /cms/pages:
     get:
       parameters:
@@ -4360,6 +4856,33 @@ paths:
       summary: 单页详情(公开)
       tags:
       - CMS公开
+  /cms/public/search:
+    get:
+      description: ngram 全文检索标题/摘要/正文,仅公开可见文章(P19 守卫)
+      parameters:
+      - description: 搜索词
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: 页码(默认1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认10,最大100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 文章搜索(公开)
+      tags:
+      - CMS公开
   /cms/public/tags:
     get:
       description: 返回全部标签,供前台站点
@@ -4373,6 +4896,99 @@ paths:
       summary: 标签列表(公开)
       tags:
       - CMS公开
+  /cms/public/track:
+    post:
+      consumes:
+      - application/json
+      description: 官网前台访客行为批量上报,单批最多 20 条;IP/UA 由服务端从请求上下文提取
+      parameters:
+      - description: 事件批次
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.TrackIngestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 埋点批量上报(公开)
+      tags:
+      - CMS公开
+  /cms/push/baidu:
+    post:
+      description: 将URL或文章公开链接提交到百度主动推送(24h内已推过的自动跳过;配额耗尽即停)
+      parameters:
+      - description: URL列表或文章ID列表
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/handler.pushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 推送百度
+      tags:
+      - 搜索引擎推送
+  /cms/push/indexnow:
+    post:
+      description: 将URL或文章公开链接批量提交到 IndexNow(自动分发 Bing/Yandex 等)
+      parameters:
+      - description: URL列表或文章ID列表
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/handler.pushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 推送 IndexNow
+      tags:
+      - 搜索引擎推送
+  /cms/push/logs:
+    get:
+      parameters:
+      - description: 页码(默认1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认10,最大100)
+        in: query
+        name: page_size
+        type: integer
+      - description: 通道过滤 baidu/indexnow
+        in: query
+        name: channel
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 推送日志列表
+      tags:
+      - 搜索引擎推送
   /cms/tags:
     get:
       parameters:
@@ -4503,6 +5119,58 @@ paths:
       summary: 全部标签
       tags:
       - 文章标签
+  /cms/track/list:
+    get:
+      description: 近 N 天原始事件分页,排查用
+      parameters:
+      - description: 页码(默认1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认20,最大100)
+        in: query
+        name: page_size
+        type: integer
+      - description: 时间窗口天数(默认7,最大180)
+        in: query
+        name: days
+        type: integer
+      - description: 事件名过滤
+        in: query
+        name: event
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 埋点事件列表
+      tags:
+      - 访问统计
+  /cms/track/summary:
+    get:
+      description: 近 N 天(含今日)PV/UV、按天序列、页面/事件/来源 Top 榜
+      parameters:
+      - description: 统计窗口天数(默认7,最大180)
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 访问统计汇总
+      tags:
+      - 访问统计
   /crm/contacts/{id}:
     delete:
       parameters:
@@ -6414,7 +7082,7 @@ paths:
       - CMS公开
   /crm/public/products:
     get:
-      description: 返回「官网内容→官网首页配置→产品」精选的上架商品(板块关闭或未配置精选时为空,不含成本价),免鉴权
+      description: 返回「官网内容→官网首页配置→产品」精选的商品,精选即公开展示的唯一门槛(板块关闭或未配置精选时为空,不含成本价),免鉴权
       produces:
       - application/json
       responses:
@@ -6427,7 +7095,7 @@ paths:
       - CMS公开
   /crm/public/products/{id}:
     get:
-      description: 返回精选上架商品详情(未精选的商品按不存在处理,不含成本价),免鉴权
+      description: 返回精选商品详情(未精选的商品按不存在处理,不含成本价),免鉴权
       parameters:
       - description: 商品ID
         in: path
@@ -7176,6 +7844,815 @@ paths:
       summary: 确认凭证
       tags:
       - 财务-凭证
+  /geo/platforms:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 平台列表(API Key 只回掩码)
+      tags:
+      - GEO
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 平台
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.PlatformPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 新增监测平台
+      tags:
+      - GEO
+  /geo/platforms/:id:
+    delete:
+      parameters:
+      - description: 平台ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除平台
+      tags:
+      - GEO
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 平台ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 平台
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.PlatformPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 编辑平台(api_key 留空保留原值)
+      tags:
+      - GEO
+  /geo/platforms/douyin/accounts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 已绑定的抖音账号
+      tags:
+      - GEO
+  /geo/platforms/douyin/accounts/:id:
+    delete:
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 解绑抖音账号
+      tags:
+      - GEO
+  /geo/platforms/douyin/authorize:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 获取抖音授权链接(浏览器打开扫码授权)
+      tags:
+      - GEO
+  /geo/platforms/douyin/bind:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: code
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.bindDouyinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 用授权回调 code 绑定抖音账号
+      tags:
+      - GEO
+  /geo/prompts:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 分组 brand/category/scenario
+        in: query
+        name: group_type
+        type: string
+      - description: 问题关键词
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 提示词列表
+      tags:
+      - GEO
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.PromptPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 新增提示词
+      tags:
+      - GEO
+  /geo/prompts/:id:
+    delete:
+      parameters:
+      - description: 提示词ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除提示词
+      tags:
+      - GEO
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 提示词
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.PromptPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 编辑提示词
+      tags:
+      - GEO
+  /geo/runs:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 监测轮次列表
+      tags:
+      - GEO
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 手动触发监测(异步执行)
+      tags:
+      - GEO
+  /geo/runs/:id:
+    get:
+      parameters:
+      - description: 轮次ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 轮次详情
+      tags:
+      - GEO
+  /geo/runs/:id/export:
+    get:
+      parameters:
+      - description: 轮次ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 导出轮次明细(CSV,UTF-8 BOM)
+      tags:
+      - GEO
+  /geo/runs/:id/results:
+    get:
+      parameters:
+      - description: 轮次ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 轮次结果明细(含回答全文)
+      tags:
+      - GEO
+  /geo/sources:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 类型 article/video/video_script
+        in: query
+        name: content_type
+        type: string
+      - description: 平台 wechat_mp/douyin/xhs/zhihu/csdn/toutiao
+        in: query
+        name: platform
+        type: string
+      - description: 状态 generated/pushed/published/failed/skipped
+        in: query
+        name: status
+        type: string
+      - description: 质检状态 none/pass/warn/blocked
+        in: query
+        name: qc_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 稿件列表
+      tags:
+      - GEO
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 稿件
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SourcePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 手工新增稿件
+      tags:
+      - GEO
+  /geo/sources/:id:
+    delete:
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除稿件
+      tags:
+      - GEO
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 稿件
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SourcePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 编辑稿件
+      tags:
+      - GEO
+  /geo/sources/:id/douyin:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 账号(可选)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/handler.douyinPushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 把已出片的视频稿直发抖音(account_id 留空取第一个可用账号)
+      tags:
+      - GEO
+  /geo/sources/:id/publish:
+    get:
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 拉取 freepublish 发布状态(成功回填发布URL)
+      tags:
+      - GEO
+    post:
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 提交 freepublish 直接发布(仅认证账号)
+      tags:
+      - GEO
+  /geo/sources/:id/push:
+    post:
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 推送稿件到公众号草稿箱(仅图文)
+      tags:
+      - GEO
+  /geo/sources/:id/qc:
+    post:
+      parameters:
+      - description: 稿件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 手动质检稿件
+      tags:
+      - GEO
+  /geo/sources/:id/variants:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 母稿ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 平台
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.variantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 基于母稿生成另一平台差异化分发稿
+      tags:
+      - GEO
+  /geo/sources/generate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 留空则自动领取选题
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/handler.generateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 手动产稿(领取选题并即时产一篇图文)
+      tags:
+      - GEO
+  /geo/sources/run:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 立即执行一轮产线(选题→图文+视频→投递,耗时数分钟)
+      tags:
+      - GEO
+  /geo/topics:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态 pending/approved/rejected/used
+        in: query
+        name: status
+        type: string
+      - description: 来源 matrix/ai/manual
+        in: query
+        name: origin
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 选题列表
+      tags:
+      - GEO
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 选题
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.TopicPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 新增选题
+      tags:
+      - GEO
+  /geo/topics/:id:
+    delete:
+      parameters:
+      - description: 选题ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除选题
+      tags:
+      - GEO
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 选题ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 选题
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.TopicPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 编辑选题
+      tags:
+      - GEO
+  /geo/topics/:id/review:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 选题ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 审批
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.reviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 审批选题(approve=true 通过进入产稿队列,false 驳回)
+      tags:
+      - GEO
+  /geo/topics/generate:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: AI 生成选题(读最近监测结果找新机会)
+      tags:
+      - GEO
+  /geo/trend:
+    get:
+      parameters:
+      - description: 轮数上限(默认12)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 最近 N 轮指标趋势
+      tags:
+      - GEO
+  /hrm/attendance-groups:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 考勤组列表
+      tags:
+      - 人事-排班管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 考勤组请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AttendanceGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建考勤组
+      tags:
+      - 人事-排班管理
+  /hrm/attendance-groups/{id}:
+    delete:
+      parameters:
+      - description: 考勤组ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除考勤组
+      tags:
+      - 人事-排班管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 考勤组ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 考勤组请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AttendanceGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新考勤组
+      tags:
+      - 人事-排班管理
   /hrm/attendance/clock:
     post:
       consumes:
@@ -7714,6 +9191,194 @@ paths:
       summary: 员工变更履历
       tags:
       - 人力资源管理
+  /hrm/holidays:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 年份(如 2026)
+        in: query
+        name: year
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 节假日列表
+      tags:
+      - 人事-排班管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 节假日请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.HolidayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建节假日
+      tags:
+      - 人事-排班管理
+  /hrm/holidays/{id}:
+    delete:
+      parameters:
+      - description: 节假日ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除节假日
+      tags:
+      - 人事-排班管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 节假日ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 节假日请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.HolidayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新节假日
+      tags:
+      - 人事-排班管理
+  /hrm/insurance-plans:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 社保方案列表
+      tags:
+      - 人事-薪酬设置
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 社保方案请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.InsurancePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建社保方案
+      tags:
+      - 人事-薪酬设置
+  /hrm/insurance-plans/{id}:
+    delete:
+      parameters:
+      - description: 方案ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除社保方案
+      tags:
+      - 人事-薪酬设置
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 方案ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 社保方案请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.InsurancePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新社保方案
+      tags:
+      - 人事-薪酬设置
   /hrm/jobs:
     get:
       parameters:
@@ -7886,6 +9551,29 @@ paths:
       summary: 保存薪酬结构
       tags:
       - 薪酬管理
+  /hrm/payroll/structure/v2:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 薪酬结构请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SaveStructureV2Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 保存薪酬结构(支持挂社保方案)
+      tags:
+      - 人事-薪酬设置
   /hrm/positions:
     get:
       parameters:
@@ -8011,6 +9699,301 @@ paths:
       summary: 启用岗位列表(下拉用,免RBAC)
       tags:
       - 人力资源管理
+  /hrm/salary-items:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 工资项列表
+      tags:
+      - 人事-薪酬设置
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工资项请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SalaryItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建工资项
+      tags:
+      - 人事-薪酬设置
+  /hrm/salary-items/{id}:
+    delete:
+      parameters:
+      - description: 工资项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除工资项
+      tags:
+      - 人事-薪酬设置
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工资项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 工资项请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SalaryItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新工资项
+      tags:
+      - 人事-薪酬设置
+  /hrm/schedules/{id}:
+    delete:
+      parameters:
+      - description: 排班ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除排班
+      tags:
+      - 人事-排班管理
+  /hrm/schedules/batch:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 批量排班请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ScheduleBatchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 整月批量排班(upsert)
+      tags:
+      - 人事-排班管理
+  /hrm/schedules/month:
+    get:
+      parameters:
+      - description: 月份(yyyy-MM)
+        in: query
+        name: month
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 排班月视图
+      tags:
+      - 人事-排班管理
+  /hrm/schedules/my:
+    get:
+      description: 按登录用户反查员工档案,返回本人当月排班(班次+假日标注);仅登录不走 RBAC
+      parameters:
+      - description: 月份(yyyy-MM)
+        in: query
+        name: month
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 我的排班月视图
+      tags:
+      - 人事-排班管理
+  /hrm/shifts:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 班次列表
+      tags:
+      - 人事-排班管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 班次请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建班次
+      tags:
+      - 人事-排班管理
+  /hrm/shifts/{id}:
+    delete:
+      parameters:
+      - description: 班次ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除班次
+      tags:
+      - 人事-排班管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 班次ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 班次请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新班次
+      tags:
+      - 人事-排班管理
+  /kb/documents/{id}/reindex:
+    post:
+      description: 强制重建文档的切片与向量（embedding 未配置时报错）
+      parameters:
+      - description: 文档ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  properties:
+                    chunks:
+                      type: integer
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 重建文档向量索引
+      tags:
+      - KB
   /mall/orders:
     get:
       description: 分页查询商城订单,支持状态筛选与关键字(单号/联系人/手机)
@@ -10024,6 +12007,207 @@ paths:
       summary: 编辑工作日志
       tags:
       - OA-工作日志
+  /open/v1/events:
+    get:
+      description: 返回平台出站事件目录,供订阅方(OA/外部系统)对齐契约
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 事件目录(开放)
+      tags:
+      - 开放集成
+  /open/v1/org/tree:
+    get:
+      description: hrm 部门树透出,供 OA 系统做组织同步
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 组织树(开放)
+      tags:
+      - 开放集成
+  /open/webhook-events:
+    get:
+      description: 分页查询 webhook 投递日志(webhook/事件/状态/时间窗过滤)
+      parameters:
+      - description: webhookID
+        in: query
+        name: webhook_id
+        type: integer
+      - description: 事件类型
+        in: query
+        name: event_type
+        type: string
+      - description: 0待投递 1成功 2失败重试中 3死信
+        in: query
+        name: status
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 投递日志列表
+      tags:
+      - 开放集成
+  /open/webhook-events/:id/retry:
+    post:
+      description: 将失败/死信事件置回待投递,由投递 job 重新发送
+      parameters:
+      - description: 事件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 重试投递
+      tags:
+      - 开放集成
+  /open/webhooks:
+    get:
+      description: 列出全部 webhook 端点(secret 脱敏)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: Webhook列表
+      tags:
+      - 开放集成
+    post:
+      consumes:
+      - application/json
+      description: 创建 webhook 端点;secret 缺省服务端生成,明文仅创建响应返回一次
+      parameters:
+      - description: 配置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.WebhookPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 创建Webhook
+      tags:
+      - 开放集成
+  /open/webhooks/:id:
+    delete:
+      description: 软删端点;投递日志保留可查
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除Webhook
+      tags:
+      - 开放集成
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: Webhook详情
+      tags:
+      - 开放集成
+    put:
+      consumes:
+      - application/json
+      description: 更新端点配置;事件码校验同创建
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 配置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.WebhookPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 更新Webhook
+      tags:
+      - 开放集成
+  /open/webhooks/:id/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: '{status:1启用/0停用}'
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 启停Webhook
+      tags:
+      - 开放集成
   /project/projects:
     get:
       parameters:
@@ -10999,6 +13183,142 @@ paths:
       summary: 其他出库单详情
       tags:
       - 进销存-库存管理
+  /psi/stock-transfer-orders:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 调出仓库ID
+        in: query
+        name: from_warehouse_id
+        type: integer
+      - description: 调入仓库ID
+        in: query
+        name: to_warehouse_id
+        type: integer
+      - description: 状态(1在途 2完成 3已作废)
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 调拨单列表
+      tags:
+      - 进销存-库存管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建调拨请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateTransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建调拨单(在途,执行时才动库存)
+      tags:
+      - 进销存-库存管理
+  /psi/stock-transfer-orders/{id}:
+    delete:
+      parameters:
+      - description: 调拨单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除调拨单(仅已作废可删)
+      tags:
+      - 进销存-库存管理
+    get:
+      parameters:
+      - description: 调拨单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 调拨单详情(含明细)
+      tags:
+      - 进销存-库存管理
+  /psi/stock-transfer-orders/{id}/cancel:
+    put:
+      parameters:
+      - description: 调拨单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 作废调拨单(仅在途可作废)
+      tags:
+      - 进销存-库存管理
+  /psi/stock-transfer-orders/{id}/execute:
+    post:
+      parameters:
+      - description: 调拨单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 执行调拨(出+入同事务,数量守恒)
+      tags:
+      - 进销存-库存管理
   /psi/stock/movements:
     get:
       parameters:
@@ -11032,6 +13352,165 @@ paths:
       security:
       - BearerAuth: []
       summary: 收发明细
+      tags:
+      - 进销存-库存管理
+  /psi/stocktake-orders:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 仓库ID
+        in: query
+        name: warehouse_id
+        type: integer
+      - description: 状态(1盘点中 2已确认 3已作废)
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 盘点单列表
+      tags:
+      - 进销存-库存管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建盘点请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateStocktakeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建盘点单(冻结账面快照)
+      tags:
+      - 进销存-库存管理
+  /psi/stocktake-orders/{id}:
+    delete:
+      parameters:
+      - description: 盘点单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除盘点单(仅已作废可删)
+      tags:
+      - 进销存-库存管理
+    get:
+      parameters:
+      - description: 盘点单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 盘点单详情(含明细)
+      tags:
+      - 进销存-库存管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 盘点单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 实盘请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateActualRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 录实盘数(批量)
+      tags:
+      - 进销存-库存管理
+  /psi/stocktake-orders/{id}/cancel:
+    put:
+      parameters:
+      - description: 盘点单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 作废盘点单
+      tags:
+      - 进销存-库存管理
+  /psi/stocktake-orders/{id}/confirm:
+    post:
+      parameters:
+      - description: 盘点单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 确认盘点(差异派生盘盈/盘亏流水)
       tags:
       - 进销存-库存管理
   /psi/suppliers:

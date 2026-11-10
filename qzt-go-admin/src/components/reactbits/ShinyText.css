@@ -1,0 +1,11 @@
+/* React Bits — ShinyText · https://reactbits.dev/text-animations/shiny-text
+   本仓适配: 移除官方 CSS 里的 keyframes 动画(background-position 由 motion
+   的 MotionValue 驱动, CSS 动画会在级联中盖过内联样式导致两套动画打架),
+   保留文字裁切基样式; 颜色/光泽由组件 props 内联控制。 */
+.shiny-text {
+  display: inline-block;
+}
+
+.shiny-text.disabled {
+  animation: none;
+}

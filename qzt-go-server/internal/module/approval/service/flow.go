@@ -195,6 +195,8 @@ type ApproversDesign struct {
 	CcType              string `json:"cc_type"`
 	CcList              string `json:"cc_list"`
 	ApproverList        string `json:"approver_list"`
+	PassPostConfig      string `json:"pass_post_config"`
+	RejectPostConfig    string `json:"reject_post_config"`
 }
 
 // ConditionsDesign 条件配置设计(node_number 关联到节点)。
@@ -265,6 +267,8 @@ func (s *FlowService) SaveDesign(ctx context.Context, flowID uint, req *SaveDesi
 				CcType:              req.Approvers[i].CcType,
 				CcList:              req.Approvers[i].CcList,
 				ApproverList:        req.Approvers[i].ApproverList,
+				PassPostConfig:      req.Approvers[i].PassPostConfig,
+				RejectPostConfig:    req.Approvers[i].RejectPostConfig,
 			}
 			if err := s.approverRepo.Create(ctx, a); err != nil {
 				return err

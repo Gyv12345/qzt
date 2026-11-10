@@ -153,6 +153,8 @@ type HrmAttendanceSummary struct {
 	LateCount       int             `json:"late_count" gorm:"default:0;comment:迟到次数"`
 	// 早退次数
 	EarlyCount      int             `json:"early_count" gorm:"default:0;comment:早退次数"`
+	// 缺卡天数(应出勤但无打卡记录的天数)
+	MissingDays     int             `json:"missing_days" gorm:"default:0;comment:缺卡天数"`
 	// 缺勤天数
 	AbsentDays      decimal.Decimal `json:"absent_days" gorm:"type:decimal(5,1);default:0;comment:缺勤天数"`
 	// 请假天数

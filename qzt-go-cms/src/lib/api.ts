@@ -89,6 +89,26 @@ export function getArticleBySlug(slug: string): Promise<Article> {
   return request<Article>(`/cms/public/articles/slug/${encodeURIComponent(slug)}`);
 }
 
+/**
+ * 站内搜索(P21): 后端 ngram 全文检索,仅公开可见文章。
+ * 搜索结果用 no-store 不进 Data Cache——不同关键词结果不同,缓存会串词。
+ */
+export async function searchArticles(
+  q: string,
+  page = 1,
+  pageSize = 12,
+): Promise<PageData<Article>> {
+  const url = new URL(API_BASE + "/cms/public/search");
+  url.searchParams.set("q", q);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("page_size", String(pageSize));
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) throw new Error(`搜索请求失败: ${res.status}`);
+  const body = (await res.json()) as ApiResponse<PageData<Article>>;
+  if (body.code !== 0) throw new Error(body.msg || "搜索失败");
+  return body.data;
+}
+
 export function getCategories(): Promise<Category[]> {
   return request<Category[]>("/cms/public/categories");
 }

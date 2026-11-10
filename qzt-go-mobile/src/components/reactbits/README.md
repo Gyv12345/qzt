@@ -14,6 +14,10 @@ React Bits **不是 npm 包**，官方用法就是把组件源码拷进项目。
 | `GradientText.tsx` | 文字动效 | `motion` | 登录页大标题、工作台问候语 |
 | `ShinyText.tsx` | 文字动效 | `motion` | 登录页徽章、工作台日期 |
 | `BlurText.tsx` | 文字动效 | `motion` | 登录页副标题（中文按字 stagger） |
+| `CountUp.tsx` | 数字滚动 | `motion` | 已接入：home 核心指标宫格 + 数据看板 KPI 宫格（数字类型守卫，金额 compact 格式走静态；本仓适配新增 `decimals` 小数位 prop，金额类传 2） |
+| `FadeContent.tsx` | 滚动显现 | 无 | 已接入：home 分组宫格滚动显现 + 核心指标行入场（纯 IntersectionObserver + CSS transition） |
+
+`CountUp` / `FadeContent` 为 2026-11-02 新移植，与 `qzt-go-admin/qzt-go-cms` 同款；mobile 侧已接入 home 与数据看板。
 
 未引入 `DotGrid`：需要 `gsap`（约 70KB gz），移动端登录页已有 CSS 网格底纹替代。
 

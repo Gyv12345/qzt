@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { submitContact, type ContactPayload } from "../lib/api";
+import { flush, track } from "../lib/track";
 
 export default function ContactForm() {
   const [form, setForm] = useState<ContactPayload>({
@@ -37,6 +39,9 @@ export default function ContactForm() {
 
     try {
       await submitContact(form);
+      // 转化事件:留言提交成功,立即随队列上报
+      track("contact_submit");
+      flush();
       setStatus("success");
       setForm({ name: "", phone: "", email: "", company: "", message: "" });
       setTimeout(() => setStatus("idle"), 5000);
@@ -161,7 +166,11 @@ export default function ContactForm() {
       </button>
 
       <p className="text-center text-xs text-faint">
-        提交后我们将尽快与您联系,您的信息将被严格保密
+        提交即表示同意我们按
+        <Link href="/p/privacy" className="underline transition-colors hover:text-muted">
+          《隐私政策》
+        </Link>
+        处理您的姓名、电话、邮箱等信息,仅用于与您联系
       </p>
     </form>
   );

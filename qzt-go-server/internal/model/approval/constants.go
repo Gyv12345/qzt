@@ -5,13 +5,13 @@ package approval
 
 // ApprovalStatus 实例/资源审批状态。
 const (
-	StatusNone           = "NONE"           // 占位,未触发审批
-	StatusPending        = "PENDING"        // 待提交(已生成实例未进入节点)
-	StatusApproving      = "APPROVING"      // 审批中
-	StatusApproved       = "APPROVED"       // 已通过
-	StatusUnapproved     = "UNAPPROVED"     // 已驳回
-	StatusRevoked        = "REVOKED"        // 已撤回
-	StatusAutoApproved   = "AUTO_APPROVED"  // 自动通过(合成态)
+	StatusNone           = "NONE"            // 占位,未触发审批
+	StatusPending        = "PENDING"         // 待提交(已生成实例未进入节点)
+	StatusApproving      = "APPROVING"       // 审批中
+	StatusApproved       = "APPROVED"        // 已通过
+	StatusUnapproved     = "UNAPPROVED"      // 已驳回
+	StatusRevoked        = "REVOKED"         // 已撤回
+	StatusAutoApproved   = "AUTO_APPROVED"   // 自动通过(合成态)
 	StatusAutoUnapproved = "AUTO_UNAPPROVED" // 自动驳回(合成态)
 )
 
@@ -27,29 +27,31 @@ const (
 
 // TaskType 任务类型。
 const (
-	TaskTypeCC       = "CC" // 抄送
-	TaskTypeSign     = "SN" // 加签
-	TaskTypeBack     = "BK" // 退回
-	TaskTypeNormal   = "NL" // 常规审批
+	TaskTypeCC     = "CC" // 抄送
+	TaskTypeSign   = "SN" // 加签
+	TaskTypeBack   = "BK" // 退回
+	TaskTypeNormal = "NL" // 常规审批
 )
 
 // ApprovalAction 审批动作。
 const (
-	ActionApprove = "APPROVE" // 同意
-	ActionReject  = "REJECT"  // 驳回
-	ActionSign    = "SIGN"    // 加签
-	ActionBack    = "BACK"    // 退回
-	ActionRevoke  = "REVOKE"  // 撤回
+	ActionApprove  = "APPROVE"  // 同意
+	ActionReject   = "REJECT"   // 驳回
+	ActionSign     = "SIGN"     // 加签
+	ActionBack     = "BACK"     // 退回
+	ActionRevoke   = "REVOKE"   // 撤回
+	ActionTransfer = "TRANSFER" // 转办(任务让渡,出队)
+	ActionDelegate = "DELEGATE" // 委托(责任仍在原审批人,delegator_id 留痕)
 )
 
 // ApproverType 审批人类型。
 const (
-	ApproverTypeMember           = "MEMBER"            // 指定成员
-	ApproverTypeSuperior         = "SUPERIOR"          // 直属上级
-	ApproverTypeMultipleSuperior = "MULTIPLE_SUPERIOR" // 多级上级
-	ApproverTypeDeptHead         = "DEPT_HEAD"         // 部门负责人
+	ApproverTypeMember           = "MEMBER"             // 指定成员
+	ApproverTypeSuperior         = "SUPERIOR"           // 直属上级
+	ApproverTypeMultipleSuperior = "MULTIPLE_SUPERIOR"  // 多级上级
+	ApproverTypeDeptHead         = "DEPT_HEAD"          // 部门负责人
 	ApproverTypeMultipleDeptHead = "MULTIPLE_DEPT_HEAD" // 多级部门负责人
-	ApproverTypeRole             = "ROLE"              // 角色
+	ApproverTypeRole             = "ROLE"               // 角色
 
 	// 历史遗留枚举(旧版设计器产出,已存量的流程版本快照仍在使用)。
 	// 引擎解析时按别名兼容,防止旧快照审批人解析为空导致流程异常(R9-①)。
@@ -59,8 +61,8 @@ const (
 
 // MultiApproverMode 多审批人模式。
 const (
-	MultiModeAll       = "ALL"       // 会签:全部同意才通过
-	MultiModeAny       = "ANY"       // 或签:任一同意即通过
+	MultiModeAll        = "ALL"        // 会签:全部同意才通过
+	MultiModeAny        = "ANY"        // 或签:任一同意即通过
 	MultiModeSequential = "SEQUENTIAL" // 依次:按顺序逐人
 )
 
@@ -78,12 +80,12 @@ const (
 	FormTypeSalesReturn    = "SALES_RETURN"    // 销售退货
 
 	// OA 办公流程
-	FormTypeExpense       = "EXPENSE"        // 报销单
-	FormTypeLeave         = "LEAVE"          // 请假单
-	FormTypeTrip          = "TRIP"           // 出差申请
-	FormTypeLoan          = "LOAN"           // 备用金/借款
+	FormTypeExpense        = "EXPENSE"         // 报销单
+	FormTypeLeave          = "LEAVE"           // 请假单
+	FormTypeTrip           = "TRIP"            // 出差申请
+	FormTypeLoan           = "LOAN"            // 备用金/借款
 	FormTypeMeetingBooking = "MEETING_BOOKING" // 会议预订
-	FormTypeCustomForm     = "OA_CUSTOM"        // 自定义表单
+	FormTypeCustomForm     = "OA_CUSTOM"       // 自定义表单
 )
 
 // ExecuteTiming 触发时机。
@@ -101,16 +103,16 @@ const (
 
 // EmptyApproverAction 空审批人处理。
 const (
-	EmptyApproverAutoPass      = "AUTO_PASS"       // 自动通过
+	EmptyApproverAutoPass       = "AUTO_PASS"       // 自动通过
 	EmptyApproverAssignSpecific = "ASSIGN_SPECIFIC" // 指定兜底人
-	EmptyApproverAssignAdmin   = "ASSIGN_ADMIN"    // 分配给管理员
+	EmptyApproverAssignAdmin    = "ASSIGN_ADMIN"    // 分配给管理员
 )
 
 // SameSubmitterAction 提交人本人处理。
 const (
-	SameSubmitterSkip            = "SKIP"            // 跳过
-	SameSubmitterAllow           = "ALLOW"           // 允许
-	SameSubmitterAssignSuperior  = "ASSIGN_SUPERIOR" // 转上级
+	SameSubmitterSkip           = "SKIP"            // 跳过
+	SameSubmitterAllow          = "ALLOW"           // 允许
+	SameSubmitterAssignSuperior = "ASSIGN_SUPERIOR" // 转上级
 )
 
 // DuplicateApproverRule 重复审批人规则。
@@ -122,11 +124,11 @@ const (
 
 // TaskStatus 任务状态。
 const (
-	TaskStatusPending   = "PENDING"   // 待处理
-	TaskStatusApproving = "APPROVING" // 进行中
-	TaskStatusApproved  = "APPROVED"  // 已通过
+	TaskStatusPending    = "PENDING"    // 待处理
+	TaskStatusApproving  = "APPROVING"  // 进行中
+	TaskStatusApproved   = "APPROVED"   // 已通过
 	TaskStatusUnapproved = "UNAPPROVED" // 已驳回
-	TaskStatusRevoked   = "REVOKED"   // 已撤回
+	TaskStatusRevoked    = "REVOKED"    // 已撤回
 )
 
 // FormTable 表单类型 → 业务表名映射(资源状态写回用,防注入)。
@@ -149,4 +151,17 @@ var FormTable = map[string]string{
 	FormTypeLoan:           "oa_loan",
 	FormTypeMeetingBooking: "oa_meeting_booking",
 	FormTypeCustomForm:     "oa_form_data",
+}
+
+// FormUpdatableFields PassPostConfig.field_updates 允许更新的列白名单(防 SQL 标识符注入)。
+// 只收状态类列——字段更新仅用于状态流转联动,不作为通用字段写入通道;
+// 白名单外的列一律拒绝并在日志中提示。value 走参数化写入,无注入风险。
+var FormUpdatableFields = map[string][]string{
+	FormTypeContract:       {"stage"},
+	FormTypePurchaseOrder:  {"status"},
+	FormTypeSalesOrder:     {"status"},
+	FormTypePurchaseReturn: {"status"},
+	FormTypeSalesReturn:    {"status"},
+	FormTypeExpense:        {"payment_status"},
+	FormTypeLeave:          {"status"},
 }

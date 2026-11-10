@@ -124,6 +124,8 @@ export interface ApprovalTask {
   node_id: number
   node_round: number
   approver_id?: number
+  /** 上一手审批人(转办让渡/委托代审留痕,委托时=原审批人) */
+  delegator_id?: number | null
   status?: string
   /** 任务类型(CC抄送/SN加签/BK退回/NL常规) */
   type?: string
@@ -142,11 +144,59 @@ export interface ApprovalRecord {
   task_id: number
   node_id: number
   node_round: number
-  /** APPROVE / REJECT */
+  /** APPROVE / REJECT / AUTO_PASS / TRANSFER / DELEGATE */
   result: string
   comment: string
   created_at: string
   updated_at: string
+}
+
+// ── 实例流程图(轨迹可视化) ──
+
+/** 实例流程图节点(后端已解析审批人展示文本) */
+export interface ApprovalInstanceGraphNode {
+  id: number
+  number: string
+  name: string
+  /** START / APPROVER / CONDITION / DEFAULT / END */
+  node_type: string
+  /** 审批人展示文本(MEMBER 已解析昵称,其余为类型标签) */
+  approver_text: string
+}
+
+/** 实例流程图连线 */
+export interface ApprovalInstanceGraphLink {
+  id: number
+  flow_version_id: number
+  from_node_id: number
+  to_node_id: number
+  sort: number
+}
+
+/** 实例流程图(按实例绑定的流程版本取图,附加轨迹) */
+export interface ApprovalInstanceGraph {
+  flow_id: number
+  flow_name: string
+  flow_version_id: number
+  approval_status: string
+  /** 当前节点(审批中才有) */
+  current_node_id: number | null
+  /** 已走过的节点(任务+记录去重) */
+  visited_node_ids: number[] | null
+  nodes: ApprovalInstanceGraphNode[] | null
+  links: ApprovalInstanceGraphLink[] | null
+}
+
+/** 转办/委托模式 */
+export type TransferMode = 'TRANSFER' | 'DELEGATE'
+
+/** 转办/委托请求 */
+export interface TransferPayload {
+  task_id: number
+  target_user_id: number
+  /** TRANSFER(默认)/DELEGATE */
+  mode?: TransferMode
+  comment?: string
 }
 
 /** 审批实例详情 */

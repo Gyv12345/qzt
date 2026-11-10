@@ -15,6 +15,8 @@ export interface LayoutSettings {
   compactMode: boolean
   /** 色弱模式(invert 滤镜,增强对比辅助色觉障碍用户) */
   colorWeak: boolean
+  /** 多页签模式(内容区顶部 Tab 栏,切换保留页面状态) */
+  multiTab: boolean
 }
 
 interface SettingsState extends LayoutSettings {
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: LayoutSettings = {
   darkMode: false,
   compactMode: false,
   colorWeak: false,
+  multiTab: true,
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -41,15 +44,17 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'qzt-go-admin:settings',
-      version: 4,
+      version: 5,
       // v1 默认圆角 8 → v2 调整为 6(旧用户若仍是旧默认值则归正,自定义值保留);
       // v3 新增 compactMode / colorWeak,旧数据缺失字段补默认值;
-      // v4 默认主色亮蓝化 #2f54eb → #1677ff(仅归正仍为旧默认值的情况,自定义主色保留)
+      // v4 默认主色亮蓝化 #2f54eb → #1677ff(仅归正仍为旧默认值的情况,自定义主色保留);
+      // v5 新增 multiTab(多页签模式),旧数据缺失字段补默认值
       migrate: (persisted: unknown) => {
         const s = (persisted ?? {}) as Partial<LayoutSettings>
         if (s.borderRadius === 8) s.borderRadius = DEFAULT_SETTINGS.borderRadius
         if (s.compactMode === undefined) s.compactMode = DEFAULT_SETTINGS.compactMode
         if (s.colorWeak === undefined) s.colorWeak = DEFAULT_SETTINGS.colorWeak
+        if (s.multiTab === undefined) s.multiTab = DEFAULT_SETTINGS.multiTab
         if (s.colorPrimary?.toLowerCase() === '#2f54eb') s.colorPrimary = DEFAULT_SETTINGS.colorPrimary
         if (s.colorInfo?.toLowerCase() === '#2f54eb') s.colorInfo = DEFAULT_SETTINGS.colorInfo
         return s as LayoutSettings

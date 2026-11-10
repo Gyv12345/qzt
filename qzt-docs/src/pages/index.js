@@ -123,7 +123,7 @@ export default function Home() {
                 <ul className={styles.pricingList}>
                   <li>✅ 全部功能模块（CRM/审批/进销存/财务/HRM/AI）</li>
                   <li>✅ 不限用户数、不限数据量</li>
-                  <li>✅ 数据 100% 存你自己的服务器</li>
+                  <li>✅ 数据全部存留在你自己的服务器</li>
                   <li>✅ 可二次开发、可改品牌</li>
                 </ul>
               </div>

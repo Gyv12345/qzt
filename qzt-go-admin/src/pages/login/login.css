@@ -20,6 +20,14 @@
   background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
 }
 
+/* React Bits Aurora 弱化叠层(在品牌渐变之上、网格/装饰之下) */
+.login-hero-aurora {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* 网格底纹(通铺) */
 .login-hero-grid {
   position: absolute;
@@ -89,6 +97,12 @@
   margin: 0 0 14px;
 }
 
+/* BlurText 行(React Bits)是 h1 内的 <p>, 重置 UA 边距与字号继承 */
+.login-hero h1 .login-hero-line {
+  margin: 0;
+  font: inherit;
+}
+
 .login-hero-slogan {
   font-size: 16px;
   opacity: 0.78;
@@ -101,13 +115,33 @@
   flex-wrap: wrap;
 }
 
+/* 关键词 chips: 跟随标题入场后错落浮现(纯 CSS, 延迟对齐 BlurText 完成时间)
+   专用 keyframe: login-fade-up 终态 opacity:1 会经 fill-mode:both 永久覆盖设计的 0.85 */
 .login-hero-kw span {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 14px;
   padding: 4px 16px;
   font-size: 13px;
   opacity: 0.85;
+  animation: login-fade-up-kw 0.5s ease both;
 }
+
+@keyframes login-fade-up-kw {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 0.85;
+    transform: translateY(0);
+  }
+}
+
+.login-hero-kw span:nth-child(1) { animation-delay: 0.55s; }
+.login-hero-kw span:nth-child(2) { animation-delay: 0.65s; }
+.login-hero-kw span:nth-child(3) { animation-delay: 0.75s; }
+.login-hero-kw span:nth-child(4) { animation-delay: 0.85s; }
+.login-hero-kw span:nth-child(5) { animation-delay: 0.95s; }
 
 /* ── 右侧:登录卡 ── */
 .login-panel {
@@ -123,6 +157,19 @@
 .login-form-box {
   width: 360px;
   max-width: 100%;
+  /* React Bits 风格入场: 纯 CSS fade-up(仿 basic-layout qzt-slide-in 先例) */
+  animation: login-fade-up 0.5s ease both;
+}
+
+@keyframes login-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-form-title {
@@ -130,6 +177,11 @@
   font-weight: 600;
   color: #262626;
   margin-bottom: 6px;
+}
+
+/* 覆盖 GradientText 自带 margin:0 auto, 保持「欢迎登录」标题左对齐(与原型一致) */
+.login-form-title .animated-gradient-text {
+  margin: 0;
 }
 
 .login-form-sub {

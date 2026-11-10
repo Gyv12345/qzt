@@ -5,19 +5,19 @@ sidebar_label: 前端架构
 
 # 前端架构
 
-行简有三套前端，分别面向**后台管理**（admin）、**公众内容**（cms）、**移动办公**（mobile）。它们技术栈各异，但都是后端 RESTful API 的消费方，共享同一套 API 契约与设计语言。本文介绍三套前端各自的架构设计。
+行简有四套前端，分别面向**后台管理**（admin）、**公众内容**（cms）、**移动办公**（mobile）与**桌面办公**（desktop）。它们技术栈各异，但都是后端 RESTful API 的消费方，共享同一套 API 契约与设计语言。本文介绍各套前端各自的架构设计。
 
-## 三套前端对比
+## 四套前端对比
 
-| 维度 | admin | cms | mobile |
-| --- | --- | --- | --- |
-| 定位 | 后台管理 / 运营 | 官网 / 博客 / SEO | 外勤 / 移动办公 |
-| 框架 | React 19 | Next.js 15 (App Router) | React 19 |
-| 构建 | Vite 7 | Next.js 内置 | Vite 7 |
-| UI | antd 5 + ProComponents | Tailwind CSS | antd-mobile 5 |
-| 渲染 | CSR（客户端渲染） | SSR / ISR | CSR |
-| 鉴权 | JWT（强登录态） | 公开为主，少量接口 | JWT |
-| 部署 | 静态资源 + nginx | Node.js 或静态导出 | 静态资源 + nginx |
+| 维度 | admin | cms | mobile | desktop |
+| --- | --- | --- | --- | --- |
+| 定位 | 后台管理 / 运营 | 官网 / 博客 / SEO | 外勤 / 移动办公 | 桌面客户端（原生窗口 + 托盘） |
+| 框架 | React 19 | Next.js 15 (App Router) | React 19 | React 19 + Tauri 2（Rust 壳） |
+| 构建 | Vite 7 | Next.js 内置 | Vite 7 | Vite 7 + Cargo |
+| UI | antd 5 + ProComponents | Tailwind CSS | antd-mobile 5 | antd 5 + ProComponents |
+| 渲染 | CSR（客户端渲染） | SSR / ISR | CSR | CSR（系统 WebView） |
+| 鉴权 | JWT（强登录态） | 公开为主，少量接口 | JWT | JWT（与 admin 同源逻辑） |
+| 部署 | 静态资源 + nginx | Node.js 或静态导出 | 静态资源 + nginx | 安装包分发（macOS .dmg 先行） |
 
 ## admin · 管理后台
 
@@ -172,11 +172,43 @@ mobile 编译为静态资源，通过 nginx 部署。可：
 - 嵌入企业微信 / 钉钉作为工作台应用
 - 打包为 Hybrid App（套壳 WebView）
 
+## desktop · 桌面端
+
+desktop 是行简的**原生桌面客户端**，面向习惯独立窗口办公、需要后台常驻的用户。它是当前**功能最完整的终端**——直接复用 admin 的全部业务前端，CRM、审批、进销存、财务、HRM、OA 等模块一个不少。
+
+### 技术选型：Tauri 2 而非 Electron
+
+- **Tauri 2（Rust 壳）**：壳体积与内存占用远小于 Electron；前端跑在系统 WebView（macOS 为 WKWebView）中
+- **前端整体 fork 自 admin**：React 19 + Vite 7 + TS + antd 5，动态菜单路由、请求层、鉴权逻辑与 admin 完全一致；admin 侧改动需手动同步（暂无自动同步机制）
+- **窗口 + 系统托盘**：独立应用窗口，托盘常驻，不再挤占浏览器标签页
+
+### API 基址策略
+
+与 admin / mobile 的同源 `/prod-api` 前缀不同，desktop 是独立 origin（`tauri://localhost`），API 基址改为**可配置**：
+
+- `src/utils/request.ts` 的 `API_BASE` 默认直连生产 `https://<admin-domain>/prod-api`，dev 与打包产物行为一致
+- 本地联调时设 `VITE_API_BASE=/prod-api`，由 Vite dev server（端口 5176）代理转发到本地后端（9000）
+- 后端 CORS 若配置了白名单，需放行 webview origin（dev 为 `http://localhost:5176`，打包后为 `tauri://localhost`）
+
+### 与 admin 的其余差异
+
+- `index.html` 去掉了小屏跳转移动站的脚本（桌面窗口缩窄不应被劫持跳走）
+- 请求层与登录页的全局提醒文案英文化，后端返回的中文 `msg` 不直接弹出（走 `console.warn`），页面内业务提示仍为中文
+
+### 构建与分发
+
+```bash
+pnpm tauri dev     # 开发：先起 vite(5176) 再编译 Rust 壳并弹窗口
+pnpm tauri build   # 产物在 src-tauri/target/release/bundle/（macOS 为 .app/.dmg）
+```
+
+桌面端**不需要服务器部署**，以安装包形式分发。路线图：自动更新（tauri-plugin-updater + CDN）、原生系统通知、Windows 打包、关闭隐藏到托盘。详见 `qzt-desktop/README.md`。
+
 ## 共享与复用
 
-三套前端虽然是独立工程，但通过以下方式共享代码：
+四套前端虽然是独立工程，但通过以下方式共享代码：
 
-- **API 契约共享**：后端 OpenAPI 文档生成 TypeScript 类型，三端共用
+- **API 契约共享**：后端 OpenAPI 文档生成 TypeScript 类型，多端共用；desktop 直接整体复用 admin 前端源码
 - **业务常量共享**：错误码、字典枚举、状态机定义抽取为独立 npm 包
 - **设计 token 共享**：品牌色、间距规范通过共享的 design tokens 对齐
 

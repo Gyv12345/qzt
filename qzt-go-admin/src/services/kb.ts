@@ -41,6 +41,10 @@ export const updateDocument = (id: number, data: { category_id?: number; title?:
 export const deleteDocument = (id: number) =>
   request.delete(`/kb/documents/${id}`)
 
+/** 强制重建文档向量切片（P17 RAG） */
+export const reindexDocument = (id: number) =>
+  request.post<unknown, { chunks: number }>(`/kb/documents/${id}/reindex`)
+
 // ── 版本 ──
 
 export const listVersions = (docId: number, params?: PageParams) =>

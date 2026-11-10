@@ -30,11 +30,13 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/initiated", todoHandler.ListInitiated)
 		authenticated.GET("/instances/:id", todoHandler.GetDetail)
 		authenticated.GET("/instances/:id/resource", todoHandler.GetResource)
+		authenticated.GET("/instances/:id/graph", todoHandler.GetInstanceGraph)
 
-		// 审批操作(push/approve/reject 不走 Casbin;revoke 同理)
+		// 审批操作(push/approve/reject 不走 Casbin;revoke/transfer 同理)
 		authenticated.POST("/actions/push", actionHandler.Push)
 		authenticated.POST("/actions/approve", actionHandler.Approve)
 		authenticated.POST("/actions/reject", actionHandler.Reject)
+		authenticated.POST("/actions/transfer", actionHandler.Transfer)
 		authenticated.PUT("/instances/:id/revoke", actionHandler.Revoke)
 
 		// 只读流程配置查询不走 Casbin:合同/报销等业务页面(任意角色)提交前

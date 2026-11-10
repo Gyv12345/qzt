@@ -11,6 +11,7 @@ import Auth from '../../../components/Auth'
 import { approveTask, listMyTodos, rejectTask } from '../../../services/approval'
 import type { ApprovalTask } from '../../../types/approval'
 import InstanceDrawer from '../InstanceDrawer'
+import TransferModal from '../TransferModal'
 import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface CommentFormValues {
@@ -23,6 +24,7 @@ export default function ApprovalTodoPage() {
   const [form] = Form.useForm<CommentFormValues>()
   const [approveOpen, setApproveOpen] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
+  const [transferOpen, setTransferOpen] = useState(false)
   const [current, setCurrent] = useState<ApprovalTask | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerInstanceId, setDrawerInstanceId] = useState<number | null>(null)
@@ -37,6 +39,11 @@ export default function ApprovalTodoPage() {
     setCurrent(record)
     form.resetFields()
     setRejectOpen(true)
+  }
+
+  const openTransfer = (record: ApprovalTask) => {
+    setCurrent(record)
+    setTransferOpen(true)
   }
 
   const openDetail = (record: ApprovalTask) => {
@@ -93,7 +100,7 @@ export default function ApprovalTodoPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 180,
+      width: 220,
       fixed: 'right',
       render: (_, record) => (
         <Space>
@@ -105,6 +112,11 @@ export default function ApprovalTodoPage() {
           <Auth perm="approval:todo:reject">
             <Button type="link" size="small" danger onClick={() => openReject(record)}>
               驳回
+            </Button>
+          </Auth>
+          <Auth perm="approval:todo:transfer">
+            <Button type="link" size="small" onClick={() => openTransfer(record)}>
+              转办
             </Button>
           </Auth>
           <Button type="link" size="small" onClick={() => openDetail(record)}>
@@ -166,6 +178,15 @@ export default function ApprovalTodoPage() {
         instanceId={drawerInstanceId}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+      />
+      <TransferModal
+        open={transferOpen}
+        task={transferOpen ? current : null}
+        onClose={() => setTransferOpen(false)}
+        onSuccess={() => {
+          setTransferOpen(false)
+          actionRef.current?.reload()
+        }}
       />
     </>
   )

@@ -355,3 +355,106 @@ export const ASSET_STATUS: Record<number, { text: string; color: string }> = {
 export const ASSET_CATEGORY: Record<string, string> = {
   电脑: '电脑', 设备: '设备', 家具: '家具', 车辆: '车辆', 其他: '其他',
 }
+
+// ── 库存盘点/调拨(P15) ──
+
+/** 盘点单状态 */
+export const STOCKTAKE_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '盘点中', color: 'processing' },
+  2: { text: '已确认', color: 'success' },
+  3: { text: '已作废', color: 'default' },
+}
+
+/** 盘点单 */
+export interface PsiStocktake {
+  id: number
+  stocktake_no: string
+  warehouse_id: number
+  /** 1盘点中 2已确认 3已作废 */
+  status: number
+  take_date: string
+  operator_id: number | null
+  confirm_time: string
+  remark: string
+  created_at: string
+  updated_at: string
+  /** 后端回填仓库名 */
+  warehouse_name?: string
+}
+
+/** 盘点明细 */
+export interface PsiStocktakeItem {
+  id: number
+  stocktake_id: number
+  product_id: number
+  sku_id: number
+  sku_spec?: string
+  /** 账面数量(发起时快照) */
+  expected_qty: string
+  /** 实盘数量(未盘 null) */
+  actual_qty: string | null
+  /** 差异数量(actual-expected) */
+  diff_qty: string
+  remark: string
+}
+
+/** 盘点单详情(含明细) */
+export interface PsiStocktakeDetail extends PsiStocktake {
+  items: PsiStocktakeItem[] | null
+}
+
+/** 录实盘请求 */
+export interface PsiStocktakeActualPayload {
+  items: { item_id: number; actual_qty: number }[]
+}
+
+/** 调拨单状态 */
+export const STOCK_TRANSFER_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '在途', color: 'processing' },
+  2: { text: '完成', color: 'success' },
+  3: { text: '已作废', color: 'default' },
+}
+
+/** 调拨单 */
+export interface PsiStockTransfer {
+  id: number
+  transfer_no: string
+  from_warehouse_id: number
+  to_warehouse_id: number
+  /** 1在途 2完成 3已作废 */
+  status: number
+  transfer_date: string
+  operator_id: number | null
+  execute_time: string
+  remark: string
+  created_at: string
+  updated_at: string
+  /** 后端回填仓库名 */
+  from_warehouse_name?: string
+  to_warehouse_name?: string
+}
+
+/** 调拨明细 */
+export interface PsiStockTransferItem {
+  id: number
+  transfer_id: number
+  product_id: number
+  sku_id: number
+  sku_spec?: string
+  quantity: string
+  remark: string
+}
+
+/** 调拨单详情(含明细) */
+export interface PsiStockTransferDetail extends PsiStockTransfer {
+  items: PsiStockTransferItem[] | null
+}
+
+/** 创建调拨单请求 */
+export interface PsiStockTransferPayload {
+  from_warehouse_id: number
+  to_warehouse_id: number
+  order_date?: string
+  remark?: string
+  items: PsiOrderItemPayload[]
+}

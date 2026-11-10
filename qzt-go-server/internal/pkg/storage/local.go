@@ -382,6 +382,59 @@ func (s *Local) SavePrivateBytes(name string, data []byte, contentType string, f
 	)
 }
 
+// SaveBytes 实现 Uploader 接口:把内存字节上传到公共桶(无需 multipart 包装)。
+// name 用于推断扩展名与原始文件名;contentType 留空则按扩展名白名单映射。
+// 适用于代码生成的文件(如 GEO 产线下载的视频成片)直接落公共桶拿直链。
+func (s *Local) SaveBytes(name string, data []byte, contentType string, folders ...string) (*UploadedFile, error) {
+	if len(data) == 0 {
+		return nil, ErrEmptyFile
+	}
+	if int64(len(data)) > s.maxBytes {
+		return nil, ErrFileTooLarge
+	}
+	if len(folders) > 1 {
+		return nil, ErrInvalidFolder
+	}
+
+	folder := ""
+	if len(folders) == 1 {
+		folder = folders[0]
+	}
+	relativeFolder, err := s.resolveFolder(folder)
+	if err != nil {
+		return nil, err
+	}
+
+	extension := strings.ToLower(filepath.Ext(name))
+	expectedContentType, allowed := s.allowedTypes[extension]
+	if !allowed {
+		return nil, fmt.Errorf("%w: extension %q", ErrInvalidFileType, extension)
+	}
+	mediaType := strings.TrimSpace(contentType)
+	if mediaType == "" {
+		mediaType = expectedContentType
+	}
+
+	targetDirectory := filepath.Join(s.directory, filepath.FromSlash(relativeFolder))
+	n := len(data)
+	return s.storeFile(
+		targetDirectory, extension, relativeFolder, name, mediaType, VisibilityPublic,
+		func(f *os.File) (int64, error) {
+			written, writeErr := f.Write(data)
+			if writeErr != nil {
+				return int64(written), fmt.Errorf("write public upload file: %w", writeErr)
+			}
+			return int64(written), nil
+		},
+		func(written int64) error {
+			if int(written) != n {
+				return fmt.Errorf("short write: %d/%d bytes", written, n)
+			}
+			return nil
+		},
+	)
+}
+
 // Delete 实现 Uploader 接口:按 visibility 删除公共/私有目录下的文件。
 // 文件不存在视为成功(幂等)。key 做 Clean + 拒绝 "..",防路径穿越。
 func (s *Local) Delete(objectKey string, visibility string) error {
@@ -408,6 +461,49 @@ func (s *Local) Delete(objectKey string, visibility string) error {
 		return fmt.Errorf("delete local file %q: %w", full, err)
 	}
 	return nil
+}
+
+// List 媒体库列举公共目录对象(目录树遍历,按路径升序)。prefix 相对公共目录。
+func (s *Local) List(prefix string, maxKeys int) ([]MediaObject, error) {
+	if maxKeys <= 0 || maxKeys > 500 {
+		maxKeys = 200
+	}
+	trimmed := strings.Trim(strings.ReplaceAll(prefix, `\`, "/"), "/")
+	if trimmed == ".." || strings.HasPrefix(trimmed, "../") {
+		return nil, ErrInvalidFolder
+	}
+	root := filepath.Join(s.directory, filepath.FromSlash(trimmed))
+
+	list := make([]MediaObject, 0, 32)
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			return nil
+		}
+		rel, relErr := filepath.Rel(s.directory, path)
+		if relErr != nil {
+			return nil
+		}
+		info, infoErr := d.Info()
+		if infoErr != nil {
+			return nil
+		}
+		list = append(list, MediaObject{
+			Key:          filepath.ToSlash(rel),
+			Size:         info.Size(),
+			LastModified: info.ModTime(),
+		})
+		if len(list) >= maxKeys {
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+	return list, nil
 }
 
 // SignURL 为本地私有文件生成后端代理下载 URL: <prefix>?t=<token>&k=<key>。

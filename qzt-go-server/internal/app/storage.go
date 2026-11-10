@@ -48,6 +48,7 @@ var defaultAllowedTypes = map[string]string{
 	"xls":  "application/vnd.ms-excel",
 	"xlsx": "application/vnd.openxmlformats.spreadsheetml.sheet",
 	"zip":  "application/zip",
+	"mp4":  "video/mp4",
 }
 
 // IsAllowedFileExt 判断扩展名(带点小写,如 ".png")是否在上传白名单内。

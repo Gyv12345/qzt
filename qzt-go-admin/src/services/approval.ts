@@ -5,10 +5,12 @@ import type {
   ApprovalFlowPayload,
   ApprovalInstance,
   ApprovalInstanceDetail,
+  ApprovalInstanceGraph,
   ApprovalTask,
   FormField,
   ResourceSummary,
   SaveDesignRequest,
+  TransferPayload,
 } from '../types/approval'
 import type { PageParams } from '../types'
 
@@ -71,6 +73,16 @@ export const getInstanceResource = (id: number) =>
 /** 撤回审批(无请求体) */
 export const revokeApprovalInstance = (id: number) =>
   request.put(`/approval/instances/${id}/revoke`)
+
+/** 实例流程图(按实例绑定的流程版本,含已走/当前轨迹) */
+export const getInstanceGraph = (id: number) =>
+  request.get<unknown, ApprovalInstanceGraph>(`/approval/instances/${id}/graph`)
+
+// ---------- 审批操作 ----------
+
+/** 转办/委托审批任务(TRANSFER=让渡出队;DELEGATE=受托代审,责任仍在委托人) */
+export const transferTask = (data: TransferPayload) =>
+  request.post('/approval/actions/transfer', data)
 
 // ---------- 审批操作 ----------
 

@@ -77,7 +77,16 @@ export default function ClockPage() {
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%', paddingBottom: 24 }}>
-      <NavBar onBack={() => navigate(-1)}>考勤打卡</NavBar>
+      <NavBar
+        onBack={() => navigate(-1)}
+        right={
+          <span style={{ fontSize: 14 }} onClick={() => navigate('/hrm/my-schedule')}>
+            我的排班
+          </span>
+        }
+      >
+        考勤打卡
+      </NavBar>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60 }}>

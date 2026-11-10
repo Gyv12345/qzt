@@ -67,6 +67,19 @@ sidebar_label: 技术栈
 | 适配 | postcss-px-to-viewport | 响应式适配 |
 | 交互 | Vant Touch | 手势、下拉刷新 |
 
+## 桌面端（desktop · Tauri）
+
+以原生窗口 + 系统托盘形态交付的桌面客户端，前端复用 admin 全部业务代码。
+
+| 类别 | 技术 | 说明 |
+| --- | --- | --- |
+| 桌面壳 | **Tauri 2（Rust）** | 壳体积小、内存占用低，系统 WebView 渲染 |
+| 前端 | React 19 + TS + antd 5 | 整体 fork 自 admin，业务零重写 |
+| 构建 | Vite 7 + Cargo | `pnpm tauri build` 出 .app / .dmg |
+| 端口 | Vite dev 5176 | 与 admin(5173) / mobile(5174) / mall(5175) 错开 |
+| API 基址 | `VITE_API_BASE` 可配置 | 默认直连生产；联调走 Vite proxy |
+| 首发平台 | macOS | Windows 打包与自动更新在路线图中 |
+
 ## 基础设施
 
 | 类别 | 技术 | 说明 |

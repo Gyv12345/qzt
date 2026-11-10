@@ -44,6 +44,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/documents/:id", docHandler.GetByID)
 		auth.PUT("/documents/:id", docHandler.Update)
 		auth.DELETE("/documents/:id", docHandler.Delete)
+		auth.POST("/documents/:id/reindex", docHandler.Reindex)
 
 		// 版本历史
 		auth.GET("/documents/:id/versions", verHandler.List)

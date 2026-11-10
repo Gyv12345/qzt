@@ -21,6 +21,8 @@ type KbDocument struct {
 	LastEditorID *uint  `json:"last_editor_id" gorm:"comment:最后编辑人ID"`
 	// 浏览次数
 	ViewCount    int    `json:"view_count" gorm:"default:0;comment:浏览次数"`
+	// 切片数（P17 RAG，不落库，列表服务层填充）
+	ChunkCount   int    `json:"chunk_count" gorm:"-"`
 	base.BaseModel
 }
 

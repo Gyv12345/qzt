@@ -13,6 +13,7 @@ import type {
   HrmAttendanceSummary,
   HrmPayroll,
   HrmSalaryStructure,
+  MyScheduleRow,
 } from '../types/hrm'
 
 interface PageResult<T> { list: T[]; total: number }
@@ -282,3 +283,9 @@ export const saveSalaryStructure = (data: {
   housing_fund_base?: string
   remark?: string
 }) => request.put('/hrm/payroll/structure', data)
+
+// ---------- 我的排班(P14 移动端) ----------
+
+/** 我的排班月视图(仅登录,按登录人档案查本人班表) */
+export const mySchedule = (month: string) =>
+  request.get<unknown, { list: MyScheduleRow[] }>('/hrm/schedules/my', { params: { month } })

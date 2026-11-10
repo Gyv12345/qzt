@@ -21,6 +21,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth'
 
 import Chart, { funnelOption, lineOption, pieOption } from '../../components/Chart'
+import CountUp from '../../components/reactbits/CountUp'
+import FadeContent from '../../components/reactbits/FadeContent'
 import { menuHasPath } from '../../utils/menu'
 import {
   getCustomerDistribution,
@@ -321,22 +323,24 @@ export default function Dashboard() {
       </Row>
 
       {/* 核心 KPI:4 个突出展示的大卡片 */}
-      {!overview.failed && (
-        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-          {coreKpis.map((item) => (
-            <Col xs={12} md={6} key={item.title}>
-              <Card bodyStyle={{ padding: '20px 24px' }}>
-                <Statistic
-                  title={<span style={{ fontSize: 13, color: '#8c8c8c' }}>{item.title}</span>}
-                  value={item.value}
-                  precision={item.isAmount ? 2 : 0}
-                  prefix={item.isAmount ? '¥' : undefined}
-                  valueStyle={{ fontWeight: 600 }}
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
+      {!overview.failed && coreKpis.length > 0 && (
+        <FadeContent duration={600} css={{ marginTop: 16 }}>
+          <Row gutter={[16, 16]}>
+            {coreKpis.map((item) => (
+              <Col xs={12} md={6} key={item.title}>
+                <Card bodyStyle={{ padding: '20px 24px' }}>
+                  <Statistic
+                    title={<span style={{ fontSize: 13, color: '#8c8c8c' }}>{item.title}</span>}
+                    value={item.value}
+                    formatter={(v) => <CountUp to={Number(v)} decimals={item.isAmount ? 2 : 0} duration={1.6} />}
+                    prefix={item.isAmount ? '¥' : undefined}
+                    valueStyle={{ fontWeight: 600 }}
+                  />
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </FadeContent>
       )}
 
       {/* 次要指标:6 个小字 Statistic,紧凑排列 */}
@@ -348,7 +352,7 @@ export default function Dashboard() {
                 <Statistic
                   title={<span style={{ fontSize: 12 }}>{item.title}</span>}
                   value={item.value}
-                  precision={item.isAmount ? 2 : 0}
+                  formatter={(v) => <CountUp to={Number(v)} decimals={item.isAmount ? 2 : 0} duration={1.6} />}
                   prefix={item.isAmount ? '¥' : undefined}
                   valueStyle={{ fontSize: 18 }}
                 />
@@ -416,24 +420,47 @@ export default function Dashboard() {
           )}
           {!finance.failed && (
             <Col xs={24} lg={12}>
-              <SectionCard title="财务概览" loading={finance.loading} failed={finance.failed} empty={!fin}>
-                {fin && (
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Statistic title="采购金额" value={toAmount(fin.purchase_amount)} precision={2} prefix="¥" />
-                    </Col>
-                    <Col span={12}>
-                      <Statistic title="销售金额" value={toAmount(fin.sales_amount)} precision={2} prefix="¥" />
-                    </Col>
-                    <Col span={12}>
-                      <Statistic title="回款金额" value={toAmount(fin.received_amount)} precision={2} prefix="¥" />
-                    </Col>
-                    <Col span={12}>
-                      <Statistic title="库存货值" value={toAmount(fin.stock_value)} precision={2} prefix="¥" />
-                    </Col>
-                  </Row>
-                )}
-              </SectionCard>
+              {/* React Bits FadeContent: 财务卡入场显现 */}
+              <FadeContent duration={600}>
+                <SectionCard title="财务概览" loading={finance.loading} failed={finance.failed} empty={!fin}>
+                  {fin && (
+                    <Row gutter={[16, 16]}>
+                      <Col span={12}>
+                        <Statistic
+                          title="采购金额"
+                          value={toAmount(fin.purchase_amount)}
+                          formatter={(v) => <CountUp to={Number(v)} decimals={2} duration={1.6} />}
+                          prefix="¥"
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Statistic
+                          title="销售金额"
+                          value={toAmount(fin.sales_amount)}
+                          formatter={(v) => <CountUp to={Number(v)} decimals={2} duration={1.6} />}
+                          prefix="¥"
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Statistic
+                          title="回款金额"
+                          value={toAmount(fin.received_amount)}
+                          formatter={(v) => <CountUp to={Number(v)} decimals={2} duration={1.6} />}
+                          prefix="¥"
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Statistic
+                          title="库存货值"
+                          value={toAmount(fin.stock_value)}
+                          formatter={(v) => <CountUp to={Number(v)} decimals={2} duration={1.6} />}
+                          prefix="¥"
+                        />
+                      </Col>
+                    </Row>
+                  )}
+                </SectionCard>
+              </FadeContent>
             </Col>
           )}
         </Row>

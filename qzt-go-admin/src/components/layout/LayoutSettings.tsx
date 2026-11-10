@@ -41,7 +41,7 @@ function SettingRow({
 
 /** 布局/主题设置抽屉,入口为顶栏设置图标 */
 export default function LayoutSettings() {
-  const { colorPrimary, borderRadius, darkMode, compactMode, colorWeak, setSettings, resetSettings } =
+  const { colorPrimary, borderRadius, darkMode, compactMode, colorWeak, multiTab, setSettings, resetSettings } =
     useSettingsStore()
   const [open, setOpen] = useState(false)
 
@@ -140,6 +140,10 @@ export default function LayoutSettings() {
 
         <SettingRow label="紧凑模式" description="收紧间距与控件,提高信息密度">
           <Switch checked={compactMode} onChange={(v) => setSettings({ compactMode: v })} />
+        </SettingRow>
+
+        <SettingRow label="多页签模式" description="内容区顶部显示已打开页面的页签,切换时保留页面状态">
+          <Switch checked={multiTab} onChange={(v) => setSettings({ multiTab: v })} />
         </SettingRow>
 
         <Divider />

@@ -21,8 +21,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	employeeHandler := handler.NewEmployeeHandler()
 	attendanceHandler := handler.NewAttendanceHandler()
 	payrollHandler := handler.NewPayrollHandler()
+	payrollConfigHandler := handler.NewPayrollConfigHandler()
 	recruitmentHandler := handler.NewRecruitmentHandler()
 	performanceHandler := handler.NewPerformanceHandler()
+	scheduleHandler := handler.NewScheduleHandler()
 
 	// 已认证路由(仅 JWT,无 RBAC):部门树/岗位下拉(供其他模块表单选择)。
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
@@ -36,6 +38,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/attendance/clocks", attendanceHandler.ClockList)
 		authenticated.GET("/attendance/overtimes", attendanceHandler.OvertimeList)
 		authenticated.POST("/attendance/overtimes", attendanceHandler.ApplyOvertime)
+
+		// 我的排班(P14 移动端:仅登录,按登录人档案查本人班表)
+		authenticated.GET("/schedules/my", scheduleHandler.MySchedule)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):CRUD。
@@ -72,11 +77,39 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/attendance/summary/generate", attendanceHandler.GenerateSummary)
 		auth.GET("/attendance/summary", attendanceHandler.SummaryList)
 
+		// 排班管理(P14:班次/节假日/考勤组/排班)
+		auth.GET("/shifts", scheduleHandler.ListShifts)
+		auth.POST("/shifts", scheduleHandler.CreateShift)
+		auth.PUT("/shifts/:id", scheduleHandler.UpdateShift)
+		auth.DELETE("/shifts/:id", scheduleHandler.DeleteShift)
+		auth.GET("/holidays", scheduleHandler.ListHolidays)
+		auth.POST("/holidays", scheduleHandler.CreateHoliday)
+		auth.PUT("/holidays/:id", scheduleHandler.UpdateHoliday)
+		auth.DELETE("/holidays/:id", scheduleHandler.DeleteHoliday)
+		auth.GET("/attendance-groups", scheduleHandler.ListGroups)
+		auth.POST("/attendance-groups", scheduleHandler.CreateGroup)
+		auth.PUT("/attendance-groups/:id", scheduleHandler.UpdateGroup)
+		auth.DELETE("/attendance-groups/:id", scheduleHandler.DeleteGroup)
+		auth.GET("/schedules/month", scheduleHandler.MonthView)
+		auth.POST("/schedules/batch", scheduleHandler.BatchSchedule)
+		auth.DELETE("/schedules/:id", scheduleHandler.DeleteSchedule)
+
 		// 薪酬管理
 		auth.PUT("/payroll/structure", payrollHandler.SaveStructure)
 		auth.GET("/payroll/structure", payrollHandler.GetStructure)
 		auth.POST("/payroll/generate", payrollHandler.GeneratePayroll)
 		auth.GET("/payroll", payrollHandler.PayrollList)
+
+		// 薪酬设置(P16:社保方案/工资项/结构 v2)
+		auth.GET("/insurance-plans", payrollConfigHandler.ListPlans)
+		auth.POST("/insurance-plans", payrollConfigHandler.CreatePlan)
+		auth.PUT("/insurance-plans/:id", payrollConfigHandler.UpdatePlan)
+		auth.DELETE("/insurance-plans/:id", payrollConfigHandler.DeletePlan)
+		auth.GET("/salary-items", payrollConfigHandler.ListItems)
+		auth.POST("/salary-items", payrollConfigHandler.CreateItem)
+		auth.PUT("/salary-items/:id", payrollConfigHandler.UpdateItem)
+		auth.DELETE("/salary-items/:id", payrollConfigHandler.DeleteItem)
+		auth.PUT("/payroll/structure/v2", payrollConfigHandler.SaveStructureV2)
 		auth.PUT("/payroll/:id/confirm", payrollHandler.ConfirmPayroll)
 		auth.PUT("/payroll/:id/paid", payrollHandler.MarkPaid)
 

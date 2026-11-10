@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getPage } from "@/lib/api";
@@ -37,12 +38,8 @@ export default async function DynamicPage({ params }: Props) {
     title = page.title;
     content = page.content || "";
   } catch {
-    return (
-      <section className="container py-24 text-center">
-        <h1 className="font-display text-2xl font-bold text-strong">页面未找到</h1>
-        <p className="mt-4 text-muted">该页面可能已被删除或尚未发布。</p>
-      </section>
-    );
+    // 不存在的 slug 返回真 404,避免搜索引擎把占位内容当软 404 收录
+    notFound();
   }
 
   return (

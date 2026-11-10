@@ -22,16 +22,15 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import MessageBox from '../components/layout/MessageBox'
 import NotificationHandler from '../components/layout/NotificationHandler'
 import LayoutSettings from '../components/layout/LayoutSettings'
+import TabBar from '../components/layout/TabBar'
 import HelpGuide from '../components/layout/HelpGuide'
+import NotFound from '../pages/error/404'
+import { buildPageMap } from '../router/pages'
+import { useSettingsStore } from '../stores/settings'
+import { useTabsStore } from '../stores/tabs'
+import { findChain, visibleMenus } from '../utils/menu'
 
 import './basic-layout.css'
-
-/** 过滤出可见菜单(排除按钮),并按 sort 排序 */
-function visibleMenus(list: SysMenu[] = []): SysMenu[] {
-  return list
-    .filter((m) => m.type !== 2 && m.visible === 1 && m.status === 1)
-    .sort((a, b) => a.sort - b.sort)
-}
 
 /** 菜单树中第一个可跳转的叶子路径 */
 function firstLeafPath(menu: SysMenu): string | null {
@@ -58,41 +57,18 @@ type SiteCfgLite = Pick<
 /** 模块级缓存:布局重复挂载(登录跳转等)时避免闪烁 */
 let siteCfgCache: SiteCfgLite | null = null
 
-interface MenuChain {
-  module: SysMenu
-  /** 叶子所属的分组(二级目录),无分组时为 null */
-  group: SysMenu | null
-  leaf: SysMenu
-}
-
-/** 根据当前路径定位 模块/分组/叶子 三级链 */
-function findChain(modules: SysMenu[], pathname: string): MenuChain | null {
-  const match = (path?: string) =>
-    !!path && (pathname === path || pathname.startsWith(`${path}/`))
-  for (const module of modules) {
-    if (module.type === 1) {
-      if (match(module.path)) return { module, group: null, leaf: module }
-      continue
-    }
-    for (const child of visibleMenus(module.children)) {
-      if (child.type === 1) {
-        if (match(child.path)) return { module, group: null, leaf: child }
-        continue
-      }
-      for (const leaf of visibleMenus(child.children)) {
-        if (leaf.type === 1 && match(leaf.path)) return { module, group: child, leaf }
-      }
-    }
-  }
-  return null
-}
-
 export default function BasicLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const userLoaded = useAuthStore((s) => s.userLoaded)
   const menus = useAuthStore((s) => s.menus)
   const profile = useAuthStore((s) => s.profile)
+  /** 多 Tab 模式:Tab 列表/挂载记录/刷新计数(keep-alive 渲染用) */
+  const multiTab = useSettingsStore((s) => s.multiTab)
+  const tabs = useTabsStore((s) => s.tabs)
+  const tabMounted = useTabsStore((s) => s.mounted)
+  const refreshSeq = useTabsStore((s) => s.refreshSeq)
+  const openTab = useTabsStore((s) => s.open)
   /** antd 设计令牌:联系方式图标跟随主题色 */
   const { token } = antdTheme.useToken()
   const [loading, setLoading] = useState(!userLoaded)
@@ -153,6 +129,14 @@ export default function BasicLayout() {
   /** 当前路径命中的菜单链 */
   const chain = useMemo(() => findChain(allModules, location.pathname), [allModules, location.pathname])
 
+  /** Tab 面板的 path → 页面组件映射(组件走全局 lazy 缓存,实例稳定保证 keep-alive) */
+  const pageMap = useMemo(() => buildPageMap(menus), [menus])
+
+  // 进入新页面时打开对应 Tab('/' 由 index 路由重定向到 /dashboard,不作为 Tab)
+  useEffect(() => {
+    if (multiTab && location.pathname !== '/') openTab(location.pathname)
+  }, [multiTab, location.pathname, openTab])
+
   /** 首页(个人主页)路径:不展示左侧菜单 */
   const isHome = location.pathname === '/' || location.pathname === '/dashboard'
 
@@ -210,6 +194,13 @@ export default function BasicLayout() {
       if (path) navigate(path)
     }
   }
+
+  /** 页面级 Suspense 兜底(多 Tab 面板与单页模式共用) */
+  const pageLoading = (
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 120 }}>
+      <Spin size="large" />
+    </div>
+  )
 
   if (loading) {
     return (
@@ -359,18 +350,43 @@ export default function BasicLayout() {
           </>
         )}
 
-        <main className="qzt-content">
-          <ErrorBoundary>
-            <Suspense
-              fallback={
-                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 120 }}>
-                  <Spin size="large" />
-                </div>
-              }
-            >
-              <Outlet />
-            </Suspense>
-          </ErrorBoundary>
+        <main className={`qzt-content${multiTab ? ' with-tabs' : ''}`}>
+          {/* '/' 仍走 Outlet:让 index 路由的 <Navigate to="/dashboard"> 完成重定向后再进多 Tab 渲染 */}
+          {multiTab && location.pathname !== '/' ? (
+            <>
+              <TabBar />
+              {/* open 生效前的一帧把当前页临时并入渲染,避免新 Tab 首帧空白 */}
+              {(tabs.includes(location.pathname) || location.pathname === '/'
+                ? tabs
+                : [...tabs, location.pathname]
+              ).map((path) => {
+                // 持久化恢复但本会话未访问过的 Tab 先不挂载,首次激活时再挂载,
+                // 避免刷新页面时所有恢复的 Tab 同时发起数据请求
+                if (!tabMounted.includes(path) && path !== location.pathname) return null
+                const Page = pageMap.get(path)
+                return (
+                  <div
+                    key={`${path}#${refreshSeq[path] ?? 0}`}
+                    className="qzt-tabpane"
+                    style={{ display: path === location.pathname ? undefined : 'none' }}
+                  >
+                    <ErrorBoundary>
+                      <Suspense fallback={pageLoading}>
+                        {/* 菜单下线等导致映射缺失时兜底 404 */}
+                        {Page ? <Page /> : <NotFound />}
+                      </Suspense>
+                    </ErrorBoundary>
+                  </div>
+                )
+              })}
+            </>
+          ) : (
+            <ErrorBoundary>
+              <Suspense fallback={pageLoading}>
+                <Outlet />
+              </Suspense>
+            </ErrorBoundary>
+          )}
         </main>
       </div>
 

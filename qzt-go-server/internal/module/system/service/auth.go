@@ -9,6 +9,7 @@ import (
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/pkg/notify"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xcryption"
 	"qzt-go-server/pkg/xlogger"
@@ -50,6 +51,7 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest, ip string) (
 	user, err := s.userRepo.GetByUsername(ctx, req.Username)
 	if err != nil {
 		cache.IncrLoginFail(req.Username, ip)
+		s.alertLoginFail(ctx, req.Username, ip)
 		return nil, errors.New("用户名或密码错误")
 	}
 
@@ -62,6 +64,7 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest, ip string) (
 
 	if !xcryption.CheckPassword(user.Password, req.Password) {
 		count, _ := cache.IncrLoginFail(req.Username, ip)
+		s.alertLoginFail(ctx, req.Username, ip)
 		remaining := int64(loginFailMax) - count
 		if remaining > 0 {
 			return nil, fmt.Errorf("用户名或密码错误，还可尝试 %d 次", remaining)
@@ -85,6 +88,25 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest, ip string) (
 		Username:     user.Username,
 		Nickname:     user.Nickname,
 	}, nil
+}
+
+// alertLoginFail 持续登录失败告警:账号维度计数达到锁定阈值或 IP 已被封禁时
+// 触发,窗口内同一主体去重后,向超管(uid=1)发送站内信+企业微信。
+func (s *AuthService) alertLoginFail(ctx context.Context, username, ip string) {
+	ucount := cache.GetLoginUserFailCount(username)
+	banned := cache.IsIpBanned(ip)
+	if ucount < cache.LoginUserLimitMax && !banned {
+		return
+	}
+	if !cache.MarkLoginAlertSent(username, 15*time.Minute) {
+		return
+	}
+	xlogger.ErrorfCtx(ctx, "登录失败告警: username=%s ip=%s ucount=%d banned=%v", username, ip, ucount, banned)
+	msg := fmt.Sprintf("账号 %s（来源 IP %s）15 分钟内累计 %d 次登录失败，疑似暴力破解，请关注登录日志", username, ip, ucount)
+	if banned {
+		msg = fmt.Sprintf("来源 IP %s 短窗口内对多个账号连续登录失败，已临时封禁 30 分钟（涉及 %s 等），请关注登录日志", ip, username)
+	}
+	notify.Dispatch(ctx, 1, "【安全告警】登录失败集中告警", msg, "/system/login-logs")
 }
 
 // Logout 将 token 加入 Redis 黑名单（按剩余有效期过期），实现登出即时失效。

@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Descriptions, Drawer, Empty, Spin, Table, Tag, Timeline, Typography } from 'antd'
-import { getApprovalInstance, getInstanceResource } from '../../services/approval'
+import { Collapse, Descriptions, Drawer, Empty, Spin, Table, Tag, Timeline, Typography } from 'antd'
+import { getApprovalInstance, getInstanceGraph, getInstanceResource } from '../../services/approval'
 import { useDictStore } from '../../stores/dict'
-import type { ApprovalInstanceDetail, ResourceSummary } from '../../types/approval'
+import type { ApprovalInstanceDetail, ApprovalInstanceGraph, ResourceSummary } from '../../types/approval'
+import InstanceGraph from './InstanceGraph'
 
 interface InstanceDrawerProps {
   instanceId: number | null
@@ -21,8 +22,10 @@ const STATUS_TAG: Record<string, { color: string; text: string }> = {
 
 const RESULT_TAG: Record<string, { color: string; text: string }> = {
   APPROVE: { color: 'success', text: '通过' },
-  REJECT: { color: 'error', text: '驳回' },
+  REJECT: { color: 'error', text: '已驳回' },
   AUTO_PASS: { color: 'default', text: '自动通过' },
+  TRANSFER: { color: 'gold', text: '转办' },
+  DELEGATE: { color: 'purple', text: '委托' },
 }
 
 /** 字典值 → 中文(dict store 已在应用启动时预载) */
@@ -78,18 +81,22 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
   const [loading, setLoading] = useState(false)
   const [detail, setDetail] = useState<ApprovalInstanceDetail | null>(null)
   const [summary, setSummary] = useState<ResourceSummary | null>(null)
+  const [graph, setGraph] = useState<ApprovalInstanceGraph | null>(null)
 
   useEffect(() => {
     if (!open || !instanceId) return
     setLoading(true)
     setDetail(null)
     setSummary(null)
+    setGraph(null)
     Promise.all([
       getApprovalInstance(instanceId).catch(() => null),
       getInstanceResource(instanceId).catch(() => null),
-    ]).then(([d, s]) => {
+      getInstanceGraph(instanceId).catch(() => null),
+    ]).then(([d, s, g]) => {
       setDetail(d)
       setSummary(s)
+      setGraph(g)
       setLoading(false)
     })
   }, [open, instanceId])
@@ -114,7 +121,7 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
   ;(detail?.records || []).forEach((r) => {
     const tag = RESULT_TAG[r.result]
     recordItems.push({
-      color: r.result === 'REJECT' ? 'red' : 'green',
+      color: r.result === 'REJECT' ? 'red' : r.result === 'TRANSFER' || r.result === 'DELEGATE' ? 'gray' : 'green',
       children: (
         <>
           <div>
@@ -144,6 +151,20 @@ export default function InstanceDrawer({ instanceId, open, onClose }: InstanceDr
               <Descriptions.Item label="备注">{detail.comment || '-'}</Descriptions.Item>
             </Descriptions>
             <ResourceSummarySection summary={summary} />
+            {graph && (
+              <Collapse
+                ghost
+                style={{ marginTop: 16 }}
+                items={[
+                  {
+                    key: 'graph',
+                    label: '流程轨迹图',
+                    children: <InstanceGraph graph={graph} />,
+                  },
+                ]}
+                defaultActiveKey={['graph']}
+              />
+            )}
             <Typography.Title level={5} style={{ marginTop: 24 }}>
               审批记录
             </Typography.Title>
