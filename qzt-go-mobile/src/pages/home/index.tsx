@@ -233,27 +233,31 @@ export default function Home() {
     { key: 'payroll', label: '薪资', icon: <PayCircleOutlined />, iconBg: 'var(--icon-bg-contract)', path: '/hrm/payroll' },
   ]
 
-  const renderGrid = (entries: GridEntry[]) =>
-    entries.map((e) => (
-      <div
-        key={e.key}
-        className="home-grid-item"
-        onClick={() => {
-          if (e.key === 'mall') {
-            if (mallUrl) window.open(mallUrl, '_blank', 'noopener')
-            else Toast.show('商城未开通,请联系管理员配置')
-            return
-          }
-          navigate(e.path)
-        }}
-      >
-        <div className="home-grid-icon" style={{ background: e.iconBg, color: 'var(--brand)' }}>
-          {e.icon}
-          {e.badge ? <span className="home-grid-badge">{e.badge > 99 ? '99+' : e.badge}</span> : null}
+  // 宫格必须由 .home-grid(display:grid 4列) 包裹; 11-04 React Bits 改造时容器丢失导致图标竖排成一条线
+  const renderGrid = (entries: GridEntry[]) => (
+    <div className="home-grid">
+      {entries.map((e) => (
+        <div
+          key={e.key}
+          className="home-grid-item"
+          onClick={() => {
+            if (e.key === 'mall') {
+              if (mallUrl) window.open(mallUrl, '_blank', 'noopener')
+              else Toast.show('商城未开通,请联系管理员配置')
+              return
+            }
+            navigate(e.path)
+          }}
+        >
+          <div className="home-grid-icon" style={{ background: e.iconBg, color: 'var(--brand)' }}>
+            {e.icon}
+            {e.badge ? <span className="home-grid-badge">{e.badge > 99 ? '99+' : e.badge}</span> : null}
+          </div>
+          <span className="home-grid-label">{e.label}</span>
         </div>
-        <span className="home-grid-label">{e.label}</span>
-      </div>
-    ))
+      ))}
+    </div>
+  )
 
   return (
     <div className="home-page">

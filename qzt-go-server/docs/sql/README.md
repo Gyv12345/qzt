@@ -23,7 +23,7 @@
 
 | 文件 | 用途（摘自各文件头注释） |
 | --- | --- |
-| **`qztgo.sql`** | **全库地基**（DBX 导出）：全部系统表 + 系统地基种子（超管/菜单/API/字典），首次初始化必执行 |
+| **`qztgo.sql`** | **全库地基**（生产导出脱敏版，2026-11-11）：全部表结构 + 地基种子（超管/角色/菜单/API/字典/casbin/定时任务，**admin 初始密码 123456 首登必改**）+ 配置与官网内容数据（审批流定义/公海/阶段/科目/组织/表单模板/合同模板/GEO 配置/CMS 官网内容/演示账号）；运行日志、业务运行数据与真实密钥（企微/服务号 secret、OSS AK/SK 等）已剔除，部署后需在后台重新配置外部服务。首次初始化必执行 |
 | `api_key_toolsets.sql` | `sys_api_key` 增加 MCP 工具集字段（toolsets），API Key 级 MCP 工具过滤 |
 | `approval_flow_form_key.sql` | `approval_flow` 增加 form_key 维度（OA 自定义表单每模板一条审批流） |
 | `approval_preset.sql` | 审批流预置流程种子（13 种 form_type，is_preset=1 默认不启用） |
