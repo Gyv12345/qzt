@@ -61,7 +61,20 @@ gui-test-screenshots/
 demo-video/
 mcp-video/
 
+# 抖音视频制作工作目录与大卡片草稿（素材/成片产物，体积大不入库）
+dy-ai-video/
+.tmp_dy_cards/
+
 # agent 工具缓存
 .mimosa/
 .v2c/
 .video_agent/
+
+# 生产凭据密件（勿提交）
+docs/secrets.local.md
+
+# 回归测试 MCP Key 明文（点点测试员专用，勿提交；哈希种子见 docs/sql/regression-api-key.sql）
+docs/testing/regression/.mcp_key
+
+# IDE / agent 本地状态
+.openidea/

@@ -20,7 +20,7 @@ log:
 mysql:
   enable_read_write_separation: false  # 是否启用读写分离
   # 敏感连接串通过 .env 注入：make run 自动加载 .env 并导出 MYSQL_DSN
-  dsn: ${MYSQL_DSN:-root:CHANGE_ME@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s}
+  dsn: ${MYSQL_DSN:-root:<DATABASE_PASSWORD>@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s}
   mains_dsn: []                        # 主库 DSN（读写分离时）
   slaves_dsn: []                       # 从库 DSN（读写分离时）
   max_idle_conns: 4                    # 最大空闲连接

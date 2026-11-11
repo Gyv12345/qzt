@@ -80,6 +80,8 @@ var refNameColumn = map[string]string{
 	"hrm_department":  "name",
 	"hrm_employee":    "name",
 	"sys_user":        "nickname",
+	"oa_vehicle":      "plate_no",
+	"oa_seal":         "name",
 }
 
 // psiOrderStatus / psiReturnStatus / loanRepaidStatus 等枚举在各自 spec 内联。
@@ -216,6 +218,31 @@ var summarySpecs = map[string]struct {
 			"1": "待处理", "2": "已完成",
 		}, "入库仓库", "crm_customer"),
 		items: psiItemsSpec("psi_sales_return_detail", "return_id"),
+	},
+	apprmodel.FormTypeVehicle: {
+		fields: []fieldSpec{
+			{label: "用车申请单号", col: "application_no"},
+			{label: "申请人", col: "applicant_id", ref: "sys_user"},
+			{label: "部门", col: "dept_id", ref: "hrm_department"},
+			{label: "车辆", col: "vehicle_id", ref: "oa_vehicle"},
+			{label: "用车事由", col: "reason"},
+			{label: "出发时间", col: "start_time"},
+			{label: "预计归还", col: "end_time"},
+			{label: "随行人数", col: "passengers"},
+			{label: "目的地", col: "destination"},
+		},
+	},
+	apprmodel.FormTypeSeal: {
+		fields: []fieldSpec{
+			{label: "用印申请单号", col: "application_no"},
+			{label: "申请人", ref: "sys_user", col: "applicant_id"},
+			{label: "部门", col: "dept_id", ref: "hrm_department"},
+			{label: "印章", col: "seal_id", ref: "oa_seal"},
+			{label: "用印事由", col: "reason"},
+			{label: "文件名称", col: "document_name"},
+			{label: "份数", col: "copies"},
+			{label: "用印日期", col: "seal_date"},
+		},
 	},
 	// QUOTATION/ORDER:crm_quotation/crm_order 表未建,查无数据时按 Found=false 降级
 }

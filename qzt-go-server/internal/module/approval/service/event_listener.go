@@ -24,10 +24,12 @@ import (
 
 // 跨模块回调用的 repo(事件闭包共享,无状态)。
 var (
-	contractRepo = crmrepo.NewContractRepo()
-	loanRepo     = oarepo.NewLoanRepo()
-	accountRepo  = finrepo.NewAccountRepo()
-	voucherRepo  = finrepo.NewVoucherRepo()
+	contractRepo   = crmrepo.NewContractRepo()
+	loanRepo       = oarepo.NewLoanRepo()
+	accountRepo    = finrepo.NewAccountRepo()
+	voucherRepo    = finrepo.NewVoucherRepo()
+	vehicleAppRepo = oarepo.NewVehicleApplicationRepo()
+	vehicleRepo    = oarepo.NewVehicleRepo()
 )
 
 // RegisterEventListeners 注册审批相关的事件监听器。
@@ -134,6 +136,24 @@ func RegisterEventListeners(ctx context.Context) error {
 				if err := hrmrepo.UpdateLeaveStatus(ctx, resourceID, "APPROVED"); err != nil {
 					xlogger.ErrorfCtx(ctx, "审批回调:请假状态同步失败 leave_id=%d: %v", resourceID, err)
 				}
+			case "VEHICLE":
+				// 用车审批通过 → 车辆置为使用中(IN_USE);失败仅记日志不阻断
+				app, err := vehicleAppRepo.GetByID(ctx, resourceID)
+				if err != nil {
+					xlogger.ErrorfCtx(ctx, "审批回调:查询用车申请失败 vehicle_application_id=%d: %v", resourceID, err)
+				} else if vehicle, err := vehicleRepo.GetByID(ctx, app.VehicleID); err != nil {
+					xlogger.ErrorfCtx(ctx, "审批回调:查询车辆失败 vehicle_id=%d: %v", app.VehicleID, err)
+				} else {
+					vehicle.Status = "IN_USE"
+					if err := vehicleRepo.Update(ctx, vehicle); err != nil {
+						xlogger.ErrorfCtx(ctx, "审批回调:车辆状态更新失败 vehicle_id=%d: %v", vehicle.ID, err)
+					} else {
+						xlogger.InfofCtx(ctx, "审批回调:用车审批通过,车辆 %s(%d) 已置为使用中", vehicle.PlateNo, vehicle.ID)
+					}
+				}
+			case "SEAL":
+				// 用印审批通过 → 无需联动状态,仅记日志
+				xlogger.InfofCtx(ctx, "审批回调:用印审批通过 seal_application_id=%d", resourceID)
 			case "LOAN":
 				// 借款审批通过 → 生成财务凭证(其他应收-员工借款,DEBIT 借方)
 				loan, err := loanRepo.GetVoucherSource(ctx, resourceID)

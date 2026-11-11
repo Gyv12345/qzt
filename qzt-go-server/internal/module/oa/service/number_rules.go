@@ -46,6 +46,16 @@ func init() {
 		Enabled: true, Prefix: "BD", DateFormat: "YYYYMMDD", SeqWidth: 3,
 		CountFunc: countLike(&oamodel.OaFormData{}, "data_no"),
 	})
+	// 用车 CL
+	numbergen.Register("vehicle", numbergen.Rule{
+		Enabled: true, Prefix: "CL", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&oamodel.OaVehicleApplication{}, "application_no"),
+	})
+	// 印章 YZ
+	numbergen.Register("seal", numbergen.Rule{
+		Enabled: true, Prefix: "YZ", DateFormat: "YYYYMMDD", SeqWidth: 3,
+		CountFunc: countLike(&oamodel.OaSealApplication{}, "application_no"),
+	})
 }
 
 // countLike 统计指定 model 表中 column 列 LIKE "前缀+日期%" 的记录数

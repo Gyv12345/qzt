@@ -204,7 +204,7 @@ func testDSN() string {
 	}
 	base := os.Getenv("MYSQL_DSN")
 	if base == "" {
-		base = "root:CHANGE_ME@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s"
+		base = "root:<DATABASE_PASSWORD>@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s"
 	}
 	return replaceDBName(base, TestDBName)
 }

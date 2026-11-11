@@ -130,11 +130,12 @@ func (s *ScheduleService) Delete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// parseDateTimeField 解析 yyyy-MM-dd HH:mm:ss 为 xtime.DateTime。
+// parseDateTimeField 解析 "yyyy-MM-dd HH:mm:ss" 或 "yyyy-MM-dd" 为 xtime.DateTime。
 func parseDateTimeField(s string) (xtime.DateTime, error) {
-	t, err := time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
-	if err != nil {
-		return xtime.DateTime{}, err
+	for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02"} {
+		if t, err := time.ParseInLocation(layout, s, time.Local); err == nil {
+			return xtime.NewDateTime(t), nil
+		}
 	}
-	return xtime.NewDateTime(t), nil
+	return xtime.DateTime{}, errors.New("时间格式错误")
 }

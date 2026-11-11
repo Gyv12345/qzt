@@ -9,6 +9,7 @@ import {
   BellOutlined,
   BookOutlined,
   CalendarOutlined,
+  CarOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloudDownloadOutlined,
@@ -57,6 +58,7 @@ import {
   RocketOutlined,
   RollbackOutlined,
   SafetyOutlined,
+  SafetyCertificateOutlined,
   ScheduleOutlined,
   SearchOutlined,
   SendOutlined,
@@ -90,6 +92,7 @@ const icons: Record<string, IconComponent> = {
   BellOutlined,
   BookOutlined,
   CalendarOutlined,
+  CarOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloudDownloadOutlined,
@@ -138,6 +141,7 @@ const icons: Record<string, IconComponent> = {
   RocketOutlined,
   RollbackOutlined,
   SafetyOutlined,
+  SafetyCertificateOutlined,
   ScheduleOutlined,
   SearchOutlined,
   SendOutlined,
@@ -171,6 +175,9 @@ const aliases: Record<string, string> = {
   coin: 'DollarOutlined',
   tickets: 'DollarOutlined',
   dataanalysis: 'FundOutlined',
+  /** @ant-design/icons v5 无 StampOutlined(印章),用安全证书图标替代 */
+  stampoutlined: 'SafetyCertificateOutlined',
+  stamp: 'SafetyCertificateOutlined',
 }
 
 const normalized = new Map<string, IconComponent>()

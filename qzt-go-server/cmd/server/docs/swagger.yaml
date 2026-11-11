@@ -445,6 +445,18 @@ definitions:
         description: 企业微信UserID
         type: string
     type: object
+  service.AIChatRequest:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/service.ChatMessage'
+        type: array
+    type: object
+  service.AIChatResponse:
+    properties:
+      reply:
+        type: string
+    type: object
   service.AccountPayload:
     properties:
       app_id:
@@ -533,6 +545,13 @@ definitions:
         type: integer
     required:
     - status
+    type: object
+  service.ChatMessage:
+    properties:
+      content:
+        type: string
+      role:
+        type: string
     type: object
   service.ClockInRequest:
     properties:
@@ -1572,6 +1591,45 @@ definitions:
     - start_time
     - title
     type: object
+  service.CreateSealApplicationRequest:
+    properties:
+      applicant_id:
+        type: integer
+      copies:
+        type: integer
+      dept_id:
+        type: integer
+      document_name:
+        type: string
+      reason:
+        type: string
+      seal_date:
+        type: string
+      seal_id:
+        type: integer
+      title:
+        type: string
+    required:
+    - reason
+    - seal_date
+    - seal_id
+    - title
+    type: object
+  service.CreateSealRequest:
+    properties:
+      keeper_id:
+        type: integer
+      name:
+        type: string
+      remark:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+    required:
+    - name
+    type: object
   service.CreateStockInRequest:
     properties:
       biz_type:
@@ -1796,6 +1854,50 @@ definitions:
     required:
     - password
     - username
+    type: object
+  service.CreateVehicleApplicationRequest:
+    properties:
+      applicant_id:
+        type: integer
+      dept_id:
+        type: integer
+      destination:
+        type: string
+      end_time:
+        type: string
+      passengers:
+        type: integer
+      reason:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+      vehicle_id:
+        type: integer
+    required:
+    - end_time
+    - reason
+    - start_time
+    - title
+    - vehicle_id
+    type: object
+  service.CreateVehicleRequest:
+    properties:
+      owner_id:
+        type: integer
+      plate_no:
+        type: string
+      remark:
+        type: string
+      seats:
+        type: integer
+      status:
+        type: string
+      vehicle_model:
+        type: string
+    required:
+    - plate_no
     type: object
   service.CreateVoucherRequest:
     properties:
@@ -3080,6 +3182,42 @@ definitions:
       title:
         type: string
     type: object
+  service.UpdateSealApplicationRequest:
+    properties:
+      copies:
+        type: integer
+      dept_id:
+        type: integer
+      document_name:
+        type: string
+      reason:
+        type: string
+      seal_date:
+        type: string
+      seal_id:
+        type: integer
+      title:
+        type: string
+    required:
+    - reason
+    - seal_id
+    - title
+    type: object
+  service.UpdateSealRequest:
+    properties:
+      keeper_id:
+        type: integer
+      name:
+        type: string
+      remark:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+    required:
+    - name
+    type: object
   service.UpdateSiteConfigRequest:
     properties:
       analytics_code:
@@ -3292,6 +3430,46 @@ definitions:
       status:
         type: integer
     type: object
+  service.UpdateVehicleApplicationRequest:
+    properties:
+      dept_id:
+        type: integer
+      destination:
+        type: string
+      end_time:
+        type: string
+      passengers:
+        type: integer
+      reason:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+      vehicle_id:
+        type: integer
+    required:
+    - reason
+    - title
+    - vehicle_id
+    type: object
+  service.UpdateVehicleRequest:
+    properties:
+      owner_id:
+        type: integer
+      plate_no:
+        type: string
+      remark:
+        type: string
+      seats:
+        type: integer
+      status:
+        type: string
+      vehicle_model:
+        type: string
+    required:
+    - plate_no
+    type: object
   service.UpdateWarehouseRequest:
     properties:
       address:
@@ -3392,6 +3570,33 @@ info:
   title: 企业级业务管理平台 API
   version: "1.0"
 paths:
+  /api/ai/chat:
+    post:
+      description: 多轮对话:取最近20条消息+系统提示词走统一LLM网关(feature=ai.chat记账);需 sys_config ai.chat_enabled=1(默认关)
+      parameters:
+      - description: 对话消息列表(最近20条)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AIChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.AIChatResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: AI 助手对话补全
+      tags:
+      - AI助手
   /api/attachments:
     get:
       description: 按 biz_type + resource_id 查询附件列表
@@ -11749,6 +11954,256 @@ paths:
       summary: 日程日历
       tags:
       - OA-日程
+  /oa/seal-applications:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 申请单号(模糊)
+        in: query
+        name: application_no
+        type: string
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
+      - description: 申请人ID
+        in: query
+        name: applicant_id
+        type: integer
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 用印申请列表
+      tags:
+      - OA-印章
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用印申请
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateSealApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建用印申请
+      tags:
+      - OA-印章
+  /oa/seal-applications/{id}:
+    delete:
+      parameters:
+      - description: 用印申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除用印申请
+      tags:
+      - OA-印章
+    get:
+      parameters:
+      - description: 用印申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 用印申请详情
+      tags:
+      - OA-印章
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用印申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 用印申请
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateSealApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑用印申请
+      tags:
+      - OA-印章
+  /oa/seals:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 印章名称(模糊)
+        in: query
+        name: name
+        type: string
+      - description: 类型(OFFICIAL/CONTRACT/FINANCE/LEGAL/OTHER)
+        in: query
+        name: type
+        type: string
+      - description: 状态(1启用/2停用)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 印章列表
+      tags:
+      - OA-印章
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 印章
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateSealRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建印章
+      tags:
+      - OA-印章
+  /oa/seals/{id}:
+    delete:
+      parameters:
+      - description: 印章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除印章
+      tags:
+      - OA-印章
+    get:
+      parameters:
+      - description: 印章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 印章详情
+      tags:
+      - OA-印章
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 印章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 印章
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateSealRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑印章
+      tags:
+      - OA-印章
   /oa/trips:
     get:
       parameters:
@@ -11880,6 +12335,272 @@ paths:
       summary: 编辑出差申请
       tags:
       - OA-出差
+  /oa/vehicle-applications:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 申请单号(模糊)
+        in: query
+        name: application_no
+        type: string
+      - description: 标题(模糊)
+        in: query
+        name: title
+        type: string
+      - description: 申请人ID
+        in: query
+        name: applicant_id
+        type: integer
+      - description: 审批状态
+        in: query
+        name: approval_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 用车申请列表
+      tags:
+      - OA-用车
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用车申请
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateVehicleApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建用车申请
+      tags:
+      - OA-用车
+  /oa/vehicle-applications/{id}:
+    delete:
+      parameters:
+      - description: 用车申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除用车申请
+      tags:
+      - OA-用车
+    get:
+      parameters:
+      - description: 用车申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 用车申请详情
+      tags:
+      - OA-用车
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用车申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 用车申请
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateVehicleApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑用车申请
+      tags:
+      - OA-用车
+  /oa/vehicle-applications/{id}/return:
+    post:
+      parameters:
+      - description: 用车申请ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 归还车辆
+      tags:
+      - OA-用车
+  /oa/vehicles:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 车牌号(模糊)
+        in: query
+        name: plate_no
+        type: string
+      - description: 状态(IDLE/IN_USE/MAINTENANCE/DISABLED)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 车辆列表
+      tags:
+      - OA-用车
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 车辆
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateVehicleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建车辆
+      tags:
+      - OA-用车
+  /oa/vehicles/{id}:
+    delete:
+      parameters:
+      - description: 车辆ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除车辆
+      tags:
+      - OA-用车
+    get:
+      parameters:
+      - description: 车辆ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 车辆详情
+      tags:
+      - OA-用车
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 车辆ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 车辆
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateVehicleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 编辑车辆
+      tags:
+      - OA-用车
   /oa/work-logs:
     get:
       parameters:

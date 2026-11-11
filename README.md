@@ -1,168 +1,223 @@
-# 行简 —— 开源一站式企业管理平台（原企智通）
+# 行简 XingJian
 
-> 一个系统,管好企业的大部分业务。**CRM + 审批流 + 进销存 + 财务 + HRM + OA + 项目 + 知识库 + 网盘 + 营销获客 + 商城 + 官网 CMS + AI(MCP)**,13 个业务模块长在同一套数据库上,MIT 协议完全开源,私有化部署,数据 100% 归企业所有。
+<p align="center">
+  <img src="docs/images/readme/website.png" alt="行简" width="720">
+</p>
 
-线上示例:[行简官网](https://devlovecode.com)(产品介绍 / 在线体验 / 文档)
+![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![antd](https://img.shields.io/badge/antd-5-1677FF?logo=antdesign&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
+![MIT](https://img.shields.io/badge/License-MIT-yellow)
 
-## 为什么是行简?
+> **行简**——面向中小企业的开源一体化业务管理平台：**CRM 客户管理 / OA 协同办公 / BPM 审批流 / HRM 人力资源 / ERP 进销存 / 财务管理 / 项目管理 / 商城 / 官网 CMS**，一套系统管好整个企业。
+>
+> **Go 单体架构**：2核4G 云服务器跑完全栈还有富余；内置 **MCP Server（86+ 工具）**，AI 助手（ZCode/Claude 等 MCP 客户端）可直接操作整个系统——「AI 业务系统」而不只是「带 AI 功能的管理软件」。
 
-- **一体化,不是拼盘**:签了合同,财务自动生成应收;报销审批一通过,记账凭证自动落账;商城来了订单,进销存自动出库扣库存;抖音广告线索自动进销售公海。业务之间不需要人工"粘合"。
-- **开源 + 私有化**:全部源码无保留(MIT),部署在你自己的服务器上,MySQL / Redis 都是常见组件,没有黑盒云服务。
-- **AI 原生**:内置 MCP Server,把 336 个业务操作开放给任意支持 MCP 的 AI 客户端(Claude、Cursor 等),自然语言直接查库存、录客户、走审批。
-- **多端形态**:管理后台(PC)+ 企业官网 + 移动端 H5 + 独立商城,一套后端全支持。
+---
 
-## 功能模块
+## ✨ 为什么选择行简
 
-| 模块 | 能力概览 |
+| | |
 | --- | --- |
-| CRM 客户管理 | 线索/公海/查重、客户档案与自定义字段、联系人、商机阶段与漏斗、合同模板与审批、回款计划与登记、售后工单、产品与多规格 SKU |
-| 审批中心 | 待办/已办/我发起的;按表单类型配置审批流(多级、会签/或签、角色/主管/上级、空审批人兜底) |
-| 办公 OA | 可视化自定义表单、报销(审批通过自动记账)、出差、借款、请假、工作日志、日程、会议预订(冲突检测)、公告、站内信(SSE 实时推送) |
-| 进销存 PSI | 采购/销售单(审批 + 出入库)、多规格 SKU × 多仓库库存、收发明细、其他出入库(期初/盘盈亏/领用/报废)、供应商、仓库、固定资产、报表 |
-| 财务 | 会计科目、记账凭证、发票(自动算税)、应收应付(部分结算)、资产负债表/利润表 |
-| 人事 HRM | 部门/岗位/员工档案(履历)、考勤打卡 + 企业微信打卡自动同步、绩效考核(自评 + 评审)、招聘 |
-| 项目管理 | 项目关联客户合同,任务看板(负责人/优先级/截止) |
-| 知识库 / 网盘 | 分类树 + 文档 + 版本历史;个人/部门/公共三类空间 |
-| 营销获客 | 抖音/巨量引擎广告线索自动同步入公海,同步日志逐条留痕 |
-| 独立商城 | 免登录下单,商品复用 CRM 产品库,成交自动生成 PSI 销售单并扣库存 |
-| 官网 CMS | 文章/分类/单页/标签/首页板块后台可维护;联系表单自动创建 CRM 线索 |
-| 系统管理 | 用户/角色/菜单(RBAC + 四档数据权限)、字典、业务编号规则、企业微信扫码登录、操作/登录日志(IP 归属地)、定时任务 |
-| AI(MCP) | 内置 MCP Server:336 个业务工具,API Key 认证、按模块裁剪、操作级鉴权、默认拒绝 |
+| 🏢 **一体化**：CRM/OA/HRM/ERP/财务全部打通，一个平台管好整个企业 | 💰 **低成本**：Go 单体二进制 + MySQL + Redis，2核4G 单机全栈，部署当天可用 |
+| 🔄 **审批驱动**：自研 BPM 引擎（转办/委托/加签/版本快照/轨迹图）+ 钉钉式可视化设计器 | 🤖 **AI 可直接操作**：内置 MCP Server（86+ 工具），任何 MCP 客户端可直接查客户/建合同/审单据 |
+| 📱 **全端覆盖**：后台 + H5 + iOS + Android + 桌面端，一套后端全适配 | 🔓 **真开源**：MIT 协议 100% 免费商用，代码完全开放 |
 
-## 架构
+## 🌐 在线体验
 
-```
-                    ┌───────────────┐
-                    │ qzt-go-server │  唯一数据源(Go 1.25 + Gin + GORM + Casbin + Redis, :9000)
-                    └──────┬────────┘
-        ┌─────────┬────────┼─────────┬──────────┐
-        │         │        │         │          │
-   qzt-go-admin  qzt-go-cms  qzt-go-mobile  qzt-go-mall  qzt-docs
-   （管理后台 SPA）（企业官网）  （移动端 H5）  （公开商城）  （文档站）
-```
-
-- 后端是**模块化单体**:一个 Go 进程承载全部业务域(路由按模块自动挂载 `/crm`、`/psi`、`/finance`…),所有前端统一走 `/prod-api` 前缀消费 REST API,响应信封 `{code, msg, data, timestamp}`。
-- 分层:`Router → Middleware → Handler → Service → Repository → GORM`,跨模块依赖走 contract 接口。
-- 认证 JWT + Casbin RBAC;数据权限四档(全部/本部门/本部门及子/仅本人)在列表层自动过滤。
-
-## 快速开始
-
-### 1. 初始化数据库(MySQL 8)
-
-```bash
-mysql -u root -p -e "CREATE DATABASE qztgo DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci"
-# 地基表 + 种子数据(必须最先执行),再按需执行同目录模块 SQL
-mysql -u root -p qztgo < qzt-go-server/docs/sql/qztgo.sql
-```
-
-`docs/sql/` 中 `rbac_test_*`、`fix_*`、`*_remove` 等为回归补丁/历史迁移,新装可跳过,详见该目录 README。
-
-### 2. 启动后端(:9000)
-
-```bash
-cd qzt-go-server
-cp .env.example .env       # 填入 MySQL DSN / Redis / JWT_SECRET
-make run                   # 默认加载 .env 与 config/config.dev.yaml
-# Swagger: http://localhost:9000/swagger/index.html
-```
-
-默认管理员:`admin / admin123`(登录后请立即修改)。
-
-### 3. 启动管理后台(:5173)
-
-```bash
-cd qzt-go-admin
-pnpm install && pnpm dev   # dev 代理已把 /prod-api 转发到 localhost:9000
-```
-
-### 4. 其它前端(可选)
-
-```bash
-cd qzt-go-cms   && npm install && npm run dev    # 官网 :3000
-cd qzt-go-mobile && pnpm install && pnpm dev     # 移动端 H5 :5174
-cd qzt-go-mall  && pnpm install && pnpm dev      # 公开商城 :5175
-```
-
-生产部署参考各子项目 README 与 `docs/sql/README.md`(后端交叉编译 + systemd,前端静态托管 / Next.js 独立进程)。
-
-## AI 接入(MCP)
-
-后端内置 MCP Server(Streamable HTTP,挂载 `/mcp`),把 CRM/进销存/财务/人事/OA 等模块的 336 个业务操作封装为标准 MCP 工具:
-
-- 在管理后台「个人中心 → API Key」生成密钥(`qzt_` 前缀),按模块裁剪工具集;
-- 在任意支持 MCP 的客户端(Claude Desktop、Cursor、自建 Agent…)配置该地址与密钥即可;
-- 每次工具调用都经过操作级权限映射 + Casbin 鉴权,未授权操作默认拒绝,全量审计。
-
-效果:对 AI 说「帮我看看本月回款和库存预警」「新建一个客户,联系人王总」「提交一条请假」——它直接操作你的行简。
-
-## 目录结构
-
-```
-qzt-go-server/   Go 后端(API/MCP/定时任务/文档与建表 SQL)
-qzt-go-admin/    管理后台(React 19 + antd 5 + ProComponents)
-qzt-go-cms/      企业官网(Next.js 15)
-qzt-go-mobile/   移动端 H5(React 19 + antd-mobile)
-qzt-go-mall/     独立公开商城(React 19 + antd-mobile)
-qzt-docs/        文档站(Docusaurus)
-```
-
-> iOS / Android 原生客户端未包含在本开源仓库中。
-
-## 文档
-
-- 后端架构与编码规范:`qzt-go-server/docs/`(ARCHITECTURE / CODING / PRD)
-- 各子项目 README(构建、配置、联调约定)
-- 接口文档:后端启动后访问 `/swagger/index.html`
-- 在线文档站源码:`qzt-docs/`
-
-## 商务服务
-
-| 项目 | 费用 | 说明 |
+| 入口 | 地址 | 账号 |
 | --- | --- | --- |
-| 自部署 | **免费** | 开源协议允许任意使用,照本 README 部署即可 |
-| 交钥匙部署 | **1000 元(一次性)** | 部署到你的服务器:环境搭建、上线、基础使用培训 |
-| 二次开发 | 500 元/天(5 天内) | 新功能、流程改造、第三方对接;超过 5 天 300 元/天 |
+| 🖥️ **管理后台演示** | [admin.devlovecode.com](https://admin.devlovecode.com) | `zhangsan / 123456`（演示账号） |
+| 📱 **移动端 H5** | [m.devlovecode.com](https://m.devlovecode.com) | `zhangsan / 123456` |
+| 🛒 **公开商城** | [mall.devlovecode.com](https://mall.devlovecode.com) | 免登录 |
+| 🏠 **官网** | [devlovecode.com](https://devlovecode.com) | — |
 
-- 官网:[devlovecode.com](https://devlovecode.com)(在线体验 / 需求留言)
-- 电话:15139960649(史晨阳)
-- 邮箱:shichenyang@devlovecode.com
-- 河南爱编程网络科技有限公司 · 河南洛阳
+> 💡 演示账号为公开体验账号（数据为演示集，数据权限=仅本人），建议 Chrome/Edge 浏览器体验。
 
-## 常见问题
+## 📦 功能模块总览
 
-### 行简收费吗？需要购买商业授权吗？
+> 🔥 一个平台覆盖企业全链路业务，模块化架构、按需启用
 
-**软件源码本身完全免费。** 行简采用 MIT 协议开源,允许企业商用、私有化部署、二次开发,只需保留源码中的版权声明。**不存在**商业授权费、永久版权费、按用户数或按年订阅的收费项——它也不是 SaaS,系统部署在你自己的服务器上,没有年费。
+| 子系统 | 核心功能 |
+| --- | --- |
+| 🤝 **CRM 客户管理** | 线索/公海/客户/联系人/商机/合同/回款/查重/产品/售后工单，跟进记录时间线 |
+| 🏠 **OA 协同办公** | 报销/出差/借款/用车/印章/会议室预约/日程/公告/站内信/自定义表单 |
+| ⚙️ **BPM 审批流** | 自研引擎：钉钉式可视化设计器 + 画布模式双模、会签/或签/依次、转办/委托/加减签、超时审批、版本快照、流程轨迹图 |
+| 👥 **HRM 人力资源** | 员工档案/部门岗位/考勤打卡（企微同步）/排班 v2/假期额度/薪酬（社保方案+公式引擎）/绩效/招聘 |
+| 📊 **ERP 进销存** | 采购/销售/库存多仓/商品 SKU 多规格/盘点/调拨，单据全自动过审批 |
+| 💰 **财务管理** | 会计科目/凭证/账簿/利润表/资产负债表/发票台账/应收应付往来款 |
+| 🛒 **企业商城** | 独立公开商城站，商品复用 CRM 产品库，下单自动生成销售单 |
+| 🌐 **官网 CMS** | 文章定时发布/有效期、修订版本回滚、站内搜索、媒体库、FAQ/JSON-LD GEO 优化 |
+| 📋 **项目管理** | 项目/任务/看板/优先级 |
+| 📚 **知识库** | 文档协同编辑、历史版本、RAG 召回（Embedding 向量检索） |
+| 📡 **营销中心** | 抖音/巨量线索自动入库 CRM、GEO（AI 引擎优化）内容产线 |
+| 📈 **数据看板** | 工作台 BI 汇总、CRM/HRM/财务/进销存分析看板 |
+| 🤖 **AI 能力** | **MCP Server（86+ 工具，AI 直接操作系统）**、LLM 网关（多供应商）、AI 对话页、知识库 RAG、AI 质检 |
+| 🔧 **基础设施** | RBAC 数据权限/多租户式组织树/自动编号/操作日志/IP 归属地/SSE 实时通知/企微集成 |
 
-收费的只有**可选的人工服务**(见上方「商务服务」):
+## 🏗️ 技术架构
 
-- **交钥匙部署:1000 元(一次性)** —— 官方帮你把整套源码部署到你自己的服务器,含基础数据初始化与操作培训。这是技术服务费,不是软件授权费;云服务器、域名等资源费用由你自担。
-- **二次开发:500 元/天(5 天以上 300 元/天)** —— 新增功能、模块改造、第三方对接。
-- 售后维保、版本升级服务可单独商谈。
+```
+浏览器 / 手机 / 桌面 / AI(MCP)
+        │  /prod-api（统一前缀）
+        ▼
+┌─────────────────────────────────────────────────┐
+│                 qzt-go-server（唯一数据源）        │
+│  Gin + GORM + Casbin(RBAC/数据权限) + Redis       │
+│  ┌──────┬──────┬──────┬──────┬──────┬──────┐    │
+│  │ CRM  │  OA  │ HRM  │ ERP  │ 财务 │ 商城  │... │
+│  └──────┴──────┴──────┴──────┴──────┴──────┘    │
+│        MCP Server │ LLM 网关 │ SSE │ 定时任务     │
+└────────────────────┬────────────────────────────┘
+                     ▼
+            MySQL（唯一存储）+ 阿里云 OSS（文件）
+```
 
-不购买任何服务、完全自己拉代码部署,同样合法可用。
+**部署形态**：单个 Go 二进制 + MySQL + Redis，单机 2核4G 即可全栈运行（生产实测整机内存 4G 用 970Mi）。对比同类 Java 微服务一体化平台（Gateway + Nacos + RocketMQ 起步 16G 内存），**运维成本降低一个量级**。
 
-### 支持私有化部署吗？
+### 核心技术选型
 
-完全支持——私有化部署就是行简的产品形态(没有 SaaS 在线版):
+| 层级 | 选型 | 版本 |
+| --- | --- | --- |
+| 后端 | Go + Gin + GORM + Casbin | Go 1.25 |
+| 缓存/会话 | Redis | 6.x |
+| 前端（后台） | React + antd 5 / ProComponents + Zustand + Vite | React 19 |
+| 前端（官网） | Next.js 15 (App Router) + Tailwind | 15 |
+| 移动端 | antd-mobile H5 + SwiftUI(iOS) + Compose(Android) | — |
+| 桌面端 | Tauri 2 (Rust) | 2.x |
+| AI | MCP (Streamable HTTP) + OpenAI 兼容 LLM 网关 | — |
+| 部署 | systemd + nginx + rsync（或 Docker 自行编排） | — |
 
-- 可部署在自有物理机、内网服务器(断网环境可跑)、阿里云/腾讯云/华为云等任意云主机;
-- 全部业务数据保存在你自己的 MySQL 数据库,官方无法访问你的数据;
-- 环境要求:Linux + Go 1.25 + MySQL 8 + Redis + Nginx,前端构建需 Node.js;最低配置 2 核 4G 云服务器即可支撑小团队;
-- 自行部署时,服务器安全加固、数据备份、Bug 修复与升级由你负责(MIT 协议不提供担保);也可以购买交钥匙部署或维保服务把运维交给我们。
+## 📸 系统截图
 
-### 与主流开源一体化系统相比怎么样?
+<table>
+  <tr>
+    <td><img src="docs/images/readme/workspace.png" alt="工作台" width="420"></td>
+    <td><img src="docs/images/readme/dingflow.png" alt="钉钉式流程设计器" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center">工作台（日历/审批待办/公告）</td>
+    <td align="center">BPM 流程设计器（钉钉式/画布双模）</td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/readme/crm-customer.png" alt="CRM 客户管理" width="420"></td>
+    <td><img src="docs/images/readme/approval-detail.png" alt="审批详情与流程轨迹图" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center">CRM 客户管理（线索→回款全链路）</td>
+    <td align="center">审批详情：原单摘要 + 流程轨迹图</td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/readme/oa-vehicle.png" alt="用车管理" width="420"></td>
+    <td><img src="docs/images/readme/ai-chat.png" alt="AI 助手" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center">OA 用车管理（台账 + 用车申请 + 审批联动）</td>
+    <td align="center">AI 助手（LLM 网关，MCP 是更大的一张牌）</td>
+  </tr>
+</table>
 
-| 系统 | 协议 | 技术栈 | 一句话对比 |
-| --- | --- | --- | --- |
-| **行简** | MIT | Go + React | 13 模块一体化、内置 MCP AI、抖音线索直连,中文原生、开箱即用 |
-| Odoo 社区版 | LGPL | Python + PostgreSQL | 生态与插件最全,支持生产/电商,但中文本地化弱、学习曲线陡 |
-| ERPNext | MIT | Python + MariaDB | 一体化 ERP、本地化尚可,需熟悉 Frappe 框架,国内社区较小 |
-| 若依 / JeecgBoot | MIT / Apache-2.0 | Java + Vue | 后台权限底座,CRM/OA/进销存等业务模块需自行开发 |
-| Dolibarr | GPLv3 | PHP + MySQL | 轻量易部署,但界面老旧、审批流程弱,GPL 协议约束更强 |
+<table>
+  <tr>
+    <td><img src="docs/images/readme/mobile-home.png" alt="移动端" width="260"></td>
+    <td><img src="docs/images/readme/mall.png" alt="商城" width="420"></td>
+    <td><img src="docs/images/readme/website.png" alt="官网" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center">移动端 H5</td>
+    <td align="center">企业商城</td>
+    <td align="center">官网</td>
+  </tr>
+</table>
 
-选型参考:要「开箱即用 + 中文 + AI 集成 + 获客闭环」选行简;要生产制造、多语言、海量插件生态选 Odoo/ERPNext;只想拿个权限底座自己写业务选若依系。协议上 MIT(行简、ERPNext)商用最宽松,GPL/AGPL(Dolibarr、Axelor)对二次分发的开源要求更严。
+## 🎯 适用场景
 
-## License
+10 ~ 500 人的中小企业：制造业 / 贸易 / 互联网 / 建筑工程 / 物流 / 教育培训 / 医疗健康 / 零售连锁 / 服务业。一套系统替代「OA + HRM + CRM + ERP 各买一套」的割裂采购。
 
-[MIT](LICENSE) © 2026 河南爱编程网络科技有限公司
+## 🚀 快速开始
+
+```bash
+# 1. 启动后端（qzt-go-server/，依赖 .env 与 config/config.dev.yaml，建表/种子走 docs/sql/）
+cd qzt-go-server && make run
+
+# 2. 启动任意前端（各开一个终端）
+cd qzt-go-admin  && pnpm install && pnpm dev   # :5173
+cd qzt-go-mobile && pnpm install && pnpm dev   # :5174
+cd qzt-go-mall   && pnpm install && pnpm dev   # :5175
+cd qzt-go-cms    && npm install && npm run dev # :3000
+```
+
+后端端口固定 **9000**。种子默认管理员 `admin / admin123`。环境要求：Go 1.25 / Node 18+ / pnpm / MySQL 8 / Redis 6。
+
+完整工作区指南见 [AGENTS.md](AGENTS.md)；生产部署流程（编译 / rsync / systemd / pm2 / nginx）也以 AGENTS.md 为准。
+
+## 📁 子项目
+
+| 子项目 | 角色 | 技术栈 |
+| --- | --- | --- |
+| `qzt-go-server/` | 后端 API（全平台唯一数据源） | Go 1.25 + Gin + GORM + Casbin + Redis |
+| `qzt-go-admin/` | 后台管理 SPA | Vite 7 + React 19 + antd 5 / ProComponents + Zustand |
+| `qzt-go-cms/` | 企业官网（公开站） | Next.js 15 + React 19 + Tailwind 3 |
+| `qzt-go-mobile/` | 移动端 H5（员工端） | Vite 7 + React 19 + antd-mobile + Zustand |
+| `qzt-go-mall/` | 独立公开商城站（免登录） | Vite 7 + React 19 + antd-mobile + Zustand |
+| `qzt-ios/` | iOS 原生 App | SwiftUI + @Observable，iOS 17+ |
+| `qzt-android/` | Android 原生 App | Kotlin 2.0 + Compose + Navigation |
+| `qzt-desktop/` | 桌面端（Tauri 2 壳） | Tauri 2 + React 19 |
+| `qzt-docs/` | 文档站 | Docusaurus 3 + MDX |
+
+## 🔑 关键约定（开发者速览）
+
+- **建表与种子数据一律走 SQL**（`qzt-go-server/docs/sql/`），Go 代码不 AutoMigrate、不写种子。
+- **前端 API 统一 `/prod-api` 单前缀**：请求层 baseURL 带 `/prod-api`，Vite proxy 转发到 `localhost:9000` 并 rewrite 掉前缀。
+- **后端模块 URL 前缀由模块 `Name()` 决定**：在 `cmd/server/main.go` 注册 `server.Module` 即自动挂 `/<name>`。
+- **admin 路由由后端菜单树驱动**：页面文件路径必须与 `sys_menu.component` 对应。
+- **私有化部署约束**：任何域名 / 地址不写死在代码里，一律走配置（`sys_site_config` / `.env` / 服务器地址可配置）。
+- 敏感配置只放 gitignored 的 `.env`，不入库。
+
+## 🏷️ 版本与发布
+
+全平台统一**三段式语义化版本** `MAJOR.MINOR.PATCH`，当前主线 **v1.1.x**（2026-08-27 首次定版 v1.0.0）。
+
+- **主版本 +1**：破坏性变更；**次版本 +1**：每次对外发布新功能（即一次部署）；**修订号 +1**：纯缺陷修复。
+- 发版流程、版本注入机制、运行版本查看方式见 [AGENTS.md](AGENTS.md)。
+
+## 💼 联系我们
+
+> 🔥 想要快速上手？想要代部署？想要定制开发？欢迎随时联系我们！
+
+### 🤝 合作方式
+
+| 服务类型 | 说明 | 费用 |
+| --- | --- | --- |
+| 🆓 **开源使用** | MIT 协议，自己部署 / 使用 / 修改，随意 | **免费** |
+| 🚀 **官方部署服务** | 由我们代为部署上线（服务器自备） | **1000 元 / 次** |
+| 🎨 **定制开发** | 按需求定制功能模块，快速交付 | **500 元 / 人天** |
+| 🏢 **企业级服务** | 培训 / 运维 / 长期技术支持 | 面谈 |
+
+### 📱 联系方式
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/readme/wecom-contact-card.jpg" alt="企业微信名片" width="260"></td>
+    <td align="center"><img src="docs/images/readme/wecom-group-qrcode.png" alt="企业微信交流群" width="260"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>微信扫码加我</b><br>史晨阳 · 河南爱编程</td>
+    <td align="center"><b>扫码加入技术交流群</b><br>（微信群二维码会过期，失效请从官网获取最新入群方式）</td>
+  </tr>
+</table>
+
+商务合作也可通过 [官网联系表单](https://devlovecode.com/contact) 留言，会自动进入我们的 CRM 线索池。
+
+### 🛒 获取方式
+
+| | |
+| --- | --- |
+| Step 1️⃣ | **在线体验**：打开[演示后台](https://admin.devlovecode.com)（zhangsan / 123456），或看上面的系统截图 |
+| Step 2️⃣ | **加入交流群**或添加微信，备注「行简」 |
+| Step 3️⃣ | **部署上线**：自己免费部署（MIT），或由我们代部署（1000 元/次，当天可用） |
+
+## 📄 开源协议
+
+**© 2026 河南爱编程网络科技有限公司** · 本项目以 [MIT 协议](LICENSE) 开源，个人与企业可 100% 免费使用。

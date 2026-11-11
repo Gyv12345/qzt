@@ -6,7 +6,7 @@ services:
     container_name: qzt-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-CHANGE_ME}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-<DATABASE_PASSWORD>}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-qztgo}
       TZ: Asia/Shanghai
     command:
@@ -18,7 +18,7 @@ services:
     volumes:
       - qzt-mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-CHANGE_ME}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-<DATABASE_PASSWORD>}"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -54,7 +54,7 @@ services:
       # ENV 决定加载哪个配置文件（config.dev/config.uat/config.prod）
       ENV: ${ENV:-dev}
       # 敏感字段通过环境变量注入（config 文件内用 ${VAR:-default} 占位符引用）
-      MYSQL_DSN: "root:${MYSQL_ROOT_PASSWORD:-CHANGE_ME}@tcp(mysql:3306)/${MYSQL_DATABASE:-qzt}?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s"
+      MYSQL_DSN: "root:${MYSQL_ROOT_PASSWORD:-<DATABASE_PASSWORD>}@tcp(mysql:3306)/${MYSQL_DATABASE:-qzt}?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s"
       REDIS_ADDR: "redis:6379"
       JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_BYTES}
     ports:

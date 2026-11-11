@@ -86,6 +86,8 @@ const (
 	FormTypeLoan           = "LOAN"            // 备用金/借款
 	FormTypeMeetingBooking = "MEETING_BOOKING" // 会议预订
 	FormTypeCustomForm     = "OA_CUSTOM"       // 自定义表单
+	FormTypeVehicle        = "VEHICLE"         // 用车申请
+	FormTypeSeal           = "SEAL"            // 用印申请
 )
 
 // ExecuteTiming 触发时机。
@@ -151,6 +153,8 @@ var FormTable = map[string]string{
 	FormTypeLoan:           "oa_loan",
 	FormTypeMeetingBooking: "oa_meeting_booking",
 	FormTypeCustomForm:     "oa_form_data",
+	FormTypeVehicle:        "oa_vehicle_application",
+	FormTypeSeal:           "oa_seal_application",
 }
 
 // FormUpdatableFields PassPostConfig.field_updates 允许更新的列白名单(防 SQL 标识符注入)。

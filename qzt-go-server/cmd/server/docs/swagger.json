@@ -9,6 +9,54 @@
     "host": "localhost:9000",
     "basePath": "/",
     "paths": {
+        "/api/ai/chat": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "多轮对话:取最近20条消息+系统提示词走统一LLM网关(feature=ai.chat记账);需 sys_config ai.chat_enabled=1(默认关)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI助手"
+                ],
+                "summary": "AI 助手对话补全",
+                "parameters": [
+                    {
+                        "description": "对话消息列表(最近20条)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AIChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.AIChatResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/attachments": {
             "get": {
                 "security": [
@@ -13478,6 +13526,410 @@
                 }
             }
         },
+        "/oa/seal-applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "用印申请列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "申请单号(模糊)",
+                        "name": "application_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "申请人ID",
+                        "name": "applicant_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "审批状态",
+                        "name": "approval_status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "新建用印申请",
+                "parameters": [
+                    {
+                        "description": "用印申请",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateSealApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/seal-applications/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "用印申请详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用印申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "编辑用印申请",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用印申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "用印申请",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateSealApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "删除用印申请",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用印申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/seals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "印章列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "印章名称(模糊)",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "类型(OFFICIAL/CONTRACT/FINANCE/LEGAL/OTHER)",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态(1启用/2停用)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "新建印章",
+                "parameters": [
+                    {
+                        "description": "印章",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateSealRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/seals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "印章详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "印章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "编辑印章",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "印章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "印章",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateSealRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-印章"
+                ],
+                "summary": "删除印章",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "印章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/oa/trips": {
             "get": {
                 "security": [
@@ -13674,6 +14126,437 @@
                     {
                         "type": "integer",
                         "description": "出差单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/vehicle-applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "用车申请列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "申请单号(模糊)",
+                        "name": "application_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题(模糊)",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "申请人ID",
+                        "name": "applicant_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "审批状态",
+                        "name": "approval_status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "新建用车申请",
+                "parameters": [
+                    {
+                        "description": "用车申请",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateVehicleApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/vehicle-applications/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "用车申请详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用车申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "编辑用车申请",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用车申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "用车申请",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateVehicleApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "删除用车申请",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用车申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/vehicle-applications/{id}/return": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "归还车辆",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用车申请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/vehicles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "车辆列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "车牌号(模糊)",
+                        "name": "plate_no",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态(IDLE/IN_USE/MAINTENANCE/DISABLED)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "新建车辆",
+                "parameters": [
+                    {
+                        "description": "车辆",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateVehicleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oa/vehicles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "车辆详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "车辆ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "编辑车辆",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "车辆ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "车辆",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateVehicleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OA-用车"
+                ],
+                "summary": "删除车辆",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "车辆ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -20699,6 +21582,25 @@
                 }
             }
         },
+        "service.AIChatRequest": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ChatMessage"
+                    }
+                }
+            }
+        },
+        "service.AIChatResponse": {
+            "type": "object",
+            "properties": {
+                "reply": {
+                    "type": "string"
+                }
+            }
+        },
         "service.AccountPayload": {
             "type": "object",
             "required": [
@@ -20829,6 +21731,17 @@
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.ChatMessage": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         },
@@ -22372,6 +23285,64 @@
                 }
             }
         },
+        "service.CreateSealApplicationRequest": {
+            "type": "object",
+            "required": [
+                "reason",
+                "seal_date",
+                "seal_id",
+                "title"
+            ],
+            "properties": {
+                "applicant_id": {
+                    "type": "integer"
+                },
+                "copies": {
+                    "type": "integer"
+                },
+                "dept_id": {
+                    "type": "integer"
+                },
+                "document_name": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "seal_date": {
+                    "type": "string"
+                },
+                "seal_id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateSealRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "keeper_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "service.CreateStockInRequest": {
             "type": "object",
             "required": [
@@ -22701,6 +23672,71 @@
                     "type": "integer"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateVehicleApplicationRequest": {
+            "type": "object",
+            "required": [
+                "end_time",
+                "reason",
+                "start_time",
+                "title",
+                "vehicle_id"
+            ],
+            "properties": {
+                "applicant_id": {
+                    "type": "integer"
+                },
+                "dept_id": {
+                    "type": "integer"
+                },
+                "destination": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "passengers": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "vehicle_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.CreateVehicleRequest": {
+            "type": "object",
+            "required": [
+                "plate_no"
+            ],
+            "properties": {
+                "owner_id": {
+                    "type": "integer"
+                },
+                "plate_no": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "seats": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "vehicle_model": {
                     "type": "string"
                 }
             }
@@ -24632,6 +25668,60 @@
                 }
             }
         },
+        "service.UpdateSealApplicationRequest": {
+            "type": "object",
+            "required": [
+                "reason",
+                "seal_id",
+                "title"
+            ],
+            "properties": {
+                "copies": {
+                    "type": "integer"
+                },
+                "dept_id": {
+                    "type": "integer"
+                },
+                "document_name": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "seal_date": {
+                    "type": "string"
+                },
+                "seal_id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.UpdateSealRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "keeper_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "service.UpdateSiteConfigRequest": {
             "type": "object",
             "properties": {
@@ -24949,6 +26039,66 @@
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.UpdateVehicleApplicationRequest": {
+            "type": "object",
+            "required": [
+                "reason",
+                "title",
+                "vehicle_id"
+            ],
+            "properties": {
+                "dept_id": {
+                    "type": "integer"
+                },
+                "destination": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "passengers": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "vehicle_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.UpdateVehicleRequest": {
+            "type": "object",
+            "required": [
+                "plate_no"
+            ],
+            "properties": {
+                "owner_id": {
+                    "type": "integer"
+                },
+                "plate_no": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "seats": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "vehicle_model": {
+                    "type": "string"
                 }
             }
         },

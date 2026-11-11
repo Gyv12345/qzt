@@ -42,6 +42,7 @@ export interface OaExpenseDetail {
 /** 审批状态映射 */
 export const APPROVAL_STATUS_MAP: Record<string, { text: string; color: string }> = {
   NONE: { text: '未提交', color: 'default' },
+  PENDING: { text: '待提交', color: 'default' },
   APPROVING: { text: '审批中', color: 'processing' },
   APPROVED: { text: '已通过', color: 'success' },
   REJECTED: { text: '已驳回', color: 'error' },
@@ -405,4 +406,124 @@ export interface OaMessagePayload {
   title: string
   content: string
   content_type?: string
+}
+
+// ==================== 车辆管理 ====================
+
+/** 车辆台账 */
+export interface OaVehicle {
+  id: number
+  plate_no: string
+  vehicle_model: string
+  seats: number
+  /** IDLE空闲/IN_USE使用中/MAINTENANCE维修中/DISABLED停用 */
+  status: string
+  /** 责任人ID(sys_user),可空 */
+  owner_id: number | null
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 车辆状态选项 */
+export const VEHICLE_STATUS_OPTIONS = [
+  { label: '空闲', value: 'IDLE' },
+  { label: '使用中', value: 'IN_USE' },
+  { label: '维修中', value: 'MAINTENANCE' },
+  { label: '停用', value: 'DISABLED' },
+]
+
+export const VEHICLE_STATUS_MAP: Record<string, { text: string; color: string }> = {
+  IDLE: { text: '空闲', color: 'success' },
+  IN_USE: { text: '使用中', color: 'processing' },
+  MAINTENANCE: { text: '维修中', color: 'warning' },
+  DISABLED: { text: '停用', color: 'default' },
+}
+
+/** 用车申请单 */
+export interface OaVehicleApplication {
+  id: number
+  application_no: string
+  title: string
+  applicant_id: number
+  dept_id: number | null
+  vehicle_id: number
+  reason: string
+  start_time: string
+  end_time: string
+  passengers: number
+  destination: string
+  approval_status: string
+  /** 业务状态: 1用车中 2已归还 */
+  status: number
+  created_at: string
+  updated_at: string
+}
+
+/** 用车申请业务状态(1用车中 2已归还) */
+export const VEHICLE_APPLICATION_STATUS_MAP: Record<number, { text: string; color: string }> = {
+  1: { text: '用车中', color: 'processing' },
+  2: { text: '已归还', color: 'success' },
+}
+
+// ==================== 印章管理 ====================
+
+/** 印章台账 */
+export interface OaSeal {
+  id: number
+  name: string
+  /** OFFICIAL公章/CONTRACT合同章/FINANCE财务章/LEGAL法人章/OTHER其他 */
+  type: string
+  /** 保管人ID(sys_user),可空 */
+  keeper_id: number | null
+  /** 1启用 2停用 */
+  status: number
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 印章类型选项 */
+export const SEAL_TYPE_OPTIONS = [
+  { label: '公章', value: 'OFFICIAL' },
+  { label: '合同章', value: 'CONTRACT' },
+  { label: '财务章', value: 'FINANCE' },
+  { label: '法人章', value: 'LEGAL' },
+  { label: '其他', value: 'OTHER' },
+]
+
+export const SEAL_TYPE_MAP: Record<string, { text: string; color: string }> = {
+  OFFICIAL: { text: '公章', color: 'red' },
+  CONTRACT: { text: '合同章', color: 'orange' },
+  FINANCE: { text: '财务章', color: 'blue' },
+  LEGAL: { text: '法人章', color: 'purple' },
+  OTHER: { text: '其他', color: 'default' },
+}
+
+/** 印章状态选项(1启用 2停用) */
+export const SEAL_STATUS_OPTIONS = [
+  { label: '启用', value: 1 },
+  { label: '停用', value: 2 },
+]
+
+export const SEAL_STATUS_MAP: Record<number, { text: string; color: string }> = {
+  1: { text: '启用', color: 'success' },
+  2: { text: '停用', color: 'default' },
+}
+
+/** 用印申请单 */
+export interface OaSealApplication {
+  id: number
+  application_no: string
+  title: string
+  applicant_id: number
+  dept_id: number | null
+  seal_id: number
+  reason: string
+  document_name: string
+  copies: number
+  seal_date: string
+  approval_status: string
+  created_at: string
+  updated_at: string
 }

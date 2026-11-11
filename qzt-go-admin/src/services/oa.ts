@@ -15,6 +15,10 @@ import type {
   OaFormTemplate,
   OaFormData,
   OaMessage,
+  OaVehicle,
+  OaVehicleApplication,
+  OaSeal,
+  OaSealApplication,
 } from '../types/oa'
 
 interface PageResult<T> {
@@ -464,3 +468,156 @@ export const markAllMessagesRead = () => request.put('/oa/messages/read-all')
 /** 批量已读 */
 export const markMessagesRead = (ids: number[]) =>
   request.put('/oa/messages/read-batch', { ids })
+
+// ---------- 车辆管理 ----------
+
+export interface VehicleQuery extends PageParams {
+  plate_no?: string
+  status?: string
+}
+
+/** 车辆列表 */
+export const listVehicles = (params?: VehicleQuery) =>
+  request.get<unknown, PageResult<OaVehicle>>('/oa/vehicles', { params })
+
+/** 车辆详情 */
+export const getVehicle = (id: number) =>
+  request.get<unknown, OaVehicle>(`/oa/vehicles/${id}`)
+
+/** 新建车辆 */
+export const createVehicle = (data: {
+  plate_no: string
+  vehicle_model?: string
+  seats?: number
+  status?: string
+  owner_id?: number | null
+  remark?: string
+}) => request.post<unknown, OaVehicle>('/oa/vehicles', data)
+
+/** 编辑车辆 */
+export const updateVehicle = (
+  id: number,
+  data: Partial<Parameters<typeof createVehicle>[0]>,
+) => request.put(`/oa/vehicles/${id}`, data)
+
+/** 删除车辆 */
+export const deleteVehicle = (id: number) => request.delete(`/oa/vehicles/${id}`)
+
+export interface VehicleApplicationQuery extends PageParams {
+  application_no?: string
+  title?: string
+  approval_status?: string
+  applicant_id?: number
+}
+
+/** 用车申请列表 */
+export const listVehicleApplications = (params: VehicleApplicationQuery) =>
+  request.get<unknown, PageResult<OaVehicleApplication>>('/oa/vehicle-applications', { params })
+
+/** 用车申请详情 */
+export const getVehicleApplication = (id: number) =>
+  request.get<unknown, OaVehicleApplication>(`/oa/vehicle-applications/${id}`)
+
+/** 新建用车申请 */
+export const createVehicleApplication = (data: {
+  title: string
+  vehicle_id: number
+  reason: string
+  start_time: string
+  end_time: string
+  passengers?: number
+  destination?: string
+  dept_id?: number | null
+}) => request.post<unknown, OaVehicleApplication>('/oa/vehicle-applications', data)
+
+/** 编辑用车申请 */
+export const updateVehicleApplication = (
+  id: number,
+  data: Partial<Parameters<typeof createVehicleApplication>[0]>,
+) => request.put(`/oa/vehicle-applications/${id}`, data)
+
+/** 删除用车申请 */
+export const deleteVehicleApplication = (id: number) =>
+  request.delete(`/oa/vehicle-applications/${id}`)
+
+/** 归还车辆(空 body) */
+export const returnVehicleApplication = (id: number) =>
+  request.post(`/oa/vehicle-applications/${id}/return`)
+
+/** 提交用车申请审批 */
+export const submitVehicleApplicationApproval = (id: number) =>
+  request.post('/approval/actions/push', { form_type: 'VEHICLE', resource_id: id })
+
+// ---------- 印章管理 ----------
+
+export interface SealQuery extends PageParams {
+  name?: string
+  type?: string
+  status?: number
+}
+
+/** 印章列表 */
+export const listSeals = (params?: SealQuery) =>
+  request.get<unknown, PageResult<OaSeal>>('/oa/seals', { params })
+
+/** 印章详情 */
+export const getSeal = (id: number) =>
+  request.get<unknown, OaSeal>(`/oa/seals/${id}`)
+
+/** 新建印章 */
+export const createSeal = (data: {
+  name: string
+  type?: string
+  keeper_id?: number | null
+  status?: number
+  remark?: string
+}) => request.post<unknown, OaSeal>('/oa/seals', data)
+
+/** 编辑印章 */
+export const updateSeal = (
+  id: number,
+  data: Partial<Parameters<typeof createSeal>[0]>,
+) => request.put(`/oa/seals/${id}`, data)
+
+/** 删除印章 */
+export const deleteSeal = (id: number) => request.delete(`/oa/seals/${id}`)
+
+export interface SealApplicationQuery extends PageParams {
+  application_no?: string
+  title?: string
+  approval_status?: string
+  applicant_id?: number
+}
+
+/** 用印申请列表 */
+export const listSealApplications = (params: SealApplicationQuery) =>
+  request.get<unknown, PageResult<OaSealApplication>>('/oa/seal-applications', { params })
+
+/** 用印申请详情 */
+export const getSealApplication = (id: number) =>
+  request.get<unknown, OaSealApplication>(`/oa/seal-applications/${id}`)
+
+/** 新建用印申请 */
+export const createSealApplication = (data: {
+  title: string
+  seal_id: number
+  reason: string
+  document_name?: string
+  copies?: number
+  seal_date: string
+  dept_id?: number | null
+}) => request.post<unknown, OaSealApplication>('/oa/seal-applications', data)
+
+/** 编辑用印申请 */
+export const updateSealApplication = (
+  id: number,
+  data: Partial<Parameters<typeof createSealApplication>[0]>,
+) => request.put(`/oa/seal-applications/${id}`, data)
+
+/** 删除用印申请 */
+export const deleteSealApplication = (id: number) =>
+  request.delete(`/oa/seal-applications/${id}`)
+
+/** 提交用印申请审批 */
+export const submitSealApplicationApproval = (id: number) =>
+  request.post('/approval/actions/push', { form_type: 'SEAL', resource_id: id })

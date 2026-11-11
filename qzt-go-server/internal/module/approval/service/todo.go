@@ -31,24 +31,28 @@ var formTypeLabel = map[string]string{
 	"LOAN":            "借款单",
 	"MEETING_BOOKING": "会议预订",
 	"OA_CUSTOM":       "自定义表单",
+	"VEHICLE":         "用车申请",
+	"SEAL":            "用印申请",
 }
 
 // resourceTitleColumn 每种业务表的标题列(服务端常量,可为列名或 SQL 表达式)。
 var resourceTitleColumn = map[string]string{
-	"crm_contract":        "name",
-	"crm_quotation":       "title",
-	"crm_order":           "order_no",
-	"fin_invoice":         "invoice_no",
-	"psi_purchase_order":  "order_no",
-	"psi_sales_order":     "order_no",
-	"psi_purchase_return": "return_no",
-	"psi_sales_return":    "return_no",
-	"oa_expense":          "title",
-	"hrm_leave":           "CONCAT_WS(' ', NULLIF(reason, ''), NULLIF(leave_no, ''))",
-	"oa_business_trip":    "title",
-	"oa_loan":             "title",
-	"oa_meeting_booking":  "title",
-	"oa_form_data":        "CONCAT_WS(' ', NULLIF(template_name, ''), NULLIF(data_no, ''))",
+	"crm_contract":           "name",
+	"crm_quotation":          "title",
+	"crm_order":              "order_no",
+	"fin_invoice":            "invoice_no",
+	"psi_purchase_order":     "order_no",
+	"psi_sales_order":        "order_no",
+	"psi_purchase_return":    "return_no",
+	"psi_sales_return":       "return_no",
+	"oa_expense":             "title",
+	"hrm_leave":              "CONCAT_WS(' ', NULLIF(reason, ''), NULLIF(leave_no, ''))",
+	"oa_business_trip":       "title",
+	"oa_loan":                "title",
+	"oa_meeting_booking":     "title",
+	"oa_form_data":           "CONCAT_WS(' ', NULLIF(template_name, ''), NULLIF(data_no, ''))",
+	"oa_vehicle_application": "title",
+	"oa_seal_application":    "title",
 }
 
 // enrichInstance 给实例附加 resource_title(从业务表查标题)。

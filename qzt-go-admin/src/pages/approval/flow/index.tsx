@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { App, Button, Drawer, Form, Space } from 'antd'
+import { App, Button, Drawer, Form, Segmented, Space } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   ModalForm,
@@ -17,6 +17,7 @@ import {
 } from '../../../services/approval'
 import type { ApprovalFlow } from '../../../types/approval'
 import Designer from './Designer'
+import DingFlow from './DingFlow'
 import { pageIndexColumn } from '../../../components/IndexTag'
 
 interface FlowFormValues {
@@ -38,6 +39,8 @@ export default function ApprovalFlowPage() {
   const [form] = Form.useForm<FlowFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [designId, setDesignId] = useState<number | null>(null)
+  // 设计器双模:ding=钉钉式卡片流(默认)/ canvas=React Flow 自由画布
+  const [designMode, setDesignMode] = useState<'ding' | 'canvas'>('ding')
 
   const openCreate = () => {
     form.resetFields()
@@ -187,13 +190,46 @@ export default function ApprovalFlowPage() {
         destroyOnHidden
       >
         {designId !== null && (
-          <Designer
-            flowId={designId}
-            onClose={() => {
-              setDesignId(null)
-              actionRef.current?.reload()
-            }}
-          />
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                flex: 'none',
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '8px 16px',
+                borderBottom: '1px solid #f0f0f0',
+                background: '#fff',
+              }}
+            >
+              <Segmented
+                options={[
+                  { label: '钉钉模式', value: 'ding' },
+                  { label: '画布模式', value: 'canvas' },
+                ]}
+                value={designMode}
+                onChange={(v) => setDesignMode(v as 'ding' | 'canvas')}
+              />
+            </div>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              {designMode === 'ding' ? (
+                <DingFlow
+                  flowId={designId}
+                  onClose={() => {
+                    setDesignId(null)
+                    actionRef.current?.reload()
+                  }}
+                />
+              ) : (
+                <Designer
+                  flowId={designId}
+                  onClose={() => {
+                    setDesignId(null)
+                    actionRef.current?.reload()
+                  }}
+                />
+              )}
+            </div>
+          </div>
         )}
       </Drawer>
     </>

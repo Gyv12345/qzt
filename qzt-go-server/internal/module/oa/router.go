@@ -28,6 +28,10 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	formDataHandler := handler.NewFormDataHandler()
 	messageHandler := handler.NewMessageHandler()
 	sseHandler := handler.NewSSEHandler()
+	vehicleHandler := handler.NewVehicleHandler()
+	vehicleAppHandler := handler.NewVehicleApplicationHandler()
+	sealHandler := handler.NewSealHandler()
+	sealAppHandler := handler.NewSealApplicationHandler()
 
 	// 已认证路由(仅 JWT,无 RBAC):公告流(首页用)、启用表单列表、站内信、SSE 流
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
@@ -127,5 +131,34 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/form-data/:id", formDataHandler.GetByID)
 		auth.PUT("/form-data/:id", formDataHandler.Update)
 		auth.DELETE("/form-data/:id", formDataHandler.Delete)
+
+		// 车辆台账
+		auth.GET("/vehicles", vehicleHandler.List)
+		auth.POST("/vehicles", vehicleHandler.Create)
+		auth.GET("/vehicles/:id", vehicleHandler.GetByID)
+		auth.PUT("/vehicles/:id", vehicleHandler.Update)
+		auth.DELETE("/vehicles/:id", vehicleHandler.Delete)
+
+		// 用车申请
+		auth.GET("/vehicle-applications", vehicleAppHandler.List)
+		auth.POST("/vehicle-applications", vehicleAppHandler.Create)
+		auth.GET("/vehicle-applications/:id", vehicleAppHandler.GetByID)
+		auth.PUT("/vehicle-applications/:id", vehicleAppHandler.Update)
+		auth.DELETE("/vehicle-applications/:id", vehicleAppHandler.Delete)
+		auth.POST("/vehicle-applications/:id/return", vehicleAppHandler.Return)
+
+		// 印章台账
+		auth.GET("/seals", sealHandler.List)
+		auth.POST("/seals", sealHandler.Create)
+		auth.GET("/seals/:id", sealHandler.GetByID)
+		auth.PUT("/seals/:id", sealHandler.Update)
+		auth.DELETE("/seals/:id", sealHandler.Delete)
+
+		// 用印申请
+		auth.GET("/seal-applications", sealAppHandler.List)
+		auth.POST("/seal-applications", sealAppHandler.Create)
+		auth.GET("/seal-applications/:id", sealAppHandler.GetByID)
+		auth.PUT("/seal-applications/:id", sealAppHandler.Update)
+		auth.DELETE("/seal-applications/:id", sealAppHandler.Delete)
 	}
 }
