@@ -28,12 +28,13 @@
 
 | 入口 | 地址 | 账号 |
 | --- | --- | --- |
-| 🖥️ **管理后台演示** | [admin.devlovecode.com](https://admin.devlovecode.com) | `zhangsan / 123456`（演示账号） |
+| 🖥️ **管理后台演示(超管全功能)** | [admin.devlovecode.com](https://admin.devlovecode.com) | `admin / 123456`（公开演示超管，每周一 03:00 自动重置） |
+| 🖥️ **演示账号(仅本人数据)** | [admin.devlovecode.com](https://admin.devlovecode.com) | `zhangsan / 123456`（演示集，数据权限=仅本人） |
 | 📱 **移动端 H5** | [m.devlovecode.com](https://m.devlovecode.com) | `zhangsan / 123456` |
 | 🛒 **公开商城** | [mall.devlovecode.com](https://mall.devlovecode.com) | 免登录 |
 | 🏠 **官网** | [devlovecode.com](https://devlovecode.com) | — |
 
-> 💡 演示账号为公开体验账号（数据为演示集，数据权限=仅本人），建议 Chrome/Edge 浏览器体验。
+> 💡 **公开演示说明**：`admin / 123456` 为超管全功能公开试用（可体验全部 13 个模块；系统配置/重置/API Key 已冻结防误操作；演示数据每周一 03:00 自动重置回演示集，请勿存放真实数据）。`zhangsan / 123456` 为仅本人数据权限的演示账号。建议 Chrome/Edge 浏览器体验。
 
 ## 📦 功能模块总览
 
@@ -148,7 +149,7 @@ cd qzt-go-mall   && pnpm install && pnpm dev   # :5175
 cd qzt-go-cms    && npm install && npm run dev # :3000
 ```
 
-后端端口固定 **9000**。种子默认管理员 `admin / admin123`。环境要求：Go 1.25 / Node 18+ / pnpm / MySQL 8 / Redis 6。
+后端端口固定 **9000**。种子默认管理员 `admin / 123456`（公开演示口径，首登后请立即修改）。环境要求：Go 1.25 / Node 18+ / pnpm / MySQL 8 / Redis 6。
 
 完整工作区指南见 [AGENTS.md](AGENTS.md)；生产部署流程（编译 / rsync / systemd / pm2 / nginx）也以 AGENTS.md 为准。
 
@@ -214,7 +215,7 @@ cd qzt-go-cms    && npm install && npm run dev # :3000
 
 | | |
 | --- | --- |
-| Step 1️⃣ | **在线体验**：打开[演示后台](https://admin.devlovecode.com)（zhangsan / 123456），或看上面的系统截图 |
+| Step 1️⃣ | **在线体验**：打开[演示后台](https://admin.devlovecode.com)（admin / 123456 超管全功能，或 zhangsan / 123456 仅本人数据），或看上面的系统截图 |
 | Step 2️⃣ | **加入交流群**或添加微信，备注「行简」 |
 | Step 3️⃣ | **部署上线**：自己免费部署（MIT），或由我们代部署（1000 元/次，当天可用） |
 
