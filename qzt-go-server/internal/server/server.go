@@ -9,8 +9,8 @@ import (
 
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/middleware"
-	response "qzt-go-server/pkg/xresponse"
 	"qzt-go-server/pkg/xenv"
+	response "qzt-go-server/pkg/xresponse"
 )
 
 // Module 可插拔业务模块接口。每个模块实现 Name()（作为 URL 前缀）与

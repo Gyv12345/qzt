@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { SITE } from "@/lib/site";
 
+/** 静态导出(output:export)要求元文件路由显式声明静态。 */
+export const dynamic = "force-static";
+
 /**
  * GEO: 显式放行主流 AI 爬虫/生成式引擎, 确保内容可被
  * ChatGPT/Perplexity/Claude/Gemini/豆包(Kimi 等国内引擎多复用 Bytespider)

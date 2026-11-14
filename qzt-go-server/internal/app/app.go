@@ -8,9 +8,10 @@ import (
 	"qzt-go-server/config"
 )
 
-// Init 初始化所有全局资源，顺序为：配置 → 时区 → 日志 → 存储 → 数据库 → Redis → Casbin。
+// Init 初始化所有全局资源，顺序为：配置 → 时区 → 日志 → 数据库 → 存储 → Redis → Casbin。
 // 任一步失败立即返回错误。配套 Close() 按相反顺序释放资源。
-// 注意：存储配置从 config.{env}.yaml + .env 读取(不再走 DB)，需在 InitStorage 前完成 InitConfig。
+// 注意：存储配置 v2 起以 DB(sys_storage_config 生效行)为准,yaml 仅作播种来源与兜底,
+// 故 InitStorage 必须在 InitDatabase 之后执行。
 func Init(cfgPath string, logPath string) error {
 	if err := InitConfig(cfgPath); err != nil {
 		return fmt.Errorf("init config: %w", err)
@@ -22,16 +23,16 @@ func Init(cfgPath string, logPath string) error {
 	Log.Info("配置加载完成")
 	Log.Infof("日志输出目录: %s", logPath)
 
-	// 存储配置走配置文件(config.{env}.yaml + .env),不依赖数据库,可在数据库前初始化。
-	if err := InitStorage(); err != nil {
-		return fmt.Errorf("init storage: %w", err)
-	}
-	Log.Info("文件存储初始化完成")
-
 	if err := InitDatabase(); err != nil {
 		return fmt.Errorf("init database: %w", err)
 	}
 	Log.Info("数据库连接成功")
+
+	// 存储配置 v2:优先读 sys_storage_config 生效行,表空时从 yaml 播种——需在数据库之后。
+	if err := InitStorage(); err != nil {
+		return fmt.Errorf("init storage: %w", err)
+	}
+	Log.Info("文件存储初始化完成")
 
 	if err := InitRedis(); err != nil {
 		return fmt.Errorf("init redis: %w", err)

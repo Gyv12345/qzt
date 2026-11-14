@@ -1,0 +1,145 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { getProducts, getProduct } from "@/lib/api";
+import { SITE } from "@/lib/site";
+
+export const revalidate = 300;
+
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+/** 预生成常见产品详情静态页。
+ *  静态导出(output:export)要求动态路由至少预渲染一个参数:
+ *  后端不可达时给占位 id "0" — 页面渲染必然失败走 notFound, 该路径被 exporter 跳过。 */
+export async function generateStaticParams() {
+  try {
+    const { list } = await getProducts({ page_size: 50 });
+    return list.map((p) => ({ id: String(p.id) }));
+  } catch {
+    return [{ id: "0" }];
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const p = await getProduct(id);
+    return {
+      title: p.name,
+      description: p.description || p.name,
+      alternates: {
+        canonical: `/products/${id}`,
+        types: { "text/markdown": `/md/products/${id}` },
+      },
+      openGraph: { title: p.name, description: p.description || p.name, type: "article" },
+    };
+  } catch {
+    return { title: "产品详情" };
+  }
+}
+
+export default async function ProductDetailPage({ params }: Props) {
+  const { id } = await params;
+  let product;
+  try {
+    product = await getProduct(id);
+  } catch {
+    notFound();
+  }
+
+  return (
+    <section className="container py-16">
+      <nav className="mb-6 text-sm text-faint">
+        <Link href="/products" className="no-underline hover:text-brandtext">
+          产品
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-normal">{product.name}</span>
+      </nav>
+
+      <article>
+        <header className="mb-6">
+          <div className="flex items-center gap-3">
+            {/* 分类回链: 点击跳回列表页该分类筛选(?cat= 为叶子名或一级名); 分类为空时不渲染 */}
+            {product.category ? (
+              <Link
+                href={`/products/?cat=${encodeURIComponent(product.category)}`}
+                className="rounded-md bg-brand-500/10 px-2.5 py-1 text-xs font-medium text-brandtext no-underline transition-colors hover:bg-brand-500/20"
+              >
+                {product.category}
+              </Link>
+            ) : (
+              <span className="rounded-md bg-brand-500/10 px-2.5 py-1 text-xs font-medium text-brandtext">产品</span>
+            )}
+            {product.product_no && <span className="text-sm text-faint">编号: {product.product_no}</span>}
+          </div>
+          <h1 className="mt-3 font-display text-3xl font-bold text-strong sm:text-4xl">{product.name}</h1>
+          {Number(product.standard_price) > 0 && (
+            <p className="mt-3 font-display text-2xl font-bold text-accent-dark">
+              ¥ {product.standard_price} <span className="text-base font-normal text-faint">/ {product.unit || "件"}</span>
+            </p>
+          )}
+        </header>
+
+        {product.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="mb-8 aspect-video w-full rounded-xl border border-line object-cover shadow-card"
+          />
+        )}
+
+        {product.description && (
+          <div className="prose-content max-w-none">
+            <h2>产品介绍</h2>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{product.description}</ReactMarkdown>
+          </div>
+        )}
+      </article>
+
+      {/* 产品结构化数据: brand/availability/offer URL 供 AI 引擎抽取
+          "XX 多少钱/在哪买"类问题(BreadcrumbList 与页面面包屑一致) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            description: product.description,
+            sku: product.product_no,
+            category: product.category,
+            brand: { "@type": "Brand", name: "行简软件" },
+            ...(product.image_url && { image: [product.image_url] }),
+            offers: {
+              "@type": "Offer",
+              price: Number(product.standard_price) > 0 ? product.standard_price : "0",
+              priceCurrency: "CNY",
+              availability: "https://schema.org/InStock",
+              url: `${SITE.url}/products/${id}`,
+            },
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "首页", item: SITE.url },
+              { "@type": "ListItem", position: 2, name: "产品与服务", item: `${SITE.url}/products` },
+              { "@type": "ListItem", position: 3, name: product.name },
+            ],
+          }),
+        }}
+      />
+    </section>
+  );
+}

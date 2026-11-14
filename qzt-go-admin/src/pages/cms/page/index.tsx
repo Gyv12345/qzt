@@ -29,7 +29,7 @@ interface PageFormValues {
 }
 
 export default function CmsPagePage() {
-  const { message } = App.useApp()
+  const { message, modal } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [form] = Form.useForm<PageFormValues>()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -57,6 +57,21 @@ export default function CmsPagePage() {
   }
 
   const handleSubmit = async (values: PageFormValues) => {
+    // 已上线单页改为「禁用」= 下线, 影响官网可达性, 加二次确认防误触（2026-11-13 隐私政策页误下线事故）
+    if (editing && editing.status === 1 && values.status === 0) {
+      const ok = await new Promise<boolean>((resolve) => {
+        modal.confirm({
+          title: `确认下线「${editing.title}」？`,
+          content: '下线后官网对应页面立即不可访问（页面入口链接会变成 404），后台数据保留，可随时重新启用。',
+          okText: '确认下线',
+          okButtonProps: { danger: true },
+          cancelText: '取消',
+          onOk: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      })
+      if (!ok) return false
+    }
     const payload: CmsPagePayload = {
       title: values.title,
       slug: values.slug,

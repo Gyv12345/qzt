@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"context"
+	"strings"
 
 	cloudmodel "qzt-go-server/internal/model/cloud"
 	"qzt-go-server/internal/repository"
@@ -51,4 +52,38 @@ func (r *CloudRepo) ListActiveChildren(ctx context.Context, parentID uint) ([]cl
 	var children []cloudmodel.CloudFile
 	err := repository.DBFrom(ctx).Where("parent_id = ? AND status = 1", parentID).Find(&children).Error
 	return children, err
+}
+
+// ── 管理端例外查询(系统管理-文件存储页) ──
+// repository 是全局共享层;以下两个方法为管理员跨用户全量视角的例外查询,
+// 不走网盘个人/部门权限过滤,仅由 system/storage_config 服务调用。
+
+// AdminFileRow 管理端文件列表行(联 sys_user 带上传人昵称)。
+type AdminFileRow struct {
+	cloudmodel.CloudFile
+	// 上传人昵称(LEFT JOIN,用户已删除时为空串)
+	UploaderName string `gorm:"column:uploader_name" json:"uploader_name"`
+}
+
+// ListAdminFiles 分页列出 cloud_file 全量文件(管理员视角,跨用户)。
+// keyword 模糊匹配文件名;只列文件(排除文件夹)且状态正常。
+func (r *CloudRepo) ListAdminFiles(ctx context.Context, keyword string, page, pageSize int) ([]AdminFileRow, int64, error) {
+	db := repository.DBFrom(ctx).Model(&cloudmodel.CloudFile{}).
+		Select("cloud_file.*, u.nickname AS uploader_name").
+		Joins("LEFT JOIN sys_user u ON u.id = cloud_file.creator_id").
+		Where("cloud_file.is_dir = 0 AND cloud_file.status = 1")
+	if kw := strings.TrimSpace(keyword); kw != "" {
+		db = db.Where("cloud_file.name LIKE ?", "%"+kw+"%")
+	}
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []AdminFileRow
+	if err := db.Order("cloud_file.id DESC").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
 }

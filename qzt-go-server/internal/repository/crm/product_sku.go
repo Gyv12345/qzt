@@ -62,7 +62,7 @@ func (r *ProductSkuRepo) ExistsByNoAny(ctx context.Context, skuNo string) (bool,
 }
 
 // ResolveForProduct 解析「商品 + 可选 SKU」到具体 SKU。
-// skuID > 0 时校验归属;skuID = 0 时回退:spec='' 的默认规格优先,
+// skuID > 0 时校验归属;skuID = 0 时回退:spec=” 的默认规格优先,
 // 商品只有一个 SKU 时取其唯一;多规格且未指定返回错误(调用方应提示选规格)。
 func (r *ProductSkuRepo) ResolveForProduct(ctx context.Context, productID, skuID uint) (*crmmodel.CrmProductSku, error) {
 	if skuID > 0 {

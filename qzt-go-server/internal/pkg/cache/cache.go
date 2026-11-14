@@ -209,6 +209,47 @@ func IsIpBanned(ip string) bool {
 // MarkLoginAlertSent 窗口内告警去重标记:返回 true 表示首次,应发送告警。
 func MarkLoginAlertSent(username string, ttl time.Duration) bool {
 	k := "login:alert:" + username
+	return markAlertSent(k, ttl)
+}
+
+// ── 演示模式护栏辅助(公开演示模式下的锁定放宽与告警频控) ──
+
+// DemoLoginLimitMax 演示模式下 (username, ip) 维度的锁定阈值:公开演示期间
+// 访客共享密码试错频繁,阈值从 5 放宽到 20,防把 admin 锁死导致全员无法登录。
+const DemoLoginLimitMax = 20
+
+// demoRootAlertWindow 演示模式超管告警去重窗口。
+const demoRootAlertWindow = 15 * time.Minute
+
+// IsLoginLockedDemo 演示模式放宽版锁定判断:仅 (username, ip) 维度且阈值 20。
+// 跳过 username 单维度锁定与 IP 封禁维度——共享 NAT 出口的访客互相累加会把
+// admin 用户名/IP 封到全员登录不了,正是演示模式要规避的锁死场景。
+func IsLoginLockedDemo(username, ip string) bool {
+	val, err := store.Get(loginKey(username, ip))
+	if err != nil {
+		return false
+	}
+	var count int64
+	fmt.Sscanf(val, "%d", &count)
+	return count >= DemoLoginLimitMax
+}
+
+// MarkRootLoginAlertSentByIP 演示模式下根账户登录告警按 IP 去重(15 分钟窗口)。
+// 返回 true 表示该 IP 窗口内首次,应发送告警。访客批量用 admin 登录时,
+// 逐次告警会把真超管的站内信/企微轰炸爆。
+func MarkRootLoginAlertSentByIP(ip string) bool {
+	return markAlertSent("login:alert:rootip:"+ip, demoRootAlertWindow)
+}
+
+// MarkRootWriteAlertSent 演示模式下根账户/内置角色写操作告警频控
+// (action+operator+ip 维度,15 分钟窗口)。访客以超管身份频繁改动 id=1 数据时,
+// 每次操作都告警会刷屏,同操作同来源窗口内只告一次。
+func MarkRootWriteAlertSent(action, operator, ip string) bool {
+	return markAlertSent("alert:rootwrite:"+action+":"+operator+":"+ip, demoRootAlertWindow)
+}
+
+// markAlertSent 通用窗口内首次标记(存在即 false,设置失败也返回 false 保守不告)。
+func markAlertSent(k string, ttl time.Duration) bool {
 	if sent, _ := store.Exists(k); sent {
 		return false
 	}

@@ -107,6 +107,8 @@ func buildServer() *server.MCPServer {
 	registerCloudTools(s)
 	// 定时任务(任务/执行日志)
 	registerEnterpriseTools(s)
+	// 自动化工作流(定义/运行/执行记录)
+	registerWorkflowTools(s)
 	// 公共基础设施(BI 报表/统一日历/附件/文件签名)
 	registerApiTools(s)
 	// 办公自动化(站内信/公告/日程/工作日志/报销/出差/借款/会议/表单)

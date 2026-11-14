@@ -16,8 +16,9 @@ import (
 
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/model"
-	"qzt-go-server/internal/repository"
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/internal/pkg/wecom"
+	"qzt-go-server/internal/repository"
 )
 
 // wecom_auth.go 企业微信扫码登录服务。
@@ -233,6 +234,12 @@ func (s *WecomAuthService) CreateBindState(ctx context.Context, userID uint) (st
 
 // BindWecom 用企微 code 绑定到当前用户。若该 wecomUserID 已绑定其他账号则拒绝。
 func (s *WecomAuthService) BindWecom(ctx context.Context, userID uint, code string) error {
+	// 演示模式护栏:绑定最终落点在 service 层统一拦(JWT 版 bind 与公开
+	// bind-callback/bind-redirect 回调都经此),防访客把自己的企微绑到 admin
+	// 截走安全告警与业务通知。
+	if demoguard.Enabled(ctx) {
+		return errors.New("演示模式不可修改账号绑定")
+	}
 	client, err := s.newWecomClient(ctx)
 	if err != nil {
 		return err

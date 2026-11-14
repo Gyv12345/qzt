@@ -171,6 +171,7 @@ func (s *ResetService) deleteStorageFiles(ctx context.Context) error {
 		return err
 	}
 
+	// Uploader 运行期懒取(app.GetUploader,不构造期注入),存储配置热切换后删除即用新驱动。
 	uploader := app.GetUploader()
 	var failed []string
 	for _, k := range keys {

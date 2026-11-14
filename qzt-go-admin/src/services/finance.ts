@@ -9,6 +9,7 @@ import type {
   FinReceivable,
   FinVoucher,
   IncomeStatement,
+  InvoiceOcrResult,
 } from '../types/finance'
 import type { PageParams, PageResult } from '../types'
 
@@ -61,6 +62,19 @@ export const listInvoices = (params?: InvoiceQuery) =>
   request.get<unknown, FinancePageResult<FinInvoice>>('/finance/invoices', { params })
 
 export const createInvoice = (data: CreateInvoicePayload) => request.post('/finance/invoices', data)
+
+/**
+ * 发票图片 OCR 识别(multipart,字段 file;jpg/png/webp,≤10MB)。
+ * 每用户每日 50 次限额,超限时后端报错文案由拦截器透传弹出。
+ */
+export const ocrInvoice = (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post<unknown, InvoiceOcrResult>('/finance/invoices/ocr', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000,
+  })
+}
 
 // ---------- 财务报表(单对象) ----------
 

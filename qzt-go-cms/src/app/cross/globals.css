@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── 极简专业浅色主题(单主题, 无切换) ──
+   并入说明: 合并后 tailwind 配置统一走 CSS 变量(取自官网配置模式),
+   原 storefront tailwind.config 里的静态色值在此落成变量, 本文件只被
+   (cross) 树加载, 与官网 globals.css 的变量互不覆盖。 */
+:root {
+  /* 背景阶 */
+  --c-canvas: #ffffff;
+  --c-alt: #f8fafc;
+  --c-deep: #0f172a;
+  --c-surface: #ffffff;
+  --c-raised: #f1f5f9;
+  --c-line: #e2e8f0;
+  /* 文字阶 */
+  --c-strong: #0f172a;
+  --c-normal: #334155;
+  --c-muted: #64748b;
+  --c-faint: #94a3b8;
+  /* 品牌蓝阶(原 storefront tailwind 静态值) */
+  --c-brand-50: #eff6ff;
+  --c-brand-100: #dbeafe;
+  --c-brand-500: #3b82f6;
+  --c-brand-600: #2563eb;
+  --c-brand-700: #1d4ed8;
+  /* 强调琥珀(仅价格/徽章高亮) */
+  --c-accent: #d97706;
+  --c-accent-dark: #b45309;
+  /* 阴影(原 storefront tailwind 静态值) */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+  --shadow-card-hover: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 16px 32px -12px rgb(15 23 42 / 0.16);
+  /* 正文字体栈(原 storefront tailwind 静态栈, 零构建期网络依赖, en/zh 皆可读) */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body {
+  @apply bg-canvas font-sans text-normal antialiased;
+}
+
+/* 通用 section 容器 */
+.container {
+  @apply mx-auto w-full max-w-container px-4 sm:px-6;
+}
+
+/* 表单控件统一基调(极简: 白底 + line 边框, focus 品牌色)
+   注: brand-500 取值是 CSS 变量, Tailwind v3 无法为变量色生成 `/alpha`
+   修饰类(@apply 会直接报错), 故 focus ring 颜色用 color-mix 手写,
+   与原 storefront 的 ring-brand-500/20 视觉等价(#3b82f6 @ 20%)。 */
+.input-base {
+  @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-normal
+    placeholder:text-faint outline-none transition
+    focus:border-brand-500 focus:ring-2;
+}
+.input-base:focus {
+  --tw-ring-color: color-mix(in srgb, var(--c-brand-500) 20%, transparent);
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5
+    text-sm font-semibold text-white transition hover:bg-brand-700
+    disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line
+    bg-surface px-5 py-2.5 text-sm font-semibold text-strong transition
+    hover:border-brand-500 hover:text-brand-700;
+}

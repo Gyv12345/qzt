@@ -80,7 +80,7 @@ func newContractService() *contractServiceWrapper {
 }
 
 func (w *contractServiceWrapper) List(ctx context.Context, page, pageSize int, keyword, stage string) ([]crmmodel.CrmContract, int64, error) {
-	return w.svc.List(ctx, page, pageSize, keyword, 0, stage)
+	return w.svc.List(ctx, page, pageSize, keyword, 0, stage, "", "all")
 }
 
 func (w *contractServiceWrapper) GetByID(ctx context.Context, id uint) (*crmmodel.CrmContract, error) {

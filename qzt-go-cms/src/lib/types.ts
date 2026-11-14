@@ -29,6 +29,16 @@ export interface Product {
 
 export type ProductDetail = Product;
 
+/** 产品分类树节点, 对应 GET /crm/public/product-categories 的 data 行 */
+export interface ProductCategory {
+  id: number;
+  parent_id: number;
+  name: string;
+  sort: number;
+  status: number;
+  children?: ProductCategory[];
+}
+
 // ── 合作方 / 客户 ──
 export interface Partner {
   id: number;

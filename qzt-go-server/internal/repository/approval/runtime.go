@@ -5,6 +5,7 @@ import (
 
 	apprmodel "qzt-go-server/internal/model/approval"
 	"qzt-go-server/internal/repository"
+	"qzt-go-server/pkg/xtime"
 )
 
 // runtime.go 审批运行时 repository(instance/task/record/addsign/returnback)。
@@ -152,7 +153,7 @@ func (r *TaskRepo) MaxNodeRound(ctx context.Context, instanceID, nodeID uint) in
 
 // Update 覆写。
 func (r *TaskRepo) Update(ctx context.Context, m *apprmodel.ApprovalTask) error {
-	return r.BaseRepo.Update(ctx, m, "Status", "Action", "NodeRound", "DelegatorID", "ApproverID")
+	return r.BaseRepo.Update(ctx, m, "Status", "Action", "NodeRound", "DelegatorID", "ApproverID", "RemindedAt")
 }
 
 // SoftDeleteByInstanceNode 软删指定实例+节点的任务(node_round 置 -1)。
@@ -160,6 +161,41 @@ func (r *TaskRepo) SoftDeleteByInstanceNode(ctx context.Context, instanceID, nod
 	return repoDB(ctx).Model(&apprmodel.ApprovalTask{}).
 		Where("instance_id = ? AND node_id = ?", instanceID, nodeID).
 		Update("node_round", -1).Error
+}
+
+// ListTimeoutPending 列出超时未处理且未提醒过的任务(超时提醒定时任务用)。
+// 只取活跃实例(APPROVING)下 PENDING/APPROVING 且 node_round>=0 的任务,
+// updated_at 早于 before 且 reminded_at 为空(保证每任务只提醒一次)。
+func (r *TaskRepo) ListTimeoutPending(ctx context.Context, before xtime.DateTime, limit int) ([]apprmodel.ApprovalTask, error) {
+	var tasks []apprmodel.ApprovalTask
+	err := repoDB(ctx).
+		Joins("JOIN approval_instance ON approval_instance.id = approval_task.instance_id AND approval_instance.approval_status = ? AND approval_instance.deleted_at IS NULL", apprmodel.StatusApproving).
+		Where("approval_task.status IN ? AND approval_task.node_round >= 0", []string{apprmodel.TaskStatusPending, apprmodel.TaskStatusApproving}).
+		Where("approval_task.reminded_at IS NULL").
+		Where("approval_task.updated_at < ?", before).
+		Order("approval_task.updated_at ASC").
+		Limit(limit).
+		Find(&tasks).Error
+	return tasks, err
+}
+
+// MarkReminded 批量置 reminded_at=now(超时提醒已发送)。
+func (r *TaskRepo) MarkReminded(ctx context.Context, taskIDs []uint, now xtime.DateTime) error {
+	if len(taskIDs) == 0 {
+		return nil
+	}
+	return repoDB(ctx).Model(&apprmodel.ApprovalTask{}).
+		Where("id IN ?", taskIDs).
+		Update("reminded_at", now).Error
+}
+
+// RevokeActiveByInstance 将实例下全部活跃任务(PENDING/APPROVING/SUSPENDED)置 REVOKED 并软删
+// (node_round=-1)。退回打回时作废旧任务(含加签链)用。
+func (r *TaskRepo) RevokeActiveByInstance(ctx context.Context, instanceID uint) error {
+	return repoDB(ctx).Model(&apprmodel.ApprovalTask{}).
+		Where("instance_id = ? AND node_round >= 0 AND status IN ?", instanceID,
+			[]string{apprmodel.TaskStatusPending, apprmodel.TaskStatusApproving, apprmodel.TaskStatusSuspended}).
+		Updates(map[string]any{"status": apprmodel.TaskStatusRevoked, "node_round": -1}).Error
 }
 
 // ── 审批记录 ──
@@ -177,6 +213,17 @@ func (r *RecordRepo) ListByInstance(ctx context.Context, instanceID uint) ([]app
 	return records, err
 }
 
+// MaxNodeRound 某实例某节点在审批记录中的最大轮次。
+// 任务表软删会把 node_round 置 -1 丢失代次信息,审批记录是不可变审计日志,
+// 退回重建轮次以记录表为准(见 service.rebuildNodeRound)。
+func (r *RecordRepo) MaxNodeRound(ctx context.Context, instanceID, nodeID uint) int {
+	var maxRound int
+	repoDB(ctx).Model(&apprmodel.ApprovalRecord{}).
+		Where("instance_id = ? AND node_id = ?", instanceID, nodeID).
+		Select("COALESCE(MAX(node_round), 0)").Scan(&maxRound)
+	return maxRound
+}
+
 // ── 加签任务 ──
 
 type AddSignTaskRepo struct {
@@ -184,6 +231,32 @@ type AddSignTaskRepo struct {
 }
 
 func NewAddSignTaskRepo() *AddSignTaskRepo { return &AddSignTaskRepo{} }
+
+// GetByTaskID 按加签生成的任务ID取链记录(每条加签任务对应一行)。
+func (r *AddSignTaskRepo) GetByTaskID(ctx context.Context, taskID uint) (*apprmodel.ApprovalAddSignTask, error) {
+	var m apprmodel.ApprovalAddSignTask
+	if err := repoDB(ctx).Where("task_id = ?", taskID).Order("id ASC").First(&m).Error; err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+// ListByRootTaskID 列出加签链全部成员(链推进/详情展示用,按 Sort 升序)。
+func (r *AddSignTaskRepo) ListByRootTaskID(ctx context.Context, rootTaskID uint) ([]apprmodel.ApprovalAddSignTask, error) {
+	var list []apprmodel.ApprovalAddSignTask
+	err := repoDB(ctx).Where("root_task_id = ?", rootTaskID).Order("sort ASC, id ASC").Find(&list).Error
+	return list, err
+}
+
+// ListByTaskIDs 按任务ID集合取链记录(审批详情批量 enrich 用)。
+func (r *AddSignTaskRepo) ListByTaskIDs(ctx context.Context, taskIDs []uint) ([]apprmodel.ApprovalAddSignTask, error) {
+	if len(taskIDs) == 0 {
+		return nil, nil
+	}
+	var list []apprmodel.ApprovalAddSignTask
+	err := repoDB(ctx).Where("task_id IN ?", taskIDs).Order("sort ASC, id ASC").Find(&list).Error
+	return list, err
+}
 
 // ── 退回记录 ──
 

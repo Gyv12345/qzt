@@ -36,6 +36,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	homepageConfigHandler := handler.NewHomepageConfigHandler()
 	versionHandler := handler.NewVersionHandler()
 	wechatAuthHandler := handler.NewWechatAuthHandler()
+	storageConfigHandler := handler.NewStorageConfigHandler()
+	aiModelHandler := handler.NewAIModelHandler()
+	tianyanchaHandler := handler.NewTianyanchaHandler()
 
 	// 公开路由（无需鉴权）：登录、刷新令牌、企业微信扫码登录、已启用第三方登录列表
 	rg.POST("/auth/login", middleware.LoginLimit(), authHandler.Login)
@@ -106,79 +109,132 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	// OperationLog 位于 auth 与 RBAC 之间，使权限拒绝(403)也被审计。
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
 	{
-		// 用户管理
+		// 用户管理（只读）
 		auth.GET("/users", userHandler.List)
-		auth.POST("/users", userHandler.Create)
 		auth.GET("/users/:id", userHandler.GetByID)
-		auth.PUT("/users/:id", userHandler.Update)
-		auth.PUT("/users/:id/reset-password", userHandler.ResetPassword)
-		auth.DELETE("/users/:id", userHandler.Delete)
 
-		// 角色管理
+		// 角色管理（只读）
 		auth.GET("/roles", roleHandler.List)
-		auth.POST("/roles", roleHandler.Create)
 		auth.GET("/roles/:id", roleHandler.GetByID)
-		auth.PUT("/roles/:id", roleHandler.Update)
-		auth.DELETE("/roles/:id", roleHandler.Delete)
-		auth.PUT("/roles/:id/menus", roleHandler.SetMenus)
 		auth.GET("/roles/:id/apis", roleHandler.GetAPIs)
-		auth.PUT("/roles/:id/apis", roleHandler.SetAPIs)
 
-		// 菜单管理
-		auth.POST("/menus", menuHandler.Create)
+		// 菜单管理（只读）
 		auth.GET("/menus/:id", menuHandler.GetByID)
-		auth.PUT("/menus/:id", menuHandler.Update)
-		auth.DELETE("/menus/:id", menuHandler.Delete)
 
-		// API 管理
+		// API 管理（只读）
 		auth.GET("/apis", apiHandler.List)
-		auth.POST("/apis", apiHandler.Create)
 		auth.GET("/apis/:id", apiHandler.GetByID)
-		auth.PUT("/apis/:id", apiHandler.Update)
-		auth.DELETE("/apis/:id", apiHandler.Delete)
 
-		// 字典管理
+		// 字典管理（只读）
 		auth.GET("/dicts", dictHandler.List)
-		auth.POST("/dicts", dictHandler.Create)
 		auth.GET("/dicts/:id", dictHandler.GetByID)
-		auth.PUT("/dicts/:id", dictHandler.Update)
-		auth.DELETE("/dicts/:id", dictHandler.Delete)
 
-		// 操作日志（审计）
+		// 操作日志（审计，只读）
 		auth.GET("/operation-logs", operationLogHandler.List)
 		auth.GET("/operation-logs/:id", operationLogHandler.GetByID)
-		auth.DELETE("/operation-logs/:id", operationLogHandler.Delete)
-		auth.DELETE("/operation-logs", operationLogHandler.Clear)
 
 		// 登录日志（审计）
 		auth.GET("/login-logs", loginLogHandler.List)
 
-		// 系统重置（超管专用，一键清理业务数据）
+		// 系统重置（超管专用，一键清理业务数据；演示模式护栏在 handler 内硬禁并给出专属文案）
 		auth.POST("/reset", resetHandler.ResetBusinessData)
 
-		// 系统配置
+		// 系统配置（只读 + 缓存刷新；refresh 保持放行——演示开关翻转后依赖它同步缓存）
 		auth.GET("/configs", configHandler.List)
-		auth.POST("/configs", configHandler.Create)
-		auth.PUT("/configs", configHandler.BatchUpdate)
-		auth.PUT("/configs/:id", configHandler.Update)
-		auth.DELETE("/configs/:id", configHandler.Delete)
 		auth.POST("/configs/refresh", configHandler.Refresh)
 
-		// 第三方登录配置
+		// 第三方登录配置（只读）
 		auth.GET("/oauth-configs", oauthConfigHandler.List)
-		auth.POST("/oauth-configs", oauthConfigHandler.Create)
 		auth.GET("/oauth-configs/:id", oauthConfigHandler.GetByID)
-		auth.PUT("/oauth-configs/:id", oauthConfigHandler.Update)
-		auth.DELETE("/oauth-configs/:id", oauthConfigHandler.Delete)
-		auth.PUT("/oauth-configs/:id/enable", oauthConfigHandler.Enable)
 
-		// 站点信息设置
-		auth.PUT("/site-config", siteConfigHandler.Update)
-
-		// 首页板块配置
+		// 首页板块配置（只读）
 		auth.GET("/homepage-config", homepageConfigHandler.GetConfig)
-		auth.PUT("/homepage-config/toggle", homepageConfigHandler.ToggleModule)
-		auth.PUT("/homepage-config/sync", homepageConfigHandler.SyncFeatures)
-		auth.DELETE("/homepage-config/features/:id", homepageConfigHandler.RemoveFeature)
+
+		// 文件存储（配置列表 + 文件列表,只读;写操作在下方 frozen 组）
+		auth.GET("/storage/configs", storageConfigHandler.List)
+		auth.GET("/storage/files", storageConfigHandler.ListFiles)
+
+		// AI 模型（档案列表 + 当前生效,只读;写操作在下方 frozen 组——
+		// 模型切换绝不能被演示访客操作:含业务数据的提示词会被引到外部端点）
+		auth.GET("/ai/models", aiModelHandler.List)
+		auth.GET("/ai/models/current", aiModelHandler.Current)
+
+		// 天眼查 MCP（配置只读;保存写操作在下方 frozen 组——演示访客不得改动
+		// 含 API Key 的出网配置）
+		auth.GET("/tianyancha/config", tianyanchaHandler.GetConfig)
+
+		// 演示模式护栏：以下系统管理写接口在 demo.mode=1 时统一 403
+		// 「演示模式不可修改系统配置」（middleware.DemoSystemWriteGuard），
+		// 防公开演示访客改坏用户/角色/菜单/字典/系统配置/官网内容。
+		frozen := auth.Group("", middleware.DemoSystemWriteGuard())
+		{
+			// 用户管理
+			frozen.POST("/users", userHandler.Create)
+			frozen.PUT("/users/:id", userHandler.Update)
+			frozen.PUT("/users/:id/reset-password", userHandler.ResetPassword)
+			frozen.DELETE("/users/:id", userHandler.Delete)
+
+			// 角色管理
+			frozen.POST("/roles", roleHandler.Create)
+			frozen.PUT("/roles/:id", roleHandler.Update)
+			frozen.DELETE("/roles/:id", roleHandler.Delete)
+			frozen.PUT("/roles/:id/menus", roleHandler.SetMenus)
+			frozen.PUT("/roles/:id/apis", roleHandler.SetAPIs)
+
+			// 菜单管理
+			frozen.POST("/menus", menuHandler.Create)
+			frozen.PUT("/menus/:id", menuHandler.Update)
+			frozen.DELETE("/menus/:id", menuHandler.Delete)
+
+			// API 管理
+			frozen.POST("/apis", apiHandler.Create)
+			frozen.PUT("/apis/:id", apiHandler.Update)
+			frozen.DELETE("/apis/:id", apiHandler.Delete)
+
+			// 字典管理
+			frozen.POST("/dicts", dictHandler.Create)
+			frozen.PUT("/dicts/:id", dictHandler.Update)
+			frozen.DELETE("/dicts/:id", dictHandler.Delete)
+
+			// 操作日志（审计清空也冻结，保住演示期间的取证能力）
+			frozen.DELETE("/operation-logs/:id", operationLogHandler.Delete)
+			frozen.DELETE("/operation-logs", operationLogHandler.Clear)
+
+			// 系统配置（存储配置走 config.yaml 无 API；sys_config 即系统配置面）
+			frozen.POST("/configs", configHandler.Create)
+			frozen.PUT("/configs", configHandler.BatchUpdate)
+			frozen.PUT("/configs/:id", configHandler.Update)
+			frozen.DELETE("/configs/:id", configHandler.Delete)
+
+			// 第三方登录配置
+			frozen.POST("/oauth-configs", oauthConfigHandler.Create)
+			frozen.PUT("/oauth-configs/:id", oauthConfigHandler.Update)
+			frozen.DELETE("/oauth-configs/:id", oauthConfigHandler.Delete)
+			frozen.PUT("/oauth-configs/:id/enable", oauthConfigHandler.Enable)
+
+			// 文件存储（写操作:保存/删除/启用热切换/测试连接）
+			frozen.POST("/storage/configs", storageConfigHandler.Create)
+			frozen.PUT("/storage/configs/:id", storageConfigHandler.Update)
+			frozen.DELETE("/storage/configs/:id", storageConfigHandler.Delete)
+			frozen.POST("/storage/configs/:id/activate", storageConfigHandler.Activate)
+			frozen.POST("/storage/configs/:id/test", storageConfigHandler.Test)
+
+			// AI 模型（写操作:保存/删除/启用热切换,演示模式冻结）
+			frozen.POST("/ai/models", aiModelHandler.Create)
+			frozen.PUT("/ai/models/:id", aiModelHandler.Update)
+			frozen.DELETE("/ai/models/:id", aiModelHandler.Delete)
+			frozen.POST("/ai/models/:id/activate", aiModelHandler.Activate)
+
+			// 天眼查 MCP（保存:演示模式冻结）
+			frozen.PUT("/tianyancha/config", tianyanchaHandler.SaveConfig)
+
+			// 站点信息设置（官网对外内容）
+			frozen.PUT("/site-config", siteConfigHandler.Update)
+
+			// 首页板块配置（官网对外内容）
+			frozen.PUT("/homepage-config/toggle", homepageConfigHandler.ToggleModule)
+			frozen.PUT("/homepage-config/sync", homepageConfigHandler.SyncFeatures)
+			frozen.DELETE("/homepage-config/features/:id", homepageConfigHandler.RemoveFeature)
+		}
 	}
 }

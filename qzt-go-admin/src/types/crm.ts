@@ -33,6 +33,25 @@ export interface CrmCustomerDetail {
   fields: Record<string, string>
 }
 
+/** 天眼查企业工商信息(GET /crm/customers/:id/tianyancha) */
+export interface CrmTianyanchaInfo {
+  company_name: string
+  legal_person: string
+  /** 注册资本,如 "1000万人民币" */
+  registered_capital: string
+  /** 成立日期 yyyy-MM-dd */
+  establish_date: string
+  /** 经营状态,如 "存续" */
+  status: string
+  /** 统一社会信用代码 */
+  credit_code: string
+  /** 参保人数 */
+  insured_count: string | number
+  address: string
+  /** 原始返回(折叠展示用) */
+  raw?: unknown
+}
+
 export interface CrmContact {
   id: number
   customer_id: number
@@ -130,10 +149,56 @@ export interface CrmContract {
   follower_id: number | null
   follow_time: string | null
   content: string
+  /** 合同分类(自由文本,P30-#2) */
+  category?: string
+  /** 归档时间,null/空 = 未归档 */
+  archived_at?: string | null
+  archived_by_name?: string
   created_at: string
   updated_at: string
 }
 
+/** 合同变更记录(金额/结束日期,未变更的一侧前后值相同或为空) */
+export interface CrmContractChange {
+  id: number
+  before_amount: string | null
+  after_amount: string | null
+  before_end_date: string | null
+  after_end_date: string | null
+  reason: string
+  created_by_name: string
+  created_at: string
+}
+
+/** 发起合同变更:after_amount / after_end_date 至少填一项 */
+export interface CrmContractChangePayload {
+  after_amount?: string
+  after_end_date?: string
+  reason: string
+}
+
+export interface CrmContractStageStat {
+  stage: string
+  count: number
+  amount: string
+}
+
+export interface CrmContractExpiring {
+  id: number
+  name: string
+  customer_name: string
+  end_date: string
+  days_left: number
+  owner_name: string
+}
+
+/** 合同统计(GET /crm/contracts/stats),金额均为 decimal string */
+export interface CrmContractStats {
+  total_amount: string
+  by_stage: CrmContractStageStat[]
+  signed_month_amount: string
+  expiring: CrmContractExpiring[]
+}
 
 export interface CrmPaymentPlan {
   id: number
@@ -171,7 +236,7 @@ export interface CrmProduct {
   id: number
   name: string
   product_no: string
-  /** 字典 PRODUCT_CATEGORY */
+  /** 分类名(叶子分类 name 字符串,来源 /crm/product-categories/tree) */
   category: string
   unit: string
   standard_price: string

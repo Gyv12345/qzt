@@ -131,10 +131,39 @@ export interface ApprovalTask {
   type?: string
   /** 已办场景:该任务上我的审批动作(APPROVE/REJECT 等) */
   action?: string
+  /** 加签模式(before=被加签人先审再回到发起人;after=发起人审完顺延;空=非加签任务) */
+  add_sign_mode?: 'before' | 'after' | ''
+  /** 加签发起人用户ID(详情接口 enrichment,可能不下发) */
+  add_sign_by?: number | null
+  /** 加签发起人姓名(详情接口 enrichment) */
+  add_sign_by_name?: string
   created_at: string
   updated_at: string
   /** 列表接口可能附带实例信息 */
   instance?: ApprovalInstance
+}
+
+/** 可退回节点(实例详情 enrichment:当前审批人可退回的节点列表) */
+export interface ReturnableNode {
+  id: number
+  name: string
+}
+
+/** 加签模式 */
+export type AddSignMode = 'before' | 'after'
+
+/** 加签请求 */
+export interface AddSignPayload {
+  task_id: number
+  user_ids: number[]
+  mode: AddSignMode
+}
+
+/** 退回请求 */
+export interface ReturnBackPayload {
+  task_id: number
+  return_to_node_id: number
+  comment: string
 }
 
 /** 审批操作记录 */
@@ -205,6 +234,8 @@ export interface ApprovalInstanceDetail extends ApprovalInstance {
   form_type_label?: string
   tasks: ApprovalTask[] | null
   records: ApprovalRecord[] | null
+  /** 当前审批人可退回的节点列表(详情接口 enrichment) */
+  returnable_nodes?: ReturnableNode[] | null
 }
 
 // ── 原单摘要(详情抽屉展示"批的是什么") ──

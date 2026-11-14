@@ -11,15 +11,15 @@ import (
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 
+	"qzt-go-server/internal/app"
 	crmmodel "qzt-go-server/internal/model/crm"
 	mallmodel "qzt-go-server/internal/model/mall"
 	psimodel "qzt-go-server/internal/model/psi"
-	"qzt-go-server/internal/app"
+	psisvc "qzt-go-server/internal/module/psi/service"
 	"qzt-go-server/internal/repository"
 	crmrepo "qzt-go-server/internal/repository/crm"
 	mallrepo "qzt-go-server/internal/repository/mall"
 	psirepo "qzt-go-server/internal/repository/psi"
-	psisvc "qzt-go-server/internal/module/psi/service"
 )
 
 // order.go 商城订单服务。
@@ -80,7 +80,7 @@ type MallGoodsDTO struct {
 	StockQty decimal.Decimal `json:"stock_qty"`
 	InStock  bool            `json:"in_stock"`
 	// 规格列表(单规格商品只有一条 spec 为空的记录,前端无需展示选择器)
-	Skus     []MallSkuDTO    `json:"skus"`
+	Skus []MallSkuDTO `json:"skus"`
 }
 
 // PublicGoods 商城商品列表:全部上架商品(SKU 少,一次拉取,上限 200)。
@@ -162,10 +162,10 @@ func (s *MallService) PublicGoods(ctx context.Context) ([]MallGoodsDTO, error) {
 
 // CreateOrderItemRequest 下单明细项。
 type CreateOrderItemRequest struct {
-	ProductID uint            `json:"product_id" binding:"required"`
+	ProductID uint `json:"product_id" binding:"required"`
 	// 规格SKU ID(0=单规格商品自动取默认规格;多规格商品必须指定)
-	SkuID     uint            `json:"sku_id"`
-	Quantity  decimal.Decimal `json:"quantity" binding:"required"`
+	SkuID    uint            `json:"sku_id"`
+	Quantity decimal.Decimal `json:"quantity" binding:"required"`
 }
 
 // CreateOrderRequest 公开下单请求。
@@ -179,9 +179,9 @@ type CreateOrderRequest struct {
 
 // CreateOrderResult 下单结果。
 type CreateOrderResult struct {
-	OrderNo    string          `json:"order_no"`
+	OrderNo     string          `json:"order_no"`
 	TotalAmount decimal.Decimal `json:"total_amount"`
-	Status     int8            `json:"status"`
+	Status      int8            `json:"status"`
 	// 生成的 PSI 销售单号(无默认仓库时为空,后台可手动补生成)
 	SalesOrderNo string `json:"sales_order_no"`
 }
@@ -316,10 +316,10 @@ func (s *MallService) ensureCustomer(ctx context.Context, phone, name string) (*
 		return nil, err
 	}
 	customer := &crmmodel.CrmCustomer{
-		Name:    fmt.Sprintf("商城-%s", name),
-		Source:  "MALL",
-		Status:  crmmodel.CustomerStatusNormal,
-		InPool:  crmmodel.InPoolPublic,
+		Name:   fmt.Sprintf("商城-%s", name),
+		Source: "MALL",
+		Status: crmmodel.CustomerStatusNormal,
+		InPool: crmmodel.InPoolPublic,
 	}
 	if err := s.custRepo.Create(ctx, customer); err != nil {
 		return nil, err
@@ -370,12 +370,12 @@ func (s *MallService) tryGenerateSalesOrder(ctx context.Context, order *mallmode
 
 // PublicOrderDTO 公开订单查询视图(凭订单号,只暴露最少信息)。
 type PublicOrderDTO struct {
-	OrderNo     string          `json:"order_no"`
-	Status      int8            `json:"status"`
-	StatusLabel string          `json:"status_label"`
-	TotalAmount decimal.Decimal `json:"total_amount"`
+	OrderNo     string               `json:"order_no"`
+	Status      int8                 `json:"status"`
+	StatusLabel string               `json:"status_label"`
+	TotalAmount decimal.Decimal      `json:"total_amount"`
 	Items       []PublicOrderItemDTO `json:"items"`
-	CreatedAt   string          `json:"created_at"`
+	CreatedAt   string               `json:"created_at"`
 }
 
 // PublicOrderItemDTO 公开订单明细。
@@ -436,10 +436,10 @@ func OrderStatusLabel(status int8) string {
 // OrderDetailDTO 管理侧订单详情(含明细与关联信息)。
 type OrderDetailDTO struct {
 	mallmodel.MallOrder
-	StatusLabel  string                 `json:"status_label"`
+	StatusLabel  string                    `json:"status_label"`
 	Items        []mallmodel.MallOrderItem `json:"items"`
-	CustomerName string                 `json:"customer_name"`
-	SalesOrderNo string                 `json:"sales_order_no"`
+	CustomerName string                    `json:"customer_name"`
+	SalesOrderNo string                    `json:"sales_order_no"`
 }
 
 // List 管理侧订单分页(status/keyword 筛选)。

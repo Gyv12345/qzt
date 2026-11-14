@@ -39,6 +39,7 @@ type ContractService struct {
 	planRepo   *crrepo.PaymentPlanRepo
 	recordRepo *crrepo.PaymentRecordRepo
 	titleRepo  *crrepo.BusinessTitleRepo
+	changeRepo *crrepo.ContractChangeRepo
 }
 
 func NewContractService() *ContractService {
@@ -47,6 +48,7 @@ func NewContractService() *ContractService {
 		planRepo:   crrepo.NewPaymentPlanRepo(),
 		recordRepo: crrepo.NewPaymentRecordRepo(),
 		titleRepo:  crrepo.NewBusinessTitleRepo(),
+		changeRepo: crrepo.NewContractChangeRepo(),
 	}
 }
 
@@ -61,6 +63,7 @@ type CreateContractRequest struct {
 	SignedDate    xtime.NullDateTime `json:"signed_date"`
 	StartDate     xtime.NullDateTime `json:"start_date"`
 	EndDate       xtime.NullDateTime `json:"end_date"`
+	Category      string             `json:"category"`
 	OwnerID       *uint              `json:"owner_id"`
 	Content       string             `json:"content"`
 }
@@ -83,7 +86,7 @@ func (s *ContractService) Create(ctx context.Context, req *CreateContractRequest
 		Name: req.Name, ContractNo: contractNo, CustomerID: req.CustomerID, OpportunityID: req.OpportunityID, TitleID: req.TitleID,
 		TotalAmount: req.TotalAmount, ReceivedAmount: decimal.Zero, SignedDate: req.SignedDate,
 		StartDate: req.StartDate, EndDate: req.EndDate, Stage: crmmodel.ContractStageDraft,
-		OwnerID: ownerID, Content: req.Content,
+		Category: req.Category, OwnerID: ownerID, Content: req.Content,
 	}
 	if err := s.repo.Create(ctx, contract); err != nil {
 		return nil, err
@@ -107,6 +110,7 @@ type UpdateContractRequest struct {
 	SignedDate    xtime.NullDateTime `json:"signed_date"`
 	StartDate     xtime.NullDateTime `json:"start_date"`
 	EndDate       xtime.NullDateTime `json:"end_date"`
+	Category      string             `json:"category"`
 	Stage         string             `json:"stage"`
 	OwnerID       *uint              `json:"owner_id"`
 	Content       string             `json:"content"`
@@ -131,6 +135,7 @@ func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContra
 	c.SignedDate = req.SignedDate
 	c.StartDate = req.StartDate
 	c.EndDate = req.EndDate
+	c.Category = req.Category
 
 	if req.Stage != "" {
 		c.Stage = req.Stage
@@ -160,8 +165,10 @@ func (s *ContractService) Delete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// List 合同列表(分页 + keyword 名称模糊 + customerID + stage 过滤)。
-func (s *ContractService) List(ctx context.Context, page, pageSize int, keyword string, customerID uint, stage string) ([]crmmodel.CrmContract, int64, error) {
+// List 合同列表(分页 + keyword 名称模糊 + customerID/stage/category 过滤 +
+// archived 归档过滤:all/yes/no,默认 no 即列表默认不含已归档)。
+func (s *ContractService) List(ctx context.Context, page, pageSize int, keyword string,
+	customerID uint, stage, category, archived string) ([]crmmodel.CrmContract, int64, error) {
 	q := &repository.QueryOptions{Order: []string{"id DESC"}}
 	where := map[string]any{}
 	if keyword != "" {
@@ -172,6 +179,20 @@ func (s *ContractService) List(ctx context.Context, page, pageSize int, keyword 
 	}
 	if stage != "" {
 		where["stage"] = stage
+	}
+	if category != "" {
+		// 分类支持部分匹配(输入「服务」可命中「服务类合同」)
+		q.Conds = append(q.Conds, repository.Cond{Query: "category LIKE ?", Args: []any{"%" + category + "%"}})
+	}
+	// 归档过滤(枚举由服务端判定,不拼客户端标识符):
+	// no=默认只看未归档;yes=只看已归档;all=不过滤
+	switch archived {
+	case "yes":
+		q.Conds = append(q.Conds, repository.Cond{Query: "archived_at IS NOT NULL"})
+	case "all":
+		// 无条件
+	default:
+		q.Conds = append(q.Conds, repository.Cond{Query: "archived_at IS NULL"})
 	}
 	if len(where) > 0 {
 		q.Where = where

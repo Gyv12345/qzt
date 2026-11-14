@@ -9,6 +9,52 @@
     "host": "localhost:9000",
     "basePath": "/",
     "paths": {
+        "/api/ai/agents/{scenario}/run": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "scenario=insight(经营洞察)/approval-summary(审批助手)/daily-report(日报生成);采集真实业务数据构建提示词走统一LLM网关(feature=ai.agent记账);需 sys_config ai.chat_enabled=1(默认关)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI场景智能体"
+                ],
+                "summary": "AI 场景智能体运行",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "场景:insight/approval-summary/daily-report",
+                        "name": "scenario",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.AgentRunResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/ai/chat": {
             "post": {
                 "security": [
@@ -621,6 +667,45 @@
                 }
             }
         },
+        "/approval/actions/add-sign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "为当前任务插入串行加签链(BEFORE 前加签:原任务挂起,链全批后恢复;AFTER 后加签:原任务先通过,链在其后,链尾批后流程续走);仅当前任务审批人本人可操作",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批操作"
+                ],
+                "summary": "审批加签",
+                "parameters": [
+                    {
+                        "description": "加签请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AddSignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/approval/actions/approve": {
             "post": {
                 "security": [
@@ -723,6 +808,84 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/service.RejectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approval/actions/remove-sign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "撤销链上仍未轮到(PENDING)的加签任务;仅加签发起人可撤,撤销后若链已无人待处理则提前收尾",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批操作"
+                ],
+                "summary": "审批减签",
+                "parameters": [
+                    {
+                        "description": "减签请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.RemoveSignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approval/actions/return-back": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "把审批实例打回到指定已审节点(目标节点按轮次+1 重建任务,打回节点之后的旧任务含加签链整体作废);仅当前任务审批人可操作,可退回节点列表见详情接口 returnable_nodes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批操作"
+                ],
+                "summary": "审批退回",
+                "parameters": [
+                    {
+                        "description": "退回请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ReturnBackRequest"
                         }
                     }
                 ],
@@ -1493,6 +1656,185 @@
                 }
             }
         },
+        "/cloud/public/shares/{token}": {
+            "get": {
+                "description": "免登录;返回文件名/大小/过期时间/是否需要提取码/下载次数",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公共接口"
+                ],
+                "summary": "公开获取分享元信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "分享令牌",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cloud/public/shares/{token}/download": {
+            "post": {
+                "description": "免登录;校验提取码(恒时比较)后签出 10 分钟有效下载 URL;每 IP 每分钟 10 次",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公共接口"
+                ],
+                "summary": "公开获取分享下载地址",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "分享令牌",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "提取码(无提取码分享可不传)",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ShareDownloadRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cloud/shares": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "联 cloud_file 返回文件名/大小,含下载次数",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "网盘-分享"
+                ],
+                "summary": "我创建的分享分页",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码(默认1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认10,最大100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "校验文件属主/非文件夹/状态正常;expire_days 白名单 7/30;单用户活跃分享上限 200",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "网盘-分享"
+                ],
+                "summary": "创建文件分享",
+                "parameters": [
+                    {
+                        "description": "文件ID/有效期天数/提取码(可空)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateShareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cloud/shares/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "仅本人可取消,置 disabled=1,公开侧立即失效",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "网盘-分享"
+                ],
+                "summary": "取消分享",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分享ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/cloud/usage": {
             "get": {
                 "security": [
@@ -1998,83 +2340,6 @@
                         "name": "id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/cms/media": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "列举公共桶对象并拼直链,keyword 过滤 key 子串",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "媒体库"
-                ],
-                "summary": "媒体库列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "key 关键字过滤",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "最多返回条数(默认200,最大500)",
-                        "name": "max_keys",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/xresponse.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/cms/media/delete": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "媒体库"
-                ],
-                "summary": "删除媒体对象",
-                "parameters": [
-                    {
-                        "description": "删除请求",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.MediaDeleteRequest"
-                        }
                     }
                 ],
                 "responses": {
@@ -3290,6 +3555,18 @@
                         "description": "合同阶段过滤",
                         "name": "stage",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "合同分类过滤",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "归档过滤:all/yes/no(默认no,列表默认不含已归档)",
+                        "name": "archived",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3328,6 +3605,30 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/contracts/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "合同管理"
+                ],
+                "summary": "合同统计(总金额/分阶段/本月签订/临期列表)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -3433,6 +3734,115 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/contracts/{id}/archive": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "合同管理"
+                ],
+                "summary": "合同归档(仅已完成/已终止)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "合同ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/contracts/{id}/changes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "合同管理"
+                ],
+                "summary": "合同变更记录列表(倒序,带操作人姓名)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "合同ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "合同管理"
+                ],
+                "summary": "提交合同变更(金额/结束日期,仅负责人或超管,仅已签订/执行中)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "合同ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "变更请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ContractChangeRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -3657,6 +4067,39 @@
                         "description": "模板ID",
                         "name": "template_id",
                         "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/contracts/{id}/unarchive": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "合同管理"
+                ],
+                "summary": "合同取消归档",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "合同ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -4520,6 +4963,52 @@
                         "description": "退回原因",
                         "name": "reason",
                         "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/customers/{id}/tianyancha": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按客户名称经天眼查 MCP 查询工商信息并归一化返回;不回填客户字段,",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "客户工商信息查询(天眼查)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "客户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "企业名称(留空用客户名称)",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否写跟进记录留痕(默认 false)",
+                        "name": "save",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5612,6 +6101,155 @@
                 }
             }
         },
+        "/crm/product-categories": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "产品分类管理"
+                ],
+                "summary": "新增产品分类",
+                "parameters": [
+                    {
+                        "description": "新增分类请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ProductCategoryCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/product-categories/tree": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全量内存组树,sort 升序;include_disabled=true 时含停用节点(默认只回启用)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "产品分类管理"
+                ],
+                "summary": "产品分类树",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "是否包含停用分类(默认false)",
+                        "name": "include_disabled",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/crm/product-categories/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "改名不回写商品数据(crm_product.category 存量不动);换父会拒绝落入自身子树",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "产品分类管理"
+                ],
+                "summary": "更新产品分类",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分类ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新分类请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ProductCategoryUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "有子节点拒绝删;商品引用不阻断删除,引用数在返回 notice 里提示",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "产品分类管理"
+                ],
+                "summary": "删除产品分类",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分类ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/crm/products": {
             "get": {
                 "security": [
@@ -6031,6 +6669,26 @@
                 }
             }
         },
+        "/crm/public/product-categories": {
+            "get": {
+                "description": "免鉴权,只回启用的分类节点,官网按叶子名筛选商品用",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CMS公开"
+                ],
+                "summary": "产品分类树(公开)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/crm/public/products": {
             "get": {
                 "description": "返回「官网内容→官网首页配置→产品」精选的商品,精选即公开展示的唯一门槛(板块关闭或未配置精选时为空,不含成本价),免鉴权",
@@ -6428,6 +7086,82 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/deploy/static": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "服务器端异步执行 rebuild_static.sh(npm install + next build + rsync 发布),同一时刻仅允许一个任务,进行中重复触发直接拒绝;进度与日志尾通过 GET /deploy/status 轮询。超管专用(Casbin 超管内存短路,未绑菜单/按钮)。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "静态站发布"
+                ],
+                "summary": "一键重新生成并发布静态站",
+                "parameters": [
+                    {
+                        "description": "目标(cms=官网+跨境双主题)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.runStaticRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/deploy/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回当前是否有任务在执行,以及各目标(当前仅 cms=官网+跨境双主题)最近一次重建的状态与日志尾(末 30 行)。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "静态站发布"
+                ],
+                "summary": "静态站重建状态查询",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.StatusResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -6846,6 +7580,43 @@
                         "schema": {
                             "$ref": "#/definitions/service.CreateInvoiceRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/finance/invoices/ocr": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "上传发票图片(jpg/png/webp,≤10MB),千问 qwen-vl 视觉识别出票面结构化字段。",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "财务-发票"
+                ],
+                "summary": "发票图片识别(OCR)",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "发票图片(jpg/png/webp,≤10MB)",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -17636,6 +18407,840 @@
                 }
             }
         },
+        "/storefront/config": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "管理端读配置(与公开同构)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站站点配置(管理)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全量覆盖保存;locales 至少 1 个;rates 前端固定 USD/EUR/GBP 三键(CNY per unit)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站站点配置保存(管理)",
+                "parameters": [
+                    {
+                        "description": "配置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ConfigUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页查询独立站订单,主单+明细嵌套返回;status 筛选(1待支付/2已支付/3已取消/4已过期),keyword 匹配订单号/买家邮箱/姓名/Session ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站订单列表(管理)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码(默认 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认 20,上限 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态筛选(1待支付 2已支付 3已取消 4已过期)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "订单号/买家邮箱/姓名/Session ID 关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "主单 + 明细嵌套返回,含支付通道回填的买家信息与 PSI 销售单号",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站订单详情(管理)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/products": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页查询上架位(含 CRM 名称/标价/状态与翻译完整度 locales_done)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站商品列表(管理)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码(默认 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认 20,上限 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "slug 关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言代码(默认 en,决定 name/description 取哪语言)",
+                        "name": "locale",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "部分字段更新语义;创建走 POST /storefront/products 或 PUT /storefront/products/0(id=0);价格 null=清除改按汇率折算",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站商品新增/更新(管理)",
+                "parameters": [
+                    {
+                        "description": "上架位与翻译",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AdminUpsertRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/products/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "含全语言翻译 translations(供编辑表单回填)与请求语言的 description",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站商品详情(管理)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "上架位ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言代码(默认 en)",
+                        "name": "locale",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "部分字段更新语义;创建走 POST /storefront/products 或 PUT /storefront/products/0(id=0);价格 null=清除改按汇率折算",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站管理"
+                ],
+                "summary": "独立站商品新增/更新(管理)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "上架位ID(仅 PUT;0=新增)",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "上架位与翻译",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AdminUpsertRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/checkout": {
+            "post": {
+                "description": "免登录下单:每 IP 每分钟限 5 次;校验商品可购并按上架位价格规则快照,创建 Stripe Checkout Session(Test Mode);密钥未配置时返回「支付通道未配置」",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站下单(公开)",
+                "parameters": [
+                    {
+                        "description": "下单内容(items + locale)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.CheckoutResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/config": {
+            "get": {
+                "description": "站点语言/汇率/paypal_enabled,免鉴权;不含 notify_email 等管理端字段;汇率用于前端本地试算,权威折算以后端为准",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站站点配置(公开)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/inquiries": {
+            "post": {
+                "description": "免登录提交询盘:每 IP 每分钟限 3 次;校验邮箱/内容后自动创建 CRM 公海线索(来源=独立站询盘)并异步通知管理员,返回线索编号",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站询盘提交(公开)",
+                "parameters": [
+                    {
+                        "description": "询盘内容",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.InquiryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/paypal/capture": {
+            "post": {
+                "description": "免登录服务端捕获:按 paypal_order_id 定位待支付订单并调 PayPal Capture 确认扣款;COMPLETED 幂等置已支付(回填买家/捕获交易 ID/paid_at,通知+邮件+best-effort PSI 销售单)。订单非待支付返回错误提示,捕获失败订单保持待支付可重试",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站 PayPal 支付确认(公开)",
+                "parameters": [
+                    {
+                        "description": "PayPal 订单 ID(审批回跳 query 的 token 参数)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PayPalCaptureRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.PayPalCaptureResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/paypal/create": {
+            "post": {
+                "description": "免登录下单:每 IP 每分钟限 5 次;校验商品可购并统一折算到结算币种后创建订单快照,再调 PayPal Orders API 创建支付订单,返回买家审批页地址(approve_url)。PayPal 凭据未配置时返回「PayPal 支付未配置」;买家在 PayPal 审批完成后跳回站点 success 页(query 带 token=\u003cPayPal 订单 ID\u003e),前端再调 /storefront/public/paypal/capture 确认扣款",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站 PayPal 下单(公开)",
+                "parameters": [
+                    {
+                        "description": "下单内容(items + locale + currency)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PayPalCheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.PayPalCreateResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/products": {
+            "get": {
+                "description": "上架商品按 sort 升序;已按 locale 填充翻译(缺失回落主语言 en);价格直标价优先,否则 CRM 标价(CNY)× 汇率折算;不含成本价,免鉴权",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站商品列表(公开)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "语言代码(默认 en)",
+                        "name": "locale",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/products/{slug}": {
+            "get": {
+                "description": "按 URL 别名查商品,附规格列表与全仓库存汇总(\"有货/无货\"参考),免鉴权",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "独立站商品详情(公开)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL 别名",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言代码(默认 en)",
+                        "name": "locale",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/storefront/public/webhooks/stripe": {
+            "post": {
+                "description": "免登录接收 Stripe 事件:Stripe-Signature 验签失败返回 400;checkout.session.completed 幂等置已支付(回填买家信息并通知+生成 PSI 销售单),checkout.session.expired 置已过期",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "独立站公开"
+                ],
+                "summary": "Stripe webhook 回调(公开)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/ai/models": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全部 AI 模型档案(生效行置顶),api_key 脱敏只回 ****+尾4位",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI模型"
+                ],
+                "summary": "AI 模型档案列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/service.AIModelItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "校验 base_url 出网安全(仅 http/https 且拒绝内网/环回/保留地址);api_key 必填;不自动激活",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI模型"
+                ],
+                "summary": "新建 AI 模型档案",
+                "parameters": [
+                    {
+                        "description": "档案参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SaveAIModelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.AIModelItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/system/ai/models/current": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回当前生效档案及来源(source=db/env);无 DB 生效档案时回 env 配置,api_key 脱敏",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI模型"
+                ],
+                "summary": "当前生效的 AI 模型档案",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.CurrentAIModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/system/ai/models/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "api_key 传脱敏值(****开头)保留原值不覆盖;不改动生效状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI模型"
+                ],
+                "summary": "更新 AI 模型档案",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "档案ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "档案参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SaveAIModelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "当前生效(is_default=1)的档案拒绝删除",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI模型"
+                ],
+                "summary": "删除 AI 模型档案",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "档案ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/ai/models/{id}/activate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "事务内切换 is_default 标记,base_url 出网校验通过才提交;成功后全局 LLM 客户端即时热切换,失败回滚并报错",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI模型"
+                ],
+                "summary": "启用 AI 模型档案(热切换)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "档案ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/api-keys": {
             "get": {
                 "security": [
@@ -20635,6 +22240,348 @@
                 }
             }
         },
+        "/system/storage/configs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全部存储配置(local/oss/s3),密钥字段脱敏只回尾4位",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "存储配置列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/service.StorageConfigItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按驱动校验必填参数;不自动激活;密钥传脱敏值(****开头)按未填处理",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "新建存储配置",
+                "parameters": [
+                    {
+                        "description": "配置参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SaveStorageConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.StorageConfigItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/system/storage/configs/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "密钥字段传脱敏值(****开头)保留原值不覆盖;不改动生效状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "更新存储配置",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "配置参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SaveStorageConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "当前生效(is_active=1)的配置拒绝删除",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "删除存储配置",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/storage/configs/{id}/activate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "事务内切换生效标记,新驱动构建成功才提交;成功后全局存储即时热切换,失败回滚并报错",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "启用存储配置(热切换)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/storage/configs/{id}/test": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "构建对应驱动并探测(oss/s3 探测桶可达性,local 建目录);不激活不影响当前生效配置",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "测试存储配置连接",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/storage/files": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "管理员视角列出网盘全部文件(跨用户,联 sys_user 带上传人昵称);每行带下载地址(公共直链或私有短期签名URL);keyword 模糊匹配文件名",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件存储"
+                ],
+                "summary": "存储文件列表(全量)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文件名关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码(默认1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认10,最大100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/tianyancha/config": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "读取天眼查 MCP 配置(端点/工具名映射/API Key 脱敏只回 ****+尾4 位)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "天眼查"
+                ],
+                "summary": "天眼查 MCP 配置详情",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "保存天眼查 MCP 配置(单行 upsert)。api_key 传脱敏值(****开头)保留原值;",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "天眼查"
+                ],
+                "summary": "保存天眼查 MCP 配置",
+                "parameters": [
+                    {
+                        "description": "保存请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SaveTianyanchaConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/users": {
             "get": {
                 "security": [
@@ -20935,6 +22882,238 @@
                     }
                 }
             }
+        },
+        "/workflow/definitions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "工作流列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "新增工作流",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/definitions/:id": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "工作流详情",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "编辑工作流",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "删除工作流",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/definitions/:id/enable": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "启停工作流",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/definitions/:id/run": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "手动运行工作流",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/events": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "事件目录",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/runs": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "执行记录列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/runs/:id": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "执行详情",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "删除执行记录",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/runs/:id/retry": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工作流"
+                ],
+                "summary": "重跑执行",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -20997,22 +23176,6 @@
                 }
             }
         },
-        "handler.MediaDeleteRequest": {
-            "type": "object",
-            "required": [
-                "object_keys"
-            ],
-            "properties": {
-                "object_keys": {
-                    "description": "要删除的对象 key 清单",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "handler.PublicContactRequest": {
             "type": "object",
             "required": [
@@ -21040,6 +23203,14 @@
                 "phone": {
                     "type": "string",
                     "maxLength": 30
+                }
+            }
+        },
+        "handler.ShareDownloadRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
                 }
             }
         },
@@ -21164,6 +23335,19 @@
             "properties": {
                 "approve": {
                     "type": "boolean"
+                }
+            }
+        },
+        "handler.runStaticRequest": {
+            "type": "object",
+            "required": [
+                "target"
+            ],
+            "properties": {
+                "target": {
+                    "description": "目标站点:cms=官网+跨境双主题(单构建双主题发布,服务端白名单校验)",
+                    "type": "string",
+                    "example": "cms"
                 }
             }
         },
@@ -21598,6 +23782,48 @@
             "properties": {
                 "reply": {
                     "type": "string"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.AIModelItem": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "description": "脱敏:****abcd",
+                    "type": "string"
+                },
+                "base_url": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_default": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -21620,6 +23846,43 @@
                 "name": {
                     "type": "string",
                     "maxLength": 100
+                }
+            }
+        },
+        "service.AddSignRequest": {
+            "type": "object",
+            "required": [
+                "mode",
+                "task_id",
+                "user_ids"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "BEFORE(前加签)/AFTER(后加签)",
+                    "type": "string"
+                },
+                "task_id": {
+                    "type": "integer"
+                },
+                "user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "service.AdminUpsertRequest": {
+            "type": "object"
+        },
+        "service.AgentRunResponse": {
+            "type": "object",
+            "properties": {
+                "output": {
+                    "type": "string"
                 }
             }
         },
@@ -21745,6 +24008,63 @@
                 }
             }
         },
+        "service.CheckoutItemRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "product_id": {
+                    "description": "CRM 商品ID",
+                    "type": "integer"
+                },
+                "quantity": {
+                    "description": "数量(1-999)",
+                    "type": "integer",
+                    "maximum": 999,
+                    "minimum": 1
+                }
+            }
+        },
+        "service.CheckoutRequest": {
+            "type": "object",
+            "required": [
+                "items"
+            ],
+            "properties": {
+                "currency": {
+                    "description": "结算币种(ISO 4217,空默认 USD;必须存在于汇率表,P28-C 多币种结算)",
+                    "type": "string",
+                    "maxLength": 8
+                },
+                "items": {
+                    "description": "Items 明细(1-20 行)",
+                    "type": "array",
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/service.CheckoutItemRequest"
+                    }
+                },
+                "locale": {
+                    "description": "站点语言(en/zh,空默认 en)",
+                    "type": "string",
+                    "maxLength": 8
+                }
+            }
+        },
+        "service.CheckoutResult": {
+            "type": "object",
+            "properties": {
+                "checkout_url": {
+                    "type": "string"
+                },
+                "order_no": {
+                    "type": "string"
+                }
+            }
+        },
         "service.ClockInRequest": {
             "type": "object",
             "required": [
@@ -21793,6 +24113,52 @@
                     "type": "string"
                 },
                 "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.ConfigUpdateRequest": {
+            "type": "object",
+            "required": [
+                "locales"
+            ],
+            "properties": {
+                "locales": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "notify_email": {
+                    "description": "通知邮箱(逗号/分号分隔;空串=清除,邮件通道关闭)",
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "rates": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                }
+            }
+        },
+        "service.ContractChangeRequest": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "after_amount": {
+                    "type": "number"
+                },
+                "after_end_date": {
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "变更原因(必填)",
                     "type": "string"
                 }
             }
@@ -22051,6 +24417,9 @@
                 "total_amount"
             ],
             "properties": {
+                "category": {
+                    "type": "string"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -23343,6 +25712,24 @@
                 }
             }
         },
+        "service.CreateShareRequest": {
+            "type": "object",
+            "required": [
+                "expire_days",
+                "file_id"
+            ],
+            "properties": {
+                "expire_days": {
+                    "type": "integer"
+                },
+                "extract_code": {
+                    "type": "string"
+                },
+                "file_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.CreateStockInRequest": {
             "type": "object",
             "required": [
@@ -23841,6 +26228,32 @@
                 }
             }
         },
+        "service.CurrentAIModel": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "description": "脱敏:****abcd",
+                    "type": "string"
+                },
+                "base_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "db 来源的档案 ID;env 来源为 0",
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "description": "db / env",
+                    "type": "string"
+                }
+            }
+        },
         "service.ExpenseItemInput": {
             "type": "object",
             "required": [
@@ -23909,6 +26322,50 @@
                 "type": {
                     "description": "HOLIDAY / WORKDAY",
                     "type": "string"
+                }
+            }
+        },
+        "service.InquiryRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "message",
+                "name"
+            ],
+            "properties": {
+                "company": {
+                    "description": "公司名",
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "country": {
+                    "description": "国家/地区",
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "email": {
+                    "description": "邮箱(主联系渠道)",
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "locale": {
+                    "description": "提交语言(en/zh,空默认 en)",
+                    "type": "string",
+                    "maxLength": 8
+                },
+                "message": {
+                    "description": "询盘内容",
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "name": {
+                    "description": "询盘人姓名",
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "product_id": {
+                    "description": "关联上架位ID(0=通用询盘)",
+                    "type": "integer"
                 }
             }
         },
@@ -24092,6 +26549,75 @@
                 }
             }
         },
+        "service.PayPalCaptureRequest": {
+            "type": "object",
+            "required": [
+                "paypal_order_id"
+            ],
+            "properties": {
+                "paypal_order_id": {
+                    "description": "PayPal 订单 ID(审批回跳 query 的 token 参数)",
+                    "type": "string"
+                }
+            }
+        },
+        "service.PayPalCaptureResult": {
+            "type": "object",
+            "properties": {
+                "order_no": {
+                    "description": "平台订单号",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "推进后的订单状态(paid)",
+                    "type": "string"
+                }
+            }
+        },
+        "service.PayPalCheckoutRequest": {
+            "type": "object",
+            "required": [
+                "items"
+            ],
+            "properties": {
+                "currency": {
+                    "description": "结算币种(ISO 4217,空默认 USD;必须存在于汇率表)",
+                    "type": "string",
+                    "maxLength": 8
+                },
+                "items": {
+                    "description": "Items 明细(1-20 行)",
+                    "type": "array",
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/service.CheckoutItemRequest"
+                    }
+                },
+                "locale": {
+                    "description": "站点语言(en/zh,空默认 en)",
+                    "type": "string",
+                    "maxLength": 8
+                }
+            }
+        },
+        "service.PayPalCreateResult": {
+            "type": "object",
+            "properties": {
+                "approve_url": {
+                    "description": "买家审批支付页地址(前端跳转/弹窗)",
+                    "type": "string"
+                },
+                "order_no": {
+                    "description": "平台订单号(storefront_order.order_no)",
+                    "type": "string"
+                },
+                "paypal_order_id": {
+                    "description": "PayPal 订单 ID(回调 capture 用)",
+                    "type": "string"
+                }
+            }
+        },
         "service.PlatformPayload": {
             "type": "object",
             "properties": {
@@ -24112,6 +26638,46 @@
                 },
                 "remark": {
                     "type": "string"
+                }
+            }
+        },
+        "service.ProductCategoryCreateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.ProductCategoryUpdateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },
@@ -24208,6 +26774,21 @@
                 }
             }
         },
+        "service.RemoveSignRequest": {
+            "type": "object",
+            "required": [
+                "task_id"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "task_id": {
+                    "description": "要撤销的加签任务ID",
+                    "type": "integer"
+                }
+            }
+        },
         "service.ResetPasswordRequest": {
             "type": "object",
             "required": [
@@ -24218,6 +26799,25 @@
                     "type": "string",
                     "maxLength": 72,
                     "minLength": 6
+                }
+            }
+        },
+        "service.ReturnBackRequest": {
+            "type": "object",
+            "required": [
+                "return_to_node_id",
+                "task_id"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "return_to_node_id": {
+                    "description": "退回目标节点(前端提供已审节点列表)",
+                    "type": "integer"
+                },
+                "task_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -24288,6 +26888,34 @@
                 }
             }
         },
+        "service.SaveAIModelRequest": {
+            "type": "object",
+            "required": [
+                "base_url",
+                "model",
+                "name"
+            ],
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "base_url": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
         "service.SaveDesignRequest": {
             "type": "object",
             "required": [
@@ -24317,6 +26945,90 @@
                     "items": {
                         "$ref": "#/definitions/service.NodeDesign"
                     }
+                }
+            }
+        },
+        "service.SaveStorageConfigRequest": {
+            "type": "object",
+            "required": [
+                "driver",
+                "name"
+            ],
+            "properties": {
+                "download_prefix": {
+                    "type": "string"
+                },
+                "driver": {
+                    "type": "string"
+                },
+                "local_path": {
+                    "description": "local",
+                    "type": "string"
+                },
+                "max_upload_mb": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "oss_access_key_id": {
+                    "type": "string"
+                },
+                "oss_access_key_secret": {
+                    "type": "string"
+                },
+                "oss_bucket_name": {
+                    "type": "string"
+                },
+                "oss_custom_domain": {
+                    "type": "string"
+                },
+                "oss_endpoint": {
+                    "description": "oss",
+                    "type": "string"
+                },
+                "oss_private_bucket_name": {
+                    "type": "string"
+                },
+                "oss_private_custom_domain": {
+                    "type": "string"
+                },
+                "private_path": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "resource_domain": {
+                    "type": "string"
+                },
+                "s3_access_key": {
+                    "type": "string"
+                },
+                "s3_bucket_private": {
+                    "type": "string"
+                },
+                "s3_bucket_public": {
+                    "type": "string"
+                },
+                "s3_domain_private": {
+                    "type": "string"
+                },
+                "s3_domain_public": {
+                    "type": "string"
+                },
+                "s3_endpoint": {
+                    "description": "s3",
+                    "type": "string"
+                },
+                "s3_path_style": {
+                    "type": "integer"
+                },
+                "s3_region": {
+                    "type": "string"
+                },
+                "s3_secret_key": {
+                    "type": "string"
                 }
             }
         },
@@ -24402,6 +27114,26 @@
                 },
                 "transport_allowance": {
                     "type": "number"
+                }
+            }
+        },
+        "service.SaveTianyanchaConfigRequest": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "tools": {
+                    "$ref": "#/definitions/service.TianyanchaToolMapping"
                 }
             }
         },
@@ -24578,6 +27310,21 @@
                 }
             }
         },
+        "service.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "last_per_target": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/service.TargetStatus"
+                    }
+                },
+                "running": {
+                    "description": "\"\"=空闲,否则为正在执行的 target",
+                    "type": "string"
+                }
+            }
+        },
         "service.StockInItemRequest": {
             "type": "object",
             "required": [
@@ -24625,6 +27372,100 @@
                 }
             }
         },
+        "service.StorageConfigItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "download_prefix": {
+                    "type": "string"
+                },
+                "driver": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "integer"
+                },
+                "local_path": {
+                    "description": "local",
+                    "type": "string"
+                },
+                "max_upload_mb": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "oss_access_key_id": {
+                    "type": "string"
+                },
+                "oss_access_key_secret": {
+                    "description": "脱敏:****abcd",
+                    "type": "string"
+                },
+                "oss_bucket_name": {
+                    "type": "string"
+                },
+                "oss_custom_domain": {
+                    "type": "string"
+                },
+                "oss_endpoint": {
+                    "description": "oss",
+                    "type": "string"
+                },
+                "oss_private_bucket_name": {
+                    "type": "string"
+                },
+                "oss_private_custom_domain": {
+                    "type": "string"
+                },
+                "private_path": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "resource_domain": {
+                    "type": "string"
+                },
+                "s3_access_key": {
+                    "type": "string"
+                },
+                "s3_bucket_private": {
+                    "type": "string"
+                },
+                "s3_bucket_public": {
+                    "type": "string"
+                },
+                "s3_domain_private": {
+                    "type": "string"
+                },
+                "s3_domain_public": {
+                    "type": "string"
+                },
+                "s3_endpoint": {
+                    "description": "s3",
+                    "type": "string"
+                },
+                "s3_path_style": {
+                    "type": "integer"
+                },
+                "s3_region": {
+                    "type": "string"
+                },
+                "s3_secret_key": {
+                    "description": "脱敏:****abcd",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "service.SyncFeaturesRequest": {
             "type": "object",
             "required": [
@@ -24638,6 +27479,55 @@
                     }
                 },
                 "module": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.TargetStatus": {
+            "type": "object",
+            "properties": {
+                "finished_at": {
+                    "type": "string"
+                },
+                "log_file": {
+                    "type": "string"
+                },
+                "log_tail": {
+                    "description": "末 30 行",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "running/success/failed",
+                    "type": "string"
+                },
+                "target": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.TianyanchaToolMapping": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "description": "详情工具名(默认 get_company_basic_profile)",
+                    "type": "string"
+                },
+                "detail_param": {
+                    "description": "详情工具的企业名参数名(默认 company)",
+                    "type": "string"
+                },
+                "search": {
+                    "description": "搜索工具名(默认 search_companies)",
+                    "type": "string"
+                },
+                "search_param": {
+                    "description": "搜索工具的企业名参数名(默认 query)",
                     "type": "string"
                 }
             }
@@ -24885,6 +27775,9 @@
                 "total_amount"
             ],
             "properties": {
+                "category": {
+                    "type": "string"
+                },
                 "content": {
                     "type": "string"
                 },

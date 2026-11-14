@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 
 export type MobileNavItem = { href: string; label: string; external?: boolean };
 
-/** 移动端汉堡菜单: 全屏深色抽屉。PC 端由 Header 的 md:flex 导航接管, 本组件 md 以下才渲染按钮。
+/** 移动端汉堡菜单: 全屏深色抽屉。PC 端由 Header 的 xl:flex 导航接管, 本组件 xl 以下才渲染按钮。
  *  抽屉通过 portal 挂到 body: header 的 backdrop-blur 会把 fixed 后代「捕获」成相对自身定位。 */
 export function MobileNav({ items }: { items: MobileNavItem[] }) {
   const [open, setOpen] = useState(false);
@@ -30,7 +30,7 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
   }, [open]);
 
   const drawer = (
-    <div className="fixed inset-0 top-16 z-[60] flex flex-col bg-drawerbg backdrop-blur-xl md:hidden">
+    <div className="fixed inset-0 top-16 z-[60] flex flex-col bg-drawerbg backdrop-blur-xl xl:hidden">
       <nav className="container flex flex-col gap-1 overflow-y-auto py-6">
         {items.map((item) =>
           item.external ? (
@@ -60,7 +60,7 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
   );
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         aria-label={open ? "关闭菜单" : "打开菜单"}

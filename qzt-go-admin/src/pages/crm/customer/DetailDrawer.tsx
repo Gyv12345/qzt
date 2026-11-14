@@ -11,6 +11,7 @@ import FollowPanel from './FollowPanel'
 import OpportunitiesPanel from './OpportunitiesPanel'
 import OwnerHistoryPanel from './OwnerHistoryPanel'
 import ChangeLogPanel from './ChangeLogPanel'
+import TianyanchaSection from './TianyanchaSection'
 
 const STATUS_MAP: Record<number, { text: string; color: string }> = {
   1: { text: '正常', color: 'success' },
@@ -103,6 +104,9 @@ export default function DetailDrawer({ customer, open, onClose }: DetailDrawerPr
             </Descriptions.Item>
           ))}
         </Descriptions>
+
+        {/* 天眼查:工商信息查询 + 写入跟进记录(P31) */}
+        <TianyanchaSection customerId={c.id} companyName={c.name} open={open} />
 
         <Tabs
           defaultActiveKey="follow"

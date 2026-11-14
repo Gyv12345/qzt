@@ -6,8 +6,8 @@ import (
 
 	projmodel "qzt-go-server/internal/model/project"
 	"qzt-go-server/internal/pkg/numbergen"
-	projrepo "qzt-go-server/internal/repository/project"
 	"qzt-go-server/internal/repository"
+	projrepo "qzt-go-server/internal/repository/project"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -41,17 +41,17 @@ type CreateProjectRequest struct {
 func (s *ProjectService) Create(ctx context.Context, req *CreateProjectRequest) (*projmodel.ProjProject, error) {
 	no, _ := numbergen.Generate(ctx, "project")
 	p := &projmodel.ProjProject{
-		ProjectNo:   no,
-		Name:        req.Name,
-		Description: req.Description,
-		CustomerID:  req.CustomerID,
+		ProjectNo:    no,
+		Name:         req.Name,
+		Description:  req.Description,
+		CustomerID:   req.CustomerID,
 		CustomerName: req.CustomerName,
-		ContractID:  req.ContractID,
-		ManagerID:   req.ManagerID,
-		MemberIDs:   req.MemberIDs,
-		Status:      projmodel.ProjectStatusPlanning,
-		Priority:    req.Priority,
-		Tags:        req.Tags,
+		ContractID:   req.ContractID,
+		ManagerID:    req.ManagerID,
+		MemberIDs:    req.MemberIDs,
+		Status:       projmodel.ProjectStatusPlanning,
+		Priority:     req.Priority,
+		Tags:         req.Tags,
 	}
 	if p.Priority == 0 {
 		p.Priority = projmodel.PriorityNormal

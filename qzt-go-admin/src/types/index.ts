@@ -397,6 +397,27 @@ export interface OauthConfigPayload {
   remark?: string
 }
 
+// ---------- 天眼查 MCP 配置 ----------
+
+/** 天眼查配置(GET /system/tianyancha/config) */
+export interface TianyanchaConfig {
+  /** 是否已配置(未配置时 CRM 端查询会报「天眼查未配置」) */
+  configured: boolean
+  /** MCP 端点(脱敏尾段) */
+  endpoint: string
+  /** 每日查询上限 */
+  daily_limit: number
+  /** 今日已用次数 */
+  today_used: number
+}
+
+/** 保存天眼查配置(PUT /system/tianyancha/config;api_key 脱敏回显 ****尾4,不回填) */
+export interface TianyanchaConfigPayload {
+  endpoint: string
+  api_key: string
+  daily_limit?: number
+}
+
 // ---------- 站点信息(网站基础元数据) ----------
 
 /** 系统版本信息(GET /system/version,免鉴权) */

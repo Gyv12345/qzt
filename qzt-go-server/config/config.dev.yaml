@@ -110,3 +110,11 @@ seo:
   baidu_token: "${GEO_BAIDU_TOKEN:-}"     # 百度搜索资源平台 API 推送 token,只进 .env
   indexnow_key: "${SEO_INDEXNOW_KEY:-}"   # IndexNow 密钥,须与站点 /<key>.txt 文件一致,只进 .env
   daily_quota: 10                          # 每日兜底任务推给百度的最大条数(与百度每日配额对齐)
+
+# Stripe 支付网关(internal/pkg/stripe,P28-B 独立站支付闭环,Test Mode 先行)。
+# secret_key / webhook_secret 只走 .env 注入(STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET),
+# 留空=未配置,checkout 返回「支付通道未配置」;storefront_site_url 拼成功/取消跳转地址。
+stripe:
+  secret_key: ${STRIPE_SECRET_KEY:-}
+  webhook_secret: ${STRIPE_WEBHOOK_SECRET:-}
+  storefront_site_url: ${STOREFRONT_SITE_URL:-http://localhost:5177}

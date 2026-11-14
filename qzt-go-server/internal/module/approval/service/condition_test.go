@@ -10,7 +10,10 @@ import (
 
 func TestEvalCondition_EmptyAndInvalid(t *testing.T) {
 	data := map[string]any{"amount": 100.0}
-	cases := []struct{ name, cfg string; want bool }{
+	cases := []struct {
+		name, cfg string
+		want      bool
+	}{
 		{"空字符串", "", true},
 		{"空 conditions", `{"logic":"AND","conditions":[]}`, true},
 		{"坏 JSON", `{not json`, true},
@@ -65,7 +68,10 @@ func TestEvalCondition_OrLogic(t *testing.T) {
 func TestEvalCondition_NumberOps(t *testing.T) {
 	// PSI status 为 int64(GORM 扫描整数列),value 配置字符串 "1"
 	data := map[string]any{"status": int64(2)}
-	cases := []struct{ op, val string; want bool }{
+	cases := []struct {
+		op, val string
+		want    bool
+	}{
 		{OpEQ, "2", true},
 		{OpEQ, "1", false},
 		{OpNE, "1", true},
@@ -87,7 +93,10 @@ func TestEvalCondition_DateOps(t *testing.T) {
 	// 业务表日期列 GORM 扫描为 time.Time
 	signed, _ := time.ParseInLocation("2006-01-02", "2024-06-15", time.Local)
 	data := map[string]any{"signed_date": signed}
-	cases := []struct{ op, val string; want bool }{
+	cases := []struct {
+		op, val string
+		want    bool
+	}{
 		{OpEQ, "2024-06-15", true},
 		{OpGT, "2024-01-01", true},  // 签订晚于 1/1
 		{OpLT, "2024-12-31", true},  // 签订早于 12/31
@@ -105,7 +114,10 @@ func TestEvalCondition_DateOps(t *testing.T) {
 
 func TestEvalCondition_StringOps(t *testing.T) {
 	data := map[string]any{"contract_no": "HT202406001"}
-	cases := []struct{ op, val string; want bool }{
+	cases := []struct {
+		op, val string
+		want    bool
+	}{
 		{OpEQ, "HT202406001", true},
 		{OpNE, "HT999", true},
 		{OpEQ, "wrong", false},

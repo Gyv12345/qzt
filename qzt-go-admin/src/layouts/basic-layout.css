@@ -496,3 +496,83 @@ body.qzt-theme-weak img {
   color: #8c8c8c;
   flex-shrink: 0;
 }
+
+/* ── 面包屑:顶栏中部当前页面导航链(模块/分组/页面 可逐级点击) ── */
+.qzt-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  margin-left: 16px;
+  overflow: hidden;
+}
+.qzt-bc-item {
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  font-size: 13px;
+  color: var(--qzt-text-secondary, #8c8c8c);
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+button.qzt-bc-item:hover {
+  color: var(--ant-color-primary, #1677ff);
+  background: rgba(22, 119, 255, 0.06);
+}
+.qzt-bc-item.current {
+  color: var(--qzt-text-strong, #262626);
+  font-weight: 600;
+  cursor: default;
+}
+.qzt-bc-sep {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+}
+body.qzt-theme-dark .qzt-bc-sep {
+  color: rgba(255, 255, 255, 0.25);
+}
+body.qzt-theme-dark .qzt-bc-item {
+  color: rgba(255, 255, 255, 0.55);
+}
+body.qzt-theme-dark button.qzt-bc-item:hover {
+  color: #fff;
+}
+body.qzt-theme-dark .qzt-bc-item.current {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── 顶栏图标按钮(内容全屏等) ── */
+.qzt-header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 16px;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.qzt-header-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+body.qzt-theme-dark .qzt-header-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── 内容全屏:隐藏顶栏/侧栏/Tab 栏,内容独占(按钮切回/Esc 退出) ── */
+.qzt-layout.is-fullscreen .qzt-header,
+.qzt-layout.is-fullscreen .qzt-side-primary,
+.qzt-layout.is-fullscreen .qzt-side-secondary,
+.qzt-layout.is-fullscreen .qzt-tabbar {
+  display: none !important;
+}
+.qzt-layout.is-fullscreen .qzt-body {
+  padding: 0;
+}

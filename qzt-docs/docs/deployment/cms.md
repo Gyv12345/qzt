@@ -3,251 +3,106 @@ sidebar_label: CMS 部署
 sidebar_position: 4
 ---
 
-# CMS 官网部署
+# CMS 官网部署（静态化）
 
-CMS 官网采用 Next.js（React SSR）技术栈，由于需要服务端渲染（SSR）以支持 SEO，必须以 Node.js 进程运行，而非纯静态部署。部署流程为：rsync 同步源码到服务器 → 服务器执行 `npm install` + `next build` → PM2 重启 Node 进程。
+CMS 官网与跨境独立站共用同一套 Next.js 代码（双主题：`(main)` 中文官网 + `(cross)/[locale]` 跨境站），以**静态导出**（`output: export`）构建为纯静态产物，由 nginx 直接 serve。**服务器上无常驻 Node 进程**，pm2 已全部下线。
 
 ## 部署架构
 
 ```
-┌──────────────────┐   rsync 源码  ┌──────────────────┐   npm install  ┌──────────────────┐
-│  本地开发机       │ ────────────▶ │  服务器源码目录   │ ────────────▶│  服务器构建        │
-│  CMS 源码         │              │                  │   next build  │  .next 产物       │
-└──────────────────┘              └──────────────────┘              └────────┬─────────┘
-                                                                            │
-                                                                            │ pm2 restart
-                                                                            ▼
-                                                                   ┌──────────────────┐
-                                                                   │  PM2 托管         │
-                                                                   │  监听 :3000      │
-                                                                   │  Nginx 反向代理   │
-                                                                   └──────────────────┘
+Admin 后台「静态站发布」按钮
+   │
+   ▼
+POST /deploy/static  {"target": "cms" | "storefront"}     （超管专用）
+   │  单飞互斥：同一时刻仅一个重建任务；异步执行
+   ▼
+服务器执行 /opt/qzt-server/bin/rebuild_static.sh <target>
+   │  npm install → next build（静态导出 out/）→ rsync 发布
+   ▼
+┌────────────────────────────────────────────────────┐
+│  cms        → /opt/qzt-cms-static/      （主域名）  │
+│  storefront → /opt/qzt-storefront-static/（独立域名）│
+└────────────────────────────────────────────────────┘
+   │
+   ▼
+nginx 直接 serve 新产物，构建完成即生效
 ```
 
 ## 服务信息
 
 | 项 | 值 |
 |----|----|
-| 域名 | `你的域名` |
-| 端口 | `3000`（PM2 Node 进程） |
-| 技术栈 | Next.js（React SSR） |
-| 进程管理 | PM2 |
-| 源码目录 | `/opt/qzt-cms/` |
-| 应用名 | `qzt-cms` |
+| 主题结构 | `(main)` 中文官网 + `(cross)/[locale]` 跨境站（en/zh） |
+| cms 域名 | 主域名（官网） |
+| storefront 域名 | storefront 独立子域名（跨境独立站前台） |
+| 技术栈 | Next.js 静态导出（构建期预渲染） |
+| 源码目录 | `/opt/qzt-cms/`、`/opt/qzt-storefront/` |
+| 产物目录 | `/opt/qzt-cms-static/`、`/opt/qzt-storefront-static/` |
+| 进程管理 | 无（nginx 纯静态 serve） |
+| 日志 | `/opt/qzt-server/logs/rebuild_<target>_<时间戳>.log` |
 
-:::info 为什么 CMS 不打静态包
-Next.js 虽然支持 `next export` 导出纯静态，但官网使用了 SSR（服务端渲染）、API Routes、动态数据获取等能力，导出为纯静态会丢失这些功能。因此 CMS 必须以 Node.js 进程运行，通过 PM2 保持常驻，Nginx 反向代理转发请求。
+## 日常发布：一键按钮
+
+内容运营（文章、产品、站点信息）更新后的日常发布走 **Admin 后台**：
+
+1. 「系统管理 → 站点信息」页找到「静态站发布」卡片；
+2. 选择目标（官网 / 独立站）点击发布；
+3. 后端触发服务器端重建脚本（异步），页面轮询 `GET /deploy/status` 展示进度与日志尾（末 30 行）。
+
+:::note 触发条件与权限
+该入口为超管专用（Casbin 超管短路放行，普通角色无策略不可达）；进行中重复触发会被拒绝。构建期环境变量（API 基址、站点 URL）由脚本强制导出，与后端进程环境无关。
 :::
 
-## 本地同步源码
+## 静态导出的三个关键适配
 
-与 Admin/Mobile 不同，CMS 部署的是**源码**而非构建产物，因为需要在服务器执行 `next build`（服务器环境与运行环境一致，避免环境差异）。
+Next.js 静态导出对运行时能力有硬性限制，项目内已做适配：
 
-```bash
-# 进入 CMS 项目根目录
-cd /path/to/qzt-cms
+| 限制 | 适配方式 |
+|------|---------|
+| middleware 与 API 代理 route 不支持导出 | 多语言 `/` 重定向改由 nginx 301 处理；表单改同源 `/prod-api`（nginx 反代剥前缀到后端 9000） |
+| sitemap / robots / llms 等元文件 | 显式声明 `dynamic = "force-static"`，构建期生成 |
+| `generateStaticParams` 返回空数组即构建失败 | 列表页与详情页的构建参数全部依赖后端可达（构建期从 API 拉数据） |
 
-# rsync 同步源码到服务器（排除 node_modules 和 .next）
-rsync -avz --delete \
-  --exclude 'node_modules' \
-  --exclude '.next' \
-  --exclude '.git' \
-  ./ user@你的服务器IP:/opt/qzt-cms/
-```
+## 手动重建（服务器侧）
 
-### 排除项说明
-
-| 排除目录 | 原因 |
-|---------|------|
-| `node_modules` | 平台相关（macOS 与 Linux 二进制不兼容），需在服务器重新安装 |
-| `.next` | 构建产物，需在服务器重新构建 |
-| `.git` | 版本历史无需上传 |
-
-## 服务器构建
-
-源码同步后，在服务器执行依赖安装与构建：
+需要 SSH 操作时（如脚本版本迭代、排查构建失败），可在服务器直接执行：
 
 ```bash
-# SSH 登录服务器
-ssh user@你的服务器IP
+# 与一键按钮等效（target: cms / storefront）
+/opt/qzt-server/bin/rebuild_static.sh cms
 
-# 进入源码目录
-cd /opt/qzt-cms
-
-# 安装依赖
-npm install
-# 或 npm ci（按 lockfile 精确安装，推荐生产环境）
-
-# 构建
-npm run build
-# 即 next build，产物输出到 .next/ 目录
+# 查看最近一次构建日志
+ls -t /opt/qzt-server/logs/rebuild_*.log | head -1
+tail -50 /opt/qzt-server/logs/rebuild_cms_<时间戳>.log
 ```
 
-:::tip npm ci vs npm install
-生产环境推荐使用 `npm ci`：它严格按 `package-lock.json` 安装，速度更快、结果可复现，不会修改 lockfile。前提是项目中有 `package-lock.json`。
+脚本内建单飞互斥（锁文件），不会与后台触发的任务并发冲突。
+
+## 源码更新
+
+站点代码变更的发布流程：
+
+```bash
+# 本地 rsync 源码到服务器（排除依赖与构建产物、服务器特有 env）
+rsync -az --delete \
+  --exclude node_modules --exclude .next --exclude out \
+  --exclude .git --exclude '.env*' --exclude '._*' \
+  -e "ssh -i <key>" ./ root@服务器IP:/opt/qzt-cms/
+```
+
+:::warning 不要覆盖服务器 `.env`
+`/opt/qzt-cms/.env.local` 是服务器特有的（API 基址指向内网 9000），rsync 必须排除 `.env*`。一旦被本地文件覆盖，构建产物会内联错误地址，页面取不到数据；修复方式是恢复正确的 `.env.local` 后删除 `.next` 重新构建。
 :::
 
-### 环境变量
-
-构建前确认环境变量配置，Next.js 通过 `.env.production` 或环境变量读取：
-
-```bash
-# /opt/qzt-cms/.env.production
-NEXT_PUBLIC_API_BASE_URL=https://api.你的域名
-NEXT_PUBLIC_SITE_NAME=行简
-```
-
-部分环境变量（非 `NEXT_PUBLIC_` 前缀）仅在服务端可用，不会暴露给浏览器。
-
-## PM2 进程管理
-
-CMS 通过 PM2 托管 Node 进程，保证常驻运行、崩溃自动重启。
-
-### 启动配置
-
-PM2 配置文件 `ecosystem.config.js`（或通过命令行启动）：
-
-```javascript
-// /opt/qzt-cms/ecosystem.config.js
-module.exports = {
-  apps: [{
-    name: 'qzt-cms',
-    script: 'node_modules/next/dist/bin/next',
-    args: 'start -p 3000',
-    cwd: '/opt/qzt-cms',
-    instances: 1,
-    autorestart: true,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000
-    }
-  }]
-};
-```
-
-### 常用 PM2 命令
-
-```bash
-# 首次启动
-cd /opt/qzt-cms
-pm2 start ecosystem.config.js
-
-# 重启（部署后）
-pm2 restart qzt-cms
-
-# 优雅重载（零停机，推荐）
-pm2 reload qzt-cms
-
-# 查看状态
-pm2 status
-pm2 show qzt-cms
-
-# 查看日志
-pm2 logs qzt-cms --lines 100
-
-# 设置开机自启
-pm2 save
-pm2 startup
-```
-
-### 优雅重载 vs 重启
-
-| 方式 | 说明 |
-|------|------|
-| `pm2 restart` | 杀掉旧进程再启动新进程，有短暂中断 |
-| `pm2 reload` | 优雅重载，先启动新进程再停旧进程，零停机（推荐生产） |
-
-## Nginx 反向代理
-
-CMS 监听 3000 端口，通过 Nginx 反向代理对外提供 443 HTTPS 服务：
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name 你的域名;
-
-    ssl_certificate     /etc/letsencrypt/live/你的域名/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/你的域名/privkey.pem;
-
-    # 反向代理到 Next.js
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # Next.js HMR / WebSocket 支持（生产可选）
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-
-    # Next.js 静态资源缓存
-    location /_next/static/ {
-        proxy_pass http://127.0.0.1:3000;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
+源码同步后点「静态站发布」按钮（或手动跑脚本）完成发布。
 
 ## 部署后验证
 
 ```bash
-# 检查 PM2 进程状态
-ssh user@你的服务器IP pm2 status
+# 官网与独立站首页
+curl -sI https://你的域名/ | head -1        # 200
+curl -sI https://storefront.你的域名/ | head -1   # 200
 
-# 检查端口监听
-ssh user@你的服务器IP ss -tlnp | grep 3000
-
-# 本地健康检查
-ssh user@你的服务器IP curl -I http://127.0.0.1:3000
-
-# 通过域名访问
-curl -I https://你的域名
-```
-
-## 一键部署脚本
-
-```bash
-#!/bin/bash
-# deploy-cms.sh
-set -e
-
-SERVER=user@你的服务器IP
-REMOTE_PATH=/opt/qzt-cms/
-
-echo "==> 同步源码到服务器..."
-rsync -avz --delete \
-  --exclude 'node_modules' \
-  --exclude '.next' \
-  --exclude '.git' \
-  ./ $SERVER:$REMOTE_PATH
-
-echo "==> 服务器构建..."
-ssh $SERVER << 'EOF'
-  cd /opt/qzt-cms
-  npm ci
-  npm run build
-  pm2 reload qzt-cms
-  sleep 2
-  pm2 status qzt-cms
-EOF
-
-echo "==> 部署完成：https://你的域名"
-```
-
-## 回滚
-
-```bash
-# 方式一：git 回滚后重新部署
-git checkout HEAD~1
-./deploy-cms.sh
-
-# 方式二：服务器源码备份回滚
-ssh user@你的服务器IP
-cp -r /opt/qzt-cms.bak.YYYYMMDD /opt/qzt-cms
-cd /opt/qzt-cms && npm run build && pm2 restart qzt-cms
+# 主域 API 反代（留言表单同源直连）
+curl -s https://你的域名/prod-api/system/version | head -c 200
 ```

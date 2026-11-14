@@ -7,6 +7,7 @@ import type {
   PageData,
   Partner,
   Product,
+  ProductCategory,
   ProductDetail,
   SiteConfig,
   SiteInfo,
@@ -60,6 +61,16 @@ export function getProduct(id: number | string): Promise<ProductDetail> {
   return request<ProductDetail>(`/crm/public/products/${id}`);
 }
 
+/** 产品分类树(公开免登录)。构建期抓取嵌入静态页; 失败返回 [], 前端降级为不显示筛选。 */
+export async function getProductCategories(): Promise<ProductCategory[]> {
+  try {
+    const res = await request<ProductCategory[]>("/crm/public/product-categories");
+    return res || [];
+  } catch {
+    return [];
+  }
+}
+
 // ── 合作方 ──
 export function getPartners(params?: {
   page?: number;
@@ -89,25 +100,8 @@ export function getArticleBySlug(slug: string): Promise<Article> {
   return request<Article>(`/cms/public/articles/slug/${encodeURIComponent(slug)}`);
 }
 
-/**
- * 站内搜索(P21): 后端 ngram 全文检索,仅公开可见文章。
- * 搜索结果用 no-store 不进 Data Cache——不同关键词结果不同,缓存会串词。
- */
-export async function searchArticles(
-  q: string,
-  page = 1,
-  pageSize = 12,
-): Promise<PageData<Article>> {
-  const url = new URL(API_BASE + "/cms/public/search");
-  url.searchParams.set("q", q);
-  url.searchParams.set("page", String(page));
-  url.searchParams.set("page_size", String(pageSize));
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) throw new Error(`搜索请求失败: ${res.status}`);
-  const body = (await res.json()) as ApiResponse<PageData<Article>>;
-  if (body.code !== 0) throw new Error(body.msg || "搜索失败");
-  return body.data;
-}
+// 站内搜索(P21)已改为浏览器侧直查 /prod-api/cms/public/search(见 app/search/SearchClient.tsx),
+// 静态导出后无服务端运行时,搜索不在此处发起。
 
 export function getCategories(): Promise<Category[]> {
   return request<Category[]>("/cms/public/categories");
@@ -169,11 +163,11 @@ export interface ContactPayload {
 /**
  * 提交官网留言(公开接口,无需鉴权)。
  * 后端自动创建 CRM 线索到公海池并通知管理员。
- * 浏览器走同源 /api/contact(Next 服务端代理):API_BASE 是服务器内网地址,
- * 构建期内联进浏览器包后访客根本访问不到(曾经导致生产留言全部失败)。
+ * 静态导出后无 Next 服务端,浏览器直接走同源相对路径 /prod-api/crm/public/contact
+ * (nginx 反代到后端;NEXT_PUBLIC_API_BASE 仅构建期抓取用,不可进浏览器包)。
  */
 export async function submitContact(data: ContactPayload): Promise<{ lead_no: string }> {
-  const res = await fetch("/api/contact", {
+  const res = await fetch("/prod-api/crm/public/contact", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

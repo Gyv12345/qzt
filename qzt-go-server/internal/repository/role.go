@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"qzt-go-server/internal/model"
 	"gorm.io/gorm"
+	"qzt-go-server/internal/model"
 )
 
 type RoleRepo struct {

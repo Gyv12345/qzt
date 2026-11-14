@@ -11,6 +11,9 @@ const (
 	OAuthProviderFeishu   = "feishu"    // 飞书(预留)
 	OAuthProviderWechatMP = "wechat_mp" // 微信服务号(通知推送+微信内免登录)
 	OAuthProviderDouyin   = "douyin"    // 抖音开放平台(GEO 信源视频直发)
+	// OAuthProviderTianyanchaMCP 天眼查 MCP(P31 工商信息查询)。
+	// app_id=MCP 端点 URL,app_secret=MCP API Key,extra=工具名映射 JSON。
+	OAuthProviderTianyanchaMCP = "tianyancha_mcp"
 )
 
 // SysOauthConfig 第三方登录配置。

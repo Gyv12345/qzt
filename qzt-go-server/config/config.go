@@ -41,6 +41,54 @@ type Config struct {
 	VideoGen    VideoGenConfig    `mapstructure:"videogen"`
 	Geo         GeoConfig         `mapstructure:"geo"`
 	SEO         SEOConfig         `mapstructure:"seo"`
+	Stripe      StripeConfig      `mapstructure:"stripe"`
+	Paypal      PaypalConfig      `mapstructure:"paypal"`
+	Email       EmailConfig       `mapstructure:"email"`
+}
+
+// PaypalConfig PayPal 支付网关(internal/pkg/paypal,P28-C 独立站第二支付通道)配置。
+// client_id/secret 只走 gitignored .env 注入(PAYPAL_CLIENT_ID / PAYPAL_SECRET),
+// 留空=未配置——PayPal 下单返回「PayPal 支付未配置」,不影响 Stripe 通道。
+type PaypalConfig struct {
+	// Env sandbox / live(默认 sandbox,影响 API 根地址)。
+	Env string `mapstructure:"env"`
+	// ClientID 应用 Client ID,只进 .env。
+	ClientID string `mapstructure:"client_id"`
+	// Secret 应用 Secret,只进 .env。
+	Secret string `mapstructure:"secret"`
+	// StorefrontSiteURL 独立站站点根地址,拼 PayPal 审批回跳地址
+	// ({site}/{locale}/checkout/success 等)。
+	StorefrontSiteURL string `mapstructure:"storefront_site_url"`
+}
+
+// EmailConfig 事务邮件 SMTP(internal/pkg/emailer,P28-C 独立站订单/询盘通知)配置。
+// 全部字段只走 gitignored .env 注入(EMAIL_SMTP_*),留空=邮件通道关闭,
+// 通知走站内信/企微兜底,邮件只是补充渠道。
+type EmailConfig struct {
+	// Host SMTP 服务器,空=通道关闭。
+	Host string `mapstructure:"host"`
+	// Port 端口(465=隐式 TLS;587 等走 STARTTLS,默认 465)。
+	Port int `mapstructure:"port"`
+	// Username 发信账号。
+	Username string `mapstructure:"username"`
+	// Password 授权码/密码。
+	Password string `mapstructure:"password"`
+	// From 发件人地址,空则用 Username。
+	From string `mapstructure:"from"`
+}
+
+// StripeConfig Stripe 支付网关(internal/pkg/stripe,P28-B 独立站支付闭环)配置。
+// secret_key / webhook_secret 只走 gitignored .env 注入(STRIPE_SECRET_KEY /
+// STRIPE_WEBHOOK_SECRET),留空表示未配置——checkout 会返回明确错误
+// 「支付通道未配置」,webhook 一律验签失败,不影响其余功能。
+type StripeConfig struct {
+	// SecretKey 密钥(sk_test_... / sk_live_...),只进 .env。
+	SecretKey string `mapstructure:"secret_key"`
+	// WebhookSecret 签名密钥(whsec_...),只进 .env,用于 webhook 验签。
+	WebhookSecret string `mapstructure:"webhook_secret"`
+	// StorefrontSiteURL 独立站站点根地址,拼接 Stripe 成功/取消跳转
+	// ({site}/{locale}/checkout/success 等)。
+	StorefrontSiteURL string `mapstructure:"storefront_site_url"`
 }
 
 // SEOConfig 搜索引擎主动推送(internal/pkg/searchpush + cms 模块)配置。
@@ -212,8 +260,11 @@ type JwtConfig struct {
 	RefreshExpirationTime time.Duration `mapstructure:"refresh_expiration_time"`
 }
 
-// StorageConfig 文件存储配置。配置在 config.{env}.yaml，敏感字段通过 .env 注入。
-// 双桶模型：公共桶(public-read,直链/CDN)+私有桶(private,签名 GET)。
+// StorageConfig 文件存储配置。
+// v2 起 sys_storage_config(DB)是唯一生效配置源(单条 is_active=1,后台可配可热切换);
+// 本节仅作两用:① 首次启动 DB 表为空时自动播种一条生效配置(密钥随 yaml 读入 DB);
+// ② DB 无生效行时的运行兜底。改存储配置请走后台「系统管理-文件存储」页。
+// 敏感字段通过 .env 注入。双桶模型：公共桶(public-read,直链/CDN)+私有桶(private,签名 GET)。
 //
 // 存储驱动类型。
 const (
@@ -222,7 +273,7 @@ const (
 )
 
 type StorageConfig struct {
-	// Driver 存储驱动：local（本地磁盘）或 oss（阿里云 OSS）。
+	// Driver 存储驱动：local（本地磁盘）或 oss（阿里云 OSS）。仅作首次播种来源。
 	Driver string `mapstructure:"driver"`
 	// LocalPath 公共存储根目录（driver=local 时使用，nginx 静态 serve）。
 	LocalPath string `mapstructure:"local_path"`
@@ -233,7 +284,7 @@ type StorageConfig struct {
 	// DownloadPrefix 私有文件代理下载 URL 前缀（driver=local 时使用）。
 	// 默认 /api/file/dl(直连后端);前端通过 /prod-api 反代时应填 /prod-api/api/file/dl。
 	DownloadPrefix string `mapstructure:"download_prefix"`
-	// MaxUploadMB 单文件上传大小上限（MB）。
+	// MaxUploadMB 单文件上传大小上限（MB）。DB 无生效行时的兜底上限。
 	MaxUploadMB int `mapstructure:"max_upload_mb"`
 	// OSS 阿里云 OSS 配置（driver=oss 时使用）。
 	OSS OSSConfig `mapstructure:"oss"`

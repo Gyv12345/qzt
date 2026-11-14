@@ -6,6 +6,7 @@ import (
 	"qzt-go-server/internal/middleware"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/module/system/service"
+	"qzt-go-server/internal/pkg/demoguard"
 	response "qzt-go-server/pkg/xresponse"
 )
 
@@ -92,6 +93,11 @@ func (h *WechatAuthHandler) BindURL(c *gin.Context) {
 // @Success      200  {object}  xresponse.Response
 // @Router       /system/auth/wechat/bind [post]
 func (h *WechatAuthHandler) Bind(c *gin.Context) {
+	// 演示模式护栏:冻结微信服务号绑定(与企微绑定同口径,防截走 admin 通知)。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式不可修改账号绑定")
+		return
+	}
 	var body struct {
 		Code  string `json:"code" binding:"required"`
 		State string `json:"state" binding:"required"`
@@ -117,6 +123,11 @@ func (h *WechatAuthHandler) Bind(c *gin.Context) {
 // @Success      200  {object}  xresponse.Response
 // @Router       /system/auth/wechat/bind [delete]
 func (h *WechatAuthHandler) Unbind(c *gin.Context) {
+	// 演示模式护栏:冻结微信服务号解绑(与绑定同口径)。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式不可修改账号绑定")
+		return
+	}
 	userID := middleware.GetUserID(c)
 	if err := h.svc.UnbindWechat(c.Request.Context(), userID); err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

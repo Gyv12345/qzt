@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Button, Descriptions, Drawer, Tabs, Tag } from 'antd'
+import { App, Button, Descriptions, Drawer, Popconfirm, Space, Tabs, Tag } from 'antd'
 import { PrinterOutlined } from '@ant-design/icons'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import Auth from '../../../components/Auth'
 import { DictTag } from '../../../components/DictSelect'
 import OpportunityDetailDrawer from '../opportunity/DetailDrawer'
 import {
+  archiveContract,
+  getContract,
   getContractPaymentSummary,
   listContractItems,
   listPaymentRecords,
+  unarchiveContract,
 } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type {
@@ -21,6 +24,7 @@ import type {
 import { APPROVAL_STATUS, money } from './constants'
 import PaymentPanel from './PaymentPanel'
 import ItemsPanel from './ItemsPanel'
+import ChangesPanel from './ChangesPanel'
 import PrintModal from './PrintModal'
 
 interface DetailDrawerProps {
@@ -35,6 +39,9 @@ interface DetailDrawerProps {
   onPaymentsChanged: () => void
 }
 
+/** 仅已完结阶段可归档 */
+const ARCHIVABLE_STAGES = ['COMPLETED', 'TERMINATED']
+
 /** 合同详情抽屉:基本信息 / 回款管理 / 产品明细 / 附件,以及套打文档入口 */
 export default function ContractDetailDrawer({
   open,
@@ -44,7 +51,12 @@ export default function ContractDetailDrawer({
   onViewCustomer,
   onPaymentsChanged,
 }: DetailDrawerProps) {
+  const { message } = App.useApp()
   const nickname = useUserStore((s) => s.nickname)
+
+  // 变更/归档后从后端重拉的详情,优先于列表行数据展示
+  const [fresh, setFresh] = useState<CrmContract | null>(null)
+  const [archiving, setArchiving] = useState(false)
 
   // 回款数据
   const [summary, setSummary] = useState<CrmPaymentSummary | null>(null)
@@ -86,6 +98,7 @@ export default function ContractDetailDrawer({
   // 抽屉打开时加载回款数据与产品明细
   useEffect(() => {
     if (open && contract) {
+      setFresh(null)
       loadPayments(contract.id).catch(() => {})
       loadItems(contract.id).catch(() => {})
     }
@@ -98,7 +111,33 @@ export default function ContractDetailDrawer({
     onPaymentsChanged()
   }
 
-  const detail = contract
+  /** 变更/归档成功后:重拉详情 + 刷新合同列表 */
+  const refreshAfterChange = async () => {
+    if (!contract) return
+    const latest = await getContract(contract.id)
+    setFresh(latest)
+    onPaymentsChanged()
+  }
+
+  const handleToggleArchive = async (record: CrmContract) => {
+    setArchiving(true)
+    try {
+      if (record.archived_at) {
+        await unarchiveContract(record.id)
+        message.success('已取消归档')
+      } else {
+        await archiveContract(record.id)
+        message.success('已归档')
+      }
+      await refreshAfterChange()
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  // 列表行数据 + 变更/归档后重拉的数据,优先取后者
+  const detail: CrmContract | null = fresh ?? contract
+  const canArchive = !!detail && ARCHIVABLE_STAGES.includes(detail.stage || '')
 
   return (
     <>
@@ -109,11 +148,40 @@ export default function ContractDetailDrawer({
         title={detail ? `合同详情:${detail.name}` : '合同详情'}
         extra={
           detail && (
-            <Auth perm="crm:contractTemplate:list">
-              <Button icon={<PrinterOutlined />} onClick={() => setPrintOpen(true)}>
-                打印文档
-              </Button>
-            </Auth>
+            <Space size={8}>
+              {/* 归档:仅 COMPLETED/TERMINATED 可归档;已归档的合同任何状态都可取消归档 */}
+              {canArchive && !detail.archived_at && (
+                <Auth perm="crm:contract:edit">
+                  <Popconfirm
+                    title="归档该合同?"
+                    description="归档后默认从合同列表隐藏,可在归档状态筛选中查看"
+                    okText="归档"
+                    cancelText="取消"
+                    onConfirm={() => handleToggleArchive(detail)}
+                  >
+                    <Button loading={archiving}>归档</Button>
+                  </Popconfirm>
+                </Auth>
+              )}
+              {!!detail.archived_at && (
+                <Auth perm="crm:contract:edit">
+                  <Popconfirm
+                    title="取消归档?"
+                    description="取消后合同恢复为未归档状态"
+                    okText="确认"
+                    cancelText="不取消"
+                    onConfirm={() => handleToggleArchive(detail)}
+                  >
+                    <Button loading={archiving}>取消归档</Button>
+                  </Popconfirm>
+                </Auth>
+              )}
+              <Auth perm="crm:contractTemplate:list">
+                <Button icon={<PrinterOutlined />} onClick={() => setPrintOpen(true)}>
+                  打印文档
+                </Button>
+              </Auth>
+            </Space>
           )
         }
       >
@@ -201,6 +269,23 @@ export default function ContractDetailDrawer({
                       { key: 'start_date', label: '开始日期', children: detail.start_date ?? '-' },
                       { key: 'end_date', label: '结束日期', children: detail.end_date ?? '-' },
                       { key: 'title_id', label: '标题ID', children: detail.title_id ?? '-' },
+                      { key: 'category', label: '分类', children: detail.category || '-' },
+                      {
+                        key: 'archived',
+                        label: '归档状态',
+                        span: 2,
+                        children: detail.archived_at ? (
+                          <Space size={8}>
+                            <Tag color="default">已归档</Tag>
+                            <span>
+                              {detail.archived_at.slice(0, 16).replace('T', ' ')}
+                              {detail.archived_by_name ? ` · ${detail.archived_by_name}` : ''}
+                            </span>
+                          </Space>
+                        ) : (
+                          <Tag color="processing">未归档</Tag>
+                        ),
+                      },
                       {
                         key: 'content',
                         label: '合同内容',
@@ -238,6 +323,13 @@ export default function ContractDetailDrawer({
                     loading={itemLoading}
                     onReload={() => loadItems(detail.id)}
                   />
+                ),
+              },
+              {
+                key: 'changes',
+                label: '变更记录',
+                children: (
+                  <ChangesPanel key={detail.id} contract={detail} onChanged={refreshAfterChange} />
                 ),
               },
               {

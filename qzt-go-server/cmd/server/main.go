@@ -12,6 +12,7 @@ import (
 
 	"qzt-go-server/config"
 	"qzt-go-server/internal/app"
+	"qzt-go-server/internal/llmboot"
 	mcpmod "qzt-go-server/internal/mcp"
 	apimod "qzt-go-server/internal/module/api"
 	apprmod "qzt-go-server/internal/module/approval"
@@ -20,6 +21,7 @@ import (
 	"qzt-go-server/internal/module/cms"
 	crmmod "qzt-go-server/internal/module/crm"
 	crmsvc "qzt-go-server/internal/module/crm/service"
+	deploymod "qzt-go-server/internal/module/deploy"
 	entmod "qzt-go-server/internal/module/enterprise"
 	entsvc "qzt-go-server/internal/module/enterprise/service"
 	finmod "qzt-go-server/internal/module/finance"
@@ -33,7 +35,10 @@ import (
 	openmod "qzt-go-server/internal/module/open"
 	projmod "qzt-go-server/internal/module/project"
 	psimod "qzt-go-server/internal/module/psi"
+	sfmod "qzt-go-server/internal/module/storefront"
 	"qzt-go-server/internal/module/system"
+	wfmod "qzt-go-server/internal/module/workflow"
+	wfsvc "qzt-go-server/internal/module/workflow/service"
 	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/pkg/llm"
 	"qzt-go-server/internal/pkg/setting"
@@ -79,8 +84,9 @@ func main() {
 	setting.Warm(context.Background())
 
 	// 2.5 初始化统一 LLM 网关(internal/pkg/llm):所有 AI 功能唯一的模型调用入口。
+	// 优先用 ai_model 生效档案;表为空播种 env 档案;DB 异常/无生效行回落 env 配置。
 	// API key 走 .env 的 LLM_API_KEY;未配置时 Chat 返回 ErrNotConfigured,不阻断启动。
-	llm.Init(llm.OptionsFromConfig(config.Get().LLM))
+	llmboot.InitLLM()
 	// 2.6 初始化向量嵌入客户端(P17 知识库 RAG):llm.embedding 配置节,API key 走
 	// .env 的 KB_EMBEDDING_API_KEY;未配置时 Embeddings 返回 ErrNotConfigured,RAG 走降级路径。
 	llm.InitEmbedding(llm.EmbeddingConfigToOptions(config.Get().LLM.Embedding))
@@ -90,7 +96,7 @@ func main() {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 17 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project/marketing/mall/geo/open）
+	// 4. 组装路由（注册 20 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project/marketing/mall/geo/open/workflow/storefront/deploy）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -109,6 +115,9 @@ func main() {
 		mallmod.New(),
 		geomod.New(),
 		openmod.New(),
+		wfmod.New(),
+		sfmod.New(),
+		deploymod.New(),
 	)
 
 	// 4.45 注册 MCP Server(挂载 /mcp 到 gin engine,API Key 认证)
@@ -118,8 +127,15 @@ func main() {
 	apprsvc.SetMessageClient(oasvc.NewMessageService())
 	apprsvc.RegisterEventListeners(context.Background())
 
+	// 4.5.0 CRM:注入站内信客户端(合同到期提醒等定时通知落 oa_message)
+	crmsvc.SetMessageClient(oasvc.NewMessageService())
+
 	// 4.5.1 CRM 回款→财务凭证联动(回款创建后自动生成收入凭证)
 	crmsvc.RegisterPaymentListener(context.Background())
+
+	// 4.5.2 工作流引擎:事件订阅 + 定时调度(casbin 需重启;调度随启停实时重载)
+	wfsvc.RegisterEventSubscribers(context.Background())
+	wfsvc.StartWorkflowScheduler(context.Background())
 
 	// 4.6 启动定时任务调度器(从 DB 加载已启用的任务)
 	scheduler := entsvc.NewJobScheduler()

@@ -27,7 +27,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	trackHandler := handler.NewTrackHandler()
 	pushHandler := handler.NewPushHandler()
 	versionHandler := handler.NewVersionHandler()
-	mediaHandler := handler.NewMediaHandler()
 
 	// 公开路由（无需鉴权）：前台站点/小程序消费的只读接口。
 	// 注意 slug 路由须注册在 :id 之前，避免 /articles/slug/xxx 与 /articles/:id 冲突。
@@ -83,8 +82,6 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/articles/:id/versions/:version_id/rollback", versionHandler.Rollback)
 
 		// 媒体库(P22)
-		auth.GET("/media", mediaHandler.List)
-		auth.POST("/media/delete", mediaHandler.Delete)
 
 		// 单页管理
 		auth.GET("/pages", pageHandler.List)

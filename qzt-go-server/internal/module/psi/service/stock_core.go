@@ -7,8 +7,8 @@ import (
 	"github.com/shopspring/decimal"
 
 	psimodel "qzt-go-server/internal/model/psi"
-	psirepo "qzt-go-server/internal/repository/psi"
 	"qzt-go-server/internal/repository"
+	psirepo "qzt-go-server/internal/repository/psi"
 	"qzt-go-server/pkg/xlogger"
 )
 
@@ -43,12 +43,12 @@ type StockListRow struct {
 
 // MovementInput 描述一次库存变动的输入。
 type MovementInput struct {
-	BizType      string          // PURCHASE_IN / SALES_OUT / ... 见 model/psi/constants.go
-	BizOrderType string          // 来源单据类型(如 PSI_PURCHASE_ORDER)
-	BizOrderID   *uint           // 来源单据ID(nil 表示无关联单据,如期初)
-	BizOrderNo   string          // 来源单据编号
+	BizType      string // PURCHASE_IN / SALES_OUT / ... 见 model/psi/constants.go
+	BizOrderType string // 来源单据类型(如 PSI_PURCHASE_ORDER)
+	BizOrderID   *uint  // 来源单据ID(nil 表示无关联单据,如期初)
+	BizOrderNo   string // 来源单据编号
 	ProductID    uint
-	SkuID        uint            // 规格SKU(结余按 SKU+仓库 维度;0=未指定,仅历史兼容)
+	SkuID        uint // 规格SKU(结余按 SKU+仓库 维度;0=未指定,仅历史兼容)
 	WarehouseID  uint
 	Quantity     decimal.Decimal // 变动数量(始终为正,方向由 Direction 决定)
 	Direction    int             // +1 入库 / -1 出库

@@ -11,9 +11,12 @@ CMS（Content Management System）是行简平台的内容运营模块，用于�
 
 | 能力 | 说明 |
 |------|------|
-| 文章管理 | Markdown 富文本编辑器 |
+| 文章管理 | Markdown 富文本编辑器，版本历史与回滚 |
 | 分类与标签 | 多维度内容组织 |
 | 单页管理 | 关于我们、联系我们等独立页面 |
+| 站内搜索 | 官网站内搜索接口与页面 |
+| GEO 优化 | llms.txt / Markdown 镜像 / AI 爬虫放行 / 搜索引擎推送 |
+| 双主题发布 | 中文官网 + 跨境独立站，同一代码库双主题 |
 | 站点信息 | Logo、备案、SEO 统一配置 |
 | 官网同步 | 内容同步到企业官网 |
 
@@ -107,7 +110,7 @@ CMS（Content Management System）是行简平台的内容运营模块，用于�
 
 ## 站点信息
 
-CMS 模块与系统管理共用一套站点信息配置，修改后官网与后台同步生效。详见 [系统管理 → 站点信息](./system#站点信息)。
+CMS 模块与系统管理共用一套站点信息配置，修改后官网与后台同步生效。详见 [系统管理 → 站点信息](/modules/system#站点信息)。
 
 核心配置包括：
 
@@ -121,6 +124,53 @@ CMS 模块与系统管理共用一套站点信息配置，修改后官网与后�
 | 公安备案 | 页脚公安备案号 |
 | SEO 关键词 | 官网 meta 标签 |
 | 品牌标语 | 官网首屏 Slogan |
+
+## 站内搜索
+
+官网提供站内搜索：前端 `/search` 页面调用公开搜索接口，按关键词检索已发布文章。
+
+| 接口 | 说明 |
+|------|------|
+| `GET /cms/public/search` | 公开搜索（关键词匹配标题/正文，仅已发布文章） |
+
+## 产品目录
+
+官网「产品」页直接消费 CRM 产品库（上架商品），支持**分类树两级筛选**：后台维护产品分类（两级树），前台按一级分类聚合、二级分类精确过滤，每个分类展示产品数量。
+
+## GEO（生成式引擎优化）
+
+CMS 内建一套面向 AI 搜索引擎与生成式引擎的内容优化能力：
+
+| 能力 | 说明 |
+|------|------|
+| `llms.txt` / `llms-full.txt` | 遵循 [llmstxt.org](https://llmstxt.org) 规范的站点总览与全文入口，AI 搜索引擎据此发现站点的 Markdown 内容 |
+| Markdown 镜像 `/md/*` | 全站页面提供对应路径的 Markdown 版本（`/md/news/*`、`/md/products/*` 等），AI 可直接抓取纯文本 |
+| robots.txt AI 爬虫放行 | 显式放行 GPTBot、OAI-SearchBot、ClaudeBot、PerplexityBot、Google-Extended、Bytespider、CCBot 等主流 AI 爬虫 |
+| 搜索引擎推送 | 后台一键推送百度（`POST /cms/push/baidu`）与 IndexNow（`POST /cms/push/indexnow`），推送日志可查 |
+| 访问统计 | 公开埋点接口 `POST /cms/public/track` 采集浏览行为，后台看汇总与明细 |
+
+## 双主题（官网 + 跨境独立站）
+
+CMS 前端采用**单代码库双主题**路由结构，双域名同根静态发布：
+
+```
+src/app/
+├── (main)/                 # 中文官网主题（主域名）
+│   ├── news/ products/ about/ contact/ faq/ ...
+│   ├── search/             # 站内搜索
+│   ├── llms.txt  llms-full.txt  md/    # GEO 入口
+│   └── sitemap.ts  robots.ts
+└── (cross)/[locale]/       # 跨境独立站主题（/en/ /zh/ 路径段）
+    ├── products/ cart/ checkout/ inquiry/
+    └── about/ ...
+```
+
+| 主题 | 域名 | 面向 |
+|------|------|------|
+| `(main)` 中文官网 | 主域名 | 中文访客、内容营销 |
+| `(cross)/[locale]` 跨境独立站 | storefront 独立域名 | 海外买家（en/zh 多语言），商品/购物车/结算/询盘对接 [跨境独立站后端](/modules/storefront) |
+
+两套主题共享组件库与站点配置，独立部署为纯静态产物（见[部署概述](/deployment/overview)）。
 
 ## 同步到企业官网
 
@@ -140,15 +190,15 @@ CMS 编辑的内容会自动同步到企业官网（你的域名），实现内�
                                └──────────────┘
 ```
 
-- 文章发布后，官网博客列表自动更新；
+- 文章发布后，官网博客列表自动更新（重新发布静态站后生效）；
 - 站点信息修改后，官网页眉页脚同步刷新；
-- 官网采用 Next.js SSR 渲染，保证 SEO 友好；
-- 支持官网独立域名与后台域名的分离部署。
+- 官网采用 Next.js 静态导出（构建期预渲染），SEO 友好且由 nginx 纯静态托管；
+- 「静态站发布」按钮一键重建，详见[静态站发布](/modules/deploy)。
 
 ## 与其他模块的联动
 
 | 联动模块 | 联动场景 |
 |---------|---------|
-| [系统管理](./system) | 共用站点信息、存储配置 |
-| [AI 助手](./ai) | AI 辅助文章写作、SEO 优化建议 |
-| [部署](../deployment/overview) | CMS 独立部署为 Next.js 应用 |
+| [系统管理](/modules/system) | 共用站点信息、存储配置 |
+| [AI 助手](/modules/ai) | AI 辅助文章写作、SEO 优化建议 |
+| [部署](/deployment/overview) | CMS 独立部署为 Next.js 应用 |

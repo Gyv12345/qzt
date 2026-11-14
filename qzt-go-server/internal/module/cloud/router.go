@@ -17,6 +17,16 @@ func (m *Module) Name() string { return "cloud" }
 
 func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	cloudHandler := handler.NewCloudHandler()
+	// 分享 handler 不注入 Uploader 实例(签名路径运行期懒取 app.GetUploader),
+	// 保证存储配置热切换后即刻生效。
+	shareHandler := handler.NewShareHandler()
+
+	// 公开路由(免登录):分享链接访问与下载
+	public := rg.Group("/public")
+	{
+		public.GET("/shares/:token", shareHandler.PublicGetShareMeta)
+		public.POST("/shares/:token/download", shareHandler.PublicDownload)
+	}
 
 	// 已认证路由(仅 JWT,无 RBAC):个人空间操作
 	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
@@ -32,5 +42,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/files", cloudHandler.CreateFile)
 		auth.PUT("/files/:id", cloudHandler.Update)
 		auth.DELETE("/files/:id", cloudHandler.Delete)
+		auth.POST("/shares", shareHandler.CreateShare)
+		auth.GET("/shares", shareHandler.ListShares)
+		auth.DELETE("/shares/:id", shareHandler.CancelShare)
 	}
 }

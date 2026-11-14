@@ -21,6 +21,7 @@ func (m *Module) Name() string {
 
 func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	customerHandler := handler.NewCustomerHandler()
+	tianyanchaHandler := handler.NewTianyanchaHandler()
 	contactHandler := handler.NewContactHandler()
 	opportunityHandler := handler.NewOpportunityHandler()
 	contractHandler := handler.NewContractHandler()
@@ -39,6 +40,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	importExportHandler := handler.NewImportExportHandler()
 	dedupHandler := handler.NewDedupHandler()
 	ticketHandler := handler.NewTicketHandler()
+	productCategoryHandler := handler.NewProductCategoryHandler()
 
 	// 公开路由(免鉴权):官网展示用,只读且强制过滤已发布/上架数据。
 	public := rg.Group("/public")
@@ -46,7 +48,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		public.GET("/products", productHandler.PublicList)
 		public.GET("/products/:id", productHandler.PublicGetByID)
 		public.GET("/partners", customerHandler.PublicList)
-		public.POST("/contact", leadHandler.PublicContact) // 官网留言 → 线索入公海
+		public.GET("/product-categories", productCategoryHandler.PublicTree) // 官网分类筛选
+		public.POST("/contact", leadHandler.PublicContact)                   // 官网留言 → 线索入公海
 	}
 
 	// 已认证路由(仅 JWT,无 RBAC):看板、下拉、时间线、待办、变更历史、回款汇总等查询。
@@ -100,6 +103,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/customers/:id/pick", customerHandler.PickFromPool)
 		auth.POST("/customers/:id/transfer", DataScopeGuard("customer"), customerHandler.Transfer)
 
+		// 工商信息查询(天眼查 MCP,P31;挂 DataScopeGuard 防按 id 越权)
+		auth.GET("/customers/:id/tianyancha", DataScopeGuard("customer"), tianyanchaHandler.QueryByCustomer)
+
 		// 联系人(子资源:customers/:id/contacts,参数名用 id 与客户路由一致避免 Gin 路由冲突)
 		auth.GET("/customers/:id/contacts", DataScopeGuard("customer"), contactHandler.ListByCustomer)
 		auth.POST("/customers/:id/contacts", DataScopeGuard("customer"), contactHandler.Create)
@@ -125,14 +131,22 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.DELETE("/opportunities/:id", DataScopeGuard("opportunity"), opportunityHandler.Delete)
 		auth.PUT("/opportunities/:id/stage", DataScopeGuard("opportunity"), opportunityHandler.ChangeStage)
 
-		// 合同管理
+		// 合同管理(静态路径 stats 须先于 :id 注册)
 		auth.GET("/contracts", contractHandler.List)
 		auth.POST("/contracts", contractHandler.Create)
+		auth.GET("/contracts/stats", contractHandler.Stats)
 		auth.GET("/contracts/:id", DataScopeGuard("contract"), contractHandler.GetByID)
 		auth.PUT("/contracts/:id", DataScopeGuard("contract"), contractHandler.Update)
 		auth.DELETE("/contracts/:id", DataScopeGuard("contract"), contractHandler.Delete)
 		// 合同套打(选模板渲染)
 		auth.GET("/contracts/:id/print-document", DataScopeGuard("contract"), contractTemplateHandler.PrintDocument)
+
+		// 合同生命周期(P30-#2):变更留痕/归档。
+		// 变更 POST 由 service 严格校验「仅合同负责人或超管」,不做 DataScopeGuard。
+		auth.GET("/contracts/:id/changes", DataScopeGuard("contract"), contractHandler.ListChanges)
+		auth.POST("/contracts/:id/changes", contractHandler.Change)
+		auth.POST("/contracts/:id/archive", DataScopeGuard("contract"), contractHandler.Archive)
+		auth.POST("/contracts/:id/unarchive", DataScopeGuard("contract"), contractHandler.Unarchive)
 
 		// 合同模板(静态路径 variables 须先于 :id 注册)
 		auth.GET("/contract-templates/variables", contractTemplateHandler.Variables)
@@ -168,6 +182,12 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.GET("/products/:id", productHandler.GetByID)
 		auth.PUT("/products/:id", productHandler.Update)
 		auth.DELETE("/products/:id", productHandler.Delete)
+
+		// 产品分类树(静态路径 tree 须先于 :id 注册;公开树走 /public/product-categories 不进 Casbin)
+		auth.GET("/product-categories/tree", productCategoryHandler.Tree)
+		auth.POST("/product-categories", productCategoryHandler.Create)
+		auth.PUT("/product-categories/:id", productCategoryHandler.Update)
+		auth.DELETE("/product-categories/:id", productCategoryHandler.Delete)
 
 		// 产品规格 SKU
 		productSkuHandler := handler.NewProductSkuHandler()

@@ -1,16 +1,24 @@
 import { useState, useEffect, useCallback } from 'react'
-import { App, Button, Card, Popconfirm, Space, Table, Tabs, Tag, Upload, Input, Breadcrumb } from 'antd'
+import {
+  App, Button, Card, Popconfirm, Space, Table, Tabs, Tag, Upload, Input, Breadcrumb,
+  Drawer, Form, Modal, Radio, Typography,
+} from 'antd'
 import {
   FolderOutlined, FileOutlined, DeleteOutlined, EditOutlined,
   FolderAddOutlined, UploadOutlined, DownloadOutlined, HomeOutlined,
+  ShareAltOutlined, CopyOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import Auth from '../../components/Auth'
 import {
   listCloudFiles, createFolder, createFile, updateFile, deleteFile, getUsage,
 } from '../../services/cloud'
+import {
+  createShare, listShares, cancelShare,
+} from '../../services/cloudShare'
+import { copyToClipboard } from '../../utils/clipboard'
 import { uploadFile as uploadFileApi } from '../../services/attachment'
-import type { CloudFile } from '../../types/cloud'
+import type { CloudFile, CloudShare, CloudShareCreated } from '../../types/cloud'
 
 const SCOPE_TABS = [
   { key: 'personal', label: '个人空间' },
@@ -25,6 +33,19 @@ function formatSize(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+/** 有效期展示(截到分钟) */
+function formatExpire(s?: string): string {
+  return (s || '').slice(0, 16)
+}
+
+/** 分享状态:已取消 > 已过期 > 有效(过期由前端按 expire_at 判断) */
+function shareStatus(r: CloudShare): { label: string; color: string } {
+  if (r.disabled) return { label: '已取消', color: 'default' }
+  const t = new Date((r.expire_at || '').replace(' ', 'T')).getTime()
+  if (t && t < Date.now()) return { label: '已过期', color: 'orange' }
+  return { label: '有效', color: 'green' }
 }
 
 /** 文件图标 */
@@ -150,6 +171,117 @@ export default function CloudPage() {
     }
   }
 
+  // ── 分享 ──
+  const [shareTarget, setShareTarget] = useState<CloudFile | null>(null)
+  const [shareCreated, setShareCreated] = useState<CloudShareCreated | null>(null)
+  const [shareSubmitting, setShareSubmitting] = useState(false)
+  const [shareForm] = Form.useForm<{ expire_days: number; extract_code?: string }>()
+
+  const openShareModal = (record: CloudFile) => {
+    shareForm.setFieldsValue({ expire_days: 7, extract_code: '' })
+    setShareCreated(null)
+    setShareTarget(record)
+  }
+
+  const handleSubmitShare = async () => {
+    if (!shareTarget) return
+    const values = await shareForm.validateFields()
+    const code = (values.extract_code || '').trim()
+    if (code && !/^[A-Za-z0-9]{4,12}$/.test(code)) {
+      message.error('提取码为 4-12 位字母或数字')
+      return
+    }
+    setShareSubmitting(true)
+    try {
+      const res = await createShare({
+        file_id: shareTarget.id,
+        expire_days: values.expire_days,
+        extract_code: code || undefined,
+      })
+      setShareCreated(res)
+    } catch { /* 失败由请求拦截器统一提示 */ } finally {
+      setShareSubmitting(false)
+    }
+  }
+
+  const copyShareText = async (text: string, label: string) => {
+    const ok = await copyToClipboard(text)
+    if (ok) message.success(`${label}已复制`)
+    else message.error('复制失败,请手动选择复制')
+  }
+
+  // ── 我的分享 ──
+  const [sharesOpen, setSharesOpen] = useState(false)
+  const [shares, setShares] = useState<CloudShare[]>([])
+  const [sharesTotal, setSharesTotal] = useState(0)
+  const [sharesPage, setSharesPage] = useState(1)
+  const [sharesLoading, setSharesLoading] = useState(false)
+
+  const loadShares = useCallback(async (page: number) => {
+    setSharesLoading(true)
+    try {
+      const res = await listShares({ page, page_size: 10 })
+      setShares(res.list || [])
+      setSharesTotal(res.total || 0)
+    } catch { /* 失败由请求拦截器统一提示 */ } finally {
+      setSharesLoading(false)
+    }
+  }, [])
+
+  const openSharesDrawer = () => {
+    setSharesPage(1)
+    setSharesOpen(true)
+    loadShares(1)
+  }
+
+  const handleCancelShare = async (id: number) => {
+    await cancelShare(id)
+    message.success('已取消分享')
+    loadShares(sharesPage)
+  }
+
+  const shareColumns: ColumnsType<CloudShare> = [
+    { title: '文件名', dataIndex: 'file_name', ellipsis: true },
+    { title: '大小', dataIndex: 'size', width: 90, render: (_, r) => formatSize(r.size) },
+    { title: '下载次数', dataIndex: 'download_count', width: 90 },
+    { title: '有效期', dataIndex: 'expire_at', width: 150, render: (_, r) => formatExpire(r.expire_at) },
+    {
+      title: '状态',
+      width: 80,
+      render: (_, r) => {
+        const s = shareStatus(r)
+        return <Tag color={s.color}>{s.label}</Tag>
+      },
+    },
+    {
+      title: '操作',
+      width: 170,
+      fixed: 'right',
+      render: (_, r) => (
+        <Space>
+          <Button
+            type="link"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => copyShareText(`${window.location.origin}/share/${r.token}`, '链接')}
+          >
+            复制链接
+          </Button>
+          <Auth perm="cloud:share:cancel">
+            <Popconfirm
+              title="取消后链接立即失效,确认取消?"
+              okText="取消分享"
+              cancelText="再想想"
+              onConfirm={() => handleCancelShare(r.id)}
+            >
+              <Button type="link" size="small" danger>取消分享</Button>
+            </Popconfirm>
+          </Auth>
+        </Space>
+      ),
+    },
+  ]
+
   const columns: ColumnsType<CloudFile> = [
     {
       title: '名称',
@@ -180,11 +312,16 @@ export default function CloudPage() {
     { title: '上传时间', dataIndex: 'created_at', width: 170, render: (_, r) => r.created_at?.slice(0, 16) },
     {
       title: '操作',
-      width: 160,
+      width: 200,
       render: (_, record) => (
         <Space>
           {record.is_dir === 0 && record.url && (
             <Button type="link" size="small" icon={<DownloadOutlined />} onClick={() => handleDownload(record)}>下载</Button>
+          )}
+          {record.is_dir === 0 && (
+            <Auth perm="cloud:share:create">
+              <Button type="link" size="small" icon={<ShareAltOutlined />} onClick={() => openShareModal(record)}>分享</Button>
+            </Auth>
           )}
           <Auth perm="cloud:file:manage">
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleRename(record)} />
@@ -214,6 +351,9 @@ export default function CloudPage() {
           {scope === 'personal' && (
             <span style={{ color: '#999', fontSize: 12 }}>已用: {formatSize(usage)}</span>
           )}
+          <Auth perm="cloud:share:create">
+            <Button icon={<ShareAltOutlined />} onClick={openSharesDrawer}>我的分享</Button>
+          </Auth>
           <Auth perm="cloud:file:upload">
             <Upload beforeUpload={handleUpload} showUploadList={false} maxCount={1}>
               <Button type="primary" icon={<UploadOutlined />}>上传文件</Button>
@@ -227,9 +367,17 @@ export default function CloudPage() {
     >
       <Breadcrumb
         style={{ marginBottom: 16 }}
-        items={breadcrumbs.map((b, i) => ({
-          title: i === 0 ? <><HomeOutlined /> {b.name}</> : <a onClick={() => navigateTo(i)}>{b.name}</a>,
-        }))}
+        items={breadcrumbs.map((b, i) => {
+          const label = (
+            <>
+              {i === 0 && <HomeOutlined />} {b.name}
+            </>
+          )
+          // 末位=当前目录(不可点);其余祖先级全部可点击返回,含根目录
+          return {
+            title: i === breadcrumbs.length - 1 ? label : <a onClick={() => navigateTo(i)}>{label}</a>,
+          }
+        })}
       />
       <Table<CloudFile>
         rowKey="id"
@@ -240,6 +388,105 @@ export default function CloudPage() {
         size="middle"
         locale={{ emptyText: '暂无文件' }}
       />
+
+      {/* 分享弹窗:表单 → 创建成功后的结果视图 */}
+      <Modal
+        title={`分享「${shareTarget?.name ?? ''}」`}
+        open={!!shareTarget}
+        onCancel={() => setShareTarget(null)}
+        destroyOnHidden
+        footer={
+          shareCreated ? (
+            <Button type="primary" onClick={() => setShareTarget(null)}>完成</Button>
+          ) : (
+            [
+              <Button key="cancel" onClick={() => setShareTarget(null)}>取消</Button>,
+              <Button key="ok" type="primary" loading={shareSubmitting} onClick={handleSubmitShare}>创建分享</Button>,
+            ]
+          )
+        }
+      >
+        {shareCreated ? (
+          <div style={{ display: 'grid', gap: 12, padding: '4px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ flexShrink: 0, color: '#999' }}>分享链接</span>
+              <Typography.Text ellipsis style={{ flex: 1 }}>
+                {`${window.location.origin}/share/${shareCreated.token}`}
+              </Typography.Text>
+              <Button
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={() => copyShareText(`${window.location.origin}/share/${shareCreated.token}`, '链接')}
+              >
+                复制
+              </Button>
+            </div>
+            {shareCreated.extract_code && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ flexShrink: 0, color: '#999' }}>提取码</span>
+                <Typography.Text>{shareCreated.extract_code}</Typography.Text>
+                <Button
+                  size="small"
+                  icon={<CopyOutlined />}
+                  onClick={() => copyShareText(shareCreated.extract_code, '提取码')}
+                >
+                  复制
+                </Button>
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ flexShrink: 0, color: '#999' }}>有效期至</span>
+              <Typography.Text>{formatExpire(shareCreated.expire_at)}</Typography.Text>
+              <Button
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={() => copyShareText(shareCreated.expire_at, '有效期')}
+              >
+                复制
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Form form={shareForm} layout="vertical" initialValues={{ expire_days: 7 }}>
+            <Form.Item name="expire_days" label="有效期" rules={[{ required: true, message: '请选择有效期' }]}>
+              <Radio.Group>
+                <Radio.Button value={7}>7 天</Radio.Button>
+                <Radio.Button value={30}>30 天</Radio.Button>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item name="extract_code" label="提取码" extra="留空则无需提取码;4-12 位字母或数字">
+              <Input placeholder="可选,如 a1b2c3" maxLength={12} allowClear />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+
+      {/* 我的分享 */}
+      <Drawer
+        title="我的分享"
+        width={720}
+        open={sharesOpen}
+        onClose={() => setSharesOpen(false)}
+        destroyOnHidden
+      >
+        <Table<CloudShare>
+          rowKey="id"
+          size="small"
+          loading={sharesLoading}
+          columns={shareColumns}
+          dataSource={shares}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            current: sharesPage,
+            pageSize: 10,
+            total: sharesTotal,
+            showSizeChanger: false,
+            showTotal: (t) => `共 ${t} 条`,
+            onChange: (p) => { setSharesPage(p); loadShares(p) },
+          }}
+          locale={{ emptyText: '暂无分享' }}
+        />
+      </Drawer>
     </Card>
   )
 }

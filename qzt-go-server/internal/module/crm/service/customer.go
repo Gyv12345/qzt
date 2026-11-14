@@ -15,6 +15,7 @@ import (
 	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
+	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -118,6 +119,15 @@ func (s *CustomerService) Create(ctx context.Context, req *CreateCustomerRequest
 	if err != nil {
 		return nil, err
 	}
+	// P27 自动化工作流:新客户建档事件(工作流引擎订阅分发);ownerID 解引用避免 payload 带指针地址
+	ownerVal := uint(0)
+	if ownerID != nil {
+		ownerVal = *ownerID
+	}
+	xevent.Publish(ctx, "crm.customer.created", map[string]any{
+		"customer_id": customer.ID, "name": customer.Name,
+		"owner_id": ownerVal, "level": customer.Level, "source": customer.Source,
+	})
 	return customer, nil
 }
 

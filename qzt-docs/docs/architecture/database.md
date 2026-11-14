@@ -137,5 +137,5 @@ CREATE TABLE crm_customers (
 
 ## 扩展阅读
 
-- [后端架构](./backend)：Model 层如何映射到这些表
-- [认证与权限](./auth)：`sys_users` / `sys_roles` / `sys_menus` 的协作
+- [后端架构](/architecture/backend)：Model 层如何映射到这些表
+- [认证与权限](/architecture/auth)：`sys_users` / `sys_roles` / `sys_menus` 的协作

@@ -20,7 +20,9 @@ type StocktakeHandler struct {
 	svc *service.StocktakeService
 }
 
-func NewStocktakeHandler() *StocktakeHandler { return &StocktakeHandler{svc: service.NewStocktakeService()} }
+func NewStocktakeHandler() *StocktakeHandler {
+	return &StocktakeHandler{svc: service.NewStocktakeService()}
+}
 
 // List 盘点单列表
 // @Summary  盘点单列表
@@ -189,7 +191,9 @@ type TransferHandler struct {
 	svc *service.TransferService
 }
 
-func NewTransferHandler() *TransferHandler { return &TransferHandler{svc: service.NewTransferService()} }
+func NewTransferHandler() *TransferHandler {
+	return &TransferHandler{svc: service.NewTransferService()}
+}
 
 // ListTransfer 调拨单列表
 // @Summary  调拨单列表

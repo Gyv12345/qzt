@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/base64"
+	"io"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -177,6 +179,49 @@ func (h *FinanceHandler) InvoiceList(c *gin.Context) {
 		return
 	}
 	response.OK(c, gin.H{"list": list, "total": total})
+}
+
+// InvoiceOCR 发票图片识别(OCR)
+// @Summary      发票图片识别(OCR)
+// @Description  上传发票图片(jpg/png/webp,≤10MB),千问 qwen-vl 视觉识别出票面结构化字段。
+//               识别结果不落库,仅供前端回填发票表单人工确认后走既有保存接口;
+//               每用户每日限 50 次,超限报错。
+// @Tags         财务-发票
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        image  formData  file  true  "发票图片(jpg/png/webp,≤10MB)"
+// @Success      200  {object}  xresponse.Response
+// @Router       /finance/invoices/ocr [post]
+func (h *FinanceHandler) InvoiceOCR(c *gin.Context) {
+	fileHeader, err := c.FormFile("image")
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, "缺少 image 文件字段")
+		return
+	}
+	mimeType, err := service.ValidateOCRUpload(fileHeader.Size, fileHeader.Header.Get("Content-Type"))
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, err.Error())
+		return
+	}
+	f, err := fileHeader.Open()
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, "读取上传文件失败")
+		return
+	}
+	defer f.Close()
+	data, err := io.ReadAll(io.LimitReader(f, service.OCRMaxFileSize+1))
+	if err != nil || len(data) == 0 {
+		response.Fail(c, errcode.ErrServer, "读取上传文件失败")
+		return
+	}
+	result, err := h.svc.RecognizeInvoice(c.Request.Context(), middleware.GetUserID(c),
+		mimeType, base64.StdEncoding.EncodeToString(data))
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, result)
 }
 
 // ── 报表 ──

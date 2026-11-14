@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Suspense } from 'react'
-import { Avatar, Button, Descriptions, Divider, Dropdown, Modal, Result, Spin, theme as antdTheme } from 'antd'
+import { Avatar, Button, Descriptions, Divider, Dropdown, Modal, Result, Spin, Tooltip, theme as antdTheme, Watermark } from 'antd'
 import {
   LogoutOutlined,
   SettingOutlined,
@@ -11,6 +11,8 @@ import {
   MailOutlined,
   EnvironmentOutlined,
   ClockCircleOutlined,
+  FullscreenOutlined,
+  FullscreenExitOutlined,
 } from '@ant-design/icons'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
@@ -63,8 +65,17 @@ export default function BasicLayout() {
   const userLoaded = useAuthStore((s) => s.userLoaded)
   const menus = useAuthStore((s) => s.menus)
   const profile = useAuthStore((s) => s.profile)
+  // 水印文案:昵称(用户名),同全局用户下拉展示格式;profile 未加载时不渲染水印
+  const wmText = profile ? `${profile.nickname || profile.username}(${profile.username})` : ''
   /** 多 Tab 模式:Tab 列表/挂载记录/刷新计数(keep-alive 渲染用) */
   const multiTab = useSettingsStore((s) => s.multiTab)
+  /** 内容全屏:隐藏顶栏/侧栏/Tab 栏,只留内容区(Esc 退出) */
+  const contentFullscreen = useSettingsStore((s) => s.contentFullscreen)
+  const toggleContentFullscreen = useSettingsStore((s) => s.toggleContentFullscreen)
+  /** 页面水印开关:内容区平铺当前登录用户,防截屏外传溯源 */
+  const watermark = useSettingsStore((s) => s.watermark)
+  // 水印字色随明暗模式切换(深色下黑字不可见)
+  const isDark = useSettingsStore((s) => (s.themeMode === 'auto' ? s.systemDark : s.themeMode === 'dark'))
   const tabs = useTabsStore((s) => s.tabs)
   const tabMounted = useTabsStore((s) => s.mounted)
   const refreshSeq = useTabsStore((s) => s.refreshSeq)
@@ -148,6 +159,16 @@ export default function BasicLayout() {
     if (chain?.group) setExpandedGroupId(chain.group.id)
   }, [chain])
 
+  // 内容全屏时按 Esc 退出
+  useEffect(() => {
+    if (!contentFullscreen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') toggleContentFullscreen()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [contentFullscreen, toggleContentFullscreen])
+
   /** 当前模块下的二级菜单(分组或直接页面) */
   const moduleChildren = useMemo(
     () => (activeModule && activeModule.type !== 1 ? visibleMenus(activeModule.children) : []),
@@ -228,7 +249,7 @@ export default function BasicLayout() {
   }
 
   return (
-    <div className="qzt-layout">
+    <div className={`qzt-layout${contentFullscreen ? ' is-fullscreen' : ''}`}>
       <header className="qzt-header">
         <div
           className="qzt-logo"
@@ -268,7 +289,44 @@ export default function BasicLayout() {
           </Dropdown>
         </div>
 
+        {/* 面包屑:当前页面的模块→分组→页面 导航链(可逐级点击);首页与全屏态不显示 */}
+        {!isHome && !contentFullscreen && (
+          <nav className="qzt-breadcrumb" aria-label="面包屑">
+            {chain?.module && (
+              <>
+                <button className="qzt-bc-item" onClick={() => onPrimaryClick(chain.module!)}>
+                  {chain.module.name}
+                </button>
+                {chain.group && (
+                  <>
+                    <span className="qzt-bc-sep">/</span>
+                    <button className="qzt-bc-item" onClick={() => setExpandedGroupId(chain.group!.id)}>
+                      {chain.group.name}
+                    </button>
+                  </>
+                )}
+                {chain.leaf && (
+                  <>
+                    <span className="qzt-bc-sep">/</span>
+                    <span className="qzt-bc-item current">{chain.leaf.name}</span>
+                  </>
+                )}
+              </>
+            )}
+          </nav>
+        )}
+
         <div className="qzt-header-right">
+          <Tooltip title={contentFullscreen ? '退出内容全屏(Esc)' : '内容全屏'}>
+            <button
+              className="qzt-header-icon-btn"
+              type="button"
+              aria-label={contentFullscreen ? '退出内容全屏' : '内容全屏'}
+              onClick={toggleContentFullscreen}
+            >
+              {contentFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+            </button>
+          </Tooltip>
           <MessageBox />
           <LayoutSettings />
           <HelpGuide />
@@ -350,6 +408,15 @@ export default function BasicLayout() {
           </>
         )}
 
+        {/* 页面水印:接管 .qzt-content 原本的 flex 位置(包装层 flex:1),内容=当前登录用户 */}
+        <Watermark
+          className="qzt-watermark"
+          content={watermark && wmText ? wmText : ''}
+          style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}
+          font={{ fontSize: 14, color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.045)' }}
+          gap={[140, 140]}
+          zIndex={9}
+        >
         <main className={`qzt-content${multiTab ? ' with-tabs' : ''}`}>
           {/* '/' 仍走 Outlet:让 index 路由的 <Navigate to="/dashboard"> 完成重定向后再进多 Tab 渲染 */}
           {multiTab && location.pathname !== '/' ? (
@@ -388,6 +455,7 @@ export default function BasicLayout() {
             </ErrorBoundary>
           )}
         </main>
+        </Watermark>
       </div>
 
       {/* 关于系统:展示后端构建版本信息(来自免鉴权接口 /system/version) */}

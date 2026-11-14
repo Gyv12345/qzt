@@ -24,12 +24,16 @@ import type {
   SysSiteConfig,
   SystemVersionInfo,
   SysUser,
+  TianyanchaConfig,
+  TianyanchaConfigPayload,
   UpdateConfigRequest,
   UpdateRoleRequest,
   UpdateSiteConfigRequest,
   UpdateUserRequest,
   UserOption,
 } from '../types'
+import type { StorageConfig, StorageConfigPayload, StorageFile } from '../types/storage'
+import type { AiCurrentModel, AiModel, AiModelPayload } from '../types/ai'
 
 // ---------- 用户管理 ----------
 
@@ -179,6 +183,16 @@ export const deleteOauthConfig = (id: number) => request.delete(`/system/oauth-c
 export const setOauthConfigEnable = (id: number, enabled: number) =>
   request.put(`/system/oauth-configs/${id}/enable`, { enabled })
 
+// ---------- 天眼查 MCP 配置 ----------
+
+/** 天眼查配置(api_key 不回显,endpoint 为脱敏尾段) */
+export const getTianyanchaConfig = () =>
+  request.get<unknown, TianyanchaConfig>('/system/tianyancha/config')
+
+/** 保存天眼查配置(api_key 脱敏回显 ****尾4) */
+export const updateTianyanchaConfig = (data: TianyanchaConfigPayload) =>
+  request.put('/system/tianyancha/config', data)
+
 // ---------- 站点信息 ----------
 
 export const getSiteConfig = () => request.get<unknown, SysSiteConfig>('/system/site-config')
@@ -204,3 +218,55 @@ export const syncHomepageFeatures = (module: string, itemIds: number[]) =>
 
 export const removeHomepageFeature = (id: number) =>
   request.delete(`/system/homepage-config/features/${id}`)
+
+// ---------- 文件存储(存储配置 + 文件列表) ----------
+
+/** 存储配置列表(密钥已脱敏,形如 ****abcd) */
+export const listStorageConfigs = () =>
+  request.get<unknown, StorageConfig[]>('/system/storage/configs')
+
+/** 新建存储配置 */
+export const createStorageConfig = (data: StorageConfigPayload) =>
+  request.post('/system/storage/configs', data)
+
+/** 更新存储配置(密钥留空或 **** 开头表示不修改) */
+export const updateStorageConfig = (id: number, data: StorageConfigPayload) =>
+  request.put(`/system/storage/configs/${id}`, data)
+
+/** 启用配置(同一时刻仅一个生效;切换仅影响新上传,无需重启) */
+export const activateStorageConfig = (id: number) =>
+  request.post(`/system/storage/configs/${id}/activate`)
+
+/** 测试存储连通性(写入/读取探测文件) */
+export const testStorageConfig = (id: number) =>
+  request.post(`/system/storage/configs/${id}/test`)
+
+/** 删除存储配置(当前生效配置后端会拒绝) */
+export const deleteStorageConfig = (id: number) =>
+  request.delete(`/system/storage/configs/${id}`)
+
+/** 存储文件分页列表 */
+export const listStorageFiles = (params?: { page?: number; page_size?: number; keyword?: string }) =>
+  request.get<unknown, PageResult<StorageFile>>('/system/storage/files', { params })
+
+// ---------- AI 模型档案(P30) ----------
+
+/** 模型档案列表(api_key 已脱敏,形如 ****abcd) */
+export const listAiModels = () => request.get<unknown, AiModel[]>('/system/ai/models')
+
+/** 新建模型档案 */
+export const createAiModel = (data: AiModelPayload) => request.post('/system/ai/models', data)
+
+/** 更新模型档案(api_key 传 **** 开头表示不修改) */
+export const updateAiModel = (id: number, data: AiModelPayload) =>
+  request.put(`/system/ai/models/${id}`, data)
+
+/** 删除模型档案(默认档案后端会拒绝) */
+export const deleteAiModel = (id: number) => request.delete(`/system/ai/models/${id}`)
+
+/** 启用模型档案(热切换,立即生效,无需重启) */
+export const activateAiModel = (id: number) => request.post(`/system/ai/models/${id}/activate`)
+
+/** 当前生效模型(source=env 表示仍走环境变量配置) */
+export const getCurrentAiModel = () =>
+  request.get<unknown, AiCurrentModel>('/system/ai/models/current')

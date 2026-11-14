@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"qzt-go-server/internal/model"
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xtime"
 )
@@ -43,28 +44,33 @@ type UpdateKeyRequest struct {
 
 // ApiKeyItem 列表项(hash 不返回;toolsets 解析为数组,空数组=不限制)。
 type ApiKeyItem struct {
-	ID         uint      `json:"id"`
-	Name       string    `json:"name"`
-	KeyPrefix  string    `json:"key_prefix"`
-	Toolsets   []string  `json:"toolsets"`
-	LastUsedAt string    `json:"last_used_at"`
-	LastUsedIP string    `json:"last_used_ip"`
-	ExpiresAt  string    `json:"expires_at"`
-	Status     int8      `json:"status"`
-	CreatedAt  string    `json:"created_at"`
+	ID         uint     `json:"id"`
+	Name       string   `json:"name"`
+	KeyPrefix  string   `json:"key_prefix"`
+	Toolsets   []string `json:"toolsets"`
+	LastUsedAt string   `json:"last_used_at"`
+	LastUsedIP string   `json:"last_used_ip"`
+	ExpiresAt  string   `json:"expires_at"`
+	Status     int8     `json:"status"`
+	CreatedAt  string   `json:"created_at"`
 }
 
 // CreateKeyResult 创建结果(含明文 Key,仅此一次返回)。
 type CreateKeyResult struct {
 	ID        uint     `json:"id"`
 	Name      string   `json:"name"`
-	ApiKey    string   `json:"api_key"`     // 明文,仅此一次
-	KeyPrefix string   `json:"key_prefix"`  // 前缀
+	ApiKey    string   `json:"api_key"`    // 明文,仅此一次
+	KeyPrefix string   `json:"key_prefix"` // 前缀
 	Toolsets  []string `json:"toolsets"`
 }
 
 // Create 为用户创建 API Key。演示账号(demo 角色)禁止签发。
 func (s *ApiKeyService) Create(ctx context.Context, userID uint, req *CreateKeyRequest) (*CreateKeyResult, error) {
+	// 演示模式护栏:公开演示期间冻结 API Key 管理,防访客以超管身份签发
+	// MCP Key 批量读写生产数据。已签发 Key 的 /mcp 调用能力不受影响。
+	if demoguard.Enabled(ctx) {
+		return nil, errors.New("演示模式不可管理 API Key")
+	}
 	user, err := repository.NewUserRepo().GetByID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("用户不存在")
@@ -129,6 +135,10 @@ func (s *ApiKeyService) List(ctx context.Context, userID uint) ([]ApiKeyItem, er
 
 // Update 更新 API Key 名称/工具集(校验 owner)。
 func (s *ApiKeyService) Update(ctx context.Context, id, userID uint, req *UpdateKeyRequest) error {
+	// 演示模式护栏:冻结 API Key 管理(与 Create/Delete 同口径)。
+	if demoguard.Enabled(ctx) {
+		return errors.New("演示模式不可管理 API Key")
+	}
 	key, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return errors.New("API Key 不存在")
@@ -147,6 +157,10 @@ func (s *ApiKeyService) Update(ctx context.Context, id, userID uint, req *Update
 
 // Delete 删除 API Key(校验 owner)。
 func (s *ApiKeyService) Delete(ctx context.Context, id, userID uint) error {
+	// 演示模式护栏:冻结 API Key 管理(与 Create/Update 同口径)。
+	if demoguard.Enabled(ctx) {
+		return errors.New("演示模式不可管理 API Key")
+	}
 	key, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return errors.New("API Key 不存在")
@@ -159,6 +173,10 @@ func (s *ApiKeyService) Delete(ctx context.Context, id, userID uint) error {
 
 // Disable 禁用 API Key。
 func (s *ApiKeyService) Disable(ctx context.Context, id, userID uint) error {
+	// 演示模式护栏:冻结 API Key 管理(与 Create/Update/Delete 同口径)。
+	if demoguard.Enabled(ctx) {
+		return errors.New("演示模式不可管理 API Key")
+	}
 	key, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return errors.New("API Key 不存在")

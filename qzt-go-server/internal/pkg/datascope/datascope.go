@@ -4,10 +4,11 @@
 // 在 CRM 等业务 List 查询的 QueryOptions.Conds 里注入 datascope.BuildCond() 即可。
 //
 // 数据范围:
-//   1 ALL         — 全部数据(不过滤)
-//   3 DEPT        — 本部门数据(owner_id IN 同部门用户)
-//   4 DEPT_AND_SUB — 本部门及子部门(owner_id IN 本+子部门用户)
-//   5 SELF        — 仅本人(owner_id = 当前用户)
+//
+//	1 ALL         — 全部数据(不过滤)
+//	3 DEPT        — 本部门数据(owner_id IN 同部门用户)
+//	4 DEPT_AND_SUB — 本部门及子部门(owner_id IN 本+子部门用户)
+//	5 SELF        — 仅本人(owner_id = 当前用户)
 //
 // super_admin 或任意角色 data_scope=ALL → 不过滤(取最宽松)。
 //

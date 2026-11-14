@@ -7,6 +7,8 @@ import { aiChat, type AiChatMessage } from '../../../services/ai'
 interface Bubble extends AiChatMessage {
   sending?: boolean
   error?: boolean
+  /** 知识库召回来源文档标题(RAG 命中时后端随回复返回) */
+  sources?: string[]
 }
 
 /**
@@ -34,9 +36,9 @@ export default function AiChatPage() {
     setInput('')
     setSending(true)
     try {
-      const reply = await aiChat(history.map(({ role, content }) => ({ role, content })))
+      const { reply, sources } = await aiChat(history.map(({ role, content }) => ({ role, content })))
       // 末位气泡固定是 sending 占位,替换之
-      setBubbles((prev) => [...prev.slice(0, -1), { role: 'assistant', content: reply }])
+      setBubbles((prev) => [...prev.slice(0, -1), { role: 'assistant', content: reply, sources }])
     } catch (err) {
       const msg = err instanceof Error ? err.message : '请求失败,请稍后重试'
       setBubbles((prev) => [...prev.slice(0, -1), { role: 'assistant', content: msg, error: true }])
@@ -69,6 +71,12 @@ export default function AiChatPage() {
           }}
         >
           {b.content || (b.sending ? '思考中…' : '')}
+          {/* 知识库召回来源(RAG 命中时展示,便于核对出处) */}
+          {!isUser && !b.sending && b.sources && b.sources.length > 0 && (
+            <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px dashed #f0f0f0', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+              来源:{b.sources.join('、')}
+            </div>
+          )}
         </div>
       </div>
     )

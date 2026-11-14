@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   App,
   Button,
@@ -10,6 +10,7 @@ import {
   Radio,
   Select,
   Space,
+  TreeSelect,
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
@@ -21,7 +22,6 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
-import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
 import MarkdownEditor from '../../../components/MarkdownEditor'
 import ImageUpload from '../../../components/ImageUpload'
@@ -33,11 +33,39 @@ import {
   updateProduct,
   type ProductQuery,
 } from '../../../services/crm'
+import { getProductCategoryTree } from '../../../services/productCategory'
+import type { ProductCategory } from '../../../types/productCategory'
 import type {
   CrmProduct,
   CrmProductPayload,
 } from '../../../types/crm'
 import { pageIndexColumn } from '../../../components/IndexTag'
+
+/** 商品分类选择节点:value 直接用叶子 name(category 字段存名字字符串) */
+type ProductCatOption = {
+  title: string
+  value: string
+  disabled?: boolean
+  children?: ProductCatOption[]
+}
+
+/** 仅叶子可选:有子节点的分类置 disabled */
+const toLeafOnlyOptions = (list: ProductCategory[]): ProductCatOption[] =>
+  list.map((n) => ({
+    title: n.name,
+    value: n.name,
+    disabled: n.children?.length > 0,
+    children: n.children?.length ? toLeafOnlyOptions(n.children) : undefined,
+  }))
+
+/** 收集全部叶子分类名(列表筛选用,value=name) */
+const collectLeafNames = (list: ProductCategory[], acc: string[] = []): string[] => {
+  list.forEach((n) => {
+    if (n.children?.length) collectLeafNames(n.children, acc)
+    else acc.push(n.name)
+  })
+  return acc
+}
 
 interface ProductFormValues {
   name: string
@@ -59,6 +87,31 @@ export default function ProductPage() {
   const [form] = Form.useForm<ProductFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<CrmProduct | null>(null)
+
+  // 产品分类树(表单树选择 + 列表筛选项共用)
+  const [categoryTree, setCategoryTree] = useState<ProductCategory[]>([])
+
+  useEffect(() => {
+    getProductCategoryTree()
+      .then(setCategoryTree)
+      .catch(() => {})
+  }, [])
+
+  const leafNames = useMemo(() => collectLeafNames(categoryTree), [categoryTree])
+
+  // 编辑回填:原 category 字符串在树里找不到同名叶子时,追加禁用附加节点保证回填显示
+  const formCatOptions = useMemo(() => {
+    const options = toLeafOnlyOptions(categoryTree)
+    const editingCat = editing?.category
+    if (editingCat && !leafNames.includes(editingCat)) {
+      options.unshift({
+        title: `${editingCat}(原分类,已不在分类树中)`,
+        value: editingCat,
+        disabled: true,
+      })
+    }
+    return options
+  }, [categoryTree, editing, leafNames])
 
   // 规格 SKU 管理
   const [skuProduct, setSkuProduct] = useState<CrmProduct | null>(null)
@@ -123,7 +176,15 @@ export default function ProductPage() {
       title: '分类',
       dataIndex: 'category',
       hideInTable: true,
-      renderFormItem: () => <DictSelect code="PRODUCT_CATEGORY" placeholder="请选择分类" />,
+      renderFormItem: () => (
+        <Select
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          placeholder="请选择分类"
+          options={leafNames.map((n) => ({ label: n, value: n }))}
+        />
+      ),
     },
     {
       title: '状态',
@@ -165,7 +226,7 @@ export default function ProductPage() {
       dataIndex: 'category',
       width: 100,
       search: false,
-      render: (_, r) => <DictTag code="PRODUCT_CATEGORY" value={r.category} />,
+      render: (_, r) => r.category || '-',
     },
     {
       title: '单位',
@@ -288,8 +349,20 @@ export default function ProductPage() {
         />
         <ProFormText name="product_no" label="产品编号" placeholder="产品编号" colProps={{ span: 12 }} />
         <Col span={12}>
-          <ProForm.Item name="category" label="分类">
-            <DictSelect code="PRODUCT_CATEGORY" placeholder="请选择分类" />
+          <ProForm.Item
+            name="category"
+            label="分类"
+            required
+            rules={[{ required: true, message: '请选择产品分类' }]}
+          >
+            <TreeSelect
+              treeData={formCatOptions}
+              placeholder="请选择分类(仅末级分类可选)"
+              showSearch
+              treeNodeFilterProp="title"
+              treeDefaultExpandAll
+              allowClear
+            />
           </ProForm.Item>
         </Col>
         <ProFormText name="unit" label="单位" placeholder="如 套/个/年" colProps={{ span: 12 }} />

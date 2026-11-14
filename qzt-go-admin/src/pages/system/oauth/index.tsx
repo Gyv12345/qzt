@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, App, Button, Card, Col, Form, Input } from 'antd'
 import {
   ProForm,
+  ProFormDigit,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
@@ -9,11 +10,17 @@ import {
 import Auth from '../../../components/Auth'
 import {
   createOauthConfig,
+  getTianyanchaConfig,
   listOauthConfigs,
   setOauthConfigEnable,
   updateOauthConfig,
+  updateTianyanchaConfig,
 } from '../../../services/system'
-import type { OauthConfigPayload, SysOauthConfig } from '../../../types'
+import type {
+  OauthConfigPayload,
+  SysOauthConfig,
+  TianyanchaConfig,
+} from '../../../types'
 
 /**
  * 第三方应用配置页(当前:企业微信)。
@@ -48,6 +55,14 @@ interface WechatFormValues {
   remark: string
 }
 
+interface TianyanchaFormValues {
+  /** MCP 端点 URL(已配置时为脱敏尾段,修改需输入完整 URL) */
+  endpoint: string
+  /** 留空表示不修改(脱敏回显 ****尾4) */
+  api_key: string
+  daily_limit?: number
+}
+
 const DEFAULT_REDIRECT = 'https://m.devlovecode.com/auth/wecom/bind'
 const DEFAULT_WECHAT_REDIRECT = 'https://m.devlovecode.com/auth/wechat/callback'
 
@@ -62,6 +77,21 @@ export default function OauthConfigPage() {
   const [wxLoading, setWxLoading] = useState(false)
   /** 当前微信服务号配置记录(单例:provider=wechat_mp 的第一条) */
   const [wxRecord, setWxRecord] = useState<SysOauthConfig | null>(null)
+
+  const [tycForm] = Form.useForm<TianyanchaFormValues>()
+  const [tycLoading, setTycLoading] = useState(false)
+  /** 天眼查 MCP 配置(endpoint 脱敏、api_key 不回显) */
+  const [tycConfig, setTycConfig] = useState<TianyanchaConfig | null>(null)
+
+  const loadTianyancha = async () => {
+    const cfg = await getTianyanchaConfig()
+    setTycConfig(cfg)
+    tycForm.setFieldsValue({
+      endpoint: cfg?.endpoint ?? '',
+      api_key: '', // 不回填,留空表示不修改
+      daily_limit: cfg?.daily_limit || undefined,
+    })
+  }
 
   const load = async () => {
     const list = await listOauthConfigs()
@@ -98,8 +128,26 @@ export default function OauthConfigPage() {
 
   useEffect(() => {
     load()
+    loadTianyancha().catch(() => {
+      // 天眼查配置读取失败不阻塞页面,卡片内状态保持未配置展示
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const handleSaveTianyancha = async (values: TianyanchaFormValues) => {
+    setTycLoading(true)
+    try {
+      await updateTianyanchaConfig({
+        endpoint: values.endpoint,
+        api_key: values.api_key || '', // 已配置时留空表示不修改
+        daily_limit: values.daily_limit || undefined,
+      })
+      message.success('天眼查配置已保存')
+      await loadTianyancha()
+    } finally {
+      setTycLoading(false)
+    }
+  }
 
   const handleSave = async (values: WecomFormValues) => {
     setLoading(true)
@@ -312,6 +360,69 @@ export default function OauthConfigPage() {
           </p>
           <p style={{ margin: '4px 0' }}>
             <b>② 模板消息通知</b>：需<b>已认证服务号</b>并配置模板 ID;审批待办、跟进提醒等会推送到员工微信,点击直达处理。
+          </p>
+        </div>
+      </Card>
+
+      <Card title="天眼查 MCP 配置(企业工商信息查询)" style={{ marginBottom: 16 }}>
+        {tycConfig && (
+          <div style={{ marginBottom: 12, fontSize: 13, color: '#666' }}>
+            状态:{tycConfig.configured ? '已配置' : '未配置'}
+            {tycConfig.configured ? ` · 当前端点:${tycConfig.endpoint || '-'}` : ''}
+            {` · 今日已用 ${tycConfig.today_used ?? 0}/${tycConfig.daily_limit || 0} 次`}
+          </div>
+        )}
+        <ProForm<TianyanchaFormValues>
+          form={tycForm}
+          grid
+          onFinish={handleSaveTianyancha}
+          submitter={{
+            render: () => (
+              <Auth perm="system:oauth:edit">
+                <Button type="primary" loading={tycLoading} onClick={() => tycForm.submit()}>
+                  保存配置
+                </Button>
+              </Auth>
+            ),
+          }}
+        >
+          <ProFormText
+            name="endpoint"
+            label="MCP 端点 URL"
+            rules={[{ required: true, message: '请输入天眼查 MCP 端点 URL' }]}
+            placeholder="https://mcp.tianyancha.com/sse/..."
+            extra="天眼查 MCP 服务地址;已配置时为脱敏尾段,修改请输入完整 URL"
+            colProps={{ span: 12 }}
+          />
+          <Col span={12}>
+            <ProForm.Item name="api_key" label="API Key">
+              <Input.Password
+                placeholder={
+                  tycConfig?.configured
+                    ? '已配置(****尾4),留空表示不修改'
+                    : '请输入天眼查 API Key'
+                }
+                autoComplete="new-password"
+              />
+            </ProForm.Item>
+          </Col>
+          <ProFormDigit
+            name="daily_limit"
+            label="每日查询上限"
+            min={1}
+            precision={0}
+            placeholder="留空使用默认值"
+            fieldProps={{ style: { width: '100%' } }}
+            colProps={{ span: 12 }}
+          />
+        </ProForm>
+        <div style={{ fontSize: 13, lineHeight: 2, color: '#666' }}>
+          <p style={{ margin: '4px 0' }}>
+            <b>用途</b>:CRM 客户详情「天眼查查询」按钮调用天眼查 MCP 获取企业工商信息(法人 /
+            注册资本 / 成立日期 / 经营状态 / 统一社会信用代码 / 参保人数 / 注册地址),可一键写入跟进记录留痕。
+          </p>
+          <p style={{ margin: '4px 0', color: '#888' }}>
+            注:API Key 保存后脱敏回显(仅显示尾 4 位);每位用户每日查询次数受「每日查询上限」控制,超限时提示「今日查询已达上限」。
           </p>
         </div>
       </Card>

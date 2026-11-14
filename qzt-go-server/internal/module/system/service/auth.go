@@ -9,6 +9,7 @@ import (
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/internal/pkg/notify"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xcryption"
@@ -42,7 +43,15 @@ type LoginResponse struct {
 
 // Login 校验用户名密码并签发令牌。失败按 (username, ip) 维度计数限流。
 func (s *AuthService) Login(ctx context.Context, req *LoginRequest, ip string) (*LoginResponse, error) {
-	if cache.IsLoginLocked(req.Username, ip) {
+	// 演示模式护栏:锁定口径放宽——仅 (username, ip) 维度、阈值 20
+	// (跳过 username 单维度与 IP 封禁维度),防共享出口 IP 的访客试错
+	// 把 admin 用户名/公网 IP 锁死,导致所有演示访客与真超管都无法登录。
+	demoMode := demoguard.Enabled(ctx)
+	if demoMode {
+		if cache.IsLoginLockedDemo(req.Username, ip) {
+			return nil, errors.New("登录失败次数过多，请稍后重试")
+		}
+	} else if cache.IsLoginLocked(req.Username, ip) {
 		ttl := cache.GetLoginLockTTL(req.Username, ip)
 		minutes := int(ttl.Minutes()) + 1
 		return nil, fmt.Errorf("登录失败次数过多，请 %d 分钟后重试", minutes)
@@ -65,7 +74,12 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest, ip string) (
 	if !xcryption.CheckPassword(user.Password, req.Password) {
 		count, _ := cache.IncrLoginFail(req.Username, ip)
 		s.alertLoginFail(ctx, req.Username, ip)
-		remaining := int64(loginFailMax) - count
+		// 演示模式护栏:剩余次数提示与锁定阈值同口径(20)。
+		limit := int64(loginFailMax)
+		if demoMode {
+			limit = cache.DemoLoginLimitMax
+		}
+		remaining := limit - count
 		if remaining > 0 {
 			return nil, fmt.Errorf("用户名或密码错误，还可尝试 %d 次", remaining)
 		}

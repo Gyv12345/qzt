@@ -19,7 +19,9 @@ export default function App() {
   const colorPrimary = useSettingsStore((s) => s.colorPrimary)
   const colorInfo = useSettingsStore((s) => s.colorInfo)
   const borderRadius = useSettingsStore((s) => s.borderRadius)
-  const darkMode = useSettingsStore((s) => s.darkMode)
+  // 外观模式三态:light/dark/auto;auto 由 store 里的 systemDark(prefers-color-scheme 实时值)派生,
+  // selector 返回 boolean,仅在有效暗色翻转时重渲染
+  const isDark = useSettingsStore((s) => (s.themeMode === 'auto' ? s.systemDark : s.themeMode === 'dark'))
   const compactMode = useSettingsStore((s) => s.compactMode)
   const colorWeak = useSettingsStore((s) => s.colorWeak)
 
@@ -31,11 +33,11 @@ export default function App() {
     })
   }, [])
 
-  // 深色模式 / 色弱模式:给 body 挂 class,配合 basic-layout.css 适配自定义布局
+  // 深色 / 色弱模式:给 body 挂 class,配合 basic-layout.css 适配自定义布局
   useEffect(() => {
-    document.body.classList.toggle('qzt-theme-dark', darkMode)
+    document.body.classList.toggle('qzt-theme-dark', isDark)
     document.body.classList.toggle('qzt-theme-weak', colorWeak)
-  }, [darkMode, colorWeak])
+  }, [isDark, colorWeak])
 
   return (
     <ConfigProvider
@@ -43,7 +45,7 @@ export default function App() {
       theme={{
         // algorithm 支持数组:基础(明/暗) + 可选叠加紧凑算法
         algorithm: [
-          darkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+          isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
           ...(compactMode ? [antdTheme.compactAlgorithm] : []),
         ],
         token: {

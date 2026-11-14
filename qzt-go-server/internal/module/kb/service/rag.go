@@ -12,9 +12,9 @@ import (
 	"unicode/utf8"
 
 	kbmodel "qzt-go-server/internal/model/kb"
-	kbrepo "qzt-go-server/internal/repository/kb"
 	"qzt-go-server/internal/pkg/llm"
 	"qzt-go-server/internal/pkg/setting"
+	kbrepo "qzt-go-server/internal/repository/kb"
 	"qzt-go-server/pkg/xlogger"
 )
 
@@ -136,7 +136,7 @@ func CosineSimilarity(a, b []float64) float64 {
 
 // RAGService 知识库 RAG 服务：切片向量化（保存钩子/reindex）与检索。
 type RAGService struct {
-	docRepo *kbrepo.DocumentRepo
+	docRepo   *kbrepo.DocumentRepo
 	chunkRepo *kbrepo.ChunkRepo
 }
 

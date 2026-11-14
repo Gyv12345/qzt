@@ -95,5 +95,5 @@ WebSocket 连接无法使用常规 HTTP Header 鉴权，因此通过 `?token=` �
 
 | 联动模块 | 联动场景 |
 |---------|---------|
-| [系统管理](./system) | 文档权限基于 Casbin RBAC |
-| [OA](./oa) | 新文档发布可推送站内消息通知 |
+| [系统管理](/modules/system) | 文档权限基于 Casbin RBAC |
+| [OA](/modules/oa) | 新文档发布可推送站内消息通知 |

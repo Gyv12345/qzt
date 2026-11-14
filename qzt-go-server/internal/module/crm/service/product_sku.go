@@ -171,7 +171,7 @@ func (s *ProductSkuService) availableSkuNo(ctx context.Context, skuNo, productNo
 
 // ── 默认规格自动维护(商品主表钩子) ──
 
-// EnsureDefaultSKU 商品创建后补默认规格(spec='',跟随商品主表价格/图)。
+// EnsureDefaultSKU 商品创建后补默认规格(spec=”,跟随商品主表价格/图)。
 func EnsureDefaultSKU(ctx context.Context, p *crmmodel.CrmProduct) error {
 	repo := crrepo.NewProductSkuRepo()
 	skus, err := repo.ListByProduct(ctx, p.ID)
@@ -201,7 +201,7 @@ func EnsureDefaultSKU(ctx context.Context, p *crmmodel.CrmProduct) error {
 	})
 }
 
-// SyncDefaultSKU 商品更新后同步默认规格(仅当商品仍是单规格:只有一条 spec='' 的 SKU)。
+// SyncDefaultSKU 商品更新后同步默认规格(仅当商品仍是单规格:只有一条 spec=” 的 SKU)。
 // 多规格商品不同步——各规格价格独立,商品主表价格仅作展示锚点。
 func SyncDefaultSKU(ctx context.Context, p *crmmodel.CrmProduct) error {
 	repo := crrepo.NewProductSkuRepo()

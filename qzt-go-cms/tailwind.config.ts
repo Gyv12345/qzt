@@ -24,8 +24,12 @@ const config: Config = {
         muted: "var(--c-muted)", // 次要说明
         faint: "var(--c-faint)", // 弱提示
         brandtext: "var(--c-brand-text)", // 品牌色文字(深主题亮蓝/浅主题深蓝)
-        // 品牌主色: 深海军蓝, 600 为基准, 全站两套主题共用同一色阶
+        // 品牌主色: 600 为基准, 全部走 CSS 变量, 由各根布局加载的主题 CSS 决定取值
+        // (官网 globals.css 深海军蓝 / cross/globals.css 跨境亮蓝), 两树互不覆盖。
+        // 50/100 仅跨境树使用(storefront 原静态值), 官网树未引用、保持字面量即可。
         brand: {
+          50: "#eff6ff",
+          100: "#dbeafe",
           200: "var(--c-brand-200)",
           300: "var(--c-brand-300)",
           400: "var(--c-brand-400)",

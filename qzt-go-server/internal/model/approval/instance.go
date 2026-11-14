@@ -57,6 +57,8 @@ type ApprovalTask struct {
 	Type string `json:"type" gorm:"size:20;comment:任务类型(CC抄送/SN加签/BK退回/NL常规)"`
 	// 审批动作(APPROVE/REJECT/SIGN/BACK/REVOKE)
 	Action string `json:"action" gorm:"size:20;comment:审批动作(APPROVE/REJECT/SIGN/BACK/REVOKE)"`
+	// 最近一次超时提醒时间(空=未提醒;定时任务 approvalTimeoutRemind 每轮置 NOW())
+	RemindedAt *xtime.DateTime `json:"reminded_at" gorm:"type:datetime;comment:最近一次超时提醒时间(空=未提醒)"`
 	base.BaseModel
 }
 
@@ -73,6 +75,8 @@ type ApprovalAddSignTask struct {
 	SignTaskID uint `json:"sign_task_id" gorm:"index;not null;comment:被加签的原任务ID"`
 	// 加签链根任务ID
 	RootTaskID *uint `json:"root_task_id" gorm:"index;comment:加签链根任务ID"`
+	// 加签发起人ID(减签权限判定:仅发起人可撤回自己发起的加签)
+	InitiatorID uint `json:"initiator_id" gorm:"not null;default:0;comment:加签发起人ID"`
 	// 加签顺序
 	Sort int64 `json:"sort" gorm:"not null;comment:加签顺序"`
 	// 备注

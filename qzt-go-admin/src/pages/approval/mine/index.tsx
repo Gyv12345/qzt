@@ -122,6 +122,7 @@ export default function ApprovalMinePage() {
         instanceId={drawerInstanceId}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        onChanged={() => actionRef.current?.reload()}
       />
     </>
   )

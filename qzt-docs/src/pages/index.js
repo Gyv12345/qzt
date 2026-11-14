@@ -11,7 +11,8 @@ const features = [
   { title: 'PSI 进销存', icon: '📦', desc: '采购、销售、库存、供应商、仓库，出入库流水实时联动' },
   { title: '财务管理', icon: '💰', desc: '会计科目、记账凭证、发票管理，回款自动生成财务凭证' },
   { title: 'HRM 人事管理', icon: '👥', desc: '组织架构、员工全生命周期、考勤薪资、离职一键交接' },
-  { title: 'AI 业务系统', icon: '🤖', desc: '全模块 333 个功能 MCP 开放，Claude / Cursor 等 AI 客户端连上即可用自然语言操作系统' },
+  { title: '自动化工作流', icon: '⚡', desc: 'n8n 式可视化画布编排业务，定时/事件触发、可调用大模型，节点执行轨迹全程可查' },
+  { title: 'AI 业务系统', icon: '🤖', desc: '全模块约 340 个业务工具 MCP 开放，Claude / Cursor 等 AI 客户端连上即可用自然语言操作系统' },
   { title: 'CMS 内容管理', icon: '📝', desc: 'Markdown富文本编辑、分类标签管理、一键同步企业官网' },
   { title: '数据分析', icon: '📊', desc: 'CRM/HRM/财务/进销存多维度BI仪表盘，ECharts可视化' },
 ];
@@ -40,8 +41,8 @@ function HomepageHeader() {
           一站式企业管理平台
         </p>
         <p className={styles.heroDesc}>
-          CRM · 审批 · 进销存 · 财务 · HRM · CMS · AI<br/>
-          10个模块 50+功能，一个系统替代多个SaaS
+          CRM · 审批 · 进销存 · 财务 · HRM · 自动化工作流 · AI<br/>
+          20 个业务模块，一个系统替代多个SaaS
         </p>
         <div className={styles.buttons}>
           <Link className="button button--primary button--lg" to="/intro">
@@ -52,6 +53,9 @@ function HomepageHeader() {
           </Link>
           <a className="button button--outline button--lg" href="https://admin.devlovecode.com" target="_blank">
             🚀 在线体验
+          </a>
+          <a className="button button--outline button--lg" href="https://www.bilibili.com/video/BV1pAWv6hE7C" target="_blank" rel="noopener">
+            ▶ 视频演示
           </a>
         </div>
         <div className={styles.techStack}>

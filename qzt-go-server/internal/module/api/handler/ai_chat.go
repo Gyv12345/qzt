@@ -32,10 +32,10 @@ func (h *AIChatHandler) Chat(c *gin.Context) {
 		return
 	}
 	userID := middleware.GetUserID(c)
-	reply, err := service.Chat(c.Request.Context(), userID, req.Messages)
+	reply, sources, err := service.Chat(c.Request.Context(), userID, req.Messages)
 	if err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}
-	response.OK(c, service.AIChatResponse{Reply: reply})
+	response.OK(c, service.AIChatResponse{Reply: reply, Sources: sources})
 }

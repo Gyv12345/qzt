@@ -3,8 +3,8 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 
-	"qzt-go-server/internal/module/system/service"
 	"qzt-go-server/internal/module/system/errcode"
+	"qzt-go-server/internal/module/system/service"
 	response "qzt-go-server/pkg/xresponse"
 )
 

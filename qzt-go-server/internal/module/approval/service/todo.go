@@ -62,10 +62,14 @@ type enrichedInstance struct {
 	FormTypeLabel string `json:"form_type_label"`
 }
 
-// enrichTask 给任务附加 instance 信息 + resource_title。
+// enrichTask 给任务附加 instance 信息 + resource_title + 加签链信息(仅加签任务有 add_sign_*)。
 type enrichedTask struct {
 	apprmodel.ApprovalTask
-	Instance *enrichedInstance `json:"instance"`
+	// 加签类型(BEFORE前加签/AFTER后加签,仅加签任务),展示"来自 X 的加签"
+	AddSignMode string `json:"add_sign_mode,omitempty"`
+	// 加签发起人姓名
+	AddSignByName string            `json:"add_sign_by_name,omitempty"`
+	Instance      *enrichedInstance `json:"instance"`
 }
 
 // TodoService 审批待办服务。
@@ -78,6 +82,7 @@ type TodoService struct {
 	nodeRepo     *apprrepo.NodeRepo
 	linkRepo     *apprrepo.NodeLinkRepo
 	approverRepo *apprrepo.NodeApproverRepo
+	addSignRepo  *apprrepo.AddSignTaskRepo
 	userRepo     *repository.UserRepo
 }
 
@@ -91,6 +96,7 @@ func NewTodoService() *TodoService {
 		nodeRepo:     apprrepo.NewNodeRepo(),
 		linkRepo:     apprrepo.NewNodeLinkRepo(),
 		approverRepo: apprrepo.NewNodeApproverRepo(),
+		addSignRepo:  apprrepo.NewAddSignTaskRepo(),
 		userRepo:     repository.NewUserRepo(),
 	}
 }
@@ -165,8 +171,13 @@ func (s *TodoService) ListTodo(ctx context.Context, page, pageSize int, userID u
 	}
 
 	out := make([]enrichedTask, 0, len(tasks))
+	signMap := s.addSignInfoMap(ctx, tasks)
 	for _, t := range tasks {
 		et := enrichedTask{ApprovalTask: t}
+		if row := signMap[t.ID]; row != nil {
+			et.AddSignMode = row.Type
+			et.AddSignByName = userDisplayName(ctx, s.userRepo, row.InitiatorID)
+		}
 		if inst, ok := instMap[t.InstanceID]; ok {
 			et.Instance = inst
 		}
@@ -208,8 +219,13 @@ func (s *TodoService) ListProcessed(ctx context.Context, page, pageSize int, use
 	}
 
 	out := make([]enrichedTask, 0, len(tasks))
+	signMap := s.addSignInfoMap(ctx, tasks)
 	for _, t := range tasks {
 		et := enrichedTask{ApprovalTask: t}
+		if row := signMap[t.ID]; row != nil {
+			et.AddSignMode = row.Type
+			et.AddSignByName = userDisplayName(ctx, s.userRepo, row.InitiatorID)
+		}
 		if inst, ok := instMap[t.InstanceID]; ok {
 			et.Instance = inst
 		}
@@ -241,13 +257,30 @@ func (s *TodoService) ListInitiated(ctx context.Context, page, pageSize int, use
 	return out, total, nil
 }
 
-// GetDetail 审批详情(实例 + 任务列表 + 审批记录)。
+// detailTask 详情任务行:原任务 + 加签链信息(仅加签任务有值)。
+type detailTask struct {
+	apprmodel.ApprovalTask
+	// 加签类型(BEFORE前加签/AFTER后加签,仅加签任务)
+	AddSignMode string `json:"add_sign_mode,omitempty"`
+	// 加签发起人姓名(展示"来自 X 的加签")
+	AddSignByName string `json:"add_sign_by_name,omitempty"`
+}
+
+// ReturnableNode 可退回节点(已完成审批节点,供退回下拉)。
+type ReturnableNode struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+// GetDetail 审批详情(实例 + 任务列表 + 审批记录 + 加签信息 + 可退回节点)。
 type InstanceDetail struct {
 	apprmodel.ApprovalInstance
 	ResourceTitle string                     `json:"resource_title"`
 	FormTypeLabel string                     `json:"form_type_label"`
-	Tasks         []apprmodel.ApprovalTask   `json:"tasks"`
+	Tasks         []detailTask               `json:"tasks"`
 	Records       []apprmodel.ApprovalRecord `json:"records"`
+	// 可退回节点列表:已完成(已到访)审批节点 id+名称,排除当前节点(向后兼容:仅新增字段)
+	ReturnableNodes []ReturnableNode `json:"returnable_nodes"`
 }
 
 func (s *TodoService) GetDetail(ctx context.Context, instanceID uint) (*InstanceDetail, error) {
@@ -265,13 +298,86 @@ func (s *TodoService) GetDetail(ctx context.Context, instanceID uint) (*Instance
 	key := fmt.Sprintf("%s:%d", instance.Type, instance.ResourceID)
 	detail.ResourceTitle = titleMap[key]
 
-	// 查全部任务
+	// 查全部任务并附加加签链信息
 	tasks, _ := s.taskRepo.ListByInstance(ctx, instanceID)
-	detail.Tasks = tasks
+	detail.Tasks = s.enrichTasksWithAddSign(ctx, tasks)
 
 	records, _ := s.recordRepo.ListByInstance(ctx, instanceID)
 	detail.Records = records
+
+	detail.ReturnableNodes = s.returnableNodes(ctx, instance, detail.Tasks, records)
 	return detail, nil
+}
+
+// addSignInfoMap 批量取任务ID → 加签链记录(待办/已办/详情展示"来自 X 的加签")。
+func (s *TodoService) addSignInfoMap(ctx context.Context, tasks []apprmodel.ApprovalTask) map[uint]*apprmodel.ApprovalAddSignTask {
+	taskIDs := make([]uint, 0, len(tasks))
+	for _, t := range tasks {
+		taskIDs = append(taskIDs, t.ID)
+	}
+	rows, _ := s.addSignRepo.ListByTaskIDs(ctx, taskIDs)
+	rowMap := make(map[uint]*apprmodel.ApprovalAddSignTask, len(rows))
+	for i := range rows {
+		rowMap[rows[i].TaskID] = &rows[i]
+	}
+	return rowMap
+}
+
+// enrichTasksWithAddSign 批量给任务附加加签链信息(发起人姓名 + 模式)。
+func (s *TodoService) enrichTasksWithAddSign(ctx context.Context, tasks []apprmodel.ApprovalTask) []detailTask {
+	rowMap := s.addSignInfoMap(ctx, tasks)
+	out := make([]detailTask, 0, len(tasks))
+	for _, t := range tasks {
+		dt := detailTask{ApprovalTask: t}
+		if row := rowMap[t.ID]; row != nil {
+			dt.AddSignMode = row.Type
+			dt.AddSignByName = userDisplayName(ctx, s.userRepo, row.InitiatorID)
+		}
+		out = append(out, dt)
+	}
+	return out
+}
+
+// returnableNodes 当前实例的可退回节点:当前节点**前序**(sort 更小)且已完成(已到访)的审批节点,
+// 排除当前节点。仅限前序:与 validateReturnTarget 的 D2 修复同口径——此前退回链产生的「后序已访
+// 节点」不进可退回列表,否则当前审批人可跳过自己的重审把流程弹回下游(R63 实例 252 复现)。
+func (s *TodoService) returnableNodes(ctx context.Context, instance *apprmodel.ApprovalInstance, tasks []detailTask, records []apprmodel.ApprovalRecord) []ReturnableNode {
+	visited := make(map[uint]bool)
+	for _, t := range tasks {
+		if t.NodeID > 0 {
+			visited[t.NodeID] = true
+		}
+	}
+	for _, r := range records {
+		if r.NodeID > 0 {
+			visited[r.NodeID] = true
+		}
+	}
+	if instance.CurrentNodeID != nil {
+		delete(visited, *instance.CurrentNodeID)
+	}
+	nodes, err := s.nodeRepo.ListByVersion(ctx, instance.FlowVersionID)
+	if err != nil {
+		return nil
+	}
+	// 当前节点排序(当前节点不在时跳过前序过滤,保持终态实例列表原样)
+	var currentNodeSort = -1
+	if instance.CurrentNodeID != nil {
+		if cur, err := s.nodeRepo.GetByID(ctx, *instance.CurrentNodeID); err == nil && cur != nil {
+			currentNodeSort = cur.Sort
+		}
+	}
+	out := make([]ReturnableNode, 0, len(nodes))
+	for _, n := range nodes {
+		if n.NodeType != apprmodel.NodeTypeApprover || !visited[n.ID] {
+			continue
+		}
+		if currentNodeSort >= 0 && n.Sort >= currentNodeSort {
+			continue
+		}
+		out = append(out, ReturnableNode{ID: n.ID, Name: n.Name})
+	}
+	return out
 }
 
 // ── 实例流程图(轨迹可视化数据) ──

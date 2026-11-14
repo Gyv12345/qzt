@@ -10,8 +10,8 @@ import (
 	"time"
 
 	geo "qzt-go-server/internal/model/geo"
-	georepo "qzt-go-server/internal/repository/geo"
 	"qzt-go-server/internal/pkg/llm"
+	georepo "qzt-go-server/internal/repository/geo"
 	"qzt-go-server/pkg/xlogger"
 )
 

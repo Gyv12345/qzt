@@ -1,5 +1,6 @@
 import request from '../utils/request'
 import type {
+  AddSignPayload,
   ApprovalFlow,
   ApprovalFlowDetail,
   ApprovalFlowPayload,
@@ -9,6 +10,7 @@ import type {
   ApprovalTask,
   FormField,
   ResourceSummary,
+  ReturnBackPayload,
   SaveDesignRequest,
   TransferPayload,
 } from '../types/approval'
@@ -83,6 +85,18 @@ export const getInstanceGraph = (id: number) =>
 /** 转办/委托审批任务(TRANSFER=让渡出队;DELEGATE=受托代审,责任仍在委托人) */
 export const transferTask = (data: TransferPayload) =>
   request.post('/approval/actions/transfer', data)
+
+/** 加签:before=被加签人先审再回到我;after=我审完顺延 */
+export const addSignTask = (data: AddSignPayload) =>
+  request.post('/approval/actions/add-sign', data)
+
+/** 减签(撤掉该加签任务) */
+export const removeSignTask = (taskId: number) =>
+  request.post('/approval/actions/remove-sign', { task_id: taskId })
+
+/** 退回到指定节点 */
+export const returnBackTask = (data: ReturnBackPayload) =>
+  request.post('/approval/actions/return-back', data)
 
 // ---------- 审批操作 ----------
 

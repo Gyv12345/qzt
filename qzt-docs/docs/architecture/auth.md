@@ -77,7 +77,7 @@ sidebar_label: 认证与权限
 前端拦截器收到 401 (expired)
    │
    ▼
-前端用 refresh_token 调用 POST /api/v1/auth/refresh
+前端用 refresh_token 调用 POST /system/auth/refresh
    │
    ▼
 后端校验 refresh_token:
@@ -125,7 +125,7 @@ sidebar_label: 认证与权限
 | **角色** | 权限的集合，用户与权限的中介 | 销售经理、财务、HR、超管 |
 | **菜单** | 前端导航项，关联一个页面与若干按钮权限码 | 「客户管理」菜单 |
 | **权限码** | 细粒度动作标识，按钮级控制 | `crm:customer:create`、`crm:customer:export` |
-| **API** | 后端路由（路径 + 方法），菜单注册时声明 | `POST /api/v1/crm/customers` |
+| **API** | 后端路由（路径 + 方法），菜单注册时声明 | `POST /crm/customers` |
 
 ### 角色 → 菜单 → API → 权限码 的映射
 
@@ -224,6 +224,6 @@ func (s *CustomerService) List(ctx context.Context, query Query) {
 
 ## 扩展阅读
 
-- [后端架构](./backend)：中间件链中 Auth 与 Casbin 的位置
-- [前端架构](./frontend)：前端如何消费权限码与动态路由
-- [数据库设计](./database)：`sys_users`、`sys_roles`、`sys_menus` 的表结构
+- [后端架构](/architecture/backend)：中间件链中 Auth 与 Casbin 的位置
+- [前端架构](/architecture/frontend)：前端如何消费权限码与动态路由
+- [数据库设计](/architecture/database)：`sys_users`、`sys_roles`、`sys_menus` 的表结构

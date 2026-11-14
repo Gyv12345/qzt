@@ -23,22 +23,22 @@ sidebar_position: 15
 
 ## 文件存储
 
-文件存储是公共服务最核心的能力，采用**双桶模型**（详见 [文件存储设计](../architecture/storage)）：
+文件存储是公共服务最核心的能力，采用**双桶模型**（公共桶直链 / 私有桶签名），存储驱动支持 **local / 阿里云 OSS / S3 兼容** 三种，可配置热切换（详见 [文件存储设计](/architecture/storage)）：
 
 ### 上传接口
 
 | 接口 | 说明 |
 |------|------|
 | `POST /api/upload` | 服务端上传（公共桶直链 / 私有桶 objectKey） |
-| `GET /api/upload/sts` | 获取 OSS 直传预签名 PUT URL（15 分钟有效） |
+| `GET /api/upload/sts` | 获取前端直传预签名 PUT URL（15 分钟有效；local 驱动降级返回 `{driver:"local"}`） |
 | `GET /api/file/sign` | 为私有文件签发短期（1h）下载 URL |
-| `GET /api/file/dl` | 本地模式私有文件代理下载（Token 鉴权） |
+| `GET /api/file/dl` | local 驱动私有文件代理下载（Token 鉴权） |
 
 :::tip 双桶模型
-- **公共桶**（public-read）：头像、CMS 图片、Logo 等，上传后返回可直链的 CDN URL
+- **公共桶**（public-read）：头像、CMS 图片、Logo 等，上传后返回可直链的 URL
 - **私有桶**（private）：合同、凭证、证件等敏感文件，存储 objectKey，下载需签名
 
-详见 [文件存储设计](../architecture/storage)。
+详见 [文件存储设计](/architecture/storage)。
 :::
 
 ## 附件管理
@@ -106,6 +106,20 @@ sidebar_position: 15
 :::info 数据聚合
 BI 接口是只读的聚合查询，直接从各业务模块的表中进行 SQL 聚合（COUNT / SUM / GROUP BY），不维护独立的汇总表。数据实时反映业务最新状态。
 :::
+
+## 统一日历
+
+聚合各业务模块带日期的待办（日程、跟进、商机、回款、会议、出差、请假、工作日志、项目任务、应收、绩效等）为统一日历视图，移动端与后台共用：
+
+| 接口 | 说明 |
+|------|------|
+| `GET /api/calendar` | 按日期区间返回当前用户的聚合待办（支持 `sources` 参数筛选来源） |
+
+## AI 对话
+
+| 接口 | 说明 |
+|------|------|
+| `POST /api/ai/chat` | 内置 AI 对话入口（后端统一 LLM 网关），为 Admin/移动端提供 AI 助手对话能力 |
 
 ## 健康检查与公共配置
 

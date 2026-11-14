@@ -55,24 +55,6 @@ export const listArticleVersions = (id: number) =>
 export const rollbackArticleVersion = (id: number, versionId: number) =>
   request.post<unknown, CmsArticle>(`/cms/articles/${id}/versions/${versionId}/rollback`)
 
-// ---------- 媒体库(P22) ----------
-
-export interface MediaItem {
-  key: string
-  size: number
-  last_modified: string
-  url: string
-  is_image: boolean
-}
-
-export const listMedia = (params?: { keyword?: string; max_keys?: number }) =>
-  request.get<unknown, MediaItem[]>('/cms/media', { params })
-
-export const deleteMedia = (objectKeys: string[]) =>
-  request.post<unknown, { deleted: string[]; failed: string[] }>('/cms/media/delete', {
-    object_keys: objectKeys,
-  })
-
 // ---------- 搜索引擎推送 ----------
 
 export interface PushPayload {

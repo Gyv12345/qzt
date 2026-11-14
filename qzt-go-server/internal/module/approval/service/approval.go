@@ -18,36 +18,41 @@ import (
 
 // approval.go 审批引擎核心:提审 + 审批操作(通过/驳回/撤回/转办/委托) + 节点流转。
 // 移植自 qztcrm ApprovalResourceService + ApprovalActionService(简化版)。
-// 支持会签(ALL)/或签(ANY)/依次(SEQUENTIAL);转办/委托已支持,加签/退回后续扩展。
+// 支持会签(ALL)/或签(ANY)/依次(SEQUENTIAL);转办/委托/加签(BEFORE/AFTER)/减签/退回已支持
+// (加签/减签见 addsign.go,退回见 returnback.go,超时提醒见 timeout.go)。
 
 // ApprovalService 审批引擎核心服务。
 type ApprovalService struct {
-	flowRepo     *apprrepo.FlowRepo
-	nodeRepo     *apprrepo.NodeRepo
-	approverRepo *apprrepo.NodeApproverRepo
-	condRepo     *apprrepo.NodeConditionRepo
-	linkRepo     *apprrepo.NodeLinkRepo
-	instanceRepo *apprrepo.InstanceRepo
-	taskRepo     *apprrepo.TaskRepo
-	recordRepo   *apprrepo.RecordRepo
-	formDataRepo *oarepo.FormDataRepo
-	userRepo     *repository.UserRepo
-	deptRepo     *hrmrepo.DepartmentRepo
+	flowRepo       *apprrepo.FlowRepo
+	nodeRepo       *apprrepo.NodeRepo
+	approverRepo   *apprrepo.NodeApproverRepo
+	condRepo       *apprrepo.NodeConditionRepo
+	linkRepo       *apprrepo.NodeLinkRepo
+	instanceRepo   *apprrepo.InstanceRepo
+	taskRepo       *apprrepo.TaskRepo
+	recordRepo     *apprrepo.RecordRepo
+	addSignRepo    *apprrepo.AddSignTaskRepo
+	returnBackRepo *apprrepo.ReturnBackRecordRepo
+	formDataRepo   *oarepo.FormDataRepo
+	userRepo       *repository.UserRepo
+	deptRepo       *hrmrepo.DepartmentRepo
 }
 
 func NewApprovalService() *ApprovalService {
 	return &ApprovalService{
-		flowRepo:     apprrepo.NewFlowRepo(),
-		nodeRepo:     apprrepo.NewNodeRepo(),
-		approverRepo: apprrepo.NewNodeApproverRepo(),
-		condRepo:     apprrepo.NewNodeConditionRepo(),
-		linkRepo:     apprrepo.NewNodeLinkRepo(),
-		instanceRepo: apprrepo.NewInstanceRepo(),
-		taskRepo:     apprrepo.NewTaskRepo(),
-		recordRepo:   apprrepo.NewRecordRepo(),
-		formDataRepo: oarepo.NewFormDataRepo(),
-		userRepo:     repository.NewUserRepo(),
-		deptRepo:     hrmrepo.NewDepartmentRepo(),
+		flowRepo:       apprrepo.NewFlowRepo(),
+		nodeRepo:       apprrepo.NewNodeRepo(),
+		approverRepo:   apprrepo.NewNodeApproverRepo(),
+		condRepo:       apprrepo.NewNodeConditionRepo(),
+		linkRepo:       apprrepo.NewNodeLinkRepo(),
+		instanceRepo:   apprrepo.NewInstanceRepo(),
+		taskRepo:       apprrepo.NewTaskRepo(),
+		recordRepo:     apprrepo.NewRecordRepo(),
+		addSignRepo:    apprrepo.NewAddSignTaskRepo(),
+		returnBackRepo: apprrepo.NewReturnBackRecordRepo(),
+		formDataRepo:   oarepo.NewFormDataRepo(),
+		userRepo:       repository.NewUserRepo(),
+		deptRepo:       hrmrepo.NewDepartmentRepo(),
 	}
 }
 
@@ -178,6 +183,10 @@ func (s *ApprovalService) Approve(ctx context.Context, req *ApproveRequest, user
 		// 写审批记录
 		if err := s.saveRecord(ctx, task, apprmodel.ActionApprove, req.Comment); err != nil {
 			return err
+		}
+		// 加签任务(SN)走链状态机,不参与节点流转(见 addsign.go)
+		if task.Type == apprmodel.TaskTypeSign {
+			return s.onAddSignTaskApproved(ctx, task, userID)
 		}
 		// 检查节点是否完成,流转
 		return s.onTaskApproved(ctx, task, userID)
@@ -398,10 +407,17 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 		}
 	}
 
-	// 检查节点是否完成
-	tasks, err := s.taskRepo.ListByInstanceNode(ctx, task.InstanceID, task.NodeID)
+	// 检查节点是否完成(加签任务 SN 有自己的链状态机,不参与节点完成判定)
+	allTasks, err := s.taskRepo.ListByInstanceNode(ctx, task.InstanceID, task.NodeID)
 	if err != nil {
 		return err
+	}
+	tasks := make([]apprmodel.ApprovalTask, 0, len(allTasks))
+	for _, t := range allTasks {
+		if t.Type == apprmodel.TaskTypeSign || t.Status == apprmodel.TaskStatusRevoked {
+			continue
+		}
+		tasks = append(tasks, t)
 	}
 
 	nodeDone := false
@@ -430,11 +446,23 @@ func (s *ApprovalService) onTaskApproved(ctx context.Context, task *apprmodel.Ap
 		nodeDone = !hasApproving
 	}
 
+	// 后加签:原任务已通过但其加签链未走完 → 激活链上下一个成员,流程暂不推进
+	if resumed, err := s.resumeAfterSignChain(ctx, instance, task); err != nil {
+		return err
+	} else if resumed {
+		return nil
+	}
+
 	if !nodeDone {
 		return nil // 节点未完成,等待其他审批人
 	}
 
-	// 节点完成:清当前节点待办
+	// 节点上还有未走完的加签链(前加签挂起中/后加签进行中) → 等链走完再推进
+	if s.hasBlockingAddSign(ctx, task.InstanceID, task.NodeID) {
+		return nil
+	}
+
+	// 节点完成:清当前节点待办(此时加签任务已全部 APPROVED,一并软删无影响)
 	s.taskRepo.SoftDeleteByInstanceNode(ctx, task.InstanceID, task.NodeID)
 	// P17:节点级通过后操作(字段更新+自定义 webhook),失败不阻断流转
 	if apprCfg != nil {
@@ -500,7 +528,11 @@ func (s *ApprovalService) createNodeTasks(ctx context.Context, node *apprmodel.A
 
 // createTasks 为节点创建审批任务并通知审批人。
 func (s *ApprovalService) createTasks(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, approverIDs []uint) error {
-	round := s.getNodeRound(ctx, instance.ID, node.ID)
+	return s.createTasksWithRound(ctx, node, instance, approverIDs, s.getNodeRound(ctx, instance.ID, node.ID))
+}
+
+// createTasksWithRound 以指定轮次创建审批任务(退回重建时按历史轮次+1,常规流转按 getNodeRound)。
+func (s *ApprovalService) createTasksWithRound(ctx context.Context, node *apprmodel.ApprovalNode, instance *apprmodel.ApprovalInstance, approverIDs []uint, round int) error {
 	// 节点首次激活时抄送通知(退回重审 round>1 不重复打扰)
 	if round == 1 {
 		s.notifyCc(ctx, node, instance)

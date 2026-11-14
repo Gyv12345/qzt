@@ -23,20 +23,20 @@ import (
 	"qzt-go-server/internal/module/api/service"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/pkg/storage"
-	response "qzt-go-server/pkg/xresponse"
 	"qzt-go-server/pkg/xlogger"
+	response "qzt-go-server/pkg/xresponse"
 )
 
 const (
-	bytesPerMegabyte        int64 = 1024 * 1024
+	bytesPerMegabyte       int64 = 1024 * 1024
 	multipartOverheadBytes int64 = 1024 * 1024
 	defaultSignTTL               = time.Hour // 私有文件签名下载 URL 有效期
 )
 
 // UploadHandler 文件上传与签名下载 handler(双桶)。
-type UploadHandler struct {
-	uploader storage.Uploader
-}
+// 不持有 Uploader 实例——运行期一律 app.GetUploader() 懒取,
+// 保证后台存储配置热切换后即刻拿到新驱动(构造期注入会持有旧实例)。
+type UploadHandler struct{}
 
 // UploadResult 上传结果，包含文件信息与资源访问域名。
 type UploadResult struct {
@@ -45,7 +45,7 @@ type UploadResult struct {
 }
 
 func NewUploadHandler() *UploadHandler {
-	return &UploadHandler{uploader: app.Uploader}
+	return &UploadHandler{}
 }
 
 // Upload 文件上传(双桶)。
@@ -61,9 +61,11 @@ func NewUploadHandler() *UploadHandler {
 // @Success      200  {object}  xresponse.Response{data=UploadResult}
 // @Router       /api/upload [post]
 func (h *UploadHandler) Upload(c *gin.Context) {
-	// 限制请求体大小，超出直接由 MaxBytesReader 返回错误
-	if maxMB := config.Get().Storage.MaxUploadMB; maxMB > 0 {
-		maxBodyBytes := int64(maxMB)*bytesPerMegabyte + multipartOverheadBytes
+	// 限制请求体大小，超出直接由 MaxBytesReader 返回错误。
+	// 上限取当前生效存储配置(DB,热切换同步)+ multipart 编码开销兜底;
+	// DB 未初始化时 GetActiveMaxUploadMB 回退 yaml 值。
+	if maxMB := app.GetActiveMaxUploadMB(); maxMB > 0 {
+		maxBodyBytes := maxMB*bytesPerMegabyte + multipartOverheadBytes
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
 	}
 
@@ -78,15 +80,11 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	if h.uploader == nil {
-		response.Fail(c, errcode.ErrServer, "文件存储服务未初始化")
-		return
-	}
-
-	// 每次上传取最新的 Uploader(配置在启动时固定,但保留取最新实例的习惯)
+	// 每次上传懒取最新的 Uploader(热切换后即刻拿到新驱动实例)
 	uploader := app.GetUploader()
 	if uploader == nil {
-		uploader = h.uploader
+		response.Fail(c, errcode.ErrServer, "文件存储服务未初始化")
+		return
 	}
 
 	visibility := strings.ToLower(strings.TrimSpace(c.DefaultQuery("visibility", storage.VisibilityPublic)))
@@ -103,6 +101,12 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 
 	switch {
 	case err == nil:
+		// 上传统一记录:补插 cloud_file(网盘/系统管理-文件存储全量可见的根因修复)。
+		// 上传已成功,登记失败不回滚文件,记日志跳过;网盘自带通道已有记录不受影响。
+		if rErr := service.RecordCloudFile(c.Request.Context(), result, middleware.GetUserID(c)); rErr != nil {
+			xlogger.ErrorfCtx(c.Request.Context(), "上传登记 cloud_file 失败(文件已落盘): user=%d name=%s err=%v",
+				middleware.GetUserID(c), result.OriginalName, rErr)
+		}
 		resourceDomain := strings.TrimRight(strings.TrimSpace(config.Get().Storage.ResourceDomain), "/")
 		response.OK(c, &UploadResult{
 			UploadedFile:   result,
@@ -277,9 +281,6 @@ func (h *UploadHandler) Sign(c *gin.Context) {
 	}
 
 	uploader := app.GetUploader()
-	if uploader == nil {
-		uploader = h.uploader
-	}
 	if uploader == nil {
 		response.Fail(c, errcode.ErrServer, "文件存储服务未初始化")
 		return

@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"gorm.io/gorm"
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/repository"
-	"gorm.io/gorm"
 )
 
 // DictService 字典服务。
@@ -20,11 +20,11 @@ func NewDictService() *DictService {
 
 // CreateDictRequest 创建字典请求。
 type CreateDictRequest struct {
-	Name   string             `json:"name" binding:"required"`
-	Code   string             `json:"code" binding:"required"`
-	Status *int8              `json:"status"`
-	Remark string             `json:"remark"`
-	Items  []CreateDictItem   `json:"items"`
+	Name   string           `json:"name" binding:"required"`
+	Code   string           `json:"code" binding:"required"`
+	Status *int8            `json:"status"`
+	Remark string           `json:"remark"`
+	Items  []CreateDictItem `json:"items"`
 }
 
 // CreateDictItem 字典项。

@@ -21,7 +21,7 @@ export async function Header() {
   }
 
   const navItemClass =
-    "rounded-md px-3 py-2 text-sm font-medium text-muted no-underline transition-colors hover:bg-raised hover:text-strong";
+    "whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-muted no-underline transition-colors hover:bg-raised hover:text-strong";
 
   // 移动端抽屉所需的扁平导航数据(固定导航 + 动态单页合并)
   const mobileItems: MobileNavItem[] = [
@@ -51,7 +51,8 @@ export async function Header() {
           )}
           <span className="line-clamp-1">{siteName}</span>
         </Link>
-        <nav className="hidden items-center gap-1 md:flex">
+        {/* 桌面导航仅 xl(≥1280px) 展开:导航项多(固定+后台单页)时窄屏会溢出折行,以下一律走抽屉 */}
+        <nav className="hidden flex-nowrap items-center gap-1 xl:flex">
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} className={navItemClass}>
               {item.label}
@@ -76,13 +77,13 @@ export async function Header() {
           )}
         </nav>
         {/* P21 站内搜索入口: 原生 GET 表单,无 JS 也能用 */}
-        <form action="/search" className="hidden md:block">
+        <form action="/search" className="hidden xl:block">
           <input
             type="search"
             name="q"
             placeholder="搜索站内内容"
             aria-label="站内搜索"
-            className="w-36 rounded-full border border-line bg-raised px-3 py-1.5 text-sm text-strong placeholder:text-muted transition-all focus:w-48 focus:border-brand-400 focus:outline-none"
+            className="w-32 rounded-full border border-line bg-raised px-3 py-1.5 text-sm text-strong placeholder:text-muted transition-all focus:w-44 focus:border-brand-400 focus:outline-none"
           />
         </form>
         <MobileNav items={mobileItems} />

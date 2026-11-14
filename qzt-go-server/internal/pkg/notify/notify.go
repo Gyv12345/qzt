@@ -9,7 +9,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/internal/pkg/sse"
 	"qzt-go-server/internal/pkg/wecom"
 	"qzt-go-server/internal/pkg/wxmp"
@@ -30,11 +32,31 @@ func Dispatch(ctx context.Context, receiverID uint, title, content, path string)
 		Path:  path,
 	})
 
+	// 演示模式护栏:外部通道(企微/服务号模板消息)整体降级为仅站内信——公开
+	// 演示期间访客可编排工作流 notify 节点、互发站内信、触发审批事件等,外部
+	// 通道不拦等于开放对真实用户企微/微信的轰炸入口;站内信落库不受影响。
+	// 豁免(P29 需求④):官网留言/独立站询盘的到站通知是真实销售线索通道,
+	// 标题含「官网线索/独立站询盘/独立站订单」时即使 demo 模式仍走企微送达
+	// 真实负责人(P28-B 补「独立站订单」:真实收款订单通知必须送达)。
+	externalBlocked := demoguard.Enabled(ctx) && !isOfficialLeadNotice(title)
+
 	// 2. 企业微信推送(需配置 + 用户绑定 + 开关开启)
-	pushWecom(ctx, receiverID, title, content)
+	if !externalBlocked {
+		pushWecom(ctx, receiverID, title, content)
+	}
 
 	// 3. 微信服务号模板消息(需配置 + 用户绑定 openid + 模板ID)
-	pushWechat(ctx, receiverID, title, content, path)
+	if !externalBlocked {
+		pushWechat(ctx, receiverID, title, content, path)
+	}
+}
+
+// isOfficialLeadNotice 官方获客通知白名单:官网留言/独立站询盘/独立站订单通知,
+// 演示模式下仍走企微(P29 需求④:真实线索与真实收款通道保留)。
+func isOfficialLeadNotice(title string) bool {
+	return strings.Contains(title, "官网线索") ||
+		strings.Contains(title, "独立站询盘") ||
+		strings.Contains(title, "独立站订单")
 }
 
 // pushWecom 若企业微信已启用并配置凭证,且用户已绑定企业微信,则推送通知。

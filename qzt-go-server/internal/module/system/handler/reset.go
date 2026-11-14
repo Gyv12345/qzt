@@ -9,6 +9,7 @@ import (
 	"qzt-go-server/internal/model"
 	errcode "qzt-go-server/internal/module/system/errcode"
 	syservice "qzt-go-server/internal/module/system/service"
+	"qzt-go-server/internal/pkg/demoguard"
 	response "qzt-go-server/pkg/xresponse"
 )
 
@@ -36,6 +37,12 @@ type resetRequest struct {
 // @Success      200  {object}  xresponse.Response
 // @Router       /system/reset [post]
 func (h *ResetHandler) ResetBusinessData(c *gin.Context) {
+	// 演示模式护栏:公开演示期间禁用系统重置,防访客一键清空生产业务数据。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式已禁用系统重置")
+		return
+	}
+
 	// 仅超管可执行此高危操作
 	if !slices.Contains(middleware.GetRoleCodes(c), model.SuperAdminRoleCode) {
 		response.Fail(c, errcode.ErrForbidden, "仅超级管理员可执行系统重置")

@@ -7,7 +7,7 @@ sidebar_label: 行简
 
 > 软件免费 · 一次部署 · 数据私有 · AI 原生
 
-行简（QZT）是一款面向中小企业的**全功能企业管理平台**，将 CRM 客户关系管理、审批流程中心、PSI 进销存、财务会计、HRM 人力资源、CMS 内容管理与系统管理整合在同一个产品中，覆盖企业从市场获客、销售转化、合同回款到采购、库存、财务、人事的全链路业务。全部业务功能通过 MCP 协议向 AI 开放，是一套 **AI 可直接操作的业务系统**。
+行简（QZT）是一款面向中小企业的**全功能企业管理平台**，将 CRM 客户关系管理、审批流程中心、PSI 进销存、财务会计、HRM 人力资源、CMS 内容管理、跨境独立站、独立商城、营销获客、自动化工作流与系统管理等 **20 个业务模块**整合在同一个产品中，覆盖企业从市场获客、销售转化、合同回款到采购、库存、财务、人事的全链路业务。全部业务功能通过 MCP 协议向 AI 开放，是一套 **AI 可直接操作的业务系统**。
 
 ## 行简是什么
 
@@ -18,8 +18,10 @@ sidebar_label: 行简
 - **HRM**：组织架构、员工全生命周期、考勤、薪资
 - **PSI 进销存**：采购、销售、库存、供应商、仓库
 - **财务**：会计科目、记账凭证、发票、财务报表
-- **CMS**：Markdown 富文本内容管理，支撑官网 / 知识库
-- **AI 业务系统**：全部 14 个模块、333 个功能以 MCP 工具开放，Claude / Cursor 等 AI 客户端连上即可用自然语言操作系统
+- **CMS + 门户**：Markdown 内容管理，支撑中文官网与跨境独立站（双主题）、独立公开商城
+- **GEO 增长引擎**：AI 搜索可见性监测与信源产线（AI 选题 → 图文/视频 → 公众号/抖音投递）
+- **自动化工作流**：n8n 式画布编排，手动 / 定时 / 业务事件触发
+- **AI 业务系统**：16 个工具集、约 340 个工具以 MCP 开放，Claude / Cursor 等 AI 客户端连上即可用自然语言操作系统
 
 ## 适合什么企业
 
@@ -40,36 +42,39 @@ sidebar_label: 行简
 
 ## 技术架构概述
 
-行简采用**前后端分离**架构，后端为唯一数据源，前端有四套消费方：
+行简采用**前后端分离**架构，后端为唯一数据源，前端覆盖**八种终端形态**：
 
-- **后端 `qzt-go-server`**：Go 1.25 + Gin + GORM，单体但模块化设计，提供统一 RESTful API
+- **后端 `qzt-go-server`**：Go 1.25 + Gin + GORM，单体但模块化设计（20 个业务模块），提供统一 RESTful API 与全功能 MCP
 - **管理后台 `admin`**：React 19 + TypeScript + antd 5 + ProComponents，面向运营 / 管理人员
-- **内容站点 `cms`**：Next.js 15 + React 19 + Tailwind CSS，面向公众访问（官网 / 博客）
-- **移动端 `mobile`**：React 19 + Vite 7 + antd-mobile，面向外勤 / 移动办公
+- **官网 + 跨境独立站 `cms`**：Next.js 15 + React 19 + Tailwind CSS，单代码库双主题（中文官网 + 跨境站多语言），面向公众访问
+- **移动端 `mobile`**：React 19 + Vite 7 + antd-mobile，面向外勤 / 移动办公（H5）
+- **独立商城 `mall`**：React 19 + antd-mobile 的免登录公开商城
+- **iOS / Android 原生 App**：SwiftUI / Jetpack Compose，与后台功能对齐
 - **桌面端 `desktop`**：Tauri 2 + Rust 壳，复用 admin 前端，以原生窗口 + 系统托盘形态交付（macOS 先行）
+- **文档站 `docs`**：Docusaurus 3
 
-基础设施层依赖 MySQL（主存储）、Redis（缓存 / 会话）、Aliyun OSS 或本地存储（文件），可选 Docker / nginx / pm2 / systemd 部署，Let's Encrypt 自动签发 HTTPS 证书。
+基础设施层依赖 MySQL（主存储）、Redis（缓存 / 会话）、可配置文件存储（local / 阿里云 OSS / S3 兼容，管理端热切换），nginx 静态托管 + systemd 进程管理，Let's Encrypt 自动签发 HTTPS 证书。
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                                 客户端访问层                                 │
-│   admin (React)      cms (Next.js)     mobile (React)     desktop (Tauri)    │
-└─────────┬──────────────────┬──────────────────┬──────────────────┬───────────┘
-         │                  │                  │                  │           
-         │                  │                  │                  │           
-         ▼                  ▼                  ▼                  ▼           
+│  admin      cms(官网+跨境)   mobile      mall      iOS/Android  desktop     │
+└─────┬────────────┬──────────────┬───────────┬────────────┬──────────┬──────┘
+      │            │              │           │            │          │
+      └────────────┴──────────────┴─────┬─────┴────────────┴──────────┘
+                                        ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                         qzt-go-server  (Go 单体后端)                         │
-│                 Gin · GORM · Casbin RBAC · JWT · 模块化路由                  │
+│            Gin · GORM · Casbin RBAC · JWT · 20 模块 · MCP                    │
 └──────────┬────────────────────────────┬────────────────────────────┬─────────┘
           ▼                            ▼                            ▼
-  MySQL           Redis             OSS / 本地存储
-  (业务数据)      (缓存/会话)        (文件资源)
-``````
+  MySQL           Redis             可配置文件存储
+  (业务数据)      (缓存/会话)        (local/OSS/S3)
+```
 
 ## 部署方式
 
-行简支持多种部署形态，详见[部署章节](../deployment/overview)：
+行简支持多种部署形态，详见[部署章节](/deployment/overview)：
 
 - **单机部署**：一台 2C4G 服务器即可运行全部组件，适合个人 / 小团队试用
 - **Docker Compose**：一键编排后端 + 数据库 + 前端，适合标准化交付
@@ -77,7 +82,7 @@ sidebar_label: 行简
 
 ## 下一步
 
-- 了解[完整功能清单](./features)
-- 查看[技术栈细节](./tech-stack)
-- 阅读[整体架构设计](../architecture/overview)
-- 下载[产品白皮书](../resources/whitepaper)与[演示文稿](../resources/presentation)
+- 了解[完整功能清单](/intro/features)
+- 查看[技术栈细节](/intro/tech-stack)
+- 阅读[整体架构设计](/architecture/overview)
+- 下载[产品白皮书](/resources/whitepaper)与[演示文稿](/resources/presentation)

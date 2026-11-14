@@ -3,11 +3,12 @@
  *
  * - 匿名访客:localStorage 生成 UUID,不含任何个人身份信息;IP/UA 由服务端从请求提取
  * - 批量:队列 5 秒或攒满 20 条 flush;页面隐藏/关闭时经 sendBeacon 兜底
- * - 传输:同源 /api/track(Next 服务端代理转发后端,浏览器直连不到内网 API)
+ * - 传输:同源相对路径 /prod-api/cms/public/track(nginx 反代到后端,零域名硬编码;
+ *   静态导出后无 Next 服务端代理)
  * - 静默:任何失败都不抛错,埋点绝不影响页面
  */
 
-const ENDPOINT = "/api/track";
+const ENDPOINT = "/prod-api/cms/public/track";
 const FLUSH_INTERVAL_MS = 5000;
 const MAX_BATCH = 20;
 const VISITOR_KEY = "qzt-cms:visitor";

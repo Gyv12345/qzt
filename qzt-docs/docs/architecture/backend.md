@@ -91,29 +91,17 @@ qzt-go-server/
 
 ## 模块化设计
 
-行简的业务能力被拆分为多个**独立模块**，每个模块实现统一的 `Module` 接口。框架在启动时遍历所有模块，完成路由注册、菜单注册、权限注册、数据迁移等动作。
+行简的业务能力被拆分为 **20 个独立模块**，每个模块实现统一的 `Module` 接口（仅 `Name()` + `RegisterRoutes()` 两个方法）。框架在启动时遍历所有模块，按 `/<name>` 前缀自动挂载路由；菜单、权限（API/按钮）、字典等**种子数据一律走 `docs/sql/` 下的 SQL 文件**人工/脚本执行，不走 Go 代码迁移（AutoMigrate 与 Go 种子已移除）。
 
 ### Module 接口
 
 ```go
 type Module interface {
-    // 模块名（唯一标识，如 "crm"）
+    // 模块名（唯一标识，决定路由前缀，如 "crm" → /crm）
     Name() string
 
-    // 注册 HTTP 路由
+    // 注册 HTTP 路由（在该前缀分组下挂载）
     RegisterRoutes(r *gin.RouterGroup)
-
-    // 注册菜单（写入 sys_menus，驱动前端路由）
-    RegisterMenus() []Menu
-
-    // 注册权限码（写入 Casbin 策略）
-    RegisterPermissions() []Permission
-
-    // 注册数据字典
-    RegisterDictionaries() []Dictionary
-
-    // 启动时的初始化（如加载缓存）
-    Bootstrap() error
 }
 ```
 
@@ -121,9 +109,9 @@ type Module interface {
 
 模块之间需要协作时（例如合同模块需要查询客户模块的数据），通过以下方式：
 
-- **依赖注入**：在模块装配时注入其他模块的 service 接口，而非直接 import
-- **领域事件**：模块发布事件（如 `customer.created`），其他模块订阅
-- **共享 service**：通用的能力（如用户查询、文件上传）由 `system` 模块提供，其他模块依赖
+- **contract 接口**：跨包依赖用「接口 + DTO」的 contract 约束，避免循环引用
+- **领域事件**：模块经 `xevent` 进程内总线发布事件（如 `approval.finished`、`crm.payment.created`），工作流 / 开放平台 / 通知等订阅方异步消费
+- **共享组件**：通用能力（用户查询、文件上传、自动编号、通知、LLM 网关等）沉淀在 `internal/pkg/`，各模块直接复用
 
 这种设计避免了模块间的强耦合，未来如果某个模块体量过大，可以平滑拆分为独立服务。
 
@@ -180,26 +168,20 @@ main.go
 加载配置 (Viper 读取 yaml + 环境变量覆盖)
   │
   ▼
-初始化基础组件: DB / Redis / OSS / Casbin / Logger
+初始化基础组件: DB / Redis / 存储驱动(按生效配置) / Casbin / Logger
   │
   ▼
 扫描 internal/module 下所有 Module 实现
   │
   ▼
-顺序执行每个模块的:
-   · Bootstrap()      // 初始化（如加载缓存）
-   · RegisterMenus()  // 菜单写入 DB
-   · RegisterPermissions() // 权限写入 Casbin
-   · RegisterDictionaries() // 字典写入 DB
-  │
-  ▼
 装配 Gin 引擎，挂载中间件链
   │
   ▼
-调用各模块 RegisterRoutes() 注册业务路由
+调用各模块 RegisterRoutes() 注册业务路由（按 /<name> 前缀）
   │
   ▼
-启动 HTTP 服务 (优雅关闭: 捕获 SIGTERM, 等待连接排空)
+启动后台设施: 事件总线订阅 / 工作流与投递调度器 / MCP / HTTP 服务
+  (优雅关闭: 捕获 SIGTERM, 等待连接排空)
 ```
 
 ## 错误处理
@@ -222,6 +204,6 @@ main.go
 
 ## 扩展阅读
 
-- [整体架构](./overview)：系统全景
-- [数据库设计](./database)：建表与命名规范
-- [认证与权限](./auth)：JWT 与 Casbin 细节
+- [整体架构](/architecture/overview)：系统全景
+- [数据库设计](/architecture/database)：建表与命名规范
+- [认证与权限](/architecture/auth)：JWT 与 Casbin 细节

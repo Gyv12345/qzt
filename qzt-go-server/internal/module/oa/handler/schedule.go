@@ -16,7 +16,9 @@ type ScheduleHandler struct {
 	svc *service.ScheduleService
 }
 
-func NewScheduleHandler() *ScheduleHandler { return &ScheduleHandler{svc: service.NewScheduleService()} }
+func NewScheduleHandler() *ScheduleHandler {
+	return &ScheduleHandler{svc: service.NewScheduleService()}
+}
 
 // List 日程列表
 // @Summary      日程列表

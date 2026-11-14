@@ -91,6 +91,7 @@ export default function ApprovalDonePage() {
         instanceId={drawerInstanceId}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        onChanged={() => actionRef.current?.reload()}
       />
     </>
   )

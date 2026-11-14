@@ -5,19 +5,19 @@ sidebar_label: 前端架构
 
 # 前端架构
 
-行简有四套前端，分别面向**后台管理**（admin）、**公众内容**（cms）、**移动办公**（mobile）与**桌面办公**（desktop）。它们技术栈各异，但都是后端 RESTful API 的消费方，共享同一套 API 契约与设计语言。本文介绍各套前端各自的架构设计。
+行简的前端覆盖**多端形态**：后台管理（admin）、官网与跨境独立站（cms 双主题）、移动办公（mobile）、公开商城（mall）、原生 App（iOS / Android）与桌面办公（desktop）。它们技术栈各异，但都是后端 RESTful API 的消费方，共享同一套 API 契约与设计语言。本文介绍各端各自的架构设计。
 
-## 四套前端对比
+## 多端形态对比
 
-| 维度 | admin | cms | mobile | desktop |
-| --- | --- | --- | --- | --- |
-| 定位 | 后台管理 / 运营 | 官网 / 博客 / SEO | 外勤 / 移动办公 | 桌面客户端（原生窗口 + 托盘） |
-| 框架 | React 19 | Next.js 15 (App Router) | React 19 | React 19 + Tauri 2（Rust 壳） |
-| 构建 | Vite 7 | Next.js 内置 | Vite 7 | Vite 7 + Cargo |
-| UI | antd 5 + ProComponents | Tailwind CSS | antd-mobile 5 | antd 5 + ProComponents |
-| 渲染 | CSR（客户端渲染） | SSR / ISR | CSR | CSR（系统 WebView） |
-| 鉴权 | JWT（强登录态） | 公开为主，少量接口 | JWT | JWT（与 admin 同源逻辑） |
-| 部署 | 静态资源 + nginx | Node.js 或静态导出 | 静态资源 + nginx | 安装包分发（macOS .dmg 先行） |
+| 维度 | admin | cms（官网+跨境） | mobile | mall | iOS / Android | desktop |
+| --- | --- | --- | --- | --- | --- | --- |
+| 定位 | 后台管理 / 运营 | 官网 / 博客 / SEO + 跨境独立站（双主题） | 外勤 / 移动办公 | 免登录公开商城 | 原生移动 App | 桌面客户端（原生窗口 + 托盘） |
+| 框架 | React 19 | Next.js 15 (App Router) | React 19 | React 19 | SwiftUI / Jetpack Compose | React 19 + Tauri 2（Rust 壳） |
+| 构建 | Vite 7 | Next.js 静态导出 | Vite 7 | Vite 7 | Xcode / Gradle | Vite 7 + Cargo |
+| UI | antd 5 + ProComponents | Tailwind CSS | antd-mobile 5 | antd-mobile 5 | 原生组件 | antd 5 + ProComponents |
+| 渲染 | CSR（客户端渲染） | 构建期预渲染（静态导出） | CSR | CSR | 原生 | CSR（系统 WebView） |
+| 鉴权 | JWT（强登录态） | 公开为主，少量接口 | JWT | 免登录 | JWT | JWT（与 admin 同源逻辑） |
+| 部署 | 静态资源 + nginx | 静态产物 + nginx（一键发布重建） | 静态资源 + nginx | 静态资源 + nginx | 应用分发 | 安装包分发（macOS .dmg 先行） |
 
 ## admin · 管理后台
 
@@ -31,7 +31,7 @@ admin 不在前端硬编码路由，而是**由后端菜单驱动**。流程如�
 用户登录
    │
    ▼
-调用 GET /api/v1/system/menus (返回当前用户可见的菜单树)
+调用 GET /system/menus/user (返回当前用户可见的菜单树)
    │
    ▼
 前端将菜单扁平化为路由表
@@ -112,15 +112,15 @@ cms 使用 Next.js 15 的 **App Router**，默认采用 **React Server Component
 - 客户端 JS 体积小，首屏 LCP 优秀
 - 数据获取在 Server Component 中直接 `await fetch`，无需 getServerSideProps
 
-### ISR（增量静态再生）
+### 静态导出（output: export）
 
-对于文章、分类等更新频率低的内容，采用 **ISR**：
+cms 采用 **Next.js 静态导出**：所有页面在 `next build` 阶段预渲染为静态 HTML（`out/`），由 nginx 直接 serve。
 
-- 首次请求生成静态 HTML 并缓存
-- 后续请求直接命中缓存（毫秒级响应）
-- 内容更新后通过 revalidate 或按需触发重新生成
+- 数据在**构建期**从后端 API 拉取并固化进页面（`revalidate` 短窗口的页面构建期带缓存刷新）；
+- 内容更新后通过「静态站发布」按钮触发服务器端重新构建发布（见[静态站发布](/modules/deploy)）；
+- middleware 与 API 代理路由不支持导出：多语言重定向由 nginx 301 处理，表单改同源 `/prod-api` 反代后端。
 
-这比纯 SSR 更省资源，又比纯 SSG 更灵活。
+这比 SSR 常驻 Node 进程省去整段运行时资源，又保留构建期预渲染的 SEO 能力。
 
 ### SEO 与 GEO 优化
 
@@ -137,10 +137,10 @@ cms 针对搜索引擎与 AI 抓取做了深度优化：
 cms 不直接连业务数据库，而是通过后端公开 API（无需登录的接口）获取已发布内容：
 
 ```
-GET /api/v1/cms/articles         // 文章列表
-GET /api/v1/cms/articles/:id     // 文章详情
-GET /api/v1/cms/categories       // 分类
-GET /api/v1/cms/site-config       // 站点信息
+GET /cms/public/articles         // 已发布文章列表
+GET /cms/public/articles/slug/:slug  // 文章详情（按 slug）
+GET /cms/public/categories       // 分类树
+GET /api/configs/public          // 站点公共信息
 ```
 
 敏感接口（草稿、后台管理）由 admin 负责。
@@ -206,7 +206,7 @@ pnpm tauri build   # 产物在 src-tauri/target/release/bundle/（macOS 为 .app
 
 ## 共享与复用
 
-四套前端虽然是独立工程，但通过以下方式共享代码：
+各端虽然是独立工程，但通过以下方式共享代码：
 
 - **API 契约共享**：后端 OpenAPI 文档生成 TypeScript 类型，多端共用；desktop 直接整体复用 admin 前端源码
 - **业务常量共享**：错误码、字典枚举、状态机定义抽取为独立 npm 包
@@ -214,6 +214,6 @@ pnpm tauri build   # 产物在 src-tauri/target/release/bundle/（macOS 为 .app
 
 ## 扩展阅读
 
-- [整体架构](./overview)：系统全景
-- [后端架构](./backend)：API 与中间件
-- [部署章节](../deployment/overview)：三套前端的构建与部署
+- [整体架构](/architecture/overview)：系统全景
+- [后端架构](/architecture/backend)：API 与中间件
+- [部署章节](/deployment/overview)：各端的构建与部署

@@ -1,7 +1,26 @@
-import { CheckOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons'
-import { Button, ColorPicker, Divider, Drawer, Slider, Space, Switch, Tooltip, Typography, message } from 'antd'
+import {
+  CheckOutlined,
+  CopyOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+} from '@ant-design/icons'
+import {
+  Badge,
+  Button,
+  ColorPicker,
+  Divider,
+  Drawer,
+  Segmented,
+  Slider,
+  Space,
+  Switch,
+  Tooltip,
+  Typography,
+  message,
+} from 'antd'
 import { useState } from 'react'
-import { useSettingsStore } from '../../stores/settings'
+import { diffSettings, useSettingsStore } from '../../stores/settings'
+import type { ThemeMode } from '../../stores/settings'
 
 /** 预设主题色(取自 antd 官方色板,点击即换) */
 const PRESET_COLORS = [
@@ -41,13 +60,24 @@ function SettingRow({
 
 /** 布局/主题设置抽屉,入口为顶栏设置图标 */
 export default function LayoutSettings() {
-  const { colorPrimary, borderRadius, darkMode, compactMode, colorWeak, multiTab, setSettings, resetSettings } =
-    useSettingsStore()
+  const settings = useSettingsStore()
+  const { colorPrimary, themeMode, borderRadius, compactMode, colorWeak, multiTab, watermark, setSettings, resetSettings } = settings
   const [open, setOpen] = useState(false)
+
+  // 与出厂默认的差异:非空=有改动(恢复默认/复制差异按钮的可用性与脏标记,同 vben 偏好面板)
+  const dirty = Object.keys(diffSettings(settings)).length > 0
 
   const reset = () => {
     resetSettings()
     message.success('已恢复默认配置')
+  }
+
+  const copyDiff = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(diffSettings(settings), null, 2))
+    } catch {
+      message.error('复制失败,请检查浏览器剪贴板权限')
+    }
   }
 
   return (
@@ -66,6 +96,19 @@ export default function LayoutSettings() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           主题风格
         </Typography.Title>
+
+        {/* 外观模式:浅色/深色/跟随系统(vben 偏好面板同款三态) */}
+        <SettingRow label="外观模式" description="深色背景降低视觉疲劳;「跟随系统」按操作系统的深色偏好自动切换">
+          <Segmented
+            value={themeMode}
+            onChange={(v) => setSettings({ themeMode: v as ThemeMode })}
+            options={[
+              { label: '浅色', value: 'light' },
+              { label: '深色', value: 'dark' },
+              { label: '跟随系统', value: 'auto' },
+            ]}
+          />
+        </SettingRow>
 
         {/* 主题色:预设色板 + 自定义取色器 */}
         <SettingRow label="主题色" description="点击预设色块快速切换,或用取色器自定义">
@@ -87,12 +130,12 @@ export default function LayoutSettings() {
                     padding: 0,
                     border: 'none',
                     background: c.value,
-                    cursor: 'pointer',
+                    color: '#fff',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#fff',
                     boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.12)',
+                    cursor: 'pointer',
                     transition: 'transform 0.15s',
                   }}
                 >
@@ -111,12 +154,8 @@ export default function LayoutSettings() {
               <Button size="small" type="text" aria-label="自定义颜色">
                 自定义
               </Button>
-            </ColorPicker>
+              </ColorPicker>
           </Space>
-        </SettingRow>
-
-        <SettingRow label="深色模式" description="暗色背景,降低长时间使用的眼部疲劳">
-          <Switch checked={darkMode} onChange={(v) => setSettings({ darkMode: v })} />
         </SettingRow>
 
         <SettingRow label="色弱模式" description="增强对比,辅助色觉障碍用户">
@@ -146,13 +185,24 @@ export default function LayoutSettings() {
           <Switch checked={multiTab} onChange={(v) => setSettings({ multiTab: v })} />
         </SettingRow>
 
+        <SettingRow label="页面水印" description="内容区平铺显示当前登录用户,防止截屏外传时可溯源">
+          <Switch checked={watermark} onChange={(v) => setSettings({ watermark: v })} />
+        </SettingRow>
+
         <Divider />
 
-        {/* persist 已即时持久化,无需「保存」按钮;仅保留恢复默认 */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button icon={<ReloadOutlined />} onClick={reset}>
-            恢复默认
-          </Button>
+        {/* persist 已即时持久化,无需「保存」按钮;复制差异=vben 偏好面板同款,当前与出厂默认的 diff JSON */}
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Tooltip title="复制当前设置与出厂默认的差异 JSON,可作为个人备份,或粘贴进代码作为新版本的出厂默认">
+            <Button icon={<CopyOutlined />} disabled={!dirty} onClick={copyDiff}>
+              复制差异
+            </Button>
+          </Tooltip>
+          <Badge dot={dirty} offset={[-8, 6]}>
+            <Button icon={<ReloadOutlined />} disabled={!dirty} onClick={reset} aria-label="恢复默认">
+              恢复默认
+            </Button>
+          </Badge>
         </div>
       </Drawer>
     </>

@@ -146,6 +146,27 @@ export interface CreateInvoicePayload {
   remark?: string
 }
 
+/** 发票图片 OCR 识别结果(POST /finance/invoices/ocr,multipart 字段 file) */
+export interface InvoiceOcrResult {
+  invoice_no: string
+  /** 专票/普票/电子专票/电子普票/其他 */
+  invoice_type: string
+  /** yyyy-MM-dd */
+  invoice_date: string
+  /** decimal 字符串 */
+  amount: string
+  /** decimal 字符串 */
+  tax_amount: string
+  seller_name: string
+  seller_tax_no: string
+  buyer_name: string
+  buyer_tax_no: string
+  /** 识别置信度 0~1 */
+  confidence: number
+  /** confidence < 0.6 时为 true,需人工核对 */
+  needs_review: boolean
+}
+
 // ── 财务报表 ──
 
 /** 利润表 */

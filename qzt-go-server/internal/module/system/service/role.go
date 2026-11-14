@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/gorm"
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/repository"
-	"gorm.io/gorm"
 )
 
 // dedupPolicies 对策略三元组 (sub,obj,act) 去重。

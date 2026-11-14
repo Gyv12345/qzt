@@ -78,3 +78,6 @@ docs/testing/regression/.mcp_key
 
 # IDE / agent 本地状态
 .openidea/
+
+# B站演示视频工作目录（素材与成片不入库）
+bilibili-video/

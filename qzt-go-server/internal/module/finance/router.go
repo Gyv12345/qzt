@@ -40,6 +40,7 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// 发票管理
 		auth.GET("/invoices", financeHandler.InvoiceList)
 		auth.POST("/invoices", financeHandler.CreateInvoice)
+		auth.POST("/invoices/ocr", financeHandler.InvoiceOCR)
 
 		// 财务报表
 		auth.GET("/reports/income-statement", financeHandler.IncomeStatement)

@@ -272,6 +272,7 @@ func (s *SourceService) produceVideo(ctx context.Context, topic *geo.GeoTopic, t
 		s.markFailed(ctx, script, err)
 		return script, err
 	}
+	// Uploader 懒取(app.GetUploader,不构造期注入),存储配置热切换后转存即用新驱动。
 	uploaded, err := app.GetUploader().SaveBytes("geo_video.mp4", data, "video/mp4", "geo")
 	if err != nil {
 		s.markFailed(ctx, script, fmt.Errorf("视频转存失败: %w", err))

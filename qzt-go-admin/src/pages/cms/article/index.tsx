@@ -109,7 +109,7 @@ const toTreeData = (nodes: CmsCategory[] | null): CategoryTreeNode[] => {
 }
 
 export default function ArticlePage() {
-  const { message } = App.useApp()
+  const { message, modal } = App.useApp()
   const actionRef = useRef<ActionType>(null)
   const [form] = Form.useForm<ArticleFormValues>()
 
@@ -166,6 +166,21 @@ export default function ArticlePage() {
   }
 
   const handleSubmit = async (values: ArticleFormValues) => {
+    // 已发布文章改为「草稿」= 下线, 影响官网文章页可达性, 加二次确认防误触（2026-11-13 隐私政策单页误下线事故同型防御）
+    if (editing && editing.status === 1 && values.status === 0) {
+      const ok = await new Promise<boolean>((resolve) => {
+        modal.confirm({
+          title: `确认把「${editing.title}」转回草稿？`,
+          content: '转草稿后官网文章页与列表将立即不再展示，后台数据保留，可随时重新发布。',
+          okText: '确认下线',
+          okButtonProps: { danger: true },
+          cancelText: '对外保持可见',
+          onOk: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      })
+      if (!ok) return false
+    }
     const payload: CmsArticlePayload = {
       title: values.title,
       slug: values.slug || undefined,

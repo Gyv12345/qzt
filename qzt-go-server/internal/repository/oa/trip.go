@@ -3,9 +3,9 @@ package oa
 import (
 	"context"
 
+	"gorm.io/gorm"
 	oamodel "qzt-go-server/internal/model/oa"
 	"qzt-go-server/internal/repository"
-	"gorm.io/gorm"
 )
 
 // trip.go OA 出差 repository。

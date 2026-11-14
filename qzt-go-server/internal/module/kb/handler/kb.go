@@ -9,13 +9,13 @@ import (
 
 	"qzt-go-server/internal/app"
 	"qzt-go-server/internal/middleware"
-	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/module/kb/service"
-	"qzt-go-server/internal/repository"
 	"qzt-go-server/internal/module/system/errcode"
 	syservice "qzt-go-server/internal/module/system/service"
-	response "qzt-go-server/pkg/xresponse"
+	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xlogger"
+	response "qzt-go-server/pkg/xresponse"
 )
 
 // ── 分类 Handler ──
@@ -24,7 +24,9 @@ type CategoryHandler struct {
 	svc *service.CategoryService
 }
 
-func NewCategoryHandler() *CategoryHandler { return &CategoryHandler{svc: service.NewCategoryService()} }
+func NewCategoryHandler() *CategoryHandler {
+	return &CategoryHandler{svc: service.NewCategoryService()}
+}
 
 func (h *CategoryHandler) List(c *gin.Context) {
 	list, err := h.svc.ListAll(c.Request.Context())
@@ -78,7 +80,9 @@ type DocumentHandler struct {
 	svc *service.DocumentService
 }
 
-func NewDocumentHandler() *DocumentHandler { return &DocumentHandler{svc: service.NewDocumentService()} }
+func NewDocumentHandler() *DocumentHandler {
+	return &DocumentHandler{svc: service.NewDocumentService()}
+}
 
 // firstNonEmpty 返回第一个非空串(列表筛选参数兜底用)。
 func firstNonEmpty(vals ...string) string {

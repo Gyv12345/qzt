@@ -5,11 +5,11 @@ import (
 	"errors"
 	"strings"
 
+	"gorm.io/gorm"
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xcryption"
-	"gorm.io/gorm"
 )
 
 type UserService struct {

@@ -8,6 +8,7 @@ import { fetchUserInfo } from '../services/auth'
 import type { SysMenu } from '../types'
 import BasicLayout from '../layouts/BasicLayout'
 import Login from '../pages/login'
+import ShareReceive from '../pages/share'
 import Profile from '../pages/profile'
 import WecomBind from '../pages/wecom-bind'
 import NotFound from '../pages/error/404'
@@ -68,6 +69,8 @@ export default function AppRoutes() {
   const routes = useMemo<RouteObject[]>(
     () => [
       { path: '/login', element: <Login /> },
+      // 免登录公开领取页(与 /login 同级,不经过 RequireAuth)
+      { path: '/share/:token', element: <ShareReceive /> },
       { path: '/auth/wecom/bind', element: <WecomBind /> },
       { path: '/profile', element: <RequireAuth><Profile /></RequireAuth> },
       {

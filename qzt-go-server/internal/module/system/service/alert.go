@@ -2,9 +2,9 @@
 //
 // 告警接收人是根账户本人:notify.Dispatch 推 SSE(在线实时弹窗)+ 企业微信
 // (若已绑定),覆盖两类事件:
-//   1. 针对根账户/内置角色的写操作尝试——无论操作被守卫拒绝还是放行(如改
-//      昵称这类合法资料变更),真超管都第一时间知情;
-//   2. 根账户登录成功(带离线 IP 归属地)。
+//  1. 针对根账户/内置角色的写操作尝试——无论操作被守卫拒绝还是放行(如改
+//     昵称这类合法资料变更),真超管都第一时间知情;
+//  2. 根账户登录成功(带离线 IP 归属地)。
 //
 // 告警失败只记日志(notify 内部已处理),绝不影响业务主流程。
 package service
@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"time"
 
+	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/internal/pkg/ipregion"
 	"qzt-go-server/internal/pkg/notify"
 )
@@ -26,6 +28,11 @@ const RootAccountID uint = 1
 // action: 操作名(如"重置密码"); target: 对象(如"超级管理员账户");
 // operator: 操作者用户名; ip: 来源 IP; result: "成功" 或 "被拒绝: 原因"。
 func AlertRootAccountWrite(ctx context.Context, action, target, operator, ip, result string) {
+	// 演示模式护栏:访客以超管身份频繁改 id=1/内置角色数据,逐次告警会刷屏;
+	// 按 (action, operator, ip) 15 分钟窗口去重频控,告警通道保留(站内信+SSE)。
+	if demoguard.Enabled(ctx) && !cache.MarkRootWriteAlertSent(action, operator, ip) {
+		return
+	}
 	content := fmt.Sprintf("操作者: %s\n操作: %s\n对象: %s\n结果: %s\n来源 IP: %s\n时间: %s",
 		operator, action, target, result, ip, time.Now().Format("2006-01-02 15:04:05"))
 	notify.Dispatch(ctx, RootAccountID, "【安全告警】"+target+"变更尝试", content, "/system/user")
@@ -33,6 +40,11 @@ func AlertRootAccountWrite(ctx context.Context, action, target, operator, ip, re
 
 // AlertRootAccountLogin 推送根账户登录提醒(含离线 IP 归属地)。
 func AlertRootAccountLogin(ctx context.Context, ip string) {
+	// 演示模式护栏:同一 IP 15 分钟内只告一次——公开演示期间大量访客用 admin
+	// 登录,逐次告警等于轰炸真超管;非演示模式维持逐次告警不变。
+	if demoguard.Enabled(ctx) && !cache.MarkRootLoginAlertSentByIP(ip) {
+		return
+	}
 	region := ipregion.Lookup(ip)
 	if region == "" {
 		region = "未知"

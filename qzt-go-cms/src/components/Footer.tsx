@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { NAV, SITE } from "@/lib/site";
-import { getSiteConfig } from "@/lib/api";
+import { getSiteConfig, getPage } from "@/lib/api";
 
 /** 开源仓库地址, 与 layout.tsx 结构化数据 sameAs 保持一致 */
 const GITHUB_URL = "https://github.com/Gyv12345/qzt";
@@ -17,6 +17,16 @@ export async function Footer() {
   let email = "";
   let address = "";
   let workHours = "";
+
+  // 隐私政策链接构建时探测:页面未发布(草稿/被误下线)时不再渲染入口,
+  // 避免静态页脚出现死链(R62 D1:页面下线后页脚链接 404)。
+  let privacyLive = false;
+  try {
+    await getPage("privacy");
+    privacyLive = true;
+  } catch {
+    // 草稿态/不存在 → 不渲染链接
+  }
 
   try {
     const cfg = await getSiteConfig();
@@ -97,13 +107,12 @@ export async function Footer() {
         <div className="container flex flex-col items-center gap-2 text-center text-xs text-faint">
           <p>{copyright || `© ${year} ${siteName}. All rights reserved.`}</p>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-            {/* 隐私政策:收集个人信息(留言表单/第一方埋点)的 PIPL 告知入口 */}
-            <Link
-              href="/p/privacy"
-              className="text-faint no-underline transition-colors hover:text-muted"
-            >
-              隐私政策
-            </Link>
+            {/* 隐私政策:收集个人信息(留言表单/第一方埋点)的 PIPL 告知入口(构建时探测,未发布不渲染) */}
+            {privacyLive && (
+              <Link href="/p/privacy" className="text-faint no-underline transition-colors hover:text-muted">
+                隐私政策
+              </Link>
+            )}
             {icp && (
               <a
                 href="https://beian.miit.gov.cn"

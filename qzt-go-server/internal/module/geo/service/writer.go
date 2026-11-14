@@ -10,8 +10,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	georepo "qzt-go-server/internal/repository/geo"
 	kbsvc "qzt-go-server/internal/module/kb/service"
+	georepo "qzt-go-server/internal/repository/geo"
 
 	"qzt-go-server/internal/pkg/llm"
 )

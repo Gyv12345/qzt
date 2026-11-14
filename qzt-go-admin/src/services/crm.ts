@@ -6,6 +6,9 @@ import type {
   CrmTicket,
   TicketDetail,
   CrmContractPayload,
+  CrmContractChange,
+  CrmContractChangePayload,
+  CrmContractStats,
   CrmContractItem,
   CrmContractItemPayload,
   CrmContractTemplate,
@@ -39,6 +42,7 @@ import type {
   CrmProductSkuPayload,
   CrmStageConfigResult,
   CrmStageRecord,
+  CrmTianyanchaInfo,
   StageDef,
 } from '../types/crm'
 import type { PageParams, PageResult } from '../types'
@@ -86,6 +90,15 @@ export const transferCustomer = (id: number, toUserId: number) =>
 
 export const getCustomerOwnerHistory = (id: number) =>
   request.get<unknown, CrmOwnerHistory[]>(`/crm/customers/${id}/owner-history`)
+
+/**
+ * 天眼查企业工商信息。save=1 时同时写入一条跟进记录留痕。
+ * 未配置时报「天眼查未配置」、超限时报「今日查询已达上限」,文案由拦截器透传。
+ */
+export const getCustomerTianyancha = (id: number, name: string, save?: boolean) =>
+  request.get<unknown, CrmTianyanchaInfo>(`/crm/customers/${id}/tianyancha`, {
+    params: { name, ...(save ? { save: 1 } : {}) },
+  })
 
 // ---------- 联系人 ----------
 
@@ -171,6 +184,10 @@ export interface ContractQuery extends PageParams {
   keyword?: string
   customer_id?: number
   stage?: string
+  /** 合同分类 */
+  category?: string
+  /** 归档筛选:no 未归档(后端默认) / yes 已归档 / all 全部 */
+  archived?: 'no' | 'yes' | 'all'
 }
 
 export const listContracts = (params?: ContractQuery) =>
@@ -188,6 +205,21 @@ export const deleteContract = (id: number) => request.delete(`/crm/contracts/${i
 
 export const getContractPaymentSummary = (id: number) =>
   request.get<unknown, CrmPaymentSummary>(`/crm/contracts/${id}/payment-summary`)
+
+// ---------- 合同生命周期(统计 / 变更 / 归档) ----------
+
+export const getContractStats = () =>
+  request.get<unknown, CrmContractStats>('/crm/contracts/stats')
+
+export const listContractChanges = (id: number) =>
+  request.get<unknown, CrmContractChange[]>(`/crm/contracts/${id}/changes`)
+
+export const createContractChange = (id: number, data: CrmContractChangePayload) =>
+  request.post(`/crm/contracts/${id}/changes`, data)
+
+export const archiveContract = (id: number) => request.post(`/crm/contracts/${id}/archive`)
+
+export const unarchiveContract = (id: number) => request.post(`/crm/contracts/${id}/unarchive`)
 
 // ---------- 合同模板 ----------
 

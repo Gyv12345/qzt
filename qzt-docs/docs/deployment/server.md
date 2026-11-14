@@ -30,14 +30,14 @@ sidebar_position: 2
 | 服务名称 | `qzt-server` |
 | 监听端口 | `9000` |
 | 进程管理 | systemd |
-| 二进制路径 | `/opt/qzt-server/qzt-server` |
-| 配置文件 | `/opt/qzt-server/config.yaml` |
-| 日志路径 | systemd journal（`journalctl -u qzt-server`） |
+| 二进制路径 | `/opt/qzt-server/bin/qzt-server` |
+| 配置目录 | `/opt/qzt-server/config/` |
+| 日志路径 | `/opt/qzt-server/logs/`（systemd journal 兜底：`journalctl -u qzt-server`） |
 | 服务文件 | `/etc/systemd/system/qzt-server.service` |
 
 ## 本地交叉编译
 
-Go 的交叉编译能力是后端部署的核心优势：在 macOS / Windows 开发机上即可编译出 Linux 可执行文件，无需在服务器安装 Go 工具链。
+Go 的交叉编译能力是后端部署的核心优势：在 macOS 开发机上即可编译出 Linux 可执行文件，无需在服务器安装 Go 工具链。
 
 ### 编译命令
 
@@ -45,25 +45,25 @@ Go 的交叉编译能力是后端部署的核心优势：在 macOS / Windows 开
 # 进入后端项目根目录
 cd /path/to/qzt-server
 
-# 设置交叉编译目标并编译
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build \
-  -ldflags="-s -w" \
-  -o qzt-server \
-  ./cmd/server
+# 统一入口：自带 GOOS/GOARCH/CGO 与版本 ldflags（git describe → /system/version）
+make build-prod
+ls -la bin/qzt-server-linux-amd64
 ```
 
-### 编译参数说明
+:::danger 禁止裸 go build 部署
+不带 `-ldflags` 版本信息的裸 `go build` 会让版本接口回落到 `v1.0.0`，无法追溯部署版本（历史上曾多次复发）。**任何后端部署一律走 `make build-prod`**；部署后务必验证版本接口输出形如 `v1.1.0-38-gca2804f`。
+:::
 
-| 参数 | 说明 |
+### build-prod 做了什么
+
+| 环节 | 说明 |
 |------|------|
-| `GOOS=linux` | 目标操作系统为 Linux |
-| `GOARCH=amd64` | 目标架构为 amd64（x86_64） |
-| `CGO_ENABLED=0` | 禁用 CGO，生成纯静态二进制，无 glibc 依赖 |
-| `-ldflags="-s -w"` | 去除调试信息与符号表，减小二进制体积 |
-| `-o qzt-server` | 输出文件名 |
+| `GOOS=linux GOARCH=amd64` | 交叉编译目标（本机 macOS arm64 → 生产 linux/amd64） |
+| `CGO_ENABLED=0` | 纯静态二进制，无 glibc 依赖 |
+| `-ldflags` 版本注入 | 把 `git describe` 版本号编进二进制，`GET /system/version` 可查 |
 
-:::tip 为什么禁用 CGO
-`CGO_ENABLED=0` 生成完全静态链接的二进制，不依赖服务器的 glibc 版本，可在任意 Linux 发行版（CentOS、Ubuntu、Alpine）上直接运行，避免「能编译不能运行」的坑。
+:::tip
+macOS/Xcode 大版本升级后 `make` 可能报「You have not agreed to the Xcode license agreements」（仅 `/usr/bin/make` 垫片被拦，git/go 正常）。终端跑一次 `sudo xcodebuild -license accept` 即恢复。
 :::
 
 ## 上传二进制
@@ -71,39 +71,35 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build \
 编译完成后，通过 scp 将二进制上传到服务器：
 
 ```bash
-# 上传二进制到服务器
-scp qzt-server user@你的服务器IP:/opt/qzt-server/qzt-server.new
-
-# 上传配置文件（可选，通常配置不频繁更新）
-scp config.yaml user@你的服务器IP:/opt/qzt-server/config.yaml
+# 上传到 /tmp 再 mv，避免覆盖正在运行的 binary 报 "text file busy"
+scp bin/qzt-server-linux-amd64 user@你的服务器IP:/tmp/qzt-server.new
 ```
 
-:::tip 先上传为 .new 再替换
-建议先上传为 `qzt-server.new`，确认上传完整后再替换正式二进制并重启，避免上传中断导致线上二进制损坏。
+:::tip 必须先停服再替换
+直接 scp 覆盖正在运行的 binary 会报 `dest open: Failure`（文件被占用）。必须先 `systemctl stop` 再 `mv` 替换，最后再启动。
 :::
 
 ## 重启服务
 
-后端服务通过 systemd 管理，重启命令如下：
+后端服务通过 systemd 管理，标准替换流程：
 
 ```bash
 # SSH 登录服务器
 ssh user@你的服务器IP
 
-# 替换二进制（备份旧版本）
-cd /opt/qzt-server
-mv qzt-server qzt-server.bak.$(date +%Y%m%d%H%M%S)
-mv qzt-server.new qzt-server
-chmod +x qzt-server
+# 停服 → 替换 → 启动
+systemctl stop qzt-server
+mv /tmp/qzt-server.new /opt/qzt-server/bin/qzt-server
+chmod +x /opt/qzt-server/bin/qzt-server
+systemctl start qzt-server
+sleep 3 && systemctl is-active qzt-server
+```
 
-# 重启服务
-systemctl restart qzt-server
+### 部署后必验版本
 
-# 查看状态
-systemctl status qzt-server
-
-# 查看实时日志
-journalctl -u qzt-server -f
+```bash
+curl -s https://admin.你的域名/prod-api/system/version | python3 -m json.tool
+# 正常应形如 v1.1.0-38-gca2804f；若显示 v1.0.0 = 用了裸 go build，需重发
 ```
 
 ## systemd 服务配置
@@ -119,7 +115,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/opt/qzt-server
-ExecStart=/opt/qzt-server/qzt-server -config /opt/qzt-server/config.yaml
+ExecStart=/opt/qzt-server/bin/qzt-server -config /opt/qzt-server/config/config.yaml
 Restart=always
 RestartSec=5
 LimitNOFILE=65535
@@ -167,26 +163,26 @@ curl https://api.你的域名/api/health
 set -e
 
 SERVER=user@你的服务器IP
-REMOTE_PATH=/opt/qzt-server
 
-echo "==> 编译 Linux amd64 二进制..."
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o qzt-server ./cmd/server
+echo "==> 编译 Linux amd64 二进制（含版本 ldflags）..."
+cd /path/to/qzt-server
+make build-prod
 
-echo "==> 上传到服务器..."
-scp qzt-server $SERVER:$REMOTE_PATH/qzt-server.new
+echo "==> 上传到服务器 /tmp..."
+scp -i <key> bin/qzt-server-linux-amd64 $SERVER:/tmp/qzt-server.new
 
-echo "==> 替换并重启..."
-ssh $SERVER << 'EOF'
-  cd /opt/qzt-server
-  mv qzt-server qzt-server.bak.$(date +%Y%m%d%H%M%S)
-  mv qzt-server.new qzt-server
-  chmod +x qzt-server
-  systemctl restart qzt-server
-  sleep 2
-  systemctl status qzt-server --no-pager
+echo "==> 停服替换重启..."
+ssh -i <key> $SERVER << 'EOF'
+  systemctl stop qzt-server
+  mv /tmp/qzt-server.new /opt/qzt-server/bin/qzt-server
+  chmod +x /opt/qzt-server/bin/qzt-server
+  systemctl start qzt-server
+  sleep 3
+  systemctl is-active qzt-server
 EOF
 
-echo "==> 部署完成"
+echo "==> 验证版本（应形如 v1.1.0-38-gxxxxxxx）"
+curl -s https://admin.你的域名/prod-api/system/version
 ```
 
 ## 回滚
@@ -195,13 +191,13 @@ echo "==> 部署完成"
 
 ```bash
 ssh user@你的服务器IP
-cd /opt/qzt-server
+cd /opt/qzt-server/bin
 
-# 查看备份版本
+# 查看备份版本（替换前建议先 cp 当前版本留档）
 ls -lt qzt-server.bak.*
 
 # 回滚到指定版本
+systemctl stop qzt-server
 cp qzt-server.bak.20260805120000 qzt-server
-chmod +x qzt-server
-systemctl restart qzt-server
+systemctl start qzt-server
 ```

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/pkg/xresponse"
 )
 
@@ -17,6 +18,14 @@ import (
 // 在校验失败后按实际用户名自增，本中间件仅做 IP 维度的快速拦截。
 func LoginLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 演示模式护栏:跳过本中间件的 IP 维度快速拦截——公开演示期间大量
+		// 访客共享出口 IP 互相累加失败,会把整个 IP 封到谁都登不进;真正的
+		// (username, ip) 维度锁定放宽(阈值 20,跳过 username/IP-ban 维度)
+		// 由 auth service 按 demo 口径判断。
+		if demoguard.Enabled(c.Request.Context()) {
+			c.Next()
+			return
+		}
 		if cache.IsLoginLocked("_", c.ClientIP()) {
 			ttl := cache.GetLoginLockTTL("_", c.ClientIP())
 			xresponse.TooManyRequests(c, "登录失败次数过多，请 "+humanDuration(ttl)+"后再试")

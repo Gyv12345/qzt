@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"qzt-go-server/internal/app"
 	"gorm.io/gorm"
+	"qzt-go-server/internal/app"
 )
 
 // ── 事务：通过 context 传递 ──

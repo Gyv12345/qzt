@@ -41,17 +41,6 @@ definitions:
     required:
     - warehouse_id
     type: object
-  handler.MediaDeleteRequest:
-    properties:
-      object_keys:
-        description: 要删除的对象 key 清单
-        items:
-          type: string
-        minItems: 1
-        type: array
-    required:
-    - object_keys
-    type: object
   handler.PublicContactRequest:
     properties:
       company:
@@ -73,6 +62,11 @@ definitions:
     - message
     - name
     - phone
+    type: object
+  handler.ShareDownloadRequest:
+    properties:
+      code:
+        type: string
     type: object
   handler.SignResult:
     properties:
@@ -154,6 +148,15 @@ definitions:
     properties:
       approve:
         type: boolean
+    type: object
+  handler.runStaticRequest:
+    properties:
+      target:
+        description: 目标站点:cms=官网+跨境双主题(单构建双主题发布,服务端白名单校验)
+        example: cms
+        type: string
+    required:
+    - target
     type: object
   handler.variantRequest:
     properties:
@@ -456,6 +459,34 @@ definitions:
     properties:
       reply:
         type: string
+      sources:
+        items:
+          type: string
+        type: array
+    type: object
+  service.AIModelItem:
+    properties:
+      api_key:
+        description: 脱敏:****abcd
+        type: string
+      base_url:
+        type: string
+      created_at:
+        type: string
+      enabled:
+        type: integer
+      id:
+        type: integer
+      is_default:
+        type: integer
+      model:
+        type: string
+      name:
+        type: string
+      remark:
+        type: string
+      updated_at:
+        type: string
     type: object
   service.AccountPayload:
     properties:
@@ -472,6 +503,31 @@ definitions:
     required:
     - app_id
     - name
+    type: object
+  service.AddSignRequest:
+    properties:
+      comment:
+        type: string
+      mode:
+        description: BEFORE(前加签)/AFTER(后加签)
+        type: string
+      task_id:
+        type: integer
+      user_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - mode
+    - task_id
+    - user_ids
+    type: object
+  service.AdminUpsertRequest:
+    type: object
+  service.AgentRunResponse:
+    properties:
+      output:
+        type: string
     type: object
   service.ApproveRequest:
     properties:
@@ -553,6 +609,47 @@ definitions:
       role:
         type: string
     type: object
+  service.CheckoutItemRequest:
+    properties:
+      product_id:
+        description: CRM 商品ID
+        type: integer
+      quantity:
+        description: 数量(1-999)
+        maximum: 999
+        minimum: 1
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  service.CheckoutRequest:
+    properties:
+      currency:
+        description: 结算币种(ISO 4217,空默认 USD;必须存在于汇率表,P28-C 多币种结算)
+        maxLength: 8
+        type: string
+      items:
+        description: Items 明细(1-20 行)
+        items:
+          $ref: '#/definitions/service.CheckoutItemRequest'
+        maxItems: 20
+        minItems: 1
+        type: array
+      locale:
+        description: 站点语言(en/zh,空默认 en)
+        maxLength: 8
+        type: string
+    required:
+    - items
+    type: object
+  service.CheckoutResult:
+    properties:
+      checkout_url:
+        type: string
+      order_no:
+        type: string
+    type: object
   service.ClockInRequest:
     properties:
       clock_type:
@@ -586,6 +683,38 @@ definitions:
         type: string
     required:
     - key
+    type: object
+  service.ConfigUpdateRequest:
+    properties:
+      locales:
+        items:
+          type: string
+        maxItems: 8
+        minItems: 1
+        type: array
+      notify_email:
+        description: 通知邮箱(逗号/分号分隔;空串=清除,邮件通道关闭)
+        maxLength: 500
+        type: string
+      rates:
+        additionalProperties:
+          format: float64
+          type: number
+        type: object
+    required:
+    - locales
+    type: object
+  service.ContractChangeRequest:
+    properties:
+      after_amount:
+        type: number
+      after_end_date:
+        type: string
+      reason:
+        description: 变更原因(必填)
+        type: string
+    required:
+    - reason
     type: object
   service.CreateAPIRequest:
     properties:
@@ -755,6 +884,8 @@ definitions:
     type: object
   service.CreateContractRequest:
     properties:
+      category:
+        type: string
       content:
         type: string
       contract_no:
@@ -1630,6 +1761,18 @@ definitions:
     required:
     - name
     type: object
+  service.CreateShareRequest:
+    properties:
+      expire_days:
+        type: integer
+      extract_code:
+        type: string
+      file_id:
+        type: integer
+    required:
+    - expire_days
+    - file_id
+    type: object
   service.CreateStockInRequest:
     properties:
       biz_type:
@@ -1967,6 +2110,24 @@ definitions:
     required:
     - log_date
     type: object
+  service.CurrentAIModel:
+    properties:
+      api_key:
+        description: 脱敏:****abcd
+        type: string
+      base_url:
+        type: string
+      id:
+        description: db 来源的档案 ID;env 来源为 0
+        type: integer
+      model:
+        type: string
+      name:
+        type: string
+      source:
+        description: db / env
+        type: string
+    type: object
   service.ExpenseItemInput:
     properties:
       amount:
@@ -2014,6 +2175,40 @@ definitions:
     - holiday_date
     - name
     - type
+    type: object
+  service.InquiryRequest:
+    properties:
+      company:
+        description: 公司名
+        maxLength: 128
+        type: string
+      country:
+        description: 国家/地区
+        maxLength: 64
+        type: string
+      email:
+        description: 邮箱(主联系渠道)
+        maxLength: 100
+        type: string
+      locale:
+        description: 提交语言(en/zh,空默认 en)
+        maxLength: 8
+        type: string
+      message:
+        description: 询盘内容
+        maxLength: 2000
+        type: string
+      name:
+        description: 询盘人姓名
+        maxLength: 64
+        type: string
+      product_id:
+        description: 关联上架位ID(0=通用询盘)
+        type: integer
+    required:
+    - email
+    - message
+    - name
     type: object
   service.InsurancePlanRequest:
     properties:
@@ -2137,6 +2332,55 @@ definitions:
     - end_date
     - start_date
     type: object
+  service.PayPalCaptureRequest:
+    properties:
+      paypal_order_id:
+        description: PayPal 订单 ID(审批回跳 query 的 token 参数)
+        type: string
+    required:
+    - paypal_order_id
+    type: object
+  service.PayPalCaptureResult:
+    properties:
+      order_no:
+        description: 平台订单号
+        type: string
+      status:
+        description: 推进后的订单状态(paid)
+        type: string
+    type: object
+  service.PayPalCheckoutRequest:
+    properties:
+      currency:
+        description: 结算币种(ISO 4217,空默认 USD;必须存在于汇率表)
+        maxLength: 8
+        type: string
+      items:
+        description: Items 明细(1-20 行)
+        items:
+          $ref: '#/definitions/service.CheckoutItemRequest'
+        maxItems: 20
+        minItems: 1
+        type: array
+      locale:
+        description: 站点语言(en/zh,空默认 en)
+        maxLength: 8
+        type: string
+    required:
+    - items
+    type: object
+  service.PayPalCreateResult:
+    properties:
+      approve_url:
+        description: 买家审批支付页地址(前端跳转/弹窗)
+        type: string
+      order_no:
+        description: 平台订单号(storefront_order.order_no)
+        type: string
+      paypal_order_id:
+        description: PayPal 订单 ID(回调 capture 用)
+        type: string
+    type: object
   service.PlatformPayload:
     properties:
       api_key:
@@ -2151,6 +2395,32 @@ definitions:
         type: string
       remark:
         type: string
+    type: object
+  service.ProductCategoryCreateRequest:
+    properties:
+      name:
+        type: string
+      parent_id:
+        type: integer
+      sort:
+        type: integer
+      status:
+        type: integer
+    required:
+    - name
+    type: object
+  service.ProductCategoryUpdateRequest:
+    properties:
+      name:
+        type: string
+      parent_id:
+        type: integer
+      sort:
+        type: integer
+      status:
+        type: integer
+    required:
+    - name
     type: object
   service.PromptPayload:
     properties:
@@ -2214,6 +2484,16 @@ definitions:
     - comment
     - task_id
     type: object
+  service.RemoveSignRequest:
+    properties:
+      comment:
+        type: string
+      task_id:
+        description: 要撤销的加签任务ID
+        type: integer
+    required:
+    - task_id
+    type: object
   service.ResetPasswordRequest:
     properties:
       password:
@@ -2222,6 +2502,19 @@ definitions:
         type: string
     required:
     - password
+    type: object
+  service.ReturnBackRequest:
+    properties:
+      comment:
+        type: string
+      return_to_node_id:
+        description: 退回目标节点(前端提供已审节点列表)
+        type: integer
+      task_id:
+        type: integer
+    required:
+    - return_to_node_id
+    - task_id
     type: object
   service.RoleAPIItem:
     properties:
@@ -2268,6 +2561,25 @@ definitions:
     - product_id
     - quantity
     type: object
+  service.SaveAIModelRequest:
+    properties:
+      api_key:
+        type: string
+      base_url:
+        type: string
+      enabled:
+        type: integer
+      model:
+        type: string
+      name:
+        type: string
+      remark:
+        type: string
+    required:
+    - base_url
+    - model
+    - name
+    type: object
   service.SaveDesignRequest:
     properties:
       approvers:
@@ -2288,6 +2600,63 @@ definitions:
         type: array
     required:
     - nodes
+    type: object
+  service.SaveStorageConfigRequest:
+    properties:
+      download_prefix:
+        type: string
+      driver:
+        type: string
+      local_path:
+        description: local
+        type: string
+      max_upload_mb:
+        type: integer
+      name:
+        type: string
+      oss_access_key_id:
+        type: string
+      oss_access_key_secret:
+        type: string
+      oss_bucket_name:
+        type: string
+      oss_custom_domain:
+        type: string
+      oss_endpoint:
+        description: oss
+        type: string
+      oss_private_bucket_name:
+        type: string
+      oss_private_custom_domain:
+        type: string
+      private_path:
+        type: string
+      remark:
+        type: string
+      resource_domain:
+        type: string
+      s3_access_key:
+        type: string
+      s3_bucket_private:
+        type: string
+      s3_bucket_public:
+        type: string
+      s3_domain_private:
+        type: string
+      s3_domain_public:
+        type: string
+      s3_endpoint:
+        description: s3
+        type: string
+      s3_path_style:
+        type: integer
+      s3_region:
+        type: string
+      s3_secret_key:
+        type: string
+    required:
+    - driver
+    - name
     type: object
   service.SaveStructureRequest:
     properties:
@@ -2344,6 +2713,19 @@ definitions:
         type: number
     required:
     - employee_id
+    type: object
+  service.SaveTianyanchaConfigRequest:
+    properties:
+      api_key:
+        type: string
+      enabled:
+        type: integer
+      endpoint:
+        type: string
+      remark:
+        type: string
+      tools:
+        $ref: '#/definitions/service.TianyanchaToolMapping'
     type: object
   service.ScheduleBatchItem:
     properties:
@@ -2460,6 +2842,16 @@ definitions:
       sort:
         type: integer
     type: object
+  service.StatusResponse:
+    properties:
+      last_per_target:
+        additionalProperties:
+          $ref: '#/definitions/service.TargetStatus'
+        type: object
+      running:
+        description: '""=空闲,否则为正在执行的 target'
+        type: string
+    type: object
   service.StockInItemRequest:
     properties:
       product_id:
@@ -2492,6 +2884,70 @@ definitions:
     - product_id
     - quantity
     type: object
+  service.StorageConfigItem:
+    properties:
+      created_at:
+        type: string
+      download_prefix:
+        type: string
+      driver:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: integer
+      local_path:
+        description: local
+        type: string
+      max_upload_mb:
+        type: integer
+      name:
+        type: string
+      oss_access_key_id:
+        type: string
+      oss_access_key_secret:
+        description: 脱敏:****abcd
+        type: string
+      oss_bucket_name:
+        type: string
+      oss_custom_domain:
+        type: string
+      oss_endpoint:
+        description: oss
+        type: string
+      oss_private_bucket_name:
+        type: string
+      oss_private_custom_domain:
+        type: string
+      private_path:
+        type: string
+      remark:
+        type: string
+      resource_domain:
+        type: string
+      s3_access_key:
+        type: string
+      s3_bucket_private:
+        type: string
+      s3_bucket_public:
+        type: string
+      s3_domain_private:
+        type: string
+      s3_domain_public:
+        type: string
+      s3_endpoint:
+        description: s3
+        type: string
+      s3_path_style:
+        type: integer
+      s3_region:
+        type: string
+      s3_secret_key:
+        description: 脱敏:****abcd
+        type: string
+      updated_at:
+        type: string
+    type: object
   service.SyncFeaturesRequest:
     properties:
       item_ids:
@@ -2502,6 +2958,40 @@ definitions:
         type: string
     required:
     - module
+    type: object
+  service.TargetStatus:
+    properties:
+      finished_at:
+        type: string
+      log_file:
+        type: string
+      log_tail:
+        description: 末 30 行
+        items:
+          type: string
+        type: array
+      started_at:
+        type: string
+      status:
+        description: running/success/failed
+        type: string
+      target:
+        type: string
+    type: object
+  service.TianyanchaToolMapping:
+    properties:
+      detail:
+        description: 详情工具名(默认 get_company_basic_profile)
+        type: string
+      detail_param:
+        description: 详情工具的企业名参数名(默认 company)
+        type: string
+      search:
+        description: 搜索工具名(默认 search_companies)
+        type: string
+      search_param:
+        description: 搜索工具的企业名参数名(默认 query)
+        type: string
     type: object
   service.ToggleModuleRequest:
     properties:
@@ -2661,6 +3151,8 @@ definitions:
     type: object
   service.UpdateContractRequest:
     properties:
+      category:
+        type: string
       content:
         type: string
       customer_id:
@@ -3570,6 +4062,33 @@ info:
   title: 企业级业务管理平台 API
   version: "1.0"
 paths:
+  /api/ai/agents/{scenario}/run:
+    post:
+      description: scenario=insight(经营洞察)/approval-summary(审批助手)/daily-report(日报生成);采集真实业务数据构建提示词走统一LLM网关(feature=ai.agent记账);需
+        sys_config ai.chat_enabled=1(默认关)
+      parameters:
+      - description: 场景:insight/approval-summary/daily-report
+        in: path
+        name: scenario
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.AgentRunResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: AI 场景智能体运行
+      tags:
+      - AI场景智能体
   /api/ai/chat:
     post:
       description: 多轮对话:取最近20条消息+系统提示词走统一LLM网关(feature=ai.chat记账);需 sys_config ai.chat_enabled=1(默认关)
@@ -3945,6 +4464,30 @@ paths:
       summary: 获取 OSS 直传预签名 URL
       tags:
       - 公共接口
+  /approval/actions/add-sign:
+    post:
+      consumes:
+      - application/json
+      description: 为当前任务插入串行加签链(BEFORE 前加签:原任务挂起,链全批后恢复;AFTER 后加签:原任务先通过,链在其后,链尾批后流程续走);仅当前任务审批人本人可操作
+      parameters:
+      - description: 加签请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AddSignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 审批加签
+      tags:
+      - 审批操作
   /approval/actions/approve:
     post:
       consumes:
@@ -4013,6 +4556,55 @@ paths:
       security:
       - BearerAuth: []
       summary: 审批驳回
+      tags:
+      - 审批操作
+  /approval/actions/remove-sign:
+    post:
+      consumes:
+      - application/json
+      description: 撤销链上仍未轮到(PENDING)的加签任务;仅加签发起人可撤,撤销后若链已无人待处理则提前收尾
+      parameters:
+      - description: 减签请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.RemoveSignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 审批减签
+      tags:
+      - 审批操作
+  /approval/actions/return-back:
+    post:
+      consumes:
+      - application/json
+      description: 把审批实例打回到指定已审节点(目标节点按轮次+1 重建任务,打回节点之后的旧任务含加签链整体作废);仅当前任务审批人可操作,可退回节点列表见详情接口
+        returnable_nodes
+      parameters:
+      - description: 退回请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ReturnBackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 审批退回
       tags:
       - 审批操作
   /approval/actions/transfer:
@@ -4481,6 +5073,119 @@ paths:
       summary: 新建文件夹
       tags:
       - 网盘
+  /cloud/public/shares/{token}:
+    get:
+      description: 免登录;返回文件名/大小/过期时间/是否需要提取码/下载次数
+      parameters:
+      - description: 分享令牌
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 公开获取分享元信息
+      tags:
+      - 公共接口
+  /cloud/public/shares/{token}/download:
+    post:
+      consumes:
+      - application/json
+      description: 免登录;校验提取码(恒时比较)后签出 10 分钟有效下载 URL;每 IP 每分钟 10 次
+      parameters:
+      - description: 分享令牌
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: 提取码(无提取码分享可不传)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/handler.ShareDownloadRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 公开获取分享下载地址
+      tags:
+      - 公共接口
+  /cloud/shares:
+    get:
+      description: 联 cloud_file 返回文件名/大小,含下载次数
+      parameters:
+      - description: 页码(默认1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认10,最大100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 我创建的分享分页
+      tags:
+      - 网盘-分享
+    post:
+      consumes:
+      - application/json
+      description: 校验文件属主/非文件夹/状态正常;expire_days 白名单 7/30;单用户活跃分享上限 200
+      parameters:
+      - description: 文件ID/有效期天数/提取码(可空)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateShareRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建文件分享
+      tags:
+      - 网盘-分享
+  /cloud/shares/{id}:
+    delete:
+      description: 仅本人可取消,置 disabled=1,公开侧立即失效
+      parameters:
+      - description: 分享ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 取消分享
+      tags:
+      - 网盘-分享
   /cloud/usage:
     get:
       produces:
@@ -4799,53 +5504,6 @@ paths:
       summary: 分类树
       tags:
       - 文章分类
-  /cms/media:
-    get:
-      description: 列举公共桶对象并拼直链,keyword 过滤 key 子串
-      parameters:
-      - description: key 关键字过滤
-        in: query
-        name: keyword
-        type: string
-      - description: 最多返回条数(默认200,最大500)
-        in: query
-        name: max_keys
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 媒体库列表
-      tags:
-      - 媒体库
-  /cms/media/delete:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 删除请求
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.MediaDeleteRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/xresponse.Response'
-      security:
-      - BearerAuth: []
-      summary: 删除媒体对象
-      tags:
-      - 媒体库
   /cms/pages:
     get:
       parameters:
@@ -5590,6 +6248,14 @@ paths:
         in: query
         name: stage
         type: string
+      - description: 合同分类过滤
+        in: query
+        name: category
+        type: string
+      - description: 归档过滤:all/yes/no(默认no,列表默认不含已归档)
+        in: query
+        name: archived
+        type: string
       produces:
       - application/json
       responses:
@@ -5688,6 +6354,73 @@ paths:
       security:
       - BearerAuth: []
       summary: 更新合同
+      tags:
+      - 合同管理
+  /crm/contracts/{id}/archive:
+    post:
+      parameters:
+      - description: 合同ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同归档(仅已完成/已终止)
+      tags:
+      - 合同管理
+  /crm/contracts/{id}/changes:
+    get:
+      parameters:
+      - description: 合同ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同变更记录列表(倒序,带操作人姓名)
+      tags:
+      - 合同管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 合同ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 变更请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ContractChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 提交合同变更(金额/结束日期,仅负责人或超管,仅已签订/执行中)
       tags:
       - 合同管理
   /crm/contracts/{id}/payment-plans:
@@ -5827,6 +6560,40 @@ paths:
       security:
       - BearerAuth: []
       summary: 套打合同文档(选模板渲染)
+      tags:
+      - 合同管理
+  /crm/contracts/{id}/unarchive:
+    post:
+      parameters:
+      - description: 合同ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同取消归档
+      tags:
+      - 合同管理
+  /crm/contracts/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 合同统计(总金额/分阶段/本月签订/临期列表)
       tags:
       - 合同管理
   /crm/custom-fields:
@@ -6358,6 +7125,35 @@ paths:
       security:
       - BearerAuth: []
       summary: 释放客户到公海
+      tags:
+      - 客户管理
+  /crm/customers/{id}/tianyancha:
+    get:
+      description: 按客户名称经天眼查 MCP 查询工商信息并归一化返回;不回填客户字段,
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 企业名称(留空用客户名称)
+        in: query
+        name: name
+        type: string
+      - description: 是否写跟进记录留痕(默认 false)
+        in: query
+        name: save
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 客户工商信息查询(天眼查)
       tags:
       - 客户管理
   /crm/customers/{id}/transfer:
@@ -7023,6 +7819,98 @@ paths:
       summary: 更新回款记录
       tags:
       - 回款管理
+  /crm/product-categories:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 新增分类请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ProductCategoryCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 新增产品分类
+      tags:
+      - 产品分类管理
+  /crm/product-categories/{id}:
+    delete:
+      description: 有子节点拒绝删;商品引用不阻断删除,引用数在返回 notice 里提示
+      parameters:
+      - description: 分类ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除产品分类
+      tags:
+      - 产品分类管理
+    put:
+      consumes:
+      - application/json
+      description: 改名不回写商品数据(crm_product.category 存量不动);换父会拒绝落入自身子树
+      parameters:
+      - description: 分类ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新分类请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ProductCategoryUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新产品分类
+      tags:
+      - 产品分类管理
+  /crm/product-categories/tree:
+    get:
+      description: 全量内存组树,sort 升序;include_disabled=true 时含停用节点(默认只回启用)
+      parameters:
+      - description: 是否包含停用分类(默认false)
+        in: query
+        name: include_disabled
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 产品分类树
+      tags:
+      - 产品分类管理
   /crm/products:
     get:
       parameters:
@@ -7285,6 +8173,19 @@ paths:
       summary: 合作方/客户列表(公开)
       tags:
       - CMS公开
+  /crm/public/product-categories:
+    get:
+      description: 免鉴权,只回启用的分类节点,官网按叶子名筛选商品用
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 产品分类树(公开)
+      tags:
+      - CMS公开
   /crm/public/products:
     get:
       description: 返回「官网内容→官网首页配置→产品」精选的商品,精选即公开展示的唯一门槛(板块关闭或未配置精选时为空,不含成本价),免鉴权
@@ -7537,6 +8438,51 @@ paths:
       summary: 变更工单状态
       tags:
       - CRM-工单
+  /deploy/static:
+    post:
+      consumes:
+      - application/json
+      description: 服务器端异步执行 rebuild_static.sh(npm install + next build + rsync 发布),同一时刻仅允许一个任务,进行中重复触发直接拒绝;进度与日志尾通过
+        GET /deploy/status 轮询。超管专用(Casbin 超管内存短路,未绑菜单/按钮)。
+      parameters:
+      - description: 目标(cms=官网+跨境双主题)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.runStaticRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 一键重新生成并发布静态站
+      tags:
+      - 静态站发布
+  /deploy/status:
+    get:
+      description: 返回当前是否有任务在执行,以及各目标(当前仅 cms=官网+跨境双主题)最近一次重建的状态与日志尾(末 30 行)。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.StatusResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 静态站重建状态查询
+      tags:
+      - 静态站发布
   /enterprise/job-logs:
     get:
       parameters:
@@ -7796,6 +8742,29 @@ paths:
       security:
       - BearerAuth: []
       summary: 创建发票
+      tags:
+      - 财务-发票
+  /finance/invoices/ocr:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传发票图片(jpg/png/webp,≤10MB),千问 qwen-vl 视觉识别出票面结构化字段。
+      parameters:
+      - description: 发票图片(jpg/png/webp,≤10MB)
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 发票图片识别(OCR)
       tags:
       - 财务-发票
   /finance/receivables:
@@ -14500,6 +15469,526 @@ paths:
       summary: 启用仓库下拉
       tags:
       - 进销存-仓库管理
+  /storefront/config:
+    get:
+      description: 管理端读配置(与公开同构)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站站点配置(管理)
+      tags:
+      - 独立站管理
+    put:
+      consumes:
+      - application/json
+      description: 全量覆盖保存;locales 至少 1 个;rates 前端固定 USD/EUR/GBP 三键(CNY per unit)
+      parameters:
+      - description: 配置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.ConfigUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站站点配置保存(管理)
+      tags:
+      - 独立站管理
+  /storefront/orders:
+    get:
+      description: 分页查询独立站订单,主单+明细嵌套返回;status 筛选(1待支付/2已支付/3已取消/4已过期),keyword 匹配订单号/买家邮箱/姓名/Session
+        ID
+      parameters:
+      - description: 页码(默认 1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认 20,上限 100)
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态筛选(1待支付 2已支付 3已取消 4已过期)
+        in: query
+        name: status
+        type: integer
+      - description: 订单号/买家邮箱/姓名/Session ID 关键字
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站订单列表(管理)
+      tags:
+      - 独立站管理
+  /storefront/orders/{id}:
+    get:
+      description: 主单 + 明细嵌套返回,含支付通道回填的买家信息与 PSI 销售单号
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站订单详情(管理)
+      tags:
+      - 独立站管理
+  /storefront/products:
+    get:
+      description: 分页查询上架位(含 CRM 名称/标价/状态与翻译完整度 locales_done)
+      parameters:
+      - description: 页码(默认 1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认 20,上限 100)
+        in: query
+        name: page_size
+        type: integer
+      - description: slug 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 语言代码(默认 en,决定 name/description 取哪语言)
+        in: query
+        name: locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站商品列表(管理)
+      tags:
+      - 独立站管理
+    post:
+      consumes:
+      - application/json
+      description: 部分字段更新语义;创建走 POST /storefront/products 或 PUT /storefront/products/0(id=0);价格
+        null=清除改按汇率折算
+      parameters:
+      - description: 上架位与翻译
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AdminUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站商品新增/更新(管理)
+      tags:
+      - 独立站管理
+  /storefront/products/{id}:
+    get:
+      description: 含全语言翻译 translations(供编辑表单回填)与请求语言的 description
+      parameters:
+      - description: 上架位ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 语言代码(默认 en)
+        in: query
+        name: locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站商品详情(管理)
+      tags:
+      - 独立站管理
+    put:
+      consumes:
+      - application/json
+      description: 部分字段更新语义;创建走 POST /storefront/products 或 PUT /storefront/products/0(id=0);价格
+        null=清除改按汇率折算
+      parameters:
+      - description: 上架位ID(仅 PUT;0=新增)
+        in: path
+        name: id
+        type: integer
+      - description: 上架位与翻译
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.AdminUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 独立站商品新增/更新(管理)
+      tags:
+      - 独立站管理
+  /storefront/public/checkout:
+    post:
+      consumes:
+      - application/json
+      description: 免登录下单:每 IP 每分钟限 5 次;校验商品可购并按上架位价格规则快照,创建 Stripe Checkout Session(Test
+        Mode);密钥未配置时返回「支付通道未配置」
+      parameters:
+      - description: 下单内容(items + locale)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.CheckoutResult'
+              type: object
+      summary: 独立站下单(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/config:
+    get:
+      description: 站点语言/汇率/paypal_enabled,免鉴权;不含 notify_email 等管理端字段;汇率用于前端本地试算,权威折算以后端为准
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 独立站站点配置(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/inquiries:
+    post:
+      consumes:
+      - application/json
+      description: 免登录提交询盘:每 IP 每分钟限 3 次;校验邮箱/内容后自动创建 CRM 公海线索(来源=独立站询盘)并异步通知管理员,返回线索编号
+      parameters:
+      - description: 询盘内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.InquiryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 独立站询盘提交(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/paypal/capture:
+    post:
+      consumes:
+      - application/json
+      description: 免登录服务端捕获:按 paypal_order_id 定位待支付订单并调 PayPal Capture 确认扣款;COMPLETED
+        幂等置已支付(回填买家/捕获交易 ID/paid_at,通知+邮件+best-effort PSI 销售单)。订单非待支付返回错误提示,捕获失败订单保持待支付可重试
+      parameters:
+      - description: PayPal 订单 ID(审批回跳 query 的 token 参数)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.PayPalCaptureRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.PayPalCaptureResult'
+              type: object
+      summary: 独立站 PayPal 支付确认(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/paypal/create:
+    post:
+      consumes:
+      - application/json
+      description: 免登录下单:每 IP 每分钟限 5 次;校验商品可购并统一折算到结算币种后创建订单快照,再调 PayPal Orders API
+        创建支付订单,返回买家审批页地址(approve_url)。PayPal 凭据未配置时返回「PayPal 支付未配置」;买家在 PayPal 审批完成后跳回站点
+        success 页(query 带 token=<PayPal 订单 ID>),前端再调 /storefront/public/paypal/capture
+        确认扣款
+      parameters:
+      - description: 下单内容(items + locale + currency)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.PayPalCheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.PayPalCreateResult'
+              type: object
+      summary: 独立站 PayPal 下单(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/products:
+    get:
+      description: 上架商品按 sort 升序;已按 locale 填充翻译(缺失回落主语言 en);价格直标价优先,否则 CRM 标价(CNY)×
+        汇率折算;不含成本价,免鉴权
+      parameters:
+      - description: 语言代码(默认 en)
+        in: query
+        name: locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 独立站商品列表(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/products/{slug}:
+    get:
+      description: 按 URL 别名查商品,附规格列表与全仓库存汇总("有货/无货"参考),免鉴权
+      parameters:
+      - description: URL 别名
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: 语言代码(默认 en)
+        in: query
+        name: locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 独立站商品详情(公开)
+      tags:
+      - 独立站公开
+  /storefront/public/webhooks/stripe:
+    post:
+      consumes:
+      - application/json
+      description: 免登录接收 Stripe 事件:Stripe-Signature 验签失败返回 400;checkout.session.completed
+        幂等置已支付(回填买家信息并通知+生成 PSI 销售单),checkout.session.expired 置已过期
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: Stripe webhook 回调(公开)
+      tags:
+      - 独立站公开
+  /system/ai/models:
+    get:
+      description: 全部 AI 模型档案(生效行置顶),api_key 脱敏只回 ****+尾4位
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/service.AIModelItem'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: AI 模型档案列表
+      tags:
+      - AI模型
+    post:
+      consumes:
+      - application/json
+      description: 校验 base_url 出网安全(仅 http/https 且拒绝内网/环回/保留地址);api_key 必填;不自动激活
+      parameters:
+      - description: 档案参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SaveAIModelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.AIModelItem'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 新建 AI 模型档案
+      tags:
+      - AI模型
+  /system/ai/models/{id}:
+    delete:
+      description: 当前生效(is_default=1)的档案拒绝删除
+      parameters:
+      - description: 档案ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除 AI 模型档案
+      tags:
+      - AI模型
+    put:
+      consumes:
+      - application/json
+      description: api_key 传脱敏值(****开头)保留原值不覆盖;不改动生效状态
+      parameters:
+      - description: 档案ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 档案参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SaveAIModelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新 AI 模型档案
+      tags:
+      - AI模型
+  /system/ai/models/{id}/activate:
+    post:
+      description: 事务内切换 is_default 标记,base_url 出网校验通过才提交;成功后全局 LLM 客户端即时热切换,失败回滚并报错
+      parameters:
+      - description: 档案ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 启用 AI 模型档案(热切换)
+      tags:
+      - AI模型
+  /system/ai/models/current:
+    get:
+      description: 返回当前生效档案及来源(source=db/env);无 DB 生效档案时回 env 配置,api_key 脱敏
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.CurrentAIModel'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 当前生效的 AI 模型档案
+      tags:
+      - AI模型
   /system/api-keys:
     get:
       produces:
@@ -16317,6 +17806,214 @@ paths:
       summary: 更新站点信息
       tags:
       - 站点设置
+  /system/storage/configs:
+    get:
+      description: 全部存储配置(local/oss/s3),密钥字段脱敏只回尾4位
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/service.StorageConfigItem'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 存储配置列表
+      tags:
+      - 文件存储
+    post:
+      consumes:
+      - application/json
+      description: 按驱动校验必填参数;不自动激活;密钥传脱敏值(****开头)按未填处理
+      parameters:
+      - description: 配置参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SaveStorageConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/xresponse.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.StorageConfigItem'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 新建存储配置
+      tags:
+      - 文件存储
+  /system/storage/configs/{id}:
+    delete:
+      description: 当前生效(is_active=1)的配置拒绝删除
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除存储配置
+      tags:
+      - 文件存储
+    put:
+      consumes:
+      - application/json
+      description: 密钥字段传脱敏值(****开头)保留原值不覆盖;不改动生效状态
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 配置参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SaveStorageConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新存储配置
+      tags:
+      - 文件存储
+  /system/storage/configs/{id}/activate:
+    post:
+      description: 事务内切换生效标记,新驱动构建成功才提交;成功后全局存储即时热切换,失败回滚并报错
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 启用存储配置(热切换)
+      tags:
+      - 文件存储
+  /system/storage/configs/{id}/test:
+    post:
+      description: 构建对应驱动并探测(oss/s3 探测桶可达性,local 建目录);不激活不影响当前生效配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 测试存储配置连接
+      tags:
+      - 文件存储
+  /system/storage/files:
+    get:
+      description: 管理员视角列出网盘全部文件(跨用户,联 sys_user 带上传人昵称);每行带下载地址(公共直链或私有短期签名URL);keyword
+        模糊匹配文件名
+      parameters:
+      - description: 文件名关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 页码(默认1)
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数(默认10,最大100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 存储文件列表(全量)
+      tags:
+      - 文件存储
+  /system/tianyancha/config:
+    get:
+      description: 读取天眼查 MCP 配置(端点/工具名映射/API Key 脱敏只回 ****+尾4 位)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 天眼查 MCP 配置详情
+      tags:
+      - 天眼查
+    put:
+      consumes:
+      - application/json
+      description: 保存天眼查 MCP 配置(单行 upsert)。api_key 传脱敏值(****开头)保留原值;
+      parameters:
+      - description: 保存请求
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.SaveTianyanchaConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      security:
+      - BearerAuth: []
+      summary: 保存天眼查 MCP 配置
+      tags:
+      - 天眼查
   /system/users:
     get:
       parameters:
@@ -16502,6 +18199,154 @@ paths:
       summary: 获取系统版本信息
       tags:
       - 系统
+  /workflow/definitions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 工作流列表
+      tags:
+      - 工作流
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 新增工作流
+      tags:
+      - 工作流
+  /workflow/definitions/:id:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除工作流
+      tags:
+      - 工作流
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 工作流详情
+      tags:
+      - 工作流
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 编辑工作流
+      tags:
+      - 工作流
+  /workflow/definitions/:id/enable:
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 启停工作流
+      tags:
+      - 工作流
+  /workflow/definitions/:id/run:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 手动运行工作流
+      tags:
+      - 工作流
+  /workflow/events:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 事件目录
+      tags:
+      - 工作流
+  /workflow/runs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 执行记录列表
+      tags:
+      - 工作流
+  /workflow/runs/:id:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 删除执行记录
+      tags:
+      - 工作流
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 执行详情
+      tags:
+      - 工作流
+  /workflow/runs/:id/retry:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/xresponse.Response'
+      summary: 重跑执行
+      tags:
+      - 工作流
 securityDefinitions:
   BearerAuth:
     description: 输入 "Bearer {access_token}"

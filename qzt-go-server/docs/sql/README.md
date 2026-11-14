@@ -33,6 +33,7 @@
 | `contract_template.sql` | 合同模板（正文套打）`crm_contract_template` 建表+种子 |
 | `crm_config.sql` | CRM 配置中心：跟进预警阈值 + 公海自动回收定时任务 + 配置页菜单 |
 | `crm_seas.sql` | 公海重构：默认池标识 + 公海菜单挪到配置目录 + 客户/线索公海菜单 |
+| `demo_reset.sql` | 演示数据每周重置定时任务（sys_job id=27，bean_class=demoWeeklyReset，周一 03:00；配套 `internal/module/system/service/demo_reset.go` 与生产基线文件 `/opt/qzt-server/bin/demo_baseline.sql`） |
 | `esign_remove.sql` | 电子签（e签宝）功能下线清理脚本 |
 | `finance.sql` | 财务管理模块（finance）权限种子（sys_api/sys_menu） |
 | `follow_lead_id.sql` | 跟进记录/计划表新增 lead_id 列，打通线索跟进链路 |

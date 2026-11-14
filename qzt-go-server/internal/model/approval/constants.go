@@ -35,13 +35,17 @@ const (
 
 // ApprovalAction 审批动作。
 const (
-	ActionApprove  = "APPROVE"  // 同意
-	ActionReject   = "REJECT"   // 驳回
-	ActionSign     = "SIGN"     // 加签
-	ActionBack     = "BACK"     // 退回
-	ActionRevoke   = "REVOKE"   // 撤回
-	ActionTransfer = "TRANSFER" // 转办(任务让渡,出队)
-	ActionDelegate = "DELEGATE" // 委托(责任仍在原审批人,delegator_id 留痕)
+	ActionApprove     = "APPROVE"     // 同意
+	ActionReject      = "REJECT"      // 驳回
+	ActionSign        = "SIGN"        // 加签
+	ActionBack        = "BACK"        // 退回
+	ActionRevoke      = "REVOKE"      // 撤回
+	ActionTransfer    = "TRANSFER"    // 转办(任务让渡,出队)
+	ActionDelegate    = "DELEGATE"    // 委托(责任仍在原审批人,delegator_id 留痕)
+	ActionAddSign     = "ADD_SIGN"    // 加签(审批记录审计用)
+	ActionRemoveSign  = "REMOVE_SIGN" // 减签(审批记录审计用)
+	ActionReturnBack  = "RETURN_BACK" // 退回重审(审批记录审计用)
+	ActionTimeoutHint = "TIMEOUT"     // 超时提醒(预留,提醒本身不写记录)
 )
 
 // ApproverType 审批人类型。
@@ -131,6 +135,7 @@ const (
 	TaskStatusApproved   = "APPROVED"   // 已通过
 	TaskStatusUnapproved = "UNAPPROVED" // 已驳回
 	TaskStatusRevoked    = "REVOKED"    // 已撤回
+	TaskStatusSuspended  = "SUSPENDED"  // 挂起(前加签进行中,原任务暂缓;链全批后恢复)
 )
 
 // FormTable 表单类型 → 业务表名映射(资源状态写回用,防注入)。

@@ -9,8 +9,8 @@ import (
 
 	hrmmodel "qzt-go-server/internal/model/hrm"
 	"qzt-go-server/internal/pkg/numbergen"
-	hrmrepo "qzt-go-server/internal/repository/hrm"
 	"qzt-go-server/internal/repository"
+	hrmrepo "qzt-go-server/internal/repository/hrm"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -55,17 +55,17 @@ func (s *PerformanceService) Create(ctx context.Context, req *CreatePerfRequest)
 		return nil, errors.New("结束日期格式错误")
 	}
 	p := &hrmmodel.HrmPerformance{
-		PerfNo:      no,
-		Title:       req.Title,
-		EmployeeID:  req.EmployeeID,
+		PerfNo:       no,
+		Title:        req.Title,
+		EmployeeID:   req.EmployeeID,
 		EmployeeName: req.EmployeeName,
-		DeptID:      req.DeptID,
-		DeptName:    req.DeptName,
-		Period:      req.Period,
-		StartDate:   startDate,
-		EndDate:     endDate,
-		ReviewerID:  req.ReviewerID,
-		Status:      hrmmodel.PerfStatusActive,
+		DeptID:       req.DeptID,
+		DeptName:     req.DeptName,
+		Period:       req.Period,
+		StartDate:    startDate,
+		EndDate:      endDate,
+		ReviewerID:   req.ReviewerID,
+		Status:       hrmmodel.PerfStatusActive,
 	}
 
 	err = repository.Transaction(ctx, func(ctx context.Context) error {
@@ -108,8 +108,8 @@ func (s *PerformanceService) GetByID(ctx context.Context, id uint) (*hrmmodel.Hr
 
 // SelfReviewRequest 自评提交。
 type SelfReviewRequest struct {
-	SelfScore decimal.Decimal `json:"self_score"`
-	SelfComment string        `json:"self_comment"`
+	SelfScore   decimal.Decimal `json:"self_score"`
+	SelfComment string          `json:"self_comment"`
 }
 
 func (s *PerformanceService) SelfReview(ctx context.Context, id uint, req *SelfReviewRequest) error {

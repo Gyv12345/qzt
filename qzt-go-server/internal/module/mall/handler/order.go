@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	syserrcode "qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/module/mall/service"
+	syserrcode "qzt-go-server/internal/module/system/errcode"
 	response "qzt-go-server/pkg/xresponse"
 )
 

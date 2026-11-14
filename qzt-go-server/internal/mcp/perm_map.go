@@ -301,6 +301,11 @@ var toolPermMap = map[string]toolPerm{
 	"enterprise_job_log_list": {"GET", "/enterprise/job-logs"},
 	"enterprise_job_run":      {"POST", "/enterprise/jobs/:id/run"},
 	"enterprise_job_update":   {"PUT", "/enterprise/jobs/:id"},
+	// ── P27 自动化工作流 ──
+	"workflow_definition_list": {"GET", "/workflow/definitions"},
+	"workflow_definition_run":  {"POST", "/workflow/definitions/:id/run"},
+	"workflow_run_list":        {"GET", "/workflow/runs"},
+	"workflow_run_get":         {"GET", "/workflow/runs/:id"},
 	// ── 公共基础设施(api 模块) ──
 	"attachment_create": {"POST", "/api/attachments"},
 	"attachment_delete": {"DELETE", "/api/attachments/:id"},

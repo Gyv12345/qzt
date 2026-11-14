@@ -14,6 +14,7 @@ import (
 	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/repository"
 	crrepo "qzt-go-server/internal/repository/crm"
+	"qzt-go-server/pkg/xevent"
 	"qzt-go-server/pkg/xtime"
 )
 
@@ -114,6 +115,15 @@ func (s *LeadService) Create(ctx context.Context, req *CreateLeadRequest, curren
 	if err != nil {
 		return nil, err
 	}
+	// P27 自动化工作流:新线索入库事件(工作流引擎订阅分发);ownerID 解引用避免 payload 带指针地址
+	ownerVal := uint(0)
+	if ownerID != nil {
+		ownerVal = *ownerID
+	}
+	xevent.Publish(ctx, "crm.lead.created", map[string]any{
+		"lead_id": lead.ID, "name": lead.Name, "company": lead.Company,
+		"owner_id": ownerVal, "source": lead.Source, "level": lead.Level,
+	})
 	return lead, nil
 }
 

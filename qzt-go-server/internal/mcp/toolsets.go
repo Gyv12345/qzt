@@ -45,6 +45,7 @@ var toolsetCatalog = []Toolset{
 	{Key: "dashboard", Name: "BI 看板(经营/销售/人力/财务报表)", Prefixes: []string{"dashboard"}},
 	{Key: "system", Name: "系统管理(用户/角色/菜单/字典/站点与企微配置)", Prefixes: []string{"system", "site", "wecom"}},
 	{Key: "enterprise", Name: "定时任务(任务/执行日志)", Prefixes: []string{"enterprise"}},
+	{Key: "workflow", Name: "自动化工作流(定义/运行/执行记录)", Prefixes: []string{"workflow"}},
 	{Key: "common", Name: "公共服务(附件/文件签名/统一日历)", Prefixes: []string{"attachment", "file", "calendar"}},
 }
 

@@ -9,6 +9,7 @@ import (
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/module/system/service"
 	"qzt-go-server/internal/pkg/cache"
+	"qzt-go-server/internal/pkg/demoguard"
 	"qzt-go-server/internal/repository"
 	response "qzt-go-server/pkg/xresponse"
 )
@@ -167,6 +168,12 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 // @Success      200   {object}  xresponse.Response{data=model.SysUser}
 // @Router       /system/auth/profile [put]
 func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+	// 演示模式护栏:公开演示期间冻结个人资料修改(GET 放行),防访客涂改
+	// 真实 admin 账户的昵称/头像/邮箱/手机。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式不可修改账号资料")
+		return
+	}
 	var req service.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
@@ -192,6 +199,12 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 // @Success      200   {object}  xresponse.Response
 // @Router       /system/auth/password [put]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	// 演示模式护栏:公开演示期间冻结改密(个人中心入口一并冻结),
+	// 防访客改掉 admin 密码把所有演示访客与真超管一起锁死。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式不可修改账号密码")
+		return
+	}
 	var req service.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
@@ -236,6 +249,12 @@ func (h *AuthHandler) WecomBindQrcode(c *gin.Context) {
 // @Success      200   {object}  xresponse.Response
 // @Router       /system/auth/wecom/bind [post]
 func (h *AuthHandler) WecomBind(c *gin.Context) {
+	// 演示模式护栏:冻结企微绑定,防访客把自己的企微绑到 admin 账户,
+	// 截走真超管的安全告警与业务通知。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式不可修改账号绑定")
+		return
+	}
 	var body struct {
 		Code  string `json:"code" binding:"required"`
 		State string `json:"state"`
@@ -261,6 +280,11 @@ func (h *AuthHandler) WecomBind(c *gin.Context) {
 // @Success      200  {object}  xresponse.Response
 // @Router       /system/auth/wecom/bind [delete]
 func (h *AuthHandler) WecomUnbind(c *gin.Context) {
+	// 演示模式护栏:冻结企微解绑(与绑定同口径,防解绑真超管的告警通道)。
+	if demoguard.Enabled(c.Request.Context()) {
+		response.Fail(c, errcode.ErrForbidden, "演示模式不可修改账号绑定")
+		return
+	}
 	userID := middleware.GetUserID(c)
 	if err := h.wecomSvc.UnbindWecom(c.Request.Context(), userID); err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { submitContact, type ContactPayload } from "../lib/api";
 import { flush, track } from "../lib/track";
 
-export default function ContactForm() {
+export default function ContactForm({ privacyLive = false }: { privacyLive?: boolean }) {
   const [form, setForm] = useState<ContactPayload>({
     name: "",
     phone: "",
@@ -167,9 +167,11 @@ export default function ContactForm() {
 
       <p className="text-center text-xs text-faint">
         提交即表示同意我们按
-        <Link href="/p/privacy" className="underline transition-colors hover:text-muted">
-          《隐私政策》
-        </Link>
+        {privacyLive && (
+          <Link href="/p/privacy" className="underline transition-colors hover:text-muted">
+            《隐私政策》
+          </Link>
+        )}
         处理您的姓名、电话、邮箱等信息,仅用于与您联系
       </p>
     </form>

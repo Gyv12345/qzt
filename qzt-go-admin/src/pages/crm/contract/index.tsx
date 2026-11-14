@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { App, Button, Popconfirm, Select, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
@@ -95,6 +95,29 @@ export default function ContractPage() {
       renderFormItem: () => <DictSelect code="CONTRACT_STAGE" placeholder="选择阶段" />,
     },
     {
+      title: '分类',
+      dataIndex: 'category',
+      hideInTable: true,
+      colSize: 1,
+      fieldProps: { placeholder: '输入分类' },
+    },
+    {
+      title: '归档状态',
+      dataIndex: 'archived',
+      hideInTable: true,
+      initialValue: 'no',
+      renderFormItem: () => (
+        <Select
+          placeholder="归档状态"
+          options={[
+            { value: 'no', label: '未归档' },
+            { value: 'yes', label: '已归档' },
+            { value: 'all', label: '全部' },
+          ]}
+        />
+      ),
+    },
+    {
       title: '合同编号',
       dataIndex: 'contract_no',
       width: 140,
@@ -134,6 +157,21 @@ export default function ContractPage() {
           {customerMap.get(r.customer_id) ?? `#${r.customer_id}`}
         </Button>
       ),
+    },
+    {
+      title: '分类',
+      dataIndex: 'category',
+      width: 100,
+      search: false,
+      render: (_, r) =>
+        r.archived_at ? (
+          <Space size={4}>
+            {r.category}
+            <Tag color="default">已归档</Tag>
+          </Space>
+        ) : (
+          r.category || '-'
+        ),
     },
     {
       title: '合同金额',

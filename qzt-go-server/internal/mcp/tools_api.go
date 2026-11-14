@@ -22,7 +22,8 @@ import (
 
 // tools_api.go 公共基础设施工具(BI 报表 / 统一日历 / 附件 / 文件)。
 // 数据来源全部走 api/service(DashboardService / CalendarService / AttachmentService),
-// 文件签发与直传预签名复用 app.Uploader 与 config(与 api/handler/upload.go 同源)。
+// 文件签发与直传预签名复用 app.GetUploader()(懒取,热切换即生效)与 config
+// (与 api/handler/upload.go 同源)。
 
 // mcpSignTTL 私有文件签名下载 URL 有效期(与 handler 默认一致)。
 const mcpSignTTL = time.Hour

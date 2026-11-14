@@ -12,8 +12,8 @@ import (
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	"qzt-go-server/internal/repository"
-	crrepo "qzt-go-server/internal/repository/crm"
 	userrepo "qzt-go-server/internal/repository"
+	crrepo "qzt-go-server/internal/repository/crm"
 )
 
 // contract_template.go 合同模板服务 + 套打文档渲染。

@@ -13,8 +13,9 @@ const config = {
   // sitemap 与页面 URL 统一带尾部斜杠, 避免无斜杠 URL 多一跳 301（2026-10-28 第十五轮合法验证 P3）
   trailingSlash: true,
 
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  // throw 模式: 坏链直接让构建失败, 不允许带病上线（2026-11-13 78 处相对链接死链修复后收紧）
+  onBrokenLinks: 'throw',
+  onBrokenMarkdownLinks: 'throw',
 
   i18n: {
     defaultLocale: 'zh-Hans',
@@ -63,6 +64,7 @@ const config = {
               { label: '官网', href: 'https://devlovecode.com' },
               { label: '后台管理', href: 'https://admin.devlovecode.com' },
               { label: '移动端', href: 'https://m.devlovecode.com' },
+              { label: 'B 站视频演示', href: 'https://www.bilibili.com/video/BV1pAWv6hE7C' },
             ],
           },
           {

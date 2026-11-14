@@ -7,8 +7,8 @@ import (
 
 	"qzt-go-server/internal/mcp"
 	"qzt-go-server/internal/middleware"
-	"qzt-go-server/internal/module/system/service"
 	"qzt-go-server/internal/module/system/errcode"
+	"qzt-go-server/internal/module/system/service"
 	response "qzt-go-server/pkg/xresponse"
 )
 
