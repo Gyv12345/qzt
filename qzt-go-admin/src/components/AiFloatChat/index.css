@@ -1,0 +1,315 @@
+/* 全局 AI 悬浮球(P34):球体 + 对话面板,挂载于 BasicLayout,登录后页面均可见 */
+
+/* ---------- 悬浮球 ---------- */
+.ai-float-ball {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1100;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--ant-color-primary, #1677ff);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ai-float-ball:hover {
+  transform: scale(1.06);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18), 0 6px 10px rgba(0, 0, 0, 0.1);
+}
+.ai-float-ball:active {
+  transform: scale(0.98);
+}
+
+/* ---------- 面板 ---------- */
+.ai-float-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  z-index: 1100;
+  width: min(400px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 112px));
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 6px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* 展开:淡入 + 轻微上移;收起:反向播放后由组件卸载 */
+.ai-float-panel.open {
+  animation: ai-float-panel-in 0.2s ease forwards;
+}
+.ai-float-panel.closing {
+  animation: ai-float-panel-in 0.2s ease reverse forwards;
+  pointer-events: none;
+}
+@keyframes ai-float-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-float-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.ai-float-title {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ai-float-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+/* 气泡 */
+.ai-float-msg {
+  display: flex;
+  margin-bottom: 12px;
+}
+.ai-float-msg.user {
+  justify-content: flex-end;
+}
+.ai-float-msg .ai-float-bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.ai-float-msg.user .ai-float-bubble {
+  background: var(--ant-color-primary, #1677ff);
+  color: #fff;
+}
+.ai-float-msg.ai .ai-float-bubble {
+  background: #f5f5f5;
+  color: rgba(0, 0, 0, 0.88);
+}
+.ai-float-msg.ai.error .ai-float-bubble {
+  background: #fff2f0;
+  color: #cf1322;
+  border: 1px solid #ffccc7;
+}
+
+/* 工具过程条(AI 气泡上方,逐条一行,点击展开入参/结果) */
+.ai-float-trace {
+  max-width: 78%;
+  margin-bottom: 4px;
+}
+.ai-float-trace-item {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.8;
+}
+.ai-float-trace-item:hover {
+  color: rgba(0, 0, 0, 0.65);
+}
+.ai-float-trace-detail {
+  margin: 2px 0 6px 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  background: #fafafa;
+  border-left: 2px solid #e0e0e0;
+  border-radius: 2px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* 来源 */
+.ai-float-sources {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e0e0e0;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* 空态 */
+.ai-float-empty {
+  color: rgba(0, 0, 0, 0.45);
+  text-align: center;
+  margin-top: 72px;
+  font-size: 13px;
+}
+
+/* 等待回复:三点跳动 */
+.ai-float-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+}
+.ai-float-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  animation: ai-float-dot-jump 1.2s infinite ease-in-out;
+}
+.ai-float-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.ai-float-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes ai-float-dot-jump {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* 输入区 */
+.ai-float-input {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 设置行:知识库/联网 开关 */
+.ai-float-settings {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+  color: #666;
+}
+.ai-float-setting {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: default;
+}
+
+/* 思考过程折叠块 */
+.ai-float-thinking {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 4px;
+}
+.ai-float-thinking summary {
+  cursor: pointer;
+  user-select: none;
+  color: #999;
+}
+.ai-float-thinking-body {
+  margin-top: 4px;
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 6px;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  border: 1px solid #f0f0f0;
+}
+
+/* 耗时脚注 */
+.ai-float-elapsed {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 4px;
+}
+
+/* 输入行:flex 布局(替代 Space.Compact,其不支持 TextArea) */
+.ai-float-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ai-float-input-row .ant-input {
+  flex: 1;
+  width: 100%;
+  resize: none;
+}
+
+/* ---------- 暗色模式(App.tsx 给 body 挂 qzt-theme-dark;色值走 --ant-* 变量随明暗翻转) ---------- */
+body.qzt-theme-dark .ai-float-panel {
+  background: var(--ant-color-bg-container);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+body.qzt-theme-dark .ai-float-header,
+body.qzt-theme-dark .ai-float-settings {
+  border-bottom-color: var(--ant-color-split);
+}
+body.qzt-theme-dark .ai-float-input {
+  border-top-color: var(--ant-color-split);
+}
+body.qzt-theme-dark .ai-float-msg.ai .ai-float-bubble {
+  background: var(--ant-color-fill-tertiary);
+  color: var(--ant-color-text);
+}
+body.qzt-theme-dark .ai-float-msg.ai.error .ai-float-bubble {
+  background: var(--ant-color-error-bg);
+  color: var(--ant-color-error);
+  border: 1px solid var(--ant-color-error-border);
+}
+body.qzt-theme-dark .ai-float-trace-item {
+  color: var(--ant-color-text-tertiary);
+}
+body.qzt-theme-dark .ai-float-trace-item:hover {
+  color: var(--ant-color-text-secondary);
+}
+body.qzt-theme-dark .ai-float-trace-detail {
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+  border-left-color: var(--ant-color-border-secondary);
+}
+body.qzt-theme-dark .ai-float-sources {
+  border-top-color: var(--ant-color-border-secondary);
+  color: var(--ant-color-text-tertiary);
+}
+body.qzt-theme-dark .ai-float-empty {
+  color: var(--ant-color-text-tertiary);
+}
+body.qzt-theme-dark .ai-float-dots i {
+  background: rgba(255, 255, 255, 0.35);
+}
+body.qzt-theme-dark .ai-float-settings {
+  color: var(--ant-color-text-secondary);
+}
+body.qzt-theme-dark .ai-float-thinking,
+body.qzt-theme-dark .ai-float-thinking summary {
+  color: var(--ant-color-text-tertiary);
+}
+body.qzt-theme-dark .ai-float-thinking-body {
+  background: var(--ant-color-fill-quaternary);
+  border: 1px solid var(--ant-color-split);
+}
+body.qzt-theme-dark .ai-float-elapsed {
+  color: var(--ant-color-text-tertiary);
+}

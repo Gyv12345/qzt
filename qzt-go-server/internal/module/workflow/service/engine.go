@@ -197,6 +197,10 @@ func (e *Engine) runGraph(ctx context.Context, graphJSON string, payload map[str
 			rc.outputs[cur] = stepOut{"branch": branch}
 			trace = append(trace, okTrace(node, rc.outputs[cur]))
 			cur = next
+		default:
+			// 未知节点类型:fail-fast 落 FAILED 轨迹与运行错误,不再静默跳过(R70 D3/R73 第三轮复现)
+			trace = append(trace, failedTrace(node, fmt.Errorf("未知节点类型: %s", node.NodeType)))
+			return trace, fmt.Errorf("未知节点类型: %s", node.NodeType)
 		}
 	}
 	return trace, nil

@@ -56,7 +56,7 @@ export default function HandoverModal({ target, onClose }: HandoverModalProps) {
             <div>
               <Tag color="purple">云盘/资产</Tag>云盘文件、名下资产(使用人)、负责的仓库
             </div>
-            <div style={{ color: '#888', fontSize: 12 }}>
+            <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
               个人日程/工作日志/报销等本人记录、部门负责人与直属上级、知识库文档不转移
             </div>
           </Space>

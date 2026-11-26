@@ -3,13 +3,16 @@ import type { ReactNode } from "react";
 import { getArticles, getHomepageConfig, getSiteConfig } from "@/lib/api";
 import { ArticleCard, PartnerCard, ProductCard, TeamCard } from "@/components/Cards";
 import { EmptyState } from "@/components/EmptyState";
-import Aurora from "@/components/reactbits/Aurora";
+// DotGrid/Aurora 经 fx 懒加载(gsap/ogl 移出首屏 chunk); 文字动效体量小保持静态引入
+import { Aurora, DotGrid } from "@/components/fx";
 import BlurText from "@/components/reactbits/BlurText";
-import DotGrid from "@/components/reactbits/DotGrid";
 import GradientText from "@/components/reactbits/GradientText";
 import ShinyText from "@/components/reactbits/ShinyText";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { HeroShot } from "@/components/HeroShot";
 import { SITE } from "@/lib/site";
-import type { HomepageSectionItem, ModuleEntry, Partner, Product, StatEntry, TeamMember } from "@/lib/types";
+import type { HomepageSectionItem, ModuleEntry, Partner, Product, StatEntry, TeamMember, TestimonialEntry } from "@/lib/types";
 
 // 首页 ISR: 每 5 分钟重新生成, 兼顾实时数据与性能。
 export const revalidate = 300;
@@ -29,6 +32,17 @@ function parseModules(json?: string): ModuleEntry[] {
   try {
     const arr: unknown = JSON.parse(json);
     return Array.isArray(arr) ? arr.filter((m): m is ModuleEntry => Boolean(m?.name)) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** 安全解析客户评价配置(testimonials_json);解析失败或为空返回 [], 对应区块不渲染。 */
+function parseTestimonials(json?: string): TestimonialEntry[] {
+  if (!json) return [];
+  try {
+    const arr: unknown = JSON.parse(json);
+    return Array.isArray(arr) ? arr.filter((t): t is TestimonialEntry => Boolean(t?.quote && t?.name)) : [];
   } catch {
     return [];
   }
@@ -310,6 +324,7 @@ export default async function HomePage() {
   // 数字带/优势网格/CTA: 站点配置驱动, 留空则不渲染或回退中性文案
   const stats = parseStats(siteCfg?.stats_json);
   const modules = parseModules(siteCfg?.modules_json);
+  const testimonials = parseTestimonials(siteCfg?.testimonials_json);
   const modulesBadge = siteCfg?.modules_badge || "核心优势";
   const modulesTitle = siteCfg?.modules_title || "为什么选择我们";
   const modulesDesc = siteCfg?.modules_desc || "";
@@ -358,30 +373,27 @@ export default async function HomePage() {
           />
           <div className="fade-in-up delay-300 mt-10 flex flex-wrap justify-center gap-4">
             {showProducts && (
-              <Link
-                href="/products"
-                className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-700 px-7 py-3 text-sm font-semibold text-white no-underline shadow-glow-sm transition-all hover:-translate-y-0.5 hover:shadow-glow"
-              >
-                看看案例
-              </Link>
+              <Button asChild>
+                <Link href="/products">看看案例</Link>
+              </Button>
             )}
-            <Link
-              href="/contact"
-              className="rounded-lg border border-line bg-raised px-7 py-3 text-sm font-semibold text-normal no-underline backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/40 hover:text-strong"
-            >
-              聊聊你的想法
-            </Link>
+            <Button asChild variant="secondary">
+              <Link href="/contact">聊聊你的想法</Link>
+            </Button>
           </div>
+
+          {/* Hero 产品截图: 浏览器拟真框 + 底部光晕(素材=生产环境真实工作台) */}
+          <HeroShot src={siteCfg?.hero_shot_url || undefined} />
 
           {/* 数字带: 硬指标, 配置为空则不渲染 */}
           {stats.length > 0 && (
             <div
-              className="fade-in-up delay-400 mx-auto mt-16 grid max-w-2xl gap-4 sm:mt-20 sm:gap-8"
+              className="fade-in-up delay-400 mx-auto mt-12 grid max-w-2xl gap-4 sm:mt-14 sm:gap-8"
               style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, minmax(0, 1fr))` }}
             >
               {stats.map((s) => (
                 <div key={s.label}>
-                  <p className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  <p className="font-display text-3xl font-extrabold tracking-tight tabular-nums sm:text-4xl">
                     <span className="text-gradient">{s.num}</span>
                   </p>
                   <p className="mt-1.5 text-xs text-faint sm:text-sm">{s.label}</p>
@@ -397,18 +409,30 @@ export default async function HomePage() {
         <section className="container py-20 sm:py-24">
           <SectionHead badge={modulesBadge} title={modulesTitle} desc={modulesDesc || undefined} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {modules.map((m) => (
-              <div
-                key={m.name}
-                className="group rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"
-              >
-                <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-raised text-brandtext transition-colors group-hover:border-brand-400/30 group-hover:bg-brand-500/15">
-                  <Icon>{iconOf(m.icon)}</Icon>
-                </span>
-                <h3 className="mt-4 font-display text-sm font-semibold text-strong sm:text-base">{m.name}</h3>
-                <p className="mt-1 text-xs leading-5 text-faint sm:text-[13px] sm:leading-6">{m.desc}</p>
-              </div>
-            ))}
+            {modules.map((m, i) =>
+              i === 0 ? (
+                // 大卡: 首条自动跨 2 列(bento)——5 卡时 sm 2 列/large 3 列布局均恰好填满无洞
+                <Card key={m.name} hover className="card-sheen p-6 sm:col-span-2">
+                  <div className="flex items-start gap-4">
+                    <span className="inline-grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-line bg-raised text-brandtext transition-colors group-hover:border-brand-400/30 group-hover:bg-brand-500/15">
+                      <Icon className="h-6 w-6">{iconOf(m.icon)}</Icon>
+                    </span>
+                    <div>
+                      <h3 className="font-display text-base font-semibold text-strong sm:text-lg">{m.name}</h3>
+                      <p className="mt-1.5 text-[13px] leading-6 text-faint sm:text-sm">{m.desc}</p>
+                    </div>
+                  </div>
+                </Card>
+              ) : (
+                <Card key={m.name} hover className="card-sheen p-5">
+                  <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-raised text-brandtext transition-colors group-hover:border-brand-400/30 group-hover:bg-brand-500/15">
+                    <Icon>{iconOf(m.icon)}</Icon>
+                  </span>
+                  <h3 className="mt-4 font-display text-sm font-semibold text-strong sm:text-base">{m.name}</h3>
+                  <p className="mt-1 text-xs leading-5 text-faint sm:text-[13px] sm:leading-6">{m.desc}</p>
+                </Card>
+              )
+            )}
           </div>
         </section>
       )}
@@ -419,16 +443,13 @@ export default async function HomePage() {
           <SectionHead badge="AI 原生" title="AI 时代的业务系统，不只是给人用的" desc="标准协议 × 开放接口 × AI 引擎可见" />
           <div className="grid gap-4 md:grid-cols-3">
             {AI_CARDS.map((a) => (
-              <div
-                key={a.name}
-                className="group rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"
-              >
+              <Card key={a.name} hover className="card-sheen p-5">
                 <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-raised text-brandtext transition-colors group-hover:border-brand-400/30 group-hover:bg-brand-500/15">
                   <Icon>{ICONS[a.icon]}</Icon>
                 </span>
                 <h3 className="mt-4 font-display text-sm font-semibold text-strong sm:text-base">{a.name}</h3>
                 <p className="mt-1 text-xs leading-5 text-faint sm:text-[13px] sm:leading-6">{a.desc}</p>
-              </div>
+              </Card>
             ))}
           </div>
           <div className="mt-6 rounded-xl border border-line bg-surface px-5 py-4 text-xs leading-6 text-muted">
@@ -447,25 +468,19 @@ export default async function HomePage() {
         />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {SERVICES.map((s) => (
-            <div
-              key={s.name}
-              className="group rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-raised hover:shadow-card-hover"
-            >
+            <Card key={s.name} hover className="card-sheen p-5">
               <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-raised text-brandtext transition-colors group-hover:border-brand-400/30 group-hover:bg-brand-500/15">
                 <Icon>{ICONS[s.icon]}</Icon>
               </span>
               <h3 className="mt-4 font-display text-sm font-semibold text-strong sm:text-base">{s.name}</h3>
               <p className="mt-1 text-xs leading-5 text-faint sm:text-[13px] sm:leading-6">{s.desc}</p>
-            </div>
+            </Card>
           ))}
         </div>
         <div className="mt-8 text-center">
-          <Link
-            href="/services"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-5 py-2.5 text-sm font-medium text-normal no-underline transition-colors hover:border-brand-400/40 hover:text-brandtext"
-          >
-            查看各服务的做法、价格与周期 →
-          </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/services">查看各服务的做法、价格与周期 →</Link>
+          </Button>
         </div>
       </section>
 
@@ -479,13 +494,10 @@ export default async function HomePage() {
           />
           <div className="grid gap-5 md:grid-cols-3">
             {PRICING.map((p) => (
-              <div
+              <Card
                 key={p.name}
-                className={`flex flex-col rounded-2xl border p-6 shadow-card backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 ${
-                  p.highlight
-                    ? "border-brand-400/40 bg-surface shadow-glow-sm hover:shadow-glow"
-                    : "border-line bg-surface hover:border-brand-400/20 hover:shadow-card-hover"
-                }`}
+                hover
+                className={`card-sheen flex flex-col p-6${p.highlight ? " border-brand-400/40 shadow-glow-sm" : ""}`}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="font-display text-base font-semibold text-strong">{p.name}</h3>
@@ -510,17 +522,10 @@ export default async function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/contact"
-                  className={`mt-6 rounded-lg px-5 py-2.5 text-center text-sm font-semibold no-underline transition-all hover:-translate-y-0.5 ${
-                    p.highlight
-                      ? "bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-glow-sm hover:shadow-glow"
-                      : "border border-line bg-raised text-normal hover:border-brand-400/40 hover:text-strong"
-                  }`}
-                >
-                  获取报价
-                </Link>
-              </div>
+                <Button asChild variant={p.highlight ? "default" : "secondary"} className="mt-6 w-full">
+                  <Link href="/contact">获取报价</Link>
+                </Button>
+              </Card>
             ))}
           </div>
         </div>
@@ -552,6 +557,30 @@ export default async function HomePage() {
             ) : (
               <EmptyState text="暂无合作方数据" />
             )}
+          </div>
+        </section>
+      )}
+
+      {/* 客户评价: 大引号卡(站点配置 testimonials_json 驱动, 空不渲染) */}
+      {testimonials.length > 0 && (
+        <section className="border-y border-line bg-alt py-20 sm:py-24">
+          <div className="container">
+            <SectionHead badge="客户评价" title="他们这样说" desc="来自真实合作客户的反馈" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t) => (
+                <Card key={t.name} hover className="card-sheen p-6">
+                  <span className="font-display text-5xl leading-none text-brandtext/40" aria-hidden="true">
+                    ❝
+                  </span>
+                  <p className="mt-3 text-sm leading-7 text-normal">{t.quote}</p>
+                  <p className="mt-4 text-xs text-faint">
+                    <span className="font-medium text-strong">{t.name}</span>
+                    {t.title ? ` · ${t.title}` : ""}
+                    {t.company ? ` · ${t.company}` : ""}
+                  </p>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -599,18 +628,12 @@ export default async function HomePage() {
             {ctaSubtitle}
           </p>
           <div className="fade-in-up delay-200 mt-9 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/contact"
-              className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-700 px-8 py-3.5 text-sm font-semibold text-white no-underline shadow-glow-sm transition-all hover:-translate-y-0.5 hover:shadow-glow"
-            >
-              联系我们
-            </Link>
-            <Link
-              href="/products"
-              className="rounded-lg border border-line bg-raised px-8 py-3.5 text-sm font-semibold text-normal no-underline backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/40 hover:text-strong"
-            >
-              先看看产品
-            </Link>
+            <Button asChild>
+              <Link href="/contact">联系我们</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/products">先看看产品</Link>
+            </Button>
           </div>
         </div>
       </section>

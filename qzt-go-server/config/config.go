@@ -307,6 +307,11 @@ type OSSConfig struct {
 	PrivateBucketName string `mapstructure:"private_bucket_name"`
 	// PrivateCustomDomain 私有桶自定义域名（一般留空，签名 URL 直接走 OSS 源站）。
 	PrivateCustomDomain string `mapstructure:"private_custom_domain"`
+	// Region OSS 地域（如 cn-guangzhou）。signature_version=v4 时必填（V4 签名参与计算）。
+	Region string `mapstructure:"region"`
+	// SignatureVersion OSS 请求签名版本（v1/v4，空=v1 兼容默认）。
+	// 阿里云 2025 年后新开通账号默认禁用 V1 签名，须配 v4。
+	SignatureVersion string `mapstructure:"signature_version"`
 }
 
 // Get 获取当前配置（线程安全）。必须在 Init 之后调用，否则 panic。

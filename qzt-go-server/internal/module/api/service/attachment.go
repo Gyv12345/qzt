@@ -44,6 +44,28 @@ func (s *AttachmentService) List(ctx context.Context, bizType string, resourceID
 	return s.repo.ListByResource(ctx, bizType, resourceID)
 }
 
+// CopyResourceAttachments 把源业务实体的附件记录复制到目标实体(转化场景:线索转客户)。
+// 只复制元数据记录,存储文件共享不复制物理文件;源记录保留,转化前后两侧均可查看。
+// 返回复制的条数。密钥类规则: uploader 沿用原上传人(记录真实归属)。
+func (s *AttachmentService) CopyResourceAttachments(ctx context.Context, fromBiz string, fromID uint, toBiz string, toID uint) (int, error) {
+	list, err := s.List(ctx, fromBiz, fromID)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for i := range list {
+		cp := list[i]
+		cp.ID = 0
+		cp.BizType = strings.ToUpper(strings.TrimSpace(toBiz))
+		cp.ResourceID = toID
+		if err := s.repo.Create(ctx, &cp); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
+}
+
 // Create 落库一条附件记录。uploaderID 为当前登录用户。
 func (s *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest, uploaderID uint) (*model.SysAttachment, error) {
 	visibility := strings.TrimSpace(req.Visibility)

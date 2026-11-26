@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Button, Descriptions, Drawer, Spin, Table, Tabs, type TableProps } from 'antd'
+import { Button, Descriptions, Drawer, Spin, Table, Tabs, Tag, type TableProps } from 'antd'
 import AttachmentsPanel from '../../../components/AttachmentsPanel'
 import { DictTag } from '../../../components/DictSelect'
+import FollowPanel from '../customer/FollowPanel'
 import { getOpportunity, getOpportunityStageHistory } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type { CrmOpportunity, CrmStageRecord } from '../../../types/crm'
@@ -17,7 +18,7 @@ interface DetailDrawerProps {
 }
 
 /**
- * 商机详情抽屉:基本信息 + 阶段历史。
+ * 商机详情抽屉:基本信息 + 跟进记录 + 阶段历史 + 附件。
  * 客户字段可点击,在新标签页打开客户列表页(避免与客户抽屉形成循环嵌套:
  * 客户→商机是抽屉内单向下钻,商机→客户走整页,拓扑保持 DAG)。
  */
@@ -52,19 +53,34 @@ export default function DetailDrawer({ opportunityId, customerName, open, onClos
     {
       title: '原阶段',
       dataIndex: 'from_stage',
+      width: 110,
       render: (v: string) => (v ? <DictTag code="OPPORTUNITY_STAGE" value={v} /> : '新建'),
     },
     {
       title: '新阶段',
       dataIndex: 'to_stage',
+      width: 110,
       render: (v: string) => <DictTag code="OPPORTUNITY_STAGE" value={v} />,
     },
     {
       title: '操作人',
       dataIndex: 'operator_id',
+      width: 100,
       render: (v: number) => nickname(v),
     },
-    { title: '原因', dataIndex: 'reason', render: (v: string) => v || '-' },
+    { title: '原因', dataIndex: 'reason', width: 160, render: (v: string) => v || '-' },
+    {
+      title: '输单原因',
+      dataIndex: 'lost_reason',
+      width: 130,
+      render: (v: string) => <DictTag code="OPPORTUNITY_LOST_REASON" value={v} />,
+    },
+    {
+      title: '流转时间',
+      dataIndex: 'created_at',
+      width: 170,
+      render: (v: string | null) => v || '-',
+    },
   ]
 
   return (
@@ -117,6 +133,19 @@ export default function DetailDrawer({ opportunityId, customerName, open, onClos
                         children: <DictTag code="OPPORTUNITY_STAGE" value={o.stage} />,
                       },
                       {
+                        key: 'days_in_stage',
+                        label: '停留天数',
+                        children:
+                          o.days_in_stage === null || o.days_in_stage === undefined
+                            ? '未记录'
+                            : `${o.days_in_stage} 天`,
+                      },
+                      {
+                        key: 'is_stagnant',
+                        label: '阶段状态',
+                        children: o.is_stagnant ? <Tag color="warning">停滞</Tag> : '-',
+                      },
+                      {
                         key: 'probability',
                         label: '成交概率',
                         children:
@@ -143,6 +172,11 @@ export default function DetailDrawer({ opportunityId, customerName, open, onClos
                 ),
               },
               {
+                key: 'follow',
+                label: '跟进',
+                children: <FollowPanel opportunityId={o.id} customerId={o.customer_id} />,
+              },
+              {
                 key: 'history',
                 label: '阶段历史',
                 children: (
@@ -152,6 +186,7 @@ export default function DetailDrawer({ opportunityId, customerName, open, onClos
                     loading={historyLoading}
                     dataSource={history}
                     columns={historyColumns}
+                    scroll={{ x: 780 }}
                     pagination={false}
                   />
                 ),

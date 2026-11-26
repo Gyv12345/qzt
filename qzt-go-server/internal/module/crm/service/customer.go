@@ -203,6 +203,9 @@ func (s *CustomerService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmCu
 	if err != nil {
 		return nil, nil, repository.NotFoundOr(err, "客户不存在")
 	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return nil, nil, err
+	}
 	fields, _ := s.fieldSvc.GetCustomerValues(ctx, formatResourceID(id))
 	return customer, fields, nil
 }
@@ -222,6 +225,9 @@ func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustom
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return repository.NotFoundOr(err, "客户不存在")
+	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return err
 	}
 	// 名称唯一性(排除自身)
 	if req.Name != customer.Name {
@@ -261,8 +267,12 @@ func (s *CustomerService) Update(ctx context.Context, id uint, req *UpdateCustom
 
 // Delete 删除客户(级联软删除联系人/协作,清自定义字段值)。
 func (s *CustomerService) Delete(ctx context.Context, id uint) error {
-	if _, err := s.repo.GetByID(ctx, id); err != nil {
+	customer, err := s.repo.GetByID(ctx, id)
+	if err != nil {
 		return repository.NotFoundOr(err, "客户不存在")
+	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return err
 	}
 	// 校验业务引用:存在关联合同/商机/工单/跟进/项目/销售单等则拒绝删除,避免悬空引用。
 	if err := rejectIfReferenced(ctx, id); err != nil {
@@ -359,6 +369,9 @@ func (s *CustomerService) ReleaseToPool(ctx context.Context, id, poolID, operato
 	if err != nil {
 		return repository.NotFoundOr(err, "客户不存在")
 	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return err
+	}
 	if customer.InPool == crmmodel.InPoolPublic {
 		return errors.New("客户已在公海")
 	}
@@ -383,6 +396,9 @@ func (s *CustomerService) PickFromPool(ctx context.Context, id, operatorID uint)
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return repository.NotFoundOr(err, "客户不存在")
+	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return err
 	}
 	if customer.InPool != crmmodel.InPoolPublic {
 		return errors.New("客户不在公海")
@@ -410,6 +426,9 @@ func (s *CustomerService) Transfer(ctx context.Context, id, toUserID, operatorID
 	if err != nil {
 		return repository.NotFoundOr(err, "客户不存在")
 	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return err
+	}
 	if customer.InPool == crmmodel.InPoolPublic {
 		return errors.New("公海客户不可直接转移,请先领取")
 	}
@@ -427,6 +446,13 @@ func (s *CustomerService) Transfer(ctx context.Context, id, toUserID, operatorID
 
 // OwnerHistory 客户归属变更历史。
 func (s *CustomerService) OwnerHistory(ctx context.Context, id uint) ([]crmmodel.CrmCustomerOwnerHistory, error) {
+	customer, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, repository.NotFoundOr(err, "客户不存在")
+	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return nil, err
+	}
 	return s.historyRepo.ListByCustomer(ctx, id)
 }
 
@@ -435,6 +461,9 @@ func (s *CustomerService) UpdateFollow(ctx context.Context, id, followerID uint,
 	customer, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil // 客户可能不存在(关联可选),静默忽略
+	}
+	if err := checkOwnerScope(ctx, customer.OwnerID); err != nil {
+		return err
 	}
 	customer.FollowerID = &followerID
 	customer.FollowTime = xtime.NewNullDateTimeFromTime(followTime)

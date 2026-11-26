@@ -107,7 +107,7 @@ export default function ShareReceive() {
             {meta?.file_name}
           </Typography.Title>
         </div>
-        <div style={{ display: 'grid', gap: 6, color: '#666', margin: '16px 0 20px' }}>
+        <div style={{ display: 'grid', gap: 6, color: 'var(--ant-color-text-secondary)', margin: '16px 0 20px' }}>
           <span>大小:{formatSize(meta?.size || 0)}</span>
           <span>有效期至:{(meta?.expire_at || '').slice(0, 16)}</span>
           <span>已被下载 {meta?.download_count ?? 0} 次</span>

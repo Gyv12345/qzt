@@ -119,6 +119,8 @@ export interface SiteInfo {
   hero_badge?: string;
   hero_title?: string;
   hero_subtitle?: string;
+  /** 首页 Hero 产品截图 URL(留空回退内置默认图) */
+  hero_shot_url?: string;
   favicon_url?: string;
   keywords?: string;
   geo_region?: string;
@@ -132,6 +134,8 @@ export interface SiteInfo {
   modules_badge?: string;
   modules_title?: string;
   modules_desc?: string;
+  /** 首页客户评价(JSON: [{quote,name,title,company}],空不渲染) */
+  testimonials_json?: string;
   cta_title?: string;
   cta_highlight?: string;
   cta_subtitle?: string;
@@ -150,6 +154,14 @@ export interface ModuleEntry {
   desc?: string;
   pills?: string[];
   big?: boolean;
+}
+
+/** 首页客户评价条目(testimonials_json 解析结果) */
+export interface TestimonialEntry {
+  quote: string;
+  name: string;
+  title?: string;
+  company?: string;
 }
 
 // ── 首页板块配置(来自 /system/public/homepage-config) ──

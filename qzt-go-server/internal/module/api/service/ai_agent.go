@@ -51,6 +51,9 @@ var (
 // AgentRunResponse 场景智能体运行结果。
 type AgentRunResponse struct {
 	Output string `json:"output"`
+	// Empty 为 true 表示没有可分析的数据:Output 只是一句说明而不是结果。
+	// 前端据此隐藏「复制 / 重新生成 / 填入表单」等操作,按提示样式展示。
+	Empty bool `json:"empty"`
 }
 
 // agentFormLabels 审批表单类型 → 中文标签(与 approval/service 的 formTypeLabel 同源;
@@ -100,8 +103,16 @@ var agentTaskActionLabels = map[string]string{
 	"REJECT":  "驳回",
 }
 
+// rbacPathSalesTrend 经营洞察的权限口径:洞察是全公司口径(客户总数/合同金额/回款合计),
+// 与 BI 的销售趋势、业绩排行属同一类数据——能看销售趋势的角色才能生成。
+const rbacPathSalesTrend = "/api/dashboard/sales-trend"
+
+// ErrAIInsightForbidden 无权生成经营洞察(没有销售趋势的查看权限)。
+var ErrAIInsightForbidden = errors.New("无权生成经营洞察:需要销售趋势的查看权限")
+
 // RunAgent 运行场景智能体:采集真实数据 → 构建 prompt → 统一 LLM 网关 → 返回 markdown。
-func RunAgent(ctx context.Context, userID uint, scenario string) (*AgentRunResponse, error) {
+// roleCodes 用于经营洞察的权限校验;审批助手与日报只取调用人本人的数据,不需要。
+func RunAgent(ctx context.Context, userID uint, roleCodes []string, scenario string) (*AgentRunResponse, error) {
 	if !AIChatEnabled(ctx) {
 		return nil, ErrAIChatDisabled
 	}
@@ -109,9 +120,12 @@ func RunAgent(ctx context.Context, userID uint, scenario string) (*AgentRunRespo
 	var prompt string
 	switch scenario {
 	case ScenarioInsight:
+		if !canReadPath(roleCodes, rbacPathSalesTrend) {
+			return nil, ErrAIInsightForbidden
+		}
 		d := collectInsight(ctx)
 		if d.isEmpty() {
-			return &AgentRunResponse{Output: msgNoInsightData}, nil
+			return &AgentRunResponse{Output: msgNoInsightData, Empty: true}, nil
 		}
 		prompt = buildInsightPrompt(d)
 	case ScenarioApprovalSummary:
@@ -120,13 +134,13 @@ func RunAgent(ctx context.Context, userID uint, scenario string) (*AgentRunRespo
 			return nil, err
 		}
 		if d.isEmpty() {
-			return &AgentRunResponse{Output: msgNoApprovalTodo}, nil
+			return &AgentRunResponse{Output: msgNoApprovalTodo, Empty: true}, nil
 		}
 		prompt = buildApprovalSummaryPrompt(d)
 	case ScenarioDailyReport:
 		d := collectDaily(ctx, userID)
 		if d.isEmpty() {
-			return &AgentRunResponse{Output: msgNoDailyData}, nil
+			return &AgentRunResponse{Output: msgNoDailyData, Empty: true}, nil
 		}
 		prompt = buildDailyReportPrompt(d)
 	default:

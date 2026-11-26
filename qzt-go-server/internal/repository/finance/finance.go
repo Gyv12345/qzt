@@ -115,7 +115,7 @@ func (r *VoucherRepo) PageList(ctx context.Context, page, pageSize int, startDat
 // 过滤),利润表/资产负债表用。startDate/endDate 为 yyyy-MM-dd,可空。
 func (r *VoucherRepo) SumConfirmedByAccount(ctx context.Context, startDate, endDate, accType, direction string) (decimal.Decimal, error) {
 	var amount decimal.Decimal
-	db := repoDB(ctx).Table("fin_voucher").Where("status = ?", finmodel.VoucherStatusConfirmed)
+	db := repoDB(ctx).Table("fin_voucher").Where("fin_voucher.status = ?", finmodel.VoucherStatusConfirmed)
 	if startDate != "" {
 		db = db.Where("DATE(voucher_date) >= ?", startDate)
 	}

@@ -93,10 +93,10 @@ export default function PropEditor({ field, formKey, onSaved }: PropEditorProps)
     <div
       style={{
         flex: 1,
-        background: '#fff',
+        background: 'var(--ant-color-bg-container)',
         borderRadius: 8,
         padding: 16,
-        border: '1px solid #f0f0f0',
+        border: '1px solid var(--ant-color-split)',
       }}
     >
       <strong style={{ display: 'block', marginBottom: 12 }}>

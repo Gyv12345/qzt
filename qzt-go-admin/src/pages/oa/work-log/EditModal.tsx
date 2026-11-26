@@ -9,6 +9,8 @@ interface EditModalProps {
   editingId: number | null
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
+  /** 新建时的预填内容(如 AI 日报拆出的「今日完成」「明日计划」),只在新建时生效 */
+  prefill?: { content?: string; plan?: string }
 }
 
 interface FormValues {
@@ -19,7 +21,7 @@ interface FormValues {
   problems?: string
 }
 
-export default function WorkLogEditModal({ open, editingId, onOpenChange, onSuccess }: EditModalProps) {
+export default function WorkLogEditModal({ open, editingId, onOpenChange, onSuccess, prefill }: EditModalProps) {
   const { message } = App.useApp()
   const [form] = ProForm.useForm<FormValues>()
 
@@ -40,8 +42,10 @@ export default function WorkLogEditModal({ open, editingId, onOpenChange, onSucc
       // 默认填今天
       const today = new Date().toISOString().slice(0, 10)
       form.setFieldsValue({ log_type: 'DAILY', log_date: today })
+      // 新建时带入了预填内容(如 AI 日报),覆盖到对应字段
+      if (prefill) form.setFieldsValue({ content: prefill.content, plan: prefill.plan })
     }
-  }, [open, editingId, form])
+  }, [open, editingId, form, prefill])
 
   const handleSubmit = async (values: FormValues) => {
     const payload = {

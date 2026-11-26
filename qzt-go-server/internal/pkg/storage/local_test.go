@@ -163,6 +163,49 @@ func TestLocalSaveChecksActualSize(t *testing.T) {
 	}
 }
 
+func TestLocalListRejectsTraversalPrefix(t *testing.T) {
+	local, err := NewLocal(LocalConfig{
+		Directory:    t.TempDir(),
+		PublicURL:    "/uploads",
+		MaxBytes:     1024,
+		AllowedTypes: testAllowedTypes(),
+	})
+	if err != nil {
+		t.Fatalf("NewLocal() error = %v", err)
+	}
+
+	// 非法前缀:裸 ../、前缀 ../、中段 ../ 与 ./ 段、反斜杠变体,全部拒绝
+	for _, prefix := range []string{
+		"..",
+		"../secret",
+		"2026/../../etc",
+		"media/..",
+		`..\secret`,
+		"media/./x",
+	} {
+		t.Run(prefix, func(t *testing.T) {
+			if _, err := local.List(prefix, 100); !errors.Is(err, ErrInvalidFolder) {
+				t.Fatalf("List(%q) error = %v, want ErrInvalidFolder", prefix, err)
+			}
+		})
+	}
+
+	// 合法前缀仍可用:先放文件再列举
+	if _, err := local.Save(newFileHeader(t, "a.png", "image/png", []byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a}), "2026/11"); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+	got, err := local.List("2026", 100)
+	if err != nil {
+		t.Fatalf("List(2026) error = %v", err)
+	}
+	if len(got) != 1 {
+		t.Fatalf("List(2026) len = %d, want 1", len(got))
+	}
+	if _, err := local.List("", 100); err != nil {
+		t.Fatalf("List(\"\") error = %v", err)
+	}
+}
+
 func TestLocalSaveRejectsNilFile(t *testing.T) {
 	local, err := NewLocal(LocalConfig{
 		Directory:    t.TempDir(),

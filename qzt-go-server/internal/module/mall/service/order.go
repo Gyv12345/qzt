@@ -25,30 +25,44 @@ import (
 // order.go 商城订单服务。
 // 垂直商城定位:商品=crm_product 上架商品(价格 standard_price);下单自动生成
 // PSI 销售单(复用 psisvc.SalesService.Create,散客客户按手机号在商城域内复用)。
+// 营销计价顺序(服务端权威,不信任客户端价格):
+//   1) 每行按 SKU 售价;2) 命中限时特价的商品整行覆盖为活动价;
+//   3) 汇总应付合计;4) 传券码则校验并抵扣(discount 上限=应付合计);
+//   5) 事务内插单+明细+条件核销券,取消订单条件回退券。
 
 // MallService 商城服务。
 type MallService struct {
-	orderRepo *mallrepo.OrderRepo
-	itemRepo  *mallrepo.ItemRepo
-	custRepo  *crmrepo.CustomerRepo
-	prodRepo  *crmrepo.ProductRepo
-	skuRepo   *crmrepo.ProductSkuRepo
-	whRepo    *psirepo.WarehouseRepo
-	salesRepo *psirepo.SalesOrderRepo
-	salesSvc  *psisvc.SalesService
+	orderRepo      *mallrepo.OrderRepo
+	itemRepo       *mallrepo.ItemRepo
+	custRepo       *crmrepo.CustomerRepo
+	prodRepo       *crmrepo.ProductRepo
+	skuRepo        *crmrepo.ProductSkuRepo
+	whRepo         *psirepo.WarehouseRepo
+	salesRepo      *psirepo.SalesOrderRepo
+	salesSvc       *psisvc.SalesService
+	promoRepo      *mallrepo.PromotionRepo
+	couponRepo     *mallrepo.CouponRepo
+	userCouponRepo *mallrepo.UserCouponRepo
+	promoSvc       *PromotionService
+	couponSvc      *CouponService
 }
 
 // NewMallService 构造。
 func NewMallService() *MallService {
 	return &MallService{
-		orderRepo: mallrepo.NewOrderRepo(),
-		itemRepo:  mallrepo.NewItemRepo(),
-		custRepo:  crmrepo.NewCustomerRepo(),
-		prodRepo:  crmrepo.NewProductRepo(),
-		skuRepo:   crmrepo.NewProductSkuRepo(),
-		whRepo:    psirepo.NewWarehouseRepo(),
-		salesRepo: psirepo.NewSalesOrderRepo(),
-		salesSvc:  psisvc.NewSalesService(),
+		orderRepo:      mallrepo.NewOrderRepo(),
+		itemRepo:       mallrepo.NewItemRepo(),
+		custRepo:       crmrepo.NewCustomerRepo(),
+		prodRepo:       crmrepo.NewProductRepo(),
+		skuRepo:        crmrepo.NewProductSkuRepo(),
+		whRepo:         psirepo.NewWarehouseRepo(),
+		salesRepo:      psirepo.NewSalesOrderRepo(),
+		salesSvc:       psisvc.NewSalesService(),
+		promoRepo:      mallrepo.NewPromotionRepo(),
+		couponRepo:     mallrepo.NewCouponRepo(),
+		userCouponRepo: mallrepo.NewUserCouponRepo(),
+		promoSvc:       NewPromotionService(),
+		couponSvc:      NewCouponService(),
 	}
 }
 
@@ -76,6 +90,10 @@ type MallGoodsDTO struct {
 	StandardPrice decimal.Decimal `json:"standard_price"`
 	ImageURL      string          `json:"image_url"`
 	Description   string          `json:"description"`
+	// 限时特价:当前生效活动价(无活动为 null);original_price 为原价
+	// (最低 SKU 价,无 SKU 商品回落标准价)。展示价与下单计价共用同一查询口径。
+	PromoPrice    *decimal.Decimal `json:"promo_price"`
+	OriginalPrice decimal.Decimal  `json:"original_price"`
 	// 全仓库存汇总(只做"有货/无货"参考,不承诺精确)
 	StockQty decimal.Decimal `json:"stock_qty"`
 	InStock  bool            `json:"in_stock"`
@@ -140,6 +158,9 @@ func (s *MallService) PublicGoods(ctx context.Context) ([]MallGoodsDTO, error) {
 		})
 	}
 
+	// 限时特价批查(一次查当前生效活动,按商品取最低活动价)
+	promoByProduct := s.promoSvc.ActivePricesByProducts(ctx, productIDs)
+
 	out := make([]MallGoodsDTO, 0, len(products))
 	for _, p := range products {
 		skuList := skusByProduct[p.ID]
@@ -147,15 +168,29 @@ func (s *MallService) PublicGoods(ctx context.Context) ([]MallGoodsDTO, error) {
 			skuList = []MallSkuDTO{}
 		}
 		var qty decimal.Decimal
-		for _, sku := range skuList {
+		var original decimal.Decimal
+		for i, sku := range skuList {
 			qty = qty.Add(sku.StockQty)
+			// 原价 = 最低 SKU 价;无 SKU 商品回落标准价
+			if i == 0 || sku.Price.LessThan(original) {
+				original = sku.Price
+			}
 		}
-		out = append(out, MallGoodsDTO{
+		if len(skuList) == 0 {
+			original = p.StandardPrice
+		}
+		dto := MallGoodsDTO{
 			ID: p.ID, Name: p.Name, ProductNo: p.ProductNo, Category: p.Category,
 			Unit: p.Unit, StandardPrice: p.StandardPrice, ImageURL: p.ImageURL,
 			Description: p.Description, StockQty: qty, InStock: qty.IsPositive(),
-			Skus: skuList,
-		})
+			OriginalPrice: original,
+			Skus:          skuList,
+		}
+		if promo, ok := promoByProduct[p.ID]; ok {
+			price := promo // 需要局部变量取地址,避免循环变量逃逸歧义
+			dto.PromoPrice = &price
+		}
+		out = append(out, dto)
 	}
 	return out, nil
 }
@@ -175,24 +210,31 @@ type CreateOrderRequest struct {
 	ContactPhone string                   `json:"contact_phone" binding:"required,max=30"`
 	Address      string                   `json:"address" binding:"required,max=255"`
 	Remark       string                   `json:"remark" binding:"max=500"`
+	// 优惠券码(可选)。仅登录买家可用;匿名传券码直接报错。
+	CouponNo string `json:"coupon_no" binding:"max=32"`
 }
 
 // CreateOrderResult 下单结果。
 type CreateOrderResult struct {
 	OrderNo     string          `json:"order_no"`
 	TotalAmount decimal.Decimal `json:"total_amount"`
-	Status      int8            `json:"status"`
+	// 优惠券抵扣金额(无券为 0)
+	DiscountAmount decimal.Decimal `json:"discount_amount"`
+	Status         int8            `json:"status"`
 	// 生成的 PSI 销售单号(无默认仓库时为空,后台可手动补生成)
 	SalesOrderNo string `json:"sales_order_no"`
 }
 
 var phoneRegexp = regexp.MustCompile(`^1[3-9]\d{9}$`)
 
-// CreateOrder 公开下单:校验 → 建商城订单(价格快照)→ 自动生成 PSI 销售单。
-func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) (*CreateOrderResult, error) {
+// CreateOrder 公开下单:校验 → 计价(SKU 价 → 限时特价覆盖 → 用券抵扣)→
+// 建商城订单(价格快照+核销券)→ 自动生成 PSI 销售单。
+// buyerID=0 表示匿名下单(此时传券码直接报错)。
+func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest, buyerID uint) (*CreateOrderResult, error) {
 	req.ContactName = strings.TrimSpace(req.ContactName)
 	req.ContactPhone = strings.TrimSpace(req.ContactPhone)
 	req.Address = strings.TrimSpace(req.Address)
+	req.CouponNo = strings.TrimSpace(req.CouponNo)
 	if !phoneRegexp.MatchString(req.ContactPhone) {
 		return nil, errors.New("手机号格式不正确")
 	}
@@ -236,7 +278,8 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 		prodByID[products[i].ID] = &products[i]
 	}
 
-	// 计价(按 SKU 售价快照;sku_id=0 时解析商品默认规格)
+	// 计价:①每行按 SKU 售价 → ②命中限时特价的商品整行覆盖为活动价(服务端权威)
+	promoByProduct := s.promoSvc.ActivePricesByProducts(ctx, ids)
 	var totalQty, totalAmt decimal.Decimal
 	items := make([]mallmodel.MallOrderItem, 0, len(req.Items))
 	for _, it := range req.Items {
@@ -245,27 +288,50 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 		if err != nil {
 			return nil, errors.New("商品「" + p.Name + "」" + err.Error())
 		}
-		amt := it.Quantity.Mul(sku.Price)
+		unit := sku.Price
+		if promo, ok := promoByProduct[it.ProductID]; ok {
+			unit = promo // 限时特价生效,整行覆盖为活动价
+		}
+		amt := it.Quantity.Mul(unit)
 		totalQty = totalQty.Add(it.Quantity)
 		totalAmt = totalAmt.Add(amt)
 		items = append(items, mallmodel.MallOrderItem{
 			ProductID: p.ID, SkuID: sku.ID, ProductName: p.Name, Spec: sku.Spec,
-			Quantity: it.Quantity, UnitPrice: sku.Price, Amount: amt,
+			Quantity: it.Quantity, UnitPrice: unit, Amount: amt,
 		})
 	}
 	if totalAmt.GreaterThan(decimal.NewFromInt(1_000_000)) {
 		return nil, errors.New("订单金额超出上限,请联系客服下单")
 	}
 
+	// ③优惠券抵扣:登录买家身份才可用券;归属本人/未使用/模板启用/时间窗/满减门槛
+	// 逐项校验;抵扣额封顶=应付合计。校验失败返回可读话术,引导用户去掉券码重下。
+	var discount decimal.Decimal
+	if req.CouponNo != "" {
+		if buyerID == 0 {
+			return nil, errors.New("请登录后使用优惠券")
+		}
+		var err error
+		discount, err = s.couponSvc.ValidateForOrder(ctx, req.CouponNo, buyerID, totalAmt)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// 应付 = 合计 - 优惠;订单 TotalAmount 语义为「应付总额(已扣券)」,
+	// DiscountAmount 单独记录优惠额(合计 = TotalAmount + DiscountAmount)。
+	payAmt := totalAmt.Sub(discount)
+
 	order := &mallmodel.MallOrder{
-		OrderNo:       genOrderNo("MO"),
-		ContactName:   req.ContactName,
-		ContactPhone:  req.ContactPhone,
-		Address:       req.Address,
-		Remark:        req.Remark,
-		TotalQuantity: totalQty,
-		TotalAmount:   totalAmt,
-		Status:        mallmodel.OrderStatusPending,
+		OrderNo:        genOrderNo("MO"),
+		ContactName:    req.ContactName,
+		ContactPhone:   req.ContactPhone,
+		Address:        req.Address,
+		Remark:         req.Remark,
+		TotalQuantity:  totalQty,
+		TotalAmount:    payAmt,
+		DiscountAmount: discount,
+		CouponNo:       req.CouponNo,
+		Status:         mallmodel.OrderStatusPending,
 	}
 
 	err = repository.Transaction(ctx, func(ctx context.Context) error {
@@ -285,6 +351,16 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 				return err
 			}
 		}
+		// 条件核销券(归属本人+未使用才命中);失败回滚整单
+		if req.CouponNo != "" {
+			ok, err := s.userCouponRepo.Redeem(ctx, req.CouponNo, buyerID, order.OrderNo)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return errors.New("优惠券不可用,请去掉券码后重下")
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -293,9 +369,10 @@ func (s *MallService) CreateOrder(ctx context.Context, req *CreateOrderRequest) 
 
 	// 自动生成 PSI 销售单(默认仓库;失败不阻断下单,后台可手动补生成)
 	result := &CreateOrderResult{
-		OrderNo:     order.OrderNo,
-		TotalAmount: order.TotalAmount,
-		Status:      order.Status,
+		OrderNo:        order.OrderNo,
+		TotalAmount:    order.TotalAmount,
+		DiscountAmount: order.DiscountAmount,
+		Status:         order.Status,
 	}
 	if salesNo, ok := s.tryGenerateSalesOrder(ctx, order, items, 0); ok {
 		result.SalesOrderNo = salesNo
@@ -350,11 +427,12 @@ func (s *MallService) tryGenerateSalesOrder(ctx context.Context, order *mallmode
 		})
 	}
 	salesOrder, err := s.salesSvc.Create(ctx, &psisvc.CreateSalesOrderRequest{
-		CustomerID:  *order.CustomerID,
-		WarehouseID: warehouseID,
-		OrderDate:   time.Now().Format("2006-01-02"),
-		Remark:      fmt.Sprintf("商城订单 %s(%s %s)", order.OrderNo, order.ContactName, order.ContactPhone),
-		Items:       salesItems,
+		CustomerID:     *order.CustomerID,
+		WarehouseID:    warehouseID,
+		OrderDate:      time.Now().Format("2006-01-02"),
+		DiscountAmount: order.DiscountAmount, // 优惠券抵扣同步到 PSI 销售单
+		Remark:         fmt.Sprintf("商城订单 %s(%s %s)", order.OrderNo, order.ContactName, order.ContactPhone),
+		Items:          salesItems,
 	}, nil)
 	if err != nil {
 		return "", false
@@ -370,12 +448,13 @@ func (s *MallService) tryGenerateSalesOrder(ctx context.Context, order *mallmode
 
 // PublicOrderDTO 公开订单查询视图(凭订单号,只暴露最少信息)。
 type PublicOrderDTO struct {
-	OrderNo     string               `json:"order_no"`
-	Status      int8                 `json:"status"`
-	StatusLabel string               `json:"status_label"`
-	TotalAmount decimal.Decimal      `json:"total_amount"`
-	Items       []PublicOrderItemDTO `json:"items"`
-	CreatedAt   string               `json:"created_at"`
+	OrderNo        string               `json:"order_no"`
+	Status         int8                 `json:"status"`
+	StatusLabel    string               `json:"status_label"`
+	TotalAmount    decimal.Decimal      `json:"total_amount"`
+	DiscountAmount decimal.Decimal      `json:"discount_amount"`
+	Items          []PublicOrderItemDTO `json:"items"`
+	CreatedAt      string               `json:"created_at"`
 }
 
 // PublicOrderItemDTO 公开订单明细。
@@ -400,12 +479,13 @@ func (s *MallService) GetByOrderNo(ctx context.Context, orderNo string) (*Public
 		return nil, err
 	}
 	dto := &PublicOrderDTO{
-		OrderNo:     order.OrderNo,
-		Status:      order.Status,
-		StatusLabel: OrderStatusLabel(order.Status),
-		TotalAmount: order.TotalAmount,
-		Items:       make([]PublicOrderItemDTO, 0, len(items)),
-		CreatedAt:   order.CreatedAt.String(),
+		OrderNo:        order.OrderNo,
+		Status:         order.Status,
+		StatusLabel:    OrderStatusLabel(order.Status),
+		TotalAmount:    order.TotalAmount,
+		DiscountAmount: order.DiscountAmount,
+		Items:          make([]PublicOrderItemDTO, 0, len(items)),
+		CreatedAt:      order.CreatedAt.String(),
 	}
 	for _, it := range items {
 		dto.Items = append(dto.Items, PublicOrderItemDTO{
@@ -526,6 +606,12 @@ func (s *MallService) UpdateStatus(ctx context.Context, id uint, status int8) er
 				if err := s.salesRepo.Update(ctx, so); err != nil {
 					return err
 				}
+			}
+		}
+		// 取消时回退核销券(仅「已使用 + 核销单号为该单」命中,幂等安全)
+		if status == mallmodel.OrderStatusCancelled && order.CouponNo != "" {
+			if _, err := s.userCouponRepo.Release(ctx, order.CouponNo, order.OrderNo); err != nil {
+				return err
 			}
 		}
 		return nil

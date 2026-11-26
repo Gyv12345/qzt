@@ -79,7 +79,7 @@ export default function ExpenseDetailDrawer({ open, expenseId, onOpenChange }: D
           />
         </>
       ) : (
-        <div style={{ textAlign: 'center', paddingTop: 80, color: '#999' }}>无数据</div>
+        <div style={{ textAlign: 'center', paddingTop: 80, color: 'var(--ant-color-text-tertiary)' }}>无数据</div>
       )}
     </Drawer>
   )

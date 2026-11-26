@@ -26,6 +26,7 @@ import NotificationHandler from '../components/layout/NotificationHandler'
 import LayoutSettings from '../components/layout/LayoutSettings'
 import TabBar from '../components/layout/TabBar'
 import HelpGuide from '../components/layout/HelpGuide'
+import AiFloatChat from '../components/AiFloatChat'
 import NotFound from '../pages/error/404'
 import { buildPageMap } from '../router/pages'
 import { useSettingsStore } from '../stores/settings'
@@ -248,6 +249,30 @@ export default function BasicLayout() {
     )
   }
 
+  // 面包屑:当前页面的模块→分组→页面 导航链(可逐级点击);挪出顶栏,置于内容区顶部左侧,首页与全屏态不显示
+  const breadcrumbNav =
+    !isHome && !contentFullscreen && chain?.module ? (
+      <nav className="qzt-breadcrumb" aria-label="面包屑">
+        <button className="qzt-bc-item" onClick={() => onPrimaryClick(chain.module!)}>
+          {chain.module.name}
+        </button>
+        {chain.group && (
+          <>
+            <span className="qzt-bc-sep">/</span>
+            <button className="qzt-bc-item" onClick={() => setExpandedGroupId(chain.group!.id)}>
+              {chain.group.name}
+            </button>
+          </>
+        )}
+        {chain.leaf && (
+          <>
+            <span className="qzt-bc-sep">/</span>
+            <span className="qzt-bc-item current">{chain.leaf.name}</span>
+          </>
+        )}
+      </nav>
+    ) : null
+
   return (
     <div className={`qzt-layout${contentFullscreen ? ' is-fullscreen' : ''}`}>
       <header className="qzt-header">
@@ -288,33 +313,6 @@ export default function BasicLayout() {
             </button>
           </Dropdown>
         </div>
-
-        {/* 面包屑:当前页面的模块→分组→页面 导航链(可逐级点击);首页与全屏态不显示 */}
-        {!isHome && !contentFullscreen && (
-          <nav className="qzt-breadcrumb" aria-label="面包屑">
-            {chain?.module && (
-              <>
-                <button className="qzt-bc-item" onClick={() => onPrimaryClick(chain.module!)}>
-                  {chain.module.name}
-                </button>
-                {chain.group && (
-                  <>
-                    <span className="qzt-bc-sep">/</span>
-                    <button className="qzt-bc-item" onClick={() => setExpandedGroupId(chain.group!.id)}>
-                      {chain.group.name}
-                    </button>
-                  </>
-                )}
-                {chain.leaf && (
-                  <>
-                    <span className="qzt-bc-sep">/</span>
-                    <span className="qzt-bc-item current">{chain.leaf.name}</span>
-                  </>
-                )}
-              </>
-            )}
-          </nav>
-        )}
 
         <div className="qzt-header-right">
           <Tooltip title={contentFullscreen ? '退出内容全屏(Esc)' : '内容全屏'}>
@@ -422,6 +420,7 @@ export default function BasicLayout() {
           {multiTab && location.pathname !== '/' ? (
             <>
               <TabBar />
+              {breadcrumbNav}
               {/* open 生效前的一帧把当前页临时并入渲染,避免新 Tab 首帧空白 */}
               {(tabs.includes(location.pathname) || location.pathname === '/'
                 ? tabs
@@ -448,11 +447,14 @@ export default function BasicLayout() {
               })}
             </>
           ) : (
-            <ErrorBoundary>
-              <Suspense fallback={pageLoading}>
-                <Outlet />
-              </Suspense>
-            </ErrorBoundary>
+            <>
+              {breadcrumbNav}
+              <ErrorBoundary>
+                <Suspense fallback={pageLoading}>
+                  <Outlet />
+                </Suspense>
+              </ErrorBoundary>
+            </>
           )}
         </main>
         </Watermark>
@@ -520,6 +522,9 @@ export default function BasicLayout() {
           </>
         )}
       </Modal>
+
+      {/* 全局 AI 悬浮球(P34):ai.enabled=0 时组件内部不渲染;/bigscreen 不进本布局天然无球 */}
+      <AiFloatChat />
 
       <NotificationHandler />
     </div>

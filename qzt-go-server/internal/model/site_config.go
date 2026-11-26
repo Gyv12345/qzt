@@ -21,6 +21,8 @@ type SysSiteConfig struct {
 	HeroTitle string `json:"hero_title" gorm:"size:255;comment:首页Hero大标题"`
 	// 首页Hero副标题
 	HeroSubtitle string `json:"hero_subtitle" gorm:"size:500;comment:首页Hero副标题"`
+	// 首页Hero产品截图URL(浏览器拟真框内大图;留空回退内置默认图 /assets/admin-dashboard.png)
+	HeroShotURL string `json:"hero_shot_url" gorm:"size:500;comment:首页Hero产品截图URL"`
 	// 站点描述(SEO meta description)
 	Description string `json:"description" gorm:"size:500;comment:站点描述(SEO meta description)"`
 
@@ -37,6 +39,8 @@ type SysSiteConfig struct {
 	ModulesTitle string `json:"modules_title" gorm:"size:255;comment:首页优势区块标题"`
 	// 首页优势区块副标题
 	ModulesDesc string `json:"modules_desc" gorm:"size:500;comment:首页优势区块副标题"`
+	// 首页客户评价(JSON: [{quote,name,title,company}],空数组/留空不渲染)
+	TestimonialsJSON string `json:"testimonials_json" gorm:"type:text;comment:首页客户评价JSON"`
 	// 首页底部CTA标题(留空回退中性文案)
 	CtaTitle string `json:"cta_title" gorm:"size:255;comment:首页底部CTA标题"`
 	// 首页底部CTA高亮词(渐变渲染,可空)

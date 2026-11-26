@@ -118,6 +118,11 @@ export interface CrmOpportunity {
   expected_close_date: string | null
   stage: string
   probability: number | null
+  stage_entered_at: string | null
+  days_in_stage: number | null
+  is_stagnant: boolean
+  /** 输单原因,字典 OPPORTUNITY_LOST_REASON */
+  lost_reason: string
   owner_id: number | null
   description: string
   created_at: string
@@ -131,6 +136,14 @@ export interface StageDef {
   color?: string
   sort?: number
   probability?: number
+  /** 当前阶段 SOP 说明 */
+  guidance?: string
+  /** 进入下一阶段前必须补齐的字段 */
+  required_fields?: string[]
+  /** 是否要求存在跟进记录 */
+  require_followup?: boolean
+  /** 超过该天数未流转时标记停滞 */
+  stagnant_days?: number
 }
 
 /** 阶段配置(GET /crm/stage-configs/:bizType 返回) */
@@ -146,7 +159,9 @@ export interface StageRecord {
   to_stage: string
   operator_id: number
   reason: string
-  created_at: string
+  /** 输单原因,字典 OPPORTUNITY_LOST_REASON */
+  lost_reason: string
+  created_at: string | null
 }
 
 /** 合同阶段:DRAFT/EXECUTING/COMPLETED/TERMINATED */

@@ -238,6 +238,8 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/leads/:id/pick", leadHandler.PickFromPool)
 		auth.POST("/leads/:id/transfer", DataScopeGuard("lead"), leadHandler.Transfer)
 		auth.POST("/leads/:id/convert", DataScopeGuard("lead"), leadHandler.Convert)
+		// 批量分配(body 传 ids,无法走 :id 数据权限守卫,访问校验在 service 循环内逐条做)
+		auth.POST("/leads/batch-assign", leadHandler.BatchAssign)
 
 		// 线索公海池
 		auth.GET("/lead-pools", leadPoolHandler.ListPools)

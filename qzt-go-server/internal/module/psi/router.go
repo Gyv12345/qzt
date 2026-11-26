@@ -25,25 +25,23 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 	reportHandler := handler.NewReportHandler()
 	assetHandler := handler.NewAssetHandler()
 	stocktakeHandler := handler.NewStocktakeHandler()
+	assetStocktakeHandler := handler.NewAssetStocktakeHandler()
 	transferHandler := handler.NewTransferHandler()
-
-	// 已认证路由(仅 JWT,无 RBAC):库存结余、收发明细、报表等查询类。
-	// 静态路径须先于 :id 注册,避免与参数路由冲突。
-	authenticated := rg.Group("", middleware.Auth(app.JwtManager))
-	{
-		// 库存结余与收发明细(查询)
-		authenticated.GET("/stock", stockHandler.List)
-		authenticated.GET("/stock/movements", stockHandler.Movements)
-
-		// 报表(只读)
-		authenticated.GET("/reports/sales-ranking", reportHandler.SalesRanking)
-		authenticated.GET("/reports/purchase-summary", reportHandler.PurchaseSummary)
-	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin RBAC):CRUD 与写操作。
 	// OperationLog 位于 auth 与 RBAC 之间,使权限拒绝(403)也被审计。
+	// R65 授权面收窄(2026-11-16):原 login-only 组的库存结余/收发明细/报表查询四端点并入本组——
+	// 此前任意登录用户可读全部库存流水与经营报表,现按角色授权(purchaser/sales_director/super_admin)。
 	auth := rg.Group("", middleware.Auth(app.JwtManager), middleware.OperationLog(), middleware.CasbinRBAC())
 	{
+		// 库存结余与收发明细(查询;静态路径先于下方 :id 系路由注册)
+		auth.GET("/stock", stockHandler.List)
+		auth.GET("/stock/movements", stockHandler.Movements)
+
+		// 报表(只读)
+		auth.GET("/reports/sales-ranking", reportHandler.SalesRanking)
+		auth.GET("/reports/purchase-summary", reportHandler.PurchaseSummary)
+
 		// 仓库管理
 		auth.GET("/warehouses", warehouseHandler.List)
 		auth.POST("/warehouses", warehouseHandler.Create)
@@ -114,6 +112,17 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		auth.POST("/stock-transfer-orders/:id/execute", transferHandler.ExecuteTransfer)
 		auth.PUT("/stock-transfer-orders/:id/cancel", transferHandler.CancelTransfer)
 		auth.DELETE("/stock-transfer-orders/:id", transferHandler.DeleteTransfer)
+
+		// 资产盘点(静态路径须先于下方 /assets/:id 注册,避免与参数路由冲突)
+		auth.GET("/assets/stocktakes", assetStocktakeHandler.List)
+		auth.POST("/assets/stocktakes", assetStocktakeHandler.Create)
+		auth.GET("/assets/stocktakes/:id", assetStocktakeHandler.GetByID)
+		auth.PUT("/assets/stocktakes/:id/items/:itemId", assetStocktakeHandler.SubmitItem)
+		auth.POST("/assets/stocktakes/:id/finish", assetStocktakeHandler.Finish)
+
+		// 资产折旧计提(手动触发;定时任务 bean_class=asset.depreciate.monthly 由 sys_job 种子配)
+		auth.POST("/assets/depreciate/run", assetHandler.DepreciateRun)
+		auth.GET("/assets/:id/depreciation-logs", assetHandler.DepreciationLogs)
 
 		// 固定资产
 		auth.GET("/assets", assetHandler.List)

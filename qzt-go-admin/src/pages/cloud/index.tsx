@@ -349,7 +349,7 @@ export default function CloudPage() {
       extra={
         <Space>
           {scope === 'personal' && (
-            <span style={{ color: '#999', fontSize: 12 }}>已用: {formatSize(usage)}</span>
+            <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>已用: {formatSize(usage)}</span>
           )}
           <Auth perm="cloud:share:create">
             <Button icon={<ShareAltOutlined />} onClick={openSharesDrawer}>我的分享</Button>
@@ -409,7 +409,7 @@ export default function CloudPage() {
         {shareCreated ? (
           <div style={{ display: 'grid', gap: 12, padding: '4px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flexShrink: 0, color: '#999' }}>分享链接</span>
+              <span style={{ flexShrink: 0, color: 'var(--ant-color-text-tertiary)' }}>分享链接</span>
               <Typography.Text ellipsis style={{ flex: 1 }}>
                 {`${window.location.origin}/share/${shareCreated.token}`}
               </Typography.Text>
@@ -423,7 +423,7 @@ export default function CloudPage() {
             </div>
             {shareCreated.extract_code && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ flexShrink: 0, color: '#999' }}>提取码</span>
+                <span style={{ flexShrink: 0, color: 'var(--ant-color-text-tertiary)' }}>提取码</span>
                 <Typography.Text>{shareCreated.extract_code}</Typography.Text>
                 <Button
                   size="small"
@@ -435,7 +435,7 @@ export default function CloudPage() {
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flexShrink: 0, color: '#999' }}>有效期至</span>
+              <span style={{ flexShrink: 0, color: 'var(--ant-color-text-tertiary)' }}>有效期至</span>
               <Typography.Text>{formatExpire(shareCreated.expire_at)}</Typography.Text>
               <Button
                 size="small"

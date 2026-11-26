@@ -66,6 +66,8 @@ storage:
     custom_domain: ${OSS_CUSTOM_DOMAIN:-}            # 公共桶 CDN/自定义域名
     private_bucket_name: ${OSS_PRIVATE_BUCKET_NAME:-}        # 私有桶(留空则禁用私有附件)
     private_custom_domain: ${OSS_PRIVATE_CUSTOM_DOMAIN:-}    # 私有桶自定义域名
+    region: ${OSS_REGION:-}                                  # 地域(cn-guangzhou 等),signature_version=v4 时必填
+    signature_version: ${OSS_SIGNATURE_VERSION:-}            # 请求签名版本(v1/v4);阿里云新账号默认禁 V1,须配 v4
 
 # 统一 LLM 网关(internal/pkg/llm):OpenAI 兼容协议,所有 AI 功能唯一调用入口。
 # api_key 只走 .env 注入(LLM_API_KEY);留空=未配置,llm.Chat 返回 ErrNotConfigured。

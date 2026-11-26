@@ -15,6 +15,34 @@ export interface DashboardOverview {
   unread_message: number
 }
 
+/** 待办计划行(已逾期 / 今日到期) */
+export interface DashboardFollowTodo {
+  id: number
+  type: string
+  content: string
+  /** 计划时间 YYYY-MM-DD HH:mm */
+  plan_time: string
+  /** overdue=已逾期 today=今日到期 */
+  due: 'overdue' | 'today'
+  customer_id?: number
+  /** 无对应权限或数据范围外时留空 */
+  customer_name?: string
+  lead_id?: number
+  lead_name?: string
+}
+
+/** 我的待办跟进概览(GET /api/dashboard/follow-todos):只统计当前登录人自己的待办计划 */
+export interface DashboardFollowTodos {
+  /** 今日到期 */
+  today: number
+  /** 已逾期 */
+  overdue: number
+  /** 今日之后 */
+  upcoming: number
+  /** 已逾期 + 今日到期,按计划时间升序,最多 6 条 */
+  list: DashboardFollowTodo[]
+}
+
 /** 趋势/汇总数据点(回款趋势、采购汇总共用) */
 export interface DashboardTrendPoint {
   date: string
@@ -27,6 +55,33 @@ export interface DashboardFunnelPoint {
   stage: string
   count: number
   amount: string
+}
+
+export interface OpportunityConversionInsight {
+  from_stage: string
+  to_stage: string
+  entered_count: number
+  converted_count: number
+  rate: number
+}
+
+export interface OpportunityStageDurationInsight {
+  stage: string
+  avg_days: number
+  sample_size: number
+}
+
+export interface OpportunityLossReasonInsight {
+  reason: string
+  count: number
+}
+
+/** 商机阶段洞察(GET /api/dashboard/opportunity-insights) */
+export interface OpportunityInsights {
+  window_days: number
+  conversion: OpportunityConversionInsight[]
+  stage_durations: OpportunityStageDurationInsight[]
+  loss_reasons: OpportunityLossReasonInsight[]
 }
 
 /** 客户分布数据点 */

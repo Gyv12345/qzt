@@ -128,7 +128,7 @@ function ClickableEdge({
               height: 22,
               borderRadius: '50%',
               border: '1px solid #1677ff',
-              background: '#fff',
+              background: 'var(--ant-color-bg-container)',
               color: '#1677ff',
               cursor: 'pointer',
               display: 'flex',

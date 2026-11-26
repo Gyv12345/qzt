@@ -270,7 +270,7 @@ export default function InvoicePage() {
               >
                 开始识别
               </Button>
-              <div style={{ fontSize: 12, color: '#999', maxWidth: 220, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)', maxWidth: 220, lineHeight: 1.6 }}>
                 支持 jpg/png/webp,单张 ≤10MB;识别结果仅回填表单,请核对后手动保存(每日限
                 50 次)
               </div>

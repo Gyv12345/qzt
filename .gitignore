@@ -75,6 +75,12 @@ docs/secrets.local.md
 
 # 回归测试 MCP Key 明文（点点测试员专用，勿提交；哈希种子见 docs/sql/regression-api-key.sql）
 docs/testing/regression/.mcp_key
+docs/testing/regression/.mcp_lifecycle_key
+docs/testing/regression/.mcp_expired_key
+
+# 每日回归运行产物（截图/trace/夹具清单含测试数据；正式报告归档 docs/qa/）
+docs/testing/regression/reports/runs/
+docs/testing/regression/__pycache__/
 
 # IDE / agent 本地状态
 .openidea/

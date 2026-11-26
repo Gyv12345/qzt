@@ -3,6 +3,8 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"math"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -120,6 +122,16 @@ func registerKbTools(s *server.MCPServer) {
 			mcp.WithNumber("version_id", mcp.Required(), mcp.Description("版本ID")),
 		),
 		handleKbDocumentRestore,
+	)
+
+	// ── RAG 语义检索(P17) ──
+	s.AddTool(
+		mcp.NewTool("kb_rag_search",
+			mcp.WithDescription("知识库语义检索(RAG):按自然语言问题召回知识库文档片段,返回带相似度评分的命中(文档标题/片段内容/得分)。适合回答产品用法、操作步骤类问题;回答时请引用命中的文档标题作为出处。"),
+			mcp.WithString("query", mcp.Required(), mcp.Description("检索问题(自然语言)")),
+			mcp.WithNumber("top_k", mcp.Description("返回片段数,默认5,上限20")),
+		),
+		handleKbRagSearch,
 	)
 }
 
@@ -319,4 +331,53 @@ func handleKbDocumentRestore(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		return resultError(fmt.Sprintf("恢复版本失败: %v", err))
 	}
 	return resultText(map[string]any{"message": "已恢复到指定版本", "document_id": docID, "version_id": versionID})
+}
+
+// ── RAG 检索 handler(P17 语义检索 → AI 悬浮球「检索问答」) ──
+
+// handleKbRagSearch 知识库语义检索:自然语言问题 → 向量召回知识库文档片段。
+// 未启用(kb.rag_enabled!=1 或 embedding 未配置)时返回友好提示而非报错,
+// 让对话模型能把状态如实转告用户;检索失败也走降级提示,不阻断对话。
+func handleKbRagSearch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	svc := kbsvc.NewRAGService()
+	if !svc.RAGEnabled(ctx) {
+		return resultText(map[string]any{
+			"enabled": false,
+			"message": "知识库语义检索未启用:需参数配置 kb.rag_enabled=1 且 embedding 已配置(KB_EMBEDDING_API_KEY)。请管理员在后台「参数配置」开启。",
+		})
+	}
+	query := req.GetString("query", "")
+	if strings.TrimSpace(query) == "" {
+		return resultError("检索问题(query)必填")
+	}
+	topK := int(req.GetFloat("top_k", 5))
+	if topK <= 0 || topK > 20 {
+		topK = 5
+	}
+	hits, err := svc.Search(ctx, query, topK)
+	if err != nil {
+		return resultError(fmt.Sprintf("知识库检索失败: %v", err))
+	}
+	if len(hits) == 0 {
+		return resultText(map[string]any{
+			"enabled": true,
+			"hits":    []any{},
+			"message": "知识库中没有检索到相关内容,请基于已有上下文回答,或提示用户补充知识库文档。",
+		})
+	}
+	items := make([]map[string]any, 0, len(hits))
+	for _, h := range hits {
+		items = append(items, map[string]any{
+			"document_id": h.DocumentID,
+			"doc_title":   h.DocTitle,
+			"seq":         h.Seq,
+			"score":       math.Round(h.Score*10000) / 10000,
+			"content":     h.Content,
+		})
+	}
+	return resultText(map[string]any{
+		"enabled": true,
+		"total":   len(items),
+		"hits":    items,
+	})
 }

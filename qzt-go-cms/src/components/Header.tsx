@@ -21,7 +21,7 @@ export async function Header() {
   }
 
   const navItemClass =
-    "whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-muted no-underline transition-colors hover:bg-raised hover:text-strong";
+    "whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-muted no-underline transition-all duration-200 hover:bg-raised hover:text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/40";
 
   // 移动端抽屉所需的扁平导航数据(固定导航 + 动态单页合并)
   const mobileItems: MobileNavItem[] = [
@@ -34,7 +34,7 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-headerbg backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-line bg-headerbg backdrop-blur-xl backdrop-saturate-150">
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-400/30 to-transparent" />
       <div className="container flex h-16 items-center justify-between">
         <Link
@@ -83,7 +83,7 @@ export async function Header() {
             name="q"
             placeholder="搜索站内内容"
             aria-label="站内搜索"
-            className="w-32 rounded-full border border-line bg-raised px-3 py-1.5 text-sm text-strong placeholder:text-muted transition-all focus:w-44 focus:border-brand-400 focus:outline-none"
+            className="w-32 rounded-full border border-line bg-raised px-3.5 py-1.5 text-sm text-strong placeholder:text-faint transition-all duration-300 focus:w-48 focus:border-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
           />
         </form>
         <MobileNav items={mobileItems} />

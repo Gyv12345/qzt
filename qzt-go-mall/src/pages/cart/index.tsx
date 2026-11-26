@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button, Dialog, Stepper, SwipeAction } from 'antd-mobile'
 import { useCartStore, cartTotal } from '../../stores/cart'
+import { BoxIcon } from '../../components/icons'
 
 /** 购物车:改量/左滑删除/清空,底部合计与去结算 */
 export default function Cart() {
@@ -74,7 +75,7 @@ export default function Cart() {
                   {it.image ? (
                     <img src={it.image} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <span style={{ fontSize: 24 }}>📦</span>
+                    <BoxIcon size={26} />
                   )}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>

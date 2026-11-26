@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Noto_Sans_SC } from "next/font/google";
 // 官网主题样式(全局 CSS 按「根布局树」隔离: 本文件只被 (main) 树加载,
 // 跨境主题的 cross/globals.css 只被 (cross) 树加载, 两套 CSS 变量互不覆盖)
@@ -25,6 +25,14 @@ const sansFont = Noto_Sans_SC({
   variable: "--font-sans",
   display: "swap",
 });
+
+// 浏览器 chrome 配色: 深浅主题各取对应画布色
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#04070e" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f9fc" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   let siteName = SITE.name;

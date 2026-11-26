@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { allowTelUrlTransform } from "@/lib/markdown-url";
 import { getPage, getPages } from "@/lib/api";
 import { SITE } from "@/lib/site";
 import { PageHeader } from "@/components/PageHeader";
@@ -65,7 +66,7 @@ export default async function DynamicPage({ params }: Props) {
       </div>
       <section className="container py-16">
         <article className="prose-content mx-auto max-w-3xl">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowTelUrlTransform}>{content}</ReactMarkdown>
         </article>
       </section>
     </>

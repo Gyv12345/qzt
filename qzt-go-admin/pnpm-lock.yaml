@@ -59,6 +59,9 @@ importers:
       echarts-for-react:
         specifier: ^3.0.6
         version: 3.0.6(echarts@6.1.0)(react@19.2.8)
+      frappe-gantt:
+        specifier: ^1.2.2
+        version: 1.2.2
       motion:
         specifier: ^13.5.1
         version: 13.5.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -1578,6 +1581,9 @@ packages:
         optional: true
       react-dom:
         optional: true
+
+  frappe-gantt@1.2.2:
+    resolution: {integrity: sha512-1+uPNRa92LBIeKiZCVhJMiGIifJk5ONaoerXI8eBREXWRZGGoTJR5ATpMpsnAQcyBA6Gnq5wIht4eL+e4eHMBA==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -4401,6 +4407,8 @@ snapshots:
     optionalDependencies:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
+
+  frappe-gantt@1.2.2: {}
 
   fsevents@2.3.3:
     optional: true

@@ -34,8 +34,12 @@ type MallOrder struct {
 	Remark string `json:"remark" gorm:"size:500;comment:备注"`
 	// 总数量
 	TotalQuantity decimal.Decimal `json:"total_quantity" gorm:"type:decimal(14,3);comment:总数量"`
-	// 总金额
-	TotalAmount decimal.Decimal `json:"total_amount" gorm:"type:decimal(14,2);comment:总金额"`
+	// 应付总额(已扣券;商品原价合计 - 优惠额)
+	TotalAmount decimal.Decimal `json:"total_amount" gorm:"type:decimal(14,2);comment:应付总额(已扣券)"`
+	// 优惠券抵扣金额(无券为 0;商品原价合计 = TotalAmount + DiscountAmount)
+	DiscountAmount decimal.Decimal `json:"discount_amount" gorm:"type:decimal(14,2);not null;default:0;comment:优惠券抵扣金额"`
+	// 使用的唯一券码(无券为空串)
+	CouponNo string `json:"coupon_no" gorm:"size:32;not null;default:'';comment:使用的优惠券码"`
 	// 1待处理 2已确认 3已完成 4已取消
 	Status int8 `json:"status" gorm:"default:1;index;comment:1待处理 2已确认 3已完成 4已取消"`
 	// 自动生成的 PSI 销售单ID(无默认仓库时为空,后台可手动补生成)

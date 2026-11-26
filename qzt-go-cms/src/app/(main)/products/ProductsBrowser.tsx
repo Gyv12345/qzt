@@ -170,14 +170,14 @@ function Pill({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-full border font-medium transition-colors ${size} ${
+      className={`rounded-full border font-medium transition-all duration-200 ${size} ${
         active
-          ? "border-brand-400 bg-brand-500 text-white"
-          : "border-line bg-surface text-muted hover:bg-raised hover:text-strong"
+          ? "border-brand-400/60 bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-glow-sm"
+          : "border-line bg-surface text-muted hover:border-brand-400/30 hover:bg-raised hover:text-strong"
       }`}
     >
       {label}
-      <span className={`ml-1.5 ${active ? "text-white/70" : "text-faint"}`}>{count}</span>
+      <span className={`ml-1.5 ${active ? "text-white/75" : "text-faint"}`}>{count}</span>
     </button>
   );
 }

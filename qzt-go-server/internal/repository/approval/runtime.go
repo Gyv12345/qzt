@@ -156,6 +156,23 @@ func (r *TaskRepo) Update(ctx context.Context, m *apprmodel.ApprovalTask) error 
 	return r.BaseRepo.Update(ctx, m, "Status", "Action", "NodeRound", "DelegatorID", "ApproverID", "RemindedAt")
 }
 
+// PageDoneByApprover 已办分页:我已处理完的任务(APPROVED/UNAPPROVED 终态)。
+// 不按 node_round>=0 过滤——节点流转时 SoftDeleteByInstanceNode 会把已批任务一并 tombstone(node_round=-1),
+// 按轮次过滤会导致已办恒空(EP02 拍摄发现的 D1 缺陷,2026-11-16 修复)。
+func (r *TaskRepo) PageDoneByApprover(ctx context.Context, page, pageSize int, approverID uint) ([]apprmodel.ApprovalTask, int64, error) {
+	var list []apprmodel.ApprovalTask
+	var total int64
+	db := repoDB(ctx).Model(&apprmodel.ApprovalTask{}).
+		Where("approver_id = ? AND status IN ?", approverID, []string{apprmodel.TaskStatusApproved, apprmodel.TaskStatusUnapproved})
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if err := db.Order("id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
+}
+
 // SoftDeleteByInstanceNode 软删指定实例+节点的任务(node_round 置 -1)。
 func (r *TaskRepo) SoftDeleteByInstanceNode(ctx context.Context, instanceID, nodeID uint) error {
 	return repoDB(ctx).Model(&apprmodel.ApprovalTask{}).

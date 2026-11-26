@@ -107,7 +107,7 @@ export default function HomepageConfigPage() {
                 title={`${label}板块`}
                 extra={
                   <Space>
-                    <span style={{ fontSize: 13, color: '#666' }}>在官网展示</span>
+                    <span style={{ fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>在官网展示</span>
                     <Auth perm="system:homepage:toggle">
                       <Switch
                         checked={mod?.enabled}
@@ -127,7 +127,7 @@ export default function HomepageConfigPage() {
                       选择展示项
                     </Button>
                   </Auth>
-                  <span style={{ marginLeft: 12, color: '#999', fontSize: 13 }}>
+                  <span style={{ marginLeft: 12, color: 'var(--ant-color-text-tertiary)', fontSize: 13 }}>
                     {mod && mod.features.length > 0
                       ? `已精选 ${mod.features.length} 项,按勾选顺序展示${key === 'product' ? '(官网首页只展示前 6 项,单页可看全部)' : ''}`
                       : '未精选，官网将展示全部上架/正常项'}

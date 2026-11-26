@@ -38,6 +38,23 @@ func (h *DashboardHandler) Overview(c *gin.Context) {
 	response.OK(c, data)
 }
 
+// FollowTodos 工作台「今日跟进」
+// @Summary      我的待办跟进概览
+// @Description  调用人自己的待办计划按到期窗口汇总(已逾期/今日到期/今日之后);列表取已逾期+今日到期,按计划时间升序,最多 6 条
+// @Tags         仪表盘
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  xresponse.Response{data=service.FollowTodoSummary}
+// @Router       /api/dashboard/follow-todos [get]
+func (h *DashboardHandler) FollowTodos(c *gin.Context) {
+	data, err := service.FollowTodos(c.Request.Context(), middleware.GetUserID(c), middleware.GetRoleCodes(c))
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
+}
+
 // SalesTrend 销售趋势
 // @Summary      回款趋势
 // @Description  近N天每日回款金额与笔数
@@ -91,6 +108,25 @@ func (h *DashboardHandler) OpportunityFunnel(c *gin.Context) {
 		return
 	}
 	response.OK(c, rows)
+}
+
+// OpportunityInsights 商机销售过程洞察
+// @Summary      商机阶段转化、平均停留与输单原因分析
+// @Description  基于带发生时间的阶段历史计算;旧历史无时间时不进入样本
+// @Tags         仪表盘
+// @Produce      json
+// @Security     BearerAuth
+// @Param        days  query  int  false  "统计窗口天数(默认90,最大365)"
+// @Success      200  {object}  xresponse.Response{data=service.OpportunityInsights}
+// @Router       /api/dashboard/opportunity-insights [get]
+func (h *DashboardHandler) OpportunityInsights(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "90"))
+	data, err := h.svc.OpportunityInsights(c.Request.Context(), days)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, data)
 }
 
 // FinanceSummary 财务概览

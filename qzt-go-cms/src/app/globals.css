@@ -36,6 +36,8 @@
   --c-accent: #d97706;
   --c-accent-light: #fcd34d;
   --c-accent-dark: #b45309;
+  /* 危险色(表单错误态) */
+  --c-danger: #f87171;
   /* 阴影 */
   --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
   --shadow-card-hover: 0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(89, 157, 214, 0.25);
@@ -81,6 +83,8 @@
   --c-accent: #d97706;
   --c-accent-light: #b45309;
   --c-accent-dark: #b45309;
+  /* 危险色(表单错误态) */
+  --c-danger: #dc2626;
   --shadow-card: 0 1px 3px 0 rgba(15, 76, 129, 0.05), 0 4px 14px -2px rgba(15, 76, 129, 0.07);
   --shadow-card-hover: 0 4px 8px -1px rgba(15, 76, 129, 0.08), 0 14px 28px -6px rgba(15, 76, 129, 0.14);
   --shadow-glow-sm: 0 4px 16px -2px rgba(53, 124, 191, 0.3);
@@ -221,6 +225,55 @@ a:hover {
   background: linear-gradient(to right, var(--c-brand-400), var(--c-accent));
 }
 
+/* ── 质感细节 (shadcn 引入批新增) ── */
+
+/* 选区高亮: 品牌色低透明 */
+::selection {
+  background: color-mix(in srgb, var(--c-brand-500) 35%, transparent);
+  color: var(--c-strong);
+}
+
+/* 主题化滚动条 (Firefox + WebKit) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--c-brand-500) 30%, transparent) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--c-brand-500) 30%, transparent);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--c-brand-500) 50%, transparent);
+}
+
+/* 键盘可达性: 全站统一焦点环 (组件内可再用 ring 细化) */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--c-brand-400) 60%, transparent);
+  outline-offset: 2px;
+}
+
+/* 卡片 hover 顶部光线: 元素自身 relative (ui/Card 已内置), hover 时点亮 */
+.card-sheen::before {
+  content: "";
+  position: absolute;
+  inset-inline: 2rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--c-brand-300), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.card-sheen:hover::before {
+  opacity: 1;
+}
+
 /* 文章正文 prose 样式 (CMS content 多为 HTML, 语义色随主题切换) */
 .prose-content :where(h1, h2, h3) {
   @apply mt-6 mb-3 font-semibold text-strong;
@@ -246,7 +299,7 @@ a:hover {
   text-decoration-color: color-mix(in srgb, var(--c-brand-400) 45%, transparent);
 }
 .prose-content :where(blockquote) {
-  @apply my-4 border-l-4 py-2 pl-4 text-normal;
+  @apply my-4 border-l-4 rounded-r-lg py-2 pl-4 text-normal;
   border-color: color-mix(in srgb, var(--c-brand-400) 35%, transparent);
   background: color-mix(in srgb, var(--c-brand-500) 10%, transparent);
 }
@@ -256,7 +309,7 @@ a:hover {
   color: var(--c-brand-text);
 }
 .prose-content :where(pre) {
-  @apply my-4 overflow-x-auto rounded-lg border border-line p-4 text-sm;
+  @apply my-4 overflow-x-auto rounded-xl border border-line p-4 text-sm shadow-card;
   background: var(--c-alt);
   color: var(--c-normal);
 }
@@ -273,6 +326,12 @@ a:hover {
 .prose-content :where(thead) {
   background: var(--c-raised);
   color: var(--c-strong);
+}
+.prose-content :where(tbody tr) {
+  transition: background-color 0.15s ease;
+}
+.prose-content :where(tbody tr:hover) {
+  background: var(--c-raised);
 }
 .prose-content :where(hr) {
   @apply my-6 border-line;

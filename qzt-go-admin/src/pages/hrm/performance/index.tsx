@@ -110,7 +110,7 @@ export default function PerformancePage() {
 
       <Modal title={`上级评审 - ${reviewTarget?.title || ''}`} open={!!reviewTarget} onOk={handleReview} onCancel={() => setReviewTarget(null)} destroyOnHidden>
         <Form form={reviewForm} layout="vertical">
-          {reviewTarget && <div style={{ marginBottom: 16, color: '#666' }}>自评得分: {reviewTarget.self_score}</div>}
+          {reviewTarget && <div style={{ marginBottom: 16, color: 'var(--ant-color-text-secondary)' }}>自评得分: {reviewTarget.self_score}</div>}
           <Form.Item name="review_score" label="上级评分(0-100)" rules={[{ required: true }]}>
             <InputNumber min={0} max={100} precision={1} style={{ width: '100%' }} />
           </Form.Item>

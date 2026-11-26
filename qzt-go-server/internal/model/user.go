@@ -21,10 +21,24 @@ type SysUser struct {
 	WecomUserID  string    `json:"wecom_user_id" gorm:"size:64;index;comment:企业微信UserID"`
 	// 微信服务号openid(通知推送+微信内免登录)
 	WechatOpenID string    `json:"wechat_openid" gorm:"size:64;index;comment:微信服务号openid"`
-	Roles        []SysRole `json:"roles" gorm:"many2many:sys_user_role;"`
+	// 外部平台用户ID(钉钉 userid / 飞书 open_id;wecom 仍用 wecom_user_id 列,P32 通讯录同步)
+	ExternalID string `json:"external_id" gorm:"size:64;index;default:'';comment:外部平台用户ID(钉钉userid/飞书open_id)"`
+	// 外部来源平台(local/wecom/dingtalk/feishu)
+	IDSource string `json:"id_source" gorm:"size:20;index;default:'';comment:来源(local/wecom/dingtalk/feishu)"`
+	// 备注(通讯录同步自动创建时标「来自xx同步」)
+	Remark string `json:"remark" gorm:"size:255;comment:备注"`
+	Roles  []SysRole `json:"roles" gorm:"many2many:sys_user_role;"`
 	BaseModel
 }
 
 func (SysUser) TableName() string {
 	return "sys_user"
 }
+
+// 外部来源平台标识(id_source / sys_oauth_config.provider 通用口径)。
+const (
+	IDSourceLocal    = "local"
+	IDSourceWecom    = "wecom"
+	IDSourceDingtalk = "dingtalk"
+	IDSourceFeishu   = "feishu"
+)

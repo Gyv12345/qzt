@@ -9,6 +9,7 @@ import (
 	"qzt-go-server/internal/model"
 	"qzt-go-server/internal/model/base"
 	crmmodel "qzt-go-server/internal/model/crm"
+	"qzt-go-server/internal/module/api/service" // 附件元数据服务(线索转化时附件复制)
 	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/pkg/diff"
 	"qzt-go-server/internal/pkg/numbergen"
@@ -41,6 +42,7 @@ type LeadService struct {
 	custRepo    *crrepo.CustomerRepo
 	contactRepo *crrepo.CustomerContactRepo
 	fieldSvc    *CustomFieldService
+	attSvc      *service.AttachmentService
 }
 
 func NewLeadService() *LeadService {
@@ -50,6 +52,7 @@ func NewLeadService() *LeadService {
 		custRepo:    crrepo.NewCustomerRepo(),
 		contactRepo: crrepo.NewCustomerContactRepo(),
 		fieldSvc:    NewCustomFieldService(),
+		attSvc:      service.NewAttachmentService(),
 	}
 }
 
@@ -133,6 +136,9 @@ func (s *LeadService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmLead, 
 	if err != nil {
 		return nil, nil, repository.NotFoundOr(err, "线索不存在")
 	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return nil, nil, err
+	}
 	fields, _ := s.fieldSvc.GetLeadValues(ctx, formatResourceID(id))
 	return lead, fields, nil
 }
@@ -156,6 +162,9 @@ func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadReques
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return repository.NotFoundOr(err, "线索不存在")
+	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return err
 	}
 	// 复制旧值快照(用于 diff)
 	oldSnapshot := *lead
@@ -187,8 +196,12 @@ func (s *LeadService) Update(ctx context.Context, id uint, req *UpdateLeadReques
 
 // Delete 删除线索(清自定义字段值)。
 func (s *LeadService) Delete(ctx context.Context, id uint) error {
-	if _, err := s.repo.GetByID(ctx, id); err != nil {
+	lead, err := s.repo.GetByID(ctx, id)
+	if err != nil {
 		return repository.NotFoundOr(err, "线索不存在")
+	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return err
 	}
 	// 校验业务引用:存在关联跟进记录/计划则拒绝删除,避免悬空引用。
 	if err := rejectIfLeadReferenced(ctx, id); err != nil {
@@ -273,6 +286,9 @@ func (s *LeadService) ReleaseToPool(ctx context.Context, id, poolID, operatorID 
 	if err != nil {
 		return repository.NotFoundOr(err, "线索不存在")
 	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return err
+	}
 	if lead.InPool == crmmodel.InPoolPublic {
 		return errors.New("线索已在公海")
 	}
@@ -297,6 +313,9 @@ func (s *LeadService) PickFromPool(ctx context.Context, id, operatorID uint) err
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return repository.NotFoundOr(err, "线索不存在")
+	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return err
 	}
 	if lead.InPool != crmmodel.InPoolPublic {
 		return errors.New("线索不在公海")
@@ -324,6 +343,9 @@ func (s *LeadService) Transfer(ctx context.Context, id, toUserID, operatorID uin
 	if err != nil {
 		return repository.NotFoundOr(err, "线索不存在")
 	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return err
+	}
 	if lead.InPool == crmmodel.InPoolPublic {
 		return errors.New("公海线索不可直接转移,请先领取")
 	}
@@ -341,6 +363,13 @@ func (s *LeadService) Transfer(ctx context.Context, id, toUserID, operatorID uin
 
 // OwnerHistory 线索归属变更历史。
 func (s *LeadService) OwnerHistory(ctx context.Context, id uint) ([]crmmodel.CrmLeadOwnerHistory, error) {
+	lead, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, repository.NotFoundOr(err, "线索不存在")
+	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return nil, err
+	}
 	return s.historyRepo.ListByLead(ctx, id)
 }
 
@@ -351,6 +380,9 @@ func (s *LeadService) UpdateFollow(ctx context.Context, id, followerID uint, fol
 	lead, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil // 线索可能不存在(关联可选),静默忽略
+	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return err
 	}
 	lead.FollowerID = &followerID
 	lead.FollowTime = xtime.NewNullDateTimeFromTime(followTime)
@@ -366,6 +398,9 @@ func (s *LeadService) Convert(ctx context.Context, leadID, currentUserID uint) (
 	lead, err := s.repo.GetByID(ctx, leadID)
 	if err != nil {
 		return nil, repository.NotFoundOr(err, "线索不存在")
+	}
+	if err := checkOwnerScope(ctx, lead.OwnerID); err != nil {
+		return nil, err
 	}
 	if lead.ConvertedCustomerID != nil {
 		return nil, errors.New("该线索已转化,不可重复转化")
@@ -392,6 +427,10 @@ func (s *LeadService) Convert(ctx context.Context, leadID, currentUserID uint) (
 		}
 		// 自定义字段值按映射带转到新客户(线索字段定义上的 convert_target_field)
 		if err := s.fieldSvc.ConvertLeadFieldValues(ctx, leadID, customer.ID); err != nil {
+			return err
+		}
+		// 附件记录复制到新客户(元数据复制,存储文件共享;线索侧保留,两侧均可查看)
+		if _, err := s.attSvc.CopyResourceAttachments(ctx, "LEAD", leadID, "CUSTOMER", customer.ID); err != nil {
 			return err
 		}
 		// 线索带有联系人信息时,同步创建一条联系人(Name 缺失则用线索名兜底,避免丢电话/邮箱)。

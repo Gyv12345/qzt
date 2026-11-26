@@ -7,8 +7,8 @@ package model
 // 第三方登录渠道。
 const (
 	OAuthProviderWecom    = "wecom"     // 企业微信
-	OAuthProviderDing     = "ding"      // 钉钉(预留)
-	OAuthProviderFeishu   = "feishu"    // 飞书(预留)
+	OAuthProviderDingtalk = "dingtalk"  // 钉钉(P32:通讯录同步/扫码登录/工作通知)
+	OAuthProviderFeishu   = "feishu"    // 飞书(P32:通讯录同步/扫码登录/消息推送)
 	OAuthProviderWechatMP = "wechat_mp" // 微信服务号(通知推送+微信内免登录)
 	OAuthProviderDouyin   = "douyin"    // 抖音开放平台(GEO 信源视频直发)
 	// OAuthProviderTianyanchaMCP 天眼查 MCP(P31 工商信息查询)。

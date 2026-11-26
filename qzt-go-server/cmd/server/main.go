@@ -27,6 +27,7 @@ import (
 	finmod "qzt-go-server/internal/module/finance"
 	geomod "qzt-go-server/internal/module/geo"
 	hrmmod "qzt-go-server/internal/module/hrm"
+	immod "qzt-go-server/internal/module/im"
 	kbmod "qzt-go-server/internal/module/kb"
 	mallmod "qzt-go-server/internal/module/mall"
 	mktmod "qzt-go-server/internal/module/marketing"
@@ -37,6 +38,7 @@ import (
 	psimod "qzt-go-server/internal/module/psi"
 	sfmod "qzt-go-server/internal/module/storefront"
 	"qzt-go-server/internal/module/system"
+	mpmod "qzt-go-server/internal/module/mp"
 	wfmod "qzt-go-server/internal/module/workflow"
 	wfsvc "qzt-go-server/internal/module/workflow/service"
 	"qzt-go-server/internal/pkg/ipregion"
@@ -96,7 +98,7 @@ func main() {
 		app.Log.Warnf("IP 归属地库加载失败(登录日志将不显示地址): %v", err)
 	}
 
-	// 4. 组装路由（注册 20 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/kb/cloud/project/marketing/mall/geo/open/workflow/storefront/deploy）
+	// 4. 组装路由（注册 21 个业务模块:system/api/cms/crm/enterprise/approval/hrm/psi/finance/oa/im/kb/cloud/project/marketing/mall/geo/open/workflow/storefront/deploy）
 	router := server.NewRouter(
 		system.New(),
 		apimod.New(),
@@ -108,6 +110,7 @@ func main() {
 		psimod.New(),
 		finmod.New(),
 		oamod.New(),
+		immod.New(),
 		kbmod.New(),
 		cloudmod.New(),
 		projmod.New(),
@@ -117,6 +120,7 @@ func main() {
 		openmod.New(),
 		wfmod.New(),
 		sfmod.New(),
+		mpmod.New(),
 		deploymod.New(),
 	)
 

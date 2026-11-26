@@ -44,7 +44,7 @@ INSERT INTO `crm_opportunity`
   (`name`, `opportunity_no`, `customer_id`, `expected_amount`, `stage`, `probability`, `owner_id`, `description`, `created_at`, `updated_at`)
 VALUES
   ('DEMO-恒达机械一体化平台采购(测试)', 'DEMOSJ20261101001', (SELECT id FROM crm_customer WHERE customer_no='DEMOKH20261101001'), 12000.00, 'PROSPECTING', 20, 3, '演示商机:初步接触', NOW(3), NOW(3)),
-  ('DEMO-华夏食品管理系统(测试)', 'DEMOSJ20261101002', (SELECT id FROM crm_customer WHERE customer_no='DEMOKH20261101002'), 8000.00, 'QUALIFIED', 40, 3, '演示商机:需求确认', NOW(3), NOW(3)),
+  ('DEMO-华夏食品管理系统(测试)', 'DEMOSJ20261101002', (SELECT id FROM crm_customer WHERE customer_no='DEMOKH20261101002'), 8000.00, 'ANALYSIS', 40, 3, '演示商机:需求分析', NOW(3), NOW(3)),
   ('DEMO-精工科技全模块部署(测试)', 'DEMOSJ20261101003', (SELECT id FROM crm_customer WHERE customer_no='DEMOKH20261101003'), 15000.00, 'PROPOSAL', 60, 3, '演示商机:方案报价', NOW(3), NOW(3)),
   ('DEMO-通达商贸二期扩容(测试)', 'DEMOSJ20261101004', (SELECT id FROM crm_customer WHERE customer_no='DEMOKH20261101004'), 5000.00, 'NEGOTIATION', 80, 3, '演示商机:商务谈判', NOW(3), NOW(3));
 

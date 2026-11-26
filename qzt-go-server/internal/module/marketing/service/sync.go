@@ -9,6 +9,7 @@ import (
 
 	crmmodel "qzt-go-server/internal/model/crm"
 	mktmodel "qzt-go-server/internal/model/marketing"
+	crmsvc "qzt-go-server/internal/module/crm/service"
 	oasvc "qzt-go-server/internal/module/oa/service"
 	"qzt-go-server/internal/pkg/numbergen"
 	"qzt-go-server/internal/pkg/oceanengine"
@@ -262,6 +263,8 @@ func (s *SyncService) createLead(ctx context.Context, ext *oceanengine.ExternalL
 	if err := repository.DBFrom(ctx).Create(lead).Error; err != nil {
 		return nil, err
 	}
+	// P-F5 线索入公海后按规则自动分配(异步,失败仅记日志)
+	go crmsvc.NewAutoAssignService().AssignNewPoolLead(context.Background(), lead)
 	return lead, nil
 }
 

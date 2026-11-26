@@ -22,7 +22,10 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "scenario=insight(经营洞察)/approval-summary(审批助手)/daily-report(日报生成);采集真实业务数据构建提示词走统一LLM网关(feature=ai.agent记账);需 sys_config ai.chat_enabled=1(默认关)",
+                "description": "scenario=insight(经营洞察;全公司口径,需具备销售趋势的查看权限,否则 10004)/approval-summary(审批助手)/daily-report(日报生成):无 body,采集真实业务数据构建提示词走统一LLM网关(feature=ai.agent记账);scenario=followup-draft(跟进草稿):body 传 customer_id 或 lead_id + template,为销售起草一条跟进消息草稿,需对该客户/线索有查看权限,需 sys_config ai.chat_enabled=1(默认关)",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -33,29 +36,50 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "场景:insight/approval-summary/daily-report",
+                        "description": "场景:insight/approval-summary/daily-report/followup-draft",
                         "name": "scenario",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "跟进草稿入参(仅 scenario=followup-draft 时读取)",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/service.FollowupDraftRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/xresponse.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/service.AgentRunResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ai/agents/{scenario}/templates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "scenario 固定传 followup-draft;返回模板 key/名称/说明/默认语气/建议跟进类型",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI场景智能体"
+                ],
+                "summary": "跟进草稿模板目录",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
                         }
                     }
                 }
@@ -68,7 +92,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "多轮对话:取最近20条消息+系统提示词走统一LLM网关(feature=ai.chat记账);需 sys_config ai.chat_enabled=1(默认关)",
+                "description": "多轮对话:取最近20条消息+系统提示词走统一LLM网关(feature=ai.chat记账);需 sys_config ai.chat_enabled=1(默认关)。ai.tools_enabled=1(默认开)时进入工具循环:模型可调用白名单只读工具查企业实时业务数据,tool_trace 随响应返回调用轨迹",
                 "produces": [
                     "application/json"
                 ],
@@ -78,7 +102,7 @@ const docTemplate = `{
                 "summary": "AI 助手对话补全",
                 "parameters": [
                     {
-                        "description": "对话消息列表(最近20条)",
+                        "description": "对话消息列表(最近20条);model 可选模型标识",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -100,6 +124,43 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/service.AIChatResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ai/models": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回 AI 对话/工具开关状态与启用中的模型档案(ai_model Enabled=1,不含 base_url/api_key);供全局 AI 悬浮球选模型",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI助手"
+                ],
+                "summary": "AI 可用模型列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.AIModelsResponse"
                                         }
                                     }
                                 }
@@ -390,6 +451,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dashboard/follow-todos": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "调用人自己的待办计划按到期窗口汇总(已逾期/今日到期/今日之后);列表取已逾期+今日到期,按计划时间升序,最多 6 条",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "仪表盘"
+                ],
+                "summary": "我的待办跟进概览",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.FollowTodoSummary"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/dashboard/opportunity-funnel": {
             "get": {
                 "security": [
@@ -410,6 +508,51 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dashboard/opportunity-insights": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "基于带发生时间的阶段历史计算;旧历史无时间时不进入样本",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "仪表盘"
+                ],
+                "summary": "商机阶段转化、平均停留与输单原因分析",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "统计窗口天数(默认90,最大365)",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.OpportunityInsights"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -7173,6 +7316,294 @@ const docTemplate = `{
                 }
             }
         },
+        "/enterprise/contact-sync/dingtalk": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全量对账:部门树+用户 upsert(幂等,消失置停用不硬删)。同步执行并返回统计。需先在「第三方应用」启用钉钉。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通讯录同步"
+                ],
+                "summary": "手动触发钉钉通讯录同步",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "depts_created": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_updated": {
+                                                    "type": "integer"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                },
+                                                "finished_at": {
+                                                    "type": "string"
+                                                },
+                                                "op_errors": {
+                                                    "type": "integer"
+                                                },
+                                                "platform": {
+                                                    "type": "string"
+                                                },
+                                                "users_bound": {
+                                                    "type": "integer"
+                                                },
+                                                "users_created": {
+                                                    "type": "integer"
+                                                },
+                                                "users_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "users_updated": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/contact-sync/dingtalk/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回最近一次钉钉同步统计摘要(定时/手动共用)。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通讯录同步"
+                ],
+                "summary": "钉钉通讯录同步状态",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "depts_created": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_updated": {
+                                                    "type": "integer"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                },
+                                                "finished_at": {
+                                                    "type": "string"
+                                                },
+                                                "op_errors": {
+                                                    "type": "integer"
+                                                },
+                                                "platform": {
+                                                    "type": "string"
+                                                },
+                                                "users_bound": {
+                                                    "type": "integer"
+                                                },
+                                                "users_created": {
+                                                    "type": "integer"
+                                                },
+                                                "users_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "users_updated": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/contact-sync/feishu": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全量对账:部门树+用户 upsert(幂等,消失置停用不硬删)。同步执行并返回统计。需先在「第三方应用」启用飞书。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通讯录同步"
+                ],
+                "summary": "手动触发飞书通讯录同步",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "depts_created": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_updated": {
+                                                    "type": "integer"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                },
+                                                "finished_at": {
+                                                    "type": "string"
+                                                },
+                                                "op_errors": {
+                                                    "type": "integer"
+                                                },
+                                                "platform": {
+                                                    "type": "string"
+                                                },
+                                                "users_bound": {
+                                                    "type": "integer"
+                                                },
+                                                "users_created": {
+                                                    "type": "integer"
+                                                },
+                                                "users_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "users_updated": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/contact-sync/feishu/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回最近一次飞书同步统计摘要(定时/手动共用)。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通讯录同步"
+                ],
+                "summary": "飞书通讯录同步状态",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/xresponse.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "depts_created": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "depts_updated": {
+                                                    "type": "integer"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                },
+                                                "finished_at": {
+                                                    "type": "string"
+                                                },
+                                                "op_errors": {
+                                                    "type": "integer"
+                                                },
+                                                "platform": {
+                                                    "type": "string"
+                                                },
+                                                "users_bound": {
+                                                    "type": "integer"
+                                                },
+                                                "users_created": {
+                                                    "type": "integer"
+                                                },
+                                                "users_disabled": {
+                                                    "type": "integer"
+                                                },
+                                                "users_updated": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/enterprise/job-logs": {
             "get": {
                 "security": [
@@ -7431,6 +7862,142 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/oauth/dingtalk/callback": {
+            "get": {
+                "description": "code 换用户身份→匹配/自动创建→签发 JWT→302 回 admin 回调页(#/oauth/callback?token=..;失败带 error=文案)。state 一次性防 CSRF。",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "扫码登录"
+                ],
+                "summary": "钉钉扫码登录回调",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "钉钉授权 code",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "防 CSRF state",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/oauth/dingtalk/qr": {
+            "get": {
+                "description": "302 跳转钉钉统一扫码授权页(需先在「第三方应用」启用钉钉并配置回调地址)。",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "扫码登录"
+                ],
+                "summary": "钉钉扫码授权页跳转",
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/oauth/feishu/callback": {
+            "get": {
+                "description": "code 换用户身份→匹配/自动创建→签发 JWT→302 回 admin 回调页(#/oauth/callback?token=..;失败带 error=文案)。state 一次性防 CSRF。",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "扫码登录"
+                ],
+                "summary": "飞书扫码登录回调",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "飞书授权 code",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "防 CSRF state",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/oauth/feishu/qr": {
+            "get": {
+                "description": "302 跳转飞书网页授权页(需先在「第三方应用」启用飞书并配置回调地址)。",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "扫码登录"
+                ],
+                "summary": "飞书扫码授权页跳转",
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/xresponse.Response"
                         }
@@ -11442,6 +12009,331 @@ const docTemplate = `{
                 }
             }
         },
+        "/im/conversations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "我的会话列表(含未读数、最新一条消息、单聊对端信息),按最新消息时间倒序(无消息靠后)。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "会话列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/im/conversations/group": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "创建群聊;创建人自动入群,member_ids 去重并忽略创建人自身。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "创建群聊会话",
+                "parameters": [
+                    {
+                        "description": "群名称与成员",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/im/conversations/single": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "与目标用户建立(或返回已有)单聊会话;幂等:同一对用户只会有一个单聊会话。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "创建单聊会话",
+                "parameters": [
+                    {
+                        "description": "目标用户ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateSingleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/im/conversations/{id}/members": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "群聊成员可添加成员;校验用户存在;输入去重;已是成员的自动跳过,返回实际新增数。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "添加群成员",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "会话ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "用户ID列表",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.AddMembersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/im/conversations/{id}/members/{userId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "群聊移除成员(成员行硬删除,可重新加入)。可自退;移除群主时群主自动转移给最早加入的剩余成员,无人剩余则解散会话。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "移除群成员",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "会话ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "被移除用户ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/im/conversations/{id}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按 id 倒序分页;before_id 独占(取 id 小于该值的消息,用于上滑加载更早一页);仅会话成员可读。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "会话消息分页",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "会话ID",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "翻页游标:取 id 小于该值的消息",
+                        "name": "before_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数(默认20,1~50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "向会话发送文本消息;仅会话成员可发;成功后向会话全部成员(含发送人)推送 im_message SSE 事件。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "发送消息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "会话ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "消息内容(content_type 默认 text,v1 仅支持 text)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.IMSendMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/im/conversations/{id}/read": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "把我的已读游标推进到会话最新一条消息,返回最新消息 ID(无消息为 0)。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "即时通讯"
+                ],
+                "summary": "标记会话已读",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "会话ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "空对象",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/kb/documents/{id}/reindex": {
             "post": {
                 "security": [
@@ -11485,6 +12377,373 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/admin/coupons": {
+            "get": {
+                "description": "后台优惠券分页(含已领取数/发放总量),支持状态与名称关键字筛选",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "优惠券分页列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1启用 2停用,0全部)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "券名关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建券模板(满减门槛/面额/总量/每人限领/生效窗口);启用状态可直接被买家领取",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "创建优惠券",
+                "parameters": [
+                    {
+                        "description": "创建请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CouponCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/admin/coupons/{id}": {
+            "put": {
+                "description": "只更新传入字段;status=2 停用后买家不可领不可用;窗口传 \"\" 清除(=不限)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "更新优惠券(半增量)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "优惠券ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新请求(半增量)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CouponUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "软删券模板(已发出的券实例保留历史,但买家不可再领)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "删除优惠券",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "优惠券ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/admin/promotions": {
+            "get": {
+                "description": "后台活动分页,支持状态/商品ID/名称关键字筛选",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "限时特价分页列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1启用 2停用,0全部)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商品ID",
+                        "name": "product_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "活动名关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "指定商品与活动价及时间窗;生效期间商品在商城展示并按活动价成交(同商品多条活动取最低)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "创建限时特价",
+                "parameters": [
+                    {
+                        "description": "创建请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PromotionCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/admin/promotions/{id}": {
+            "put": {
+                "description": "只更新传入字段;status=2 停用后活动价立即失效",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "更新限时特价(半增量)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "活动ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新请求(半增量)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.PromotionUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "软删活动;历史订单价格快照不受影响",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城管理"
+                ],
+                "summary": "删除限时特价",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "活动ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/auth/coupons": {
+            "get": {
+                "description": "当前买家的全部券实例(含状态/券码/面额/门槛/使用订单号);需买家 token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城买家"
+                ],
+                "summary": "商城买家券包",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/auth/coupons/{id}/claim": {
+            "post": {
+                "description": "原子扣减余量(claimed\u003ctotal_count 条件更新),校验每人限领;需买家 token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城买家"
+                ],
+                "summary": "商城买家领取优惠券",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "优惠券ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/auth/me": {
+            "get": {
+                "description": "当前登录买家资料(id/手机号/昵称);需买家 token(Authorization: Bearer \u003cmall token\u003e)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城买家"
+                ],
+                "summary": "商城买家资料",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
                         }
                     }
                 }
@@ -11647,6 +12906,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/mall/public/auth/login": {
+            "post": {
+                "description": "手机号+密码登录,签发买家专用 token(7 天,与员工 JWT 双向隔离不可互认);免鉴权",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城公开"
+                ],
+                "summary": "商城买家登录(公开)",
+                "parameters": [
+                    {
+                        "description": "登录请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.MallLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/public/auth/register": {
+            "post": {
+                "description": "手机号(^1[3-9]\\\\d{9}$)+密码(6-32位,bcrypt 落库)注册买家账号,手机号重复返回友好提示;免鉴权",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城公开"
+                ],
+                "summary": "商城买家注册(公开)",
+                "parameters": [
+                    {
+                        "description": "注册请求",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.MallRegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/mall/public/coupons": {
+            "get": {
+                "description": "启用且在领取时间窗内、尚有余量的优惠券(含满减门槛/面额/剩余量/每人限领);免鉴权",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商城公开"
+                ],
+                "summary": "商城可领优惠券列表(公开)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/mall/public/goods": {
             "get": {
                 "description": "全部上架商品(crm_product status=1,不含成本价,附全仓库存汇总),免鉴权",
@@ -11669,7 +13016,7 @@ const docTemplate = `{
         },
         "/mall/public/orders": {
             "post": {
-                "description": "免登录下单:校验上架商品、按 standard_price 快照计价;自动创建/复用散客客户并生成 PSI 销售单(无默认仓库时跳过,后台可补生成)。每 IP 每分钟限 5 单",
+                "description": "免登录可下单;携带买家 token 时按限时特价/优惠券计价(匿名传券码报错)。自动创建/复用散客客户并生成 PSI 销售单(无默认仓库时跳过,后台可补生成)。每 IP 每分钟限 5 单",
                 "consumes": [
                     "application/json"
                 ],
@@ -11682,7 +13029,7 @@ const docTemplate = `{
                 "summary": "商城下单(公开)",
                 "parameters": [
                     {
-                        "description": "下单请求",
+                        "description": "下单请求(coupon_no 可选,需登录买家)",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -16255,6 +17602,270 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/assets/:id/depreciation-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "某资产的逐期折旧计提记录(期间升序)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "固定资产"
+                ],
+                "summary": "资产折旧计提日志",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/assets/depreciate/run": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "直线法按期计提;period 不传=当前日历月,格式 YYYY-MM;(asset_id,period) 唯一索引保证幂等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "固定资产"
+                ],
+                "summary": "手动折旧计提",
+                "parameters": [
+                    {
+                        "description": "{period: \\",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/assets/stocktakes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资产盘点"
+                ],
+                "summary": "资产盘点单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态(1进行中 2已完成)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按范围(all/category/dept)冻结在盘资产明细快照,范围内无可盘资产时报错",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资产盘点"
+                ],
+                "summary": "创建资产盘点单",
+                "parameters": [
+                    {
+                        "description": "盘点单",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateAssetStocktakeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/assets/stocktakes/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资产盘点"
+                ],
+                "summary": "资产盘点单详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/assets/stocktakes/{id}/finish": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "全部明细已盘才允许;完成后缺失资产置丢失、损坏资产置维修,返回差异统计",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资产盘点"
+                ],
+                "summary": "完成资产盘点",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/xresponse.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/psi/assets/stocktakes/{id}/items/{itemId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "仅进行中的盘点单可填报;首次填报该明细时盘点单已盘数+1,重复改结果不重复加",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资产盘点"
+                ],
+                "summary": "填报盘点明细结果",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "盘点单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "明细ID",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "盘点结果",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SubmitAssetStocktakeItemRequest"
                         }
                     }
                 ],
@@ -23733,8 +25344,16 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "external_id": {
+                    "description": "外部平台用户ID(钉钉 userid / 飞书 open_id;wecom 仍用 wecom_user_id 列,P32 通讯录同步)",
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
+                },
+                "id_source": {
+                    "description": "外部来源平台(local/wecom/dingtalk/feishu)",
+                    "type": "string"
                 },
                 "leader_id": {
                     "description": "直属上级ID(关联sys_user,审批SUPERIOR用)",
@@ -23744,6 +25363,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注(通讯录同步自动创建时标「来自xx同步」)",
                     "type": "string"
                 },
                 "roles": {
@@ -23775,17 +25398,41 @@ const docTemplate = `{
         "service.AIChatRequest": {
             "type": "object",
             "properties": {
+                "enable_search": {
+                    "description": "EnableSearch 是否让模型联网搜索（DashScope 通义系 enable_search 服务端搜索；\n其他供应商对该扩展字段的处理不保证——不支持的模型开启后可能报错，前端已提示）。",
+                    "type": "boolean"
+                },
                 "messages": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/service.ChatMessage"
                     }
+                },
+                "model": {
+                    "description": "Model 可选模型标识（sys_ai_model.model，如 deepseek-chat），空用网关默认档案。",
+                    "type": "string"
+                },
+                "think": {
+                    "description": "Think 是否开启思考模式（推理模型 reasoning_content；DashScope 仅流式支持，\n后端内部 SSE 聚合对外仍非流式；不支持该参数的模型开启后可能报错）。",
+                    "type": "boolean"
+                },
+                "think_effort": {
+                    "description": "ThinkEffort 思考强度 low|medium|high（支持 reasoning_effort 的模型才生效）。",
+                    "type": "string"
+                },
+                "use_kb": {
+                    "description": "UseKB 是否注入知识库 RAG 召回；nil/true=默认注入，false=纯模型回答。",
+                    "type": "boolean"
                 }
             }
         },
         "service.AIChatResponse": {
             "type": "object",
             "properties": {
+                "reasoning": {
+                    "description": "Reasoning 思考过程文本（请求 think=true 且模型支持时返回）。",
+                    "type": "string"
+                },
                 "reply": {
                     "type": "string"
                 },
@@ -23794,6 +25441,29 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "tool_trace": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.AIToolTrace"
+                    }
+                }
+            }
+        },
+        "service.AIModelInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -23833,6 +25503,46 @@ const docTemplate = `{
                 }
             }
         },
+        "service.AIModelsResponse": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "Enabled AI 对话总开关（ai.chat_enabled）。",
+                    "type": "boolean"
+                },
+                "models": {
+                    "description": "Models 启用中的模型档案（Enabled=1），生效档案排前。",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.AIModelInfo"
+                    }
+                },
+                "tools_enabled": {
+                    "description": "ToolsEnabled 工具调用开关（ai.tools_enabled）。",
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.AIToolTrace": {
+            "type": "object",
+            "properties": {
+                "args_summary": {
+                    "type": "string"
+                },
+                "ms": {
+                    "type": "integer"
+                },
+                "ok": {
+                    "type": "boolean"
+                },
+                "result_summary": {
+                    "type": "string"
+                },
+                "tool": {
+                    "type": "string"
+                }
+            }
+        },
         "service.AccountPayload": {
             "type": "object",
             "required": [
@@ -23852,6 +25562,20 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "maxLength": 100
+                }
+            }
+        },
+        "service.AddMembersRequest": {
+            "type": "object",
+            "required": [
+                "user_ids"
+            ],
+            "properties": {
+                "user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -23883,14 +25607,6 @@ const docTemplate = `{
         },
         "service.AdminUpsertRequest": {
             "type": "object"
-        },
-        "service.AgentRunResponse": {
-            "type": "object",
-            "properties": {
-                "output": {
-                    "type": "string"
-                }
-            }
         },
         "service.ApproveRequest": {
             "type": "object",
@@ -24169,6 +25885,71 @@ const docTemplate = `{
                 }
             }
         },
+        "service.CouponCreateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "discount": {
+                    "description": "必须 \u003e0",
+                    "type": "number"
+                },
+                "end_at": {
+                    "description": "空=长期",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "per_user_limit": {
+                    "description": "缺省 1",
+                    "type": "integer"
+                },
+                "start_at": {
+                    "description": "空=立即",
+                    "type": "string"
+                },
+                "threshold": {
+                    "description": "0=无门槛",
+                    "type": "number"
+                },
+                "total_count": {
+                    "description": "必须 \u003e0",
+                    "type": "integer"
+                }
+            }
+        },
+        "service.CouponUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "discount": {
+                    "type": "number"
+                },
+                "end_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "per_user_limit": {
+                    "type": "integer"
+                },
+                "start_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number"
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.CreateAPIRequest": {
             "type": "object",
             "required": [
@@ -24276,6 +26057,25 @@ const docTemplate = `{
                     }
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateAssetStocktakeRequest": {
+            "type": "object",
+            "required": [
+                "scope_type"
+            ],
+            "properties": {
+                "remark": {
+                    "type": "string"
+                },
+                "scope_type": {
+                    "description": "范围类型:all/category/dept",
+                    "type": "string"
+                },
+                "scope_value": {
+                    "description": "范围值:category=分类名,dept=部门ID;all 时留空",
                     "type": "string"
                 }
             }
@@ -24797,6 +26597,23 @@ const docTemplate = `{
                 }
             }
         },
+        "service.CreateGroupRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "service.CreateInvoiceRequest": {
             "type": "object",
             "required": [
@@ -25068,6 +26885,9 @@ const docTemplate = `{
                 "expected_close_date": {
                     "type": "string"
                 },
+                "lost_reason": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -25125,6 +26945,11 @@ const docTemplate = `{
                 "contact_phone": {
                     "type": "string",
                     "maxLength": 30
+                },
+                "coupon_no": {
+                    "description": "优惠券码(可选)。仅登录买家可用;匿名传券码直接报错。",
+                    "type": "string",
+                    "maxLength": 32
                 },
                 "items": {
                     "type": "array",
@@ -25736,6 +27561,17 @@ const docTemplate = `{
                 }
             }
         },
+        "service.CreateSingleRequest": {
+            "type": "object",
+            "required": [
+                "target_user_id"
+            ],
+            "properties": {
+                "target_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.CreateStockInRequest": {
             "type": "object",
             "required": [
@@ -25912,11 +27748,21 @@ const docTemplate = `{
                 "due_date": {
                     "type": "string"
                 },
+                "is_milestone": {
+                    "type": "integer"
+                },
                 "priority": {
+                    "type": "integer"
+                },
+                "progress": {
                     "type": "integer"
                 },
                 "project_id": {
                     "type": "integer"
+                },
+                "start_date": {
+                    "description": "甘特图字段:开始日期(\"2006-01-02\",可空)/进度(0-100)/里程碑标志(0普通1里程碑)",
+                    "type": "string"
                 },
                 "title": {
                     "type": "string"
@@ -26294,6 +28140,86 @@ const docTemplate = `{
                 }
             }
         },
+        "service.FollowTodoItem": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "integer"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "due": {
+                    "description": "Due 到期桶:overdue=已逾期 today=今日到期",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lead_id": {
+                    "type": "integer"
+                },
+                "lead_name": {
+                    "type": "string"
+                },
+                "plan_time": {
+                    "description": "PlanTime 计划时间 YYYY-MM-DD HH:mm",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.FollowTodoSummary": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.FollowTodoItem"
+                    }
+                },
+                "overdue": {
+                    "description": "已逾期",
+                    "type": "integer"
+                },
+                "today": {
+                    "description": "今日到期",
+                    "type": "integer"
+                },
+                "upcoming": {
+                    "description": "今日之后",
+                    "type": "integer"
+                }
+            }
+        },
+        "service.FollowupDraftRequest": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "integer"
+                },
+                "lead_id": {
+                    "type": "integer"
+                },
+                "plan_id": {
+                    "description": "PlanID 可选:把某条待办跟进计划作为本次要执行的动作",
+                    "type": "integer"
+                },
+                "template": {
+                    "description": "Template 模板 key(见 followupTemplates),必填",
+                    "type": "string"
+                },
+                "tone": {
+                    "description": "Tone 语气 key:gentle/concise/formal,留空用模板默认语气",
+                    "type": "string"
+                }
+            }
+        },
         "service.GeneratePayrollRequest": {
             "type": "object",
             "required": [
@@ -26327,6 +28253,20 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "HOLIDAY / WORKDAY",
+                    "type": "string"
+                }
+            }
+        },
+        "service.IMSendMessageRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "content_type": {
                     "type": "string"
                 }
             }
@@ -26501,6 +28441,39 @@ const docTemplate = `{
                 }
             }
         },
+        "service.MallLoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "phone"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.MallRegisterRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "phone"
+            ],
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "service.NodeDesign": {
             "type": "object",
             "properties": {
@@ -26518,6 +28491,77 @@ const docTemplate = `{
                 },
                 "sort": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.OpportunityConversion": {
+            "type": "object",
+            "properties": {
+                "converted_count": {
+                    "type": "integer"
+                },
+                "entered_count": {
+                    "type": "integer"
+                },
+                "from_stage": {
+                    "type": "string"
+                },
+                "rate": {
+                    "type": "number"
+                },
+                "to_stage": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.OpportunityInsights": {
+            "type": "object",
+            "properties": {
+                "conversion": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.OpportunityConversion"
+                    }
+                },
+                "loss_reasons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.OpportunityLossReason"
+                    }
+                },
+                "stage_durations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.OpportunityStageDuration"
+                    }
+                },
+                "window_days": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.OpportunityLossReason": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.OpportunityStageDuration": {
+            "type": "object",
+            "properties": {
+                "avg_days": {
+                    "type": "number"
+                },
+                "sample_size": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string"
                 }
             }
         },
@@ -26681,6 +28725,54 @@ const docTemplate = `{
                 },
                 "sort": {
                     "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.PromotionCreateRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "product_id"
+            ],
+            "properties": {
+                "end_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "promo_price": {
+                    "type": "number"
+                },
+                "start_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.PromotionUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "end_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "promo_price": {
+                    "type": "number"
+                },
+                "start_at": {
+                    "type": "string"
                 },
                 "status": {
                     "type": "integer"
@@ -27302,6 +29394,9 @@ const docTemplate = `{
                 "color": {
                     "type": "string"
                 },
+                "guidance": {
+                    "type": "string"
+                },
                 "key": {
                     "type": "string"
                 },
@@ -27311,7 +29406,19 @@ const docTemplate = `{
                 "probability": {
                     "type": "integer"
                 },
+                "require_followup": {
+                    "type": "boolean"
+                },
+                "required_fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "sort": {
+                    "type": "integer"
+                },
+                "stagnant_days": {
                     "type": "integer"
                 }
             }
@@ -27469,6 +29576,21 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "service.SubmitAssetStocktakeItemRequest": {
+            "type": "object",
+            "required": [
+                "result_status"
+            ],
+            "properties": {
+                "result_remark": {
+                    "type": "string"
+                },
+                "result_status": {
+                    "description": "1在库 2缺失 3损坏",
+                    "type": "integer"
                 }
             }
         },
@@ -28247,6 +30369,9 @@ const docTemplate = `{
                 "expected_close_date": {
                     "type": "string"
                 },
+                "lost_reason": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -28669,6 +30794,9 @@ const docTemplate = `{
                 "hero_badge": {
                     "type": "string"
                 },
+                "hero_shot_url": {
+                    "type": "string"
+                },
                 "hero_subtitle": {
                     "type": "string"
                 },
@@ -28709,6 +30837,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stats_json": {
+                    "type": "string"
+                },
+                "testimonials_json": {
                     "type": "string"
                 },
                 "theme": {
@@ -28820,11 +30951,23 @@ const docTemplate = `{
                 "due_date": {
                     "type": "string"
                 },
+                "is_milestone": {
+                    "description": "IsMilestone nil=未传不覆盖;0=取消里程碑,1=设为里程碑",
+                    "type": "integer"
+                },
                 "priority": {
+                    "type": "integer"
+                },
+                "progress": {
+                    "description": "Progress nil=未传不覆盖;允许回设 0",
                     "type": "integer"
                 },
                 "sort_order": {
                     "type": "integer"
+                },
+                "start_date": {
+                    "description": "甘特图字段(半增量,指针区分未传/传值):\nStartDate nil=未传不覆盖;\"\"=清空;其余按 \"2006-01-02\" 解析",
+                    "type": "string"
                 },
                 "status": {
                     "type": "integer"

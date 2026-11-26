@@ -36,7 +36,7 @@ type CreateOauthConfigRequest struct {
 // Create 创建配置(每个 provider 仅一条)。
 func (s *OauthConfigService) Create(ctx context.Context, req *CreateOauthConfigRequest) (*model.SysOauthConfig, error) {
 	if !isValidProvider(req.Provider) {
-		return nil, errors.New("不支持的渠道: " + req.Provider + "(当前支持: wecom)")
+		return nil, errors.New("不支持的渠道: " + req.Provider + "(当前支持: wecom/dingtalk/feishu)")
 	}
 	// 检查是否已存在
 	if existing, err := s.repo.GetByProvider(ctx, req.Provider); err == nil && existing != nil {
@@ -152,7 +152,7 @@ func (s *OauthConfigService) GetWecomConfig(ctx context.Context) (*model.SysOaut
 // isValidProvider 校验渠道类型。
 func isValidProvider(p string) bool {
 	switch p {
-	case model.OAuthProviderWecom, model.OAuthProviderDing, model.OAuthProviderFeishu:
+	case model.OAuthProviderWecom, model.OAuthProviderDingtalk, model.OAuthProviderFeishu:
 		return true
 	}
 	return false

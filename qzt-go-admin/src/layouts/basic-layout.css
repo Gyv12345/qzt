@@ -497,15 +497,22 @@ body.qzt-theme-weak img {
   flex-shrink: 0;
 }
 
-/* ── 面包屑:顶栏中部当前页面导航链(模块/分组/页面 可逐级点击) ── */
+/* ── 面包屑:内容区顶部左侧当前页面导航链(模块/分组/页面 可逐级点击) ── */
 .qzt-breadcrumb {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  flex: none;
   min-width: 0;
-  margin-left: 16px;
   overflow: hidden;
+}
+/* 多Tab布局:面包屑行在 Tab 栏与面板之间,左右对齐面板 16px 内边距 */
+.qzt-content.with-tabs .qzt-breadcrumb {
+  padding: 8px 16px 0;
+}
+/* 非多Tab布局:内容区自带 16px padding,面包屑行只补下间距 */
+.qzt-content:not(.with-tabs) .qzt-breadcrumb {
+  padding: 0 0 4px;
 }
 .qzt-bc-item {
   border: none;

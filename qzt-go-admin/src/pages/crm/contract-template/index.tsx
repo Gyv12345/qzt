@@ -203,10 +203,10 @@ export default function ContractTemplatePage() {
         <div style={{ display: 'flex', gap: 16, width: '100%' }}>
           {/* 左栏:变量面板 */}
           <div style={{ width: 220, flexShrink: 0, maxHeight: 460, overflowY: 'auto', borderRight: '1px solid #f0f0f0', paddingRight: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: '#666' }}>📝 点击插入变量</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--ant-color-text-secondary)' }}>📝 点击插入变量</div>
             {Object.entries(groupedVars).map(([group, vars]) => (
               <div key={group} style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#999', marginBottom: 4 }}>{group}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ant-color-text-tertiary)', marginBottom: 4 }}>{group}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   {vars.map((v) => (
                     <Tag

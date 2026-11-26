@@ -28,10 +28,100 @@ import (
 	"qzt-go-server/pkg/xlogger"
 )
 
-// Message 一条对话消息。Role 为 OpenAI 语义：system/user/assistant。
+// Message 一条对话消息。Role 为 OpenAI 语义：system/user/assistant/tool。
+//
+// tool use 协议序列化（结构 tag 保证，无需自定义 MarshalJSON）：
+//   - assistant 消息携带 ToolCalls 时，Content 为空串由 omitempty 省略
+//     （OpenAI 协议允许省略 content，各供应商普遍兼容）；
+//   - role="tool" 消息必带 ToolCallID（tool_call_id）且 Content 为结果文本（必填）。
 type Message struct {
 	Role    string `json:"role"`
-	Content string `json:"content"`
+	Content string `json:"content,omitempty"`
+	// ToolCallID role="tool" 消息对应的 tool_call_id（序列化为 tool_call_id）。
+	ToolCallID string `json:"tool_call_id,omitempty"`
+	// ToolCalls assistant 消息携带的工具调用请求列表（序列化为 tool_calls）。
+	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
+}
+
+// ToolCall 一次工具调用请求（assistant 返回的 tool_calls 元素）。
+// Arguments 是 JSON 字符串（OpenAI 协议原样），由调用方反序列化成参数对象。
+type ToolCall struct {
+	ID        string `json:"id"`
+	Type      string `json:"type,omitempty"`
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
+}
+
+// toolCallWire ToolCall 的 OpenAI 协议线格式（tool_calls[].function 嵌套）。
+type toolCallWire struct {
+	ID       string `json:"id"`
+	Type     string `json:"type"`
+	Function struct {
+		Name      string `json:"name"`
+		Arguments string `json:"arguments"`
+	} `json:"function"`
+}
+
+// MarshalJSON 序列化为 OpenAI 协议形状：{"id","type":"function","function":{"name","arguments"}}。
+func (t ToolCall) MarshalJSON() ([]byte, error) {
+	w := toolCallWire{ID: t.ID, Type: "function"}
+	w.Function.Name = t.Name
+	w.Function.Arguments = t.Arguments
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON 从 OpenAI 协议形状反序列化。
+func (t *ToolCall) UnmarshalJSON(b []byte) error {
+	var w toolCallWire
+	if err := json.Unmarshal(b, &w); err != nil {
+		return err
+	}
+	t.ID, t.Type, t.Name, t.Arguments = w.ID, w.Type, w.Function.Name, w.Function.Arguments
+	return nil
+}
+
+// ToolDef 一个工具的 OpenAI function 定义（ChatRequest.Tools 元素）。
+// Parameters 是 JSON Schema 的 RawMessage（原样透传给供应商，不改写）。
+type ToolDef struct {
+	Name        string
+	Description string
+	Parameters  json.RawMessage
+}
+
+// toolDefWire ToolDef 的 OpenAI 协议线格式（type+function 嵌套）。
+type toolDefWire struct {
+	Type     string `json:"type"`
+	Function struct {
+		Name        string          `json:"name"`
+		Description string          `json:"description,omitempty"`
+		Parameters  json.RawMessage `json:"parameters,omitempty"`
+	} `json:"function"`
+}
+
+// MarshalJSON 序列化为 OpenAI 协议形状：{"type":"function","function":{...}}。
+// Parameters 为空时补一个空 object schema，避免供应商因缺 parameters 报参数错误。
+func (t ToolDef) MarshalJSON() ([]byte, error) {
+	w := toolDefWire{Type: "function"}
+	w.Function.Name = t.Name
+	w.Function.Description = t.Description
+	if len(t.Parameters) > 0 {
+		w.Function.Parameters = t.Parameters
+	} else {
+		w.Function.Parameters = json.RawMessage(`{"type":"object","properties":{}}`)
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON 从 OpenAI 协议形状反序列化（测试 mock 回读线格式用）。
+func (t *ToolDef) UnmarshalJSON(b []byte) error {
+	var w toolDefWire
+	if err := json.Unmarshal(b, &w); err != nil {
+		return err
+	}
+	t.Name = w.Function.Name
+	t.Description = w.Function.Description
+	t.Parameters = w.Function.Parameters
+	return nil
 }
 
 // ChatRequest 一次对话补全请求。Model 留空用网关默认模型；
@@ -41,20 +131,36 @@ type ChatRequest struct {
 	Model       string
 	Temperature *float64
 	MaxTokens   int
+	// Tools 工具定义列表（OpenAI function calling）。非空时请求跳过响应缓存
+	//（cacheKey 未含 tools，避免错误命中），且供应商可能返回 tool_calls。
+	Tools []ToolDef
+	// ToolChoice 工具选择策略（如 "auto"），空则不发送（供应商默认 auto）。
+	ToolChoice string
+	// EnableSearch 供应商侧联网搜索（DashScope 通义系 enable_search 扩展字段，
+	// 服务端搜索后并入上下文；其他供应商可能忽略或报错，由调用方按模型能力决定）。
+	EnableSearch bool
+	// EnableThinking 思考模式（推理模型 reasoning_content；内部走流式聚合）。
+	EnableThinking bool
+	// ThinkEffort 思考强度（low|medium|high，支持该参数的模型才生效），空=供应商默认。
+	ThinkEffort string
 	// UserID 发起用户 ID，记账用；0 表示系统定时任务。
 	UserID uint
 	// Feature 功能标识，如 geo.monitor / assessment.report，记账用。
 	Feature string
 }
 
-// ChatResponse 对话补全结果。
+// ChatResponse 对话补全结果。Content 与 ToolCalls 互斥出现：带工具的请求若模型
+// 决定调用工具，Content 可能为空而 ToolCalls 非空，由调用方执行工具后回填 tool 消息续聊。
 type ChatResponse struct {
 	Content          string
 	Model            string
 	PromptTokens     int
 	CompletionTokens int
 	TotalTokens      int
-	FromCache        bool
+	ToolCalls        []ToolCall
+	// Reasoning 思考过程文本（EnableThinking 时推理模型返回），非思考请求为空。
+	Reasoning string
+	FromCache bool
 }
 
 // Usage 一次调用的记账条目（成功与失败都记，失败不落 prompt）。
@@ -198,9 +304,13 @@ func (c *Client) Chat(ctx context.Context, req ChatRequest) (ChatResponse, error
 	}
 
 	start := time.Now()
+	// 带 Tools/思考模式的请求跳过响应缓存：cacheKey 未含 tools/thinking（不同工具集
+	// 或思考开关同 prompt 会错命中），工具轮与思考过程本就不宜缓存复用。
+	hasTools := len(req.Tools) > 0
+	noCache := hasTools || req.EnableThinking
 
 	// 1) 响应缓存：命中直接返回，不消耗供应商额度与限流配额。
-	if c.opts.Cache != nil {
+	if c.opts.Cache != nil && !noCache {
 		if resp, ok := cacheLookup(c.opts.Cache, model, req); ok {
 			resp.FromCache = true
 			c.record(ctx, req, model, resp, true, 0, nil)
@@ -230,10 +340,12 @@ func (c *Client) Chat(ctx context.Context, req ChatRequest) (ChatResponse, error
 		PromptTokens:     raw.PromptTokens,
 		CompletionTokens: raw.CompletionTokens,
 		TotalTokens:      raw.TotalTokens,
+		ToolCalls:        raw.ToolCalls,
+		Reasoning:        raw.Reasoning,
 	}
 
-	// 4) 写缓存。
-	if c.opts.Cache != nil {
+	// 4) 写缓存（带 Tools/思考的请求不写，见上）。
+	if c.opts.Cache != nil && !noCache {
 		cacheStore(c.opts.Cache, model, req, resp, c.opts.CacheTTL)
 	}
 

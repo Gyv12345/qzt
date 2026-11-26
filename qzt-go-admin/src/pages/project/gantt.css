@@ -1,0 +1,61 @@
+/* P33 项目甘特图样式(frappe-gantt 默认浅色样式,明暗主题均可接受) */
+
+/* 里程碑:方条 CSS 旋转 45° 呈菱形(GanttChart.tsx 已把条改成 20x20 方形) */
+.gantt .qzt-gantt-milestone .bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(45deg);
+  fill: #faad14;
+}
+.gantt .qzt-gantt-milestone .bar-progress {
+  display: none;
+}
+.gantt .qzt-gantt-milestone .bar-label {
+  font-weight: 600;
+  fill: #ad6800;
+}
+
+/* 已完成任务条:柔和绿色 */
+.gantt .qzt-gantt-done .bar {
+  fill: #95de64;
+}
+.gantt .qzt-gantt-done .bar-progress {
+  fill: #52c41a;
+}
+
+/* 已取消任务条:置灰 */
+.gantt .qzt-gantt-cancelled .bar {
+  fill: #d9d9d9;
+}
+.gantt .qzt-gantt-cancelled .bar-label {
+  fill: #8c8c8c;
+}
+
+/* 里程碑/任务图例 */
+.qzt-gantt-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #666;
+}
+.qzt-gantt-legend .qzt-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.qzt-gantt-legend .qzt-legend-bar {
+  width: 18px;
+  height: 8px;
+  border-radius: 4px;
+  background: #4096ff;
+}
+.qzt-gantt-legend .qzt-legend-done {
+  background: #95de64;
+}
+.qzt-gantt-legend .qzt-legend-milestone {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: #faad14;
+}

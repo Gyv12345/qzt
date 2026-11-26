@@ -42,6 +42,12 @@ export const releaseLead = (id: number, data: { pool_id: number; reason?: string
 export const transferLead = (id: number, toUserId: number) =>
   request.post(`/crm/leads/${id}/transfer`, { to_user_id: toUserId })
 
+// 批量分配线索(公海领取式+私海转移式,逐条继续)
+export const batchAssignLeads = (
+  data: { ids: number[]; to_user_id: number },
+): Promise<{ assigned: number; failed: number }> =>
+  request.post<unknown, { assigned: number; failed: number }>('/crm/leads/batch-assign', data)
+
 /** 线索转化为客户 */
 export const convertLead = (id: number) => request.post<unknown, { id: number }>(`/crm/leads/${id}/convert`)
 

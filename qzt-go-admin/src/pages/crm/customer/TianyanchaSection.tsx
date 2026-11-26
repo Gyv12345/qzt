@@ -89,7 +89,7 @@ export default function TianyanchaSection({ customerId, companyName, open }: Tia
         <Button icon={<SearchOutlined />} loading={querying} onClick={handleQuery}>
           天眼查查询
         </Button>
-        <span style={{ fontSize: 12, color: '#999' }}>
+        <span style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)' }}>
           {notConfigured
             ? '未配置'
             : remaining !== null

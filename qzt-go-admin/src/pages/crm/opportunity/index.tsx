@@ -8,6 +8,7 @@ import {
   Select,
   Space,
   Table,
+  Tag,
   type TableProps,
 } from 'antd'
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined } from '@ant-design/icons'
@@ -28,7 +29,6 @@ import {
   getStageConfig,
   listCustomers,
   listOpportunities,
-  changeOpportunityStage,
 } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
 import type {
@@ -52,6 +52,7 @@ export default function OpportunityPage() {
   const [editing, setEditing] = useState<CrmOpportunity | null>(null)
 
   const [stageTarget, setStageTarget] = useState<CrmOpportunity | null>(null)
+  const [stageDestination, setStageDestination] = useState<string | undefined>()
 
   const [historyOpen, setHistoryOpen] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -135,11 +136,15 @@ export default function OpportunityPage() {
       .finally(() => setHistoryLoading(false))
   }
 
-  /** 看板卡片快捷流转 */
-  const handleBoardStageChange = async (record: CrmOpportunity, stage: string) => {
-    await changeOpportunityStage(record.id, stage)
-    message.success('阶段已流转')
-    loadBoard()
+  /** 看板卡片快捷流转:与列表统一走阶段弹窗,由弹窗提交 */
+  const handleBoardStageChange = (record: CrmOpportunity, stage: string) => {
+    setStageDestination(stage)
+    setStageTarget(record)
+  }
+
+  const openStageChange = (record: CrmOpportunity) => {
+    setStageDestination(undefined)
+    setStageTarget(record)
   }
 
   const columns: ProColumns<CrmOpportunity>[] = [
@@ -207,6 +212,21 @@ export default function OpportunityPage() {
       render: (_, r) => <DictTag code="OPPORTUNITY_STAGE" value={r.stage} />,
     },
     {
+      title: '停留天数',
+      dataIndex: 'days_in_stage',
+      search: false,
+      width: 100,
+      render: (_, r) =>
+        r.days_in_stage === null || r.days_in_stage === undefined ? '未记录' : `${r.days_in_stage} 天`,
+    },
+    {
+      title: '阶段状态',
+      dataIndex: 'is_stagnant',
+      search: false,
+      width: 90,
+      render: (_, r) => (r.is_stagnant ? <Tag color="warning">停滞</Tag> : '-'),
+    },
+    {
       title: '成交概率',
       dataIndex: 'probability',
       search: false,
@@ -241,7 +261,7 @@ export default function OpportunityPage() {
             </Button>
           </Auth>
           <Auth perm="crm:opportunity:edit">
-            <Button type="link" size="small" onClick={() => setStageTarget(record)}>
+            <Button type="link" size="small" onClick={() => openStageChange(record)}>
               阶段流转
             </Button>
           </Auth>
@@ -270,19 +290,34 @@ export default function OpportunityPage() {
     {
       title: '原阶段',
       dataIndex: 'from_stage',
+      width: 110,
       render: (v: string) => (v ? <DictTag code="OPPORTUNITY_STAGE" value={v} /> : '新建'),
     },
     {
       title: '新阶段',
       dataIndex: 'to_stage',
+      width: 110,
       render: (v: string) => <DictTag code="OPPORTUNITY_STAGE" value={v} />,
     },
     {
       title: '操作人',
       dataIndex: 'operator_id',
+      width: 100,
       render: (v: number) => nickname(v),
     },
-    { title: '原因', dataIndex: 'reason', render: (v: string) => v || '-' },
+    { title: '原因', dataIndex: 'reason', width: 160, render: (v: string) => v || '-' },
+    {
+      title: '输单原因',
+      dataIndex: 'lost_reason',
+      width: 130,
+      render: (v: string) => <DictTag code="OPPORTUNITY_LOST_REASON" value={v} />,
+    },
+    {
+      title: '流转时间',
+      dataIndex: 'created_at',
+      width: 170,
+      render: (v: string | null) => v || '-',
+    },
   ]
 
   return (
@@ -350,8 +385,12 @@ export default function OpportunityPage() {
       {/* 阶段流转 */}
       <StageChangeModal
         target={stageTarget}
-        stageOptions={stageOptions}
-        onClose={() => setStageTarget(null)}
+        stageDefs={sortedStages}
+        initialStage={stageDestination}
+        onClose={() => {
+          setStageTarget(null)
+          setStageDestination(undefined)
+        }}
         onSuccess={refreshActive}
       />
 
@@ -368,6 +407,7 @@ export default function OpportunityPage() {
           loading={historyLoading}
           dataSource={historyList}
           columns={historyColumns}
+          scroll={{ x: 780 }}
           pagination={false}
         />
       </Drawer>

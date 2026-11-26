@@ -169,7 +169,7 @@ export default function ProductCategoryPage() {
       list.map((n) => ({
         key: n.id,
         title: (
-          <span style={n.status === 0 ? { color: '#999' } : undefined}>
+          <span style={n.status === 0 ? { color: 'var(--ant-color-text-tertiary)' } : undefined}>
             {n.name}
             {n.status === 0 ? '(停用)' : ''}
           </span>

@@ -270,15 +270,15 @@ function DesignerInner({ flowId, onClose }: DesignerProps) {
           justifyContent: 'space-between',
           padding: '8px 16px',
           borderBottom: '1px solid #f0f0f0',
-          background: '#fff',
+          background: 'var(--ant-color-bg-container)',
         }}
       >
         <Space>
           <strong>{detail?.name || '流程设计'}</strong>
-          <span style={{ color: '#999', fontSize: 12 }}>
+          <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
             点击连线上的 + 插入节点;点击节点编辑属性;选中条件节点可 + 追加平行分支
           </span>
-          <span style={{ color: '#999', fontSize: 12 }}>
+          <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
             条件分支按从左到右顺序匹配,首个满足即走;都不满足走兜底分支(未连条件的分支)
           </span>
         </Space>

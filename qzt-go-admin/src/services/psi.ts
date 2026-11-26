@@ -1,6 +1,11 @@
 import request from '../utils/request'
 import type {
   PsiAsset,
+  PsiAssetStocktake,
+  PsiAssetStocktakeDetail,
+  PsiAssetStocktakeSummary,
+  PsiDepreciateRunResult,
+  PsiDepreciationLog,
   PsiPurchaseOrder,
   PsiPurchaseOrderPayload,
   PsiPurchaseSummaryItem,
@@ -303,3 +308,43 @@ export const cancelStockTransferOrder = (id: number) =>
 
 export const deleteStockTransferOrder = (id: number) =>
   request.delete(`/psi/stock-transfer-orders/${id}`)
+
+// ---------- 资产盘点(P33) ----------
+
+export interface AssetStocktakeCreatePayload {
+  /** all 全部 / category 按分类 / dept 按部门 */
+  scope_type: 'all' | 'category' | 'dept'
+  /** 范围值:按分类传分类名,按部门传部门ID(其余可省) */
+  scope_value?: string | number
+  remark?: string
+}
+
+export const createAssetStocktake = (data: AssetStocktakeCreatePayload) =>
+  request.post('/psi/assets/stocktakes', data)
+
+export const listAssetStocktakes = (params?: PageParams) =>
+  request.get<unknown, PsiPageResult<PsiAssetStocktake>>('/psi/assets/stocktakes', { params })
+
+export const getAssetStocktake = (id: number) =>
+  request.get<unknown, PsiAssetStocktakeDetail>(`/psi/assets/stocktakes/${id}`)
+
+/** 填报单条明细(结果 + 备注) */
+export const updateAssetStocktakeItem = (
+  stocktakeId: number,
+  itemId: number,
+  data: { result_status: 1 | 2 | 3; result_remark?: string },
+) => request.put(`/psi/assets/stocktakes/${stocktakeId}/items/${itemId}`, data)
+
+/** 完成盘点(需全部盘点完成,返回差异统计) */
+export const finishAssetStocktake = (id: number) =>
+  request.post<unknown, PsiAssetStocktakeSummary>(`/psi/assets/stocktakes/${id}/finish`)
+
+// ---------- 资产折旧(P33) ----------
+
+/** 手动计提折旧(直线法,按当前月;重复执行幂等跳过) */
+export const runAssetDepreciation = (period?: string) =>
+  request.post<unknown, PsiDepreciateRunResult>('/psi/assets/depreciate/run', period ? { period } : {})
+
+/** 某资产的折旧日志 */
+export const listAssetDepreciationLogs = (assetId: number) =>
+  request.get<unknown, PsiDepreciationLog[]>(`/psi/assets/${assetId}/depreciation-logs`)

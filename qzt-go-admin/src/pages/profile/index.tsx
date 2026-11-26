@@ -44,7 +44,7 @@ export default function ProfilePage() {
       {/* ── 顶部导航栏 ── */}
       <div
         style={{
-          background: '#fff',
+          background: 'var(--ant-color-bg-container)',
           padding: '12px 24px',
           display: 'flex',
           alignItems: 'center',

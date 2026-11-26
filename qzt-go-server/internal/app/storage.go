@@ -267,6 +267,9 @@ func BuildUploaderFromStorageConfig(cfg *model.SysStorageConfig) (storage.Upload
 			PrivateCustomDomain: cfg.OSSPrivateCustomDomain,
 			MaxBytes:            maxBytes,
 			AllowedTypes:        defaultAllowedTypes,
+			// 签名版本/地域为账号级属性,统一从 yaml(.env 注入)取,后台存储配置页无需 UI 字段。
+			Region:           config.Get().Storage.OSS.Region,
+			SignatureVersion: config.Get().Storage.OSS.SignatureVersion,
 		})
 		return u, err
 
@@ -332,6 +335,8 @@ func buildUploader(cfg config.StorageConfig) (storage.Uploader, error) {
 			PrivateCustomDomain: cfg.OSS.PrivateCustomDomain,
 			MaxBytes:            maxBytes,
 			AllowedTypes:        defaultAllowedTypes,
+			Region:              cfg.OSS.Region,
+			SignatureVersion:    cfg.OSS.SignatureVersion,
 		})
 		return u, err
 

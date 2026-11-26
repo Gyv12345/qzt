@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { App, Button, Input, Select, Space, Timeline } from 'antd'
-import { SendOutlined } from '@ant-design/icons'
+import { SendOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
+import AiFollowupDraftModal from '../../../components/ai/AiFollowupDraftModal'
+import { useAiEnabled } from '../../../components/ai/useAiEnabled'
 import { DictTag } from '../../../components/DictSelect'
 import { createFollowRecord, getFollowTimeline } from '../../../services/crm'
 import { useUserStore } from '../../../stores/users'
@@ -16,27 +18,38 @@ const FOLLOW_TYPE_OPTIONS = [
 ]
 
 interface FollowPanelProps {
-  /** 关联客户(与 leadId 二选一) */
+  /** 关联客户(与 leadId、opportunityId 三选一;商机场景可同时传入用于 AI 上下文) */
   customerId?: number
-  /** 关联线索(与 customerId 二选一) */
+  /** 关联线索(与 customerId、opportunityId 三选一) */
   leadId?: number
+  /** 关联商机(与 customerId、leadId 三选一) */
+  opportunityId?: number
 }
 
 /**
  * 跟进记录面板(顶部快速写跟进 + 下方时间线列表)。
- * 客户/线索共用:传 customerId 关联客户,传 leadId 关联线索。
+ * 客户/线索/商机共用,分别传 customerId、leadId、opportunityId。
  */
-export default function FollowPanel({ customerId, leadId }: FollowPanelProps) {
+export default function FollowPanel({ customerId, leadId, opportunityId }: FollowPanelProps) {
   const { message } = App.useApp()
   const nickname = useUserStore((s) => s.nickname)
   const [records, setRecords] = useState<CrmFollowRecord[]>([])
   const [content, setContent] = useState('')
   const [followType, setFollowType] = useState('WECHAT')
   const [submitting, setSubmitting] = useState(false)
+  const [draftOpen, setDraftOpen] = useState(false)
+  const aiEnabled = useAiEnabled()
 
-  // 关联字段与 ID:客户用 customer_id,线索用 lead_id
-  const linkField = leadId ? 'lead_id' : 'customer_id'
-  const linkId = leadId ?? customerId ?? 0
+  // AI 草稿填回输入框;模板建议的跟进类型在可选项内时一并切换
+  const handleApplyDraft = (draft: string, followType: string) => {
+    setContent(draft)
+    if (FOLLOW_TYPE_OPTIONS.some((o) => o.value === followType)) setFollowType(followType)
+    setDraftOpen(false)
+  }
+
+  // 关联字段与 ID:客户用 customer_id,线索用 lead_id,商机用 opportunity_id
+  const linkField = opportunityId ? 'opportunity_id' : leadId ? 'lead_id' : 'customer_id'
+  const linkId = opportunityId ?? leadId ?? customerId ?? 0
 
   const load = async () => {
     if (!linkId) return
@@ -60,7 +73,11 @@ export default function FollowPanel({ customerId, leadId }: FollowPanelProps) {
         type: followType,
         content: content.trim(),
         follow_time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        ...(leadId ? { lead_id: leadId } : { customer_id: customerId }),
+        ...(opportunityId
+          ? { opportunity_id: opportunityId }
+          : leadId
+            ? { lead_id: leadId }
+            : { customer_id: customerId }),
       })
       message.success('跟进记录已添加')
       setContent('')
@@ -105,7 +122,14 @@ export default function FollowPanel({ customerId, leadId }: FollowPanelProps) {
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingLeft: 122 }}>
-          <span style={{ fontSize: 12, color: '#999' }}>Ctrl+Enter 快捷提交</span>
+          <Space size={8}>
+            {aiEnabled && linkId > 0 && Boolean(customerId || leadId) && (
+              <Button size="small" icon={<ThunderboltOutlined />} onClick={() => setDraftOpen(true)}>
+                AI 起草
+              </Button>
+            )}
+            <span style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)' }}>Ctrl+Enter 快捷提交</span>
+          </Space>
           <Button
             type="primary"
             icon={<SendOutlined />}
@@ -128,7 +152,7 @@ export default function FollowPanel({ customerId, leadId }: FollowPanelProps) {
               <div>
                 <Space size={8} style={{ marginBottom: 4 }}>
                   <DictTag code="FOLLOW_UP_TYPE" value={r.type} />
-                  <span style={{ color: '#999', fontSize: 12 }}>
+                  <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
                     {nickname(r.owner_id)} · {r.follow_time}
                   </span>
                 </Space>
@@ -140,8 +164,15 @@ export default function FollowPanel({ customerId, leadId }: FollowPanelProps) {
           }))}
         />
       ) : (
-        <div style={{ color: '#999', textAlign: 'center', padding: 32 }}>暂无跟进记录</div>
+        <div style={{ color: 'var(--ant-color-text-tertiary)', textAlign: 'center', padding: 32 }}>暂无跟进记录</div>
       )}
+
+      <AiFollowupDraftModal
+        open={draftOpen}
+        onClose={() => setDraftOpen(false)}
+        subject={leadId ? { leadId } : { customerId }}
+        onApply={handleApplyDraft}
+      />
     </div>
   )
 }

@@ -144,6 +144,13 @@ var ownerRefs = map[string]ownerRef{
 // resolveOwner 沿外键链解析记录最终归属人;记录不存在、列为 NULL 或链断裂
 // 返回 ok=false(由调用方放行,handler 自行 404)。
 func resolveOwner(kind string, id uint) (uint, bool) {
+	if kind == "follow_record" || kind == "follow_plan" {
+		table := "follow_up_record"
+		if kind == "follow_plan" {
+			table = "follow_up_plan"
+		}
+		return resolveFollowOwner(table, id)
+	}
 	for range 5 {
 		ref, ok := ownerRefs[kind]
 		if !ok {
@@ -158,6 +165,42 @@ func resolveOwner(kind string, id uint) (uint, bool) {
 			return uint(val.Int64), true
 		}
 		kind, id = ref.next, uint(val.Int64)
+	}
+	return 0, false
+}
+
+// resolveFollowOwner 支持只关联商机/线索/合同/联系人的跟进记录和计划。
+// 旧实现固定沿 customer_id 解析,会使这些记录失去数据权限保护。
+func resolveFollowOwner(table string, id uint) (uint, bool) {
+	var row struct {
+		CustomerID    *uint
+		OpportunityID *uint
+		LeadID        *uint
+		ContractID    *uint
+		ContactID     *uint
+	}
+	if err := app.DB.Table(table).
+		Select("customer_id, opportunity_id, lead_id, contract_id, contact_id").
+		Where("id = ?", id).Scan(&row).Error; err != nil {
+		return 0, false
+	}
+	candidates := []struct {
+		kind string
+		id   *uint
+	}{
+		{"customer", row.CustomerID},
+		{"opportunity", row.OpportunityID},
+		{"lead", row.LeadID},
+		{"contract", row.ContractID},
+		{"contact", row.ContactID},
+	}
+	for _, candidate := range candidates {
+		if candidate.id == nil || *candidate.id == 0 {
+			continue
+		}
+		if owner, ok := resolveOwner(candidate.kind, *candidate.id); ok {
+			return owner, true
+		}
 	}
 	return 0, false
 }

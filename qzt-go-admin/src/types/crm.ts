@@ -119,6 +119,14 @@ export interface CrmOpportunity {
   expected_close_date: string | null
   /** 阶段(字典 OPPORTUNITY_STAGE,运行期以阶段配置为准) */
   stage: string
+  /** 当前阶段进入时间,null=历史数据未记录 */
+  stage_entered_at: string | null
+  /** 当前阶段停留天数,null=无法计算 */
+  days_in_stage: number | null
+  /** 是否超过阶段配置的停滞阈值 */
+  is_stagnant: boolean
+  /** 输单原因(字典 OPPORTUNITY_LOST_REASON) */
+  lost_reason: string
   probability: number | null
   owner_id: number | null
   follower_id: number | null
@@ -326,7 +334,23 @@ export interface StageDef {
   color: string
   sort: number
   probability: number
+  /** 阶段说明(仅商机阶段) */
+  guidance?: string
+  /** 进入/流转该阶段所需的标准资料字段(仅商机阶段) */
+  required_fields?: string[]
+  /** 是否要求有跟进记录(仅商机阶段) */
+  require_followup?: boolean
+  /** 停滞预警天数,0/缺省=不启用(仅商机阶段) */
+  stagnant_days?: number
 }
+
+/** 商机阶段可配置的标准资料字段 */
+export const OPPORTUNITY_REQUIRED_FIELD_OPTIONS = [
+  { label: '预期金额', value: 'expected_amount' },
+  { label: '预计成交日', value: 'expected_close_date' },
+  { label: '负责人', value: 'owner_id' },
+  { label: '描述', value: 'description' },
+] as const
 
 export interface CrmStageConfig {
   id: number
@@ -350,6 +374,9 @@ export interface CrmStageRecord {
   to_stage: string
   operator_id: number
   reason: string
+  /** 输单原因(字典 OPPORTUNITY_LOST_REASON) */
+  lost_reason: string
+  created_at: string | null
 }
 
 export interface CrmOwnerHistory {
@@ -450,6 +477,13 @@ export interface CrmOpportunityPayload {
   probability?: number
   owner_id?: number
   description?: string
+}
+
+/** 商机阶段流转请求体;进入 LOST 时 lost_reason 必填 */
+export interface CrmOpportunityStagePayload {
+  stage: string
+  reason?: string
+  lost_reason?: string
 }
 
 export interface CrmContractPayload {

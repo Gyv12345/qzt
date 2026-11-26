@@ -1,7 +1,28 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Alert, Button, Card, Form, InputNumber, Space, Spin, Switch, Tabs, Tag, message } from 'antd'
+import {
+  Alert,
+  Button,
+  Card,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Space,
+  Spin,
+  Switch,
+  Tabs,
+  Tag,
+  message,
+} from 'antd'
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+} from '@ant-design/icons'
 import Auth from '../../../components/Auth'
+import UserSelect from '../../../components/UserSelect'
 import { batchUpdateConfigs, listConfigs, refreshConfigCache } from '../../../services/system'
 import { listContractTemplates } from '../../../services/crm'
 import type { CrmContractTemplate } from '../../../types/crm'
@@ -13,6 +34,39 @@ const KEYS = {
   warnOpp: 'crm.followup.warn_days_opportunity',
   remindEnabled: 'crm.followup.remind_enabled',
   autoRecycle: 'crm.pool.auto_recycle_enabled',
+  autoAssignEnabled: 'crm.lead.auto_assign_enabled',
+  autoAssignRules: 'crm.lead.auto_assign_rules',
+}
+
+/** 线索自动分配规则(与后端 JSON 结构一致) */
+interface CrmLeadAutoAssignRule {
+  source?: string
+  level?: string
+  industry?: string
+  user_id: number
+  enabled: boolean
+}
+
+/** 编辑态:user_id 未选时为 undefined */
+type EditingRule = Omit<CrmLeadAutoAssignRule, 'user_id'> & { user_id?: number }
+
+const parseAutoAssignRules = (v?: string): EditingRule[] => {
+  if (!v) return []
+  try {
+    const arr = JSON.parse(v)
+    if (!Array.isArray(arr)) return []
+    return arr
+      .filter((r): r is CrmLeadAutoAssignRule => !!r && typeof r === 'object')
+      .map((r) => ({
+        source: r.source ?? '',
+        level: r.level ?? '',
+        industry: r.industry ?? '',
+        user_id: r.user_id,
+        enabled: !!r.enabled,
+      }))
+  } catch {
+    return []
+  }
 }
 
 interface FollowupForm {
@@ -33,6 +87,9 @@ export default function CrmSettingPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [templates, setTemplates] = useState<CrmContractTemplate[]>([])
+  // 线索自动分配
+  const [autoAssignEnabled, setAutoAssignEnabled] = useState(false)
+  const [assignRules, setAssignRules] = useState<EditingRule[]>([])
 
   useEffect(() => {
     // 拉 crm 组配置 + 合同模板列表
@@ -48,6 +105,8 @@ export default function CrmSettingPage() {
         poolForm.setFieldsValue({
           auto_recycle_enabled: (map.get(KEYS.autoRecycle) ?? '1') !== '0',
         })
+        setAutoAssignEnabled((map.get(KEYS.autoAssignEnabled) ?? '0') === '1')
+        setAssignRules(parseAutoAssignRules(map.get(KEYS.autoAssignRules)))
         setTemplates(tplRes.list || [])
       })
       .finally(() => setLoading(false))
@@ -78,6 +137,49 @@ export default function CrmSettingPage() {
       await batchUpdateConfigs([{ key: KEYS.autoRecycle, value: v.auto_recycle_enabled ? '1' : '0' }])
       await refreshConfigCache()
       message.success('公海配置已保存')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // ---------- 线索自动分配 ----------
+
+  const updateAssignRule = (idx: number, patch: Partial<EditingRule>) => {
+    setAssignRules((rs) => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)))
+  }
+
+  const moveAssignRule = (idx: number, dir: -1 | 1) => {
+    setAssignRules((rs) => {
+      const next = [...rs]
+      const j = idx + dir
+      if (j < 0 || j >= next.length) return rs
+      ;[next[idx], next[j]] = [next[j], next[idx]]
+      return next
+    })
+  }
+
+  const removeAssignRule = (idx: number) => {
+    setAssignRules((rs) => rs.filter((_, i) => i !== idx))
+  }
+
+  const addAssignRule = () => {
+    setAssignRules((rs) => [...rs, { enabled: true }])
+  }
+
+  // 保存自动分配配置:启用的规则必须已选分配用户
+  const onAutoAssignSave = async () => {
+    if (assignRules.some((r) => r.enabled && !r.user_id)) {
+      message.warning('启用的分配规则必须选择分配用户')
+      return
+    }
+    setSaving(true)
+    try {
+      await batchUpdateConfigs([
+        { key: KEYS.autoAssignEnabled, value: autoAssignEnabled ? '1' : '0' },
+        { key: KEYS.autoAssignRules, value: JSON.stringify(assignRules) },
+      ])
+      await refreshConfigCache()
+      message.success('线索自动分配配置已保存')
     } finally {
       setSaving(false)
     }
@@ -198,6 +300,104 @@ export default function CrmSettingPage() {
                     </Space>
                   </Space>
                 </Card>
+              </>
+            ),
+          },
+          {
+            key: 'autoAssign',
+            label: '自动分配',
+            children: (
+              <>
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  message="仅对新入公海线索（官网留言/抖音同步）生效。按顺序取第一条「所有非空条件均命中」的规则；条件留空=该维度不限制；全空=兜底规则；目标用户须启用，否则跳过该条尝试下一条。"
+                />
+                <div style={{ maxWidth: 980 }}>
+                  <div style={{ marginBottom: 16 }}>
+                    <Switch
+                      checked={autoAssignEnabled}
+                      onChange={setAutoAssignEnabled}
+                      checkedChildren="开"
+                      unCheckedChildren="关"
+                    />
+                    <span style={{ marginLeft: 8 }}>线索自动分配总开关</span>
+                  </div>
+                  {assignRules.map((r, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        gap: 8,
+                        marginBottom: 8,
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <Input
+                        style={{ width: 230 }}
+                        placeholder="来源:官网留言/抖音广告等,留空=不限"
+                        value={r.source}
+                        onChange={(e) => updateAssignRule(idx, { source: e.target.value })}
+                      />
+                      <Select
+                        style={{ width: 130 }}
+                        placeholder="等级(空=不限)"
+                        allowClear
+                        value={r.level || undefined}
+                        options={[
+                          { value: 'A', label: 'A=高' },
+                          { value: 'B', label: 'B=中' },
+                          { value: 'C', label: 'C=低' },
+                        ]}
+                        onChange={(v) => updateAssignRule(idx, { level: v })}
+                      />
+                      <Input
+                        style={{ width: 160 }}
+                        placeholder="行业,留空=不限"
+                        value={r.industry}
+                        onChange={(e) => updateAssignRule(idx, { industry: e.target.value })}
+                      />
+                      <UserSelect
+                        style={{ width: 160 }}
+                        placeholder="分配给(必填)"
+                        value={r.user_id}
+                        onChange={(v) => updateAssignRule(idx, { user_id: v as number | undefined })}
+                      />
+                      <Switch
+                        size="small"
+                        checked={r.enabled}
+                        onChange={(v) => updateAssignRule(idx, { enabled: v })}
+                      />
+                      <Button
+                        size="small"
+                        icon={<ArrowUpOutlined />}
+                        disabled={idx === 0}
+                        onClick={() => moveAssignRule(idx, -1)}
+                      />
+                      <Button
+                        size="small"
+                        icon={<ArrowDownOutlined />}
+                        disabled={idx === assignRules.length - 1}
+                        onClick={() => moveAssignRule(idx, 1)}
+                      />
+                      <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeAssignRule(idx)} />
+                    </div>
+                  ))}
+                  <Auth perm="system:config:edit">
+                    <div style={{ marginTop: 8, marginBottom: 16 }}>
+                      <Button icon={<PlusOutlined />} onClick={addAssignRule}>
+                        添加规则
+                      </Button>
+                    </div>
+                  </Auth>
+                  <Auth perm="system:config:edit">
+                    <Button type="primary" loading={saving} onClick={onAutoAssignSave}>
+                      保存
+                    </Button>
+                  </Auth>
+                </div>
               </>
             ),
           },

@@ -280,7 +280,7 @@ export default function WorkflowDefinitionPage() {
         return (
           <Space>
             <Tag>{TRIGGER_LABELS[r.trigger_type] ?? r.trigger_type}</Tag>
-            <span style={{ color: '#999', fontSize: 12 }}>{hint}</span>
+            <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>{hint}</span>
           </Space>
         )
       },
@@ -416,7 +416,7 @@ export default function WorkflowDefinitionPage() {
             <Button size="small" danger onClick={handleDeleteSelected}>
               删除选中
             </Button>
-            <span style={{ color: '#999', fontSize: 12 }}>
+            <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
               点选节点配置参数;拖拽连线;条件节点的前 N 条出边为分支,最后一条为兜底
             </span>
           </Space>

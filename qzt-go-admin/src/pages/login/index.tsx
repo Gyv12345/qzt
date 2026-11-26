@@ -1,7 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { App, Button, Checkbox, Form, Input, Spin } from 'antd'
-import { WechatOutlined } from '@ant-design/icons'
+import { DingtalkOutlined, WechatOutlined } from '@ant-design/icons'
 import { QRCodeSVG } from 'qrcode.react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -35,6 +35,24 @@ const REMEMBER_KEY = 'qzt-go-admin:remember-username'
 /** 品牌区底部能力关键词(与原型一致) */
 const KEYWORDS = ['CRM', 'OA 协同', '进销存', '人事 HR', '财务管理']
 
+/** 钉钉/飞书扫码登录入口:后端 302 到对应平台扫码页,扫码回调后回到 /#/oauth/callback */
+const DINGTALK_QR_URL = '/prod-api/enterprise/oauth/dingtalk/qr'
+const FEISHU_QR_URL = '/prod-api/enterprise/oauth/feishu/qr'
+
+/** 飞书品牌图标(@ant-design/icons 无内置,取自字节 IconPark「Lark」轮廓标,currentColor 填充) */
+function FeishuIcon({ style }: { style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 48 48" width="1em" height="1em" style={style} aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M41.072 5.994L3.31 16.52l9.075 9.294l8.414.146l9.683-9.44q-.384-.787-.384-1.318c0-.794.311-1.422.796-1.868q1.244-1.145 2.994-.342zm1.03.734L31.578 44.49l-9.294-9.075L22.137 27l9.375-9.518a2.54 2.54 0 0 0 1.664.495c.902-.05 1.485-.596 1.759-.917a2.35 2.35 0 0 0 .567-1.649a2.57 2.57 0 0 0-.52-1.464z"
+      />
+    </svg>
+  )
+}
+
 /**
  * chunk 级错误边界: Aurora 懒加载 chunk 失败(如重新部署后旧 index.html 引用旧 hash chunk)时
  * 渲染 null 静默降级, 避免纯装饰背景失败卸载整棵登录树导致白屏。
@@ -60,8 +78,8 @@ export default function Login() {
   const [beian, setBeian] = useState('')
   const rememberedUsername = localStorage.getItem(REMEMBER_KEY) ?? ''
 
-  // 企业微信扫码登录(登录卡内切换展示,与原型交互一致)
-  const [wecomEnabled, setWecomEnabled] = useState(false)
+  // 第三方扫码登录渠道(登录卡内切换展示;企微出码轮询,钉钉/飞书跳平台扫码页)
+  const [providers, setProviders] = useState<string[]>([])
   const [scanOpen, setScanOpen] = useState(false)
   const [qrUrl, setQrUrl] = useState('')
   const [scanStatus, setScanStatus] = useState<ScanStatus>('loading')
@@ -74,7 +92,7 @@ export default function Login() {
     }
   }
 
-  // 拉取站点配置 + 检查企微登录是否启用
+  // 拉取站点配置 + 检查已启用的第三方扫码渠道(企微/钉钉/飞书)
   useEffect(() => {
     fetchPublicConfigs().then((cfg) => {
       const name = cfg.site_name || cfg.app_title || cfg.title
@@ -83,9 +101,13 @@ export default function Login() {
       setIcp(cfg.icp_beian || '')
       setBeian(cfg.public_security_beian || '')
     })
-    listEnabledOauth().then((providers) => setWecomEnabled(providers.includes('wecom')))
+    listEnabledOauth().then(setProviders)
     return () => stopPolling()
   }, [])
+
+  const wecomEnabled = providers.includes('wecom')
+  const dingtalkEnabled = providers.includes('dingtalk')
+  const feishuEnabled = providers.includes('feishu')
 
   const onFinish = async (values: LoginForm) => {
     setErrText('')
@@ -284,14 +306,45 @@ export default function Login() {
                 </Button>
               </Form>
 
+              {(wecomEnabled || dingtalkEnabled || feishuEnabled) && <div className="login-div">或</div>}
               {wecomEnabled && (
-                <>
-                  <div className="login-div">或</div>
-                  <Button block size="large" style={{ height: 42, fontSize: 14 }} onClick={openWecomScan}>
-                    <WechatOutlined style={{ color: '#07c160', fontSize: 18 }} />
-                    企业微信扫码登录
-                  </Button>
-                </>
+                <Button
+                  block
+                  size="large"
+                  style={{ height: 42, fontSize: 14, marginBottom: dingtalkEnabled || feishuEnabled ? 8 : 0 }}
+                  onClick={openWecomScan}
+                >
+                  <WechatOutlined style={{ color: '#07c160', fontSize: 18 }} />
+                  企业微信扫码登录
+                </Button>
+              )}
+              {dingtalkEnabled && (
+                <Button
+                  block
+                  size="large"
+                  title="跳转钉钉扫码页登录;平台未配置时后端会返回明确错误提示"
+                  style={{ height: 42, fontSize: 14, marginBottom: feishuEnabled ? 8 : 0 }}
+                  onClick={() => {
+                    window.location.href = DINGTALK_QR_URL
+                  }}
+                >
+                  <DingtalkOutlined style={{ color: '#0089ff', fontSize: 18 }} />
+                  钉钉扫码登录
+                </Button>
+              )}
+              {feishuEnabled && (
+                <Button
+                  block
+                  size="large"
+                  title="跳转飞书扫码页登录;平台未配置时后端会返回明确错误提示"
+                  style={{ height: 42, fontSize: 14 }}
+                  onClick={() => {
+                    window.location.href = FEISHU_QR_URL
+                  }}
+                >
+                  <FeishuIcon style={{ color: '#3370ff', fontSize: 18 }} />
+                  飞书扫码登录
+                </Button>
               )}
             </>
           ) : (
@@ -310,7 +363,7 @@ export default function Login() {
               )}
               {scanStatus === 'expired' && (
                 <>
-                  <p style={{ color: '#999', margin: '24px 0' }}>二维码已过期</p>
+                  <p style={{ color: 'var(--ant-color-text-tertiary)', margin: '24px 0' }}>二维码已过期</p>
                   <Button type="primary" onClick={openWecomScan}>
                     刷新二维码
                   </Button>

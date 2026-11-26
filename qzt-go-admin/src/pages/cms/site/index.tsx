@@ -28,10 +28,19 @@ interface FaqItem {
   a?: string
 }
 
+/** 客户评价条目(表单态;存储为 testimonials_json) */
+interface TestimonialItem {
+  quote?: string
+  name?: string
+  title?: string
+  company?: string
+}
+
 type SiteFormValues = UpdateSiteConfigRequest & {
   stats_list?: StatItem[]
   modules_list?: ModuleItem[]
   faq_list?: FaqItem[]
+  testimonials_list?: TestimonialItem[]
 }
 
 /** 模块墙可选图标(与官网前台 ICONS map 一一对应,新增图标需同步前端代码) */
@@ -56,7 +65,7 @@ function Section({ title, note }: { title: string; note?: string }) {
   return (
     <Divider orientation="left" orientationMargin={0}>
       {title}
-      {note && <span style={{ fontSize: 12, color: '#999', fontWeight: 400, marginLeft: 8 }}>{note}</span>}
+      {note && <span style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)', fontWeight: 400, marginLeft: 8 }}>{note}</span>}
     </Divider>
   )
 }
@@ -108,7 +117,27 @@ export default function SiteConfigPage() {
     } catch {
       faqs = []
     }
-    form.setFieldsValue({ ...res, theme: res.theme || 'dark-tech', stats_list: stats, modules_list: modules, faq_list: faqs })
+    let testimonials: TestimonialItem[] = []
+    try {
+      testimonials = res.testimonials_json
+        ? (JSON.parse(res.testimonials_json) as TestimonialItem[]).map((t) => ({
+            quote: t.quote,
+            name: t.name,
+            title: t.title,
+            company: t.company,
+          }))
+        : []
+    } catch {
+      testimonials = []
+    }
+    form.setFieldsValue({
+      ...res,
+      theme: res.theme || 'dark-tech',
+      stats_list: stats,
+      modules_list: modules,
+      faq_list: faqs,
+      testimonials_list: testimonials,
+    })
   }
 
   useEffect(() => {
@@ -125,15 +154,21 @@ export default function SiteConfigPage() {
         .filter((m) => m?.name)
         .map((m) => ({ icon: m.icon || 'users', name: m.name, desc: m.desc || '' }))
       const faqs = (values.faq_list ?? []).filter((f) => f?.q && f?.a)
+      const testimonials = (values.testimonials_list ?? [])
+        .filter((t) => t?.quote && t?.name)
+        .map((t) => ({ quote: t.quote, name: t.name, title: t.title || '', company: t.company || '' }))
       const payload: UpdateSiteConfigRequest = Object.fromEntries(
         Object.entries({
           ...values,
           stats_json: JSON.stringify(stats),
           modules_json: JSON.stringify(modules),
           faq_json: JSON.stringify(faqs),
+          testimonials_json: JSON.stringify(testimonials),
         })
           // 临时表单字段不进请求
-          .filter(([k]) => k !== 'stats_list' && k !== 'modules_list' && k !== 'faq_list')
+          .filter(
+            ([k]) => k !== 'stats_list' && k !== 'modules_list' && k !== 'faq_list' && k !== 'testimonials_list',
+          )
           // 空串转 undefined,避免把未填写字段覆盖为空
           .map(([k, v]) => [k, v === '' ? undefined : v]),
       )
@@ -172,6 +207,14 @@ export default function SiteConfigPage() {
           <ProFormText name="hero_badge" label="首页小标签" placeholder="如 私有化部署 · 数据归企业所有" colProps={{ span: 12 }} />
           <ProFormText name="hero_title" label="首页主标题" placeholder="留空则用站点名称" colProps={{ span: 24 }} />
           <ProFormTextArea name="hero_subtitle" label="首页副标题" placeholder="留空则用站点描述" colProps={{ span: 24 }} />
+          <ProForm.Item
+            name="hero_shot_url"
+            label="首页产品截图"
+            tooltip="首页 Hero 浏览器拟真框内的大图,建议 1440x900 及以上的工作台/仪表盘截图;留空回退内置默认图。改图后需到「静态站发布」重新发布生效"
+            colProps={{ span: 12 }}
+          >
+            <ImageUpload folder="site" />
+          </ProForm.Item>
 
           <Section title="官网外观与首页区块" note="控制官网整体风格与首屏营销内容" />
           <ProFormSelect
@@ -179,6 +222,7 @@ export default function SiteConfigPage() {
             label="官网主题"
             tooltip="整套官网视觉风格,切换即全站换肤;后续会推出更多主题包"
             options={[
+              { label: '暖奢风(白底 + 橙红渐变 George 风)', value: 'warm-lux' },
               { label: '深色科技(深蓝黑底 + 品牌蓝光晕)', value: 'dark-tech' },
               { label: '明亮企业(白底大留白 + 品牌蓝)', value: 'light-clean' },
             ]}
@@ -219,6 +263,24 @@ export default function SiteConfigPage() {
               <ProFormSelect name="icon" label="图标" options={ICON_OPTIONS} colProps={{ span: 6 }} />
               <ProFormText name="name" label="标题" placeholder="如 20 年行业经验" colProps={{ span: 8 }} />
               <ProFormText name="desc" label="一句话描述" placeholder="如 深耕行业二十年, 服务超 500 家企业" colProps={{ span: 10 }} />
+            </ProFormGroup>
+          </ProFormList>
+
+          <ProFormList
+            name="testimonials_list"
+            label="首页客户评价"
+            tooltip="显示在首页「合作伙伴」之后的大引号卡区;每条=一句评价+署名(姓名必填,职位/公司选填)。全部删除则首页不显示此区块,建议 3~6 条"
+            colProps={{ span: 24 }}
+            creatorRecord={{ quote: '', name: '', title: '', company: '' }}
+            creatorButtonProps={{ creatorButtonText: '添加评价', position: 'bottom' }}
+            copyIconProps={false}
+            actionRender={(field, action) => confirmDeleteAction(field, action, '该条评价')}
+          >
+            <ProFormGroup key="testi" grid>
+              <ProFormTextArea name="quote" label="评价内容" placeholder="如 对接当天给了技术方案,两周内完成上线" colProps={{ span: 24 }} fieldProps={{ rows: 2 }} />
+              <ProFormText name="name" label="姓名" placeholder="如 王经理" colProps={{ span: 8 }} />
+              <ProFormText name="title" label="职位(选填)" placeholder="如 采购负责人" colProps={{ span: 8 }} />
+              <ProFormText name="company" label="公司(选填)" placeholder="如 某机械制造公司" colProps={{ span: 8 }} />
             </ProFormGroup>
           </ProFormList>
 

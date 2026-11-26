@@ -182,8 +182,10 @@ export const getStageConfig = (bizType: string) =>
   request.get<unknown, StageConfig>(`/crm/stage-configs/${bizType}`)
 
 /** 商机阶段推进(PUT /crm/opportunities/:id/stage) */
-export const changeOpportunityStage = (id: number, body: { stage: string; reason?: string }) =>
-  request.put(`/crm/opportunities/${id}/stage`, body)
+export const changeOpportunityStage = (
+  id: number,
+  body: { stage: string; reason?: string; lost_reason?: string },
+) => request.put(`/crm/opportunities/${id}/stage`, body)
 
 /** 商机阶段变更历史(GET /crm/opportunities/:id/stage-history) */
 export const getOpportunityStageHistory = (id: number) =>

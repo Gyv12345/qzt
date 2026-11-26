@@ -753,7 +753,7 @@ export function SourcesTab() {
         {preview?.content_type === 'video' && preview.video_url ? (
           <video src={preview.video_url} controls style={{ width: '100%' }} />
         ) : null}
-        {preview?.digest ? <p style={{ color: '#666' }}>{preview.digest}</p> : null}
+        {preview?.digest ? <p style={{ color: 'var(--ant-color-text-secondary)' }}>{preview.digest}</p> : null}
         {/* P18 质检结果（分维度得分 + 修改建议） */}
         {preview?.qc_result ? (
           <div style={{ background: '#fafafa', borderRadius: 8, padding: 12, marginBottom: 16 }}>
@@ -762,7 +762,7 @@ export function SourcesTab() {
               try {
                 q = JSON.parse(preview.qc_result) as QCResultView
               } catch {
-                return <span style={{ color: '#999' }}>质检结果解析失败</span>
+                return <span style={{ color: 'var(--ant-color-text-tertiary)' }}>质检结果解析失败</span>
               }
               if (!q) return null
               return (
@@ -772,7 +772,7 @@ export function SourcesTab() {
                       <Tag color={QC_STATUS[preview.qc_status]?.color}>
                         {QC_STATUS[preview.qc_status]?.label ?? preview.qc_status}
                       </Tag>
-                      <span style={{ color: '#999', fontSize: 12 }}>
+                      <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
                         {q.model} · {q.checked_at}
                       </span>
                     </Space>
@@ -789,14 +789,14 @@ export function SourcesTab() {
                         <Tag color={d.score >= 80 ? 'success' : d.score >= 60 ? 'gold' : 'error'}>{d.score}</Tag>
                       </Space>
                       {d.issues?.map((iss, i) => (
-                        <div key={i} style={{ color: '#666', fontSize: 12, paddingLeft: 8 }}>
+                        <div key={i} style={{ color: 'var(--ant-color-text-secondary)', fontSize: 12, paddingLeft: 8 }}>
                           「{iss.quote}」→ {iss.suggestion}
                         </div>
                       ))}
                     </div>
                   ))}
                   {q.suggestions?.length ? (
-                    <div style={{ marginTop: 8, color: '#666', fontSize: 12 }}>
+                    <div style={{ marginTop: 8, color: 'var(--ant-color-text-secondary)', fontSize: 12 }}>
                       全局建议：
                       <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
                         {q.suggestions.map((s, i) => (
@@ -874,7 +874,7 @@ export function SourcesTab() {
               <Space>
                 <span>{a.nickname || a.open_id}</span>
                 {a.enabled ? <Tag color="success">可用</Tag> : <Tag>停用</Tag>}
-                <span style={{ color: '#999' }}>到期 {String(a.expires_at).slice(0, 19)}</span>
+                <span style={{ color: 'var(--ant-color-text-tertiary)' }}>到期 {String(a.expires_at).slice(0, 19)}</span>
                 <Popconfirm
                   title="确认解绑该账号?"
                   onConfirm={async () => {
@@ -891,7 +891,7 @@ export function SourcesTab() {
             </div>
           ))}
           {accounts.length === 0 && (
-            <div style={{ color: '#999' }}>
+            <div style={{ color: 'var(--ant-color-text-tertiary)' }}>
               尚未绑定账号。前置:抖音开放平台自研应用过审 + 「第三方登录配置」里启用 douyin 渠道。
             </div>
           )}

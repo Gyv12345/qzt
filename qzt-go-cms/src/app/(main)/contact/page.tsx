@@ -40,7 +40,7 @@ export default async function ContactPage() {
             </p>
           </div>
 
-          <ContactForm />
+          <ContactForm privacyLive={privacyLive} />
         </div>
       </section>
     </>

@@ -27,6 +27,7 @@ import type {
   CrmFollowRecordPayload,
   CrmOpportunity,
   CrmOpportunityPayload,
+  CrmOpportunityStagePayload,
   CrmOwnerHistory,
   CrmPaymentPlan,
   CrmPaymentPlanPayload,
@@ -172,8 +173,8 @@ export const updateOpportunity = (id: number, data: CrmOpportunityPayload) =>
 
 export const deleteOpportunity = (id: number) => request.delete(`/crm/opportunities/${id}`)
 
-export const changeOpportunityStage = (id: number, stage: string, reason?: string) =>
-  request.put(`/crm/opportunities/${id}/stage`, { stage, reason })
+export const changeOpportunityStage = (id: number, data: CrmOpportunityStagePayload) =>
+  request.put(`/crm/opportunities/${id}/stage`, data)
 
 export const getOpportunityStageHistory = (id: number) =>
   request.get<unknown, CrmStageRecord[]>(`/crm/opportunities/${id}/stage-history`)
@@ -208,8 +209,9 @@ export const getContractPaymentSummary = (id: number) =>
 
 // ---------- 合同生命周期(统计 / 变更 / 归档) ----------
 
-export const getContractStats = () =>
-  request.get<unknown, CrmContractStats>('/crm/contracts/stats')
+/** silent=true 时不弹错误 toast(大屏自动刷新等后台轮询场景用) */
+export const getContractStats = (silent = false) =>
+  request.get<unknown, CrmContractStats>('/crm/contracts/stats', { silent })
 
 export const listContractChanges = (id: number) =>
   request.get<unknown, CrmContractChange[]>(`/crm/contracts/${id}/changes`)

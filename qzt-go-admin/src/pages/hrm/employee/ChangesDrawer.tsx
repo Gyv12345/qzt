@@ -46,7 +46,7 @@ export default function ChangesDrawer({
                   <div>
                     <Space size={8}>
                       <Tag color={type?.color}>{type?.text ?? c.change_type}</Tag>
-                      <span style={{ color: '#999', fontSize: 12 }}>
+                      <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
                         {dayjs(c.created_at).format('YYYY-MM-DD HH:mm')}
                       </span>
                     </Space>
@@ -67,7 +67,7 @@ export default function ChangesDrawer({
             })}
           />
         ) : (
-          !loading && <div style={{ color: '#999' }}>暂无变更履历</div>
+          !loading && <div style={{ color: 'var(--ant-color-text-tertiary)' }}>暂无变更履历</div>
         )}
       </Spin>
     </Drawer>

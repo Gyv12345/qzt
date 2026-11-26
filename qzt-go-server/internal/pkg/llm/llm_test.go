@@ -320,3 +320,159 @@ func TestTruncate(t *testing.T) {
 		t.Fatal("short string must be unchanged")
 	}
 }
+
+// openAIToolCallResp 构造带 tool_calls 的供应商响应体。
+func openAIToolCallResp(id, name, args string, prompt, completion int) string {
+	b, _ := json.Marshal(map[string]any{
+		"choices": []map[string]any{
+			{"message": map[string]any{
+				"content":    "",
+				"tool_calls": []map[string]any{{"id": id, "type": "function", "function": map[string]any{"name": name, "arguments": args}}},
+			}},
+		},
+		"usage": map[string]any{
+			"prompt_tokens":     prompt,
+			"completion_tokens": completion,
+			"total_tokens":      prompt + completion,
+		},
+	})
+	return string(b)
+}
+
+func TestMessageToolProtocolSerialization(t *testing.T) {
+	// assistant+tool_calls 且 content 为空：content 必须省略、tool_calls 必须携带。
+	assistant := Message{Role: "assistant", Content: "", ToolCalls: []ToolCall{{ID: "call_1", Name: "crm_customer_list", Arguments: `{"page":1}`}}}
+	b, err := json.Marshal(assistant)
+	if err != nil {
+		t.Fatalf("marshal assistant: %v", err)
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(b, &raw); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if _, ok := raw["content"]; ok {
+		t.Fatalf("assistant+tool_calls must omit empty content: %s", b)
+	}
+	tcs, ok := raw["tool_calls"].([]any)
+	if !ok || len(tcs) != 1 {
+		t.Fatalf("want 1 tool_call: %s", b)
+	}
+	tc, _ := tcs[0].(map[string]any)
+	if tc["id"] != "call_1" || tc["type"] != "function" {
+		t.Fatalf("unexpected tool_call wire: %v", tc)
+	}
+	fn, _ := tc["function"].(map[string]any)
+	if fn["name"] != "crm_customer_list" || fn["arguments"] != `{"page":1}` {
+		t.Fatalf("unexpected function wire: %v", fn)
+	}
+
+	// tool 消息：必带 tool_call_id，content 为结果文本。
+	tool := Message{Role: "tool", Content: `[{"id":1}]`, ToolCallID: "call_1"}
+	b, err = json.Marshal(tool)
+	if err != nil {
+		t.Fatalf("marshal tool: %v", err)
+	}
+	var rawTool map[string]any
+	_ = json.Unmarshal(b, &rawTool)
+	if rawTool["role"] != "tool" || rawTool["tool_call_id"] != "call_1" || rawTool["content"] != `[{"id":1}]` {
+		t.Fatalf("unexpected tool message wire: %s", b)
+	}
+
+	// assistant 携带 tool_calls 且 content 非空：两者都保留。
+	assistant.Content = "让我查一下"
+	b, _ = json.Marshal(assistant)
+	if !strings.Contains(string(b), `"content":"让我查一下"`) {
+		t.Fatalf("non-empty content must be kept: %s", b)
+	}
+
+	// 反序列化回 ToolCall（供应商响应 → ToolCalls）。
+	var tcParsed ToolCall
+	if err := json.Unmarshal([]byte(`{"id":"call_2","type":"function","function":{"name":"t","arguments":"{}"}}`), &tcParsed); err != nil {
+		t.Fatalf("unmarshal tool_call: %v", err)
+	}
+	if tcParsed.ID != "call_2" || tcParsed.Name != "t" || tcParsed.Arguments != "{}" {
+		t.Fatalf("unexpected parsed tool_call: %+v", tcParsed)
+	}
+}
+
+func TestChatToolCallsFlow(t *testing.T) {
+	// 第1轮供应商回 tool_calls；第2轮回最终文本。
+	ms := newMockServer(
+		mockResp{status: 200, body: openAIToolCallResp("call_9", "crm_customer_list", `{"page":1}`, 10, 5)},
+		mockResp{status: 200, body: openAIOK("共 3 个客户", 20, 10)},
+	)
+	defer ms.close()
+	rec := &sliceRecorder{}
+	Init(Options{
+		BaseURL: ms.srv.URL, APIKey: testAPIKey, Model: "m",
+		Timeout: 2 * time.Second, Recorder: rec,
+	})
+	defer resetGateway()
+
+	tools := []ToolDef{{Name: "crm_customer_list", Description: "客户列表", Parameters: json.RawMessage(`{"type":"object","properties":{"page":{"type":"integer"}}}`)}}
+
+	// 第1轮：带 Tools 调用 → 应返回 ToolCalls、Content 为空。
+	req := testRequest()
+	req.Tools = tools
+	req.ToolChoice = "auto"
+	resp, err := Chat(context.Background(), req)
+	if err != nil {
+		t.Fatalf("first Chat: %v", err)
+	}
+	if resp.Content != "" || len(resp.ToolCalls) != 1 {
+		t.Fatalf("want tool_calls, got %+v", resp)
+	}
+	if resp.ToolCalls[0].ID != "call_9" || resp.ToolCalls[0].Name != "crm_customer_list" {
+		t.Fatalf("unexpected tool_call: %+v", resp.ToolCalls[0])
+	}
+	body := ms.lastBody()
+	if len(body.Tools) != 1 || body.Tools[0].Name != "crm_customer_list" || body.ToolChoice != "auto" {
+		t.Fatalf("unexpected tools in request: %+v", body)
+	}
+
+	// 第2轮：回填 tool 消息（不带 Tools）→ 最终回复。
+	req2 := testRequest()
+	req2.Messages = append(req2.Messages,
+		Message{Role: "assistant", ToolCalls: resp.ToolCalls},
+		Message{Role: "tool", Content: `{"total":3}`, ToolCallID: "call_9"},
+	)
+	resp2, err := Chat(context.Background(), req2)
+	if err != nil {
+		t.Fatalf("second Chat: %v", err)
+	}
+	if resp2.Content != "共 3 个客户" || len(resp2.ToolCalls) != 0 {
+		t.Fatalf("unexpected final resp: %+v", resp2)
+	}
+	body2 := ms.lastBody()
+	if len(body2.Messages) != 3 || body2.Messages[1].Role != "assistant" || len(body2.Messages[1].ToolCalls) != 1 {
+		t.Fatalf("unexpected round-2 messages: %+v", body2.Messages)
+	}
+	if body2.Messages[2].Role != "tool" || body2.Messages[2].ToolCallID != "call_9" {
+		t.Fatalf("tool message missing tool_call_id: %+v", body2.Messages[2])
+	}
+}
+
+func TestChatToolsSkipCache(t *testing.T) {
+	ms := newMockServer(mockResp{status: 200, body: openAIToolCallResp("call_1", "t", "{}", 2, 3)})
+	defer ms.close()
+	store := newMemStore()
+	rec := &sliceRecorder{}
+	Init(Options{
+		BaseURL: ms.srv.URL, APIKey: testAPIKey, Model: "m",
+		Timeout: 2 * time.Second, CacheTTL: time.Minute,
+		Cache: store, Recorder: rec,
+	})
+	defer resetGateway()
+
+	req := testRequest()
+	req.Tools = []ToolDef{{Name: "t"}}
+	for i := 0; i < 2; i++ {
+		if _, err := Chat(context.Background(), req); err != nil {
+			t.Fatalf("Chat #%d: %v", i+1, err)
+		}
+	}
+	// 带 Tools 的请求不读缓存也不写缓存：两次都必须打到供应商。
+	if got := ms.count(); got != 2 {
+		t.Fatalf("tools request must skip cache, want 2 provider calls, got %d", got)
+	}
+}

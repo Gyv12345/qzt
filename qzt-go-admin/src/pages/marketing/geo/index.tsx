@@ -163,20 +163,20 @@ function DashboardTab() {
           </Button>
         </Auth>
         <Tooltip title="对启用的全部提示词 × 平台各提问一次并打分(20 问 × N 平台,约数分钟)">
-          <span style={{ color: '#999' }}>每周一 09:00 自动执行(可在「定时任务」中调整)</span>
+          <span style={{ color: 'var(--ant-color-text-tertiary)' }}>每周一 09:00 自动执行(可在「定时任务」中调整)</span>
         </Tooltip>
       </Space>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 200px', border: '1px solid #f0f0f0', borderRadius: 8, padding: '16px 24px' }}>
           <Statistic title="最新一轮 AI 推荐率" value={latest ? pct(latest.recommend_rate) : '—'} suffix="" />
-          <div style={{ color: '#999', fontSize: 12 }}>
+          <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
             得分 {latest ? `${latest.total_score}/${latest.max_score}` : '-'};提及 {latest?.mentioned_count ?? '-'} 条
           </div>
         </div>
         <div style={{ flex: '1 1 200px', border: '1px solid #f0f0f0', borderRadius: 8, padding: '16px 24px' }}>
           <Statistic title="最新一轮自有引用命中率" value={latest ? pct(latest.own_cite_rate) : '—'} suffix="" />
-          <div style={{ color: '#999', fontSize: 12 }}>引用中来自官网域名的占比(周环比看下方趋势)</div>
+          <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>引用中来自官网域名的占比(周环比看下方趋势)</div>
         </div>
       </div>
 

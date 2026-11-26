@@ -58,6 +58,7 @@ type siteUpdateReq struct {
 	HeroBadge              string
 	HeroTitle              string
 	HeroSubtitle           string
+	HeroShotURL            string
 	ContactPhone           string
 	ContactEmail           string
 	ContactAddress         string
@@ -86,8 +87,8 @@ func (r *siteUpdateReq) toService() *syservice.UpdateSiteConfigRequest {
 		PublicSecurityBeianURL: r.PublicSecurityBeianURL,
 		Keywords:               r.Keywords, AnalyticsCode: r.AnalyticsCode, Copyright: r.Copyright,
 		GeoRegion: r.GeoRegion, GeoPlacename: r.GeoPlacename, GeoPosition: r.GeoPosition,
-		FaqJSON:   r.FaqJSON,
-		McpURL:    r.McpURL,
+		FaqJSON: r.FaqJSON,
+		McpURL:  r.McpURL,
 	}
 }
 

@@ -47,3 +47,66 @@ export const MALL_STATUS_TEXT: Record<MallOrderStatus, string> = {
   3: '已完成',
   4: '已取消',
 }
+
+// ---------- 商城营销:优惠券 / 限时特价(admin 管理侧) ----------
+
+/** 启停状态:1启用 2停用 */
+export type MallEnableStatus = 1 | 2
+
+export const MALL_ENABLE_STATUS_TEXT: Record<MallEnableStatus, string> = { 1: '启用', 2: '停用' }
+
+/** 优惠券(满减券) */
+export interface MallCoupon {
+  id: number
+  name: string
+  /** 满减门槛金额(两位小数) */
+  threshold: number | string
+  /** 优惠金额(两位小数) */
+  discount: number | string
+  total_count: number
+  /** 已领取张数 */
+  claimed: number
+  /** 每人限领张数 */
+  per_user_limit: number
+  /** 有效期起止(空 = 长期有效) */
+  start_at?: string | null
+  end_at?: string | null
+  status: MallEnableStatus
+  created_at: string
+}
+
+export interface MallCouponPayload {
+  name: string
+  threshold: number
+  discount: number
+  total_count: number
+  per_user_limit: number
+  start_at?: string
+  end_at?: string
+  /** 仅编辑(半增量)时提交 */
+  status?: MallEnableStatus
+}
+
+/** 限时特价活动 */
+export interface MallPromotion {
+  id: number
+  name: string
+  product_id: number
+  product_name: string
+  /** 促销价(两位小数) */
+  promo_price: number | string
+  start_at: string
+  end_at: string
+  status: MallEnableStatus
+  created_at: string
+}
+
+export interface MallPromotionPayload {
+  name: string
+  product_id: number
+  promo_price: number
+  start_at: string
+  end_at: string
+  /** 仅编辑(半增量)时提交 */
+  status?: MallEnableStatus
+}

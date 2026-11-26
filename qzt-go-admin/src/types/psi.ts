@@ -356,6 +356,99 @@ export const ASSET_CATEGORY: Record<string, string> = {
   电脑: '电脑', 设备: '设备', 家具: '家具', 车辆: '车辆', 其他: '其他',
 }
 
+// ── 资产盘点/折旧(P33) ──
+
+/** 资产盘点单状态 */
+export const ASSET_STOCKTAKE_STATUS: Record<number, { text: string; color: string }> = {
+  1: { text: '进行中', color: 'processing' },
+  2: { text: '已完成', color: 'success' },
+}
+
+/** 盘点范围类型 */
+export const ASSET_STOCKTAKE_SCOPES: Record<string, string> = {
+  all: '全部资产',
+  category: '按分类',
+  dept: '按部门',
+}
+
+/** 盘点结果(1在库 2缺失 3损坏) */
+export const ASSET_CHECK_RESULT: Record<number, { text: string; color: string }> = {
+  1: { text: '在库', color: 'success' },
+  2: { text: '缺失', color: 'error' },
+  3: { text: '损坏', color: 'warning' },
+}
+
+/** 资产盘点单 */
+export interface PsiAssetStocktake {
+  id: number
+  stocktake_no: string
+  /** all 全部 / category 按分类 / dept 按部门 */
+  scope_type: 'all' | 'category' | 'dept'
+  /** 范围值:分类名或部门ID */
+  scope_value: string | null
+  /** 1进行中 2已完成 */
+  status: number
+  total_count: number
+  checked_count: number
+  stocktake_by: number | null
+  /** 盘点(发起)时间 */
+  stocktake_at: string
+  finished_at: string
+  remark: string
+  created_at: string
+  updated_at: string
+}
+
+/** 资产盘点明细 */
+export interface PsiAssetStocktakeItem {
+  id: number
+  stocktake_id: number
+  asset_id: number
+  asset_no: string
+  asset_name: string
+  /** 盘点时资产状态(1使用 2闲置 3维修 4报废 5丢失) */
+  expected_status: number
+  /** 盘点结果 null=未盘 */
+  result_status: number | null
+  result_remark: string
+  checked_by: number | null
+  checked_at: string
+}
+
+/** 资产盘点详情(含明细) */
+export interface PsiAssetStocktakeDetail extends PsiAssetStocktake {
+  items: PsiAssetStocktakeItem[]
+}
+
+/** 完成盘点返回的差异统计 */
+export interface PsiAssetStocktakeSummary {
+  total: number
+  in_stock: number
+  missing: number
+  damaged: number
+}
+
+/** 资产折旧计提结果 */
+export interface PsiDepreciateRunResult {
+  count: number
+  total_amount: string
+}
+
+/** 资产折旧日志 */
+export interface PsiDepreciationLog {
+  id: number
+  asset_id: number
+  /** 计提期间,如 2026-11 */
+  period: string
+  /** 本期计提 */
+  amount: string
+  /** 期初累计折旧 */
+  before_depreciation: string
+  /** 期末累计折旧 */
+  after_depreciation: string
+  created_at: string
+}
+
 // ── 库存盘点/调拨(P15) ──
 
 /** 盘点单状态 */

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArticleCard } from "@/components/Cards";
 import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Article } from "@/lib/types";
 
 const PAGE_SIZE = 12;
@@ -83,17 +84,24 @@ export default function SearchClient() {
         </p>
       )}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {list.length > 0 ? (
+        {loading && hasKeyword ? (
+          // 加载骨架: 与结果卡同构占位 ×4 (shadcn Skeleton)
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="relative rounded-2xl border border-line bg-surface p-5 shadow-card">
+              <div className="mb-3 flex items-center gap-2">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-5 w-3/4" />
+              <Skeleton className="mt-2 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-2/3" />
+            </div>
+          ))
+        ) : list.length > 0 ? (
           list.map((a) => <ArticleCard key={a.id} article={a} />)
         ) : hasKeyword ? (
           <EmptyState
-            text={
-              loading
-                ? "搜索中…"
-                : failed
-                  ? "搜索服务暂时不可用,请稍后重试"
-                  : `未找到与「${keyword}」相关的内容`
-            }
+            text={failed ? "搜索服务暂时不可用,请稍后重试" : `未找到与「${keyword}」相关的内容`}
           />
         ) : (
           <EmptyState text="输入关键词开始搜索" />

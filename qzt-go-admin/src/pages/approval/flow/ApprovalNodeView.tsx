@@ -81,10 +81,10 @@ function ApprovalNodeComponent({ id, data, selected }: NodeProps<Node<ApprovalNo
         boxShadow: selected ? '0 0 0 2px #1677ff' : '0 2px 6px rgba(0,0,0,0.15)',
       }}
     >
-      <Handle type="target" position={Position.Top} style={{ background: '#fff' }} />
+      <Handle type="target" position={Position.Top} style={{ background: 'var(--ant-color-bg-container)' }} />
       <div style={{ fontSize: 11, opacity: 0.8 }}>{style.label}</div>
       <div>{data.name}</div>
-      <Handle type="source" position={Position.Bottom} style={{ background: '#fff' }} />
+      <Handle type="source" position={Position.Bottom} style={{ background: 'var(--ant-color-bg-container)' }} />
       {data.nodeType === 'CONDITION' && selected && (
         <button
           title="添加平行分支"

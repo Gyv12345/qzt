@@ -15,8 +15,8 @@ func TestParseMySQLDSN(t *testing.T) {
 		want    mysqlParams
 		wantErr bool
 	}{
-		{name: "本地默认", dsn: "root:<DATABASE_PASSWORD>@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s",
-			want: mysqlParams{Host: "127.0.0.1", Port: "3306", User: "root", Passwd: "<DATABASE_PASSWORD>", DBName: "qztgo"}},
+		{name: "本地默认", dsn: "root:zx.123@tcp(127.0.0.1:3306)/qztgo?charset=utf8mb4&parseTime=true&loc=Local&timeout=3s",
+			want: mysqlParams{Host: "127.0.0.1", Port: "3306", User: "root", Passwd: "zx.123", DBName: "qztgo"}},
 		{name: "RDS密码含特殊字符", dsn: "qzt:p!a&b@tcp(rm-x.mysql.rds.aliyuncs.com:3306)/qztgo",
 			want: mysqlParams{Host: "rm-x.mysql.rds.aliyuncs.com", Port: "3306", User: "qzt", Passwd: "p!a&b", DBName: "qztgo"}},
 		// go-sql-driver 不做 URL 百分号解码,%40 按字面进入密码(驱动文档口径),

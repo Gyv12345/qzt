@@ -3,10 +3,13 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -14,6 +17,8 @@ import (
 
 	"qzt-go-server/internal/middleware"
 	"qzt-go-server/internal/model"
+	apisvc "qzt-go-server/internal/module/api/service"
+	"qzt-go-server/internal/pkg/datascope"
 	"qzt-go-server/internal/repository"
 	"qzt-go-server/pkg/xlogger"
 )
@@ -24,7 +29,11 @@ import (
 
 // StartMCP 将 MCP Server 挂载到 gin engine。
 // 路径 /mcp,需要 API Key 认证(Authorization: Bearer qzt_xxx)。
+// 同时把进程内直调桥接注册进 api/service(P34 AI 悬浮球 tool use):
+// internal/mcp 已依赖 api/service,故由本方向注入,避免 import cycle。
 func StartMCP(r *gin.Engine) {
+	wireChatToolsBridge()
+
 	mcpServer := buildServer()
 
 	// 用 Streamable HTTP transport(单端点 POST + GET)
@@ -123,6 +132,12 @@ func buildServer() *server.MCPServer {
 	return s
 }
 
+// isAPIKeyExpired 与 REST API Key 的过期语义一致：零值表示永不过期。
+func isAPIKeyExpired(apiKey *model.SysApiKey, now time.Time) bool {
+	expiresAt := time.Time(apiKey.ExpiresAt)
+	return !expiresAt.IsZero() && now.After(expiresAt)
+}
+
 // mcpAuthMiddleware MCP 请求的 API Key 认证中间件。
 // 从 Authorization header 提取 API Key,校验后写入 context。
 func mcpAuthMiddleware() gin.HandlerFunc {
@@ -159,7 +174,14 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		if isAPIKeyExpired(apiKey, time.Now()) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "API Key 已过期"})
+			c.Abort()
+			return
+		}
+
 		user, err := userRepo.GetByID(c.Request.Context(), apiKey.UserID)
+
 		if err != nil || user.Status != 1 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "API Key 关联的用户已禁用"})
 			c.Abort()
@@ -177,7 +199,11 @@ func mcpAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// 仅在全部认证检查通过后记录使用,过期/禁用/demo 拒绝不计为成功使用。
+		go apiKeyRepo.UpdateLastUsed(context.Background(), apiKey.ID, c.ClientIP())
+
 		// 写入 context key(与 Auth 中间件相同,tool handler 可通过 middleware 取值)
+
 		c.Set(middleware.CtxUserIDKey, user.ID)
 		c.Set(middleware.CtxUsernameKey, user.Username)
 		c.Set(middleware.CtxRoleCodesKey, roleCodes)
@@ -208,4 +234,178 @@ func resultText(data any) (*mcp.CallToolResult, error) {
 // resultError 返回错误文本给 AI。
 func resultError(msg string) (*mcp.CallToolResult, error) {
 	return mcp.NewToolResultError(msg), nil
+}
+
+// ── 进程内直调（P34 全局 AI 悬浮球 tool use） ──
+//
+// 与 /mcp HTTP 端口共用同一套 buildServer() 工具注册与权限中间件，但绕过
+// mcpAuthMiddleware（那是 HTTP 层 API Key 认证），由调用方直接把 userID/roles
+// 注入 request context 后进程内 HandleMessage，供 ai 模块 ChatWithTools 的
+// 工具循环调用。单例并发安全：mcp-go MCPServer 并发处理安全，工具实现内部各自取 DB。
+
+var (
+	chatMCPOnce   sync.Once
+	chatMCPServer *server.MCPServer
+)
+
+// chatServer 惰性构建进程内 MCP Server 单例（与 /mcp HTTP 端口同一套工具注册）。
+func chatServer() *server.MCPServer {
+	chatMCPOnce.Do(func() { chatMCPServer = buildServer() })
+	return chatMCPServer
+}
+
+// chatRequestContext 在调用方 ctx 基础上注入身份与工具集上下文。
+// mcpToolsetsKey 注入空数组=不过滤工具集（白名单在 ai service 层另行收窄）。
+func chatRequestContext(ctx context.Context, userID uint, roleCodes []string) context.Context {
+	ctx = context.WithValue(ctx, mcpUserIDKey, userID)
+	ctx = context.WithValue(ctx, mcpRoleCodesKey, roleCodes)
+	ctx = context.WithValue(ctx, mcpToolsetsKey, []string(nil))
+	return ctx
+}
+
+// ListChatTools 列出进程内 MCP Server 的全部工具（不按工具集过滤）。
+// 供 ai service 构造 llm.ToolDef 白名单用；MCP 层异常时返回 nil。
+func ListChatTools(ctx context.Context) []mcp.Tool {
+	resp := chatServer().HandleMessage(
+		chatRequestContext(ctx, 0, nil),
+		json.RawMessage(`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`),
+	)
+	r, ok := resp.(mcp.JSONRPCResponse)
+	if !ok {
+		return nil
+	}
+	// mcp-go v0.57 HandleMessage 返回值类型 Result(非指针),两种形态都兼容。
+	ltr, ok := r.Result.(*mcp.ListToolsResult)
+	if !ok {
+		if v, ok2 := r.Result.(mcp.ListToolsResult); ok2 {
+			return v.Tools
+		}
+		return nil
+	}
+	return ltr.Tools
+}
+
+// wireChatToolsBridge 把进程内直调实现注册进 api/service 的工具钩子
+// (P34 AI 悬浮球 tool use)。mcp.Tool 的 InputSchema 序列化为 JSON Schema 原样透传。
+// 另注入两段式工具发现桥(ChatToolsets/ListChatToolsBySet)。
+func wireChatToolsBridge() {
+	specOf := func(t mcp.Tool) apisvc.ChatToolSpec {
+		schema, err := json.Marshal(t.InputSchema)
+		if err != nil {
+			return apisvc.ChatToolSpec{}
+		}
+		return apisvc.ChatToolSpec{Name: t.Name, Description: t.Description, Parameters: schema}
+	}
+	apisvc.RegisterChatToolBridge(
+		func(ctx context.Context) []apisvc.ChatToolSpec {
+			tools := ListChatTools(ctx)
+			specs := make([]apisvc.ChatToolSpec, 0, len(tools))
+			for _, t := range tools {
+				specs = append(specs, specOf(t))
+			}
+			return specs
+		},
+		CallChatTool,
+	)
+	apisvc.RegisterChatToolsetBridge(
+		func(ctx context.Context) []apisvc.ChatToolsetGroup {
+			metas := ChatToolsets(ctx)
+			groups := make([]apisvc.ChatToolsetGroup, 0, len(metas))
+			for _, m := range metas {
+				groups = append(groups, apisvc.ChatToolsetGroup{Key: m.Key, Name: m.Name, Count: m.Count})
+			}
+			return groups
+		},
+		func(ctx context.Context, key string) []apisvc.ChatToolSpec {
+			tools := ListChatToolsBySet(ctx, key)
+			specs := make([]apisvc.ChatToolSpec, 0, len(tools))
+			for _, t := range tools {
+				specs = append(specs, specOf(t))
+			}
+			return specs
+		},
+	)
+}
+
+// CallChatTool 以指定用户身份进程内调用一个 MCP 工具。
+// 返回工具结果的文本内容（CallToolResult 的 TextContent 拼接）；工具返回错误
+// 文本（isError=true）或 MCP 层 JSON-RPC 错误时 error 非 nil。
+// demo 角色在入口直接拒绝（同 MCP HTTP 口径）。
+func CallChatTool(ctx context.Context, userID uint, name, argsJSON string) (string, error) {
+	user, err := repository.NewUserRepo().GetByID(ctx, userID)
+	if err != nil || user == nil || user.Status != 1 {
+		return "", fmt.Errorf("当前用户不存在或已禁用，无法调用工具")
+	}
+	roleCodes := make([]string, 0, len(user.Roles))
+	for _, r := range user.Roles {
+		roleCodes = append(roleCodes, r.Code)
+	}
+	// 演示账号禁止走 MCP 工具（与 mcpAuthMiddleware 同口径）
+	if slices.Contains(roleCodes, model.DemoRoleCode) {
+		return "", errors.New("演示账号不支持工具调用，请使用正式账号")
+	}
+
+	// 数据权限注入：与 mcpAuthMiddleware→InjectDataScope 同款（部分工具经
+	// datascope.GetScope 读 request context），scope 取多角色最宽松口径。
+	scope := datascope.EffectiveScope(user.Roles)
+	var deptID uint
+	if user.DeptID != nil {
+		deptID = *user.DeptID
+	}
+	callCtx := chatRequestContext(ctx, userID, roleCodes)
+	callCtx = context.WithValue(callCtx, datascope.CtxDeptIDKey, deptID)
+	callCtx = context.WithValue(callCtx, datascope.CtxDataScopeKey, scope)
+	callCtx = context.WithValue(callCtx, datascope.CtxUserIDKey, userID)
+	callCtx = datascope.WithCache(callCtx)
+
+	// 构造 tools/call JSON-RPC 报文；argsJSON 为空按空参数对象处理。
+	args := json.RawMessage(argsJSON)
+	if len(args) == 0 {
+		args = json.RawMessage(`{}`)
+	}
+	payload, err := json.Marshal(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "tools/call",
+		"params": map[string]any{
+			"name":      name,
+			"arguments": args,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("构造工具调用请求失败: %w", err)
+	}
+	resp := chatServer().HandleMessage(callCtx, payload)
+
+	r, ok := resp.(mcp.JSONRPCResponse)
+	if !ok {
+		if re, isErr := resp.(mcp.JSONRPCError); isErr {
+			return "", fmt.Errorf("工具 %s 调用失败: %s", name, re.Error.Message)
+		}
+		return "", fmt.Errorf("工具 %s 调用响应类型异常", name)
+	}
+	result, ok := r.Result.(*mcp.CallToolResult)
+	if !ok {
+		// mcp-go v0.57 HandleMessage 返回值类型 Result(非指针),两种形态都兼容。
+		if v, ok2 := r.Result.(mcp.CallToolResult); ok2 {
+			result = &v
+		} else {
+			return "", fmt.Errorf("工具 %s 调用响应类型异常", name)
+		}
+	}
+
+	texts := make([]string, 0, len(result.Content))
+	for _, c := range result.Content {
+		if tc, isText := c.(mcp.TextContent); isText {
+			texts = append(texts, tc.Text)
+		}
+	}
+	text := strings.Join(texts, "\n")
+	if result.IsError {
+		if text == "" {
+			text = fmt.Sprintf("工具 %s 执行失败", name)
+		}
+		return "", errors.New(text)
+	}
+	return text, nil
 }

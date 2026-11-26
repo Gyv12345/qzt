@@ -280,13 +280,13 @@ export default function DocumentEditorPage() {
             children: (
               <div>
                 <div style={{ fontWeight: 600 }}>版本 {v.version_number}</div>
-                <div style={{ color: '#999', fontSize: 12 }}>{v.created_at?.slice(0, 16)}</div>
+                <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>{v.created_at?.slice(0, 16)}</div>
                 <Button type="link" size="small" onClick={() => handleRestore(v.id)}>回滚到此版本</Button>
               </div>
             ),
           }))}
         />
-        {versions.length === 0 && <div style={{ color: '#999', textAlign: 'center' }}>暂无版本历史</div>}
+        {versions.length === 0 && <div style={{ color: 'var(--ant-color-text-tertiary)', textAlign: 'center' }}>暂无版本历史</div>}
       </Drawer>
     </div>
   )

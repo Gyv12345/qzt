@@ -124,7 +124,7 @@ export default function MessagePage() {
       >
         {previewing && (
           <div>
-            <div style={{ marginBottom: 12, color: '#999', fontSize: 12 }}>
+            <div style={{ marginBottom: 12, color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
               {previewing.sender_id === 0 ? '系统消息' : `发送人ID: ${previewing.sender_id}`} · {previewing.created_at?.slice(0, 16)}
             </div>
             {previewing.content_type === 'markdown' ? (

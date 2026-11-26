@@ -20,6 +20,10 @@ type HrmDepartment struct {
 	Sort     int    `json:"sort" gorm:"default:0;comment:排序"`
 	// 1正常 0禁用
 	Status   int8   `json:"status" gorm:"default:1;comment:1正常 0禁用"`
+	// 外部平台部门ID(钉钉 dept_id / 飞书 open_department_id;P32 通讯录同步)
+	ExternalID string `json:"external_id" gorm:"size:64;index;default:'';comment:外部平台部门ID"`
+	// 外部来源平台(local/wecom/dingtalk/feishu)
+	IDSource string `json:"id_source" gorm:"size:20;index;default:'';comment:来源(local/wecom/dingtalk/feishu)"`
 	Children []*HrmDepartment `json:"children,omitempty" gorm:"-"`
 	base.BaseModel
 }

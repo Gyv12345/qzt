@@ -198,7 +198,7 @@ export default function ApprovalFlowPage() {
                 justifyContent: 'center',
                 padding: '8px 16px',
                 borderBottom: '1px solid #f0f0f0',
-                background: '#fff',
+                background: 'var(--ant-color-bg-container)',
               }}
             >
               <Segmented

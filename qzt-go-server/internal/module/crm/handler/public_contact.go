@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	crmmodel "qzt-go-server/internal/model/crm"
+	crmsvc "qzt-go-server/internal/module/crm/service"
 	"qzt-go-server/internal/module/system/errcode"
 	"qzt-go-server/internal/pkg/cache"
 	"qzt-go-server/internal/pkg/notify"
@@ -95,6 +96,9 @@ func (h *LeadHandler) PublicContact(c *gin.Context) {
 		response.Fail(c, errcode.ErrServer, "提交失败,请稍后重试")
 		return
 	}
+
+	// P-F5 官网留言线索自动分配(异步)
+	go crmsvc.NewAutoAssignService().AssignNewPoolLead(context.Background(), lead)
 
 	// 异步推送通知给超管用户
 	go notifyAdminsNewLead(lead)

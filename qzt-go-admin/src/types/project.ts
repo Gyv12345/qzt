@@ -37,6 +37,12 @@ export interface ProjTask {
   sort_order: number
   due_date: string | null
   done_at: string | null
+  /** 开始日期(YYYY-MM-DD,可空;P33 甘特图新增) */
+  start_date: string | null
+  /** 进度 0-100 */
+  progress: number
+  /** 里程碑:0普通 1里程碑 */
+  is_milestone: 0 | 1
   created_at: string
   updated_at: string
 }
@@ -67,4 +73,25 @@ export const TASK_STATUS: Record<number, { text: string; color: string }> = {
   2: { text: '进行中', color: 'processing' },
   3: { text: '已完成', color: 'success' },
   4: { text: '已取消', color: 'error' },
+}
+
+/** 甘特图支持的时间视图 */
+export const GANTT_VIEW_MODES = ['Day', 'Week', 'Month'] as const
+export type GanttViewMode = (typeof GANTT_VIEW_MODES)[number]
+
+export const GANTT_VIEW_LABELS: Record<GanttViewMode, string> = {
+  Day: '日',
+  Week: '周',
+  Month: '月',
+}
+
+/** 任务日期兜底:甘特条起止(无 start_date 的任务回退用 due_date 单日条) */
+export function taskGanttRange(t: ProjTask): { start: string; end: string } | null {
+  const day = (v?: string | null) => (v ? v.slice(0, 10) : '')
+  const due = day(t.due_date)
+  const start = day(t.start_date) || due
+  if (!start) return null
+  // 无截止日期或起止倒挂时,退化为开始日单日条
+  const end = due && due >= start ? due : start
+  return { start, end }
 }

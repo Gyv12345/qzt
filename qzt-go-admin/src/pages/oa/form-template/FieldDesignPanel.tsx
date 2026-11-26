@@ -116,7 +116,7 @@ export default function FieldDesignPanel({ fields, onFieldsChange, formName }: F
       <Col span={6}>
         <div
           style={{
-            background: '#fff',
+            background: 'var(--ant-color-bg-container)',
             borderRadius: 8,
             padding: 16,
             border: '1px solid #f0f0f0',
@@ -161,7 +161,7 @@ export default function FieldDesignPanel({ fields, onFieldsChange, formName }: F
       <Col span={11}>
         <div
           style={{
-            background: '#fff',
+            background: 'var(--ant-color-bg-container)',
             borderRadius: 8,
             padding: 16,
             border: '1px solid #f0f0f0',
@@ -237,7 +237,7 @@ export default function FieldDesignPanel({ fields, onFieldsChange, formName }: F
       <Col span={7}>
         <div
           style={{
-            background: '#fff',
+            background: 'var(--ant-color-bg-container)',
             borderRadius: 8,
             padding: 16,
             border: '1px solid #f0f0f0',

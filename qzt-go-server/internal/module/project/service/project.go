@@ -176,6 +176,10 @@ type CreateTaskRequest struct {
 	AssigneeID  *uint  `json:"assignee_id"`
 	Priority    int8   `json:"priority"`
 	DueDate     string `json:"due_date"`
+	// 甘特图字段:开始日期("2006-01-02",可空)/进度(0-100)/里程碑标志(0普通1里程碑)
+	StartDate   string `json:"start_date"`
+	Progress    int    `json:"progress"`
+	IsMilestone int8   `json:"is_milestone"`
 }
 
 func (s *ProjectService) CreateTask(ctx context.Context, req *CreateTaskRequest) (*projmodel.ProjTask, error) {
@@ -189,6 +193,8 @@ func (s *ProjectService) CreateTask(ctx context.Context, req *CreateTaskRequest)
 		AssigneeID:  req.AssigneeID,
 		Status:      projmodel.TaskStatusTodo,
 		Priority:    req.Priority,
+		Progress:    clampProgress(req.Progress),
+		IsMilestone: req.IsMilestone,
 	}
 	if t.Priority == 0 {
 		t.Priority = projmodel.PriorityNormal
@@ -198,10 +204,26 @@ func (s *ProjectService) CreateTask(ctx context.Context, req *CreateTaskRequest)
 			t.DueDate = xtime.NewNullDateTimeFromTime(t2)
 		}
 	}
+	if req.StartDate != "" {
+		if t2, err := time.ParseInLocation("2006-01-02", req.StartDate, time.Local); err == nil {
+			t.StartDate = xtime.NewNullDateTimeFromTime(t2)
+		}
+	}
 	if err := s.taskRepo.Create(ctx, t); err != nil {
 		return nil, err
 	}
 	return t, nil
+}
+
+// clampProgress 把进度收敛到 0-100。
+func clampProgress(p int) int {
+	if p < 0 {
+		return 0
+	}
+	if p > 100 {
+		return 100
+	}
+	return p
 }
 
 func (s *ProjectService) ListTasks(ctx context.Context, projectID uint) ([]projmodel.ProjTask, error) {
@@ -216,6 +238,13 @@ type UpdateTaskRequest struct {
 	Priority    int8   `json:"priority"`
 	SortOrder   int    `json:"sort_order"`
 	DueDate     string `json:"due_date"`
+	// 甘特图字段(半增量,指针区分未传/传值):
+	// StartDate nil=未传不覆盖;""=清空;其余按 "2006-01-02" 解析
+	StartDate *string `json:"start_date"`
+	// Progress nil=未传不覆盖;允许回设 0
+	Progress *int `json:"progress"`
+	// IsMilestone nil=未传不覆盖;0=取消里程碑,1=设为里程碑
+	IsMilestone *int8 `json:"is_milestone"`
 }
 
 func (s *ProjectService) UpdateTask(ctx context.Context, id uint, req *UpdateTaskRequest) error {
@@ -246,6 +275,19 @@ func (s *ProjectService) UpdateTask(ctx context.Context, id uint, req *UpdateTas
 		if t2, err := time.ParseInLocation("2006-01-02", req.DueDate, time.Local); err == nil {
 			t.DueDate = xtime.NewNullDateTimeFromTime(t2)
 		}
+	}
+	if req.StartDate != nil {
+		if *req.StartDate == "" {
+			t.StartDate = xtime.NullDateTime{} // 显式清空
+		} else if t2, err := time.ParseInLocation("2006-01-02", *req.StartDate, time.Local); err == nil {
+			t.StartDate = xtime.NewNullDateTimeFromTime(t2)
+		}
+	}
+	if req.Progress != nil {
+		t.Progress = clampProgress(*req.Progress)
+	}
+	if req.IsMilestone != nil {
+		t.IsMilestone = *req.IsMilestone
 	}
 	return s.taskRepo.Update(ctx, t)
 }

@@ -24,19 +24,24 @@ import Chart, { funnelOption, lineOption, pieOption } from '../../components/Cha
 import CountUp from '../../components/reactbits/CountUp'
 import FadeContent from '../../components/reactbits/FadeContent'
 import { menuHasPath } from '../../utils/menu'
+import AiInsightCard from '../../components/ai/AiInsightCard'
+import { useAiEnabled } from '../../components/ai/useAiEnabled'
 import {
   getCustomerDistribution,
   getDashboardOverview,
   getFinanceSummary,
+  getFollowTodos,
   getOpportunityFunnel,
   getSalesTrend,
 } from '../../services/dashboard'
 import { listMyTodos } from '../../services/approval'
+import { listLeads } from '../../services/lead'
 import { getUnreadCount, listInbox } from '../../services/oa'
 import { getNoticeFeed } from '../../services/oa'
 import type {
   DashboardDistributionPoint,
   DashboardFinanceSummary,
+  DashboardFollowTodo,
   DashboardFunnelPoint,
   DashboardTrendPoint,
 } from '../../types/dashboard'
@@ -119,6 +124,12 @@ function SectionCard({ title, loading, failed, empty, extra, children }: Section
 
 const TREND_DAYS = 30
 
+/** 待办计划关联主体名称:客户/线索名称;无权限或数据范围外时后端不带名称,回退显示 #id */
+const followSubject = (item: DashboardFollowTodo) =>
+  item.customer_name ||
+  item.lead_name ||
+  (item.customer_id ? `客户 #${item.customer_id}` : item.lead_id ? `线索 #${item.lead_id}` : '未关联客户')
+
 export default function Dashboard() {
   const profile = useAuthStore((s) => s.profile)
   const menus = useAuthStore((s) => s.menus)
@@ -126,6 +137,16 @@ export default function Dashboard() {
 
   // 个人区块(仅 JWT 鉴权,所有登录用户可用)
   const todos = useSectionData(() => listMyTodos({ page: 1, page_size: 5 }))
+  // 「今日跟进」:只统计本人待办计划;公海线索数复用线索公海页的同一接口,
+  // 只在有线索公海菜单时才取(受角色权限约束,数字与公海页一致)
+  const follow = useSectionData(getFollowTodos)
+  const showFollowLink = menuHasPath(menus, '/crm/follow')
+  const leadPool = useSectionData(() =>
+    menuHasPath(menus, '/crm/lead-sea')
+      ? listLeads({ page: 1, page_size: 1, pool_filter: 'PUBLIC' }).then((r) => r.total)
+      : Promise.resolve(null),
+  )
+  const aiEnabled = useAiEnabled()
   const notices = useSectionData(() => getNoticeFeed(5))
   const unread = useSectionData(getUnreadCount)
   const inbox = useSectionData(() => listInbox({ page: 1, page_size: 5 }))
@@ -240,6 +261,72 @@ export default function Dashboard() {
 
         {/* 右侧:审批待办 / 公告 / 未读消息 */}
         <Col xs={24} lg={16}>
+          {/* 今日跟进:每天打开先看今天该做什么,已逾期的排最前 */}
+          {!follow.failed && (
+            <SectionCard
+              title="今日跟进"
+              loading={follow.loading}
+              failed={follow.failed}
+              extra={
+                (leadPool.data != null || showFollowLink) && (
+                  <Space size={12}>
+                    {leadPool.data != null && <Link to="/crm/lead-sea">公海线索 {leadPool.data}</Link>}
+                    {showFollowLink && <Link to="/crm/follow">查看全部</Link>}
+                  </Space>
+                )
+              }
+            >
+              {follow.data && (
+                <>
+                  <Row gutter={16}>
+                    <Col span={8}>
+                      <Statistic title="今日到期" value={follow.data.today} />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic
+                        title="已逾期"
+                        value={follow.data.overdue}
+                        valueStyle={follow.data.overdue > 0 ? { color: 'var(--ant-color-error)' } : undefined}
+                      />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic title="之后待办" value={follow.data.upcoming} />
+                    </Col>
+                  </Row>
+                  {follow.data.list.length > 0 ? (
+                    <List
+                      size="small"
+                      dataSource={follow.data.list}
+                      renderItem={(item) => (
+                        <List.Item
+                          style={{ cursor: showFollowLink ? 'pointer' : 'default', padding: '6px 0' }}
+                          onClick={() => showFollowLink && navigate('/crm/follow')}
+                        >
+                          <List.Item.Meta
+                            avatar={
+                              <Tag color={item.due === 'overdue' ? 'red' : 'blue'}>
+                                {item.due === 'overdue' ? '逾期' : '今天'}
+                              </Tag>
+                            }
+                            title={
+                              <span style={{ fontSize: 13, fontWeight: item.due === 'overdue' ? 600 : 400 }}>
+                                {item.content}
+                              </span>
+                            }
+                            description={`${followSubject(item)} · ${formatTime(item.plan_time)}`}
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  ) : (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="今天没有到期的跟进" />
+                  )}
+                </>
+              )}
+            </SectionCard>
+          )}
+
+          <div style={{ marginTop: 16 }}>
           <SectionCard
             title="我的审批待办"
             loading={todos.loading}
@@ -260,6 +347,7 @@ export default function Dashboard() {
               )}
             />
           </SectionCard>
+          </div>
 
           <div style={{ marginTop: 16 }}>
             <SectionCard
@@ -360,6 +448,15 @@ export default function Dashboard() {
             ))}
           </Row>
         </Card>
+      )}
+
+      {/* AI 经营洞察:入口内嵌在指标下方,看完数字直接读分析。
+          洞察是全公司口径,只对能加载出销售趋势图的用户显示(与公司级 BI 同一批角色,
+          服务端同样校验);AI 总开关关闭时不出现 */}
+      {aiEnabled && Array.isArray(trend.data) && !overview.failed && coreKpis.length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <AiInsightCard />
+        </div>
       )}
 
       {/* 图表区:回款趋势(折线)+ 商机漏斗(漏斗) */}

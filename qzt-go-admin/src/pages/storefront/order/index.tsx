@@ -166,7 +166,7 @@ export default function StorefrontOrderPage() {
             <div style={{ margin: '16px 0 8px', fontWeight: 600 }}>商品明细</div>
             <ItemsTable items={detail.items ?? []} currency={detail.currency} />
 
-            <div style={{ marginTop: 16, color: '#999', fontSize: 12 }}>
+            <div style={{ marginTop: 16, color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
               Stripe 会话与支付凭证以 Stripe 控制台为准
             </div>
           </>

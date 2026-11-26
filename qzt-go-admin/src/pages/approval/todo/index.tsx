@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { App, Button, Form, Space, Typography } from 'antd'
+import { ThunderboltOutlined } from '@ant-design/icons'
 import {
   ModalForm,
   ProFormTextArea,
@@ -8,6 +9,8 @@ import {
   type ProColumns,
 } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
+import AiSceneModal from '../../../components/ai/AiSceneModal'
+import { useAiEnabled } from '../../../components/ai/useAiEnabled'
 import { approveTask, listMyTodos, rejectTask } from '../../../services/approval'
 import type { ApprovalTask } from '../../../types/approval'
 import InstanceDrawer from '../InstanceDrawer'
@@ -28,6 +31,8 @@ export default function ApprovalTodoPage() {
   const [current, setCurrent] = useState<ApprovalTask | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerInstanceId, setDrawerInstanceId] = useState<number | null>(null)
+  const [aiOpen, setAiOpen] = useState(false)
+  const aiEnabled = useAiEnabled()
 
   const openApprove = (record: ApprovalTask) => {
     setCurrent(record)
@@ -140,6 +145,15 @@ export default function ApprovalTodoPage() {
         }}
         pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         headerTitle="我的待办"
+        toolBarRender={() =>
+          aiEnabled
+            ? [
+                <Button key="ai" icon={<ThunderboltOutlined />} onClick={() => setAiOpen(true)}>
+                  AI 摘要
+                </Button>,
+              ]
+            : []
+        }
       />
       <ModalForm<CommentFormValues>
         title="通过审批"
@@ -188,6 +202,13 @@ export default function ApprovalTodoPage() {
           setTransferOpen(false)
           actionRef.current?.reload()
         }}
+      />
+      <AiSceneModal
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        scenario="approval-summary"
+        title="AI 审批摘要"
+        description="汇总你当前的待审批任务,给出待办概览、建议处理优先级与积压风险提示。"
       />
     </>
   )

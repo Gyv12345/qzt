@@ -74,7 +74,7 @@ export default function TicketDetailDrawer({ open, ticketId, onOpenChange, onSuc
               children: (
                 <div>
                   <div style={{ fontWeight: 500 }}>{log.content}</div>
-                  <div style={{ fontSize: 12, color: '#999' }}>
+                  <div style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)' }}>
                     {TICKET_STATUS[log.old_status]?.text || '-'} → {TICKET_STATUS[log.new_status]?.text || '-'} · {log.created_at}
                   </div>
                 </div>
@@ -83,7 +83,7 @@ export default function TicketDetailDrawer({ open, ticketId, onOpenChange, onSuc
           />
         </>
       ) : (
-        <div style={{ textAlign: 'center', paddingTop: 80, color: '#999' }}>无数据</div>
+        <div style={{ textAlign: 'center', paddingTop: 80, color: 'var(--ant-color-text-tertiary)' }}>无数据</div>
       )}
 
       <Modal title="变更状态" open={statusModal} onOk={handleStatusChange} onCancel={() => setStatusModal(false)} destroyOnHidden>

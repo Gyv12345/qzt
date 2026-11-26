@@ -33,16 +33,20 @@ export default function App() {
     })
   }, [])
 
-  // 深色 / 色弱模式:给 body 挂 class,配合 basic-layout.css 适配自定义布局
+  // 深色 / 色弱模式:给 body 挂 class,配合 basic-layout.css 适配自定义布局;
+  // 同步 html[data-theme] 供第三方组件的暗色变量消费(frappe-gantt.css 用 html[data-theme=dark])
   useEffect(() => {
     document.body.classList.toggle('qzt-theme-dark', isDark)
     document.body.classList.toggle('qzt-theme-weak', colorWeak)
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
   }, [isDark, colorWeak])
 
   return (
     <ConfigProvider
       locale={zhCN}
       theme={{
+        // cssVar:全部 token 以 --ant-* CSS 变量落盘,页面内联样式可用 var() 引用并随明暗自动翻转
+        cssVar: true,
         // algorithm 支持数组:基础(明/暗) + 可选叠加紧凑算法
         algorithm: [
           isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,

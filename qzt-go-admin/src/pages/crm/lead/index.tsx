@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react'
-import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { useRef, useState, type Key } from 'react'
+import { Alert, App, Button, Popconfirm, Space, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
+import { ModalForm, ProForm, ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components'
 import Auth from '../../../components/Auth'
 import DictSelect, { DictTag } from '../../../components/DictSelect'
 import ExportButtons from '../../../components/ExportButtons'
-import { convertLead, deleteLead, listLeads, type LeadQuery } from '../../../services/lead'
+import UserSelect from '../../../components/UserSelect'
+import { batchAssignLeads, convertLead, deleteLead, listLeads, type LeadQuery } from '../../../services/lead'
 import { useUserStore } from '../../../stores/users'
 import type { CrmLead } from '../../../types/lead'
 import LeadEditModal from './EditModal'
@@ -30,6 +31,10 @@ export default function LeadPage() {
   const [historyTarget, setHistoryTarget] = useState<CrmLead | null>(null)
   const [detailTarget, setDetailTarget] = useState<CrmLead | null>(null)
 
+  // 批量分配(表格勾选 + 分配弹窗)
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const [assignOpen, setAssignOpen] = useState(false)
+
   const openCreate = () => {
     setEditing(null)
     setModalOpen(true)
@@ -49,6 +54,14 @@ export default function LeadPage() {
   const handleConvert = async (record: CrmLead) => {
     const customer = await convertLead(record.id)
     message.success(`已转化,客户ID:${customer.id}`)
+    actionRef.current?.reload()
+  }
+
+  // 批量分配:成功后清空勾选并刷新列表
+  const handleBatchAssign = async (toUserId: number) => {
+    const res = await batchAssignLeads({ ids: selectedRowKeys.map(Number), to_user_id: toUserId })
+    message.success(`已分配 ${res.assigned} 条${res.failed ? `,失败 ${res.failed} 条` : ''}`)
+    setSelectedRowKeys([])
     actionRef.current?.reload()
   }
 
@@ -216,6 +229,7 @@ export default function LeadPage() {
       <ProTable<CrmLead>
         rowKey="id"
         actionRef={actionRef}
+        rowSelection={{ selectedRowKeys, onChange: (keys) => setSelectedRowKeys(keys) }}
         columns={columns}
         scroll={{ x: 'max-content' }}
         request={async (params) => {
@@ -233,6 +247,11 @@ export default function LeadPage() {
           <Auth perm="crm:lead:add" key="add">
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
               新增线索
+            </Button>
+          </Auth>,
+          <Auth perm="crm:lead:batch_assign" key="batchAssign">
+            <Button disabled={selectedRowKeys.length === 0} onClick={() => setAssignOpen(true)}>
+              批量分配
             </Button>
           </Auth>,
           <ExportButtons
@@ -269,6 +288,34 @@ export default function LeadPage() {
         onClose={() => setTransferTarget(null)}
         onSuccess={() => actionRef.current?.reload()}
       />
+
+      {/* 批量分配 */}
+      <ModalForm<{ to_user_id: number }>
+        title="批量分配线索"
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        modalProps={{ destroyOnHidden: true, maskClosable: false }}
+        width={440}
+        onFinish={async (values) => {
+          await handleBatchAssign(values.to_user_id)
+          return true
+        }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="公海线索=领取式入私海;私海线索=直接转移负责人(仅本部门及以下/本人可见范围内的线索会成功)。"
+        />
+        <div style={{ marginBottom: 16, color: '#888' }}>已选 {selectedRowKeys.length} 条线索</div>
+        <ProForm.Item
+          name="to_user_id"
+          label="分配给"
+          rules={[{ required: true, message: '请选择分配用户' }]}
+        >
+          <UserSelect placeholder="选择分配用户" />
+        </ProForm.Item>
+      </ModalForm>
 
       {/* 归属历史 */}
       <OwnerHistoryModal target={historyTarget} onClose={() => setHistoryTarget(null)} />

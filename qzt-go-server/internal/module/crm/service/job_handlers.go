@@ -86,6 +86,8 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 
 	// 按负责人聚合待提醒项:ownerID -> []描述
 	bucket := map[uint][]string{}
+	// 阶段停滞项发送成功后才标记防重,失败可随下次任务重试。
+	stagnantByOwner := map[uint][]crrepo.StagnantOpportunityRow{}
 
 	// scanStale 扫描某类实体中超阈值未跟进的记录,按负责人聚合到 bucket。
 	// 未跟进天数 = now - 基准时间;基准时间取 follow_time,
@@ -126,10 +128,36 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 			"in_pool = ?", []any{crmmodel.InPoolPrivate})
 	}
 
-	// 商机:owner 非空 + 超阈值未跟进(商机无公海概念)
+	// 商机:owner 非空 + 超阈值未跟进(终态不再产生待跟进提醒)
 	if days := cfgInt(ctx, "crm.followup.warn_days_opportunity", 15); days > 0 {
 		scanStale(&crmmodel.CrmOpportunity{}, "商机",
-			"COALESCE(follow_time, created_at)", days, "", nil)
+			"COALESCE(follow_time, created_at)", days,
+			"stage NOT IN ?", []any{[]string{crmmodel.OppStageWon, crmmodel.OppStageLost}})
+	}
+
+	// 商机阶段停滞:阈值来自 stage_config,每次进入同一阶段最多提醒一次。
+	if _, defs, err := NewStageService().GetByBizType(ctx, stageBizOpportunity); err != nil {
+		xlogger.ErrorfCtx(ctx, "读取商机阶段停滞配置失败: %v", err)
+	} else {
+		rows, err := crrepo.NewOpportunityRepo().ScanStagnantOpportunities(ctx)
+		if err != nil {
+			xlogger.ErrorfCtx(ctx, "查询阶段停滞商机失败: %v", err)
+		} else {
+			for _, row := range rows {
+				def, ok := FindStageDef(defs, row.Stage)
+				if !ok || def.StagnantDays <= 0 || row.OwnerID == nil {
+					continue
+				}
+				enteredAt := row.StageEnteredAt
+				days := daysSince(&enteredAt)
+				if days < def.StagnantDays {
+					continue
+				}
+				bucket[*row.OwnerID] = append(bucket[*row.OwnerID],
+					fmt.Sprintf("商机「%s」在%s已停留 %d 天(阈值 %d 天)", row.Name, def.Label, days, def.StagnantDays))
+				stagnantByOwner[*row.OwnerID] = append(stagnantByOwner[*row.OwnerID], row)
+			}
+		}
 	}
 
 	// 发送:每负责人一条站内信
@@ -141,6 +169,15 @@ func (h *followupReminderJob) Execute(ctx context.Context) error {
 			continue
 		}
 		sent++
+		if rows := stagnantByOwner[ownerID]; len(rows) > 0 {
+			ids := make([]uint, 0, len(rows))
+			for _, row := range rows {
+				ids = append(ids, row.ID)
+			}
+			if err := crrepo.NewOpportunityRepo().MarkStagnantReminded(ctx, ids, time.Now()); err != nil {
+				xlogger.ErrorfCtx(ctx, "标记商机阶段停滞提醒失败 owner=%d: %v", ownerID, err)
+			}
+		}
 	}
 
 	xlogger.InfofCtx(ctx, "跟进提醒完成:扫描 %d 位负责人,发送 %d 条提醒", len(bucket), sent)

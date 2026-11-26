@@ -181,7 +181,7 @@ export default function SchedulePage() {
             </div>
           )
         })}
-        {list.length > 3 && <span style={{ fontSize: 11, color: '#999' }}>+{list.length - 3} 更多</span>}
+        {list.length > 3 && <span style={{ fontSize: 11, color: 'var(--ant-color-text-tertiary)' }}>+{list.length - 3} 更多</span>}
       </div>
     )
   }

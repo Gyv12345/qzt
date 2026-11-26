@@ -52,6 +52,9 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		authenticated.GET("/dashboard/overview", dashboardHandler.Overview)
 		authenticated.GET("/dashboard/customer-distribution", dashboardHandler.CustomerDistribution)
 		authenticated.GET("/dashboard/opportunity-funnel", dashboardHandler.OpportunityFunnel)
+		authenticated.GET("/dashboard/opportunity-insights", dashboardHandler.OpportunityInsights)
+		// 工作台「今日跟进」:调用人自己的待办计划按到期窗口汇总(已逾期/今日到期)。
+		authenticated.GET("/dashboard/follow-todos", dashboardHandler.FollowTodos)
 
 		// 统一日历:聚合各业务模块带日期的待办(仅当前用户)
 		authenticated.GET("/calendar", calendarHandler.Calendar)
@@ -59,10 +62,16 @@ func (m *Module) RegisterRoutes(rg *gin.RouterGroup) {
 		// AI 对话页(P26):仅 JWT 不进 RBAC 组——成本由 sys_config ai.chat_enabled
 		// 开关控制(默认关),菜单可见性由 sys_menu 授权控制,防越权只守开关即可。
 		authenticated.POST("/ai/chat", aiChatHandler.Chat)
+		// 可用模型档案列表(P34 全局 AI 悬浮球):仅回开关状态与档案元数据,无敏感字段。
+		authenticated.GET("/ai/models", aiChatHandler.Models)
 
 		// AI 场景智能体(P30):同 ai/chat 口径(仅 JWT+开关),数据采集限调用人本人口径
 		// 或全公司统计摘要,无越权面;记账 feature=ai.agent。
+		// 页面入口分散在各业务页面(工作台/审批待办/工作日志/客户跟进),无独立场景页。
+		// followup-draft 场景带客户/线索入参,权限(RBAC+数据范围)在 service 内校验。
 		authenticated.POST("/ai/agents/:scenario/run", aiAgentHandler.Run)
+		// 跟进草稿模板目录(scenario 固定传 followup-draft)。
+		authenticated.GET("/ai/agents/:scenario/templates", aiAgentHandler.FollowupTemplates)
 	}
 
 	// 受保护路由(JWT + 操作日志 + Casbin):全公司经营口径的 BI 看板。

@@ -14,7 +14,7 @@ package wxmp
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -76,7 +76,7 @@ func (c *Client) tokenCacheKey() string {
 	if c.cfg.Secret == "" {
 		return accessTokenKey
 	}
-	sum := sha1.Sum([]byte(c.cfg.Secret))
+	sum := sha256.Sum256([]byte(c.cfg.Secret))
 	return accessTokenKey + ":" + hex.EncodeToString(sum[:8])
 }
 

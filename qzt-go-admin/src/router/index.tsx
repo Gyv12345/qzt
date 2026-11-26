@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { lazy, useEffect, useMemo, useState, type ReactElement } from 'react'
 import { Navigate, useRoutes, type RouteObject } from 'react-router-dom'
 import { Button, Result, Spin } from 'antd'
 import { useAuthStore } from '../stores/auth'
@@ -8,11 +8,26 @@ import { fetchUserInfo } from '../services/auth'
 import type { SysMenu } from '../types'
 import BasicLayout from '../layouts/BasicLayout'
 import Login from '../pages/login'
+import OauthCallback from '../pages/oauth/callback'
 import ShareReceive from '../pages/share'
 import Profile from '../pages/profile'
 import WecomBind from '../pages/wecom-bind'
 import NotFound from '../pages/error/404'
 import { Dashboard, extraRoutes, getPage } from './pages'
+
+/**
+ * 后端第三方扫码登录回调 302 到 `/#/oauth/callback?token=...`(hash 形式)。
+ * 本应用是 BrowserRouter,不感知 hash,模块加载期把 hash 形式归一为
+ * 路径路由 `/oauth/callback?token=...`,再交给下方公开路由处理。
+ */
+if (typeof window !== 'undefined' && window.location.hash.startsWith('#/oauth/callback')) {
+  const raw = window.location.hash.slice(1)
+  const qi = raw.indexOf('?')
+  window.history.replaceState(null, '', '/oauth/callback' + (qi >= 0 ? raw.slice(qi) : ''))
+}
+
+// 大屏单独 lazy(间接引入 echarts,与 Dashboard 同理移出首屏 bundle)
+const BigScreen = lazy(() => import('../pages/bigscreen'))
 
 /** 将后端菜单树(type=1 且有 component)拍平为路由 */
 function buildMenuRoutes(menus: SysMenu[]): RouteObject[] {
@@ -69,6 +84,17 @@ export default function AppRoutes() {
   const routes = useMemo<RouteObject[]>(
     () => [
       { path: '/login', element: <Login /> },
+      // 第三方扫码登录回调(钉钉/飞书,公开路由,RequireAuth 外)
+      { path: '/oauth/callback', element: <OauthCallback /> },
+      // 经营数据大屏:登录后可用,但不套 BasicLayout(独立 chrome-less 全屏页,与 /login 同级注册)
+      {
+        path: '/bigscreen',
+        element: (
+          <RequireAuth>
+            <BigScreen />
+          </RequireAuth>
+        ),
+      },
       // 免登录公开领取页(与 /login 同级,不经过 RequireAuth)
       { path: '/share/:token', element: <ShareReceive /> },
       { path: '/auth/wecom/bind', element: <WecomBind /> },

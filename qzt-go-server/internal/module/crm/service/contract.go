@@ -97,7 +97,13 @@ func (s *ContractService) Create(ctx context.Context, req *CreateContractRequest
 // GetByID 合同详情。
 func (s *ContractService) GetByID(ctx context.Context, id uint) (*crmmodel.CrmContract, error) {
 	c, err := s.repo.GetByID(ctx, id)
-	return c, repository.NotFoundOr(err, "合同不存在")
+	if err != nil {
+		return nil, repository.NotFoundOr(err, "合同不存在")
+	}
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
 // UpdateContractRequest 更新合同请求(received_amount 不接受客户端传入,由回款维护)。
@@ -124,6 +130,9 @@ func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContra
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return repository.NotFoundOr(err, "合同不存在")
+	}
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return err
 	}
 	// 复制旧值快照(用于 diff)
 	oldSnapshot := *c
@@ -156,8 +165,12 @@ func (s *ContractService) Update(ctx context.Context, id uint, req *UpdateContra
 
 // Delete 删除合同。
 func (s *ContractService) Delete(ctx context.Context, id uint) error {
-	if _, err := s.repo.GetByID(ctx, id); err != nil {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
 		return repository.NotFoundOr(err, "合同不存在")
+	}
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return err
 	}
 	if apprrepo.HasInstance(ctx, "CONTRACT", id) {
 		return errors.New("该合同已进入审批流程,不能删除")
@@ -208,6 +221,9 @@ func (s *ContractService) UpdateFollow(ctx context.Context, id, followerID uint,
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil // 关联可选,静默忽略
+	}
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return err
 	}
 	c.FollowerID = &followerID
 	c.FollowTime = xtime.NewNullDateTimeFromTime(followTime)

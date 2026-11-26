@@ -97,7 +97,7 @@ export default function CategoryPage() {
       {list.length > 0 ? (
         <Tree treeData={buildTree()} defaultExpandAll blockNode />
       ) : (
-        <div style={{ color: '#999', textAlign: 'center', padding: 40 }}>暂无分类</div>
+        <div style={{ color: 'var(--ant-color-text-tertiary)', textAlign: 'center', padding: 40 }}>暂无分类</div>
       )}
 
       <ModalForm

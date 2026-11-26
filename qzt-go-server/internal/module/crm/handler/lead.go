@@ -188,3 +188,24 @@ func (h *LeadHandler) Convert(c *gin.Context) {
 	}
 	response.OK(c, customer)
 }
+
+// batchAssignRequest 批量分配线索请求。
+type batchAssignRequest struct {
+	IDs      []uint `json:"ids" binding:"required,min=1,max=200"`
+	ToUserID uint   `json:"to_user_id" binding:"required"`
+}
+
+// BatchAssign 批量分配线索(公海领取式+私海转移式,逐条 continue-on-error)
+func (h *LeadHandler) BatchAssign(c *gin.Context) {
+	var req batchAssignRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+	assigned, failed, err := service.NewAutoAssignService().BatchAssign(c.Request.Context(), req.IDs, req.ToUserID, middleware.GetUserID(c))
+	if err != nil {
+		response.Fail(c, errcode.ErrParam, err.Error())
+		return
+	}
+	response.OK(c, gin.H{"assigned": assigned, "failed": failed})
+}

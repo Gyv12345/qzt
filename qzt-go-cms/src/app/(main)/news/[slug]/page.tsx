@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { allowTelUrlTransform } from "@/lib/markdown-url";
 import { getArticleBySlug, getArticles } from "@/lib/api";
 import { SITE } from "@/lib/site";
 
@@ -93,7 +94,7 @@ export default async function ArticlePage({ params }: Props) {
         {article.content && (
           <div className="prose-content max-w-none">
             {/* 文章正文为 Markdown(admin 后台 MD 编辑器维护), 服务端渲染为 HTML */}
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowTelUrlTransform}>{article.content}</ReactMarkdown>
           </div>
         )}
       </article>

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+	"io"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -100,4 +102,52 @@ func (h *AssetHandler) Delete(c *gin.Context) {
 		return
 	}
 	response.OK(c, nil)
+}
+
+// DepreciateRun 手动折旧计提
+// @Summary      手动折旧计提
+// @Description  直线法按期计提;period 不传=当前日历月,格式 YYYY-MM;(asset_id,period) 唯一索引保证幂等
+// @Tags         固定资产
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body  object  false  "{period: \"2026-11\"}(可省略)"
+// @Success      200  {object}  xresponse.Response
+// @Router       /psi/assets/depreciate/run [post]
+func (h *AssetHandler) DepreciateRun(c *gin.Context) {
+	var req struct {
+		Period string `json:"period"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
+		return
+	}
+	stats, err := service.RunDepreciation(c.Request.Context(), req.Period)
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, stats)
+}
+
+// DepreciationLogs 资产折旧计提日志
+// @Summary      资产折旧计提日志
+// @Description  某资产的逐期折旧计提记录(期间升序)
+// @Tags         固定资产
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  xresponse.Response
+// @Router       /psi/assets/:id/depreciation-logs [get]
+func (h *AssetHandler) DepreciationLogs(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || id == 0 {
+		response.Fail(c, errcode.ErrParam, "id 无效")
+		return
+	}
+	list, err := service.ListDepreciationLogs(c.Request.Context(), uint(id))
+	if err != nil {
+		response.Fail(c, errcode.ErrServer, err.Error())
+		return
+	}
+	response.OK(c, list)
 }

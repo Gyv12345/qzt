@@ -3,12 +3,14 @@ import type {
   AttendanceSummaryItem,
   DashboardDistributionPoint,
   DashboardFinanceSummary,
+  DashboardFollowTodos,
   DashboardFunnelPoint,
   DashboardOverview,
   DashboardTrendPoint,
   FinanceTrendItem,
   LabelValue,
   MonthTrend,
+  OpportunityInsights,
   SalesRankingItem,
   SalesVsPurchaseItem,
   StockValueItem,
@@ -19,12 +21,23 @@ import type {
 export const getDashboardOverview = () =>
   request.get<unknown, DashboardOverview>('/api/dashboard/overview', { silent: true })
 
+/** 我的待办跟进概览(工作台「今日跟进」):已逾期/今日到期/今日之后 + 最近到期列表 */
+export const getFollowTodos = () =>
+  request.get<unknown, DashboardFollowTodos>('/api/dashboard/follow-todos', { silent: true })
+
 /** 回款趋势,days 默认 30 */
 export const getSalesTrend = (days = 30) =>
   request.get<unknown, DashboardTrendPoint[]>('/api/dashboard/sales-trend', { params: { days }, silent: true })
 
 export const getOpportunityFunnel = () =>
   request.get<unknown, DashboardFunnelPoint[]>('/api/dashboard/opportunity-funnel', { silent: true })
+
+/** 商机转化率、阶段停留与输单原因,days 默认 90 */
+export const getOpportunityInsights = (days = 90) =>
+  request.get<unknown, OpportunityInsights>('/api/dashboard/opportunity-insights', {
+    params: { days },
+    silent: true,
+  })
 
 /** 客户分布, dimension: level / source / industry */
 export const getCustomerDistribution = (dimension = 'level') =>

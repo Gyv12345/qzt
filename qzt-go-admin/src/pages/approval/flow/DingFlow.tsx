@@ -918,16 +918,16 @@ export default function DingFlow({ flowId, onClose }: DingFlowProps) {
           justifyContent: 'space-between',
           padding: '8px 16px',
           borderBottom: '1px solid #f0f0f0',
-          background: '#fff',
+          background: 'var(--ant-color-bg-container)',
           flex: 'none',
         }}
       >
         <Space>
           <strong>{detail?.name || '流程设计'}</strong>
-          <span style={{ color: '#999', fontSize: 12 }}>
+          <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
             点击卡片编辑属性;连线中点 ⊕ 可插入审批节点或条件分支
           </span>
-          <span style={{ color: '#999', fontSize: 12 }}>
+          <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>
             条件分支按从左到右顺序匹配,首个满足即走;都不满足走「默认分支」
           </span>
         </Space>
@@ -948,7 +948,7 @@ export default function DingFlow({ flowId, onClose }: DingFlowProps) {
         ) : view ? (
           <div className="ding-flow-wrap">{renderItems(view.items)}</div>
         ) : (
-          <div style={{ textAlign: 'center', color: '#999', paddingTop: 80 }}>
+          <div style={{ textAlign: 'center', color: 'var(--ant-color-text-tertiary)', paddingTop: 80 }}>
             未找到开始节点,请检查流程设计
           </div>
         )}
@@ -1041,7 +1041,7 @@ function DingNodeDrawer({
       {!node ? null : (
         <Space direction="vertical" size={16} style={{ display: 'flex' }}>
           <div>
-            <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>节点名称</div>
+            <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>节点名称</div>
             <Input
               value={node.name}
               onChange={(e) => onName(e.target.value)}
@@ -1051,7 +1051,7 @@ function DingNodeDrawer({
 
           {node.nodeType === 'START' && (
             <div>
-              <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>触发时机</div>
+              <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>触发时机</div>
               <Select
                 style={{ width: '100%' }}
                 value={node.executeTiming || 'CREATE'}
@@ -1064,7 +1064,7 @@ function DingNodeDrawer({
           {node.nodeType === 'APPROVER' && (
             <>
               <div>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>审批人类型</div>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>审批人类型</div>
                 <Select
                   style={{ width: '100%' }}
                   value={approverType}
@@ -1074,7 +1074,7 @@ function DingNodeDrawer({
               </div>
               {approverType === 'MEMBER' && (
                 <div>
-                  <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>审批人</div>
+                  <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>审批人</div>
                   <UserSelect
                     mode="multiple"
                     style={{ width: '100%' }}
@@ -1085,7 +1085,7 @@ function DingNodeDrawer({
                 </div>
               )}
               <div>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>多审批人模式</div>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>多审批人模式</div>
                 <Select
                   style={{ width: '100%' }}
                   value={(approverCfg.multi_approver_mode as string) || 'ANY'}
@@ -1094,7 +1094,7 @@ function DingNodeDrawer({
                 />
               </div>
               <div>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>
                   抄送人
                   <span style={{ color: '#bbb', marginLeft: 6 }}>仅知会,无需审批;清空则不抄送</span>
                 </div>
@@ -1110,7 +1110,7 @@ function DingNodeDrawer({
                 />
               </div>
               <div>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>空审批人处理</div>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>空审批人处理</div>
                 <Select
                   style={{ width: '100%' }}
                   value={emptyAction}
@@ -1120,7 +1120,7 @@ function DingNodeDrawer({
               </div>
               {emptyAction === 'ASSIGN_SPECIFIC' && (
                 <div>
-                  <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>兜底审批人</div>
+                  <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>兜底审批人</div>
                   <UserSelect
                     style={{ width: '100%' }}
                     placeholder="空审批人时转交的用户"
@@ -1130,7 +1130,7 @@ function DingNodeDrawer({
                 </div>
               )}
               <div>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>提交人本人为审批人时</div>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>提交人本人为审批人时</div>
                 <Select
                   style={{ width: '100%' }}
                   value={(approverCfg.same_submitter_action as string) || 'SKIP'}
@@ -1144,7 +1144,7 @@ function DingNodeDrawer({
           {isCondition && (
             <>
               <div>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>条件关系</div>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--ant-color-text-secondary)' }}>条件关系</div>
                 <Select
                   style={{ width: '100%' }}
                   value={condCfg.logic}
@@ -1212,13 +1212,13 @@ function DingNodeDrawer({
                 </div>
               )}
               {fields.length === 0 && (
-                <div style={{ color: '#999', fontSize: 12 }}>该表单暂无可配置的条件字段</div>
+                <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>该表单暂无可配置的条件字段</div>
               )}
             </>
           )}
 
           {node.nodeType === 'END' && (
-            <div style={{ color: '#999', fontSize: 13 }}>结束节点无需配置</div>
+            <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 13 }}>结束节点无需配置</div>
           )}
         </Space>
       )}

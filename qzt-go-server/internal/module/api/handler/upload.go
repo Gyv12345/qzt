@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"fmt"
 	"strings"
 	"time"
 
@@ -183,12 +184,20 @@ func (h *UploadHandler) STS(c *gin.Context) {
 
 	// 用 OSS SDK 签 PUT URL(15 分钟有效)
 	endpoint := storageCfg.OSS.Endpoint
-	client, err := oss.New(endpoint, storageCfg.OSS.AccessKeyID, storageCfg.OSS.AccessKeySecret)
+	// 阿里云新账号默认禁 V1 签名(V1 signature is forbidden),按配置启用 V4(需同时给 Region)
+	clientOpts := make([]oss.ClientOption, 0, 1)
+	if strings.EqualFold(storageCfg.OSS.SignatureVersion, "v4") {
+		clientOpts = append(clientOpts, oss.AuthVersion(oss.AuthV4))
+	}
+	client, err := oss.New(endpoint, storageCfg.OSS.AccessKeyID, storageCfg.OSS.AccessKeySecret, clientOpts...)
 	if err != nil {
 		// 不透传 err:含 endpoint/AK 信息,进日志即可
 		xlogger.ErrorfCtx(c.Request.Context(), "STS 创建 OSS 客户端失败: %v", err)
 		response.Fail(c, errcode.ErrServer, "存储服务暂不可用，请稍后重试")
 		return
+	}
+	if storageCfg.OSS.Region != "" {
+		client.SetRegion(storageCfg.OSS.Region)
 	}
 
 	bucketName := storageCfg.OSS.BucketName
@@ -230,6 +239,10 @@ func (h *UploadHandler) STS(c *gin.Context) {
 		cdnDomain := storageCfg.OSS.CustomDomain
 		if cdnDomain == "" {
 			cdnDomain = storageCfg.ResourceDomain
+		}
+		if cdnDomain == "" {
+			// CDN/自定义域名都未配置时回退公共桶默认公网域名(注释口径如此,此前实现缺失导致拼出相对路径、前端预览裂图)
+			cdnDomain = fmt.Sprintf("https://%s.%s", storageCfg.OSS.BucketName, strings.TrimPrefix(strings.TrimPrefix(storageCfg.OSS.Endpoint, "https://"), "http://"))
 		}
 		cdnDomain = strings.TrimRight(cdnDomain, "/")
 		fileURL = cdnDomain + "/" + objectKey

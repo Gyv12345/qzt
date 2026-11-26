@@ -270,8 +270,8 @@ export default function ConfigTab() {
           resource_domain: editing?.resource_domain,
           download_prefix: editing?.download_prefix,
           oss_endpoint: editing?.oss_endpoint,
-          oss_access_key_id: '',
-          oss_access_key_secret: '',
+          oss_access_key_id: editing?.oss_access_key_id ?? '', // 回填脱敏值(****xx),原样回传=保留
+          oss_access_key_secret: editing?.oss_access_key_secret ?? '',
           oss_bucket_name: editing?.oss_bucket_name,
           oss_custom_domain: editing?.oss_custom_domain,
           oss_private_bucket_name: editing?.oss_private_bucket_name,
@@ -312,7 +312,8 @@ export default function ConfigTab() {
             s3_domain_private: values.s3_domain_private,
             s3_access_key: normalizeSecret(values.s3_access_key),
             s3_secret_key: normalizeSecret(values.s3_secret_key),
-            s3_path_style: !!values.s3_path_style,
+            // 后端按 tinyint 0/1 落库,保存时发数字而非布尔
+            s3_path_style: values.s3_path_style ? 1 : 0,
           }
           if (editing) {
             await updateStorageConfig(editing.id, payload)

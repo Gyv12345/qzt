@@ -155,7 +155,7 @@ export default function VoucherPage() {
             </Popconfirm>
           </Auth>
         ) : (
-          <span style={{ color: '#999' }}>—</span>
+          <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>
         ),
     },
   ]

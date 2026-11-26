@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Card, Col, Row, Select } from 'antd'
 import Chart, { barOption, funnelOption, lineOption, pieOption } from '../../../components/Chart'
+import { getStageConfig } from '../../../services/crm'
+import { useDictStore } from '../../../stores/dict'
 import {
   getContractTrend,
   getCustomerDistribution,
   getLeadSourceDistribution,
   getOpportunityFunnel,
+  getOpportunityInsights,
   getSalesRanking,
   getSalesTrend,
 } from '../../../services/dashboard'
 
 const STAGE_LABELS: Record<string, string> = {
   PROSPECTING: '初步接触',
-  QUALIFIED: '需求确认',
+  ANALYSIS: '需求分析',
   PROPOSAL: '方案报价',
   NEGOTIATION: '谈判',
   WON: '赢单',
@@ -33,13 +36,22 @@ function useData<T>(loader: () => Promise<T>, deps: unknown[] = []) {
 
 export default function CrmAnalysis() {
   const [dim, setDim] = useState<string>('level')
+  const dictLabel = useDictStore((s) => s.label)
 
+  const stageConfig = useData(() => getStageConfig('OPPORTUNITY'))
   const funnel = useData(getOpportunityFunnel)
+  const insights = useData(() => getOpportunityInsights(90))
   const trend = useData(() => getSalesTrend(30))
   const contractTrend = useData(() => getContractTrend(6))
   const ranking = useData(() => getSalesRanking(10))
   const leadSrc = useData(getLeadSourceDistribution)
   const dist = useData(() => getCustomerDistribution(dim), [dim])
+
+  const stageLabels = Object.fromEntries(
+    (stageConfig.data?.stages ?? []).map((stage) => [stage.key, stage.label]),
+  )
+  const stageName = (stage: string) => stageLabels[stage] || STAGE_LABELS[stage] || stage
+  const insightDays = insights.data?.window_days ?? 90
 
   return (
     <Row gutter={[16, 16]}>
@@ -55,8 +67,45 @@ export default function CrmAnalysis() {
       {/* 商机漏斗 */}
       <Col xs={24} lg={12}>
         <Card title="商机漏斗">
-          <Chart loading={funnel.loading} option={funnelOption('商机漏斗',
-            (funnel.data ?? []).map((f) => ({ name: STAGE_LABELS[f.stage] || f.stage, value: Number(f.count) })),
+          <Chart loading={funnel.loading || stageConfig.loading} option={funnelOption('商机漏斗',
+            (funnel.data ?? []).map((f) => ({ name: stageName(f.stage), value: Number(f.count) })),
+          )} />
+        </Card>
+      </Col>
+      {/* 阶段转化率 */}
+      <Col xs={24} lg={12}>
+        <Card title={`近 ${insightDays} 天阶段转化率`}>
+          <Chart loading={insights.loading || stageConfig.loading} option={barOption('阶段转化率',
+            (insights.data?.conversion ?? []).map((item) =>
+              `${stageName(item.from_stage)} → ${stageName(item.to_stage)}`,
+            ),
+            [{
+              name: '转化率(%)',
+              data: (insights.data?.conversion ?? []).map((item) => Number(item.rate)),
+            }],
+          )} />
+        </Card>
+      </Col>
+      {/* 阶段平均停留 */}
+      <Col xs={24} lg={12}>
+        <Card title={`近 ${insightDays} 天阶段平均停留`}>
+          <Chart loading={insights.loading || stageConfig.loading} option={barOption('阶段平均停留',
+            (insights.data?.stage_durations ?? []).map((item) => stageName(item.stage)),
+            [{
+              name: '平均停留(天)',
+              data: (insights.data?.stage_durations ?? []).map((item) => Number(item.avg_days)),
+            }],
+          )} />
+        </Card>
+      </Col>
+      {/* 输单原因 */}
+      <Col xs={24} lg={12}>
+        <Card title={`近 ${insightDays} 天输单原因`}>
+          <Chart loading={insights.loading} option={pieOption('输单原因',
+            (insights.data?.loss_reasons ?? []).map((item) => ({
+              name: item.reason === 'UNSPECIFIED' ? '未记录' : dictLabel('OPPORTUNITY_LOST_REASON', item.reason),
+              value: Number(item.count),
+            })),
           )} />
         </Card>
       </Col>

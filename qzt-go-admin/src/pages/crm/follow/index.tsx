@@ -10,7 +10,7 @@ import {
   Space,
   Typography,
 } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import {
   ModalForm,
   ProForm,
@@ -21,6 +21,8 @@ import {
 } from '@ant-design/pro-components'
 import dayjs, { type Dayjs } from 'dayjs'
 import Auth from '../../../components/Auth'
+import AiFollowupDraftModal from '../../../components/ai/AiFollowupDraftModal'
+import { useAiEnabled } from '../../../components/ai/useAiEnabled'
 import ContactSelect from '../../../components/ContactSelect'
 import ContractSelect from '../../../components/ContractSelect'
 import CustomerSelect from '../../../components/CustomerSelect'
@@ -43,6 +45,9 @@ import type {
 import { pageIndexColumn } from '../../../components/IndexTag'
 
 const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
+
+/** 跟进类型取值(与字典 FOLLOW_UP_TYPE 一致);AI 草稿建议的类型在范围内才回填 */
+const FOLLOW_TYPES = ['WECHAT', 'PHONE', 'VISIT', 'EMAIL', 'OTHER']
 
 interface PlanFormValues {
   type: string
@@ -79,6 +84,8 @@ export default function CrmFollowPage() {
   const [convertOpen, setConvertOpen] = useState(false)
   const [editing, setEditing] = useState<CrmFollowPlan | null>(null)
   const [converting, setConverting] = useState<CrmFollowPlan | null>(null)
+  const [draftOpen, setDraftOpen] = useState(false)
+  const aiEnabled = useAiEnabled()
   const [customerMap, setCustomerMap] = useState<Record<number, string>>({})
   // 已选客户时,商机/联系人/合同下拉仅展示该客户名下的记录
   const selectedCustomerId = Form.useWatch('customer_id', createForm)
@@ -411,6 +418,13 @@ export default function CrmFollowPage() {
             <DatePicker showTime style={{ width: '100%' }} placeholder="选择跟进时间" />
           </ProForm.Item>
         </Col>
+        {aiEnabled && (converting?.customer_id || converting?.lead_id) ? (
+          <Col span={24}>
+            <Button size="small" icon={<ThunderboltOutlined />} onClick={() => setDraftOpen(true)} style={{ marginBottom: 8 }}>
+              AI 起草
+            </Button>
+          </Col>
+        ) : null}
         <ProFormTextArea
           name="content"
           label="跟进内容"
@@ -419,6 +433,24 @@ export default function CrmFollowPage() {
           colProps={{ span: 24 }}
         />
       </ModalForm>
+
+      {/* AI 起草:以当前这条计划为本次要执行的动作,草稿填回上方「转跟进记录」表单 */}
+      <AiFollowupDraftModal
+        open={draftOpen}
+        onClose={() => setDraftOpen(false)}
+        subject={{
+          customerId: converting?.customer_id ?? undefined,
+          leadId: converting?.lead_id ?? undefined,
+          planId: converting?.id,
+        }}
+        onApply={(draft, followType) => {
+          convertForm.setFieldsValue({
+            content: draft,
+            ...(FOLLOW_TYPES.includes(followType) ? { type: followType } : {}),
+          })
+          setDraftOpen(false)
+        }}
+      />
     </Card>
   )
 }

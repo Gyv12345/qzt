@@ -43,7 +43,7 @@ export default function OwnerHistoryModal({ target, onClose }: OwnerHistoryModal
       submitter={false}
     >
       {history.length === 0 ? (
-        <div style={{ color: '#999', textAlign: 'center', padding: 24 }}>暂无记录</div>
+        <div style={{ color: 'var(--ant-color-text-tertiary)', textAlign: 'center', padding: 24 }}>暂无记录</div>
       ) : (
         <div>
           {history.map((h) => (
@@ -51,9 +51,9 @@ export default function OwnerHistoryModal({ target, onClose }: OwnerHistoryModal
               <Space>
                 <Tag color="blue">{ACTION_TEXT[h.action] || h.action}</Tag>
                 <span>{h.owner_id !== null ? nickname(h.owner_id) : '公海'}</span>
-                <span style={{ color: '#999', fontSize: 12 }}>{h.created_at}</span>
+                <span style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12 }}>{h.created_at}</span>
               </Space>
-              {h.reason && <div style={{ color: '#666', fontSize: 12, marginTop: 2 }}>{h.reason}</div>}
+              {h.reason && <div style={{ color: 'var(--ant-color-text-secondary)', fontSize: 12, marginTop: 2 }}>{h.reason}</div>}
             </div>
           ))}
         </div>

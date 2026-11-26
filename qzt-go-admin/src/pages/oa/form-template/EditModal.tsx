@@ -130,7 +130,7 @@ export default function FormTemplateEditModal({ open, editingId, onOpenChange, o
         style={{ marginTop: 16 }}
         extra={<Button type="dashed" size="small" icon={<PlusOutlined />} onClick={addField}>添加字段</Button>}
       >
-        {fields.length === 0 && <div style={{ color: '#999', textAlign: 'center', padding: 20 }}>点击"添加字段"开始设计表单</div>}
+        {fields.length === 0 && <div style={{ color: 'var(--ant-color-text-tertiary)', textAlign: 'center', padding: 20 }}>点击"添加字段"开始设计表单</div>}
         {fields.map((f, idx) => (
           <Card key={idx} size="small" style={{ marginBottom: 8 }} type="inner">
             <Space wrap align="start" style={{ width: '100%' }}>

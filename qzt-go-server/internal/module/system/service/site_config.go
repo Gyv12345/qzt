@@ -33,17 +33,19 @@ type UpdateSiteConfigRequest struct {
 	HeroBadge    string `json:"hero_badge"`
 	HeroTitle    string `json:"hero_title"`
 	HeroSubtitle string `json:"hero_subtitle"`
+	HeroShotURL  string `json:"hero_shot_url"`
 	Description  string `json:"description"`
 
-	Theme        string `json:"theme"`
-	StatsJSON    string `json:"stats_json"`
-	ModulesJSON  string `json:"modules_json"`
-	ModulesBadge string `json:"modules_badge"`
-	ModulesTitle string `json:"modules_title"`
-	ModulesDesc  string `json:"modules_desc"`
-	CtaTitle     string `json:"cta_title"`
-	CtaHighlight string `json:"cta_highlight"`
-	CtaSubtitle  string `json:"cta_subtitle"`
+	Theme            string `json:"theme"`
+	StatsJSON        string `json:"stats_json"`
+	ModulesJSON      string `json:"modules_json"`
+	ModulesBadge     string `json:"modules_badge"`
+	ModulesTitle     string `json:"modules_title"`
+	ModulesDesc      string `json:"modules_desc"`
+	TestimonialsJSON string `json:"testimonials_json"`
+	CtaTitle         string `json:"cta_title"`
+	CtaHighlight     string `json:"cta_highlight"`
+	CtaSubtitle      string `json:"cta_subtitle"`
 
 	ContactPhone   string `json:"contact_phone"`
 	ContactEmail   string `json:"contact_email"`
@@ -89,6 +91,9 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	if req.HeroSubtitle != "" {
 		cfg.HeroSubtitle = req.HeroSubtitle
 	}
+	if req.HeroShotURL != "" {
+		cfg.HeroShotURL = req.HeroShotURL
+	}
 	if req.Description != "" {
 		cfg.Description = req.Description
 	}
@@ -106,6 +111,9 @@ func (s *SiteConfigService) Update(ctx context.Context, req *UpdateSiteConfigReq
 	}
 	if req.ModulesTitle != "" {
 		cfg.ModulesTitle = req.ModulesTitle
+	}
+	if req.TestimonialsJSON != "" {
+		cfg.TestimonialsJSON = req.TestimonialsJSON
 	}
 	if req.ModulesDesc != "" {
 		cfg.ModulesDesc = req.ModulesDesc

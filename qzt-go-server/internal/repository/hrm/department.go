@@ -21,6 +21,33 @@ func (r *DepartmentRepo) Update(ctx context.Context, m *hrmmodel.HrmDepartment) 
 	return r.BaseRepo.Update(ctx, m, "ParentID", "Name", "Code", "Leader", "Sort", "Status")
 }
 
+// SyncUpdate 通讯录同步专用更新列(含外部绑定;不动 Leader/Status——负责人与启停是本地管理口径)。
+func (r *DepartmentRepo) SyncUpdate(ctx context.Context, m *hrmmodel.HrmDepartment) error {
+	return r.BaseRepo.Update(ctx, m, "ParentID", "Name", "Sort", "ExternalID", "IDSource")
+}
+
+// GetByExternalID 按 (来源平台, 外部部门ID) 精确匹配部门(通讯录对账)。
+func (r *DepartmentRepo) GetByExternalID(ctx context.Context, source, externalID string) (*hrmmodel.HrmDepartment, error) {
+	var dept hrmmodel.HrmDepartment
+	if err := repoDB(ctx).
+		Where("id_source = ? AND external_id = ?", source, externalID).
+		First(&dept).Error; err != nil {
+		return nil, err
+	}
+	return &dept, nil
+}
+
+// ListByIDSource 列出绑定某平台全部部门(通讯录全量对账:找消失部门用)。
+func (r *DepartmentRepo) ListByIDSource(ctx context.Context, source string) ([]hrmmodel.HrmDepartment, error) {
+	var depts []hrmmodel.HrmDepartment
+	if err := repoDB(ctx).
+		Where("id_source = ?", source).
+		Find(&depts).Error; err != nil {
+		return nil, err
+	}
+	return depts, nil
+}
+
 // CountChildren 统计子部门数量(删除校验用)。
 func (r *DepartmentRepo) CountChildren(ctx context.Context, parentID uint) (int64, error) {
 	return r.Count(ctx, &repository.QueryOptions{

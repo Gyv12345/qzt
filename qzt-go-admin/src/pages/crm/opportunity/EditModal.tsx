@@ -70,7 +70,7 @@ export default function OpportunityEditModal({
       expected_close_date: values.expected_close_date
         ? values.expected_close_date.format('YYYY-MM-DD')
         : undefined,
-      stage: values.stage,
+      stage: editing ? undefined : values.stage,
       probability: values.probability,
       owner_id: values.owner_id,
       description: values.description,
@@ -128,13 +128,15 @@ export default function OpportunityEditModal({
           <DatePicker style={{ width: '100%' }} />
         </ProForm.Item>
       </Col>
-      <ProFormSelect
-        name="stage"
-        label="阶段"
-        options={stageOptions}
-        placeholder="选择阶段"
-        colProps={{ span: 12 }}
-      />
+      {!editing && (
+        <ProFormSelect
+          name="stage"
+          label="阶段"
+          options={stageOptions}
+          placeholder="选择阶段"
+          colProps={{ span: 12 }}
+        />
+      )}
       <Col span={12}>
         <ProForm.Item name="probability" label="成交概率(%)">
           <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="0-100" />

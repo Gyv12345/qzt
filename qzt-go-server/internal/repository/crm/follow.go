@@ -54,6 +54,19 @@ func ScanStaleFollowup(ctx context.Context, model any, baselineExpr string, cuto
 	return rows, err
 }
 
+// HasOpportunityFollowupSince 判断商机在指定时间后是否已有跟进记录。
+func (r *FollowUpRecordRepo) HasOpportunityFollowupSince(ctx context.Context, opportunityID uint, since time.Time) (bool, error) {
+	q := repoDB(ctx).Model(&crmmodel.FollowUpRecord{}).Where("opportunity_id = ?", opportunityID)
+	if !since.IsZero() {
+		q = q.Where("follow_time >= ?", since)
+	}
+	var count int64
+	if err := q.Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 // Timeline 按资源(客户/商机/联系人/合同)查跟进记录时间线。
 // field 为列名(customer_id/opportunity_id/contact_id/contract_id),value 为资源 ID。
 func (r *FollowUpRecordRepo) Timeline(ctx context.Context, field string, value uint) ([]crmmodel.FollowUpRecord, error) {

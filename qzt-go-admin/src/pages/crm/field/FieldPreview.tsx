@@ -20,11 +20,11 @@ export default function FieldPreview({ fields, label, selectedId, onSelect, onMo
     <div
       style={{
         flex: 1,
-        background: '#fff',
+        background: 'var(--ant-color-bg-container)',
         borderRadius: 8,
         padding: 16,
         minHeight: 320,
-        border: '1px solid #f0f0f0',
+        border: '1px solid var(--ant-color-split)',
       }}
     >
       <strong style={{ display: 'block', marginBottom: 12 }}>
@@ -44,8 +44,8 @@ export default function FieldPreview({ fields, label, selectedId, onSelect, onMo
                   style={{
                     position: 'relative',
                     padding: '12px 12px 4px',
-                    border: selected ? '1px solid #1677ff' : '1px solid transparent',
-                    background: selected ? '#e6f4ff' : '#fafafa',
+                    border: selected ? '1px solid var(--ant-color-primary)' : '1px solid transparent',
+                    background: selected ? 'var(--ant-color-primary-bg)' : 'var(--ant-color-fill-quaternary)',
                     borderRadius: 6,
                     cursor: 'pointer',
                     minHeight: 48,
@@ -92,7 +92,7 @@ export default function FieldPreview({ fields, label, selectedId, onSelect, onMo
                   {/* 字段名 + 类型 */}
                   <div style={{ marginBottom: 6 }}>
                     <span style={{ fontSize: 13, fontWeight: 500 }}>{f.name}</span>
-                    <Tag style={{ marginLeft: 8, fontSize: 11 }}>
+                    <Tag style={{ marginLeft: 8, fontSize: 12 }}>
                       {FIELD_META[f.type]?.label || f.type}
                     </Tag>
                   </div>

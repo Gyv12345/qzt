@@ -1,7 +1,7 @@
 {
   "name": "qzt-go-mall",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.10.3",
   "type": "module",
   "scripts": {
     "dev": "vite",

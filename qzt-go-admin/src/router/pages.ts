@@ -25,6 +25,7 @@ export const Dashboard = lazy(() => import('../pages/dashboard'))
 /** 非菜单页面(不显示在侧栏,但需要路由,如编辑器/详情页) */
 export const extraRoutes: { path: string; component: string }[] = [
   { path: '/kb/document/editor', component: 'kb/document/editor' },
+  { path: '/mp/article/editor', component: 'mp/article/editor' },
 ]
 
 /** path → 页面组件映射(工作台 + 菜单路由 + 非菜单页),供布局的多 Tab 面板按 Tab 渲染 */

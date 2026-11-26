@@ -22,7 +22,8 @@ func registerCrmOpportunityWriteTools(s *server.MCPServer) {
 			mcp.WithNumber("customer_id", mcp.Required(), mcp.Description("客户ID")),
 			mcp.WithNumber("expected_amount", mcp.Description("预期金额")),
 			mcp.WithString("expected_close_date", mcp.Description("预计成交日期(YYYY-MM-DD)")),
-			mcp.WithString("stage", mcp.Description("阶段:PROSPECTING/QUALIFIED/PROPOSAL/NEGOTIATION/WON/LOST")),
+			mcp.WithString("stage", mcp.Description("阶段:PROSPECTING/ANALYSIS/PROPOSAL/NEGOTIATION/WON/LOST")),
+			mcp.WithString("lost_reason", mcp.Description("结构化输单原因(初始阶段为LOST时必填)")),
 			mcp.WithNumber("probability", mcp.Description("成交概率(0-100)")),
 			mcp.WithString("description", mcp.Description("描述")),
 		),
@@ -47,7 +48,8 @@ func registerCrmOpportunityWriteTools(s *server.MCPServer) {
 		mcp.NewTool("crm_opportunity_change_stage",
 			mcp.WithDescription("变更商机阶段(会记录阶段历史)"),
 			mcp.WithNumber("id", mcp.Required(), mcp.Description("商机ID")),
-			mcp.WithString("to_stage", mcp.Required(), mcp.Description("目标阶段:PROSPECTING/QUALIFIED/PROPOSAL/NEGOTIATION/WON/LOST")),
+			mcp.WithString("to_stage", mcp.Required(), mcp.Description("目标阶段:PROSPECTING/ANALYSIS/PROPOSAL/NEGOTIATION/WON/LOST")),
+			mcp.WithString("lost_reason", mcp.Description("结构化输单原因(目标为LOST时必填,字典OPPORTUNITY_LOST_REASON)")),
 			mcp.WithString("reason", mcp.Description("变更原因")),
 		),
 		handleOpportunityChangeStage,
@@ -72,6 +74,7 @@ func handleOpportunityCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		CustomerID:        customerID,
 		ExpectedCloseDate: closeDate,
 		Stage:             req.GetString("stage", ""),
+		LostReason:        req.GetString("lost_reason", ""),
 		Description:       req.GetString("description", ""),
 	}
 	if argPresent(req, "expected_amount") {
@@ -146,7 +149,7 @@ func handleOpportunityChangeStage(ctx context.Context, req mcp.CallToolRequest) 
 	if id == 0 || toStage == "" {
 		return resultError("商机ID(id)和目标阶段(to_stage)必填")
 	}
-	if err := svc.ChangeStage(ctx, id, toStage, userIDFromContext(ctx), req.GetString("reason", "")); err != nil {
+	if err := svc.ChangeStage(ctx, id, toStage, userIDFromContext(ctx), req.GetString("reason", ""), req.GetString("lost_reason", "")); err != nil {
 		return resultError(fmt.Sprintf("变更阶段失败: %v", err))
 	}
 	return resultText(map[string]any{"message": "商机阶段已变更", "id": id, "to_stage": toStage})

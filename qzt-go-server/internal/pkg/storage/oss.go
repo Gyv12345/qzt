@@ -25,17 +25,20 @@ type OSSConfig struct {
 	PrivateCustomDomain string // 私有桶自定义域名(一般留空,签名 URL 直接走 OSS 源站)
 	MaxBytes            int64
 	AllowedTypes        map[string]string
+	// Region OSS 地域(cn-guangzhou 等),signature_version=v4 时必填。
+	Region           string
+	SignatureVersion string // 请求签名版本(v1/v4,空=v1 兼容默认;阿里云新账号默认禁 V1,须配 v4)
 }
 
 // OSS 阿里云 OSS 存储实现（双桶）。
 type OSS struct {
-	bucket             *oss.Bucket // 公共桶
-	privateBucket      *oss.Bucket // 私有桶(为 nil 表示未配置)
-	customDomain       string
+	bucket              *oss.Bucket // 公共桶
+	privateBucket       *oss.Bucket // 私有桶(为 nil 表示未配置)
+	customDomain        string
 	privateCustomDomain string
-	maxBytes           int64
-	allowedTypes       map[string]string
-	now                func() time.Time
+	maxBytes            int64
+	allowedTypes        map[string]string
+	now                 func() time.Time
 }
 
 // NewOSS 创建阿里云 OSS 存储实例。私有桶为空时 privateBucket=nil(私有功能降级)。
@@ -43,9 +46,17 @@ func NewOSS(cfg OSSConfig) (*OSS, error) {
 	if cfg.Endpoint == "" || cfg.AccessKeyID == "" || cfg.AccessKeySecret == "" || cfg.BucketName == "" {
 		return nil, fmt.Errorf("oss config incomplete: endpoint/access_key/bucket required")
 	}
-	client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
+	// 签名版本:v1 兼容默认;v4 用于阿里云新账号(默认禁 V1),需同时给 Region。
+	opts := make([]oss.ClientOption, 0, 1)
+	if strings.EqualFold(cfg.SignatureVersion, "v4") {
+		opts = append(opts, oss.AuthVersion(oss.AuthV4))
+	}
+	client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("create oss client: %w", err)
+	}
+	if cfg.Region != "" {
+		client.SetRegion(cfg.Region)
 	}
 	bucket, err := client.Bucket(cfg.BucketName)
 	if err != nil {
@@ -388,8 +399,10 @@ func (s *OSS) buildURL(objectKey string) string {
 	if s.customDomain != "" {
 		return s.customDomain + "/" + objectKey
 	}
-	// 默认格式: https://{bucket}.{endpoint}/{key}
-	return fmt.Sprintf("https://%s.%s/%s", s.bucket.BucketName, s.bucket.Client.Config.Endpoint, objectKey)
+	// 默认格式: https://{bucket}.{endpoint}/{key};endpoint 可能带协议头,剥掉再拼
+	host := strings.TrimPrefix(strings.TrimPrefix(s.bucket.Client.Config.Endpoint, "https://"), "http://")
+	host = strings.TrimSuffix(host, "/")
+	return fmt.Sprintf("https://%s.%s/%s", s.bucket.BucketName, host, objectKey)
 }
 
 // resolveFolder 与 Local 逻辑一致(日期目录或自定义目录校验)。

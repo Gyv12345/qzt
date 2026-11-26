@@ -123,7 +123,7 @@ function TriggerNodeView(props: NodeProps) {
       border: '2px solid #b7eb8f', textAlign: 'center', fontSize: 13,
     }}>
       <div><ThunderboltOutlined style={{ color: '#52c41a' }} /> <b>{d.name || '触发器'}</b></div>
-      <div style={{ color: '#999', fontSize: 11, marginTop: 4 }}>{truncHint(hint, 26)}</div>
+      <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12, marginTop: 4 }}>{truncHint(hint, 26)}</div>
       <NodeHandles />
     </div>
   )
@@ -141,7 +141,7 @@ function ActionNodeView(props: NodeProps) {
       <div>
         {actionIcon(action)} <b>{d.name || '动作'}</b>
       </div>
-      <div style={{ color: '#999', fontSize: 11, marginTop: 4 }}>{truncHint(actionLabel(action), 28)}</div>
+      <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12, marginTop: 4 }}>{truncHint(actionLabel(action), 28)}</div>
       <NodeHandles />
     </div>
   )
@@ -157,7 +157,7 @@ function ConditionNodeView(props: NodeProps) {
       border: '2px solid #ffe58f', textAlign: 'center', fontSize: 13,
     }}>
       <div><NodeIndexOutlined style={{ color: '#faad14' }} /> <b>{d.name || '条件'}</b></div>
-      <div style={{ color: '#999', fontSize: 11, marginTop: 4 }}>{branches.length} 分支 + 兜底</div>
+      <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12, marginTop: 4 }}>{branches.length} 分支 + 兜底</div>
       <NodeHandles />
     </div>
   )

@@ -216,8 +216,12 @@ func (s *ContractService) Change(ctx context.Context, id uint, req *ContractChan
 
 // ListChanges 变更记录列表(倒序,带操作人姓名)。
 func (s *ContractService) ListChanges(ctx context.Context, id uint) ([]crrepo.ContractChangeView, error) {
-	if _, err := s.repo.GetByID(ctx, id); err != nil {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
 		return nil, repository.NotFoundOr(err, "合同不存在")
+	}
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return nil, err
 	}
 	return s.changeRepo.ListByContract(ctx, id)
 }
@@ -227,6 +231,9 @@ func (s *ContractService) Archive(ctx context.Context, id, operatorID uint) erro
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return repository.NotFoundOr(err, "合同不存在")
+	}
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return err
 	}
 	if c.Stage != crmmodel.ContractStageCompleted && c.Stage != crmmodel.ContractStageTerminated {
 		return errors.New("仅已完成/已终止的合同可归档")
@@ -240,7 +247,9 @@ func (s *ContractService) Unarchive(ctx context.Context, id uint) error {
 	if err != nil {
 		return repository.NotFoundOr(err, "合同不存在")
 	}
-	_ = c // 存在性校验;清空归档字段不区分阶段(归档态才需要,幂等)
+	if err := checkOwnerScope(ctx, c.OwnerID); err != nil {
+		return err
+	}
 	return s.repo.Unarchive(ctx, id)
 }
 

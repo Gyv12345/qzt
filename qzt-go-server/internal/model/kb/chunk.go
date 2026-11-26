@@ -21,8 +21,8 @@ type KbChunk struct {
 	VectorDim int `json:"vector_dim" gorm:"not null;default:0;comment:向量维度"`
 	// ready=已向量化可用 failed=向量化失败（重建索引重放）
 	Status string `json:"status" gorm:"size:16;not null;default:ready;comment:ready/failed"`
-	// 向量化失败原因摘要
-	ErrMsg string `json:"error" gorm:"size:255;not null;default:'';comment:失败原因摘要"`
+	// 向量化失败原因摘要（DDL 列名为 error,显式指定列名避免 GORM 默认映射成 err_msg）
+	ErrMsg string `json:"error" gorm:"column:error;size:255;not null;default:'';comment:失败原因摘要"`
 	// 切片字符数
 	CharCount int `json:"char_count" gorm:"not null;default:0;comment:切片字符数"`
 	CreatedAt xtime.DateTime `json:"created_at" gorm:"autoCreateTime"`

@@ -173,14 +173,15 @@ func (h *OpportunityHandler) ChangeStage(c *gin.Context) {
 		return
 	}
 	var req struct {
-		Stage  string `json:"stage" binding:"required"`
-		Reason string `json:"reason"`
+		Stage      string `json:"stage" binding:"required"`
+		Reason     string `json:"reason"`
+		LostReason string `json:"lost_reason"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Fail(c, errcode.ErrParam, "参数错误: "+err.Error())
 		return
 	}
-	if err := h.svc.ChangeStage(c.Request.Context(), uint(id), req.Stage, middleware.GetUserID(c), req.Reason); err != nil {
+	if err := h.svc.ChangeStage(c.Request.Context(), uint(id), req.Stage, middleware.GetUserID(c), req.Reason, req.LostReason); err != nil {
 		response.Fail(c, errcode.ErrServer, err.Error())
 		return
 	}

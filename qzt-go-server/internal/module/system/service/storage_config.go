@@ -115,7 +115,7 @@ func toItem(c *model.SysStorageConfig) *StorageConfigItem {
 		ResourceDomain:         c.ResourceDomain,
 		DownloadPrefix:         c.DownloadPrefix,
 		OSSEndpoint:            c.OSSEndpoint,
-		OSSAccessKeyID:         c.OSSAccessKeyID,
+		OSSAccessKeyID:         MaskSecret(c.OSSAccessKeyID),
 		OSSAccessKeySecret:     MaskSecret(c.OSSAccessKeySecret),
 		OSSBucketName:          c.OSSBucketName,
 		OSSCustomDomain:        c.OSSCustomDomain,
@@ -127,7 +127,7 @@ func toItem(c *model.SysStorageConfig) *StorageConfigItem {
 		S3DomainPublic:         c.S3DomainPublic,
 		S3BucketPrivate:        c.S3BucketPrivate,
 		S3DomainPrivate:        c.S3DomainPrivate,
-		S3AccessKey:            c.S3AccessKey,
+		S3AccessKey:            MaskSecret(c.S3AccessKey),
 		S3SecretKey:            MaskSecret(c.S3SecretKey),
 		S3PathStyle:            c.S3PathStyle,
 		CreatedAt:              c.CreatedAt.Time(),
@@ -204,7 +204,6 @@ func (s *StorageConfigService) Update(ctx context.Context, id uint, req *SaveSto
 	cfg.ResourceDomain = req.ResourceDomain
 	cfg.DownloadPrefix = req.DownloadPrefix
 	cfg.OSSEndpoint = req.OSSEndpoint
-	cfg.OSSAccessKeyID = req.OSSAccessKeyID
 	cfg.OSSBucketName = req.OSSBucketName
 	cfg.OSSCustomDomain = req.OSSCustomDomain
 	cfg.OSSPrivateBucketName = req.OSSPrivateBucketName
@@ -217,23 +216,36 @@ func (s *StorageConfigService) Update(ctx context.Context, id uint, req *SaveSto
 	cfg.S3DomainPrivate = req.S3DomainPrivate
 	cfg.S3AccessKey = req.S3AccessKey
 	cfg.S3PathStyle = req.S3PathStyle
-	// 密钥:脱敏值(****开头)保留原值,明文值才覆盖(与 oauth_config 空串不改的口径对齐)
+	// 密钥(含 AK):脱敏值(****开头)或空串保留原值不覆盖,明文值才覆盖(与 oauth_config 空串不改的口径对齐)。
+	// AK 曾因不在此保护内被「只改名称的保存」清空,导致启动校验失败(2026-11-26 事故)。
+	if v := unmaskSecret(req.OSSAccessKeyID); v != "" {
+		cfg.OSSAccessKeyID = v
+	}
 	if v := unmaskSecret(req.OSSAccessKeySecret); v != "" {
 		cfg.OSSAccessKeySecret = v
+	}
+	if v := unmaskSecret(req.S3AccessKey); v != "" {
+		cfg.S3AccessKey = v
 	}
 	if v := unmaskSecret(req.S3SecretKey); v != "" {
 		cfg.S3SecretKey = v
 	}
 	fields := []string{"Name", "Driver", "MaxUploadMB", "Remark",
 		"LocalPath", "PrivatePath", "ResourceDomain", "DownloadPrefix",
-		"OSSEndpoint", "OSSAccessKeyID", "OSSBucketName", "OSSCustomDomain",
+		"OSSEndpoint", "OSSBucketName", "OSSCustomDomain",
 		"OSSPrivateBucketName", "OSSPrivateCustomDomain",
 		"S3Endpoint", "S3Region", "S3BucketPublic", "S3DomainPublic",
-		"S3BucketPrivate", "S3DomainPrivate", "S3AccessKey", "S3PathStyle"}
-	if !isMaskedSecret(req.OSSAccessKeySecret) {
+		"S3BucketPrivate", "S3DomainPrivate", "S3PathStyle"}
+	if !isMaskedSecret(req.OSSAccessKeyID) && req.OSSAccessKeyID != "" {
+		fields = append(fields, "OSSAccessKeyID")
+	}
+	if !isMaskedSecret(req.OSSAccessKeySecret) && req.OSSAccessKeySecret != "" {
 		fields = append(fields, "OSSAccessKeySecret")
 	}
-	if !isMaskedSecret(req.S3SecretKey) {
+	if !isMaskedSecret(req.S3AccessKey) && req.S3AccessKey != "" {
+		fields = append(fields, "S3AccessKey")
+	}
+	if !isMaskedSecret(req.S3SecretKey) && req.S3SecretKey != "" {
 		fields = append(fields, "S3SecretKey")
 	}
 	return s.repo.Update(ctx, cfg, fields...)

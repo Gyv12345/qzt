@@ -92,7 +92,7 @@ export default function ChangeLogPanel({
                     <Typography.Text type="secondary" delete>
                       {c.old_value || '(空)'}
                     </Typography.Text>
-                    <span style={{ margin: '0 4px', color: '#999' }}>→</span>
+                    <span style={{ margin: '0 4px', color: 'var(--ant-color-text-tertiary)' }}>→</span>
                     <Typography.Text>{c.new_value || '(空)'}</Typography.Text>
                   </span>
                 </div>

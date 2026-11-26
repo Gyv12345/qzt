@@ -50,7 +50,7 @@ function InstanceNode({ data }: NodeProps<Node<GraphNodeData>>) {
         animation: data.state === 'current' ? 'approvalCurrentPulse 1.6s ease-in-out infinite' : undefined,
       }}
     >
-      <Handle type="target" position={Position.Top} style={{ background: '#fff' }} />
+      <Handle type="target" position={Position.Top} style={{ background: 'var(--ant-color-bg-container)' }} />
       <div style={{ fontSize: 10, opacity: 0.85 }}>{style.label}</div>
       <div>{data.name}</div>
       {data.approverText && (
@@ -58,7 +58,7 @@ function InstanceNode({ data }: NodeProps<Node<GraphNodeData>>) {
           <Tooltip title={data.approverText}>{data.approverText}</Tooltip>
         </div>
       )}
-      <Handle type="source" position={Position.Bottom} style={{ background: '#fff' }} />
+      <Handle type="source" position={Position.Bottom} style={{ background: 'var(--ant-color-bg-container)' }} />
     </div>
   )
 }

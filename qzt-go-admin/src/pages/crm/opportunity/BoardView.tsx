@@ -1,4 +1,5 @@
 import { Button, Card, Col, Dropdown, Empty, Row, Space, Spin, Tag } from 'antd'
+import Auth from '../../../components/Auth'
 import type { CrmOpportunity, StageDef } from '../../../types/crm'
 
 interface BoardViewProps {
@@ -31,7 +32,7 @@ export default function BoardView({ stages, board, loading, customerMap, onEdit,
                 title={
                   <Space size={8}>
                     <Tag color={stage.color}>{stage.label}</Tag>
-                    <span style={{ color: '#999' }}>{items.length}</span>
+                    <span style={{ color: 'var(--ant-color-text-tertiary)' }}>{items.length}</span>
                   </Space>
                 }
               >
@@ -39,7 +40,7 @@ export default function BoardView({ stages, board, loading, customerMap, onEdit,
                   {items.map((o) => (
                     <Card key={o.id} size="small" hoverable onClick={() => onEdit(o)}>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>{o.name}</div>
-                      <div style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                      <div style={{ color: 'var(--ant-color-text-secondary)', fontSize: 12, marginBottom: 8 }}>
                         {customerMap[o.customer_id] ?? `#${o.customer_id}`}
                       </div>
                       <div
@@ -50,31 +51,50 @@ export default function BoardView({ stages, board, loading, customerMap, onEdit,
                         }}
                       >
                         <span>{o.expected_amount ? `¥${o.expected_amount}` : '-'}</span>
-                        <span style={{ color: '#666', fontSize: 12 }}>
+                        <span style={{ color: 'var(--ant-color-text-secondary)', fontSize: 12 }}>
                           {o.probability !== null && o.probability !== undefined
                             ? `${o.probability}%`
                             : '-'}
                         </span>
-                        <Dropdown
-                          menu={{
-                            items: stages
-                              .filter((s) => s.key !== o.stage)
-                              .map((s) => ({ key: s.key, label: `流转到 ${s.label}` })),
-                            onClick: ({ key, domEvent }) => {
-                              domEvent.stopPropagation()
-                              onStageChange(o, key)
-                            },
-                          }}
-                        >
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{ padding: 0 }}
-                            onClick={(e) => e.stopPropagation()}
+                        <Auth perm="crm:opportunity:edit">
+                          <Dropdown
+                            menu={{
+                              items: stages
+                                .filter((s) => s.key !== o.stage)
+                                .map((s) => ({ key: s.key, label: `流转到 ${s.label}` })),
+                              onClick: ({ key, domEvent }) => {
+                                domEvent.stopPropagation()
+                                onStageChange(o, key)
+                              },
+                            }}
                           >
-                            流转
-                          </Button>
-                        </Dropdown>
+                            <Button
+                              type="link"
+                              size="small"
+                              style={{ padding: 0 }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              流转
+                            </Button>
+                          </Dropdown>
+                        </Auth>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginTop: 8,
+                          color: 'var(--ant-color-text-secondary)',
+                          fontSize: 12,
+                        }}
+                      >
+                        <span>
+                          停留 {o.days_in_stage === null || o.days_in_stage === undefined
+                            ? '未记录'
+                            : `${o.days_in_stage} 天`}
+                        </span>
+                        {o.is_stagnant ? <Tag color="warning" style={{ marginInlineEnd: 0 }}>停滞</Tag> : <span>-</span>}
                       </div>
                     </Card>
                   ))}

@@ -134,7 +134,7 @@ export default function WorkflowRunPage() {
                     </Space>
                     {t.error && <div style={{ color: '#ff4d4f', fontSize: 12 }}>{t.error}</div>}
                     {t.output && (
-                      <pre style={{ margin: '4px 0 0', whiteSpace: 'pre-wrap', fontSize: 12, color: '#666', maxWidth: 460 }}>
+                      <pre style={{ margin: '4px 0 0', whiteSpace: 'pre-wrap', fontSize: 12, color: 'var(--ant-color-text-secondary)', maxWidth: 460 }}>
                         {JSON.stringify(t.output, null, 2)}
                       </pre>
                     )}

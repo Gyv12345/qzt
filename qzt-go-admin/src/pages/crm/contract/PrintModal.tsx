@@ -123,7 +123,7 @@ export default function PrintModal({ contractId, onClose }: PrintModalProps) {
             </ReactMarkdown>
           </div>
         ) : (
-          <div style={{ color: '#999', textAlign: 'center', padding: 40 }}>
+          <div style={{ color: 'var(--ant-color-text-tertiary)', textAlign: 'center', padding: 40 }}>
             请选择模板预览渲染结果
           </div>
         )}

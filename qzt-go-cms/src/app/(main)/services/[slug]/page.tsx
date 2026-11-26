@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { SERVICES, getService } from "@/lib/services";
 import { SITE } from "@/lib/site";
 import { PageHeader } from "@/components/PageHeader";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -109,19 +110,14 @@ export default async function ServicePage({ params }: Props) {
           ))}
 
           <h2 className="mt-12 text-xl font-bold text-strong">常见问题</h2>
-          <div className="mt-4 flex flex-col gap-3">
+          <Accordion type="single" collapsible className="mt-4 flex flex-col gap-3">
             {service.faqs.map((f) => (
-              <details key={f.q} className="group glass rounded-xl px-6 py-4 transition-colors hover:border-brand-400/50">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium [&::-webkit-details-marker]:hidden">
-                  <h3 className="text-base font-semibold">{f.q}</h3>
-                  <span className="shrink-0 text-muted transition-transform group-open:rotate-45" aria-hidden="true">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted">{f.a}</p>
-              </details>
+              <AccordionItem key={f.q} value={f.q}>
+                <AccordionTrigger>{f.q}</AccordionTrigger>
+                <AccordionContent className="whitespace-pre-line">{f.a}</AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
 
           <div className="glass mt-10 rounded-xl px-6 py-5">
             <p className="text-sm leading-7 text-muted">

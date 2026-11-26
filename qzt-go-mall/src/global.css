@@ -230,6 +230,9 @@ a {
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(15, 76, 129, 0.3);
 }
+.cat-chip:active {
+  transform: scale(0.95);
+}
 
 /* ── 商品卡 ── */
 .goods-grid {
@@ -319,7 +322,7 @@ a {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
   width: min(452px, calc(100% - 24px));
   background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
   color: #fff;
@@ -342,6 +345,7 @@ a {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   padding: 10px 14px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   display: flex;
   align-items: center;
@@ -449,4 +453,84 @@ a {
 }
 .md-body img {
   max-width: 100%;
+}
+
+/* ── 营销:优惠券卡 ── */
+.coupon-banner {
+  position: relative;
+  overflow: hidden;
+  margin: 12px 12px 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-700) 100%);
+  color: #fff;
+}
+.coupon-banner::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -40px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* 券卡:左面额 + 分隔虚线 + 右信息(面额/门槛/状态) */
+.coupon-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.05), rgba(217, 119, 6, 0.1));
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.coupon-card-lg {
+  padding: 16px;
+}
+.coupon-face {
+  display: flex;
+  align-items: baseline;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 64px;
+  justify-content: center;
+}
+.coupon-divider {
+  width: 0;
+  align-self: stretch;
+  border-left: 1px dashed rgba(217, 119, 6, 0.4);
+  flex-shrink: 0;
+}
+
+/* ── 营销:促销价划线原价 ── */
+.price-strike {
+  color: var(--ink-3);
+  font-size: 11px;
+  text-decoration: line-through;
+}
+
+/* ── 我的:账号头部 ── */
+.mine-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px 12px 0;
+  padding: 20px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand-600) 0%, var(--brand-800) 100%);
+}
+.mine-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-300), var(--brand-500));
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 0 16px rgba(89, 157, 214, 0.5);
+  flex-shrink: 0;
 }

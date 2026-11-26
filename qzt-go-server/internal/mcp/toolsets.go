@@ -97,6 +97,54 @@ func ValidToolset(key string) bool {
 	return false
 }
 
+// ── 对话工具发现(P34 悬浮球两段式) ──
+
+// ChatToolsetMeta 对话侧可见的模块级工具组元信息。
+type ChatToolsetMeta struct {
+	Key   string `json:"key"`
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+// ChatToolsets 返回模块级工具组目录(含各组实时工具数),供对话模型两段式发现。
+func ChatToolsets(ctx context.Context) []ChatToolsetMeta {
+	counts := make(map[string]int)
+	for _, t := range ListChatTools(ctx) {
+		counts[toolPrefix(t.Name)]++
+	}
+	metas := make([]ChatToolsetMeta, 0, len(toolsetCatalog))
+	for _, ts := range toolsetCatalog {
+		metas = append(metas, ChatToolsetMeta{Key: ts.Key, Name: ts.Name, Count: counts[ts.Key]})
+	}
+	return metas
+}
+
+// ListChatToolsBySet 返回某工具组(key)下的全部工具定义;key 无效返回空。
+func ListChatToolsBySet(ctx context.Context, key string) []mcp.Tool {
+	var prefixes []string
+	for _, ts := range toolsetCatalog {
+		if ts.Key == key {
+			prefixes = ts.Prefixes
+			break
+		}
+	}
+	if prefixes == nil {
+		return nil
+	}
+	allowed := make(map[string]bool, len(prefixes))
+	for _, p := range prefixes {
+		allowed[p] = true
+	}
+	all := ListChatTools(ctx)
+	out := make([]mcp.Tool, 0, len(all))
+	for _, t := range all {
+		if allowed[toolPrefix(t.Name)] {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 // toolPrefix 取工具名第一段(crm_customer_list → "crm")。
 func toolPrefix(name string) string {
 	if i := strings.Index(name, "_"); i > 0 {

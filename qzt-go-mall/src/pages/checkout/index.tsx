@@ -1,17 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Input, TextArea } from 'antd-mobile'
-import { createOrder } from '../../services/mall'
+import { Button, Form, Input, Popup, TextArea } from 'antd-mobile'
+import { RightOutline } from 'antd-mobile-icons'
+import { createOrder, listMyCoupons } from '../../services/mall'
 import { useCartStore, cartTotal } from '../../stores/cart'
+import { useUserStore } from '../../stores/user'
+import type { UserCouponItem } from '../../types/mall'
 
-/** 确认下单:收货信息表单 → 提交 → 展示订单号 */
+/** 确认下单:收货信息表单 + 选券 → 提交 → 展示订单号 */
 export default function Checkout() {
   const navigate = useNavigate()
   const { items, clear } = useCartStore()
+  const token = useUserStore((s) => s.token)
   const [submitting, setSubmitting] = useState(false)
-  const [done, setDone] = useState<{ orderNo: string; amount: string } | null>(null)
+  const [done, setDone] = useState<{ orderNo: string; amount: string; discount: number } | null>(null)
   const total = cartTotal(items)
   const [form] = Form.useForm()
+  const [myCoupons, setMyCoupons] = useState<UserCouponItem[]>([])
+  const [selectedCoupon, setSelectedCoupon] = useState<UserCouponItem | null>(null)
+  const [couponPopup, setCouponPopup] = useState(false)
+
+  // 已登录时拉取本人券包,结算页筛出可用券
+  useEffect(() => {
+    if (!token) return
+    listMyCoupons()
+      .then(setMyCoupons)
+      .catch(() => undefined)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  /** 可用券:未使用且满减门槛 <= 当前合计 */
+  const usableCoupons = useMemo(
+    () => myCoupons.filter((c) => c.status === 1 && Number(c.threshold) <= total),
+    [myCoupons, total],
+  )
+  const discount = selectedCoupon ? Number(selectedCoupon.discount) : 0
+  const payable = Math.max(total - discount, 0)
 
   if (done) {
     return (
@@ -26,8 +50,13 @@ export default function Checkout() {
             </svg>
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, marginTop: 14, color: 'var(--ink)' }}>下单成功</div>
+          {done.discount > 0 && (
+            <div style={{ color: 'var(--accent)', fontSize: 13, marginTop: 8, fontWeight: 600 }}>
+              优惠券已抵扣 ¥{done.discount.toFixed(2)}
+            </div>
+          )}
           <div style={{ color: 'var(--ink-3)', fontSize: 13, marginTop: 6 }}>
-            合计 ¥{done.amount},商家确认后将联系您安排发货
+            应付 ¥{done.amount},商家确认后将联系您安排发货
           </div>
           <div className="order-no-box">{done.orderNo}</div>
           <div style={{ color: 'var(--ink-3)', fontSize: 12, marginTop: 8 }}>请保存订单号,可用于查询进度</div>
@@ -93,8 +122,113 @@ export default function Checkout() {
           ))}
           <div style={{ textAlign: 'right', marginTop: 10, paddingTop: 10, borderTop: '1px dashed var(--line)', fontSize: 14 }}>
             合计 <span className="price" style={{ fontSize: 22 }}>¥{total.toFixed(2)}</span>
+            {selectedCoupon && (
+              <>
+                <div style={{ marginTop: 4, fontSize: 13, color: 'var(--accent)' }}>
+                  优惠券抵扣 <span style={{ fontWeight: 700 }}>-¥{discount.toFixed(2)}</span>
+                </div>
+                <div style={{ marginTop: 2 }}>
+                  应付 <span className="price" style={{ fontSize: 20 }}>¥{payable.toFixed(2)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
+
+        {/* 优惠券入口:已登录可选券;匿名给一行小字提示 */}
+        {token ? (
+          <>
+            <div
+              className="card"
+              style={{ display: 'flex', alignItems: 'center', padding: '14px 14px', cursor: 'pointer' }}
+              onClick={() => setCouponPopup(true)}
+            >
+              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>优惠券</span>
+              <div style={{ flex: 1 }} />
+              <span style={{ fontSize: 13, marginRight: 6, color: selectedCoupon ? 'var(--accent)' : 'var(--ink-3)' }}>
+                {usableCoupons.length === 0
+                  ? '暂无可用券'
+                  : selectedCoupon
+                    ? `-¥${discount.toFixed(2)}(满¥${Number(selectedCoupon.threshold).toFixed(0)})`
+                    : `${usableCoupons.length} 张可用`}
+              </span>
+              <RightOutline fontSize={12} color="#93a0b8" />
+            </div>
+
+            <Popup
+              visible={couponPopup}
+              onMaskClick={() => setCouponPopup(false)}
+              bodyStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: '70vh', overflowY: 'auto' }}
+            >
+              <div style={{ padding: 16 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 12 }}>选择优惠券</div>
+                <div
+                  className="coupon-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    setSelectedCoupon(null)
+                    setCouponPopup(false)
+                  }}
+                >
+                  <div style={{ flex: 1, fontSize: 14, color: 'var(--ink)' }}>不使用优惠券</div>
+                  {!selectedCoupon && <span style={{ color: 'var(--brand-500)', fontSize: 18, fontWeight: 700 }}>✓</span>}
+                </div>
+                {usableCoupons.map((c) => (
+                  <div
+                    key={c.id}
+                    className="coupon-card"
+                    style={{ marginTop: 10, cursor: 'pointer' }}
+                    onClick={() => {
+                      setSelectedCoupon(c)
+                      setCouponPopup(false)
+                    }}
+                  >
+                    <div className="coupon-face">
+                      <span style={{ fontSize: 12 }}>¥</span>
+                      <span style={{ fontSize: 22, fontWeight: 800 }}>{Number(c.discount).toFixed(0)}</span>
+                    </div>
+                    <div className="coupon-divider" />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{c.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>
+                        满 ¥{Number(c.threshold).toFixed(0)} 可用 · 有效期至 {c.end_at}
+                      </div>
+                    </div>
+                    {selectedCoupon?.id === c.id && (
+                      <span style={{ color: 'var(--brand-500)', fontSize: 18, fontWeight: 700 }}>✓</span>
+                    )}
+                  </div>
+                ))}
+                {usableCoupons.length === 0 && (
+                  <div style={{ textAlign: 'center', color: 'var(--ink-3)', fontSize: 13, padding: '16px 0 8px' }}>
+                    当前合计不满券门槛,或暂无未使用券
+                  </div>
+                )}
+                <div style={{ marginTop: 12, textAlign: 'center' }}>
+                  <Button
+                    block
+                    fill="none"
+                    size="small"
+                    onClick={() => {
+                      setCouponPopup(false)
+                      navigate('/coupons')
+                    }}
+                    style={{ '--text-color': 'var(--brand-500)' } as never}
+                  >
+                    去领券中心看更多 ›
+                  </Button>
+                </div>
+              </div>
+            </Popup>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-3)', padding: '2px 0' }}>
+            <a style={{ color: 'var(--brand-500)' }} onClick={() => navigate('/login', { state: { from: '/checkout' } })}>
+              登录
+            </a>
+            后可使用优惠券
+          </div>
+        )}
 
         <div className="card">
           <div className="card-title">收货信息</div>
@@ -110,11 +244,16 @@ export default function Checkout() {
                   contact_phone: String(values.contact_phone || ''),
                   address: String(values.address || ''),
                   remark: values.remark ? String(values.remark) : undefined,
+                  coupon_no: token && selectedCoupon ? selectedCoupon.coupon_no : undefined,
                 })
                 clear()
-                setDone({ orderNo: res.order_no, amount: Number(res.total_amount).toFixed(2) })
+                setDone({
+                  orderNo: res.order_no,
+                  amount: Number(res.total_amount).toFixed(2),
+                  discount: Number(res.discount_amount ?? 0),
+                })
               } catch {
-                // 拦截器已 Toast
+                // 拦截器已 Toast(券失效/门槛不足等)
               } finally {
                 setSubmitting(false)
               }

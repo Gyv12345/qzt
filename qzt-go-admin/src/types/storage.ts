@@ -90,7 +90,8 @@ export interface StorageConfigPayload {
   s3_domain_private?: string
   s3_access_key?: string
   s3_secret_key?: string
-  s3_path_style?: boolean
+  /** 保存时发 tinyint 0/1 */
+  s3_path_style?: boolean | number
 }
 
 /** 存储文件列表项(GET /system/storage/files) */

@@ -127,7 +127,7 @@ export default function ReceivablePage() {
         destroyOnHidden
       >
         {settleTarget && (
-          <div style={{ marginBottom: 16, color: '#666' }}>
+          <div style={{ marginBottom: 16, color: 'var(--ant-color-text-secondary)' }}>
             往来方:{settleTarget.party_name} | 原始:¥{Number(settleTarget.original_amount).toFixed(2)} |
             已结:¥{Number(settleTarget.settled_amount).toFixed(2)} |
             剩余:¥{(Number(settleTarget.original_amount) - Number(settleTarget.settled_amount)).toFixed(2)}

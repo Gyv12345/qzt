@@ -418,6 +418,35 @@ export interface TianyanchaConfigPayload {
   daily_limit?: number
 }
 
+// ---------- 通讯录同步(钉钉/飞书) ----------
+
+/** 后端同步统计摘要原始形态(GET /enterprise/contact-sync/{platform}/status) */
+export interface ContactSyncResultRaw {
+  platform: string
+  finished_at: string
+  depts_created: number
+  depts_updated: number
+  depts_disabled: number
+  users_updated: number
+  users_bound: number
+  users_created: number
+  users_disabled: number
+  op_errors: number
+  error?: string
+}
+
+/** 通讯录同步状态(页面统一形态,由 ContactSyncResultRaw 映射而来) */
+export interface ContactSyncStatus {
+  /** 平台:dingtalk / feishu */
+  platform: string
+  /** 最近一次同步时间 */
+  last_run_time: string
+  /** success 已完成 / running 进行中 / failed 失败(后端无 running 标记,当前仅 success/failed) */
+  status: 'success' | 'running' | 'failed'
+  /** 同步结果摘要(如 成员:新增x/更新y) */
+  summary: string
+}
+
 // ---------- 站点信息(网站基础元数据) ----------
 
 /** 系统版本信息(GET /system/version,免鉴权) */
@@ -443,6 +472,8 @@ export interface SysSiteConfig {
   modules_badge: string
   modules_title: string
   modules_desc: string
+  testimonials_json: string
+  hero_shot_url: string
   cta_title: string
   cta_highlight: string
   cta_subtitle: string
@@ -479,6 +510,8 @@ export interface UpdateSiteConfigRequest {
   modules_badge?: string
   modules_title?: string
   modules_desc?: string
+  testimonials_json?: string
+  hero_shot_url?: string
   cta_title?: string
   cta_highlight?: string
   cta_subtitle?: string

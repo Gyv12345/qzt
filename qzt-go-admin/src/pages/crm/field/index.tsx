@@ -87,7 +87,7 @@ export default function CrmFieldPage() {
         .field-preview-item:hover .field-actions,
         .field-preview-item.is-selected .field-actions { opacity: 1; }
         .field-type-tile { transition: all .15s; }
-        .field-type-tile:hover { border-color: #1677ff !important; color: #1677ff !important; background: #e6f4ff !important; }
+        .field-type-tile:hover { border-color: var(--ant-color-primary) !important; color: var(--ant-color-primary) !important; background: var(--ant-color-primary-bg) !important; }
       `}</style>
 
       <Tabs

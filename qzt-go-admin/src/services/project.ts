@@ -48,6 +48,12 @@ export const createTask = (data: {
   assignee_id?: number
   priority?: number
   due_date?: string
+  /** 开始日期 YYYY-MM-DD(可空,P33 甘特图) */
+  start_date?: string
+  /** 进度 0-100 */
+  progress?: number
+  /** 里程碑:0 普通 / 1 里程碑 */
+  is_milestone?: 0 | 1
 }) => request.post<unknown, ProjTask>('/project/tasks', data)
 
 export const updateTask = (id: number, data: {
@@ -58,6 +64,9 @@ export const updateTask = (id: number, data: {
   priority?: number
   sort_order?: number
   due_date?: string
+  start_date?: string
+  progress?: number
+  is_milestone?: 0 | 1
 }) => request.put(`/project/tasks/${id}`, data)
 
 export const updateTaskStatus = (id: number, status: number) =>

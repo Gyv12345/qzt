@@ -188,7 +188,7 @@ func (s *TodoService) ListTodo(ctx context.Context, page, pageSize int, userID u
 
 // ListProcessed 已办列表。
 func (s *TodoService) ListProcessed(ctx context.Context, page, pageSize int, userID uint) ([]enrichedTask, int64, error) {
-	tasks, total, err := s.taskRepo.PageByApprover(ctx, page, pageSize, userID, "")
+	tasks, total, err := s.taskRepo.PageDoneByApprover(ctx, page, pageSize, userID)
 	if err != nil {
 		return nil, total, err
 	}

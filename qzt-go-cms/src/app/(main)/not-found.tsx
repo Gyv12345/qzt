@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
@@ -11,12 +12,9 @@ export default function NotFound() {
         </p>
         <h1 className="mt-4 font-display text-2xl font-semibold text-strong">页面未找到</h1>
         <p className="mt-2 text-muted">您访问的页面不存在或已被移除。</p>
-        <Link
-          href="/"
-          className="mt-8 inline-block rounded-lg bg-gradient-to-r from-brand-500 to-brand-700 px-6 py-3 text-sm font-semibold text-white no-underline shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
-        >
-          返回首页
-        </Link>
+        <Button asChild className="mt-8">
+          <Link href="/">返回首页</Link>
+        </Button>
       </div>
     </section>
   );

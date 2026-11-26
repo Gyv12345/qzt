@@ -35,11 +35,11 @@ var extensionPattern = regexp.MustCompile(`^\.[A-Za-z0-9]{1,10}$`)
 
 // LocalConfig 本地存储配置（双桶：公共目录 + 私有目录）。
 type LocalConfig struct {
-	Directory        string            // 公共目录(nginx 静态 serve)
-	PrivateDirectory string            // 私有目录(后端代理鉴权访问,nginx 不直接 serve);留空则退化到 Directory
-	PublicURL        string            // 公共资源访问域名(拼接公共文件 URL)
-	SignSecret       string            // 私有文件代理下载 URL 的签名密钥(一般用 JWT secret)
-	DownloadPrefix   string            // 私有文件代理下载 URL 前缀;留空默认 /api/file/dl
+	Directory        string // 公共目录(nginx 静态 serve)
+	PrivateDirectory string // 私有目录(后端代理鉴权访问,nginx 不直接 serve);留空则退化到 Directory
+	PublicURL        string // 公共资源访问域名(拼接公共文件 URL)
+	SignSecret       string // 私有文件代理下载 URL 的签名密钥(一般用 JWT secret)
+	DownloadPrefix   string // 私有文件代理下载 URL 前缀;留空默认 /api/file/dl
 	MaxBytes         int64
 	AllowedTypes     map[string]string
 }
@@ -57,11 +57,11 @@ type UploadedFile struct {
 }
 
 type Local struct {
-	directory      string            // 公共目录绝对路径
-	privateDir     string            // 私有目录绝对路径(为空则退化到 directory)
-	publicURL      string            // 公共资源访问域名
-	signSecret     string            // 私有文件代理下载 URL 签名密钥
-	downloadPrefix string            // 私有文件代理下载 URL 前缀
+	directory      string // 公共目录绝对路径
+	privateDir     string // 私有目录绝对路径(为空则退化到 directory)
+	publicURL      string // 公共资源访问域名
+	signSecret     string // 私有文件代理下载 URL 签名密钥
+	downloadPrefix string // 私有文件代理下载 URL 前缀
 	maxBytes       int64
 	allowedTypes   map[string]string
 	now            func() time.Time
@@ -469,7 +469,9 @@ func (s *Local) List(prefix string, maxKeys int) ([]MediaObject, error) {
 		maxKeys = 200
 	}
 	trimmed := strings.Trim(strings.ReplaceAll(prefix, `\`, "/"), "/")
-	if trimmed == ".." || strings.HasPrefix(trimmed, "../") {
+	// 与 Delete/resolveFolder 同口径:除前缀 ../ 外,中段 ../ 与 ./ 段一并拒绝,
+	// 防止下方 Join 的 Clean 把路径向上带出公共目录(路径穿越)。
+	if trimmed != "" && (trimmed == ".." || strings.HasPrefix(trimmed, "../") || path.Clean(trimmed) != trimmed) {
 		return nil, ErrInvalidFolder
 	}
 	root := filepath.Join(s.directory, filepath.FromSlash(trimmed))

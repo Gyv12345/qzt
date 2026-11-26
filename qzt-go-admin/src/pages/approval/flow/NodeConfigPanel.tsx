@@ -383,7 +383,7 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
                   </div>
                 )}
                 {!fieldsLoading && fields.length === 0 && (
-                  <div style={{ color: '#999', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
+                  <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
                     该表单暂无可配置的字段
                   </div>
                 )}
@@ -392,7 +392,7 @@ export default function NodeConfigPanel({ node, formType, formKey, onChange }: N
           )}
 
           {!isApprover && !isCondition && !isStart && (
-            <div style={{ color: '#999', fontSize: 12, textAlign: 'center', padding: 12 }}>
+            <div style={{ color: 'var(--ant-color-text-tertiary)', fontSize: 12, textAlign: 'center', padding: 12 }}>
               该节点类型无可配置属性
             </div>
           )}

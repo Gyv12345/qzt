@@ -76,5 +76,5 @@ func (r *TaskRepo) DeleteByProject(ctx context.Context, projectID uint) error {
 }
 
 func (r *TaskRepo) Update(ctx context.Context, m *projmodel.ProjTask) error {
-	return r.BaseRepo.Update(ctx, m, "Title", "Description", "AssigneeID", "Status", "Priority", "SortOrder", "DueDate", "DoneAt")
+	return r.BaseRepo.Update(ctx, m, "Title", "Description", "AssigneeID", "Status", "Priority", "SortOrder", "DueDate", "StartDate", "Progress", "IsMilestone", "DoneAt")
 }

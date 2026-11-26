@@ -38,8 +38,67 @@ func (d *UserRepo) GetTokenVersion(ctx context.Context, id uint) (int, error) {
 }
 
 // Update writes only base columns; Roles is managed by SetRoles.
+// ExternalID/IDSource/Username/Remark 由通讯录同步(P32)经 SyncUpdate 专用方法写入。
 func (d *UserRepo) Update(ctx context.Context, user *model.SysUser) error {
 	return d.BaseRepo.Update(ctx, user, "Nickname", "DeptID", "LeaderID", "Email", "Phone", "Avatar", "Status", "Password", "TokenVersion", "WecomUserID")
+}
+
+// SyncUpdate 通讯录同步专用更新列(含外部绑定与备注;用户名允许手机号口径写入)。
+func (d *UserRepo) SyncUpdate(ctx context.Context, user *model.SysUser) error {
+	return d.BaseRepo.Update(ctx, user, "Nickname", "DeptID", "Email", "Phone", "Avatar", "Status", "ExternalID", "IDSource", "Remark", "Username")
+}
+
+// GetByExternalID 按 (来源平台, 外部平台ID) 精确匹配用户(通讯录对账/扫码登录)。
+func (d *UserRepo) GetByExternalID(ctx context.Context, source, externalID string) (*model.SysUser, error) {
+	var user model.SysUser
+	if err := dbFrom(ctx).Preload("Roles").
+		Where("id_source = ? AND external_id = ?", source, externalID).
+		First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetByPhone 按手机号精确匹配用户(通讯录/扫码自动建号前的查重;任意状态,
+// 同号多行优先启用中的最早账号,避免误绑废弃号)。
+func (d *UserRepo) GetByPhone(ctx context.Context, phone string) (*model.SysUser, error) {
+	var user model.SysUser
+	if err := dbFrom(ctx).Preload("Roles").
+		Where("phone = ? AND phone <> ''", phone).
+		Order("status DESC, id ASC").
+		First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// ListByIDSource 列出绑定某平台全部用户(通讯录全量对账:找消失人员用)。
+func (d *UserRepo) ListByIDSource(ctx context.Context, source string) ([]model.SysUser, error) {
+	var users []model.SysUser
+	if err := dbFrom(ctx).
+		Where("id_source = ?", source).
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+// GetUsernamesByList 用户名批量查重(同步新建 username=手机号被占用时的兜底判重)。
+func (d *UserRepo) GetUsernamesByList(ctx context.Context, usernames []string) (map[string]struct{}, error) {
+	set := make(map[string]struct{}, len(usernames))
+	if len(usernames) == 0 {
+		return set, nil
+	}
+	var rows []string
+	if err := dbFrom(ctx).Model(&model.SysUser{}).
+		Where("username IN ?", usernames).
+		Pluck("username", &rows).Error; err != nil {
+		return nil, err
+	}
+	for _, u := range rows {
+		set[u] = struct{}{}
+	}
+	return set, nil
 }
 
 // UpdateStatus 显式更新账号状态。

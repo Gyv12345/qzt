@@ -170,7 +170,7 @@ export default function FormDataPage() {
                 <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }}>
                   <FormOutlined style={{ fontSize: 24, color: '#1677ff' }} />
                   <span style={{ fontWeight: 500 }}>{t.name}</span>
-                  {t.description && <span style={{ fontSize: 12, color: '#999' }}>{t.description}</span>}
+                  {t.description && <span style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)' }}>{t.description}</span>}
                 </Space>
               </Card>
             </Col>

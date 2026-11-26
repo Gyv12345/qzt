@@ -38,6 +38,14 @@ cd "${SRC_DIR}"
 step "npm install ..."
 npm install --no-audit --no-fund
 
+# 清掉 Next fetch 缓存(仅 .next/cache/fetch-cache, 保留 webpack 缓存与 next/font 字体缓存):
+# CMS 内容(DB/cms_page 等)变更后构建时, 旧 fetch 缓存会让 getPage 命中上次构建的旧响应,
+# 新内容烤不进静态页(2026-11-18 /p/demo 加管理员账号时实测复现)。内容变更后必须发布新数据。
+if [ -d "${SRC_DIR}/.next/cache/fetch-cache" ]; then
+  step "rm fetch-cache (stale getPage data trap) ..."
+  rm -rf "${SRC_DIR}/.next/cache/fetch-cache"
+fi
+
 step "npm run build (output:export -> out/) ..."
 # 走 package.json 的 build 脚本:storefront 的 EXPORT_STATIC=1 开关在脚本里内置
 npm run build

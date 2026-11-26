@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	buyerauth "qzt-go-server/internal/module/mall/buyerauth"
 	"qzt-go-server/internal/module/mall/service"
 	syserrcode "qzt-go-server/internal/module/system/errcode"
 	response "qzt-go-server/pkg/xresponse"
@@ -38,13 +39,13 @@ func (h *OrderHandler) PublicGoods(c *gin.Context) {
 	response.OK(c, list)
 }
 
-// PublicCreateOrder 商城下单(公开)
+// PublicCreateOrder 商城下单(公开,可携带买家 token 用券)
 // @Summary  商城下单(公开)
-// @Description  免登录下单:校验上架商品、按 standard_price 快照计价;自动创建/复用散客客户并生成 PSI 销售单(无默认仓库时跳过,后台可补生成)。每 IP 每分钟限 5 单
+// @Description  免登录可下单;携带买家 token 时按限时特价/优惠券计价(匿名传券码报错)。自动创建/复用散客客户并生成 PSI 销售单(无默认仓库时跳过,后台可补生成)。每 IP 每分钟限 5 单
 // @Tags     商城公开
 // @Accept   json
 // @Produce  json
-// @Param    body  body  service.CreateOrderRequest  true  "下单请求"
+// @Param    body  body  service.CreateOrderRequest  true  "下单请求(coupon_no 可选,需登录买家)"
 // @Success  200  {object}  xresponse.Response
 // @Router   /mall/public/orders [post]
 func (h *OrderHandler) PublicCreateOrder(c *gin.Context) {
@@ -57,7 +58,7 @@ func (h *OrderHandler) PublicCreateOrder(c *gin.Context) {
 		response.Fail(c, syserrcode.ErrServer, "下单过于频繁,请稍后再试")
 		return
 	}
-	result, err := h.svc.CreateOrder(c.Request.Context(), &req)
+	result, err := h.svc.CreateOrder(c.Request.Context(), &req, buyerauth.GetBuyerID(c))
 	if err != nil {
 		response.Fail(c, syserrcode.ErrServer, err.Error())
 		return

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Stepper, Toast } from 'antd-mobile'
+import { Button, Skeleton, Stepper, Toast } from 'antd-mobile'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { listGoods } from '../../services/mall'
 import { useCartStore } from '../../stores/cart'
 import { isMultiSpec, type MallGoods } from '../../types/mall'
+import { BoxIcon } from '../../components/icons'
 
 /** 商品详情:大图/价格/规格/数量,加入购物车或立即购买 */
 export default function GoodsDetail() {
@@ -34,12 +35,24 @@ export default function GoodsDetail() {
     () => (goods?.skus ?? []).find((s) => s.id === skuId) ?? null,
     [goods, skuId],
   )
-  const price = sku?.price ?? goods?.standard_price
+  // 活动价:商品级 promo_price 作用于标准价场景(未选规格或所选规格即标准价),规格价不被活动覆盖
+  const promoActive = !!goods?.promo_price && (!sku || Number(sku.price) === Number(goods.standard_price))
+  const price = promoActive ? goods!.promo_price! : (sku?.price ?? goods?.standard_price)
   const inStock = sku ? sku.in_stock : goods?.in_stock
   const image = sku?.image_url || goods?.image_url
   const total = useMemo(() => (price ? (Number(price) * quantity).toFixed(2) : '0.00'), [price, quantity])
 
-  if (loading) return <div className="empty-tip">加载中…</div>
+  if (loading)
+    return (
+      <div className="page">
+        <div style={{ background: '#fff', padding: 14 }}>
+          <Skeleton animated style={{ '--height': 300, '--border-radius': 12 } as never} />
+          <Skeleton animated style={{ '--height': 30, width: '55%', marginTop: 16 } as never} />
+          <Skeleton animated style={{ '--height': 18, width: '40%', marginTop: 10 } as never} />
+          <Skeleton animated style={{ '--height': 18, width: '30%', marginTop: 10 } as never} />
+        </div>
+      </div>
+    )
   if (!goods) return <div className="empty-tip">商品不存在或已下架</div>
 
   /** 加入购物车/立即购买前置:多规格必须已选规格 */
@@ -76,7 +89,7 @@ export default function GoodsDetail() {
           {image ? (
             <img src={image} alt={goods.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <span style={{ fontSize: 72 }}>📦</span>
+            <BoxIcon size={72} />
           )}
         </div>
 
@@ -84,6 +97,7 @@ export default function GoodsDetail() {
           <span className="price" style={{ fontSize: 26 }}>
             ¥{Number(price).toFixed(2)}
           </span>
+          {promoActive && <span className="price-strike">¥{Number(goods.original_price).toFixed(2)}</span>}
           <span className="price-unit" style={{ fontSize: 12 }}>
             /{goods.unit || '件'}
           </span>

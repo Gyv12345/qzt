@@ -11,6 +11,7 @@ import (
 
 	geo "qzt-go-server/internal/model/geo"
 	"qzt-go-server/internal/pkg/llm"
+	"qzt-go-server/internal/pkg/textguard"
 	georepo "qzt-go-server/internal/repository/geo"
 	"qzt-go-server/pkg/xlogger"
 )
@@ -24,16 +25,7 @@ import (
 //
 // 降级契约：LLM 未配置或质检失败 → qc_status=none 跳过质检走现流程，产线不被阻断。
 
-// 极限词表（广告法高风险词，命中即 blocked）。纯本地预检，覆盖最高频的高危词。
-var bannedWords = []string{
-	"国家级", "世界级", "最高级", "最佳", "最好", "最强", "最优", "最大", "最高",
-	"第一品牌", "全网第一", "销量第一", "排名第一", "NO.1", "no.1", "TOP1",
-	"绝对", "独家", "首创", "独家秘方", "万能", "100%", "百分之百",
-	"永久", "彻底根除", "根治", "秒杀", "国家级产品",
-}
-
-// bannedWordRe 极限词匹配（运行时编译一次）。
-var bannedWordRe = regexp.MustCompile(strings.Join(bannedWords, "|"))
+// 极限词表已抽到 internal/pkg/textguard 与 AI 跟进草稿共用(本模块命中即 blocked)。
 
 // qcDimensions LLM 语义质检维度（本地极限词之外的语义层检查）。
 var qcDimensions = []string{
@@ -106,17 +98,9 @@ func decideQCStatus(localBan []string, dims []QCDimensionResult) string {
 }
 
 // scanBannedWords 纯函数：正文极限词本地预检，返回命中的词（去重）。
+// 词表与匹配在 internal/pkg/textguard（与 AI 跟进草稿共用一份）。
 func scanBannedWords(content string) []string {
-	hits := bannedWordRe.FindAllString(content, -1)
-	seen := make(map[string]struct{}, len(hits))
-	out := make([]string, 0, len(hits))
-	for _, w := range hits {
-		if _, ok := seen[w]; !ok {
-			seen[w] = struct{}{}
-			out = append(out, w)
-		}
-	}
-	return out
+	return textguard.ScanBanned(content)
 }
 
 // ErrQCSkipped 质检跳过（LLM 不可用/调用失败/结果不可解析）——稿件保持 qc_status=none，

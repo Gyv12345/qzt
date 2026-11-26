@@ -12,8 +12,8 @@
   width: 240px;
   max-height: calc(100vh - 160px);
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #f0f0f0;
+  background: var(--ant-color-bg-container);
+  border: 1px solid var(--ant-color-split);
   border-radius: 8px;
   padding: 8px 0;
   position: sticky;
@@ -24,8 +24,8 @@
   padding: 6px 16px 10px;
   font-weight: 600;
   font-size: 14px;
-  color: #1f1f1f;
-  border-bottom: 1px solid #f0f0f0;
+  color: var(--ant-color-text);
+  border-bottom: 1px solid var(--ant-color-split);
   margin-bottom: 6px;
 }
 

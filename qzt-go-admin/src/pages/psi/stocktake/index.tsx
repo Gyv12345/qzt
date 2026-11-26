@@ -288,7 +288,7 @@ function StocktakeDetailDrawer({
             style={{ width: '100%' }}
           />
         ) : (
-          it.actual_qty ?? <span style={{ color: '#999' }}>未盘</span>
+          it.actual_qty ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>未盘</span>
         ),
     },
     { title: '差异', dataIndex: 'diff_qty', width: 90 },

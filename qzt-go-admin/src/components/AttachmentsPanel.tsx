@@ -119,30 +119,33 @@ export default function AttachmentsPanel({
 
   const columns: ColumnsType<Attachment> = [
     {
-      title: '文件名',
+      title: '附件名称',
       dataIndex: 'file_name',
+      width: 260, // 无 width 的列在此表格会被吞掉(实测), 必须显式设宽
       ellipsis: true,
       render: (name: string, record) => (
-        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => handleDownload(record)}>
-          {name}
-        </Button>
+        <Space size={6}>
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => handleDownload(record)}>
+            {name || '-'}
+          </Button>
+          <Tag color={record.visibility === 'public' ? 'green' : 'orange'} style={{ marginRight: 0 }}>
+            {record.visibility === 'public' ? '公共' : '私有'}
+          </Tag>
+        </Space>
       ),
+    },
+    {
+      title: '类型',
+      dataIndex: 'content_type',
+      width: 130,
+      ellipsis: true,
+      render: (ct: string) => formatContentType(ct),
     },
     {
       title: '大小',
       dataIndex: 'size',
       width: 90,
       render: (size: number) => formatSize(size),
-    },
-    {
-      title: '类型',
-      dataIndex: 'visibility',
-      width: 80,
-      render: (v: string) => (
-        <Tag color={v === 'public' ? 'green' : 'orange'}>
-          {v === 'public' ? '公共' : '私有'}
-        </Tag>
-      ),
     },
     {
       title: '上传人',
@@ -215,6 +218,7 @@ export default function AttachmentsPanel({
         columns={columns}
         dataSource={list}
         pagination={false}
+        scroll={{ x: 820 }} // 容器窄于列宽合计时出横向滚动条, 避免列被裁切
         locale={{
           emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无附件" />,
         }}
@@ -229,4 +233,33 @@ function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+/** content_type → 可读类型名(常见类型映射,未命中按大类/原文显示)。 */
+function formatContentType(ct?: string): string {
+  if (!ct) return '-'
+  const MAP: Record<string, string> = {
+    'image/jpeg': 'JPEG 图片',
+    'image/png': 'PNG 图片',
+    'image/gif': 'GIF 图片',
+    'image/webp': 'WebP 图片',
+    'image/svg+xml': 'SVG 图片',
+    'application/pdf': 'PDF 文档',
+    'application/zip': 'ZIP 压缩包',
+    'application/x-zip-compressed': 'ZIP 压缩包',
+    'application/msword': 'Word 文档',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word 文档',
+    'application/vnd.ms-excel': 'Excel 表格',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel 表格',
+    'application/vnd.ms-powerpoint': 'PPT 演示',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPT 演示',
+    'text/plain': '文本文件',
+    'text/csv': 'CSV 表格',
+  }
+  if (MAP[ct]) return MAP[ct]
+  if (ct.startsWith('image/')) return `图片(${ct.slice(6).toUpperCase()})`
+  if (ct.startsWith('video/')) return `视频(${ct.slice(6).toUpperCase()})`
+  if (ct.startsWith('audio/')) return `音频(${ct.slice(6).toUpperCase()})`
+  if (ct === 'application/octet-stream') return '二进制文件'
+  return ct
 }

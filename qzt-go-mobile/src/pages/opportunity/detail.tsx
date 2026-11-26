@@ -8,14 +8,16 @@ import {
   getOpportunityStageHistory,
   getStageConfig,
 } from '../../services/crm'
+import { listAllDicts } from '../../services/system'
 import type { CrmOpportunity, StageDef, StageRecord } from '../../types/crm'
 import { useAuthStore } from '../../stores/auth'
 import OpportunityFormSheet from '../../components/OpportunityFormSheet'
+import FormSheet, { type FormField } from '../../components/FormSheet'
 
 // 本地兜底阶段映射(stage-config 拉取失败时用)
 const STAGE_TEXT: Record<string, string> = {
   PROSPECTING: '初步接触',
-  QUALIFIED: '需求确认',
+  ANALYSIS: '需求分析',
   PROPOSAL: '方案报价',
   NEGOTIATION: '谈判',
   WON: '赢单',
@@ -23,7 +25,7 @@ const STAGE_TEXT: Record<string, string> = {
 }
 const STAGE_COLOR: Record<string, string> = {
   PROSPECTING: 'default',
-  QUALIFIED: 'primary',
+  ANALYSIS: 'primary',
   PROPOSAL: 'primary',
   NEGOTIATION: 'warning',
   WON: 'success',
@@ -32,6 +34,13 @@ const STAGE_COLOR: Record<string, string> = {
 
 const formatAmount = (v?: string) =>
   Number(v || '0').toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+const formatTime = (value?: string | null) => (value ? value.replace('T', ' ').slice(0, 16) : '未记录')
+
+interface DictOption {
+  label: string
+  value: string
+}
 
 export default function OpportunityDetail() {
   const navigate = useNavigate()
@@ -43,12 +52,38 @@ export default function OpportunityDetail() {
   const [failed, setFailed] = useState(false)
   const [acting, setActing] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
+  const [lostTarget, setLostTarget] = useState<StageDef | null>(null)
+  const [lostReasonOptions, setLostReasonOptions] = useState<DictOption[]>([])
 
   // stage-config 构建 key->label/color 映射
   const stageMap: Record<string, { label: string; color: string }> = {}
   for (const s of stages) stageMap[s.key] = { label: s.label, color: s.color || 'primary' }
   const stageLabel = (key: string) => stageMap[key]?.label || STAGE_TEXT[key] || key
   const stageColor = (key: string) => stageMap[key]?.color || STAGE_COLOR[key] || 'default'
+  const currentStage = data ? stages.find((s) => s.key === data.stage) : undefined
+  const lostReasonLabel = (value: string) =>
+    lostReasonOptions.find((option) => option.value === value)?.label || value
+
+  const loadLostReasonOptions = async () => {
+    const dicts = await listAllDicts()
+    const options = (dicts.find((dict) => dict.code === 'OPPORTUNITY_LOST_REASON')?.items || [])
+      .filter((item) => item.status === 1)
+      .sort((a, b) => a.sort - b.sort)
+      .map((item) => ({ label: item.label, value: item.value }))
+    setLostReasonOptions(options)
+    return options
+  }
+
+  const lostFields: FormField[] = [
+    {
+      name: 'lost_reason',
+      label: '输单原因',
+      type: 'select',
+      required: true,
+      options: lostReasonOptions,
+    },
+    { name: 'reason', label: '补充说明', type: 'textarea', placeholder: '选填，记录本次输单的具体情况' },
+  ]
 
   const reload = () => {
     if (!id) return
@@ -72,6 +107,7 @@ export default function OpportunityDetail() {
         setStages(arr)
       })
       .catch(() => {})
+    loadLostReasonOptions().catch(() => {})
   }, [id])
 
   if (failed) {
@@ -96,7 +132,23 @@ export default function OpportunityDetail() {
     )
   }
 
-  // 推进阶段:列出其他阶段供选择
+  const openLostSheet = async (target: StageDef) => {
+    setActing(true)
+    try {
+      const options = lostReasonOptions.length > 0 ? lostReasonOptions : await loadLostReasonOptions()
+      if (options.length === 0) {
+        Toast.show({ content: '暂未配置输单原因，请联系管理员' })
+        return
+      }
+      setLostTarget(target)
+    } catch {
+      // 字典加载错误由 request 拦截器 Toast
+    } finally {
+      setActing(false)
+    }
+  }
+
+  // 推进阶段:列出其他阶段供选择;输单必须先填写字典原因
   const onAdvance = () => {
     const others = stages.filter((s) => s.key !== data.stage)
     if (others.length === 0) {
@@ -108,16 +160,32 @@ export default function OpportunityDetail() {
       cancelText: '取消',
       onAction: (_item, index) => {
         const target = others[index]
+        if (target.key === 'LOST') {
+          openLostSheet(target)
+          return
+        }
         setActing(true)
         changeOpportunityStage(data.id, { stage: target.key, reason: '移动端推进' })
           .then(() => {
             Toast.show({ icon: 'success', content: '阶段已更新' })
             reload()
           })
-          .catch(() => {})
+          .catch(() => {
+            // 后端 SOP 校验错误由 request 拦截器 Toast
+          })
           .finally(() => setActing(false))
       },
     })
+  }
+
+  const onLostSubmit = async (values: Record<string, any>) => {
+    if (!lostTarget) return
+    await changeOpportunityStage(data.id, {
+      stage: lostTarget.key,
+      lost_reason: values.lost_reason,
+      reason: values.reason || undefined,
+    })
+    reload()
   }
 
   // 删除商机
@@ -185,6 +253,39 @@ export default function OpportunityDetail() {
           <span style={{ flex: 1, fontSize: 14 }}>{stageLabel(data.stage)}</span>
         </div>
         <div style={{ display: 'flex', padding: '14px 0', borderBottom: '1px solid var(--divider)' }}>
+          <span style={{ width: 90, color: 'var(--text-tertiary)', fontSize: 14, flexShrink: 0 }}>进入阶段</span>
+          <span style={{ flex: 1, fontSize: 14 }}>{formatTime(data.stage_entered_at)}</span>
+        </div>
+        <div style={{ display: 'flex', padding: '14px 0', borderBottom: '1px solid var(--divider)' }}>
+          <span style={{ width: 90, color: 'var(--text-tertiary)', fontSize: 14, flexShrink: 0 }}>停留天数</span>
+          <span style={{ flex: 1, fontSize: 14 }}>
+            {data.days_in_stage != null ? `${data.days_in_stage} 天` : '未记录'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', padding: '14px 0', borderBottom: '1px solid var(--divider)', alignItems: 'center' }}>
+          <span style={{ width: 90, color: 'var(--text-tertiary)', fontSize: 14, flexShrink: 0 }}>阶段状态</span>
+          <Tag color={data.is_stagnant ? 'danger' : 'success'} fill="outline">
+            {data.is_stagnant ? '已停滞' : '正常'}
+          </Tag>
+          {data.is_stagnant && currentStage?.stagnant_days != null && (
+            <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
+              超过 {currentStage.stagnant_days} 天未流转
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', padding: '14px 0', borderBottom: '1px solid var(--divider)' }}>
+          <span style={{ width: 90, color: 'var(--text-tertiary)', fontSize: 14, flexShrink: 0 }}>阶段说明</span>
+          <span style={{ flex: 1, fontSize: 14, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {currentStage?.guidance || '暂无阶段说明'}
+          </span>
+        </div>
+        {data.lost_reason && (
+          <div style={{ display: 'flex', padding: '14px 0', borderBottom: '1px solid var(--divider)' }}>
+            <span style={{ width: 90, color: 'var(--text-tertiary)', fontSize: 14, flexShrink: 0 }}>输单原因</span>
+            <span style={{ flex: 1, fontSize: 14 }}>{lostReasonLabel(data.lost_reason)}</span>
+          </div>
+        )}
+        <div style={{ display: 'flex', padding: '14px 0', borderBottom: '1px solid var(--divider)' }}>
           <span style={{ width: 90, color: 'var(--text-tertiary)', fontSize: 14, flexShrink: 0 }}>成交概率</span>
           <span style={{ flex: 1, fontSize: 14 }}>{data.probability != null ? `${data.probability}%` : '—'}</span>
         </div>
@@ -220,11 +321,18 @@ export default function OpportunityDetail() {
             {history.map((h) => (
               <List.Item
                 key={h.id}
-                description={<span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{h.created_at?.slice(0, 16)}</span>}
+                description={
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formatTime(h.created_at)}</span>
+                }
               >
                 <span style={{ fontSize: 13 }}>
                   {h.from_stage ? stageLabel(h.from_stage) : '新建'} → <strong>{stageLabel(h.to_stage)}</strong>
                 </span>
+                {h.lost_reason && (
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    输单原因：{lostReasonLabel(h.lost_reason)}
+                  </div>
+                )}
                 {h.reason && <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{h.reason}</div>}
               </List.Item>
             ))}
@@ -237,6 +345,14 @@ export default function OpportunityDetail() {
         onClose={() => setShowEdit(false)}
         opportunity={data}
         onSubmitted={reload}
+      />
+
+      <FormSheet
+        visible={lostTarget != null}
+        title="确认输单"
+        fields={lostFields}
+        onClose={() => setLostTarget(null)}
+        onSubmit={onLostSubmit}
       />
     </div>
   )
